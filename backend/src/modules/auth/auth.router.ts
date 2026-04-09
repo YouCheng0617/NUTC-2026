@@ -5,6 +5,6 @@ export function authRouter() {
 
     // Define your authentication routes here
     router.post('/login', authController.login);
-
+    router.post('/register', authController.register);
     return router;
 }
