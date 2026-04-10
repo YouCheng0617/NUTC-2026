@@ -1,5 +1,5 @@
 import prisma from "../../lib/prisma.js";
-import { singHelper } from "../../lib/singHelper.js";
+import { signHelper } from "../../lib/signHelper.js";
 
 export const createMember = async (MemberData: any) => {
     /*檢查email有無重複*/
@@ -19,7 +19,7 @@ export const createMember = async (MemberData: any) => {
         if (isNaN(birthday.getTime())) {
             throw new Error("生日格式錯誤，請使用有效的日期格式!");
         } else {
-            MemberData.constellation = singHelper(birthday);
+            MemberData.constellation = signHelper(birthday);
         }
     }
 
