@@ -35,3 +35,5 @@
 ```bash
 # 同步資料庫結構並產生遷移紀錄 (Migration)
 npx prisma migrate dev
+
+* **安全性規範**：所有使用者密碼嚴禁明文存入資料庫，必須使用 `bcrypt` 進行雜湊處理後方可儲存。
