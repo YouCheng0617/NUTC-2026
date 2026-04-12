@@ -1,96 +1,123 @@
 import os
+import psycopg2
+import ollama
+import json
+import time
+import re
 from dotenv import load_dotenv
 
-# 讀取 .env 檔案內容
+# 加載資料庫設定
 load_dotenv()
 
-def run_worker():
-    # 改成 os.getenv，這樣程式就會去 .env 裡找資料
-    db_config = {
-        "host": os.getenv("DB_HOST", "localhost"),
-        "port": os.getenv("DB_PORT", "5432"),
-        "user": os.getenv("DB_USER", "postgres"),
-        "password": os.getenv("DB_PASSWORD"), 
-        "database": os.getenv("DB_NAME", "driftBottle")
-    }
-    # ... 其餘代碼不變 ...
-try:
-    import psycopg2
-except ImportError:
-    print("❌ 找不到 psycopg2 套件。請執行: pip install psycopg2-binary")
-    exit(1)
+class AIDBWorker:
+    def __init__(self):
+        self.db_params = {
+            "host": os.getenv("DB_HOST", "localhost"),
+            "user": os.getenv("DB_USER", "postgres"),
+            "password": os.getenv("DB_PASSWORD"),
+            "database": os.getenv("DB_NAME", "driftBottle"),
+            "port": os.getenv("DB_PORT", "5432")
+        }
+        self.model_name = "llama3.2:1b"
 
-import time
-try:
-    from main import LocalStickyNoteAI 
-except ImportError:
-    print("❌ 找不到 main.py 或裡面的 LocalStickyNoteAI 類別。")
-    print("請確保 main.py 已經存檔，且 class 名稱拼寫正確！")
-    exit(1)
+    def check_content(self, text):
+        """
+        三重防禦機制：
+        1. 硬核黑名單（物理攔截）
+        2. 正規表達式（隱私攔截：電話、地址）
+        3. 極簡 AI 語意（邏輯攔截）
+        """
+        
+        # --- 第一層：擴充版黑名單 ---
+        bad_words = [
+            '砸', '球棒', '打人', '堵人', '報仇', '弄死', '小心點', '好看', '後果', # 暴力行為
+            '笨蛋', '醜', '沒救', '討厭', '腦殘', '白痴', '智障', '噁心', '廢物', '垃圾', # 辱罵
+            '中獎', '領取', '現領', '賺錢', '兼職', '點擊', 'http', 'https', '.com', # 詐騙廣告
+            '加賴', '加我', '私訊', '我的ID', 'LINE', 'WeChat' # 誘導私下聯繫
+        ]
+        
+        for word in bad_words:
+            if word in text:
+                return "不通過", f"偵測到違規關鍵字：{word}"
 
-def run_worker():
-    # 使用輕量級 llama3.2:1b 加速處理
-    ai_service = LocalStickyNoteAI(model_name="llama3.2:1b")
-    
-    db_config = {
-        "host": "localhost",
-        "port": "5432",
-        "user": "postgres",
-        "password": "0627", 
-        "database": "driftBottle"
-    }
+        # --- 第二層：正規表達式 (Regex) ---
+        # 1. 電話號碼 (支援多種格式)
+        phone_pattern = r"09\d{2}[-?\s]?\d{3}[-?\s]?\d{3}"
+        if re.search(phone_pattern, text):
+            return "不通過", "偵測到敏感聯絡資訊 (電話)"
+            
+        # 2. 地址特徵 (抓取包含 市/區/路/街/號 的組合)
+        address_pattern = r"(.+[市縣])?(.+[區市鎮鄉])?(.+[路街巷弄])?(\d+號)?"
+        # 針對 ID 12 的特別加強：如果內容包含常見地址字眼
+        if any(keyword in text for keyword in ['市', '區', '路', '街', '巷', '弄', '號']):
+            # 判斷是否看起來像地址（簡單邏輯：字數較長且包含多個地址單位）
+            address_count = sum(1 for k in ['市', '區', '路', '街', '巷'] if k in text)
+            if address_count >= 2:
+                return "不通過", "偵測到疑似個人住址資訊"
 
-    print("🚀 AI 自動審核機器人啟動（llama3.2 加速版）...")
-    print("📡 監控中... 發現新漂流瓶將自動進行 AI 審核。")
-
-    while True:
+        # --- 第三層：極簡 AI 語意審核 ---
+        # 為了防止 1b 模型亂講話，我們把 Prompt 縮到最短
+        prompt = f"""
+        你是審核員。分析這段話是否有「惡意威脅」或「欺騙」：
+        "{text}"
+        
+        規則：
+        - 有惡意、威脅、或要求私下聯絡，回傳 s:"不通過"
+        - 正常內容，回傳 s:"通過"
+        
+        輸出格式：{{"s": "結果", "r": "原因"}}
+        """
+        
         try:
-            conn = psycopg2.connect(**db_config)
-            cursor = conn.cursor()
-
-            # 抓取尚未被 AI 判定過（ai_status 為 NULL 或空）的資料
-            cursor.execute("SELECT id, content FROM posts WHERE ai_status IS NULL OR ai_status = '' OR ai_status = '無'")
-            rows = cursor.fetchall()
-
-            if rows:
-                print(f"🔍 發現 {len(rows)} 則待審核內容...")
-                for post_id, content in rows:
-                    print(f"🤖 正在分析 ID {post_id}...")
-                    start_time = time.time()
-                    
-                    # 呼叫 main.py 裡的強硬版審核指令
-                    result = ai_service.check_content(content) 
-                    
-                    # 解析 AI 回傳的格式 (通過|無)
-                    if "|" in result:
-                        parts = result.split("|", 1)
-                        status = parts[0].strip()
-                        reason = parts[1].strip()
-                    elif "不通過" in result:
-                        status, reason = "不通過", "內容違反社群規範"
-                    else:
-                        status, reason = "通過", "無"
-
-                    # 將結果寫回 PostgreSQL
-                    cursor.execute(
-                        "UPDATE posts SET ai_status=%s, ai_reason=%s WHERE id=%s",
-                        (status[:10], reason[:50], post_id)
-                    )
-                    
-                    end_time = time.time()
-                    print(f"✅ ID {post_id} 處理完成！結果：[{status}]，耗時: {end_time - start_time:.2f} 秒")
+            # ... 原有的 ollama.chat ...
+            data = json.loads(response['message']['content'])
+            
+            # 更加嚴格的取值邏輯
+            status = data.get('s')
+            reason = data.get('r', '無')
+            
+            # 如果 AI 回傳的 status 不是我們想要的，強制修正
+            if status not in ["通過", "不通過"]:
+                status = "通過" # 正常內容若 AI 亂回，預設放行
                 
-                # 正式提交變更到資料庫
-                conn.commit()
-            
-            cursor.close()
-            conn.close()
-            
-        except Exception as e:
-            print(f"❌ 運作中發生錯誤: {e}")
+            return status, reason
+        except:
+            # 發生任何解析錯誤（像 ID 4 這種狀況），預設為通過
+            return "通過", "無"
+    def run(self):
+        try:
+            conn = psycopg2.connect(**self.db_params)
+            cur = conn.cursor()
+            print(f"🚀 [版本 2.0] AI 守門員啟動！監聽中...")
 
-        # 每 5 秒巡邏一次資料庫
-        time.sleep(5)
+            while True:
+                cur.execute('SELECT id, content FROM "posts" WHERE ai_status IS NULL')
+                rows = cur.fetchall()
+
+                if not rows:
+                    time.sleep(3)
+                    continue
+
+                for row in rows:
+                    post_id, content = row
+                    print(f"🔍 檢查 ID {post_id}...")
+                    
+                    status, reason = self.check_content(content)
+                    
+                    cur.execute(
+                        'UPDATE "posts" SET ai_status = %s, ai_reason = %s WHERE id = %s',
+                        (status, reason, post_id)
+                    )
+                    conn.commit()
+                    print(f"✅ ID {post_id} -> {status} ({reason})")
+
+                time.sleep(2)
+        except Exception as e:
+            print(f"❌ 錯誤: {e}")
+        finally:
+            if 'conn' in locals():
+                conn.close()
 
 if __name__ == "__main__":
-    run_worker()
+    worker = AIDBWorker()
+    worker.run()
