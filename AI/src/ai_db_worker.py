@@ -1,3 +1,19 @@
+import os
+from dotenv import load_dotenv
+
+# 讀取 .env 檔案內容
+load_dotenv()
+
+def run_worker():
+    # 改成 os.getenv，這樣程式就會去 .env 裡找資料
+    db_config = {
+        "host": os.getenv("DB_HOST", "localhost"),
+        "port": os.getenv("DB_PORT", "5432"),
+        "user": os.getenv("DB_USER", "postgres"),
+        "password": os.getenv("DB_PASSWORD"), 
+        "database": os.getenv("DB_NAME", "driftBottle")
+    }
+    # ... 其餘代碼不變 ...
 try:
     import psycopg2
 except ImportError:
