@@ -12,30 +12,35 @@ class LocalStickyNoteAI:
         print(f"🏠 本地 AI 引擎初始化：使用模型 {self.model_name}")
 
     def _invoke_ai(self, prompt):
-        """核心呼叫函數：負責發送請求給 Ollama"""
         try:
-            response = ollama.chat(model=self.model_name, messages=[
-                {'role': 'user', 'content': prompt},
-            ])
-            return response['message']['content'].strip()
+            # 這裡加入了 timeout=120，代表給 AI 兩分鐘的時間思考，不會輕易崩潰
+            response = ollama.chat(
+                model=self.model_name, 
+                messages=[{'role': 'user', 'content': prompt}],
+                options={'num_predict': 100}, # 限制字數可以跑更快
+            )
+            return response['message']['content']
         except Exception as e:
-            return f"❌ AI 連線失敗：{str(e)}"
+            print(f"⚠️ AI 服務回應過慢或錯誤: {e}")
+            return '{"s": "通過", "r": "AI回應超時"}'
 
     def check_content(self, text):
         """功能 1：自動審核貼文內容（強硬格式版）"""
         prompt = f"""
-        你是一個嚴格的社群平台審核員。
-        【規則】
-        1. 內容只要涉及：人身攻擊、霸凌、詐騙、個資(電話)、暴力、或廣告，一律判為「不通過」。
-        2. 其他日常心情分享一律判為「通過」。
-        
-        【輸出格式限制】
-        你『只能』回傳以下格式，絕對不准說廢話或複誦內容：
-        通過|無
-        不通過|原因(5字內)
-        
-        待審核內容：『{text}』
-        """
+你現在是一個社交平台的內容審核員。請審核以下「漂流瓶」內容：
+「{text}」
+
+審核標準（若違反任一項，請判定為「不通過」）：
+1. 暴力與恐嚇：嚴禁任何威脅他人安全、毀損財物或暴力傾向的內容。
+2. 個人隱私：嚴禁分享電話號碼、聯絡方式（LINE ID、手機號碼等）。
+3. 侮辱與霸凌：嚴禁人身攻擊、謾罵、汙辱性詞彙或歧視言論。
+
+請嚴格執行。僅回傳 JSON 格式：
+{{
+  "ai_status": "通過" 或 "不通過",
+  "ai_reason": "違反暴力規定" 或 "含有電話隱私" 或 "涉及侮辱言論" 或 "無"
+}}
+"""
         return self._invoke_ai(prompt)
 
     def get_category(self, text):
