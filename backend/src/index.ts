@@ -13,11 +13,22 @@ if (!process.env["DATABASE_URL"]) {
 
 app.get('/test-db', async (req, res) => {
     try {
-        const member = await prisma.member.findMany();
+        const member = await prisma.member.findMany({
+            select: {
+                member_id: true,
+                email: true,
+                name: true,
+                birthday: true,
+                blood_type: true,
+                constellation: true,
+                bio: true,
+            }
+        });
+
         res.json({
-            message: "連線成功",
             data: member
         });
+
     } catch {
         console.error
         res.status(500).json({

@@ -3,12 +3,23 @@ import { signHelper } from "../../lib/signHelper.js";   /*星座計算的工具�
 import { hashPassword, comparePassword } from "../../lib/passWord.js"; /*密碼加密與比對的工具函式*/
 import { generateToken } from "../../lib/LogIn.js"; /*JWT的工具函式*/
 
+
+interface MemberData {
+    email: string;
+    password: string;
+    name: string;
+    birthday?: string;
+    blood_type?: string;
+    constellation?: string;
+    bio?: string;
+}
+
 /*註冊會員的服務函式*/
-export const createMember = async (MemberData: any) => {
+export const createMember = async (memberData: MemberData) => {
     /*檢查email有無重複*/
     const existMember = await prisma.member.findUnique({
         where: {
-            email: MemberData.email,
+            email: memberData.email,
         }
     });
     /*如果有就丟出一個錯誤訊息 */
@@ -17,29 +28,29 @@ export const createMember = async (MemberData: any) => {
     }
 
     let birthday: Date | null = null;
-    if (MemberData.birthday) {
-        birthday = new Date(MemberData.birthday);
+    if (memberData.birthday) {
+        birthday = new Date(memberData.birthday);
         if (isNaN(birthday.getTime())) {
             throw new Error("生日格式錯誤，請使用有效的日期格式!");
         } else {
-            MemberData.constellation = signHelper(birthday);
+            memberData.constellation = signHelper(birthday);
         }
     }
 
     /*將密碼加密橫後再傳入--重要!!*/
-    const hashedPassword = await hashPassword(MemberData.password);
-    MemberData.password = hashedPassword;
+    const hashedPassword = await hashPassword(memberData.password);
+    memberData.password = hashedPassword;
 
     /*寫入資料庫*/
     const newMember = await prisma.member.create({
         data: {
-            email: MemberData.email,
-            password: MemberData.password, /*已定義為加密過的*/
-            name: MemberData.name,
-            birthday: MemberData.birthday ? new Date(MemberData.birthday) : null,
-            blood_type: MemberData.blood_type,
-            constellation: MemberData.constellation,
-            bio: MemberData.bio,
+            email: memberData.email,
+            password: memberData.password, /*已定義為加密過的*/
+            name: memberData.name,
+            birthday: memberData.birthday ? new Date(memberData.birthday) : null,
+            blood_type: memberData.blood_type ?? "",
+            constellation: memberData.constellation ?? "",
+            bio: memberData.bio ?? "",
         }, select: {
             member_id: true,
             email: true,
