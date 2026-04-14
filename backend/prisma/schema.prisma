@@ -24,9 +24,10 @@ model Member {
   blood_type    String? // 血型
   constellation String? // 星座
   created_at    DateTime  @default(now()) // 註冊時間
-
+  logins_failed Int       @default(0) // 登入失敗次數
+  locked_time   DateTime? // 鎖定時間，?=null，表示未鎖定
   // 關聯：一個會員發表多個瓶子
-  bottles Bottle[]
+  bottles       Bottle[]
 }
 
 // 漂流瓶
