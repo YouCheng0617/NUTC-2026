@@ -2,7 +2,7 @@ import jwt, { type SignOptions } from "jsonwebtoken";
 
 /*ts很哭的多載問題*/
 interface JwtPayload {
-    id: number;
+    member_id: number;
     email: string;
 }
 
@@ -17,7 +17,7 @@ export const generateToken = (
     const secret = process.env.JWT_SECRET_KEY || secretKey;
 
     const token = jwt.sign(
-        { id: payload.id, email: payload.email },
+        payload,
         secret,
         { expiresIn: expiresIn }
     )

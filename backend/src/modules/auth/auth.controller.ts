@@ -1,6 +1,6 @@
 import type { Request, Response } from "express";
 import { createMember, loginMember } from "./auth.service.js";
-
+import prisma from "../../lib/prisma.js";
 export class AuthController {
 
     async login(req: Request, res: Response) {
@@ -35,6 +35,23 @@ export class AuthController {
                 message: "註冊失敗",
                 data: String(error)
             });
+        }
+    }
+
+    async logout(req: Request, res: Response) {
+        try {
+            const token = req.headers.authorization?.split(" ")[1] as string;
+            const member_id = (req as any).user?.member_id;
+
+            await prisma.blacklistedToken.create({
+                data: {
+                    token: token,
+                    member_id: member_id!,
+                }
+            });
+            return res.status(200).json({ message: "登出成功" });
+        } catch (error) {
+            return res.status(500).json({ message: "登出過程出了一點小意外" });
         }
     }
 }

@@ -109,7 +109,10 @@ export const loginMember = async (email: string, password: string) => {
         }
     });
 
-    const token = generateToken({ id: member.member_id, email: member.email }, process.env.JWT_SECRET_KEY || "default_secret_key");
+    const token = generateToken(
+        { member_id: member.member_id, email: member.email },
+        process.env.JWT_SECRET_KEY!
+    );
     const { password: _, ...memberWithoutPassword } = member;
 
     return {

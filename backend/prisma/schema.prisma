@@ -13,21 +13,38 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum UserStatus {
+  ACTIVE
+  INACTIVE
+  BANNED
+}
+
 // 會員
 model Member {
-  member_id     Int       @id @default(autoincrement())
-  email         String    @unique // 電子郵件
-  password      String // 密碼
-  name          String // 姓名  
-  birthday      DateTime? // 生日
-  bio           String?   @db.Text // 自介
-  blood_type    String? // 血型
-  constellation String? // 星座
-  created_at    DateTime  @default(now()) // 註冊時間
-  logins_failed Int       @default(0) // 登入失敗次數
-  locked_time   DateTime? // 鎖定時間，?=null，表示未鎖定
+  member_id        Int                @id @default(autoincrement())
+  email            String             @unique // 電子郵件
+  password         String // 密碼
+  name             String // 姓名  
+  birthday         DateTime? // 生日
+  bio              String?            @db.Text // 自介
+  blood_type       String? // 血型
+  constellation    String? // 星座
+  created_at       DateTime           @default(now()) // 註冊時間
+  logins_failed    Int                @default(0) // 登入失敗次數
+  locked_time      DateTime? // 鎖定時間，?=null，表示未鎖定
+  status           UserStatus         @default(ACTIVE) // 帳號狀態
   // 關聯：一個會員發表多個瓶子
-  bottles       Bottle[]
+  bottles          Bottle[]
+  BlacklistedToken BlacklistedToken[]
+}
+
+model BlacklistedToken {
+  id         Int      @id @default(autoincrement())
+  token      String   @unique @db.Text
+  member_id  Int // 外鍵：指向會員
+  created_at DateTime @default(now())
+
+  member Member @relation(fields: [member_id], references: [member_id])
 }
 
 // 漂流瓶

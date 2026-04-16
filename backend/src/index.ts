@@ -2,6 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import { authRouter } from './modules/auth/auth.router.js';
 import prisma from './lib/prisma.js';
+import "dotenv/config";
 const app = express();
 app.use(cors());
 app.use(express.json());
