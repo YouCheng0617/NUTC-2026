@@ -72,15 +72,51 @@ export const loginMember = async (email: string, password: string) => {
         }
     });
 
-    const isPasswordValid = member ? await comparePassword(password, member.password) : false;
-    if (!member || !isPasswordValid) {
-        throw new Error("信箱或密碼錯誤!超過三次登入失敗將鎖定帳號15分鐘!");
+    if (!member) {
+        throw new Error("信箱或密碼錯誤!");
     }
-    const token = generateToken({ id: member.member_id, email: member.email }, process.env.JWT_SECRET_KEY || "default_secret_key");
+
+    /*如果帳號被鎖定*/
+    const nowDate = new Date();
+    if (member.locked_time && member.locked_time > nowDate) {
+        const diffMs = member.locked_time.getTime() - nowDate.getTime();
+        const diffMinutes = Math.ceil(diffMs / (60 * 1000));
+        throw new Error(`帳號暫時鎖定中，請 ${diffMinutes} 分鐘後再試。`);
+    }
+
+    /*比對密碼*/
+    const isPasswordValid = await comparePassword(password, member.password);
+    if (!isPasswordValid) {
+        /*如果密碼錯誤，增加失敗次數*/
+        const failedTimes = (member.logins_failed || 0) + 1;
+
+        await prisma.member.update({
+            where: { member_id: member.member_id },
+            data: {
+                logins_failed: failedTimes,
+                locked_time: failedTimes >= 5 ? new Date(Date.now() + 20 * 60 * 1000) : null, // 5次失敗後鎖定20分鐘
+            }
+        });
+        throw new Error(`帳號或密碼錯誤! 剩餘嘗試次數: ${Math.max(0, 5 - failedTimes)}`);
+    }
+
+    /*登入成功，重置失敗次數和鎖定時間*/
+    await prisma.member.update({
+        where: { member_id: member.member_id },
+        data: {
+            logins_failed: 0,
+            locked_time: null,
+        }
+    });
+
+    const token = generateToken(
+        { member_id: member.member_id, email: member.email },
+        process.env.JWT_SECRET_KEY!
+    );
     const { password: _, ...memberWithoutPassword } = member;
 
     return {
-        massage: "登入成功!",
+        message: "登入成功!",
         member: memberWithoutPassword,
         token: token,
     };
