@@ -3,15 +3,69 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>The test</title>
+    <title>NightCard 論壇</title>
+    <link rel="stylesheet" href="test.css" />
   </head>
 
   <body>
-    <h1>這是測試頁面，你們到時候可以刪掉</h1>
-    <p>Hello, World!</p>
-    <p>蔡孟勳登入</p>
-    <p>劉茂寅登入</p>
-  </body>
+    <header>
+      <div class="logo">NightCard.</div>
+      <div class="search-container">
+        <input
+          type="text"
+          class="search-input"
+          placeholder="🔍 搜尋文章、看板、人物..."
+        />
+      </div>
 
-  <script type="module" src="./test.js"></script>
+      <div class="nav-actions">
+        <button id="login-trigger" class="btn-login">註冊 / 登入</button>
+      </div>
+    </header>
+
+    <div class="container">
+      <aside class="sidebar">
+        <h3>熱門看板</h3>
+        <ul>
+          <li>🔥 綜合閒聊</li>
+          <li>💻 程式開發</li>
+          <li>🍜 美食特搜</li>
+          <li>🎮 遊戲專區</li>
+        </ul>
+      </aside>
+
+      <main class="main-feed" id="post-container"></main>
+
+      <aside class="right-panel">
+        <h3>熱門話題</h3>
+        <div class="tag-cloud">
+          <span class="tag"># AI革命</span>
+          <span class="tag"># 台北美食</span>
+        </div>
+      </aside>
+    </div>
+
+    <div id="login-modal" class="modal">
+      <div class="modal-content">
+        <span class="close-btn" id="close-modal">&times;</span>
+        <h2>歡迎回來</h2>
+
+        <div class="social-login">
+          <button class="btn-google">使用 Google 登入</button>
+        </div>
+
+        <div class="divider"><span>或</span></div>
+
+        <form id="login-form">
+          <input type="email" placeholder="電子郵件" required />
+          <input type="password" placeholder="密碼" required />
+          <button type="submit" class="btn-submit">登入</button>
+        </form>
+
+        <p class="foot-note">還沒有帳號？ <a href="#">立即註冊</a></p>
+      </div>
+    </div>
+
+    <script type="module" src="test.js"></script>
+  </body>
 </html>

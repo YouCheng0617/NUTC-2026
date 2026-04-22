@@ -1,12 +1,14 @@
 import express from 'express';
 import cors from 'cors';
 import { authRouter } from './modules/auth/auth.router.js';
+import { bottleRouter } from './modules/bottle/bottle.router.js';
 import prisma from './lib/prisma.js';
 import "dotenv/config";
 const app = express();
 app.use(cors());
 app.use(express.json());
 app.use('/auth', authRouter());
+app.use('/bottles', bottleRouter());
 
 if (!process.env["DATABASE_URL"]) {
     console.error("DATABASE_URL is not defined in env.");
