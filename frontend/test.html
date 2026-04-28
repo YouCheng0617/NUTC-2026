@@ -11,15 +11,22 @@
     <header>
       <div class="logo">NightCard.</div>
       <div class="search-container">
-        <input
-          type="text"
-          class="search-input"
-          placeholder="🔍 搜尋文章、看板、人物..."
-        />
+        <input type="text" class="search-input" placeholder="🔍 搜尋文章、看板、人物..." />
       </div>
 
       <div class="nav-actions">
         <button id="login-trigger" class="btn-login">註冊 / 登入</button>
+
+        <div id="user-profile" style="display: none; align-items: center; gap: 15px;">
+          <label for="avatar-upload" style="cursor: pointer;" title="點擊更換頭像">
+            <img id="user-avatar" src="https://via.placeholder.com/40" alt="頭像" class="avatar-img">
+          </label>
+          <input type="file" id="avatar-upload" accept="image/*" style="display: none;">
+          
+          <span id="user-name" style="font-weight: bold; color: #fff;"></span>
+          <button id="btn-new-post" class="btn-post">✏️ 發文</button>
+          <button id="logout-btn" class="btn-logout">登出</button>
+        </div>
       </div>
     </header>
 
@@ -49,20 +56,30 @@
       <div class="modal-content">
         <span class="close-btn" id="close-modal">&times;</span>
         <h2>歡迎回來</h2>
-
-        <div class="social-login">
-          <button class="btn-google">使用 Google 登入</button>
-        </div>
-
-        <div class="divider"><span>或</span></div>
-
         <form id="login-form">
           <input type="email" placeholder="電子郵件" required />
           <input type="password" placeholder="密碼" required />
           <button type="submit" class="btn-submit">登入</button>
         </form>
+      </div>
+    </div>
 
-        <p class="foot-note">還沒有帳號？ <a href="#">立即註冊</a></p>
+    <div id="post-modal" class="modal">
+      <div class="modal-content" style="width: 500px; text-align: left;">
+        <span class="close-btn" id="close-post-modal">&times;</span>
+        <h2 style="margin-top: 0; color: #00f2ff;">撰寫新文章</h2>
+        <form id="new-post-form">
+          <select id="post-board" required class="form-input">
+            <option value="" disabled selected>請選擇發文看板...</option>
+            <option value="綜合閒聊">🔥 綜合閒聊</option>
+            <option value="程式開發">💻 程式開發</option>
+            <option value="美食特搜">🍜 美食特搜</option>
+            <option value="遊戲專區">🎮 遊戲專區</option>
+          </select>
+          <input type="text" id="post-title-input" placeholder="文章標題" required class="form-input" />
+          <textarea id="post-content-input" placeholder="請輸入內容..." required class="form-input" style="height: 150px; resize: none;"></textarea>
+          <button type="submit" class="btn-submit">發布文章</button>
+        </form>
       </div>
     </div>
 
