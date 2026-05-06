@@ -1,76 +1,9 @@
-body, html {
-    margin: 0;
-    padding: 0;
-    width: 100%;
-    height: 100%;
-    overflow: hidden;
-    background-color: #6AB7FF; /* 防破圖底色 */
-}
-
-.splash-container {
-    position: relative;
-    width: 100vw;
-    height: 100vh;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    transition: transform 0.6s ease-in-out;
-}
-
-/* 背景圖：鋪滿全螢幕 */
-.bg-img {
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    object-fit: cover; /* 確保背景不變形並鋪滿 */
-    z-index: 1;
-}
-
-/* 中間雙魚：設定固定大小並居中 */
-.fish-img {
-    position: relative;
-    width: 350px; /* 根據設計稿調整大小 */
-    height: auto;
-    z-index: 10;
-}
-
-/* 修改標題圖片大小 */
-.title-img {
-    position: absolute;
-    left: 40px;   /* 離左邊距離 */
-    top: 80px;    /* 離上面距離 */
-    width: 80px;  /* 把這個數值調小（原本可能是 120px），字就會變小 */
-    height: auto;
-    z-index: 10;
-}
-
-/* 如果你想要海星也小一點 */
-.starfish-img {
-    position: absolute;
-    right: 50px;
-    bottom: 50px;
-    width: 150px; /* 調小這個數值 */
-    height: auto;
-    z-index: 5;
-}
-
-/* 下方上滑登入區域 */
-.swipe-area {
-    position: absolute;
-    bottom: 30px;
-    left: 50%;
-    transform: translateX(-50%);
-    text-align: center;
-    cursor: pointer;
-    z-index: 20;
-    transition: 0.3s;
-}
-
-.swipe-area:hover {
-    bottom: 40px; /* 滑鼠移上去有一點點往上的感覺 */
-}
-
-.swipe-img {
-    width: 150px; /* 調整上滑文字圖片的大小 */
-    height: auto;
-}
+body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background-color: #6AB7FF; }
+.splash-container { position: relative; width: 100vw; height: 100vh; display: flex; justify-content: center; align-items: center; transition: transform 0.6s ease-in-out; }
+.bg-img { position: absolute; width: 100%; height: 100%; object-fit: cover; z-index: 1; }
+.fish-img { position: relative; width: 350px; height: auto; z-index: 10; }
+.title-img { position: absolute; left: 40px; top: 80px; width: 80px; height: auto; z-index: 10; }
+.starfish-img { position: absolute; right: 50px; bottom: 50px; width: 150px; height: auto; z-index: 5; }
+.swipe-area { position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%); text-align: center; cursor: pointer; z-index: 20; transition: 0.3s; }
+.swipe-area:hover { bottom: 40px; }
+.swipe-img { width: 150px; height: auto; }

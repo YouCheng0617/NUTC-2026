@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="zh-TW">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>心情漂流瓶 - 登入</title>
+    <link rel="stylesheet" href="login.css" />
+  </head>
+  <body>
+    <div class="login-container">
+      <img src="images/background.png" class="bg-img" alt="背景" />
+      <img src="images/fish_logo.png" class="fish-deco top-left" alt="魚" />
+      <img
+        src="images/海星一個拷貝.png"
+        class="starfish-deco bottom-right"
+        alt="海星"
+      />
+
+      <div class="main-bubble">
+        <div class="watermark-title">心情漂流瓶</div>
+        <form id="bottle-login-form">
+          <label for="avatar-upload" class="avatar-bubble">
+            <img
+              id="preview-avatar"
+              src="images/fish_logo.png"
+              style="width: 50px; margin-bottom: 10px"
+              alt="預設頭像"
+            />
+            <span style="font-weight: bold; color: #333">新增頭像</span>
+          </label>
+          <input
+            type="file"
+            id="avatar-upload"
+            accept="image/*"
+            style="display: none"
+          />
+
+          <div class="gender-bubble">
+            <span style="font-size: 0.9rem">性別:</span>
+            <input type="text" class="custom-input small-input" />
+          </div>
+
+          <div class="gmail-section">
+            <label style="font-size: 1.2rem; letter-spacing: 2px">GMAIL:</label>
+            <input
+              type="email"
+              id="email-input"
+              class="custom-input long-input"
+              required
+            />
+          </div>
+
+          <div class="intro-section">
+            <label style="font-size: 1rem">自我介紹:</label>
+            <textarea class="custom-input textarea-input"></textarea>
+          </div>
+
+          <div class="nickname-bubble">
+            <span style="font-size: 0.8rem">暱稱or姓名:</span>
+            <input type="text" class="custom-input small-input" />
+          </div>
+
+          <button type="button" id="login-submit-btn" class="submit-btn">
+            <img
+              src="images/check_icon.png"
+              alt="登入"
+              style="width: 40px"
+              onerror="
+                this.style.display = 'none';
+                this.parentNode.innerHTML = '✔️';
+              "
+            />
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <script>
+      document
+        .getElementById("avatar-upload")
+        .addEventListener("change", function (e) {
+          const file = e.target.files[0];
+          if (file) {
+            const reader = new FileReader();
+            reader.onload = function (event) {
+              const preview = document.getElementById("preview-avatar");
+              preview.src = event.target.result;
+              preview.style.width = "100px";
+              preview.style.height = "100px";
+              preview.style.borderRadius = "50%";
+              preview.style.objectFit = "cover";
+            };
+            reader.readAsDataURL(file);
+          }
+        });
+
+      document
+        .getElementById("login-submit-btn")
+        .addEventListener("click", function () {
+          const email = document.getElementById("email-input").value;
+          const avatarSrc = document.getElementById("preview-avatar").src;
+          if (email.trim() === "") {
+            alert("請填寫 GMAIL 喔！ 🌊");
+            return;
+          }
+          const userData = { email: email, avatar: avatarSrc };
+          localStorage.setItem("currentUser", JSON.stringify(userData));
+          window.location.href = "test.html"; // 跳轉到論壇主頁
+        });
+    </script>
+  </body>
+</html>

@@ -3,94 +3,160 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>NightCard 論壇</title>
+    <title>心情漂流瓶 - 論壇</title>
     <link rel="stylesheet" href="test.css" />
   </head>
   <body>
-    <header>
-      <div class="logo">心情漂流瓶.</div>
-      <div class="search-container">
-        <input
-          type="text"
-          class="search-input"
-          placeholder="🔍 搜尋文章、看板、人物..."
-        />
+    <!-- 大廳 (Ocean View) -->
+    <div id="ocean-view" class="ocean-container">
+      <img src="images/background.png" class="bg-img" alt="背景" />
+      <div class="ocean-logo">
+        <img
+          src="images/fish_logo.png"
+          style="width: 40px; margin-right: 10px"
+        /><span>心情漂流瓶</span>
       </div>
 
-      <div class="nav-actions">
-        <button id="login-trigger" class="btn-login">註冊 / 登入</button>
+      <img
+        src="images/bell_icon.png"
+        class="action-icon top-right"
+        alt="通知"
+      />
+      <img
+        src="images/fish_logo.png"
+        class="action-icon bottom-left"
+        alt="魚"
+        style="width: 80px"
+      />
 
-        <div
-          id="user-profile"
-          style="display: none; align-items: center; gap: 15px"
-        >
-          <label
-            for="avatar-upload"
-            style="cursor: pointer"
-            title="點擊更換頭像"
+      <div class="action-icon bottom-center" id="ocean-add-btn">
+        <div class="plus-btn-style">+</div>
+      </div>
+
+      <!-- 完美交疊的兩隻海星與首頁按鈕 -->
+      <img
+        src="images/海星一個-1拷貝.png"
+        class="ocean-starfish starfish-1"
+        alt="海星1"
+      />
+      <img
+        src="images/海星一個拷貝.png"
+        class="ocean-starfish starfish-2"
+        alt="海星2"
+      />
+      <img
+        src="images/home_icon.png"
+        class="action-icon bottom-right-home"
+        id="ocean-home-btn"
+        alt="首頁"
+      />
+
+      <!-- 漂流瓶 -->
+      <div
+        class="category-bubble"
+        style="top: 25%; left: 15%"
+        onclick="enterForum('綜合閒聊')"
+      >
+        <div class="cork"></div>
+        <span>綜合閒聊</span>
+      </div>
+      <div
+        class="category-bubble"
+        style="top: 20%; left: 45%"
+        onclick="enterForum('程式開發')"
+      >
+        <div class="cork"></div>
+        <span>程式開發</span>
+      </div>
+      <div
+        class="category-bubble"
+        style="top: 15%; right: 15%"
+        onclick="enterForum('美食特搜')"
+      >
+        <div class="cork"></div>
+        <span>美食特搜</span>
+      </div>
+      <div
+        class="category-bubble"
+        style="top: 55%; left: 25%"
+        onclick="enterForum('遊戲專區')"
+      >
+        <div class="cork"></div>
+        <span>遊戲專區</span>
+      </div>
+      <div
+        class="category-bubble"
+        style="top: 45%; right: 35%"
+        onclick="enterForum('全部')"
+      >
+        <div class="cork"></div>
+        <span>全部文章</span>
+      </div>
+    </div>
+
+    <!-- 論壇 (Forum View) -->
+    <div id="forum-view" style="display: none">
+      <header>
+        <div class="logo" id="back-to-ocean" title="回到大廳">
+          <img
+            src="images/fish_logo.png"
+            style="width: 30px; margin-right: 10px; vertical-align: middle"
+          />心情漂流瓶.
+        </div>
+        <div class="search-container">
+          <input
+            type="text"
+            class="search-input"
+            placeholder="🔍 搜尋文章、看板..."
+          />
+        </div>
+        <div class="nav-actions">
+          <button id="login-trigger" class="btn-login">註冊 / 登入</button>
+          <div
+            id="user-profile"
+            style="display: none; align-items: center; gap: 15px"
           >
             <img
               id="user-avatar"
-              src="https://via.placeholder.com/40"
+              src="images/fish_logo.png"
               alt="頭像"
               class="avatar-img"
             />
-          </label>
-          <input
-            type="file"
-            id="avatar-upload"
-            accept="image/*"
-            style="display: none"
-          />
-
-          <span id="user-name" style="font-weight: bold; color: #fff"></span>
-          <button id="btn-new-post" class="btn-post">✏️ 發文</button>
-          <button id="logout-btn" class="btn-logout">登出</button>
+            <span id="user-name" class="user-name-text"></span>
+            <button id="btn-new-post" class="btn-post">✏️ 發文</button>
+            <button id="logout-btn" class="btn-logout">登出</button>
+          </div>
         </div>
-      </div>
-    </header>
+      </header>
 
-    <div class="container">
-      <aside class="sidebar">
-        <h3>熱門看板</h3>
-        <ul>
-          <li>🔥 綜合閒聊</li>
-          <li>💻 程式開發</li>
-          <li>🍜 美食特搜</li>
-          <li>🎮 遊戲專區</li>
-        </ul>
-      </aside>
-
-      <main class="main-feed" id="post-container"></main>
-
-      <aside class="right-panel">
-        <h3>熱門話題</h3>
-        <div class="tag-cloud">
-          <span class="tag"># AI革命</span>
-          <span class="tag"># 台北美食</span>
-        </div>
-      </aside>
-    </div>
-
-    <div id="login-modal" class="modal">
-      <div class="modal-content">
-        <span class="close-btn" id="close-modal">&times;</span>
-        <h2>歡迎回來</h2>
-        <form id="login-form">
-          <input type="email" placeholder="電子郵件" required />
-          <input type="password" placeholder="密碼" required />
-          <button type="submit" class="btn-submit">登入</button>
-        </form>
+      <div class="container">
+        <aside class="sidebar">
+          <h3>熱門看板</h3>
+          <ul>
+            <li>🔥 綜合閒聊</li>
+            <li>💻 程式開發</li>
+            <li>🍜 美食特搜</li>
+            <li>🎮 遊戲專區</li>
+          </ul>
+        </aside>
+        <main class="main-feed" id="post-container"></main>
+        <aside class="right-panel">
+          <h3>熱門話題</h3>
+          <div class="tag-cloud">
+            <span class="tag"># AI革命</span><span class="tag"># 心情點滴</span>
+          </div>
+        </aside>
       </div>
     </div>
 
+    <!-- 發文彈窗 -->
     <div id="post-modal" class="modal">
       <div class="modal-content" style="width: 500px; text-align: left">
         <span class="close-btn" id="close-post-modal">&times;</span>
-        <h2 style="margin-top: 0; color: #00f2ff">撰寫新文章</h2>
+        <h2 style="margin-top: 0; color: #0055a5">撰寫漂流瓶</h2>
         <form id="new-post-form">
           <select id="post-board" required class="form-input">
-            <option value="" disabled selected>請選擇發文看板...</option>
+            <option value="" disabled selected>請選擇漂流海域...</option>
             <option value="綜合閒聊">🔥 綜合閒聊</option>
             <option value="程式開發">💻 程式開發</option>
             <option value="美食特搜">🍜 美食特搜</option>
@@ -110,7 +176,7 @@
             class="form-input"
             style="height: 150px; resize: none"
           ></textarea>
-          <button type="submit" class="btn-submit">發布文章</button>
+          <button type="submit" class="btn-submit">拋出漂流瓶</button>
         </form>
       </div>
     </div>
