@@ -1,167 +1,73 @@
-/* =========================================
-   1. 基礎設定 (幫整棟房子打底)
-   ========================================= */
+/* 全域設定 */
 body { 
-    margin: 0; 
-    font-family: 'PingFang TC', 'Microsoft JhengHei', sans-serif; 
-    background-color: #0f111a; 
-    color: #ffffff; 
-    line-height: 1.6; 
+    margin: 0; font-family: sans-serif; background-color: #0f111a; color: #fff; line-height: 1.6; 
 }
 
-/* =========================================
-   2. 頂部導覽列 (Header) 裝飾
-   ========================================= */
+/* 導覽列 */
 header { 
-    background: rgba(21, 25, 36, 0.95); 
-    backdrop-filter: blur(8px); 
-    padding: 0.8rem 2rem; 
-    display: flex; 
-    justify-content: space-between; 
-    align-items: center; 
-    position: sticky; top: 0; z-index: 100; 
-    border-bottom: 1px solid #1e2533;
+    background: rgba(21, 25, 36, 0.95); backdrop-filter: blur(8px); 
+    padding: 0.8rem 2rem; display: flex; justify-content: space-between; align-items: center;
+    position: sticky; top: 0; z-index: 100; border-bottom: 1px solid #1e2533;
 }
 
-.logo { 
-    font-size: 1.5rem; font-weight: 900; color: #00f2ff; 
-    text-shadow: 0 0 10px rgba(0, 242, 255, 0.4); 
-    cursor: pointer; flex: 1;
+.logo { font-size: 1.5rem; font-weight: 900; color: #00f2ff; cursor: pointer; flex: 1; }
+.search-container { flex: 2; display: flex; justify-content: center; }
+.search-input { 
+    width: 100%; max-width: 500px; padding: 10px 20px; background: #1a1f2e; 
+    border: 1px solid #2d3548; border-radius: 20px; color: #fff; outline: none; 
 }
+.search-input:focus { border-color: #00f2ff; }
 
-/* 搜尋框的外圍容器，讓它佔據中間大區塊 */
-.search-container {
-    flex: 2; 
-    display: flex;
-    justify-content: center;
+/* 按鈕類 */
+.btn-login, .btn-post { 
+    padding: 8px 20px; border-radius: 8px; font-weight: bold; cursor: pointer; border: none; color: #fff; 
 }
+.btn-login { background-color: #3397cf; }
+.btn-post { background: linear-gradient(45deg, #00f2ff, #0088ff); }
+.btn-logout { background: transparent; color: #ff4d4d; border: 1px solid #ff4d4d; padding: 5px 12px; border-radius: 8px; cursor: pointer; }
 
-.search-input {
-    width: 100%; max-width: 500px; padding: 10px 20px;
-    background-color: #1a1f2e; border: 1px solid #2d3548;
-    border-radius: 20px; color: #fff; font-size: 0.95rem;
-    outline: none; 
-}
-.search-input:focus {
-    border-color: #00f2ff; box-shadow: 0 0 8px rgba(0, 242, 255, 0.2);
-}
-
-/* 右邊的按鈕區塊 */
-.nav-actions {
-    flex: 1; 
-    display: flex;
-    justify-content: flex-end;
-}
-
-/* 💥 這個就是我不小心刪掉的大海藍色登入按鈕！ */
-.btn-login {
-    background-color: #3397cf; 
-    color: #fff;
-    border: none;
-    padding: 8px 20px;
-    border-radius: 8px;
-    font-size: 0.95rem;
-    font-weight: bold;
-    cursor: pointer;
-    transition: 0.2s;
-}
-.btn-login:hover {
-    background-color: #2980b9;
-    transform: translateY(-1px);
-}
-
-/* =========================================
-   3. 頁面大佈局 (三欄式排版) 💥 之前也是漏掉這整段！
-   ========================================= */
-/* 把大箱子變成橫向排列 (flex)，並限制最大寬度 */
-.container { 
-    display: flex; 
-    max-width: 1100px; 
-    margin: 30px auto; 
-    gap: 25px; 
-    padding: 0 15px;
-}
-
-/* 左邊選單與右邊話題的寬度比例 */
-.sidebar, .right-panel { flex: 1; height: fit-content; }
-.sidebar h3, .right-panel h3 { font-size: 1.1rem; color: #707d9a; margin-bottom: 15px; }
-
-/* 隱藏清單的點點，並加上滑鼠移過去的發光效果 */
-.sidebar ul { list-style: none; padding: 0; }
-.sidebar li { padding: 12px; border-radius: 8px; cursor: pointer; transition: 0.3s; }
-.sidebar li:hover { background: #1e2533; color: #00f2ff; }
-
-/* 中間文章列表的寬度比例 (比較寬) */
+/* 版面佈局 */
+.container { display: flex; max-width: 1100px; margin: 30px auto; gap: 25px; padding: 0 15px; }
+.sidebar, .right-panel { flex: 1; }
 .main-feed { flex: 2.5; }
 
-/* =========================================
-   4. 文章卡片 (Post Card) 裝飾
-   ========================================= */
+.sidebar li { padding: 12px; border-radius: 8px; cursor: pointer; transition: 0.3s; list-style: none; }
+.sidebar li:hover { background: #1e2533; color: #00f2ff; }
+
+/* 文章卡片 */
 .post-card { 
-    background: #1a1f2e; padding: 24px; border-radius: 16px; 
-    margin-bottom: 20px; border: 1px solid #2d3548;
-    transition: 0.3s; 
-    cursor: pointer;  
+    background: #1a1f2e; padding: 24px; border-radius: 16px; margin-bottom: 20px; 
+    border: 1px solid #2d3548; cursor: pointer; transition: 0.3s;
 }
-.post-card:hover { 
-    border-color: #00f2ff; 
-    transform: translateY(-3px); 
-    box-shadow: 0 10px 20px rgba(0,0,0,0.3); 
+.post-card:hover { transform: translateY(-3px); border-color: #00f2ff; }
+.like-btn { cursor: pointer; transition: 0.2s; }
+.like-btn:hover { transform: scale(1.1); }
+
+/* 彈窗 */
+.modal { 
+    display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; 
+    background: rgba(0,0,0,0.8); backdrop-filter: blur(5px); 
+}
+.modal-content { 
+    background: #1a1f2e; margin: 10% auto; padding: 30px; border-radius: 20px; 
+    width: 360px; text-align: center; position: relative; 
+}
+.close-btn { position: absolute; right: 20px; top: 15px; font-size: 24px; cursor: pointer; }
+
+/* 表單元件 */
+.form-input { 
+    width: 100%; padding: 12px; margin-bottom: 15px; background: #0f111a; 
+    border: 1px solid #2d3548; color: #fff; border-radius: 10px; box-sizing: border-box; 
+}
+.btn-submit { 
+    width: 100%; padding: 12px; background: #00f2ff; color: #000; font-weight: bold; border: none; border-radius: 10px; cursor: pointer; 
 }
 
-.post-meta { font-size: 0.8rem; color: #707d9a; margin-bottom: 8px; }
-.post-title { font-size: 1.3rem; margin: 0 0 12px 0; color: #fff; }
-.post-content { color: #a0aec0; font-size: 0.95rem; }
+/* 頭像 */
+.avatar-img { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; border: 2px solid #00f2ff; }
 
-/* 右邊話題的 #標籤 樣式 */
-.tag { 
-    display: inline-block; background: #2d3548; padding: 4px 12px; 
-    border-radius: 20px; font-size: 0.8rem; margin: 5px; 
-    color: #00f2ff; cursor: pointer; transition: 0.2s;
-}
-.tag:hover { background: #00f2ff; color: #0f111a; }
-
-/* =========================================
-   5. 愛心按鈕特效
-   ========================================= */
-.like-btn { cursor: pointer; transition: 0.2s; display: inline-block; }
-.like-btn:hover { transform: scale(1.1); } 
-
-/* =========================================
-   6. 登入彈窗 (Modal) 的魔法
-   ========================================= */
-.modal {
-    display: none; position: fixed; z-index: 1000; left: 0; top: 0;
-    width: 100%; height: 100%; background-color: rgba(0,0,0,0.85); backdrop-filter: blur(6px);
-}
-.modal-content {
-    background: #1a1f2e; margin: 8% auto; padding: 35px; border: 1px solid #333;
-    width: 360px; border-radius: 24px; text-align: center; position: relative;
-    box-shadow: 0 0 40px rgba(0,0,0,0.5);
-}
-.close-btn { position: absolute; right: 20px; top: 15px; font-size: 28px; cursor: pointer; color: #707d9a; }
-.close-btn:hover { color: #ff4d4d; }
-
-.social-login button { width: 100%; padding: 12px; margin: 10px 0; border: none; border-radius: 10px; cursor: pointer; font-weight: bold; transition: 0.2s; }
-.btn-google { background: #ffffff; color: #000; }
-.social-login button:hover { filter: brightness(0.9); transform: translateY(-1px); }
-
-.divider { margin: 25px 0; border-bottom: 1px solid #2d3548; position: relative; }
-.divider span { background: #1a1f2e; padding: 0 12px; position: absolute; top: -10px; left: 50%; transform: translateX(-50%); font-size: 0.8rem; color: #707d9a; }
-
-#login-form input { width: 100%; padding: 14px; margin-bottom: 15px; background: #0f111a; border: 1px solid #2d3548; color: #fff; border-radius: 10px; box-sizing: border-box; }
-#login-form input:focus { outline: none; border-color: #00f2ff; }
-
-.btn-submit { width: 100%; padding: 14px; background: linear-gradient(45deg, #00f2ff, #bb86fc); border: none; border-radius: 10px; color: #fff; font-weight: bold; cursor: pointer; }
-.foot-note { font-size: 0.85rem; color: #707d9a; margin-top: 20px; }
-.foot-note a { color: #00f2ff; text-decoration: none; }
-
-/* =========================================
-   7. 手機版適應 (RWD 變形魔法)
-   ========================================= */
+/* RWD */
 @media (max-width: 768px) {
-    .container { flex-direction: column; } 
-    .sidebar, .right-panel { display: none; } 
-    .search-container { display: none; } 
-    header { padding: 0.8rem 1rem; }
+    .sidebar, .right-panel, .search-container { display: none; }
+    .container { flex-direction: column; }
 }
