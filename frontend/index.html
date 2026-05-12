@@ -3,29 +3,33 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>心情漂流瓶 - 進入</title>
+    <title>心情漂流瓶 - 進入頁面</title>
     <link rel="stylesheet" href="splash.css" />
   </head>
   <body>
     <div id="splash-page" class="splash-container">
       <img src="images/background.png" class="bg-img" alt="背景" />
+      
       <img src="images/大標題拷貝2.png" class="title-img" alt="標題" />
+      
       <img src="images/fish_logo.png" class="fish-img" alt="雙魚" />
-      <img src="images/海星一個拷貝.png" class="starfish-img" alt="海星" />
-
-      <div class="swipe-area" onclick="enterSite()">
-        <img src="images/提示鍵拷貝2.png" class="swipe-img" alt="上滑登入" />
+      
+      <img src="images/海星一個-1拷貝.png" class="starfish-img starfish-1" alt="海星1" />
+      <img src="images/海星一個拷貝.png" class="starfish-img starfish-2" alt="海星2" />
+      
+      <div class="click-area" onclick="enterSite()">
+        <div class="click-arrow">👆</div>
+        <div class="click-text">( 點擊登入 )</div>
       </div>
     </div>
 
     <script>
       function enterSite() {
         const page = document.getElementById("splash-page");
-        page.style.transform = "translateY(-100%)";
+        page.style.transform = "translateY(-100%)"; 
         setTimeout(() => {
-          // 動畫結束，跳轉到登入頁
-          window.location.href = "login.html";
-        }, 600);
+          window.location.href = "login.html"; 
+        }, 800);
       }
     </script>
   </body>

@@ -3,110 +3,163 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>心情漂流瓶 - 登入</title>
+    <title>心情漂流瓶 - 登入與註冊</title>
     <link rel="stylesheet" href="login.css" />
   </head>
   <body>
     <div class="login-container">
       <img src="images/background.png" class="bg-img" alt="背景" />
       <img src="images/fish_logo.png" class="fish-deco top-left" alt="魚" />
-      <img
-        src="images/海星一個拷貝.png"
-        class="starfish-deco bottom-right"
-        alt="海星"
-      />
+      <img src="images/海星一個拷貝.png" class="starfish-deco bottom-right" alt="海星" />
 
-      <div class="main-bubble">
-        <div class="watermark-title">心情漂流瓶</div>
-        <form id="bottle-login-form">
-          <label for="avatar-upload" class="avatar-bubble">
-            <img
-              id="preview-avatar"
-              src="images/fish_logo.png"
-              style="width: 50px; margin-bottom: 10px"
-              alt="預設頭像"
-            />
-            <span style="font-weight: bold; color: #333">新增頭像</span>
-          </label>
-          <input
-            type="file"
-            id="avatar-upload"
-            accept="image/*"
-            style="display: none"
-          />
+      <div class="enter-btn-container" onclick="openAuthModal()">
+        <img src="images/fish_logo.png" style="width: 80px; margin-bottom: 10px;" />
+        <h2>開啟漂流瓶</h2>
+        <p>點擊登入 / 註冊</p>
+      </div>
+    </div>
 
-          <div class="gender-bubble">
-            <span style="font-size: 0.9rem">性別:</span>
-            <input type="text" class="custom-input small-input" />
+    <div id="auth-modal" class="dark-modal" style="display: none;">
+      <div class="dark-modal-content">
+        <span class="close-btn" onclick="closeAuthModal()">&times;</span>
+        
+        <div class="tab-container">
+          <div class="tab active" id="tab-login" onclick="switchTab('login')">登入</div>
+          <div class="tab" id="tab-register" onclick="switchTab('register')">註冊</div>
+        </div>
+
+        <form id="login-form" class="auth-form">
+          <div class="input-group">
+            <label>信箱 (Email)</label>
+            <input type="email" id="login-email" placeholder="請輸入 Email" required />
+          </div>
+          <div class="input-group">
+            <label>密碼 (Password)</label>
+            <input type="password" id="login-password" placeholder="請輸入密碼" required />
+          </div>
+          <button type="button" class="btn-submit-dark" onclick="processLogin()" style="margin-top: 20px;">登入</button>
+        </form>
+
+        <form id="register-form" class="auth-form" style="display: none;">
+          <div class="form-row">
+            <div class="avatar-upload-group">
+              <label for="avatar-upload" class="avatar-label">
+                <img id="preview-avatar" src="images/default_avatar_icon.png" alt="頭像" onerror="this.src='https://via.placeholder.com/80'" />
+                <span>上傳頭像</span>
+              </label>
+              <input type="file" id="avatar-upload" accept="image/*" style="display: none;" />
+            </div>
+            
+            <div class="right-inputs">
+              <div class="input-group">
+                <label>信箱 (Email) <span style="color: #ff4d4d;">*</span></label>
+                <input type="email" id="reg-email" placeholder="將作為登入帳號" required />
+              </div>
+              <div class="input-group">
+                <label>密碼 (Password) <span style="color: #ff4d4d;">*</span></label>
+                <input type="password" id="reg-password" placeholder="設定密碼" required />
+              </div>
+            </div>
           </div>
 
-          <div class="gmail-section">
-            <label style="font-size: 1.2rem; letter-spacing: 2px">GMAIL:</label>
-            <input
-              type="email"
-              id="email-input"
-              class="custom-input long-input"
-              required
-            />
+          <div class="input-group">
+            <label>姓名 / 暱稱 <span style="color: #ff4d4d;">*</span></label>
+            <input type="text" id="reg-name" placeholder="大家怎麼稱呼你？" required />
           </div>
 
-          <div class="intro-section">
-            <label style="font-size: 1rem">自我介紹:</label>
-            <textarea class="custom-input textarea-input"></textarea>
+          <div class="form-row-multi">
+            <div class="input-group">
+              <label>生日 <span style="font-size: 0.8rem; color:#888;">(可隱藏)</span></label>
+              <input type="date" id="reg-birthday" />
+            </div>
+            <div class="input-group">
+              <label>性別</label>
+              <select id="reg-gender">
+                <option value="生理男">生理男</option>
+                <option value="生理女">生理女</option>
+                <option value="其他">其他</option>
+                <option value="秘密">秘密</option>
+              </select>
+            </div>
+            <div class="input-group">
+              <label>星座</label>
+              <select id="reg-zodiac">
+                <option value="" selected>不透露</option>
+                <option value="牡羊座">牡羊座</option><option value="金牛座">金牛座</option>
+                <option value="雙子座">雙子座</option><option value="巨蟹座">巨蟹座</option>
+                <option value="獅子座">獅子座</option><option value="處女座">處女座</option>
+                <option value="天秤座">天秤座</option><option value="天蠍座">天蠍座</option>
+                <option value="射手座">射手座</option><option value="摩羯座">摩羯座</option>
+                <option value="水瓶座">水瓶座</option><option value="雙魚座">雙魚座</option>
+              </select>
+            </div>
           </div>
 
-          <div class="nickname-bubble">
-            <span style="font-size: 0.8rem">暱稱or姓名:</span>
-            <input type="text" class="custom-input small-input" />
+          <div class="input-group">
+            <label>自我介紹</label>
+            <textarea id="reg-bio" placeholder="寫點什麼讓大家認識你吧..." rows="3"></textarea>
           </div>
 
-          <button type="button" id="login-submit-btn" class="submit-btn">
-            <img
-              src="images/check_icon.png"
-              alt="登入"
-              style="width: 40px"
-              onerror="
-                this.style.display = 'none';
-                this.parentNode.innerHTML = '✔️';
-              "
-            />
-          </button>
+          <button type="button" class="btn-submit-dark" onclick="processRegister()">註冊並進入</button>
         </form>
       </div>
     </div>
 
     <script>
-      document
-        .getElementById("avatar-upload")
-        .addEventListener("change", function (e) {
+      function openAuthModal() { document.getElementById('auth-modal').style.display = 'flex'; }
+      function closeAuthModal() { document.getElementById('auth-modal').style.display = 'none'; }
+
+      function switchTab(tab) {
+        document.getElementById('tab-login').classList.remove('active');
+        document.getElementById('tab-register').classList.remove('active');
+        document.getElementById('login-form').style.display = 'none';
+        document.getElementById('register-form').style.display = 'none';
+
+        if(tab === 'login') {
+          document.getElementById('tab-login').classList.add('active');
+          document.getElementById('login-form').style.display = 'flex';
+        } else {
+          document.getElementById('tab-register').classList.add('active');
+          document.getElementById('register-form').style.display = 'flex';
+        }
+      }
+
+      document.getElementById("avatar-upload").addEventListener("change", function (e) {
           const file = e.target.files[0];
           if (file) {
             const reader = new FileReader();
             reader.onload = function (event) {
-              const preview = document.getElementById("preview-avatar");
-              preview.src = event.target.result;
-              preview.style.width = "100px";
-              preview.style.height = "100px";
-              preview.style.borderRadius = "50%";
-              preview.style.objectFit = "cover";
+              document.getElementById("preview-avatar").src = event.target.result;
             };
             reader.readAsDataURL(file);
           }
-        });
+      });
 
-      document
-        .getElementById("login-submit-btn")
-        .addEventListener("click", function () {
-          const email = document.getElementById("email-input").value;
+      function processLogin() {
+          const email = document.getElementById("login-email").value;
+          if (email.trim() === "") { alert("請輸入信箱登入！"); return; }
+          localStorage.setItem("currentUser", JSON.stringify({ email: email, avatar: "images/fish_logo.png" }));
+          window.location.href = "test.html";
+      }
+
+      function processRegister() {
+          const email = document.getElementById("reg-email").value;
+          const name = document.getElementById("reg-name").value;
           const avatarSrc = document.getElementById("preview-avatar").src;
-          if (email.trim() === "") {
-            alert("請填寫 GMAIL 喔！ 🌊");
-            return;
-          }
-          const userData = { email: email, avatar: avatarSrc };
+
+          if (email.trim() === "" || name.trim() === "") { alert("信箱和姓名是必填的喔！"); return; }
+
+          const userData = {
+            email: email, name: name, avatar: avatarSrc,
+            birthday: document.getElementById("reg-birthday").value,
+            gender: document.getElementById("reg-gender").value,
+            zodiac: document.getElementById("reg-zodiac").value,
+            bio: document.getElementById("reg-bio").value
+          };
+          
           localStorage.setItem("currentUser", JSON.stringify(userData));
-          window.location.href = "test.html"; // 跳轉到論壇主頁
-        });
+          window.location.href = "test.html";
+      }
     </script>
   </body>
 </html>
