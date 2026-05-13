@@ -129,3 +129,66 @@ document.addEventListener('DOMContentLoaded', () => {
         if (userDropdown) userDropdown.classList.remove('show-dropdown');
     });
 });
+// 在 DOMContentLoaded 裡面加入這段控制邏輯
+document.addEventListener('DOMContentLoaded', () => {
+    // ... 原有的程式碼 ...
+
+    const profileModal = document.getElementById('profile-modal');
+    const closeProfileBtn = document.getElementById('close-profile-modal');
+
+    // 🌟 找到下拉選單中的個人資料按鈕 (原本是 alert)
+    const profileMenuItem = document.querySelector('.menu-item[onclick*="個人資料"]');
+    if (profileMenuItem) {
+        profileMenuItem.removeAttribute('onclick'); // 移除原本的 alert
+        profileMenuItem.onclick = (e) => {
+            e.stopPropagation();
+            const user = JSON.parse(localStorage.getItem('currentUser'));
+            if (user) {
+                // 填入資料
+                document.getElementById('detail-avatar').src = user.avatar || 'images/fish_logo.png';
+                document.getElementById('detail-name').innerText = user.name || '未設定姓名';
+                document.getElementById('detail-email').innerText = user.email;
+                document.getElementById('detail-birthday').innerText = user.birthday || '未填寫';
+                document.getElementById('detail-gender').innerText = user.gender || '未填寫';
+                document.getElementById('detail-zodiac').innerText = user.zodiac || '未填寫';
+                document.getElementById('detail-bio').innerText = user.bio || '這瓶子裡目前空空的...';
+                
+                profileModal.style.display = 'block';
+            } else {
+                alert('請先登入！');
+            }
+        };
+    }
+
+    // 關閉燈箱邏輯
+    if (closeProfileBtn) {
+        closeProfileBtn.onclick = () => profileModal.style.display = 'none';
+    }
+    window.onclick = (event) => {
+        if (event.target == profileModal) profileModal.style.display = 'none';
+    };
+});
+// 🌟 這是全新的功能，直接補在檔案最後面
+document.addEventListener('change', (e) => {
+    if (e.target.id === 'change-avatar-input') {
+        const file = e.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                const imageUrl = event.target.result;
+                
+                // 更換畫面上的大、小頭像
+                if (document.getElementById('detail-avatar')) document.getElementById('detail-avatar').src = imageUrl;
+                if (document.getElementById('user-avatar')) document.getElementById('user-avatar').src = imageUrl;
+                
+                // 存入瀏覽器暫存
+                const user = JSON.parse(localStorage.getItem('currentUser'));
+                if (user) {
+                    user.avatar = imageUrl;
+                    localStorage.setItem('currentUser', JSON.stringify(user));
+                }
+            };
+            reader.readAsDataURL(file);
+        }
+    }
+});

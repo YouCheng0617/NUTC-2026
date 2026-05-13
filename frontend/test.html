@@ -9,30 +9,66 @@
   <body>
     <div id="forum-view">
       <header class="light-header">
-       <div class="logo" onclick="window.location.href='test.html'" title="回到主頁">
-          <img src="images/fish_logo.png" style="width: 30px; margin-right: 10px; vertical-align: middle;" />心情漂流瓶.
+        <div
+          class="logo"
+          onclick="window.location.href = 'test.html'"
+          title="回到主頁"
+        >
+          <img
+            src="images/fish_logo.png"
+            style="width: 30px; margin-right: 10px; vertical-align: middle"
+          />心情漂流瓶.
         </div>
-        <div class="search-container"><input type="text" class="search-input light-search" placeholder="🔍 搜尋文章、看板..." /></div>
-        
+        <div class="search-container">
+          <input
+            type="text"
+            class="search-input light-search"
+            placeholder="🔍 搜尋文章、看板..."
+          />
+        </div>
+
         <div class="nav-actions">
           <button id="login-trigger" class="btn-login">註冊 / 登入</button>
-          
-          <div id="user-profile" class="user-menu-wrapper" style="display: none;">
+
+          <div
+            id="user-profile"
+            class="user-menu-wrapper"
+            style="display: none"
+          >
             <div class="user-info-trigger" id="user-menu-btn">
-              <img id="user-avatar" src="images/fish_logo.png" alt="頭像" class="avatar-img" />
+              <img
+                id="user-avatar"
+                src="images/fish_logo.png"
+                alt="頭像"
+                class="avatar-img"
+              />
               <span id="user-name" class="user-name-text"></span>
               <span class="menu-arrow">▼</span>
             </div>
 
             <div class="user-dropdown-menu" id="user-dropdown">
-              <div class="menu-item" onclick="alert('開啟個人資料修改')">👤 個人資料</div>
-              <div class="menu-item" onclick="alert('顯示我收藏的文章')">⭐ 收藏文章</div>
-              <div class="menu-item" onclick="alert('顯示我發過的內容')">📝 我的文章</div>
+              <div class="menu-item" onclick="alert('開啟個人資料修改')">
+                👤 個人資料
+              </div>
+              <div class="menu-item" onclick="alert('顯示我收藏的文章')">
+                ⭐ 收藏文章
+              </div>
+              <div class="menu-item" onclick="alert('顯示我發過的內容')">
+                📝 我的文章
+              </div>
               <div class="menu-divider"></div>
-              <div class="menu-item logout-item" id="logout-btn">🚪 退出登入</div>
+              <div class="menu-item logout-item" id="logout-btn">
+                🚪 退出登入
+              </div>
             </div>
 
-            <button id="btn-new-post" class="btn-post" style="margin-left: 10px;">✏️ 發文</button>
+            <button
+              id="btn-new-post"
+              class="btn-post"
+              style="margin-left: 10px"
+            >
+              ✏️ 發文
+            </button>
           </div>
         </div>
       </header>
@@ -47,38 +83,160 @@
             <li>🎮 遊戲專區</li>
           </ul>
         </aside>
-        
+
         <main class="main-feed" id="post-container"></main>
-        
+
         <aside class="right-panel light-right-panel">
           <h3>熱門話題</h3>
-          <div class="tag-cloud"><span class="tag"># AI革命</span><span class="tag"># 心情點滴</span></div>
+          <div class="tag-cloud">
+            <span class="tag"># AI革命</span><span class="tag"># 心情點滴</span>
+          </div>
         </aside>
       </div>
     </div>
 
     <div id="post-modal" class="modal">
-      <div class="modal-content light-modal" style="width: 500px; text-align: left">
-        <span class="close-btn" id="close-post-modal" style="color:#666;">&times;</span>
-        <h2 style="margin-top: 0; color: #0055a5; border-bottom: 2px solid #e0e0e0; padding-bottom: 10px;">撰寫漂流瓶</h2>
+      <div
+        class="modal-content light-modal"
+        style="width: 500px; text-align: left"
+      >
+        <span class="close-btn" id="close-post-modal" style="color: #666"
+          >&times;</span
+        >
+        <h2
+          style="
+            margin-top: 0;
+            color: #0055a5;
+            border-bottom: 2px solid #e0e0e0;
+            padding-bottom: 10px;
+          "
+        >
+          撰寫漂流瓶
+        </h2>
         <form id="new-post-form">
-          <div style="display: flex; gap: 10px; margin-bottom: 15px;">
-            <select id="post-board" required class="form-input light-input" style="flex: 1; margin: 0;">
+          <div style="display: flex; gap: 10px; margin-bottom: 15px">
+            <select
+              id="post-board"
+              required
+              class="form-input light-input"
+              style="flex: 1; margin: 0"
+            >
               <option value="" disabled selected>選擇海域...</option>
               <option value="綜合閒聊">🔥 綜合閒聊</option>
               <option value="程式開發">💻 程式開發</option>
               <option value="美食特搜">🍜 美食特搜</option>
               <option value="遊戲專區">🎮 遊戲專區</option>
             </select>
-            <select id="post-identity" required class="form-input light-input" style="flex: 1; margin: 0;">
+            <select
+              id="post-identity"
+              required
+              class="form-input light-input"
+              style="flex: 1; margin: 0"
+            >
               <option value="真實姓名">實名</option>
               <option value="匿名">偷偷說 (匿名)</option>
             </select>
           </div>
-          <input type="text" id="post-title-input" placeholder="文章標題" required class="form-input light-input" />
-          <textarea id="post-content-input" placeholder="請輸入內容..." required class="form-input light-input" style="height: 150px; resize: none"></textarea>
+          <input
+            type="text"
+            id="post-title-input"
+            placeholder="文章標題"
+            required
+            class="form-input light-input"
+          />
+          <textarea
+            id="post-content-input"
+            placeholder="請輸入內容..."
+            required
+            class="form-input light-input"
+            style="height: 150px; resize: none"
+          ></textarea>
           <button type="submit" class="btn-submit">拋出漂流瓶</button>
         </form>
+      </div>
+    </div>
+
+    <div id="profile-modal" class="modal">
+      <div
+        class="modal-content light-modal"
+        style="width: 400px; text-align: center"
+      >
+        <span class="close-btn" id="close-profile-modal">&times;</span>
+        <h2 style="color: #0055a5; margin-bottom: 20px">個人資訊</h2>
+
+        <div class="profile-detail">
+          <div
+            style="position: relative; display: inline-block; cursor: pointer"
+            onclick="document.getElementById('change-avatar-input').click()"
+          >
+            <img
+              id="detail-avatar"
+              src="images/fish_logo.png"
+              style="
+                width: 100px;
+                height: 100px;
+                border-radius: 50%;
+                border: 3px solid #4da6ff;
+                margin-bottom: 15px;
+                object-fit: cover;
+              "
+            />
+            <div
+              style="
+                position: absolute;
+                bottom: 15px;
+                right: 0;
+                background: #4da6ff;
+                color: white;
+                border-radius: 50%;
+                width: 25px;
+                height: 25px;
+                font-size: 14px;
+                line-height: 25px;
+                text-align: center;
+              "
+            >
+              📷
+            </div>
+          </div>
+
+          <input
+            type="file"
+            id="change-avatar-input"
+            accept="image/*"
+            style="display: none"
+          />
+
+          <h3 id="detail-name" style="margin: 5px 0">姓名</h3>
+          <p id="detail-email" style="color: #888; font-size: 0.9rem">
+            email@example.com
+          </p>
+          <hr style="border: 0; border-top: 1px solid #eee; margin: 15px 0" />
+
+          <div style="text-align: left; padding: 0 20px; line-height: 2">
+            <div>
+              <strong>🎂 生日：</strong><span id="detail-birthday">未填寫</span>
+            </div>
+            <div>
+              <strong>🚻 性別：</strong><span id="detail-gender">未填寫</span>
+            </div>
+            <div>
+              <strong>✨ 星座：</strong><span id="detail-zodiac">未填寫</span>
+            </div>
+            <div style="margin-top: 10px"><strong>📝 自我介紹：</strong></div>
+            <p
+              id="detail-bio"
+              style="
+                background: #f9fbfd;
+                padding: 10px;
+                border-radius: 8px;
+                font-size: 0.9rem;
+              "
+            >
+              尚未填寫自我介紹...
+            </p>
+          </div>
+        </div>
       </div>
     </div>
 
