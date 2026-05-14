@@ -2,22 +2,81 @@
 body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background-color: #5BA7FF; font-family: 'PingFang TC', sans-serif; }
 .login-container { position: relative; width: 100vw; height: 100vh; display: flex; justify-content: center; align-items: center; }
 .bg-img { position: absolute; width: 100%; height: 100%; object-fit: cover; z-index: 1; }
-.fish-deco { position: absolute; width: 150px; z-index: 5; bottom: 20px; left: 20px; opacity: 0.9; }
+.fish-deco { position: absolute; width: 200px; z-index: 5; bottom: 0px; left: 0px; opacity: 0.9; }
 .starfish-deco { position: absolute; width: 250px; z-index: 5; bottom: 0px; right: 0px; }
-
+.bottom-right-1 {
+    right: 200px;          /* 稍微往左移一點，避免兩隻疊太緊 */
+    bottom: -50px;         /* 稍微往上移 */
+    width: 300px;          /* ✨ 從 140px 放大到 200px */
+    height: auto;
+}  
 /* 中央點擊進入按鈕 (取代原本的巨型泡泡) */
-.enter-btn-container {
-    position: relative; z-index: 10;
-    display: flex; flex-direction: column; justify-content: center; align-items: center;
-    width: 300px; height: 300px;
-    background: rgba(255, 255, 255, 0.25); backdrop-filter: blur(10px);
-    border-radius: 50%; border: 2px solid rgba(255, 255, 255, 0.5);
-    box-shadow: 0 10px 30px rgba(0,0,0,0.1), inset 0 0 20px rgba(255,255,255,0.5);
-    cursor: pointer; transition: 0.4s ease; color: #fff; text-shadow: 0 2px 5px rgba(0,0,0,0.3);
+/* =========================================
+   ✨ 巨無霸版：750px 3D 立體水晶泡泡登入按鈕
+   ========================================= */
+.enter-btn-container { 
+    position: relative; 
+    z-index: 10; 
+    display: flex; 
+    flex-direction: column; 
+    justify-content: center; 
+    align-items: center; 
+    width: 750px;          /* ✨ 泡泡寬度放大到 750px */
+    height: 750px;         /* ✨ 泡泡高度放大到 750px */
+    
+    background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.5) 0%, rgba(255, 255, 255, 0.1) 50%, rgba(0, 85, 165, 0.15) 100%); 
+    backdrop-filter: blur(8px); 
+    border-radius: 50%; 
+    border: 1px solid rgba(255, 255, 255, 0.6); 
+    box-shadow: 
+        inset -20px -20px 40px rgba(0, 85, 165, 0.2), 
+        inset 20px 20px 40px rgba(255, 255, 255, 0.7), 
+        0 25px 50px rgba(0, 0, 0, 0.15),               
+        0 0 50px rgba(255, 255, 255, 0.3);             
+        
+    cursor: pointer; 
+    transition: all 0.5s cubic-bezier(0.25, 0.8, 0.25, 1); 
+    color: #fff; 
+    text-align: center;
 }
-.enter-btn-container:hover { transform: scale(1.05) translateY(-10px); background: rgba(255, 255, 255, 0.4); }
-.enter-btn-container h2 { margin: 0; font-size: 2rem; letter-spacing: 2px; }
-.enter-btn-container p { margin-top: 5px; font-weight: bold; background: #0055a5; padding: 5px 15px; border-radius: 20px; font-size: 0.9rem; }
+
+.enter-btn-container:hover { 
+    transform: translateY(-15px) scale(1.02); 
+    box-shadow: 
+        inset -20px -20px 40px rgba(0, 85, 165, 0.2),
+        inset 20px 20px 40px rgba(255, 255, 255, 0.9),
+        0 30px 60px rgba(0, 0, 0, 0.2),
+        0 0 80px rgba(106, 183, 255, 0.6);
+}
+
+/* ✨ 雙魚圖標：跟著放大 2 倍 */
+.enter-btn-container img {
+    width: 260px !important;       /* ✨ 放大大約兩倍 */
+    margin-bottom: 30px !important;
+    filter: drop-shadow(0 6px 10px rgba(0, 50, 100, 0.3));
+}
+
+/* ✨ 大標題「開啟漂流瓶」：超級放大 */
+.enter-btn-container h2 {
+    font-size: 5.5rem;             /* ✨ 字體等比例放大 */
+    font-weight: 900;
+    letter-spacing: 16px;          /* ✨ 字距等比例拉寬 */
+    margin: 0 0 40px 0;
+    text-shadow: 0 5px 12px rgba(0, 50, 100, 0.4);
+}
+
+/* ✨ 小字「點擊登入 / 註冊」：按鈕標籤跟著變大 */
+.enter-btn-container p {
+    font-size: 2.2rem;             /* ✨ 字體放大 */
+    font-weight: bold;
+    letter-spacing: 5px;
+    margin: 0;
+    background: rgba(0, 85, 165, 0.6); 
+    padding: 20px 50px;            /* ✨ 內邊距跟著放大 */
+    border-radius: 50px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    border: 2px solid rgba(255, 255, 255, 0.3);
+}
 
 /* ==================================================
    深色科技感彈窗 (對應架構圖的設計)
@@ -62,12 +121,13 @@ body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden;
 .right-inputs { flex: 1; display: flex; flex-direction: column; gap: 15px; }
 .form-row-multi { display: flex; gap: 15px; }
 
-/* 註冊頭像預覽區 */
+/* 註冊頭像預覽區 
 .avatar-upload-group { display: flex; flex-direction: column; align-items: center; justify-content: center; }
 .avatar-label { display: flex; flex-direction: column; align-items: center; cursor: pointer; transition: 0.3s; }
 .avatar-label:hover { transform: scale(1.05); }
 .avatar-label img { width: 80px; height: 80px; border-radius: 50%; object-fit: cover; border: 2px dashed #00f2ff; margin-bottom: 8px; padding: 2px; }
 .avatar-label span { font-size: 0.8rem; color: #00f2ff; }
+*/
 
 /* 深色科技感按鈕 */
 .btn-submit-dark {

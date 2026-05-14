@@ -22,11 +22,15 @@ body, html {
     position: relative; width: 500px; height: auto; z-index: 10;
     animation: float-fish 6s ease-in-out infinite;
 }
-
 /* 左側大標題 */
 .title-img {
-    position: absolute; left: 50px; top: 50%; transform: translateY(-50%);
-    width: 80px; height: auto; z-index: 10;
+    position: absolute; 
+    left: 200px;   /* ✨ 往右移：把原本的 50px 改大，數值越大越往右 */
+    top: 50%; 
+    transform: translateY(-50%);
+    width: 130px;  /* ✨ 變大：把原本的 80px 改大，圖片就會跟著變大 */
+    height: auto; 
+    z-index: 10;
 }
 
 /* ✨ 海星共用動畫設定 */
@@ -37,14 +41,18 @@ body, html {
 
 /* ✨ 偏左上的第一隻海星 */
 .starfish-1 {
-    right: 160px; bottom: 80px;
-    width: 140px; height: auto;
-}
+    right: 180px;          /* 稍微往左移一點，避免兩隻疊太緊 */
+    bottom: 100px;         /* 稍微往上移 */
+    width: 200px;          /* ✨ 從 140px 放大到 200px */
+    height: auto;
+}   
 
-/* ✨ 偏右下的第二隻海星 */
+/* ✨ 偏右下的第二隻海星 (放大版) */
 .starfish-2 {
-    right: 40px; bottom: 20px;
-    width: 170px; height: auto;
+    right: 20px;           /* 稍微往右下角靠 */
+    bottom: 10px;
+    width: 240px;          /* ✨ 從 170px 放大到 240px */
+    height: auto;
     animation-delay: 1.5s; /* 讓兩隻海星飄動的時間錯開 */
 }
 

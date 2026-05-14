@@ -9,9 +9,7 @@
   <body>
     <div id="splash-page" class="splash-container">
       <img src="images/background.png" class="bg-img" alt="背景" />
-      
       <img src="images/大標題拷貝2.png" class="title-img" alt="標題" />
-      
       <img src="images/fish_logo.png" class="fish-img" alt="雙魚" />
       
       <img src="images/海星一個-1拷貝.png" class="starfish-img starfish-1" alt="海星1" />
@@ -19,7 +17,7 @@
       
       <div class="click-area" onclick="enterSite()">
         <div class="click-arrow">👆</div>
-        <div class="click-text">( 點擊登入 )</div>
+        <div class="click-text">( 點擊進入 )</div>
       </div>
     </div>
 
@@ -27,9 +25,7 @@
       function enterSite() {
         const page = document.getElementById("splash-page");
         page.style.transform = "translateY(-100%)"; 
-        setTimeout(() => {
-          window.location.href = "login.html"; 
-        }, 800);
+        setTimeout(() => { window.location.href = "login.html"; }, 800);
       }
     </script>
   </body>
