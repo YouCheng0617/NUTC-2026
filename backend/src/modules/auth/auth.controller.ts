@@ -1,6 +1,8 @@
 import type { Request, Response } from "express";
 import { createMember, loginMember } from "./auth.service.js";
+import { countHelper } from "../../lib/countHelper.js";
 import prisma from "../../lib/prisma.js";
+
 export class AuthController {
 
     async login(req: Request, res: Response) {
@@ -27,9 +29,14 @@ export class AuthController {
     async register(req: Request, res: Response) {
         try {
             const newMember = await createMember(req.body);
+            const displayData = {
+                member_id: countHelper(newMember.member_id),
+                email: newMember.email,
+                name: newMember.name,
+            };
             res.status(201).json({
                 message: "註冊成功!請前往登入",
-                data: newMember
+                data: displayData
             });
         } catch (error) {
             res.status(400).json({
@@ -56,5 +63,6 @@ export class AuthController {
         }
     }
 }
+
 
 export const authController = new AuthController();

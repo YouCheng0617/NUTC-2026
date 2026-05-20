@@ -5,7 +5,7 @@ import { bottleRouter } from './modules/bottle/bottle.router.js';
 import prisma from './lib/prisma.js';
 import "dotenv/config";
 const app = express();
-app.use(cors());
+app.use(cors()); /*允許跨域請求(ngrok)*/
 app.use(express.json());
 app.use('/auth', authRouter());
 app.use('/bottles', bottleRouter());
@@ -13,6 +13,10 @@ app.use('/bottles', bottleRouter());
 if (!process.env["DATABASE_URL"]) {
     console.error("DATABASE_URL is not defined in env.");
 }
+
+app.get('/', (req, res) => {
+    res.send('🌊 漂流瓶 API 伺服器正常運作中！請對接 /auth 或 /bottles');
+});
 
 app.get('/test-db', async (req, res) => {
     try {

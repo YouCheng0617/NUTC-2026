@@ -4,7 +4,7 @@ import prisma from "../../lib/prisma.js";
 
 
 export interface AuthRequest extends Request {
-    user?: string | jwt.JwtPayload;
+    user?: TokenPayload;
 }
 interface TokenPayload {
     member_id: number;

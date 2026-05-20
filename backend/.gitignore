@@ -3,3 +3,5 @@ node_modules
 .env
 
 /src/generated/prisma
+
+/測試帳密.md
