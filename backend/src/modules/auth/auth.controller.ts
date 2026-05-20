@@ -13,6 +13,7 @@ export class AuthController {
             res.status(200).json({
                 message: "登入成功!歡迎回來",
                 data: { result: token }
+
             });
         } catch (error) {
             res.status(400).json({

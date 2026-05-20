@@ -24,7 +24,7 @@ model Member {
   member_id        Int                @id @default(autoincrement())
   email            String             @unique // 電子郵件
   password         String // 密碼
-  name             String // 姓名  
+  name             String // 姓名  en
   birthday         DateTime? // 生日
   bio              String?            @db.Text // 自介
   blood_type       String? // 血型
