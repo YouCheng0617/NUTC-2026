@@ -1,15 +1,76 @@
-let savedPosts = localStorage.getItem('forumPostsDB');
-if (savedPosts && savedPosts.includes('"author":undefined')) {
-    localStorage.removeItem('forumPostsDB'); savedPosts = null;
-}
+// ✨ 統一設定後端網址
+const API_BASE_URL = "https://scabbed-balancing-gluten.ngrok-free.dev";
 
-let posts = savedPosts ? JSON.parse(savedPosts) : [
-    { id: 103, board: "💻 程式開發", author: "蔡孟勳", title: "為什麼 2026 年大家還在學 HTML?", desc: "雖然 AI 很快，但理解底層結構還是超級重要。", likes: 520, msgs: 88, liked: false, saved: false },
-    { id: 102, board: "🍜 美食特搜", author: "匿名", title: "台北最強拉麵店！", desc: "湯頭濃郁，不用排隊，真的不想分享出來...", likes: 1250, msgs: 432, liked: true, saved: true }
-];
-
+// 原本的假資料先清空，等待後端資料
+let posts = [];
 let currentKeyword = '';
 let currentBoard = '全部';
+
+// 🌊 向後端抓取文章 API (100% 破關版)
+async function fetchBottles() {
+    const token = localStorage.getItem("authToken");
+    if (!token) {
+        console.log("尚未登入，無法取得漂流瓶");
+        renderPosts([]);
+        return;
+    }
+
+    try {
+        const response = await fetch(`${API_BASE_URL}/bottles/random`, {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json',
+                'ngrok-skip-browser-warning': 'true'
+            }
+        });
+        
+        if (response.ok) {
+            const backendData = await response.json();
+            console.log("📦 文章 API 回傳的完整包裹：", backendData);
+
+            // 🔍 終極拆包裹
+            let postsArray = [];
+            
+            // ✨ 破關關鍵：後端把文章放在 bottles 屬性裡！
+            if (backendData.bottles && Array.isArray(backendData.bottles)) {
+                postsArray = backendData.bottles;
+            } 
+            // 保留其他的防呆機制
+            else if (Array.isArray(backendData)) {
+                postsArray = backendData;
+            } else if (backendData.data && Array.isArray(backendData.data)) {
+                postsArray = backendData.data;
+            } else if (backendData.data?.result && Array.isArray(backendData.data.result)) {
+                postsArray = backendData.data.result;
+            } else if (backendData.bottle_id) {
+                postsArray = [backendData];
+            } else if (backendData.data?.result?.bottle_id) {
+                postsArray = [backendData.data.result];
+            }
+
+            // 🌟 嚴格對齊 Prisma 資料庫結構
+            posts = postsArray.map(item => ({
+                id: item.bottle_id || Date.now(),
+                board: "🔥 綜合閒聊", 
+                // 判斷是否匿名，若不是則抓取關聯的 author 名字
+                author: (item.is_anonymous || item.isAnonymous) ? "匿名" : (item.author?.name || item.author_name || "用戶"),
+                title: item.title,
+                desc: item.content, 
+                likes: item.view_count || 0,
+                msgs: 0,
+                liked: false,
+                saved: false
+            }));
+            
+            applyFilters();
+        } else {
+            console.error("獲取文章失敗，狀態碼:", response.status);
+        }
+    } catch (error) {
+        console.error("連線錯誤:", error);
+    }
+}
 
 function renderPosts(data = posts) {
     const container = document.getElementById('post-container');
@@ -45,7 +106,6 @@ window.toggleAction = function(id, actionType, e) {
     if (p) {
         if (actionType === 'like') p.liked ? (p.likes--, p.liked=false) : (p.likes++, p.liked=true);
         else if (actionType === 'save') p.saved = !p.saved;
-        localStorage.setItem('forumPostsDB', JSON.stringify(posts));
         applyFilters();
     }
 }
@@ -59,7 +119,7 @@ function setupAuth() {
         const user = JSON.parse(localStorage.getItem('currentUser'));
         if (user) {
             loginTrigger.style.display = 'none'; userProfile.style.display = 'flex';
-            const displayName = user.name || user.email.split('@')[0];
+            const displayName = user.name || (user.email ? user.email.split('@')[0] : '用戶');
             document.getElementById('user-name').innerText = displayName;
             if(user.avatar) document.getElementById('user-avatar').src = user.avatar;
             if(identitySelect) {
@@ -74,40 +134,68 @@ function setupAuth() {
     const logoutBtn = document.getElementById('logout-btn');
     if(logoutBtn) {
         logoutBtn.onclick = () => {
-            localStorage.removeItem('currentUser'); updateUI(); 
-            alert('已登出！即將返回登入頁');
-            window.location.href = "login.html"; 
+            localStorage.removeItem('currentUser'); 
+            localStorage.removeItem('authToken'); // 登出時順便清除 Token
+            updateUI(); 
+            alert('已登出！期待再次與你相遇。');
+            window.location.href = "index.html"; 
         };
     }
     updateUI();
 }
 
+// 🌊 發送新漂流瓶 API
 function setupNewPost() {
     const form = document.getElementById('new-post-form');
     document.getElementById('btn-new-post').onclick = () => document.getElementById('post-modal').style.display='block';
     document.getElementById('close-post-modal').onclick = () => document.getElementById('post-modal').style.display='none';
     
-    form.onsubmit = (e) => {
+    form.onsubmit = async (e) => {
         e.preventDefault();
-        const newP = { 
-            id: Date.now(), board: document.getElementById('post-board').value, 
-            author: document.getElementById('post-identity').value, title: document.getElementById('post-title-input').value, 
-            desc: document.getElementById('post-content-input').value, likes: 0, msgs: 0, liked: false, saved: false 
-        };
-        posts.unshift(newP); localStorage.setItem('forumPostsDB', JSON.stringify(posts));
-        form.reset(); document.getElementById('post-modal').style.display='none'; 
-        currentBoard = '全部';
-        document.querySelectorAll('.sidebar li').forEach(li => li.classList.remove('active'));
-        document.querySelector('.sidebar li').classList.add('active'); 
-        applyFilters();
+        const token = localStorage.getItem("authToken");
+        const title = document.getElementById('post-title-input').value;
+        const content = document.getElementById('post-content-input').value;
+        const identity = document.getElementById('post-identity').value;
+        const isAnonymous = identity === "匿名";
+
+        try {
+            const response = await fetch(`${API_BASE_URL}/bottles`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json',
+                    'ngrok-skip-browser-warning': 'true'
+                },
+                body: JSON.stringify({
+                    title: title,
+                    content: content,
+                    isAnonymous: isAnonymous
+                })
+            });
+
+            if (response.ok) {
+                alert('漂流瓶拋出成功！');
+                form.reset(); 
+                document.getElementById('post-modal').style.display='none'; 
+                fetchBottles(); // 重新抓取最新的文章列表
+            } else {
+                alert('發文失敗，請稍後再試。');
+            }
+        } catch (error) {
+            console.error("連線錯誤:", error);
+            alert('無法連線至伺服器');
+        }
     };
 }
 
+// 🌟 載入邏輯
 document.addEventListener('DOMContentLoaded', () => {
-    renderPosts(); setupAuth(); setupNewPost();
+    setupAuth(); 
+    setupNewPost();
+    fetchBottles(); // 網頁載入時呼叫後端拿文章
     
+    // 搜尋與側邊欄
     document.querySelector('.search-input').oninput = (e) => { currentKeyword = e.target.value.toLowerCase().trim(); applyFilters(); };
-    
     document.querySelectorAll('.sidebar li').forEach(li => li.onclick = (e) => {
         document.querySelectorAll('.sidebar li').forEach(el => el.classList.remove('active'));
         e.target.classList.add('active');
@@ -116,7 +204,6 @@ document.addEventListener('DOMContentLoaded', () => {
     
     document.getElementById('login-trigger').onclick = () => { window.location.href = "login.html"; };
 
-    // 🌟 下拉選單控制邏輯
     const userMenuBtn = document.getElementById('user-menu-btn');
     const userDropdown = document.getElementById('user-dropdown');
     if (userMenuBtn) {
@@ -128,23 +215,17 @@ document.addEventListener('DOMContentLoaded', () => {
     document.addEventListener('click', () => {
         if (userDropdown) userDropdown.classList.remove('show-dropdown');
     });
-});
-// 在 DOMContentLoaded 裡面加入這段控制邏輯
-document.addEventListener('DOMContentLoaded', () => {
-    // ... 原有的程式碼 ...
 
+    // 🌟 個人資料燈箱邏輯整合
     const profileModal = document.getElementById('profile-modal');
     const closeProfileBtn = document.getElementById('close-profile-modal');
+    const profileMenuItem = document.getElementById('open-profile');
 
-    // 🌟 找到下拉選單中的個人資料按鈕 (原本是 alert)
-    const profileMenuItem = document.querySelector('.menu-item[onclick*="個人資料"]');
     if (profileMenuItem) {
-        profileMenuItem.removeAttribute('onclick'); // 移除原本的 alert
         profileMenuItem.onclick = (e) => {
             e.stopPropagation();
             const user = JSON.parse(localStorage.getItem('currentUser'));
             if (user) {
-                // 填入資料
                 document.getElementById('detail-avatar').src = user.avatar || 'images/fish_logo.png';
                 document.getElementById('detail-name').innerText = user.name || '未設定姓名';
                 document.getElementById('detail-email').innerText = user.email;
@@ -160,7 +241,6 @@ document.addEventListener('DOMContentLoaded', () => {
         };
     }
 
-    // 關閉燈箱邏輯
     if (closeProfileBtn) {
         closeProfileBtn.onclick = () => profileModal.style.display = 'none';
     }
@@ -168,7 +248,8 @@ document.addEventListener('DOMContentLoaded', () => {
         if (event.target == profileModal) profileModal.style.display = 'none';
     };
 });
-// 🌟 這是全新的功能，直接補在檔案最後面
+
+// 🌟 更換頭像的獨立事件監聽
 document.addEventListener('change', (e) => {
     if (e.target.id === 'change-avatar-input') {
         const file = e.target.files[0];
@@ -176,12 +257,8 @@ document.addEventListener('change', (e) => {
             const reader = new FileReader();
             reader.onload = function(event) {
                 const imageUrl = event.target.result;
-                
-                // 更換畫面上的大、小頭像
                 if (document.getElementById('detail-avatar')) document.getElementById('detail-avatar').src = imageUrl;
                 if (document.getElementById('user-avatar')) document.getElementById('user-avatar').src = imageUrl;
-                
-                // 存入瀏覽器暫存
                 const user = JSON.parse(localStorage.getItem('currentUser'));
                 if (user) {
                     user.avatar = imageUrl;

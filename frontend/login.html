@@ -43,11 +43,11 @@
         <form id="register-form" class="auth-form" style="display: none;">
           <div class="form-row">
             <div class="avatar-upload-group">
+              <!--
               <label for="avatar-upload" class="avatar-label">
                 <img id="preview-avatar" src="images/default_avatar_icon.png" alt="頭像" onerror="this.src='https://via.placeholder.com/80'" />
-                <!--<span>上傳頭像</span>
               </label>
-              <input type="file" id="avatar-upload" accept="image/*" style="display: none;" />-->
+              -->
             </div>
             
             <div class="right-inputs">
@@ -105,7 +105,10 @@
       </div>
     </div>
 
-    <script>
+   <script>
+      // ✨ 統一設定後端網址 (記得替換成你最新的 ngrok 網址或 http://localhost:3000)
+      const API_BASE_URL = "https://scabbed-balancing-gluten.ngrok-free.dev";
+
       function openAuthModal() { document.getElementById('auth-modal').style.display = 'flex'; }
       function closeAuthModal() { document.getElementById('auth-modal').style.display = 'none'; }
 
@@ -124,41 +127,113 @@
         }
       }
 
-      document.getElementById("avatar-upload").addEventListener("change", function (e) {
-          const file = e.target.files[0];
-          if (file) {
-            const reader = new FileReader();
-            reader.onload = function (event) {
-              document.getElementById("preview-avatar").src = event.target.result;
-            };
-            reader.readAsDataURL(file);
-          }
-      });
-
-      function processLogin() {
+      // 🌊 串接後端登入 API
+// 🌊 串接後端登入 API (俄羅斯套娃破解版)
+      async function processLogin() {
           const email = document.getElementById("login-email").value;
-          if (email.trim() === "") { alert("請輸入信箱登入！"); return; }
-          localStorage.setItem("currentUser", JSON.stringify({ email: email, avatar: "images/fish_logo.png" }));
-          window.location.href = "test.html";
+          const password = document.getElementById("login-password").value;
+          if (email.trim() === "" || password.trim() === "") { alert("請輸入信箱與密碼！"); return; }
+
+          try {
+              const response = await fetch(`${API_BASE_URL}/auth/login`, {
+                  method: 'POST',
+                  headers: { 
+                      'Content-Type': 'application/json',
+                      'ngrok-skip-browser-warning': 'true'
+                  },
+                  body: JSON.stringify({ email: email, password: password })
+              });
+              
+              const responseData = await response.json();
+              console.log("📦 登入 API 回傳的完整包裹：", responseData);
+              
+              if (response.ok) {
+                  // ✨ 終極修正：精準進入 data -> result 裡面拿東西！
+                  const realToken = responseData.data.result.token;
+                  const realUser = responseData.data.result.member;
+
+                  // 1. 把真正的 Token 存進去
+                  localStorage.setItem("authToken", realToken); 
+                  
+                  // 2. 把真實的使用者資料打包存進去 (補上一個預設頭像讓論壇可以用)
+                  const userToSave = {
+                      email: realUser.email,
+                      name: realUser.name,
+                      avatar: "images/fish_logo.png",
+                      birthday: realUser.birthday,
+                      bio: realUser.bio,
+                      constellation: realUser.constellation
+                  };
+                  localStorage.setItem("currentUser", JSON.stringify(userToSave));
+                  
+                  alert("登入成功！");
+                  window.location.href = "test.html";
+              } else {
+                  alert("登入失敗：" + (responseData.message || "帳號或密碼錯誤"));
+              }
+          } catch (error) {
+              console.error("連線錯誤:", error);
+              alert("無法連接到後端伺服器！");
+          }
       }
 
-      function processRegister() {
+      // 🌊 串接後端註冊 API
+      // 🌊 串接後端註冊 API (嚴格對齊後端格式)
+      async function processRegister() {
           const email = document.getElementById("reg-email").value;
+          const password = document.getElementById("reg-password").value;
           const name = document.getElementById("reg-name").value;
-          const avatarSrc = document.getElementById("preview-avatar").src;
 
-          if (email.trim() === "" || name.trim() === "") { alert("信箱和姓名是必填的喔！"); return; }
+          if (email.trim() === "" || name.trim() === "" || password.trim() === "") { 
+              alert("信箱、姓名和密碼是必填的喔！"); return; 
+          }
 
-          const userData = {
-            email: email, name: name, avatar: avatarSrc,
-            birthday: document.getElementById("reg-birthday").value,
-            gender: document.getElementById("reg-gender").value,
-            zodiac: document.getElementById("reg-zodiac").value,
-            bio: document.getElementById("reg-bio").value
-          };
+          // 📅 處理生日格式 (避免送出 null 導致後端 400 錯誤)
+          const birthdayRaw = document.getElementById("reg-birthday").value;
           
-          localStorage.setItem("currentUser", JSON.stringify(userData));
-          window.location.href = "test.html";
+          // ✨ 關鍵修正：如果沒填生日，就給一個預設值，確保絕對符合後端的 ISO 格式
+          const finalBirthday = birthdayRaw 
+              ? new Date(birthdayRaw).toISOString() 
+              : new Date("2000-01-01").toISOString();
+
+          // 📦 嚴格依照後端 README 要求的格式打包資料
+          const userData = {
+              email: email,
+              password: password,
+              name: name,
+              birthday: finalBirthday, 
+              bio: document.getElementById("reg-bio").value || "",
+              blood_type: "", // 畫面上沒有，依照規定給空字串
+              constellation: document.getElementById("reg-zodiac").value || "" 
+          };
+
+          // 🔍 印出準備送出的資料，讓你可以在 F12 的 Console 檢查！
+          console.log("📤 準備送出的註冊資料：", JSON.stringify(userData, null, 2));
+
+          try {
+              const response = await fetch(`${API_BASE_URL}/auth/register`, {
+                  method: 'POST',
+                  headers: { 
+                      'Content-Type': 'application/json',
+                      'ngrok-skip-browser-warning': 'true'
+                  },
+                  body: JSON.stringify(userData)
+              });
+              
+              const data = await response.json();
+              
+              if (response.ok) {
+                  alert("註冊成功！請登入。");
+                  switchTab('login'); 
+              } else {
+                  // 🚨 如果還是失敗，這裡會把後端真正的抱怨印在 F12 裡面
+                  console.error("❌ 後端拒絕註冊：", data);
+                  alert("註冊失敗：" + (data.message || "資料格式錯誤或信箱已存在"));
+              }
+          } catch (error) {
+              console.error("連線錯誤:", error);
+              alert("無法連接到後端伺服器！");
+          }
       }
     </script>
   </body>
