@@ -8,6 +8,8 @@ export function authRouter() {
     router.post('/login', authController.login);
     router.post('/register', authController.register);
     router.post("/logout", authCheck, authController.logout);
+    router.post("/forgot-password", authController.forgotPassword);
+    router.post("/reset-password", authController.resetPassword);
     router.get('/profile', authCheck, (req, res) => {
         const authReq = req as AuthRequest;
         res.status(200).json({

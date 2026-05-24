@@ -84,3 +84,14 @@ Headers要給 x-api-key (跟我拿)
     "bottle_id":,
     "status":1 /*只能輸入0 or 1*/
 }
+
+忘記密碼申請： /auth/forgot-password
+{
+  "email": ""
+}
+
+重設密碼： /auth/reset-password
+{
+  "token": "",
+  "newPassword": ""
+}

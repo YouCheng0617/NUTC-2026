@@ -1,5 +1,5 @@
 import type { Request, Response } from "express";
-import { createMember, loginMember } from "./auth.service.js";
+import { createMember, loginMember, forgotPassword, resetPassword } from "./auth.service.js";
 import { countHelper } from "../../lib/countHelper.js";
 import prisma from "../../lib/prisma.js";
 
@@ -62,7 +62,46 @@ export class AuthController {
             return res.status(500).json({ message: "登出過程出了一點小意外" });
         }
     }
+
+    async forgotPassword(req: Request, res: Response) {
+        try {
+            const { email } = req.body;
+            if (!email) {
+                return res.status(400).json({ message: "請提供註冊的信箱" });
+            }
+
+            const resetToken = await forgotPassword(email);
+            res.status(200).json({
+                message: "密碼重設信已寄送，請檢查您的信箱",
+                data: { resetToken }
+            });
+
+        } catch (error) {
+            console.error('forgotPassword Controller 錯誤:', error);
+            return res.status(500).json({ message: '伺服器發生錯誤，請稍後再試' });
+        }
+    }
+
+    async resetPassword(req: Request, res: Response) {
+        try {
+            const { token, newPassword } = req.body;
+            if (!token || !newPassword) {
+                return res.status(400).json({ message: "請提供重設密碼所需的憑證和新密碼" });
+            }
+            await resetPassword(token, newPassword);
+            res.status(200).json({ message: "密碼重設成功" });
+
+        } catch (error) {
+            if (error instanceof Error) {
+                return res.status(400).json({ message: error.message });
+            }
+
+            console.error('resetPassword Controller 錯誤:', error);
+            return res.status(500).json({ message: '伺服器發生錯誤，請稍後再試' });
+        }
+    }
 }
+
 
 
 export const authController = new AuthController();

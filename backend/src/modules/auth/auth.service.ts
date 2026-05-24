@@ -2,7 +2,7 @@ import prisma from "../../lib/prisma.js";
 import { signHelper } from "../../lib/signHelper.js";   /*星座計算的工具函式*/
 import { hashPassword, comparePassword } from "../../lib/passWord.js"; /*密碼加密與比對的工具函式*/
 import { generateToken } from "../../lib/LogIn.js"; /*JWT的工具函式*/
-
+const crypto = await import("crypto");
 
 interface MemberData {
     email: string;
@@ -120,4 +120,70 @@ export const loginMember = async (email: string, password: string) => {
         member: memberWithoutPassword,
         token: token,
     };
-}
+};
+
+/*忘記密碼驗證的服務函式*/
+export const forgotPassword = async (email: string) => {
+    const member = await prisma.member.findUnique({
+        where: {
+            email: email,
+        }
+    });
+    if (!member) {
+        return null;
+    }
+
+    const resetToken = crypto.randomBytes(32).toString("hex");
+    const resetTokenExpiry = new Date(Date.now() + 20 * 60 * 1000); // 20分鐘後過期
+
+    await prisma.$transaction([
+        /*清除該過去申請的Token*/
+        prisma.passwordReset.deleteMany({
+            where: { email: email }
+        }),
+        prisma.passwordReset.create({
+            data: {
+                email: email,
+                token: resetToken,
+                expiresAt: resetTokenExpiry,
+            }
+        })
+    ]);
+
+    const resetLink = `http://localhost:3000/reset-password?token=${resetToken}`;
+    console.log(`\n=========================================`);
+    console.log(`📧 [模擬系統寄信] 收件人: ${email}`);
+    console.log(`🔗 請點擊以下連結重設密碼 (20分鐘內有效):`);
+    console.log(`${resetLink}`);
+    console.log(`=========================================\n`);
+
+    // 回傳 token 讓 Controller 知道執行成功
+    return resetToken;
+
+};
+
+export const resetPassword = async (token: string, newPassword: string) => {
+    const resetRecord = await prisma.passwordReset.findUnique({
+        where: { token: token }
+    });
+    if (!resetRecord || resetRecord.expiresAt < new Date()) {
+        throw new Error("無效的重設憑證，請重新申請重設。");
+    }
+    const hashedPassword = await hashPassword(newPassword);
+
+    await prisma.$transaction([
+        prisma.member.update({
+            where: { email: resetRecord.email },
+            data: {
+                password: hashedPassword,
+                logins_failed: 0,
+                locked_time: null,
+            }
+        }),
+        prisma.passwordReset.delete({
+            where: { token: token }
+        })
+    ]);
+
+    return true;
+};

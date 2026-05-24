@@ -36,6 +36,8 @@ model Member {
   // 關聯：一個會員發表多個瓶子
   bottles          Bottle[]
   BlacklistedToken BlacklistedToken[]
+  bottleLikes      BottleLike[]
+  bottleSaves      BottleSave[]
 }
 
 model BlacklistedToken {
@@ -45,6 +47,17 @@ model BlacklistedToken {
   created_at DateTime @default(now())
 
   member Member @relation(fields: [member_id], references: [member_id])
+}
+
+// 忘記密碼
+model PasswordReset {
+  id        Int      @id @default(autoincrement())
+  email     String
+  token     String   @unique
+  expiresAt DateTime // 過期時間
+  createdAt DateTime @default(now())
+
+  @@index([email])
 }
 
 // 漂流瓶
@@ -63,6 +76,8 @@ model Bottle {
   author     Member           @relation(fields: [member_id], references: [member_id])
   // 關聯：透過「擁有」中間表連接到類別
   categories BottleCategory[]
+  likes      BottleLike[]
+  saves      BottleSave[]
 }
 
 // 類別表
@@ -83,4 +98,30 @@ model BottleCategory {
   category Category @relation(fields: [category_id], references: [category_id])
 
   @@id([bottle_id, category_id]) // 複合主鍵，確保同一個瓶子不會重複加入同一個類別
+}
+
+model BottleLike {
+  id        Int      @id @default(autoincrement())
+  memberId  Int      @map("member_id")
+  bottleId  Int      @map("bottle_id")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  member Member @relation(fields: [memberId], references: [member_id], onDelete: Cascade)
+  bottle Bottle @relation(fields: [bottleId], references: [bottle_id], onDelete: Cascade)
+
+  // 確保同一個使用者對同一篇貼文只能按一次讚
+  @@unique([memberId, bottleId])
+}
+
+model BottleSave {
+  id        Int      @id @default(autoincrement())
+  memberId  Int      @map("member_id")
+  bottleId  Int      @map("bottle_id")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  member Member @relation(fields: [memberId], references: [member_id], onDelete: Cascade)
+  bottle Bottle @relation(fields: [bottleId], references: [bottle_id], onDelete: Cascade)
+
+  // 確保同一個使用者對同一篇貼文只能收藏一次
+  @@unique([memberId, bottleId])
 }
