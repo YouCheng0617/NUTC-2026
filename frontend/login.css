@@ -2,27 +2,48 @@
 body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background-color: #5BA7FF; font-family: 'PingFang TC', sans-serif; }
 .login-container { position: relative; width: 100vw; height: 100vh; display: flex; justify-content: center; align-items: center; }
 .bg-img { position: absolute; width: 100%; height: 100%; object-fit: cover; z-index: 1; }
-.fish-deco { position: absolute; width: 200px; z-index: 5; bottom: 0px; left: 0px; opacity: 0.9; }
-.starfish-deco { position: absolute; width: 250px; z-index: 5; bottom: 0px; right: 0px; }
+.fish-deco { 
+    position: absolute; 
+    width: clamp(100px, 20vw, 200px); /* 螢幕小就變小魚，不佔空間 */
+    z-index: 5; 
+    bottom: 2%; 
+    left: 2%; 
+    opacity: 0.9; 
+}
+.starfish-deco { 
+    position: absolute; 
+    width: clamp(120px, 25vw, 250px); 
+    z-index: 5; 
+    bottom: 0px; 
+    right: 0px; 
+}
 .bottom-right-1 {
-    right: 200px;          
-    bottom: -50px;         
-    width: 300px;          
+    right: 15%;          /* 改用百分比定位 */
+    bottom: -5%;         
+    width: clamp(150px, 30vw, 300px);          
     height: auto;
-}  
+}
 
 /* =========================================
    ✨ 巨無霸版：750px 3D 立體水晶泡泡登入按鈕
    ========================================= */
 .enter-btn-container { 
-    position: relative; 
+    /* 🔴 關鍵修改 1：改為絕對定位，死死鎖在畫面正中央 */
+    position: absolute; 
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%); /* 置中魔法 */
     z-index: 10; 
     display: flex; 
     flex-direction: column; 
     justify-content: center; 
     align-items: center; 
-    width: 750px;          
-    height: 750px;         
+    
+    /* 🔴 關鍵修改 2：把固定的 750px 改成響應式大小 */
+    width: 80vw;                  /* 手機版時，寬度佔螢幕的 80% */
+    height: 80vw;                 /* 保持正圓形 */
+    max-width: 750px;             /* 電腦版最大就維持你原本的 750px */
+    max-height: 750px;            /* 電腦版最大高度 */
     
     background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.5) 0%, rgba(255, 255, 255, 0.1) 50%, rgba(0, 85, 165, 0.15) 100%); 
     backdrop-filter: blur(8px); 
@@ -38,10 +59,13 @@ body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden;
     transition: all 0.5s cubic-bezier(0.25, 0.8, 0.25, 1); 
     color: #fff; 
     text-align: center;
+    box-sizing: border-box; /* 防止 padding 撐開圓圈 */
+    padding: 20px;
 }
 
 .enter-btn-container:hover { 
-    transform: translateY(-15px) scale(1.02); 
+    /* 🔴 關鍵修改 3：必須保留 translate(-50%, -50%)，再加上原本的向上微調 Y 軸 */
+    transform: translate(-50%, -54%) scale(1.02); 
     box-shadow: 
         inset -20px -20px 40px rgba(0, 85, 165, 0.2),
         inset 20px 20px 40px rgba(255, 255, 255, 0.9),
@@ -50,31 +74,33 @@ body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden;
 }
 
 .enter-btn-container img {
-    width: 260px !important;       
-    margin-bottom: 30px !important;
+    /* 🔴 寬度隨螢幕縮放：最小 100px，最大 260px */
+    width: clamp(100px, 28vw, 260px) !important;       
+    margin-bottom: 3% !important;
     filter: drop-shadow(0 6px 10px rgba(0, 50, 100, 0.3));
 }
 
 .enter-btn-container h2 {
-    font-size: 5.5rem;             
+    /* 🔴 字體隨螢幕縮放：最小 2rem，最大 5.5rem */
+    font-size: clamp(2rem, 6.5vw, 5.5rem);             
     font-weight: 900;
-    letter-spacing: 16px;          
-    margin: 0 0 40px 0;
+    letter-spacing: clamp(4px, 1.5vw, 16px);          
+    margin: 0 0 5% 0;
     text-shadow: 0 5px 12px rgba(0, 50, 100, 0.4);
 }
 
 .enter-btn-container p {
-    font-size: 2.2rem;             
+    /* 🔴 字體隨螢幕縮放：最小 1rem，最大 2.2rem */
+    font-size: clamp(1rem, 2.5vw, 2.2rem);             
     font-weight: bold;
-    letter-spacing: 5px;
+    letter-spacing: 3px;
     margin: 0;
     background: rgba(0, 85, 165, 0.6); 
-    padding: 20px 50px;            
+    padding: 2% 6%; /* 改用百分比內距 */           
     border-radius: 50px;
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
     border: 2px solid rgba(255, 255, 255, 0.3);
 }
-
 /* ==================================================
    深色科技感彈窗 (對應架構圖的設計)
    ================================================== */
@@ -86,11 +112,22 @@ body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden;
 
 .dark-modal-content {
     background: #1e2235; 
-    width: 500px; max-height: 90vh; overflow-y: auto;
-    border-radius: 20px; padding: 30px; position: relative;
-    box-shadow: 0 20px 50px rgba(0,0,0,0.5); border: 1px solid #3a4161;
+    
+    /* 🔴 關鍵修改 1：允許在小螢幕時自動縮小到 90% */
+    width: 92%;            
+    max-width: 500px;      /* 大螢幕時維持 500px */
+    
+    max-height: 85vh;      /* 限制最高高度，避免超出螢幕範圍 */
+    overflow-y: auto;      /* 如果內容太長，允許在彈窗內滾動 */
+    border-radius: 20px; 
+    padding: 20px;         /* 手機版內距縮小一點，留更多空間給內容 */
+    position: relative;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.5); 
+    border: 1px solid #3a4161;
     color: #e0e6ed;
-}
+    box-sizing: border-box; /* 這一行一定要有，防止 padding 撐破寬度 */
+}x-sizing:border-box::after/* 確保 padding 不會把寬度撐爆 */
+
 
 .close-btn { position: absolute; right: 25px; top: 20px; font-size: 28px; cursor: pointer; color: #8892b0; transition: 0.2s; }
 .close-btn:hover { color: #ff4d4d; }
@@ -130,3 +167,63 @@ input[type="date"]::-webkit-calendar-picker-indicator {
     cursor: pointer !important; opacity: 0.8; transition: 0.3s;
 }
 input[type="date"]::-webkit-calendar-picker-indicator:hover { opacity: 1; }
+
+/* ==================================================
+   🚀 專門拯救 Mobile S (320px) 與所有手機版的終極特訓樣式
+   ================================================== */
+@media screen and (max-width: 576px) {
+    /* 1. 彈窗外殼：寬度自動縮到 92%，留出兩邊精緻縫隙 */
+    .dark-modal-content {
+        width: 92% !important;
+        max-width: 100% !important;
+        padding: 15px !important; /* 縮小內距，把空間留給輸入框 */
+        max-height: 85vh !important;
+        box-sizing: border-box !important;
+    }
+
+    /* 2. 核心致命傷：強制「生日、性別、星座」全部拆開成單列垂直排列 */
+    .form-row-multi {
+        display: flex !important;
+        flex-direction: column !important; /* 變直排 */
+        gap: 12px !important;
+        width: 100% !important;
+    }
+
+    /* 3. 確保裡面的每一個輸入框群組都維持 100% 滿版，不准亂縮 */
+    .form-row-multi .input-group,
+    .form-row .input-group {
+        width: 100% !important;
+        flex: none !important;
+    }
+
+    /* 4. 如果頭像區塊有橫向排版，也強制拆開成上下排 */
+    .form-row {
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: stretch !important;
+        gap: 15px !important;
+    }
+
+    /* 5. 微調輸入框跟下拉選單的大小，讓 320px 畫面不擁擠 */
+    .input-group input, 
+    .input-group select, 
+    .input-group textarea {
+        font-size: 0.9rem !important;
+        padding: 10px !important;
+        width: 100% !important;
+        box-sizing: border-box !important; /* 必加：防止邊框把寬度撐爆 */
+    }
+
+    /* 6. 右上角的 X 關閉按鈕微調 */
+    .close-btn {
+        right: 15px !important;
+        top: 12px !important;
+        font-size: 24px !important;
+    }
+
+    /* 7. 底部的註冊進入按鈕高度微調 */
+    .btn-submit-dark {
+        padding: 12px !important;
+        font-size: 1rem !important;
+    }
+}

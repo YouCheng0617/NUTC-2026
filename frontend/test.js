@@ -1,12 +1,11 @@
 // ✨ 統一設定後端網址
 const API_BASE_URL = "https://scabbed-balancing-gluten.ngrok-free.dev";
 
-// 原本的假資料先清空，等待後端資料
 let posts = [];
 let currentKeyword = '';
 let currentBoard = '全部';
 
-// 🌊 向後端抓取文章 API (100% 破關版)
+// 🌊 向後端抓取文章 API
 async function fetchBottles() {
     const token = localStorage.getItem("authToken");
     if (!token) {
@@ -27,17 +26,11 @@ async function fetchBottles() {
         
         if (response.ok) {
             const backendData = await response.json();
-            console.log("📦 文章 API 回傳的完整包裹：", backendData);
-
-            // 🔍 終極拆包裹
-            let postsArray = [];
             
-            // ✨ 破關關鍵：後端把文章放在 bottles 屬性裡！
+            let postsArray = [];
             if (backendData.bottles && Array.isArray(backendData.bottles)) {
                 postsArray = backendData.bottles;
-            } 
-            // 保留其他的防呆機制
-            else if (Array.isArray(backendData)) {
+            } else if (Array.isArray(backendData)) {
                 postsArray = backendData;
             } else if (backendData.data && Array.isArray(backendData.data)) {
                 postsArray = backendData.data;
@@ -49,11 +42,9 @@ async function fetchBottles() {
                 postsArray = [backendData.data.result];
             }
 
-            // 🌟 嚴格對齊 Prisma 資料庫結構
             posts = postsArray.map(item => ({
                 id: item.bottle_id || Date.now(),
                 board: "🔥 綜合閒聊", 
-                // 判斷是否匿名，若不是則抓取關聯的 author 名字
                 author: (item.is_anonymous || item.isAnonymous) ? "匿名" : (item.author?.name || item.author_name || "用戶"),
                 title: item.title,
                 desc: item.content, 
@@ -135,7 +126,7 @@ function setupAuth() {
     if(logoutBtn) {
         logoutBtn.onclick = () => {
             localStorage.removeItem('currentUser'); 
-            localStorage.removeItem('authToken'); // 登出時順便清除 Token
+            localStorage.removeItem('authToken'); 
             updateUI(); 
             alert('已登出！期待再次與你相遇。');
             window.location.href = "index.html"; 
@@ -144,7 +135,6 @@ function setupAuth() {
     updateUI();
 }
 
-// 🌊 發送新漂流瓶 API
 function setupNewPost() {
     const form = document.getElementById('new-post-form');
     document.getElementById('btn-new-post').onclick = () => document.getElementById('post-modal').style.display='block';
@@ -177,7 +167,7 @@ function setupNewPost() {
                 alert('漂流瓶拋出成功！');
                 form.reset(); 
                 document.getElementById('post-modal').style.display='none'; 
-                fetchBottles(); // 重新抓取最新的文章列表
+                fetchBottles();
             } else {
                 alert('發文失敗，請稍後再試。');
             }
@@ -188,13 +178,11 @@ function setupNewPost() {
     };
 }
 
-// 🌟 載入邏輯
 document.addEventListener('DOMContentLoaded', () => {
     setupAuth(); 
     setupNewPost();
-    fetchBottles(); // 網頁載入時呼叫後端拿文章
+    fetchBottles(); 
     
-    // 搜尋與側邊欄
     document.querySelector('.search-input').oninput = (e) => { currentKeyword = e.target.value.toLowerCase().trim(); applyFilters(); };
     document.querySelectorAll('.sidebar li').forEach(li => li.onclick = (e) => {
         document.querySelectorAll('.sidebar li').forEach(el => el.classList.remove('active'));
@@ -216,7 +204,6 @@ document.addEventListener('DOMContentLoaded', () => {
         if (userDropdown) userDropdown.classList.remove('show-dropdown');
     });
 
-    // 🌟 個人資料燈箱邏輯整合
     const profileModal = document.getElementById('profile-modal');
     const closeProfileBtn = document.getElementById('close-profile-modal');
     const profileMenuItem = document.getElementById('open-profile');
@@ -249,7 +236,6 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 });
 
-// 🌟 更換頭像的獨立事件監聽
 document.addEventListener('change', (e) => {
     if (e.target.id === 'change-avatar-input') {
         const file = e.target.files[0];
