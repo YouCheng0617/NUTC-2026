@@ -14,11 +14,14 @@ export const bottleController = {
     /* 丟出瓶子 */
     async throwBottle(req: AuthRequest, res: Response) {
         try {
-            const { title, content, isAnonymous } = req.body;
+            const { title, content, isAnonymous, category_id } = req.body;
             const memberId = req.user?.member_id;
 
             if (!title || !content) {
                 return res.status(400).json({ message: "瓶子標題和內容不能是空的" });
+            }
+            if (!Array.isArray(category_id) || category_id.length === 0) {
+                return res.status(400).json({ message: "請至少選擇一個分類" });
             }
             const newBottle = await prisma.bottle.create({
                 data: {
@@ -26,6 +29,18 @@ export const bottleController = {
                     content,
                     is_anonymous: isAnonymous || false,
                     member_id: memberId!,
+                    categories: {
+                        create: category_id.map((id: number) => ({
+                            category_id: id
+                        }))
+                    }
+                },
+                include: {
+                    categories: {
+                        include: {
+                            category: true
+                        }
+                    }
                 }
             });
             res.status(201).json({ message: "瓶子丟出成功", bottle: newBottle });
@@ -40,11 +55,20 @@ export const bottleController = {
         try {
             const memberId = req.user?.member_id;
             const limit = 10; /* 每次獲取的瓶子數量 */
+            const categoryIdParam = req.query.categoryId as string;
+            const targetCategoryId = categoryIdParam ? parseInt(categoryIdParam) : undefined;
 
             const availableBottles = await prisma.bottle.findMany({
                 where: {
                     member_id: { not: memberId! },
-                    status: 1 /* 只撈取審核通過的瓶子 */
+                    status: 1,/* 只撈取審核通過的瓶子 */
+                    ...(targetCategoryId && {
+                        categories: {
+                            some: {
+                                category_id: targetCategoryId
+                            }
+                        }
+                    })
                 },
                 select: { bottle_id: true }
             });

@@ -19,6 +19,11 @@ enum UserStatus {
   BANNED
 }
 
+enum Role {
+  USER
+  ADMIN
+}
+
 // 會員
 model Member {
   member_id        Int                @id @default(autoincrement())
@@ -29,6 +34,7 @@ model Member {
   bio              String?            @db.Text // 自介
   blood_type       String? // 血型
   constellation    String? // 星座
+  role             Role               @default(USER)
   created_at       DateTime           @default(now()) // 註冊時間
   logins_failed    Int                @default(0) // 登入失敗次數
   locked_time      DateTime? // 鎖定時間，?=null，表示未鎖定
@@ -38,6 +44,7 @@ model Member {
   BlacklistedToken BlacklistedToken[]
   bottleLikes      BottleLike[]
   bottleSaves      BottleSave[]
+  Comment          Comment[]
 }
 
 model BlacklistedToken {
@@ -78,6 +85,7 @@ model Bottle {
   categories BottleCategory[]
   likes      BottleLike[]
   saves      BottleSave[]
+  Comment    Comment[]
 }
 
 // 類別表
@@ -102,26 +110,38 @@ model BottleCategory {
 
 model BottleLike {
   id        Int      @id @default(autoincrement())
-  memberId  Int      @map("member_id")
-  bottleId  Int      @map("bottle_id")
+  member_id Int      @map("member_id")
+  bottle_id Int      @map("bottle_id")
   createdAt DateTime @default(now()) @map("created_at")
 
-  member Member @relation(fields: [memberId], references: [member_id], onDelete: Cascade)
-  bottle Bottle @relation(fields: [bottleId], references: [bottle_id], onDelete: Cascade)
+  member Member @relation(fields: [member_id], references: [member_id], onDelete: Cascade)
+  bottle Bottle @relation(fields: [bottle_id], references: [bottle_id], onDelete: Cascade)
 
   // 確保同一個使用者對同一篇貼文只能按一次讚
-  @@unique([memberId, bottleId])
+  @@unique([member_id, bottle_id])
 }
 
 model BottleSave {
   id        Int      @id @default(autoincrement())
-  memberId  Int      @map("member_id")
-  bottleId  Int      @map("bottle_id")
+  member_id Int      @map("member_id")
+  bottle_id Int      @map("bottle_id")
   createdAt DateTime @default(now()) @map("created_at")
 
-  member Member @relation(fields: [memberId], references: [member_id], onDelete: Cascade)
-  bottle Bottle @relation(fields: [bottleId], references: [bottle_id], onDelete: Cascade)
+  member Member @relation(fields: [member_id], references: [member_id], onDelete: Cascade)
+  bottle Bottle @relation(fields: [bottle_id], references: [bottle_id], onDelete: Cascade)
 
   // 確保同一個使用者對同一篇貼文只能收藏一次
-  @@unique([memberId, bottleId])
+  @@unique([member_id, bottle_id])
+}
+
+model Comment {
+  id        Int      @id @default(autoincrement())
+  content   String   @db.Text
+  member_id Int      @map("member_id")
+  bottle_id Int      @map("bottle_id")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  // 關聯：留言是誰留的、留在哪個瓶子上 (一樣加上 Cascade 級聯刪除，保證資料庫乾淨)
+  member Member @relation(fields: [member_id], references: [member_id], onDelete: Cascade)
+  bottle Bottle @relation(fields: [bottle_id], references: [bottle_id], onDelete: Cascade)
 }
