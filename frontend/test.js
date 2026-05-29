@@ -1,12 +1,12 @@
 // ✨ 統一設定後端網址
 const API_BASE_URL = "https://scabbed-balancing-gluten.ngrok-free.dev";
 
-// 原本的假資料先清空，等待後端資料
 let posts = [];
 let currentKeyword = '';
 let currentBoard = '全部';
+let currentView = 'all'; // 🔴 紀錄狀態：'all' (一般), 'saved' (收藏頁), 'mine' (我的文章頁)
 
-// 🌊 向後端抓取文章 API (100% 破關版)
+// 🌊 向後端抓取文章 API
 async function fetchBottles() {
     const token = localStorage.getItem("authToken");
     if (!token) {
@@ -27,17 +27,11 @@ async function fetchBottles() {
         
         if (response.ok) {
             const backendData = await response.json();
-            console.log("📦 文章 API 回傳的完整包裹：", backendData);
-
-            // 🔍 終極拆包裹
-            let postsArray = [];
             
-            // ✨ 破關關鍵：後端把文章放在 bottles 屬性裡！
+            let postsArray = [];
             if (backendData.bottles && Array.isArray(backendData.bottles)) {
                 postsArray = backendData.bottles;
-            } 
-            // 保留其他的防呆機制
-            else if (Array.isArray(backendData)) {
+            } else if (Array.isArray(backendData)) {
                 postsArray = backendData;
             } else if (backendData.data && Array.isArray(backendData.data)) {
                 postsArray = backendData.data;
@@ -49,18 +43,16 @@ async function fetchBottles() {
                 postsArray = [backendData.data.result];
             }
 
-            // 🌟 嚴格對齊 Prisma 資料庫結構
             posts = postsArray.map(item => ({
                 id: item.bottle_id || Date.now(),
                 board: "🔥 綜合閒聊", 
-                // 判斷是否匿名，若不是則抓取關聯的 author 名字
                 author: (item.is_anonymous || item.isAnonymous) ? "匿名" : (item.author?.name || item.author_name || "用戶"),
                 title: item.title,
                 desc: item.content, 
                 likes: item.view_count || 0,
                 msgs: 0,
                 liked: false,
-                saved: false
+                saved: false // 如果後端有提供收藏關聯，可直接對齊後端欄位
             }));
             
             applyFilters();
@@ -75,7 +67,16 @@ async function fetchBottles() {
 function renderPosts(data = posts) {
     const container = document.getElementById('post-container');
     if (!container) return;
-    container.innerHTML = data.length === 0 ? `<h3 style="text-align:center; color:#888;">找不到漂流瓶 😢</h3>` : 
+    
+    // 🔴 依據所在頁面，提供更精準的空白提示
+    let emptyMsg = '找不到漂流瓶 😢';
+    if (currentView === 'saved') {
+        emptyMsg = '你還沒有收藏任何漂流瓶喔 ⭐';
+    } else if (currentView === 'mine') {
+        emptyMsg = '你目前還沒有發過任何漂流瓶喔 📝';
+    }
+
+    container.innerHTML = data.length === 0 ? `<h3 style="text-align:center; color:#888; margin-top:40px;">${emptyMsg}</h3>` : 
     data.map(p => `
         <div class="post-card" onclick="alert('假裝打開漂流瓶 id=${p.id}')">
             <div style="display:flex; justify-content:space-between; align-items:center;">
@@ -95,7 +96,20 @@ function renderPosts(data = posts) {
 
 function applyFilters() {
     let res = posts;
-    if (currentBoard !== '全部') res = res.filter(p => p.board.includes(currentBoard));
+    
+    // 🔴 核心過濾邏輯分支
+    if (currentView === 'saved') {
+        res = res.filter(p => p.saved === true); // 收藏網頁：只留被標記為 saved 的項目
+    } else if (currentView === 'mine') {
+        // 🟢 我的文章網頁：比對當前登入使用者的名字
+        const user = JSON.parse(localStorage.getItem('currentUser'));
+        const myName = user ? user.name : '';
+        res = res.filter(p => p.author === myName); // 只秀出作者是自己的實名文章
+    } else {
+        // 主頁：依照看板分類篩選
+        if (currentBoard !== '全部') res = res.filter(p => p.board.includes(currentBoard));
+    }
+    
     if (currentKeyword) res = res.filter(p => p.title.toLowerCase().includes(currentKeyword));
     renderPosts(res);
 }
@@ -118,16 +132,23 @@ function setupAuth() {
     function updateUI() {
         const user = JSON.parse(localStorage.getItem('currentUser'));
         if (user) {
-            loginTrigger.style.display = 'none'; userProfile.style.display = 'flex';
+            if (loginTrigger) loginTrigger.style.display = 'none'; 
+            if (userProfile) userProfile.style.display = 'flex';
             const displayName = user.name || (user.email ? user.email.split('@')[0] : '用戶');
-            document.getElementById('user-name').innerText = displayName;
-            if(user.avatar) document.getElementById('user-avatar').src = user.avatar;
-            if(identitySelect) {
+            
+            const userNameEl = document.getElementById('user-name');
+            if (userNameEl) userNameEl.innerText = displayName;
+            
+            const userAvatarEl = document.getElementById('user-avatar');
+            if (user && user.avatar && userAvatarEl) userAvatarEl.src = user.avatar;
+            
+            if (identitySelect) {
                 identitySelect.options[0].text = `實名 (${displayName})`;
                 identitySelect.options[0].value = displayName;
             }
         } else {
-            loginTrigger.style.display = 'block'; userProfile.style.display = 'none';
+            if (loginTrigger) loginTrigger.style.display = 'block'; 
+            if (userProfile) userProfile.style.display = 'none';
         }
     }
 
@@ -135,7 +156,7 @@ function setupAuth() {
     if(logoutBtn) {
         logoutBtn.onclick = () => {
             localStorage.removeItem('currentUser'); 
-            localStorage.removeItem('authToken'); // 登出時順便清除 Token
+            localStorage.removeItem('authToken'); 
             updateUI(); 
             alert('已登出！期待再次與你相遇。');
             window.location.href = "index.html"; 
@@ -144,69 +165,88 @@ function setupAuth() {
     updateUI();
 }
 
-// 🌊 發送新漂流瓶 API
 function setupNewPost() {
     const form = document.getElementById('new-post-form');
-    document.getElementById('btn-new-post').onclick = () => document.getElementById('post-modal').style.display='block';
-    document.getElementById('close-post-modal').onclick = () => document.getElementById('post-modal').style.display='none';
+    const btnNewPost = document.getElementById('btn-new-post');
+    const closePostModal = document.getElementById('close-post-modal');
     
-    form.onsubmit = async (e) => {
-        e.preventDefault();
-        const token = localStorage.getItem("authToken");
-        const title = document.getElementById('post-title-input').value;
-        const content = document.getElementById('post-content-input').value;
-        const identity = document.getElementById('post-identity').value;
-        const isAnonymous = identity === "匿名";
+    if (btnNewPost) btnNewPost.onclick = () => document.getElementById('post-modal').style.display='block';
+    if (closePostModal) closePostModal.onclick = () => document.getElementById('post-modal').style.display='none';
+    
+    if (form) {
+        form.onsubmit = async (e) => {
+            e.preventDefault();
+            const token = localStorage.getItem("authToken");
+            const title = document.getElementById('post-title-input').value;
+            const content = document.getElementById('post-content-input').value;
+            const identity = document.getElementById('post-identity').value;
+            const isAnonymous = identity === "匿名";
 
-        try {
-            const response = await fetch(`${API_BASE_URL}/bottles`, {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json',
-                    'ngrok-skip-browser-warning': 'true'
-                },
-                body: JSON.stringify({
-                    title: title,
-                    content: content,
-                    isAnonymous: isAnonymous
-                })
-            });
+            try {
+                const response = await fetch(`${API_BASE_URL}/bottles`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json',
+                        'ngrok-skip-browser-warning': 'true'
+                    },
+                    body: JSON.stringify({
+                        title: title,
+                        content: content,
+                        isAnonymous: isAnonymous
+                    })
+                });
 
-            if (response.ok) {
-                alert('漂流瓶拋出成功！');
-                form.reset(); 
-                document.getElementById('post-modal').style.display='none'; 
-                fetchBottles(); // 重新抓取最新的文章列表
-            } else {
-                alert('發文失敗，請稍後再試。');
+                if (response.ok) {
+                    alert('漂流瓶拋出成功！');
+                    form.reset(); 
+                    document.getElementById('post-modal').style.display='none'; 
+                    fetchBottles();
+                } else {
+                    alert('發文失敗，請稍後再試。');
+                }
+            } catch (error) {
+                console.error("連線錯誤:", error);
+                alert('無法連線至伺服器');
             }
-        } catch (error) {
-            console.error("連線錯誤:", error);
-            alert('無法連線至伺服器');
-        }
-    };
+        };
+    }
 }
 
-// 🌟 載入邏輯
 document.addEventListener('DOMContentLoaded', () => {
+    // 🔴 關鍵網址檢查：判定當前是否在獨立網頁中
+    if (window.location.pathname.includes('saved.html')) {
+        currentView = 'saved';
+    } else if (window.location.pathname.includes('post.html')) {
+        currentView = 'mine'; // 🟢 辨識進入我的文章獨立頁
+    } else {
+        currentView = 'all';
+    }
+
     setupAuth(); 
     setupNewPost();
-    fetchBottles(); // 網頁載入時呼叫後端拿文章
+    fetchBottles(); 
     
-    // 搜尋與側邊欄
-    document.querySelector('.search-input').oninput = (e) => { currentKeyword = e.target.value.toLowerCase().trim(); applyFilters(); };
+    const searchInput = document.querySelector('.search-input');
+    if (searchInput) {
+        searchInput.oninput = (e) => { currentKeyword = e.target.value.toLowerCase().trim(); applyFilters(); };
+    }
+    
     document.querySelectorAll('.sidebar li').forEach(li => li.onclick = (e) => {
         document.querySelectorAll('.sidebar li').forEach(el => el.classList.remove('active'));
         e.target.classList.add('active');
-        currentBoard = e.target.innerText.includes('綜合閒聊') ? '全部' : e.target.innerText.substring(2); applyFilters();
+        currentBoard = e.target.innerText.includes('綜合閒聊') ? '全部' : e.target.innerText.substring(2); 
+        applyFilters();
     });
     
-    document.getElementById('login-trigger').onclick = () => { window.location.href = "login.html"; };
+    const loginTrigger = document.getElementById('login-trigger');
+    if (loginTrigger) {
+        loginTrigger.onclick = () => { window.location.href = "login.html"; };
+    }
 
     const userMenuBtn = document.getElementById('user-menu-btn');
     const userDropdown = document.getElementById('user-dropdown');
-    if (userMenuBtn) {
+    if (userMenuBtn && userDropdown) {
         userMenuBtn.onclick = (e) => {
             e.stopPropagation(); 
             userDropdown.classList.toggle('show-dropdown');
@@ -216,7 +256,6 @@ document.addEventListener('DOMContentLoaded', () => {
         if (userDropdown) userDropdown.classList.remove('show-dropdown');
     });
 
-    // 🌟 個人資料燈箱邏輯整合
     const profileModal = document.getElementById('profile-modal');
     const closeProfileBtn = document.getElementById('close-profile-modal');
     const profileMenuItem = document.getElementById('open-profile');
@@ -249,7 +288,6 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 });
 
-// 🌟 更換頭像的獨立事件監聽
 document.addEventListener('change', (e) => {
     if (e.target.id === 'change-avatar-input') {
         const file = e.target.files[0];

@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>心情漂流瓶 - 論壇</title>
+    <title>心情漂流瓶 - 我的文章</title>
     <link rel="stylesheet" href="test.css" />
   </head>
   <body>
@@ -23,13 +23,12 @@
           <input
             type="text"
             class="search-input light-search"
-            placeholder="🔍 搜尋文章、看板..."
+            placeholder="🔍 搜尋我發過的文章..."
           />
         </div>
 
         <div class="nav-actions">
           <button id="login-trigger" class="btn-login">註冊 / 登入</button>
-
           <div
             id="user-profile"
             class="user-menu-wrapper"
@@ -65,7 +64,6 @@
                 🚪 退出登入
               </div>
             </div>
-
             <button
               id="btn-new-post"
               class="btn-post"
@@ -78,24 +76,95 @@
       </header>
 
       <div class="container light-container">
-        <aside class="sidebar light-sidebar">
-          <h3>熱門看板</h3>
-          <ul>
-            <li class="active">🔥 綜合閒聊</li>
-            <li>💻 程式開發</li>
-            <li>🍜 美食特搜</li>
-            <li>🎮 遊戲專區</li>
-          </ul>
-        </aside>
-
         <main class="main-feed" id="post-container"></main>
 
         <aside class="right-panel light-right-panel">
-          <h3>熱門話題</h3>
+          <h3 id="current-board-title">📝 我的漂流瓶紀錄</h3>
           <div class="tag-cloud">
-            <span class="tag"># AI革命</span><span class="tag"># 心情點滴</span>
+            <span class="tag"># 我的動態</span
+            ><span class="tag"># 歷史回顧</span>
           </div>
         </aside>
+      </div>
+    </div>
+
+    <div id="profile-modal" class="modal">
+      <div
+        class="modal-content light-modal"
+        style="width: 400px; text-align: center"
+      >
+        <span class="close-btn" id="close-profile-modal">&times;</span>
+        <h2 style="color: #0055a5; margin-bottom: 20px">個人資訊</h2>
+        <div class="profile-detail">
+          <div
+            style="position: relative; display: inline-block; cursor: pointer"
+            onclick="document.getElementById('change-avatar-input').click()"
+          >
+            <img
+              id="detail-avatar"
+              src="images/fish_logo.png"
+              style="
+                width: 100px;
+                height: 100px;
+                border-radius: 50%;
+                border: 3px solid #4da6ff;
+                margin-bottom: 15px;
+                object-fit: cover;
+              "
+            />
+            <div
+              style="
+                position: absolute;
+                bottom: 15px;
+                right: 0;
+                background: #4da6ff;
+                color: white;
+                border-radius: 50%;
+                width: 25px;
+                height: 25px;
+                font-size: 14px;
+                line-height: 25px;
+                text-align: center;
+              "
+            >
+              📷
+            </div>
+          </div>
+          <input
+            type="file"
+            id="change-avatar-input"
+            accept="image/*"
+            style="display: none"
+          />
+          <h3 id="detail-name" style="margin: 5px 0">姓名</h3>
+          <p id="detail-email" style="color: #888; font-size: 0.9rem">
+            email@example.com
+          </p>
+          <hr style="border: 0; border-top: 1px solid #eee; margin: 15px 0" />
+          <div style="text-align: left; padding: 0 20px; line-height: 2">
+            <div>
+              <strong>🎂 生日：</strong><span id="detail-birthday">未填寫</span>
+            </div>
+            <div>
+              <strong>🚻 性別：</strong><span id="detail-gender">未填寫</span>
+            </div>
+            <div>
+              <strong>✨ 星座：</strong><span id="detail-zodiac">未填寫</span>
+            </div>
+            <div style="margin-top: 10px"><strong>📝 自我介紹：</strong></div>
+            <p
+              id="detail-bio"
+              style="
+                background: #f9fbfd;
+                padding: 10px;
+                border-radius: 8px;
+                font-size: 0.9rem;
+              "
+            >
+              尚未填寫自我介紹...
+            </p>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -157,90 +226,6 @@
           ></textarea>
           <button type="submit" class="btn-submit">拋出漂流瓶</button>
         </form>
-      </div>
-    </div>
-
-    <div id="profile-modal" class="modal">
-      <div
-        class="modal-content light-modal"
-        style="width: 400px; text-align: center"
-      >
-        <span class="close-btn" id="close-profile-modal">&times;</span>
-        <h2 style="color: #0055a5; margin-bottom: 20px">個人資訊</h2>
-
-        <div class="profile-detail">
-          <div
-            style="position: relative; display: inline-block; cursor: pointer"
-            onclick="document.getElementById('change-avatar-input').click()"
-          >
-            <img
-              id="detail-avatar"
-              src="images/fish_logo.png"
-              style="
-                width: 100px;
-                height: 100px;
-                border-radius: 50%;
-                border: 3px solid #4da6ff;
-                margin-bottom: 15px;
-                object-fit: cover;
-              "
-            />
-            <div
-              style="
-                position: absolute;
-                bottom: 15px;
-                right: 0;
-                background: #4da6ff;
-                color: white;
-                border-radius: 50%;
-                width: 25px;
-                height: 25px;
-                font-size: 14px;
-                line-height: 25px;
-                text-align: center;
-              "
-            >
-              📷
-            </div>
-          </div>
-
-          <input
-            type="file"
-            id="change-avatar-input"
-            accept="image/*"
-            style="display: none"
-          />
-
-          <h3 id="detail-name" style="margin: 5px 0">姓名</h3>
-          <p id="detail-email" style="color: #888; font-size: 0.9rem">
-            email@example.com
-          </p>
-          <hr style="border: 0; border-top: 1px solid #eee; margin: 15px 0" />
-
-          <div style="text-align: left; padding: 0 20px; line-height: 2">
-            <div>
-              <strong>🎂 生日：</strong><span id="detail-birthday">未填寫</span>
-            </div>
-            <div>
-              <strong>🚻 性別：</strong><span id="detail-gender">未填寫</span>
-            </div>
-            <div>
-              <strong>✨ 星座：</strong><span id="detail-zodiac">未填寫</span>
-            </div>
-            <div style="margin-top: 10px"><strong>📝 自我介紹：</strong></div>
-            <p
-              id="detail-bio"
-              style="
-                background: #f9fbfd;
-                padding: 10px;
-                border-radius: 8px;
-                font-size: 0.9rem;
-              "
-            >
-              尚未填寫自我介紹...
-            </p>
-          </div>
-        </div>
       </div>
     </div>
 

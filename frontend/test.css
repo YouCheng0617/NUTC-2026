@@ -72,3 +72,94 @@ body, html { margin: 0; font-family: 'PingFang TC', sans-serif; background-color
 .logout-item { color: #ff4d4d; }
 .logout-item:hover { background: #fff1f0; color: #ff4d4d; }
 @keyframes fadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+/* ==================================================
+   📱 平板與手機版 RWD 響應式排版 (提早觸發，防擠壓)
+   ================================================== */
+@media screen and (max-width: 992px) {   /* 🔴 把這裡的 768px 改成 992px */
+    
+    /* 1. 頂部導覽列：讓搜尋框掉到第二行，保持上方清爽 */
+    .light-header {
+        flex-wrap: wrap;       /* 允許內容折行 */
+        padding: 10px 15px;
+        gap: 12px;
+    }
+    
+    /* ... 保持裡面原本的內容不變 ... */
+
+    /* ✨ 修改 Logo 區塊：加入不換行與防擠壓 */
+    .logo { 
+        font-size: 2.2rem; font-weight: 900; color: #0055a5; 
+        flex: 1; display: flex; align-items: center; 
+        margin-left: 20px; cursor: pointer; 
+        white-space: nowrap; /* 🔴 關鍵 1：絕對不允許文字變成垂直的 */
+        flex-shrink: 0;      /* 🔴 關鍵 2：不允許被旁邊的搜尋框擠壓 */
+}
+
+    /* 使用者名稱與按鈕區塊 */
+    .nav-actions {
+        flex: 1 1 auto;
+        display: flex;
+        justify-content: flex-end;
+    }
+    
+    .user-name-text {
+        font-size: 1rem;
+        white-space: nowrap;   /* 防止名字變直排 */
+    }
+
+    /* 讓搜尋框獨立佔滿整排，移到最下方 */
+    .search-container { 
+    flex: 2; display: flex; justify-content: center; 
+    min-width: 200px; /* 給予搜尋框基本寬度，讓它有彈性伸縮的空間 */
+    padding: 0 15px; 
+}
+
+    /* 2. 主體版面：從「左右並排」改成「上下疊加」 */
+    .light-container {
+        flex-direction: column; /* 🔴 關鍵：將三個直行改成上下排列 */
+        margin: 15px auto;
+        gap: 20px;
+    }
+
+    /* 解除原本的比例限制，全部變成 100% 滿版 */
+    .sidebar, .main-feed, .right-panel {
+        flex: none;
+        width: 100%;
+        box-sizing: border-box;
+    }
+
+    /* 讓左側看板在手機上不要佔太多高度 */
+    .sidebar ul {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        padding: 0;
+    }
+    .sidebar li {
+        flex: 1 1 calc(50% - 10px); /* 變成兩兩並排的按鈕 */
+        text-align: center;
+        margin-bottom: 0;
+    }
+}
+
+/* ==================================================
+   📲 極窄螢幕 (Mobile S - 320px) 的終極保護
+   ================================================== */
+@media screen and (max-width: 480px) {
+    .logo {
+        font-size: 1.2rem;
+    }
+    
+    .user-info-trigger {
+        padding: 5px;
+    }
+    
+    .user-name-text {
+        display: none; /* 螢幕太小時，把名字隱藏，只留頭像避免擠爆 */
+    }
+    
+    .btn-post {
+        padding: 6px 12px;
+        font-size: 0.9rem;
+    }
+}
