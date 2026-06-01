@@ -45,7 +45,7 @@ npx prisma migrate dev
 
 postman 測試用語
 
-註冊： /auth/register
+註冊： POST /auth/register
 {
   "email": "",
   "password": "",
@@ -56,19 +56,19 @@ postman 測試用語
   "constellation": "" /*可填可不填因為有函式自動判別*/
 }
 
-登入：  /auth/login
+登入： POST /auth/login
 {
   "email": "",
   "password": ""
 }
 
-登出： /auth/logout
+登出： POST /auth/logout
 給Token就好
 
 驗證Token： /auth/profile
 不需要放東西給Token就好
 
-發文：  /bottles
+發文： POST /bottles
 {
     "title": "",
     "content": "",
@@ -76,22 +76,22 @@ postman 測試用語
     "category_id": []
 }
 
-看文： /bottles/random
+看文： GET /bottles/random
 一樣給Token就行
 
-審核瓶子: /bottles/review
+審核瓶子: PATCH /bottles/review
 Headers要給 x-api-key (跟我拿)
 {
     "bottle_id":,
     "status":1 /*只能輸入0 or 1*/
 }
 
-忘記密碼申請： /auth/forgot-password
+忘記密碼申請： POST /auth/forgot-password
 {
   "email": ""
 }
 
-重設密碼： /auth/reset-password
+重設密碼： POST /auth/reset-password
 {
   "token": "",
   "newPassword": ""
