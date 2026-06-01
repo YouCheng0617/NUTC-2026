@@ -1,7 +1,6 @@
 /* =========================
    🌊 全域設定
 ========================= */
-
 *{
     margin:0;
     padding:0;
@@ -19,7 +18,6 @@ body{
 /* =========================
    🌴 背景
 ========================= */
-
 body{
     background:
         url("images/background.png")
@@ -32,7 +30,6 @@ body{
 /* =========================
    📦 主容器
 ========================= */
-
 .landing-container{
     position:relative;
     width:100%;
@@ -41,60 +38,49 @@ body{
 }
 
 /* =========================
-   🖋️ 大標題
+   🖋️ 大標題 (圖片版 - 鎖死在左邊)
 ========================= */
-
-.title-img{
-    position:absolute;
-
-    left:6%;
-    top:50%;
-
-    transform:translateY(-50%);
-
-    /* ⭐ 修正超寬螢幕問題 */
-    width:auto;
-    height:clamp(220px, 45vh, 520px);
-
-    max-width:42vw;
-
-    filter:drop-shadow(0 8px 18px rgba(0,0,0,0.25));
-
-    z-index:5;
+.title-img {
+    position: absolute;
+    
+    /* 🔥 讓圖片乖乖靠左 */
+    left: 8%; 
+    
+    top: 50%;
+    transform: translateY(-50%);
+    
+    /* 🔥 嚴格控制圖片大小，絕對不允許它再爆走 */
+    height: clamp(300px, 65vh, 850px); 
+    width: auto;
+    max-width: 80vw;
+    
+    filter: drop-shadow(0 8px 18px rgba(0,0,0,0.25));
+    z-index: 5;
 }
 
 /* =========================
    🐟 中間 Logo
 ========================= */
-
 .main-logo{
     position:absolute;
-
     left:50%;
     top:45%;
-
     transform:translate(-50%, -50%);
-
-    width:clamp(180px, 22vw, 360px);
-
+    width:clamp(180px, 30vw, 360px);
     filter:drop-shadow(0 10px 20px rgba(0,0,0,0.25));
-
     z-index:10;
 }
 
 /* =========================
    👆 登入文字
 ========================= */
-
-/* 👆 登入文字 */
 .enter-btn-text{
     position:absolute;
     left:50%;
     bottom:8%;
-    /* 🔴 修改：預設一個縮放變數 --scale 為 1 */
     transform: translateX(-50%) scale(var(--scale, 1)); 
     color:white;
-    font-size:clamp(18px, 2vw, 32px);
+    font-size:clamp(18px, 3vw, 30px);
     font-weight:bold;
     letter-spacing:3px;
     cursor:pointer;
@@ -105,13 +91,11 @@ body{
     transition: 0.3s;
 }
 
-/* 🔴 修改：滑鼠移上去時，只改變變數的值，不破壞動畫的置中 */
 .enter-btn-text:hover{
     --scale: 1.08;
     opacity:0.9;
 }
 
-/* 🔴 修改：在動畫裡，將 scale(var(--scale, 1)) 融合進去 */
 @keyframes bounce{
     0%, 100%{
         transform: translateX(-50%) translateY(0) scale(var(--scale, 1));
@@ -121,119 +105,85 @@ body{
     }
 }
 
+/* =========================
+   ⭐ 海星
+========================= */
 .starfish{
     position:absolute;
-
-    filter:
-        drop-shadow(0 8px 12px rgba(0,0,0,0.3));
-
+    filter:drop-shadow(0 8px 12px rgba(0,0,0,0.3));
     z-index:6;
 }
 
-/* 大海星 */
 .star-1{
-    width:clamp(90px, 12vw, 240px);
-
+    width:clamp(90px, 16vw, 240px);
     right:10%;
     bottom:5%;
-
     transform:rotate(15deg);
 }
 
-/* 小海星 */
 .star-2{
-    width:clamp(60px, 8vw, 170px);
-
+    width:clamp(60px, 15vw, 170px);
     right:3%;
     bottom:14%;
-
     transform:rotate(-18deg);
 }
 
 /* =====================================
-   📱 平板與手機版 (保持電腦版排版，純縮小)
+   📱 平板與手機版微調 (768px 以下)
 ===================================== */
 @media (max-width: 768px) {
-    /* 1. 左側大標題：鎖死在左邊，並保持垂直居中 */
     .title-img {
-        left: 5% !important;
-        top: 50% !important;
-        transform: translateY(-50%) !important; /* 確保只有上下置中，不左右亂跑 */
-        height: 38vh !important; /* 隨螢幕高度縮小 */
-        max-height: 280px !important;
+        left: 6%; 
+        height: 80vh; /* 手機版縮小圖片高度，避免擋到畫面 */
     }
 
-    /* 2. 中間 Logo：鎖死在中央，稍微往右挪一點點讓空間給左邊的字 */
     .main-logo {
-        left: 55% !important; 
+         
         top: 48% !important;
         transform: translate(-50%, -50%) !important;
         width: 45vw !important;
         max-width: 220px !important;
     }
 
-    /* 3. 登入文字 */
     .enter-btn-text {
         bottom: 12% !important;
         font-size: 20px !important;
     }
     
-    /* 4. 海星縮小 */
-    .star-1 { width: 70px !important; right: 8% !important; bottom: 6% !important; }
-    .star-2 { width: 50px !important; right: 2% !important; bottom: 12% !important; }
+    .star-1 { width: 120px !important; right: 8% !important; bottom: 6% !important; }
+    .star-2 { width: 120px !important; right: 2% !important; bottom: 12% !important; }
 }
 
 /* =====================================
-   📲 超小手機 (Mobile S - 320px 終極保護)
+   📲 超小手機微調 (480px 以下)
 ===================================== */
 @media (max-width: 480px) {
-    /* 左側大標題再縮小一點，絕不頂到邊緣 */
     .title-img {
-        left: 4% !important;
-        height: 32vh !important; 
+        left: 4%; 
+        height: 45vh; 
     }
 
-    /* 雙魚 Logo 再往右挪一點點，避免跟文字疊在一起 */
     .main-logo {
         left: 58% !important; 
         width: 48vw !important;
     }
 
-    /* 登入文字再縮小，保持精緻感 */
     .enter-btn-text {
         bottom: 10% !important;
-        font-size: 16px !important;
+        font-size: 20px !important;
     }
 
-    /* 海星完美縮小，絕對不重疊 */
-    .star-1 {
-        width: 45px !important;
-        right: 10% !important;
-        bottom: 4% !important;
-    }
-    .star-2 {
-        width: 30px !important;
-        right: 1% !important;
-        bottom: 9% !important;
-    }
+    .star-1 { width: 75px !important; right: 10% !important; bottom: 4% !important; }
+    .star-2 { width: 60px !important; right: 1% !important; bottom: 9% !important; }
 }
 
+/* =====================================
+   🖥️ 寬螢幕 (1600px 以上)
+===================================== */
 @media (min-width:1600px){
-
-    .title-img{
-
-        height:560px;
-
-        max-width:750px;
+    .title-img {
+        height: 65vh;
     }
-
-    .main-logo{
-
-        width:400px;
-    }
-
-    .enter-btn-text{
-
-        font-size:34px;
-    }
+    .main-logo{ width:45vh; }
+    .enter-btn-text{ font-size:34px; }
 }
