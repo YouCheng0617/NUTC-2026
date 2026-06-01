@@ -70,9 +70,10 @@ postman 測試用語
 
 發文：  /bottles
 {
-    "title": "會議測試",
-    "content": "測試測試",
-    "isAnonymous": false /*是否匿名*/
+    "title": "",
+    "content": "",
+    "isAnonymous": false,
+    "category_id": []
 }
 
 看文： /bottles/random
