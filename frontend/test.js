@@ -1,5 +1,5 @@
 // ✨ 統一設定後端網址
-const API_BASE_URL = "https://scabbed-balancing-gluten.ngrok-free.dev";
+const API_BASE_URL = "http://163.17.135.120";
 
 let posts = [];
 let currentKeyword = '';
@@ -181,6 +181,22 @@ function setupNewPost() {
             const content = document.getElementById('post-content-input').value;
             const identity = document.getElementById('post-identity').value;
             const isAnonymous = identity === "匿名";
+            
+            // 🌟 1. 抓取使用者選擇的看板(類別)文字
+            const boardValue = document.getElementById('post-board').value;
+
+            // 🌟 2. 建立類別對應表 (Mapping)
+            // ⚠️ 注意：這裡的數字 1, 2, 3, 4 請務必確認是否有對齊你「後端資料庫 Categories 表」的真實 ID！
+            const categoryMap = {
+                "綜合閒聊": 1,
+                "程式開發": 2,
+                "美食特搜": 3,
+                "遊戲專區": 4
+            };
+
+            // 🌟 3. 查表轉換成 ID，並包裝成陣列格式 (配合後端 category_id: [] 的要求)
+            const selectedCategoryId = categoryMap[boardValue];
+            const categoryPayload = selectedCategoryId ? [selectedCategoryId] : [];
 
             try {
                 const response = await fetch(`${API_BASE_URL}/bottles`, {
@@ -193,7 +209,8 @@ function setupNewPost() {
                     body: JSON.stringify({
                         title: title,
                         content: content,
-                        isAnonymous: isAnonymous
+                        isAnonymous: isAnonymous,
+                        category_id: categoryPayload // 🌟 4. 將轉換好的陣列帶入 Payload
                     })
                 });
 
@@ -201,7 +218,7 @@ function setupNewPost() {
                     alert('漂流瓶拋出成功！');
                     form.reset(); 
                     document.getElementById('post-modal').style.display='none'; 
-                    fetchBottles();
+                    fetchBottles(); // 重新撈取文章
                 } else {
                     alert('發文失敗，請稍後再試。');
                 }
