@@ -43,7 +43,14 @@
           </div>
         </div>
 
-        <form id="login-form" class="auth-form">
+        <form
+          id="login-form"
+          class="auth-form"
+          onsubmit="
+            event.preventDefault();
+            processLogin();
+          "
+        >
           <div class="input-group">
             <label>信箱 (Email)</label>
             <input
@@ -62,14 +69,18 @@
               required
             />
           </div>
-          <div style="text-align: right; margin-top: -5px;">
-            <a href="#" onclick="switchTab('forgot')" style="color: #00f2ff; font-size: 0.85rem; text-decoration: none;">忘記密碼？</a>
+          <div style="text-align: right; margin-top: -5px">
+            <a
+              href="#"
+              onclick="switchTab('forgot')"
+              style="color: #00f2ff; font-size: 0.85rem; text-decoration: none"
+              >忘記密碼？</a
+            >
           </div>
 
           <button
-            type="button"
+            type="submit"
             class="btn-submit-dark"
-            onclick="processLogin()"
             style="margin-top: 15px"
           >
             登入
@@ -173,8 +184,12 @@
         </form>
 
         <form id="forgot-form" class="auth-form" style="display: none">
-          <h3 style="text-align: center; color: #00f2ff; margin-top: 0;">找回密碼</h3>
-          <p style="color: #a9b5c7; font-size: 0.9rem; text-align: center;">請輸入你註冊時使用的信箱，我們將發送驗證碼(Token)給你。</p>
+          <h3 style="text-align: center; color: #00f2ff; margin-top: 0">
+            找回密碼
+          </h3>
+          <p style="color: #a9b5c7; font-size: 0.9rem; text-align: center">
+            請輸入你註冊時使用的信箱，我們將發送驗證碼(Token)給你。
+          </p>
           <div class="input-group">
             <label>信箱 (Email)</label>
             <input
@@ -184,29 +199,64 @@
               required
             />
           </div>
-          <button type="button" class="btn-submit-dark" onclick="processForgotPassword()">發送重設信件</button>
-          <div style="text-align: center; margin-top: 10px;">
-            <a href="#" onclick="switchTab('login')" style="color: #8892b0; font-size: 0.85rem; text-decoration: none;">返回登入</a>
+          <button
+            type="button"
+            class="btn-submit-dark"
+            onclick="processForgotPassword()"
+          >
+            發送重設信件
+          </button>
+          <div style="text-align: center; margin-top: 10px">
+            <a
+              href="#"
+              onclick="switchTab('login')"
+              style="color: #8892b0; font-size: 0.85rem; text-decoration: none"
+              >返回登入</a
+            >
           </div>
         </form>
 
         <form id="reset-form" class="auth-form" style="display: none">
-          <h3 style="text-align: center; color: #00f2ff; margin-top: 0;">設定新密碼</h3>
-          <p style="color: #a9b5c7; font-size: 0.9rem; text-align: center;">請去信箱收信，並將驗證碼(Token)填入下方。</p>
+          <h3 style="text-align: center; color: #00f2ff; margin-top: 0">
+            設定新密碼
+          </h3>
+          <p style="color: #a9b5c7; font-size: 0.9rem; text-align: center">
+            請去信箱收信，並將驗證碼(Token)填入下方。
+          </p>
           <div class="input-group">
             <label>驗證碼 (Token)</label>
-            <input type="text" id="reset-token" placeholder="請輸入信件中的 Token" required />
+            <input
+              type="text"
+              id="reset-token"
+              placeholder="請輸入信件中的 Token"
+              required
+            />
           </div>
           <div class="input-group">
             <label>新密碼 (New Password)</label>
-            <input type="password" id="reset-password" placeholder="請輸入新密碼" required />
+            <input
+              type="password"
+              id="reset-password"
+              placeholder="請輸入新密碼"
+              required
+            />
           </div>
-          <button type="button" class="btn-submit-dark" onclick="processResetPassword()">確認重設</button>
-          <div style="text-align: center; margin-top: 10px;">
-            <a href="#" onclick="switchTab('login')" style="color: #8892b0; font-size: 0.85rem; text-decoration: none;">返回登入</a>
+          <button
+            type="button"
+            class="btn-submit-dark"
+            onclick="processResetPassword()"
+          >
+            確認重設
+          </button>
+          <div style="text-align: center; margin-top: 10px">
+            <a
+              href="#"
+              onclick="switchTab('login')"
+              style="color: #8892b0; font-size: 0.85rem; text-decoration: none"
+              >返回登入</a
+            >
           </div>
         </form>
-
       </div>
     </div>
 
@@ -216,20 +266,58 @@
 
       function openAuthModal() {
         document.getElementById("auth-modal").style.display = "flex";
+        // 每次打開時，確保把之前可能殘留的錯誤訊息洗掉
+        clearErrorMessage();
       }
       function closeAuthModal() {
         document.getElementById("auth-modal").style.display = "none";
+        clearErrorMessage();
+      }
+
+      // 🧹 清除錯誤訊息的輔助函式
+      function clearErrorMessage() {
+        const errorEl = document.getElementById("modal-error-msg");
+        if (errorEl) errorEl.remove();
+      }
+
+      // 🛑 動態在彈窗內顯示精美錯誤訊息，取代醜陋的 alert
+      function showModalError(message) {
+        clearErrorMessage(); // 刪除舊的
+
+        // 建立一個漂亮紅色的錯誤提示區塊
+        const errorDiv = document.createElement("div");
+        errorDiv.id = "modal-error-msg";
+        errorDiv.style.cssText = `
+          background: rgba(255, 77, 77, 0.15);
+          border: 1px solid #ff4d4d;
+          color: #ff8585;
+          padding: 12px;
+          border-radius: 10px;
+          margin-bottom: 15px;
+          font-size: 0.95rem;
+          font-weight: bold;
+          text-align: center;
+          animation: fadeIn 0.3s ease;
+        `;
+        errorDiv.innerText = message;
+
+        // 把錯誤訊息塞在頁籤（Login/Register）的下方
+        const tabContainer = document.getElementById("main-tabs");
+        tabContainer.parentNode.insertBefore(
+          errorDiv,
+          tabContainer.nextSibling,
+        );
       }
 
       // 🌟 切換表單邏輯更新，支援忘記密碼與重設密碼
       function switchTab(tab) {
-        // 先隱藏所有表單
+        clearErrorMessage(); // 切換頁籤時自動清空錯誤
+
         document.getElementById("login-form").style.display = "none";
         document.getElementById("register-form").style.display = "none";
         document.getElementById("forgot-form").style.display = "none";
         document.getElementById("reset-form").style.display = "none";
 
-        // 控制頂部頁籤的顯示與 active 狀態
         const mainTabs = document.getElementById("main-tabs");
         document.getElementById("tab-login").classList.remove("active");
         document.getElementById("tab-register").classList.remove("active");
@@ -243,7 +331,7 @@
           document.getElementById("tab-register").classList.add("active");
           document.getElementById("register-form").style.display = "flex";
         } else if (tab === "forgot") {
-          mainTabs.style.display = "none"; // 進入忘記密碼時先隱藏頂部登入註冊頁籤
+          mainTabs.style.display = "none";
           document.getElementById("forgot-form").style.display = "flex";
         } else if (tab === "reset") {
           mainTabs.style.display = "none";
@@ -252,36 +340,41 @@
       }
 
       // 🌊 串接後端登入 API
-      // 🌟 串接後端 忘記密碼申請 API
-      async function processForgotPassword() {
-        const email = document.getElementById("forgot-email").value;
-        if (email.trim() === "") {
-          alert("請填寫信箱！");
+      async function processLogin() {
+        const email = document.getElementById("login-email").value;
+        const password = document.getElementById("login-password").value;
+
+        if (email.trim() === "" || password.trim() === "") {
+          showModalError("⚠️ 請輸入信箱與密碼！");
           return;
         }
 
         try {
-          const response = await fetch(`${API_BASE_URL}/auth/forgot-password`, {
+          const response = await fetch(`${API_BASE_URL}/auth/login`, {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
               "ngrok-skip-browser-warning": "true",
             },
-            body: JSON.stringify({ email: email }),
+            body: JSON.stringify({ email: email, password: password }),
           });
 
+          const data = await response.json();
+
           if (response.ok) {
-            // 發送成功後，請使用者去收信，並切換回登入畫面
-            alert("已成功發送重設信件！請至信箱點擊重設連結。");
-            document.getElementById("forgot-email").value = ""; // 清空輸入框
-            switchTab('login'); 
+            // 登入成功保留原樣，直接酷炫跳轉
+            localStorage.setItem("authToken", data.token || data.data?.token);
+            const userInfo = data.user ||
+              data.data?.user || { name: email.split("@")[0], email: email };
+            localStorage.setItem("currentUser", JSON.stringify(userInfo));
+            window.location.href = "test.html";
           } else {
-            const data = await response.json();
-            alert("發送失敗：" + (data.message || "請確認信箱是否正確"));
+            // ❌ 拋棄 alert！改用精美內嵌提示
+            showModalError("❌ 登入失敗：帳號或密碼錯誤");
           }
         } catch (error) {
           console.error("連線錯誤:", error);
-          alert("無法連接到後端伺服器！");
+          showModalError("📡 無法連接到後端伺服器！");
         }
       }
 
@@ -291,13 +384,19 @@
         const password = document.getElementById("reg-password").value;
         const name = document.getElementById("reg-name").value;
 
-        if (email.trim() === "" || name.trim() === "" || password.trim() === "") {
-          alert("信箱、姓名和密碼是必填的喔！");
+        if (
+          email.trim() === "" ||
+          name.trim() === "" ||
+          password.trim() === ""
+        ) {
+          showModalError("⚠️ 信箱、姓名和密碼是必填的喔！");
           return;
         }
 
         const birthdayRaw = document.getElementById("reg-birthday").value;
-        const finalBirthday = birthdayRaw ? new Date(birthdayRaw).toISOString() : new Date("2000-01-01").toISOString();
+        const finalBirthday = birthdayRaw
+          ? new Date(birthdayRaw).toISOString()
+          : new Date("2000-01-01").toISOString();
 
         const userData = {
           email: email,
@@ -322,15 +421,17 @@
           const data = await response.json();
 
           if (response.ok) {
-            alert("註冊成功！請登入。");
+            alert("🎉 註冊成功！請登入。"); // 註冊跨頁面成功可暫留或改掉，通常成功用內建OK
             switchTab("login");
           } else {
             console.error("❌ 後端拒絕註冊：", data);
-            alert("註冊失敗：" + (data.message || "資料格式錯誤或信箱已存在"));
+            showModalError(
+              "❌ 註冊失敗：" + (data.message || "信箱已存在或格式錯誤"),
+            );
           }
         } catch (error) {
           console.error("連線錯誤:", error);
-          alert("無法連接到後端伺服器！");
+          showModalError("📡 無法連接到後端伺服器！");
         }
       }
 
@@ -354,7 +455,7 @@
 
           if (response.ok) {
             alert("已成功發送重設信件！請去信箱查看 Token 驗證碼。");
-            switchTab('reset'); // 發送成功後，自動切換到輸入 Token 畫面
+            switchTab("reset");
           } else {
             const data = await response.json();
             alert("發送失敗：" + (data.message || "請確認信箱是否正確"));
@@ -387,7 +488,7 @@
 
           if (response.ok) {
             alert("密碼重設成功！請使用新密碼重新登入。");
-            switchTab('login'); // 成功後導回登入頁
+            switchTab("login");
           } else {
             const data = await response.json();
             alert("重設失敗：" + (data.message || "Token 無效或過期"));
