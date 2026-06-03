@@ -211,7 +211,7 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover { opacity: 1; }
         font-size: 0.9rem !important;
         padding: 10px !important;
         width: 100% !important;
-        box-sizing: border-box !important; /* 必加：防止邊框把寬度撐爆 */
+        box-sizing: border-box !important; 
     }
 
     /* 6. 右上角的 X 關閉按鈕微調 */
@@ -226,4 +226,28 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover { opacity: 1; }
         padding: 12px !important;
         font-size: 1rem !important;
     }
+} /* 手機版媒體查詢結束 */
+
+/* =======================================================
+   ✨ 全域游標與懸浮視覺優化 (讓頁籤跟打叉都完美變成手指頭)
+   ======================================================= */
+
+/* 1. 登入/註冊 頁籤 */
+.tab {
+    cursor: pointer !important; /* 強制讓滑鼠移上去時變成手指頭 */
+    transition: color 0.3s ease, text-shadow 0.3s ease;
+}
+.tab:hover {
+    color: #00f2ff !important; /* 滑鼠移上去時文字變亮藍色 */
+    text-shadow: 0 0 10px rgba(0, 242, 255, 0.6); /* 霓虹藍發光效果 */
+}
+
+/* 2. 🔥 右上角的打叉關閉按鈕 */
+.close-btn {
+    cursor: pointer !important; /* 🔥 強制讓打叉移上去也變成手指頭 */
+    transition: color 0.2s ease, transform 0.2s ease;
+}
+.close-btn:hover {
+    color: #ff4d4d !important; /* 滑鼠移上去時打叉變紅色 */
+    transform: scale(1.2); /* 微微放大，點擊感更好 */
 }

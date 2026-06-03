@@ -73,7 +73,6 @@ export class AuthController {
             const resetToken = await forgotPassword(email);
             res.status(200).json({
                 message: "密碼重設信已寄送，請檢查您的信箱",
-                data: { resetToken }
             });
 
         } catch (error) {

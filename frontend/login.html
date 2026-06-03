@@ -43,7 +43,14 @@
           </div>
         </div>
 
-        <form id="login-form" class="auth-form">
+        <form
+          id="login-form"
+          class="auth-form"
+          onsubmit="
+            event.preventDefault();
+            processLogin();
+          "
+        >
           <div class="input-group">
             <label>信箱 (Email)</label>
             <input
@@ -72,9 +79,8 @@
           </div>
 
           <button
-            type="button"
+            type="submit"
             class="btn-submit-dark"
-            onclick="processLogin()"
             style="margin-top: 15px"
           >
             登入
@@ -260,20 +266,56 @@
 
       function openAuthModal() {
         document.getElementById("auth-modal").style.display = "flex";
-      }
-      function closeAuthModal() {
-        document.getElementById("auth-modal").style.display = "none";
+        clearErrorMessage();
       }
 
-      // 🌟 切換表單邏輯，支援忘記密碼與重設密碼
+      function closeAuthModal() {
+        document.getElementById("auth-modal").style.display = "none";
+        clearErrorMessage();
+      }
+
+      // 🧹 清除錯誤訊息的輔助函式
+      function clearErrorMessage() {
+        const errorEl = document.getElementById("modal-error-msg");
+        if (errorEl) errorEl.remove();
+      }
+
+      // 🛑 動態在彈窗內顯示精美錯誤訊息
+      function showModalError(message) {
+        clearErrorMessage();
+
+        const errorDiv = document.createElement("div");
+        errorDiv.id = "modal-error-msg";
+        errorDiv.style.cssText = `
+          background: rgba(255, 77, 77, 0.15);
+          border: 1px solid #ff4d4d;
+          color: #ff8585;
+          padding: 12px;
+          border-radius: 10px;
+          margin-bottom: 15px;
+          font-size: 0.95rem;
+          font-weight: bold;
+          text-align: center;
+          animation: fadeIn 0.3s ease;
+        `;
+        errorDiv.innerText = message;
+
+        const tabContainer = document.getElementById("main-tabs");
+        tabContainer.parentNode.insertBefore(
+          errorDiv,
+          tabContainer.nextSibling,
+        );
+      }
+
+      // 🌟 切換表單邏輯
       function switchTab(tab) {
-        // 先隱藏所有表單
+        clearErrorMessage();
+
         document.getElementById("login-form").style.display = "none";
         document.getElementById("register-form").style.display = "none";
         document.getElementById("forgot-form").style.display = "none";
         document.getElementById("reset-form").style.display = "none";
 
-        // 控制頂部頁籤的顯示與 active 狀態
         const mainTabs = document.getElementById("main-tabs");
         document.getElementById("tab-login").classList.remove("active");
         document.getElementById("tab-register").classList.remove("active");
@@ -287,7 +329,7 @@
           document.getElementById("tab-register").classList.add("active");
           document.getElementById("register-form").style.display = "flex";
         } else if (tab === "forgot") {
-          mainTabs.style.display = "none"; // 進入忘記密碼時先隱藏頂部登入註冊頁籤
+          mainTabs.style.display = "none";
           document.getElementById("forgot-form").style.display = "flex";
         } else if (tab === "reset") {
           mainTabs.style.display = "none";
@@ -295,37 +337,13 @@
         }
       }
 
-      // 🌊 【測試模式】略過後端直接登入 API
-      function processLogin() {
-        // 為了方便測試，不需要真的檢查帳號密碼，直接強行登入
-
-        // 1. 隨便塞一個假的 Token 騙過論壇頁面的檢查
-        localStorage.setItem("authToken", "fake-token-for-frontend-testing");
-
-        // 2. 塞一個假的登入使用者資料，讓畫面有名字跟頭像可以顯示
-        const fakeUser = {
-          email:
-            document.getElementById("login-email").value || "test@example.com",
-          name: "切版測試員",
-          avatar: "images/fish_logo.png",
-          birthday: "2000-01-01",
-          bio: "這是一個用來測試前端版面的假帳號！",
-          constellation: "雙魚座",
-        };
-        localStorage.setItem("currentUser", JSON.stringify(fakeUser));
-
-        alert("【測試模式】已繞過後端，直接登入成功！");
-        window.location.href = "test.html";
-      }
-
-      // 🌊 串接後端註冊 API
-      // 🌊 串接後端登入 API (正式版)
+      // 🌊 串接後端登入 API (完美融合版)
       async function processLogin() {
         const email = document.getElementById("login-email").value;
         const password = document.getElementById("login-password").value;
 
         if (email.trim() === "" || password.trim() === "") {
-          alert("請輸入信箱與密碼！");
+          showModalError("⚠️ 請輸入信箱與密碼！");
           return;
         }
 
@@ -342,30 +360,96 @@
           const responseData = await response.json();
 
           if (response.ok) {
-            // 抓取後端給的真實資料
-            const realToken = responseData.data.result.token;
-            const realUser = responseData.data.result.member;
+            // 兼容兩人不同寫法的資料解析，確保一定抓得到資料
+            const realToken =
+              responseData.data?.result?.token ||
+              responseData.token ||
+              responseData.data?.token;
+            const realUser = responseData.data?.result?.member ||
+              responseData.user ||
+              responseData.data?.user || {
+                email: email,
+                name: email.split("@")[0],
+              };
 
             localStorage.setItem("authToken", realToken);
 
             const userToSave = {
-              email: realUser.email,
-              name: realUser.name,
-              avatar: "images/fish_logo.png",
-              birthday: realUser.birthday,
-              bio: realUser.bio,
-              constellation: realUser.constellation,
+              email: realUser.email || email,
+              name: realUser.name || email.split("@")[0],
+              avatar: realUser.avatar || "images/fish_logo.png",
+              birthday: realUser.birthday || "",
+              bio: realUser.bio || "",
+              constellation: realUser.constellation || "",
             };
             localStorage.setItem("currentUser", JSON.stringify(userToSave));
 
-            alert("登入成功！");
             window.location.href = "test.html";
           } else {
-            alert("登入失敗：" + (responseData.message || "帳號或密碼錯誤"));
+            showModalError(
+              "❌ 登入失敗：" + (responseData.message || "帳號或密碼錯誤"),
+            );
           }
         } catch (error) {
           console.error("連線錯誤:", error);
-          alert("無法連接到後端伺服器！");
+          showModalError("📡 無法連接到後端伺服器！");
+        }
+      }
+
+      // 🌊 串接後端註冊 API (從混亂中獨立出來的乾淨版本)
+      async function processRegister() {
+        const email = document.getElementById("reg-email").value;
+        const password = document.getElementById("reg-password").value;
+        const name = document.getElementById("reg-name").value;
+
+        if (
+          email.trim() === "" ||
+          name.trim() === "" ||
+          password.trim() === ""
+        ) {
+          showModalError("⚠️ 信箱、姓名和密碼是必填的喔！");
+          return;
+        }
+
+        const birthdayRaw = document.getElementById("reg-birthday").value;
+        const finalBirthday = birthdayRaw
+          ? new Date(birthdayRaw).toISOString()
+          : new Date("2000-01-01").toISOString();
+
+        const userData = {
+          email: email,
+          password: password,
+          name: name,
+          birthday: finalBirthday,
+          bio: document.getElementById("reg-bio").value || "",
+          blood_type: "",
+          constellation: document.getElementById("reg-zodiac").value || "",
+        };
+
+        try {
+          const response = await fetch(`${API_BASE_URL}/auth/register`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "ngrok-skip-browser-warning": "true",
+            },
+            body: JSON.stringify(userData),
+          });
+
+          const data = await response.json();
+
+          if (response.ok) {
+            alert("🎉 註冊成功！請登入。");
+            switchTab("login");
+          } else {
+            console.error("❌ 後端拒絕註冊：", data);
+            showModalError(
+              "❌ 註冊失敗：" + (data.message || "信箱已存在或格式錯誤"),
+            );
+          }
+        } catch (error) {
+          console.error("連線錯誤:", error);
+          showModalError("📡 無法連接到後端伺服器！");
         }
       }
 
