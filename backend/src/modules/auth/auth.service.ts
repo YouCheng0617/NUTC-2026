@@ -2,6 +2,7 @@ import prisma from "../../lib/prisma.js";
 import { signHelper } from "../../lib/signHelper.js";   /*星座計算的工具函式*/
 import { hashPassword, comparePassword } from "../../lib/passWord.js"; /*密碼加密與比對的工具函式*/
 import { generateToken } from "../../lib/LogIn.js"; /*JWT的工具函式*/
+import { sendEmailResetPassword } from "../../lib/mailer.js";
 const crypto = await import("crypto");
 
 interface MemberData {
@@ -150,12 +151,10 @@ export const forgotPassword = async (email: string) => {
         })
     ]);
 
-    const resetLink = `http://localhost:3000/reset-password?token=${resetToken}`;
-    console.log(`\n=========================================`);
-    console.log(`📧 [模擬系統寄信] 收件人: ${email}`);
-    console.log(`🔗 請點擊以下連結重設密碼 (20分鐘內有效):`);
-    console.log(`${resetLink}`);
-    console.log(`=========================================\n`);
+    const emailSent = await sendEmailResetPassword(email.toLowerCase(), resetToken);
+    if (!emailSent) {
+        throw new Error("發送重設密碼郵件失敗，請稍後再試。");
+    }
 
     // 回傳 token 讓 Controller 知道執行成功
     return resetToken;
