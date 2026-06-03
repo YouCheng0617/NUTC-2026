@@ -469,8 +469,9 @@
           });
 
           if (response.ok) {
-            alert("已成功發送重設信件！請去信箱查看 Token 驗證碼。");
-            switchTab("reset"); // 發送成功後，自動切換到輸入 Token 畫面
+            // 🟢 修改這裡：改成提示去信箱點連結，並把畫面切回登入頁
+            alert("✅ 已成功發送重設信件！請前往信箱點擊重設連結。");
+            switchTab("login");
           } else {
             const data = await response.json();
             alert("發送失敗：" + (data.message || "請確認信箱是否正確"));
