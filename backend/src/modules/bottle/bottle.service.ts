@@ -13,7 +13,7 @@ export const getMybottles = async (memberId: number) => {
         },
         include: {
             _count: {
-                select: { likes: true }
+                select: { likes: true, saves: true }
             }
         }
     });
@@ -63,4 +63,51 @@ export const likeBottles = async (bottleId: number, memberId: number) => {
     });
 
     return { isLiked, totalLikes };
+};
+
+export const saveBottles = async (bottleId: number, memberId: number) => {
+    // 1. 先查有沒有按過讚
+    const existingSave = await prismaClient.bottleSave.findUnique({
+        where: {
+            member_id_bottle_id: {
+                member_id: memberId,
+                bottle_id: bottleId,
+            }
+        }
+    });
+
+    let isSaved: boolean;
+
+    // 2. 邏輯判斷
+    if (existingSave) {
+        await prismaClient.bottleSave.delete({
+            where: {
+                member_id_bottle_id: {
+                    member_id: memberId,
+                    bottle_id: bottleId
+                }
+            }
+        });
+        isSaved = false;
+    } else {
+        await prismaClient.bottleSave.create({
+            data: {
+                member_id: memberId,
+                bottle_id: bottleId
+            }
+        });
+        isSaved = true;
+    }
+
+    // 3. 計算最新總讚數並回傳
+    const totalLikes = await prismaClient.bottleLike.count({
+        where: { bottle_id: bottleId }
+    });
+
+    // 4. 計算最新總儲存數並回傳
+    const totalSaves = await prismaClient.bottleSave.count({
+        where: { bottle_id: bottleId }
+    });
+
+    return { isSaved, totalLikes, totalSaves };
 };
