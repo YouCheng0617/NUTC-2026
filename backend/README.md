@@ -96,3 +96,6 @@ Headers要給 x-api-key (跟我拿)
   "token": "",
   "newPassword": ""
 }
+查看我的瓶子  GET 給Token /bottles/mybottles
+
+按讚瓶子 POST 給Token /bottles:/like (:後是他的id，例如給id 11文章點讚，/bottles/11/like)
