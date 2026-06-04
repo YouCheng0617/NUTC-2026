@@ -2,6 +2,7 @@ import { Router } from "express";
 import type { Request, Response } from "express";
 import prisma from "../../lib/prisma.js";
 import dotenv from "dotenv";
+import { getMybottles } from "./bottle.service.js";
 export interface TokenPayload {
     member_id: number;
 }
@@ -147,6 +148,22 @@ export const bottleController = {
             return res.status(500).json({ message: "內部伺服器錯誤" });
         }
 
-    }
+    },
 
+    async getMyBottles(req: AuthRequest, res: Response) {
+        try {
+            const memberId = req.user?.member_id;
+            if (!memberId) {
+                return res.status(401).json({ message: "未授權，請先登入" });
+            }
+            const myBottles = await getMybottles(memberId!);
+            res.status(200).json({
+                message: `你總共丟了 ${myBottles.length} 個瓶子`,
+                data: myBottles
+            })
+        } catch (error) {
+            console.error("Error fetching my bottles:", error);
+            res.status(500).json({ message: "內部伺服器錯誤" });
+        }
+    }
 }

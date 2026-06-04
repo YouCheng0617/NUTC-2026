@@ -8,5 +8,6 @@ export function bottleRouter() {
     bottleRouter.post("/", authCheck, bottleController.throwBottle);
     bottleRouter.get("/random", authCheck, bottleController.getBottles);
     bottleRouter.patch("/review", bottleController.reviewBottle);
+    bottleRouter.get("/mybottles", authCheck, bottleController.getMyBottles);
     return bottleRouter;
 }
