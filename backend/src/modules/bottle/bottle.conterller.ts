@@ -199,6 +199,7 @@ export const bottleController = {
         }
     },
 
+    /* 儲存/取消儲存瓶子 */
     async saveBottle(req: AuthRequest, res: Response) {
         try {
             const memberId = req.user?.member_id as number;
