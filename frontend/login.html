@@ -62,12 +62,34 @@
           </div>
           <div class="input-group">
             <label>密碼 (Password)</label>
-            <input
-              type="password"
-              id="login-password"
-              placeholder="請輸入密碼"
-              required
-            />
+            <div class="password-wrapper">
+              <input
+                type="password"
+                id="login-password"
+                placeholder="請輸入密碼"
+                required
+              />
+              <span
+                class="toggle-password"
+                onclick="togglePassword('login-password', this)"
+              >
+                <svg
+                  viewBox="0 0 24 24"
+                  width="20"
+                  height="20"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  fill="none"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <path
+                    d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"
+                  ></path>
+                  <line x1="1" y1="1" x2="23" y2="23"></line>
+                </svg>
+              </span>
+            </div>
           </div>
           <div style="text-align: right; margin-top: -5px">
             <a
@@ -106,12 +128,36 @@
                 <label
                   >密碼 (Password) <span style="color: #ff4d4d">*</span></label
                 >
-                <input
-                  type="password"
-                  id="reg-password"
-                  placeholder="設定密碼"
-                  required
-                />
+                <div class="password-wrapper">
+                  <input
+                    type="password"
+                    id="reg-password"
+                    placeholder="8~16字元 (需含大小寫英文)"
+                    minlength="8"
+                    maxlength="16"
+                    required
+                  />
+                  <span
+                    class="toggle-password"
+                    onclick="togglePassword('reg-password', this)"
+                  >
+                    <svg
+                      viewBox="0 0 24 24"
+                      width="20"
+                      height="20"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      fill="none"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    >
+                      <path
+                        d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"
+                      ></path>
+                      <line x1="1" y1="1" x2="23" y2="23"></line>
+                    </svg>
+                  </span>
+                </div>
               </div>
             </div>
           </div>
@@ -234,12 +280,34 @@
           </div>
           <div class="input-group">
             <label>新密碼 (New Password)</label>
-            <input
-              type="password"
-              id="reset-password"
-              placeholder="請輸入新密碼"
-              required
-            />
+            <div class="password-wrapper">
+              <input
+                type="password"
+                id="reset-password"
+                placeholder="請輸入新密碼"
+                required
+              />
+              <span
+                class="toggle-password"
+                onclick="togglePassword('reset-password', this)"
+              >
+                <svg
+                  viewBox="0 0 24 24"
+                  width="20"
+                  height="20"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  fill="none"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <path
+                    d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"
+                  ></path>
+                  <line x1="1" y1="1" x2="23" y2="23"></line>
+                </svg>
+              </span>
+            </div>
           </div>
           <button
             type="button"
@@ -268,7 +336,6 @@
         document.getElementById("auth-modal").style.display = "flex";
         clearErrorMessage();
       }
-
       function closeAuthModal() {
         document.getElementById("auth-modal").style.display = "none";
         clearErrorMessage();
@@ -307,6 +374,22 @@
         );
       }
 
+      // 👁️ 切換密碼顯示/隱藏的魔法函式
+      function togglePassword(inputId, iconEl) {
+        const input = document.getElementById(inputId);
+        if (input.type === "password") {
+          // 變成顯示文字
+          input.type = "text";
+          // 換成「睜開眼睛」的圖示
+          iconEl.innerHTML = `<svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>`;
+        } else {
+          // 變回隱藏密碼
+          input.type = "password";
+          // 換回原本「打叉眼睛」的圖示
+          iconEl.innerHTML = `<svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>`;
+        }
+      }
+
       // 🌟 切換表單邏輯
       function switchTab(tab) {
         clearErrorMessage();
@@ -337,7 +420,7 @@
         }
       }
 
-      // 🌊 串接後端登入 API (完美融合版)
+      // 🌊 串接後端登入 API
       async function processLogin() {
         const email = document.getElementById("login-email").value;
         const password = document.getElementById("login-password").value;
@@ -360,7 +443,6 @@
           const responseData = await response.json();
 
           if (response.ok) {
-            // 兼容兩人不同寫法的資料解析，確保一定抓得到資料
             const realToken =
               responseData.data?.result?.token ||
               responseData.token ||
@@ -396,7 +478,7 @@
         }
       }
 
-      // 🌊 串接後端註冊 API (從混亂中獨立出來的乾淨版本)
+      // 🌊 串接後端註冊 API
       async function processRegister() {
         const email = document.getElementById("reg-email").value;
         const password = document.getElementById("reg-password").value;
@@ -408,6 +490,14 @@
           password.trim() === ""
         ) {
           showModalError("⚠️ 信箱、姓名和密碼是必填的喔！");
+          return;
+        }
+
+        const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z]).{8,16}$/;
+        if (!passwordRegex.test(password)) {
+          showModalError(
+            "⚠️ 密碼格式錯誤！請設定 8~16 字元，且必須包含「英文大寫」與「小寫」。",
+          );
           return;
         }
 
@@ -469,7 +559,6 @@
           });
 
           if (response.ok) {
-            // 🟢 修改這裡：改成提示去信箱點連結，並把畫面切回登入頁
             alert("✅ 已成功發送重設信件！請前往信箱點擊重設連結。");
             switchTab("login");
           } else {
@@ -501,7 +590,7 @@
 
           if (response.ok) {
             alert("密碼重設成功！請使用新密碼重新登入。");
-            switchTab("login"); // 成功後導回登入頁
+            switchTab("login");
           } else {
             const data = await response.json();
             alert("重設失敗：" + (data.message || "Token 無效或過期"));

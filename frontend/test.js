@@ -369,7 +369,7 @@ function setupAuth() {
             localStorage.removeItem('authToken'); 
             updateUI(); 
             alert('已登出！期待再次與你相遇。');
-            window.location.href = "index.html"; 
+            window.location.href = "login.html"; 
         };
     }
     updateUI();

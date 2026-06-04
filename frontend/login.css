@@ -251,3 +251,33 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover { opacity: 1; }
     color: #ff4d4d !important; /* 滑鼠移上去時打叉變紅色 */
     transform: scale(1.2); /* 微微放大，點擊感更好 */
 }
+/* =========================================
+   👁️ 密碼顯示/隱藏 眼睛圖示設定
+   ========================================= */
+.password-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+    width: 100%;
+}
+
+.password-wrapper input {
+    width: 100%;
+    padding-right: 45px !important; /* 右邊預留空間給眼睛，避免文字跟圖示重疊 */
+}
+
+.toggle-password {
+    position: absolute;
+    right: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #8892b0;
+    cursor: pointer !important;
+    transition: 0.3s ease;
+}
+
+.toggle-password:hover {
+    color: #00f2ff; /* 滑鼠移上去時跟著發亮變藍色 */
+    transform: scale(1.1);
+}
