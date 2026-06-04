@@ -16,7 +16,18 @@ async function fetchBottles() {
     }
 
     try {
-        const response = await fetch(`${API_BASE_URL}/bottles/random`, {
+        // 🟢 魔法改造 1：根據現在在哪個頁面，決定要呼叫哪一支 API！
+        let endpointUrl = `${API_BASE_URL}/bottles/random`; // 預設：首頁抓隨機文章
+        
+        if (currentView === 'mine') {
+            endpointUrl = `${API_BASE_URL}/bottles/mybottles`; // 我的文章頁：呼叫專屬 API
+        } else if (currentView === 'saved') {
+            // ⚠️ 注意：這裡假設後端撈取收藏文章的 API 是 /bottles/saved
+            // 如果隊友寫的網址不同，請把下面這行的 '/bottles/saved' 換掉！
+            endpointUrl = `${API_BASE_URL}/bottles/saved`; 
+        }
+
+        const response = await fetch(endpointUrl, {
             method: 'GET',
             headers: {
                 'Authorization': `Bearer ${token}`,
@@ -54,8 +65,10 @@ async function fetchBottles() {
                     desc: item.content, 
                     likes: item.view_count || 0,
                     msgs: getComments(safeId).length, // 讀取真實的留言數量
-                    liked: false,
-                    saved: false 
+                    
+                    // 🟢 魔法修改：讀取後端傳來的按讚與收藏狀態，沒有的話預設為 false
+                    liked: Boolean(item.is_liked || item.isLiked || false),
+                    saved: Boolean(item.is_saved || item.isSaved || false) 
                 };
             });
             
@@ -101,11 +114,12 @@ function applyFilters() {
     let res = posts;
     
     if (currentView === 'saved') {
-        res = res.filter(p => p.saved === true); 
+        // 🟢 魔法改造 2：我們已經從專屬 API 拿到純淨的收藏文章了
+        // 強制把這批文章的狀態設為已收藏（亮星星），不再用前端過濾隱藏
+        res.forEach(p => p.saved = true); 
     } else if (currentView === 'mine') {
-        const user = JSON.parse(localStorage.getItem('currentUser'));
-        const myName = user ? user.name : '';
-        res = res.filter(p => p.author === myName);
+        // 🟢 我們已經從 mybottles API 拿到純淨的個人文章了！
+        // 這裡不用再用名字過濾，否則匿名文章會被前端誤殺隱藏起來。
     } else {
         if (currentBoard !== '全部') res = res.filter(p => p.board.includes(currentBoard));
     }
@@ -146,12 +160,11 @@ function renderSearchHistory() {
     let history = getSearchHistory();
     const currentText = searchInput.value.trim().toLowerCase();
 
-    // 🟢 智慧過濾魔法：如果有打字，就只顯示包含該字的歷史紀錄！
+    // 🟢 智慧過濾魔法
     if (currentText !== '') {
         history = history.filter(item => item.toLowerCase().includes(currentText));
     }
     
-    // 如果沒有紀錄，或是過濾後沒有半個符合的，才把黑框隱藏起來
     if (history.length === 0) {
         historyBox.style.display = 'none';
         return;
@@ -159,7 +172,6 @@ function renderSearchHistory() {
 
     let html = '';
     history.forEach(item => {
-        // 🟢 徹底移除 onmouseenter 避免無限迴圈，只留 onmousedown
         html += `
             <div class="history-item" 
                  onmousedown="applyHistorySearch(event, '${item}')">
@@ -174,7 +186,7 @@ function renderSearchHistory() {
 }
 
 window.applyHistorySearch = function(e, keyword) {
-    if (e) e.preventDefault(); // 阻止輸入框失去焦點
+    if (e) e.preventDefault(); 
 
     const searchInput = document.getElementById('main-search-input');
     if (searchInput) searchInput.value = keyword;
@@ -330,13 +342,56 @@ window.submitComment = function() {
     }
 };
 
-window.toggleAction = function(id, actionType, e) {
+// 🟢 樂觀 UI 與 API 串接更新
+window.toggleAction = async function(id, actionType, e) {
     e.stopPropagation();
+    const token = localStorage.getItem("authToken");
+    
+    if (!token) {
+        alert("請先登入才能操作喔！");
+        return;
+    }
+
     const p = posts.find(x => String(x.id) === String(id));
-    if (p) {
-        if (actionType === 'like') p.liked ? (p.likes--, p.liked=false) : (p.likes++, p.liked=true);
-        else if (actionType === 'save') p.saved = !p.saved;
+    if (!p) return;
+
+    // 🟢 樂觀 UI 更新：先讓畫面變化，讓操作感覺超級順暢無延遲
+    if (actionType === 'like') {
+        p.liked ? (p.likes--, p.liked=false) : (p.likes++, p.liked=true);
+    } else if (actionType === 'save') {
+        p.saved = !p.saved;
+    }
+    applyFilters();
+
+    // 🟢 背景打 API 告訴後端資料庫
+    try {
+        // 判斷是要打 like 還是 save 的 API
+        const endpoint = actionType === 'like' ? `/bottles/${id}/like` : `/bottles/${id}/save`;
+        
+        const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json',
+                'ngrok-skip-browser-warning': 'true'
+            }
+        });
+
+        if (!response.ok) {
+            throw new Error(`後端回傳錯誤碼: ${response.status}`);
+        }
+        
+    } catch (error) {
+        console.error(`${actionType} 動作失敗:`, error);
+        
+        // 🔴 防呆機制：如果 API 壞掉或網路斷線，把畫面改回原本的狀態 (Rollback)
+        if (actionType === 'like') {
+            p.liked ? (p.likes--, p.liked=false) : (p.likes++, p.liked=true);
+        } else if (actionType === 'save') {
+            p.saved = !p.saved;
+        }
         applyFilters();
+        alert("伺服器開小差了，操作失敗請稍後再試 😢");
     }
 }
 
@@ -455,7 +510,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const historyBox = document.getElementById('search-history-dropdown');
     
     if (searchInput && historyBox) {
-        // 🟢 無論打字或刪除，都即時更新黑框並對齊寬度
         searchInput.oninput = (e) => { 
             currentKeyword = e.target.value.toLowerCase().trim(); 
             applyFilters(); 
@@ -476,7 +530,6 @@ document.addEventListener('DOMContentLoaded', () => {
         };
         
         searchInput.onkeydown = (e) => {
-            // 🟢 注音防呆：如果還在選字，就不要觸發 Enter 搜尋
             if (e.isComposing || e.keyCode === 229) {
                 return;
             }
