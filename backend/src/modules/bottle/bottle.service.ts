@@ -10,6 +10,11 @@ export const getMybottles = async (memberId: number) => {
         },
         orderBy: {
             created_at: "desc",
+        },
+        include: {
+            _count: {
+                select: { likes: true }
+            }
         }
     });
 
