@@ -161,6 +161,7 @@ export const forgotPassword = async (email: string) => {
 
 };
 
+/*重設密碼的服務函式*/
 export const resetPassword = async (token: string, newPassword: string) => {
     const resetRecord = await prisma.passwordReset.findUnique({
         where: { token: token }

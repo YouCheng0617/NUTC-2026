@@ -10,5 +10,6 @@ export function bottleRouter() {
     bottleRouter.patch("/review", bottleController.reviewBottle);
     bottleRouter.get("/mybottles", authCheck, bottleController.getMyBottles);
     bottleRouter.post("/:bottleId/like", authCheck, bottleController.likeBottle);
+    bottleRouter.post("/:bottleId/save", authCheck, bottleController.saveBottle);
     return bottleRouter;
 }

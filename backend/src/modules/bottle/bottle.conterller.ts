@@ -2,7 +2,7 @@ import { Router } from "express";
 import type { Request, Response } from "express";
 import prisma from "../../lib/prisma.js";
 import dotenv from "dotenv";
-import { getMybottles, likeBottles } from "./bottle.service.js";
+import { getMybottles, likeBottles, saveBottles } from "./bottle.service.js";
 export interface TokenPayload {
     member_id: number;
 }
@@ -91,7 +91,7 @@ export const bottleController = {
                         select: { name: true, }
                     },
                     _count: {
-                        select: { likes: true }
+                        select: { likes: true, saves: true }
                     }
                 }
             });
@@ -103,6 +103,7 @@ export const bottleController = {
                 author_name: bottle.is_anonymous ? "匿名使用者" : bottle.author.name,
                 created_at: bottle.created_at,
                 like_count: bottle._count.likes,
+                save_count: bottle._count.saves,
                 view_count: bottle.view_count
             }));
 
@@ -194,6 +195,31 @@ export const bottleController = {
             });
         } catch (error) {
             console.error("Error liking bottle:", error);
+            res.status(500).json({ message: "內部伺服器錯誤" });
+        }
+    },
+
+    /* 儲存/取消儲存瓶子 */
+    async saveBottle(req: AuthRequest, res: Response) {
+        try {
+            const memberId = req.user?.member_id as number;
+            const bottleId = Number(req.params.bottleId);
+
+            if (!bottleId || isNaN(bottleId)) {
+                return res.status(400).json({ message: "無效的瓶子 ID" });
+            }
+            if (!memberId || isNaN(memberId)) {
+                return res.status(400).json({ message: "無效的會員，請重新登入" });
+            }
+
+            const result = await saveBottles(bottleId, memberId);
+            res.status(200).json({
+                message: result.isSaved ? "儲存成功！💾" : "已取消儲存 💔",
+                isSaved: result.isSaved,
+                totalLikes: result.totalLikes
+            });
+        } catch (error) {
+            console.error("Error saving bottle:", error);
             res.status(500).json({ message: "內部伺服器錯誤" });
         }
     },

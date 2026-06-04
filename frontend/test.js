@@ -140,31 +140,42 @@ function saveSearchHistory(keyword) {
 
 function renderSearchHistory() {
     const historyBox = document.getElementById('search-history-dropdown');
-    if (!historyBox) return;
+    const searchInput = document.getElementById('main-search-input');
+    if (!historyBox || !searchInput) return;
     
-    const history = getSearchHistory();
+    let history = getSearchHistory();
+    const currentText = searchInput.value.trim().toLowerCase();
+
+    // 🟢 智慧過濾魔法：如果有打字，就只顯示包含該字的歷史紀錄！
+    if (currentText !== '') {
+        history = history.filter(item => item.toLowerCase().includes(currentText));
+    }
     
+    // 如果沒有紀錄，或是過濾後沒有半個符合的，才把黑框隱藏起來
     if (history.length === 0) {
-        historyBox.innerHTML = '<div style="padding: 15px; color:#888; font-size: 0.9rem; text-align: center;">尚無搜尋紀錄</div>';
+        historyBox.style.display = 'none';
         return;
     }
 
     let html = '';
     history.forEach(item => {
+        // 🟢 徹底移除 onmouseenter 避免無限迴圈，只留 onmousedown
         html += `
             <div class="history-item" 
-                 onmouseenter="document.getElementById('main-search-input').value = '${item}'" 
-                 onclick="applyHistorySearch('${item}')">
+                 onmousedown="applyHistorySearch(event, '${item}')">
                 <span>${item}</span>
-                <span class="delete-history-btn" onclick="removeSingleHistory(event, '${item}')">&times;</span>
+                <span class="delete-history-btn" onmousedown="removeSingleHistory(event, '${item}')">&times;</span>
             </div>
         `;
     });
     
     historyBox.innerHTML = html;
+    historyBox.style.display = 'block'; 
 }
 
-window.applyHistorySearch = function(keyword) {
+window.applyHistorySearch = function(e, keyword) {
+    if (e) e.preventDefault(); // 阻止輸入框失去焦點
+
     const searchInput = document.getElementById('main-search-input');
     if (searchInput) searchInput.value = keyword;
     
@@ -174,14 +185,15 @@ window.applyHistorySearch = function(keyword) {
 }
 
 window.removeSingleHistory = function(e, keyword) {
-    e.stopPropagation(); 
+    if (e) {
+        e.preventDefault(); 
+        e.stopPropagation(); 
+    }
+    
     let history = getSearchHistory();
     history = history.filter(item => item !== keyword);
     localStorage.setItem('searchHistory', JSON.stringify(history));
     renderSearchHistory();
-    
-    const searchInput = document.getElementById('main-search-input');
-    if (searchInput) searchInput.focus();
 }
 
 // ----------------------------------------------------
@@ -216,7 +228,6 @@ function saveComment(postId, commentObj) {
 function renderComments(postId) {
     const comments = getComments(postId);
     
-    // 防呆：抓取畫面上「最後一個」留言容器 (避免 HTML 裡有殘留的舊燈箱)
     const lists = document.querySelectorAll('#detail-comments-list');
     const listContainer = lists[lists.length - 1];
     
@@ -258,7 +269,6 @@ window.openPostDetail = function(id) {
 
     currentOpenPostId = id;
 
-    // 更新燈箱文字
     const tagBoards = document.querySelectorAll('#detail-board-tag');
     if (tagBoards.length > 0) tagBoards[tagBoards.length - 1].innerText = p.board;
     
@@ -278,7 +288,6 @@ window.openPostDetail = function(id) {
 };
 
 window.submitComment = function() {
-    // 抓取畫面上真正的輸入框
     const inputs = document.querySelectorAll('#new-comment-input');
     const input = inputs[inputs.length - 1];
     
@@ -446,14 +455,20 @@ document.addEventListener('DOMContentLoaded', () => {
     const historyBox = document.getElementById('search-history-dropdown');
     
     if (searchInput && historyBox) {
+        // 🟢 無論打字或刪除，都即時更新黑框並對齊寬度
         searchInput.oninput = (e) => { 
             currentKeyword = e.target.value.toLowerCase().trim(); 
             applyFilters(); 
+            
+            renderSearchHistory();
+            historyBox.style.width = searchInput.offsetWidth + 'px';
+            historyBox.style.left = searchInput.offsetLeft + 'px';
         };
         
         searchInput.onfocus = () => {
             renderSearchHistory();
-            historyBox.style.display = 'block';
+            historyBox.style.width = searchInput.offsetWidth + 'px';
+            historyBox.style.left = searchInput.offsetLeft + 'px';
         };
         
         searchInput.onblur = () => {
@@ -461,6 +476,11 @@ document.addEventListener('DOMContentLoaded', () => {
         };
         
         searchInput.onkeydown = (e) => {
+            // 🟢 注音防呆：如果還在選字，就不要觸發 Enter 搜尋
+            if (e.isComposing || e.keyCode === 229) {
+                return;
+            }
+
             if (e.key === 'Enter') {
                 saveSearchHistory(searchInput.value.trim());
                 historyBox.style.display = 'none'; 
@@ -469,7 +489,6 @@ document.addEventListener('DOMContentLoaded', () => {
         };
     }
 
-    // 🟢 貼心功能：在留言框按下 Enter 鍵也能直接送出！
     const commentInputs = document.querySelectorAll('#new-comment-input');
     commentInputs.forEach(input => {
         input.onkeydown = (e) => {
@@ -514,8 +533,8 @@ document.addEventListener('DOMContentLoaded', () => {
             if (user) {
                 document.getElementById('detail-avatar').src = user.avatar || 'images/fish_logo.png';
                 document.getElementById('detail-name').innerText = user.name || '未設定姓名';
-                document.getElementById('detail-email').innerText = user.email;
-                document.getElementById('detail-birthday').innerText = user.birthday || '未填寫';
+                document.getElementById('detail-email').innerText = user.email; 
+                document.getElementById('detail-birthday').innerText = user.birthday ? user.birthday.split('T')[0] : '未填寫';
                 document.getElementById('detail-gender').innerText = user.gender || '未填寫';
                 document.getElementById('detail-zodiac').innerText = user.zodiac || '未填寫';
                 document.getElementById('detail-bio').innerText = user.bio || '這瓶子裡目前空空的...';
