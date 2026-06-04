@@ -100,3 +100,5 @@ Headers要給 x-api-key (跟我拿)
 
 按讚瓶子 POST 給Token /bottles:/like (:後是他的id，例如給id 11文章點讚，/bottles/11/like)
 收藏瓶子 POST 給Token /:bottleId/save (:後是他的id，例如給id 11文章收藏，/bottles/11/save)
+查看按讚瓶子 GET 給Token /bottles/liked
+查看收藏瓶子 GET 給Token /bottles/saved

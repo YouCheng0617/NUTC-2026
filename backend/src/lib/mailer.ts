@@ -4,7 +4,7 @@ const resend = new Resend(process.env.RESEND_API_KEY!);
 
 export const sendEmailResetPassword = async (toEmail: string, token: string) => {
     try {
-        const resetUrl = `http://driftbottle.duckdns.org/reset-password.html?token=${token}`;
+        const resetUrl = `${process.env.FRONTEND_URL}/reset-password.html?token=${token}`;
 
         const { data, error } = await resend.emails.send({
             from: 'Dev Team <onboarding@resend.dev>',

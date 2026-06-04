@@ -2,7 +2,7 @@ import { Router } from "express";
 import type { Request, Response } from "express";
 import prisma from "../../lib/prisma.js";
 import dotenv from "dotenv";
-import { getMybottles, likeBottles, saveBottles } from "./bottle.service.js";
+import { getMybottles, likeBottles, saveBottles, getMyLikedBottles, getMySavedBottles } from "./bottle.service.js";
 export interface TokenPayload {
     member_id: number;
 }
@@ -216,10 +216,42 @@ export const bottleController = {
             res.status(200).json({
                 message: result.isSaved ? "儲存成功！💾" : "已取消儲存 💔",
                 isSaved: result.isSaved,
-                totalLikes: result.totalLikes
+                totalSaves: result.totalSaves // 🌟 這裡修正為 totalSaves
             });
         } catch (error) {
             console.error("Error saving bottle:", error);
+            res.status(500).json({ message: "內部伺服器錯誤" });
+        }
+    },
+
+    /* 取得我的按讚列表 */
+    async getMyLikedBottlesList(req: AuthRequest, res: Response) {
+        try {
+            const memberId = req.user?.member_id as number;
+            if (!memberId || isNaN(memberId)) {
+                return res.status(400).json({ message: "無效的會員，請重新登入" });
+            }
+
+            const bottles = await getMyLikedBottles(memberId);
+            res.status(200).json(bottles);
+        } catch (error) {
+            console.error("Error fetching liked bottles:", error);
+            res.status(500).json({ message: "內部伺服器錯誤" });
+        }
+    },
+
+    /* 取得我的收藏列表 */
+    async getMySavedBottlesList(req: AuthRequest, res: Response) {
+        try {
+            const memberId = req.user?.member_id as number;
+            if (!memberId || isNaN(memberId)) {
+                return res.status(400).json({ message: "無效的會員，請重新登入" });
+            }
+
+            const bottles = await getMySavedBottles(memberId);
+            res.status(200).json(bottles);
+        } catch (error) {
+            console.error("Error fetching saved bottles:", error);
             res.status(500).json({ message: "內部伺服器錯誤" });
         }
     },
