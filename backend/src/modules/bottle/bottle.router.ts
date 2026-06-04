@@ -9,5 +9,6 @@ export function bottleRouter() {
     bottleRouter.get("/random", authCheck, bottleController.getBottles);
     bottleRouter.patch("/review", bottleController.reviewBottle);
     bottleRouter.get("/mybottles", authCheck, bottleController.getMyBottles);
+    bottleRouter.post("/:bottleId/like", authCheck, bottleController.likeBottle);
     return bottleRouter;
 }

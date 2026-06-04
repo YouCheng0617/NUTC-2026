@@ -2,7 +2,7 @@ import { Router } from "express";
 import type { Request, Response } from "express";
 import prisma from "../../lib/prisma.js";
 import dotenv from "dotenv";
-import { getMybottles } from "./bottle.service.js";
+import { getMybottles, likeBottles } from "./bottle.service.js";
 export interface TokenPayload {
     member_id: number;
 }
@@ -89,6 +89,9 @@ export const bottleController = {
                 include: {
                     author: {
                         select: { name: true, }
+                    },
+                    _count: {
+                        select: { likes: true }
                     }
                 }
             });
@@ -99,6 +102,8 @@ export const bottleController = {
                 content: bottle.content,
                 author_name: bottle.is_anonymous ? "匿名使用者" : bottle.author.name,
                 created_at: bottle.created_at,
+                like_count: bottle._count.likes,
+                view_count: bottle.view_count
             }));
 
             res.status(200).json({
@@ -150,6 +155,7 @@ export const bottleController = {
 
     },
 
+    /* 獲取我的瓶子 */
     async getMyBottles(req: AuthRequest, res: Response) {
         try {
             const memberId = req.user?.member_id;
@@ -165,5 +171,30 @@ export const bottleController = {
             console.error("Error fetching my bottles:", error);
             res.status(500).json({ message: "內部伺服器錯誤" });
         }
-    }
+    },
+
+    /* 喜歡/取消喜歡瓶子 */
+    async likeBottle(req: AuthRequest, res: Response) {
+        try {
+            const memberId = req.user?.member_id as number;
+            const bottleId = Number(req.params.bottleId);
+
+            if (!bottleId || isNaN(bottleId)) {
+                return res.status(400).json({ message: "無效的瓶子 ID" });
+            }
+            if (!memberId || isNaN(memberId)) {
+                return res.status(400).json({ message: "無效的會員，請重新登入" });
+            }
+
+            const result = await likeBottles(bottleId, memberId);
+            res.status(200).json({
+                message: result.isLiked ? "按讚成功！❤️" : "已取消按讚 💔",
+                isLiked: result.isLiked,
+                totalLikes: result.totalLikes
+            });
+        } catch (error) {
+            console.error("Error liking bottle:", error);
+            res.status(500).json({ message: "內部伺服器錯誤" });
+        }
+    },
 }
