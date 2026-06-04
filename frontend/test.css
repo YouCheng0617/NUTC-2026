@@ -32,6 +32,11 @@ body, html { margin: 0; font-family: 'PingFang TC', sans-serif; background-color
 
 .sidebar, .right-panel { background: rgba(255, 255, 255, 0.75); backdrop-filter: blur(5px); padding: 20px; border-radius: 16px; border: 1px solid rgba(255,255,255,0.5); height: fit-content;}
 .sidebar h3, .right-panel h3 { color: #555; font-weight: 900; margin-top: 0; margin-bottom: 15px; border-bottom: 2px solid #e0e6ed; padding-bottom: 5px; }
+/* 🟢 新增這段：清除列表預設的左邊空白 */
+.sidebar ul {
+    padding: 0;
+    margin: 0;
+}
 .sidebar li { padding: 12px 15px; border-radius: 10px; cursor: pointer; transition: 0.2s; list-style: none; color: #555; font-weight: bold; margin-bottom: 5px; }
 .sidebar li:hover, .sidebar li.active { background: #fff; color: #0055a5; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
 
@@ -163,3 +168,52 @@ body, html { margin: 0; font-family: 'PingFang TC', sans-serif; background-color
         font-size: 0.9rem;
     }
 }
+
+/* =========================================
+   🔍 搜尋歷史紀錄下拉選單 (Dcard 深色風格)
+   ========================================= */
+.search-history-box {
+    position: absolute;
+    top: 110%; /* 黏在搜尋框的正下方 */
+    left: 15px;
+    right: 15px;
+    background: #2b2b2b; /* Dcard 風格的深灰色背景 */
+    border-radius: 8px;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+    z-index: 300;
+    overflow: hidden;
+    padding: 5px 0;
+}
+
+.history-item {
+    padding: 12px 20px;
+    color: #e0e0e0;
+    cursor: pointer;
+    font-size: 0.95rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between; /* 🟢 讓文字在左、叉叉在右 */
+    transition: 0.2s;
+}
+
+.history-item:hover {
+    background: #404040; 
+    color: #00f2ff;
+}
+
+/* 🟢 新增小叉叉的專屬樣式 */
+.delete-history-btn {
+    color: #888;
+    font-size: 1.2rem;
+    line-height: 1;
+    padding: 2px 8px;
+    border-radius: 5px;
+    transition: 0.2s;
+}
+
+.delete-history-btn:hover {
+    color: #ff4d4d; /* 滑鼠移過去變紅色 */
+    background: rgba(255, 77, 77, 0.1);
+}
+
+/* (如果你完全不需要清除所有紀錄的按鈕了，可以直接把 .clear-history 的樣式刪除) */

@@ -266,9 +266,9 @@
 
       function openAuthModal() {
         document.getElementById("auth-modal").style.display = "flex";
-        // 每次打開時，確保把之前可能殘留的錯誤訊息洗掉
         clearErrorMessage();
       }
+
       function closeAuthModal() {
         document.getElementById("auth-modal").style.display = "none";
         clearErrorMessage();
@@ -280,11 +280,10 @@
         if (errorEl) errorEl.remove();
       }
 
-      // 🛑 動態在彈窗內顯示精美錯誤訊息，取代醜陋的 alert
+      // 🛑 動態在彈窗內顯示精美錯誤訊息
       function showModalError(message) {
-        clearErrorMessage(); // 刪除舊的
+        clearErrorMessage();
 
-        // 建立一個漂亮紅色的錯誤提示區塊
         const errorDiv = document.createElement("div");
         errorDiv.id = "modal-error-msg";
         errorDiv.style.cssText = `
@@ -301,7 +300,6 @@
         `;
         errorDiv.innerText = message;
 
-        // 把錯誤訊息塞在頁籤（Login/Register）的下方
         const tabContainer = document.getElementById("main-tabs");
         tabContainer.parentNode.insertBefore(
           errorDiv,
@@ -309,9 +307,9 @@
         );
       }
 
-      // 🌟 切換表單邏輯更新，支援忘記密碼與重設密碼
+      // 🌟 切換表單邏輯
       function switchTab(tab) {
-        clearErrorMessage(); // 切換頁籤時自動清空錯誤
+        clearErrorMessage();
 
         document.getElementById("login-form").style.display = "none";
         document.getElementById("register-form").style.display = "none";
@@ -339,7 +337,7 @@
         }
       }
 
-      // 🌊 串接後端登入 API
+      // 🌊 串接後端登入 API (完美融合版)
       async function processLogin() {
         const email = document.getElementById("login-email").value;
         const password = document.getElementById("login-password").value;
@@ -359,18 +357,38 @@
             body: JSON.stringify({ email: email, password: password }),
           });
 
-          const data = await response.json();
+          const responseData = await response.json();
 
           if (response.ok) {
-            // 登入成功保留原樣，直接酷炫跳轉
-            localStorage.setItem("authToken", data.token || data.data?.token);
-            const userInfo = data.user ||
-              data.data?.user || { name: email.split("@")[0], email: email };
-            localStorage.setItem("currentUser", JSON.stringify(userInfo));
+            // 兼容兩人不同寫法的資料解析，確保一定抓得到資料
+            const realToken =
+              responseData.data?.result?.token ||
+              responseData.token ||
+              responseData.data?.token;
+            const realUser = responseData.data?.result?.member ||
+              responseData.user ||
+              responseData.data?.user || {
+                email: email,
+                name: email.split("@")[0],
+              };
+
+            localStorage.setItem("authToken", realToken);
+
+            const userToSave = {
+              email: realUser.email || email,
+              name: realUser.name || email.split("@")[0],
+              avatar: realUser.avatar || "images/fish_logo.png",
+              birthday: realUser.birthday || "",
+              bio: realUser.bio || "",
+              constellation: realUser.constellation || "",
+            };
+            localStorage.setItem("currentUser", JSON.stringify(userToSave));
+
             window.location.href = "test.html";
           } else {
-            // ❌ 拋棄 alert！改用精美內嵌提示
-            showModalError("❌ 登入失敗：帳號或密碼錯誤");
+            showModalError(
+              "❌ 登入失敗：" + (responseData.message || "帳號或密碼錯誤"),
+            );
           }
         } catch (error) {
           console.error("連線錯誤:", error);
@@ -378,7 +396,7 @@
         }
       }
 
-      // 🌊 串接後端註冊 API
+      // 🌊 串接後端註冊 API (從混亂中獨立出來的乾淨版本)
       async function processRegister() {
         const email = document.getElementById("reg-email").value;
         const password = document.getElementById("reg-password").value;
@@ -421,7 +439,7 @@
           const data = await response.json();
 
           if (response.ok) {
-            alert("🎉 註冊成功！請登入。"); // 註冊跨頁面成功可暫留或改掉，通常成功用內建OK
+            alert("🎉 註冊成功！請登入。");
             switchTab("login");
           } else {
             console.error("❌ 後端拒絕註冊：", data);
@@ -446,16 +464,14 @@
         try {
           const response = await fetch(`${API_BASE_URL}/auth/forgot-password`, {
             method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              "ngrok-skip-browser-warning": "true",
-            },
+            headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ email: email }),
           });
 
           if (response.ok) {
-            alert("已成功發送重設信件！請去信箱查看 Token 驗證碼。");
-            switchTab("reset");
+            // 🟢 修改這裡：改成提示去信箱點連結，並把畫面切回登入頁
+            alert("✅ 已成功發送重設信件！請前往信箱點擊重設連結。");
+            switchTab("login");
           } else {
             const data = await response.json();
             alert("發送失敗：" + (data.message || "請確認信箱是否正確"));
@@ -479,16 +495,13 @@
         try {
           const response = await fetch(`${API_BASE_URL}/auth/reset-password`, {
             method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              "ngrok-skip-browser-warning": "true",
-            },
+            headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ token: token, newPassword: newPassword }),
           });
 
           if (response.ok) {
             alert("密碼重設成功！請使用新密碼重新登入。");
-            switchTab("login");
+            switchTab("login"); // 成功後導回登入頁
           } else {
             const data = await response.json();
             alert("重設失敗：" + (data.message || "Token 無效或過期"));

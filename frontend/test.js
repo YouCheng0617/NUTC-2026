@@ -43,17 +43,21 @@ async function fetchBottles() {
                 postsArray = [backendData.data.result];
             }
 
-            posts = postsArray.map(item => ({
-                id: item.bottle_id || Date.now(),
-                board: "🔥 綜合閒聊", 
-                author: (item.is_anonymous || item.isAnonymous) ? "匿名" : (item.author?.name || item.author_name || "用戶"),
-                title: item.title,
-                desc: item.content, 
-                likes: item.view_count || 0,
-                msgs: 0,
-                liked: false,
-                saved: false // 如果後端有提供收藏關聯，可直接對齊後端欄位
-            }));
+            posts = postsArray.map(item => {
+                // 🟢 確保 ID 絕對是字串，且不會重複
+                const safeId = String(item.bottle_id || `temp_${Math.random().toString(36).substr(2, 9)}`);
+                return {
+                    id: safeId,
+                    board: "🔥 綜合閒聊", 
+                    author: (item.is_anonymous || item.isAnonymous) ? "匿名" : (item.author?.name || item.author_name || "用戶"),
+                    title: item.title,
+                    desc: item.content, 
+                    likes: item.view_count || 0,
+                    msgs: getComments(safeId).length, // 讀取真實的留言數量
+                    liked: false,
+                    saved: false 
+                };
+            });
             
             applyFilters();
         } else {
@@ -68,7 +72,6 @@ function renderPosts(data = posts) {
     const container = document.getElementById('post-container');
     if (!container) return;
     
-    // 🔴 依據所在頁面，提供更精準的空白提示
     let emptyMsg = '找不到漂流瓶 😢';
     if (currentView === 'saved') {
         emptyMsg = '你還沒有收藏任何漂流瓶喔 ⭐';
@@ -78,7 +81,7 @@ function renderPosts(data = posts) {
 
     container.innerHTML = data.length === 0 ? `<h3 style="text-align:center; color:#888; margin-top:40px;">${emptyMsg}</h3>` : 
     data.map(p => `
-        <div class="post-card" onclick="alert('假裝打開漂流瓶 id=${p.id}')">
+        <div class="post-card" onclick="openPostDetail('${p.id}')">
             <div style="display:flex; justify-content:space-between; align-items:center;">
                 <div style="font-size:0.85rem; color:#0055a5; font-weight:bold;">${p.board}</div>
                 <div style="font-size:0.8rem; color:#888; background:#f0f4f8; padding:3px 10px; border-radius:12px;">${p.author || '匿名'}</div>
@@ -86,9 +89,9 @@ function renderPosts(data = posts) {
             <h2 style="margin:12px 0; color:#333; font-size: 1.4rem;">${p.title}</h2>
             <p style="color:#666; line-height: 1.5; font-size: 0.95rem;">${p.desc}</p>
             <div class="action-bar">
-                <span class="action-btn ${p.liked ? 'like-active' : ''}" onclick="toggleAction(${p.id}, 'like', event)">${p.liked ? '❤️' : '🤍'} ${p.likes}</span>
+                <span class="action-btn ${p.liked ? 'like-active' : ''}" onclick="toggleAction('${p.id}', 'like', event)">${p.liked ? '❤️' : '🤍'} ${p.likes}</span>
                 <span class="action-btn">💬 ${p.msgs}</span>
-                <span class="action-btn ${p.saved ? 'save-active' : ''}" onclick="toggleAction(${p.id}, 'save', event)" style="margin-left: auto;">${p.saved ? '⭐ 已收藏' : '☆ 收藏'}</span>
+                <span class="action-btn ${p.saved ? 'save-active' : ''}" onclick="toggleAction('${p.id}', 'save', event)" style="margin-left: auto;">${p.saved ? '⭐ 已收藏' : '☆ 收藏'}</span>
             </div>
         </div>
     `).join('');
@@ -97,26 +100,230 @@ function renderPosts(data = posts) {
 function applyFilters() {
     let res = posts;
     
-    // 🔴 核心過濾邏輯分支
     if (currentView === 'saved') {
-        res = res.filter(p => p.saved === true); // 收藏網頁：只留被標記為 saved 的項目
+        res = res.filter(p => p.saved === true); 
     } else if (currentView === 'mine') {
-        // 🟢 我的文章網頁：比對當前登入使用者的名字
         const user = JSON.parse(localStorage.getItem('currentUser'));
         const myName = user ? user.name : '';
-        res = res.filter(p => p.author === myName); // 只秀出作者是自己的實名文章
+        res = res.filter(p => p.author === myName);
     } else {
-        // 主頁：依照看板分類篩選
         if (currentBoard !== '全部') res = res.filter(p => p.board.includes(currentBoard));
     }
     
-    if (currentKeyword) res = res.filter(p => p.title.toLowerCase().includes(currentKeyword));
+    if (currentKeyword) {
+        res = res.filter(p => 
+            (p.title && p.title.toLowerCase().includes(currentKeyword)) || 
+            (p.desc && p.desc.toLowerCase().includes(currentKeyword)) || 
+            (p.board && p.board.toLowerCase().includes(currentKeyword))
+        );
+    }
+    
     renderPosts(res);
 }
 
+// ----------------------------------------------------
+// 🔍 搜尋歷史紀錄功能
+// ----------------------------------------------------
+function getSearchHistory() {
+    return JSON.parse(localStorage.getItem('searchHistory') || '[]');
+}
+
+function saveSearchHistory(keyword) {
+    if (!keyword.trim()) return;
+    let history = getSearchHistory();
+    history = history.filter(item => item !== keyword);
+    history.unshift(keyword);
+    if (history.length > 5) history.pop();
+    
+    localStorage.setItem('searchHistory', JSON.stringify(history));
+}
+
+function renderSearchHistory() {
+    const historyBox = document.getElementById('search-history-dropdown');
+    if (!historyBox) return;
+    
+    const history = getSearchHistory();
+    
+    if (history.length === 0) {
+        historyBox.innerHTML = '<div style="padding: 15px; color:#888; font-size: 0.9rem; text-align: center;">尚無搜尋紀錄</div>';
+        return;
+    }
+
+    let html = '';
+    history.forEach(item => {
+        html += `
+            <div class="history-item" 
+                 onmouseenter="document.getElementById('main-search-input').value = '${item}'" 
+                 onclick="applyHistorySearch('${item}')">
+                <span>${item}</span>
+                <span class="delete-history-btn" onclick="removeSingleHistory(event, '${item}')">&times;</span>
+            </div>
+        `;
+    });
+    
+    historyBox.innerHTML = html;
+}
+
+window.applyHistorySearch = function(keyword) {
+    const searchInput = document.getElementById('main-search-input');
+    if (searchInput) searchInput.value = keyword;
+    
+    currentKeyword = keyword.toLowerCase();
+    applyFilters(); 
+    document.getElementById('search-history-dropdown').style.display = 'none';
+}
+
+window.removeSingleHistory = function(e, keyword) {
+    e.stopPropagation(); 
+    let history = getSearchHistory();
+    history = history.filter(item => item !== keyword);
+    localStorage.setItem('searchHistory', JSON.stringify(history));
+    renderSearchHistory();
+    
+    const searchInput = document.getElementById('main-search-input');
+    if (searchInput) searchInput.focus();
+}
+
+// ----------------------------------------------------
+// 📝 留言系統功能 (防呆增強版)
+// ----------------------------------------------------
+let currentOpenPostId = null;
+
+function getComments(postId) {
+    if (!postId) return [];
+    try {
+        let allComments = JSON.parse(localStorage.getItem('postComments') || '{}');
+        if (typeof allComments !== 'object' || Array.isArray(allComments)) allComments = {};
+        return allComments[postId] || [];
+    } catch (e) {
+        return [];
+    }
+}
+
+function saveComment(postId, commentObj) {
+    if (!postId) return;
+    try {
+        let allComments = JSON.parse(localStorage.getItem('postComments') || '{}');
+        if (typeof allComments !== 'object' || Array.isArray(allComments)) allComments = {};
+        if (!allComments[postId]) allComments[postId] = []; 
+        allComments[postId].push(commentObj);
+        localStorage.setItem('postComments', JSON.stringify(allComments));
+    } catch (e) {
+        console.error("儲存留言時發生錯誤", e);
+    }
+}
+
+function renderComments(postId) {
+    const comments = getComments(postId);
+    
+    // 防呆：抓取畫面上「最後一個」留言容器 (避免 HTML 裡有殘留的舊燈箱)
+    const lists = document.querySelectorAll('#detail-comments-list');
+    const listContainer = lists[lists.length - 1];
+    
+    const counts = document.querySelectorAll('#detail-comment-count');
+    const countSpan = counts[counts.length - 1];
+
+    if (!listContainer) return;
+
+    if (countSpan) countSpan.innerText = comments.length;
+
+    if (comments.length === 0) {
+        listContainer.innerHTML = '<div style="text-align:center; color:#888; padding: 20px 0;">目前還沒有留言喔，來搶頭香吧！🐟</div>';
+        return;
+    }
+
+    let html = '';
+    comments.forEach((c, index) => {
+        html += `
+            <div style="background: #f9fbfd; padding: 15px; border-radius: 12px; border: 1px solid #e0e6ed; margin-bottom: 10px;">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 8px; align-items: center;">
+                    <span style="font-size: 0.9rem; font-weight: bold; color: #0055a5; display: flex; align-items: center; gap: 8px;">
+                        <img src="${c.avatar}" style="width:24px; height:24px; border-radius:50%; object-fit:cover;">
+                        ${c.author}
+                    </span>
+                    <span style="font-size: 0.8rem; color: #8892b0; font-weight: bold;">B${index + 1}</span>
+                </div>
+                <div style="color: #444; font-size: 0.95rem; line-height: 1.5; padding-left: 32px; white-space: pre-wrap;">
+                    ${c.text}
+                </div>
+            </div>
+        `;
+    });
+    listContainer.innerHTML = html;
+}
+
+window.openPostDetail = function(id) {
+    const p = posts.find(x => String(x.id) === String(id));
+    if (!p) return;
+
+    currentOpenPostId = id;
+
+    // 更新燈箱文字
+    const tagBoards = document.querySelectorAll('#detail-board-tag');
+    if (tagBoards.length > 0) tagBoards[tagBoards.length - 1].innerText = p.board;
+    
+    const tagAuthors = document.querySelectorAll('#detail-author-tag');
+    if (tagAuthors.length > 0) tagAuthors[tagAuthors.length - 1].innerText = p.author || '匿名';
+    
+    const titleEls = document.querySelectorAll('#detail-post-title');
+    if (titleEls.length > 0) titleEls[titleEls.length - 1].innerText = p.title;
+    
+    const contentEls = document.querySelectorAll('#detail-post-content');
+    if (contentEls.length > 0) contentEls[contentEls.length - 1].innerText = p.desc;
+
+    renderComments(id);
+
+    const modals = document.querySelectorAll('#post-detail-modal');
+    if (modals.length > 0) modals[modals.length - 1].style.display = 'block';
+};
+
+window.submitComment = function() {
+    // 抓取畫面上真正的輸入框
+    const inputs = document.querySelectorAll('#new-comment-input');
+    const input = inputs[inputs.length - 1];
+    
+    if (!input) return;
+    
+    const text = input.value.trim();
+
+    if (!text) {
+        alert("請輸入留言內容！");
+        return;
+    }
+
+    const user = JSON.parse(localStorage.getItem('currentUser'));
+    if (!user) {
+        alert("請先登入才能留言喔！");
+        return;
+    }
+
+    const newComment = {
+        author: user.name || '用戶',
+        avatar: user.avatar || 'images/fish_logo.png',
+        text: text
+    };
+
+    saveComment(currentOpenPostId, newComment);
+    input.value = '';
+    
+    renderComments(currentOpenPostId);
+
+    const p = posts.find(x => String(x.id) === String(currentOpenPostId));
+    if (p) {
+        p.msgs = getComments(currentOpenPostId).length;
+        applyFilters(); 
+    }
+
+    const modals = document.querySelectorAll('#post-detail-modal .modal-content');
+    if (modals.length > 0) {
+        const targetModal = modals[modals.length - 1];
+        targetModal.scrollTo({ top: targetModal.scrollHeight, behavior: 'smooth' });
+    }
+};
+
 window.toggleAction = function(id, actionType, e) {
     e.stopPropagation();
-    const p = posts.find(x => x.id === id);
+    const p = posts.find(x => String(x.id) === String(id));
     if (p) {
         if (actionType === 'like') p.liked ? (p.likes--, p.liked=false) : (p.likes++, p.liked=true);
         else if (actionType === 'save') p.saved = !p.saved;
@@ -124,6 +331,9 @@ window.toggleAction = function(id, actionType, e) {
     }
 }
 
+// ----------------------------------------------------
+// 🚀 初始化與事件綁定
+// ----------------------------------------------------
 function setupAuth() {
     const userProfile = document.getElementById('user-profile');
     const loginTrigger = document.getElementById('login-trigger');
@@ -182,19 +392,8 @@ function setupNewPost() {
             const identity = document.getElementById('post-identity').value;
             const isAnonymous = identity === "匿名";
             
-            // 🌟 1. 抓取使用者選擇的看板(類別)文字
             const boardValue = document.getElementById('post-board').value;
-
-            // 🌟 2. 建立類別對應表 (Mapping)
-            // ⚠️ 注意：這裡的數字 1, 2, 3, 4 請務必確認是否有對齊你「後端資料庫 Categories 表」的真實 ID！
-            const categoryMap = {
-                "綜合閒聊": 1,
-                "程式開發": 2,
-                "美食特搜": 3,
-                "遊戲專區": 4
-            };
-
-            // 🌟 3. 查表轉換成 ID，並包裝成陣列格式 (配合後端 category_id: [] 的要求)
+            const categoryMap = { "綜合閒聊": 1, "程式開發": 2, "美食特搜": 3, "遊戲專區": 4 };
             const selectedCategoryId = categoryMap[boardValue];
             const categoryPayload = selectedCategoryId ? [selectedCategoryId] : [];
 
@@ -210,7 +409,7 @@ function setupNewPost() {
                         title: title,
                         content: content,
                         isAnonymous: isAnonymous,
-                        category_id: categoryPayload // 🌟 4. 將轉換好的陣列帶入 Payload
+                        category_id: categoryPayload 
                     })
                 });
 
@@ -218,7 +417,7 @@ function setupNewPost() {
                     alert('漂流瓶拋出成功！');
                     form.reset(); 
                     document.getElementById('post-modal').style.display='none'; 
-                    fetchBottles(); // 重新撈取文章
+                    fetchBottles(); 
                 } else {
                     alert('發文失敗，請稍後再試。');
                 }
@@ -231,11 +430,10 @@ function setupNewPost() {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-    // 🔴 關鍵網址檢查：判定當前是否在獨立網頁中
     if (window.location.pathname.includes('saved.html')) {
         currentView = 'saved';
     } else if (window.location.pathname.includes('post.html')) {
-        currentView = 'mine'; // 🟢 辨識進入我的文章獨立頁
+        currentView = 'mine'; 
     } else {
         currentView = 'all';
     }
@@ -244,10 +442,42 @@ document.addEventListener('DOMContentLoaded', () => {
     setupNewPost();
     fetchBottles(); 
     
-    const searchInput = document.querySelector('.search-input');
-    if (searchInput) {
-        searchInput.oninput = (e) => { currentKeyword = e.target.value.toLowerCase().trim(); applyFilters(); };
+    const searchInput = document.getElementById('main-search-input');
+    const historyBox = document.getElementById('search-history-dropdown');
+    
+    if (searchInput && historyBox) {
+        searchInput.oninput = (e) => { 
+            currentKeyword = e.target.value.toLowerCase().trim(); 
+            applyFilters(); 
+        };
+        
+        searchInput.onfocus = () => {
+            renderSearchHistory();
+            historyBox.style.display = 'block';
+        };
+        
+        searchInput.onblur = () => {
+            setTimeout(() => { historyBox.style.display = 'none'; }, 200);
+        };
+        
+        searchInput.onkeydown = (e) => {
+            if (e.key === 'Enter') {
+                saveSearchHistory(searchInput.value.trim());
+                historyBox.style.display = 'none'; 
+                searchInput.blur(); 
+            }
+        };
     }
+
+    // 🟢 貼心功能：在留言框按下 Enter 鍵也能直接送出！
+    const commentInputs = document.querySelectorAll('#new-comment-input');
+    commentInputs.forEach(input => {
+        input.onkeydown = (e) => {
+            if (e.key === 'Enter') {
+                submitComment();
+            }
+        };
+    });
     
     document.querySelectorAll('.sidebar li').forEach(li => li.onclick = (e) => {
         document.querySelectorAll('.sidebar li').forEach(el => el.classList.remove('active'));
