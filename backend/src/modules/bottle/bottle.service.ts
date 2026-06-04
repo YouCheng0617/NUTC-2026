@@ -64,6 +64,30 @@ export const likeBottles = async (bottleId: number, memberId: number) => {
 
     return { isLiked, totalLikes };
 };
+export const getMyLikedBottles = async (memberId: number) => {
+    const likedRecords = await prismaClient.bottleLike.findMany({
+        where: { member_id: memberId },
+        include: {
+            bottle: {
+                include: {
+                    _count: {
+                        select: { likes: true, saves: true }
+                    }
+                }
+            }
+        },
+        orderBy: { createdAt: "desc" }
+    });
+
+    return likedRecords.map(record => {
+        const { _count, ...bottleData } = record.bottle;
+        return {
+            ...bottleData,
+            like_count: _count.likes,
+            save_count: _count.saves
+        };
+    });
+};
 
 export const saveBottles = async (bottleId: number, memberId: number) => {
     // 1. 先查有沒有按過讚
@@ -110,4 +134,28 @@ export const saveBottles = async (bottleId: number, memberId: number) => {
     });
 
     return { isSaved, totalLikes, totalSaves };
+};
+export const getMySavedBottles = async (memberId: number) => {
+    const savedRecords = await prismaClient.bottleSave.findMany({
+        where: { member_id: memberId },
+        include: {
+            bottle: {
+                include: {
+                    _count: {
+                        select: { likes: true, saves: true }
+                    }
+                }
+            }
+        },
+        orderBy: { createdAt: "desc" }
+    });
+
+    return savedRecords.map(record => {
+        const { _count, ...bottleData } = record.bottle;
+        return {
+            ...bottleData,
+            like_count: _count.likes,
+            save_count: _count.saves
+        };
+    });
 };
