@@ -6,7 +6,7 @@ let currentKeyword = '';
 let currentBoard = '全部';
 let currentView = 'all'; // 🔴 紀錄狀態：'all' (一般), 'saved' (收藏頁), 'mine' (我的文章頁)
 
-// 🌊 向後端抓取文章 API
+// 🌊 向後端抓取文章 API 
 async function fetchBottles() {
     const token = localStorage.getItem("authToken");
     if (!token) {
@@ -16,16 +16,32 @@ async function fetchBottles() {
     }
 
     try {
-        // 🟢 魔法改造 1：根據現在在哪個頁面，決定要呼叫哪一支 API！
-        let endpointUrl = `${API_BASE_URL}/bottles/random`; // 預設：首頁抓隨機文章
-        
+        let endpointUrl = `${API_BASE_URL}/bottles/random`; 
         if (currentView === 'mine') {
-            endpointUrl = `${API_BASE_URL}/bottles/mybottles`; // 我的文章頁：呼叫專屬 API
+            endpointUrl = `${API_BASE_URL}/bottles/mybottles`; 
         } else if (currentView === 'saved') {
-            // ⚠️ 注意：這裡假設後端撈取收藏文章的 API 是 /bottles/saved
-            // 如果隊友寫的網址不同，請把下面這行的 '/bottles/saved' 換掉！
             endpointUrl = `${API_BASE_URL}/bottles/saved`; 
         }
+
+        let likedBottleIds = [];
+        let savedBottleIds = []; 
+        try {
+            const likedRes = await fetch(`${API_BASE_URL}/bottles/liked`, { method: 'GET', headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' } });
+            if (likedRes.ok) {
+                const likedData = await likedRes.json();
+                let arr = likedData.bottles || likedData.data || likedData;
+                if (Array.isArray(arr)) likedBottleIds = arr.map(i => String(i.bottle_id || i.id || i.bottleId));
+            }
+        } catch(e) { console.log('偷偷抓取按讚清單失敗'); }
+
+        try {
+            const savedRes = await fetch(`${API_BASE_URL}/bottles/saved`, { method: 'GET', headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' } });
+            if (savedRes.ok) {
+                const savedData = await savedRes.json();
+                let arr = savedData.bottles || savedData.data || savedData;
+                if (Array.isArray(arr)) savedBottleIds = arr.map(i => String(i.bottle_id || i.id || i.bottleId));
+            }
+        } catch(e) { console.log('偷偷抓取收藏清單失敗'); }
 
         const response = await fetch(endpointUrl, {
             method: 'GET',
@@ -48,27 +64,68 @@ async function fetchBottles() {
                 postsArray = backendData.data;
             } else if (backendData.data?.result && Array.isArray(backendData.data.result)) {
                 postsArray = backendData.data.result;
-            } else if (backendData.bottle_id) {
-                postsArray = [backendData];
-            } else if (backendData.data?.result?.bottle_id) {
-                postsArray = [backendData.data.result];
             }
 
-            posts = postsArray.map(item => {
-                // 🟢 確保 ID 絕對是字串，且不會重複
-                const safeId = String(item.bottle_id || `temp_${Math.random().toString(36).substr(2, 9)}`);
+            posts = postsArray.map(rawItem => {
+                const item = rawItem.bottle || rawItem.Bottle || rawItem;
+                
+                const safeId = String(item.bottle_id || item.id || item.bottleId || rawItem.bottle_id || `temp_${Math.random().toString(36).substr(2, 9)}`);
+                
+                let isActuallyLiked = likedBottleIds.includes(safeId) || Boolean(item.is_liked || item.isLiked || rawItem.is_liked);
+                let isActuallySaved = savedBottleIds.includes(safeId) || Boolean(item.is_saved || item.isSaved || rawItem.is_saved);
+
+                if (currentView === 'saved') isActuallySaved = true;
+
+                let totalLikes = parseInt(item.like_count || item.likeCount || item.likes || item.view_count || rawItem.like_count || 0, 10);
+                if (isActuallyLiked && totalLikes === 0) totalLikes = 1;
+
+                let authorName = "用戶";
+                if (typeof item.author === 'string') authorName = item.author;
+                else if (item.author?.name) authorName = item.author.name;
+                else if (item.author_name) authorName = item.author_name;
+                else if (item.user?.name) authorName = item.user.name;
+                else if (item.username) authorName = item.username;
+                else if (item.User?.name) authorName = item.User.name;
+                else if (typeof rawItem.author === 'string') authorName = rawItem.author;
+                else if (rawItem.author?.name) authorName = rawItem.author.name;
+                else if (rawItem.user?.name) authorName = rawItem.user.name;
+                else if (rawItem.User?.name) authorName = rawItem.User.name;
+
+                if (currentView === 'mine') {
+                    const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
+                    authorName = currentUser.name || "劉茂寅";
+                }
+
+                let rawBoard = item.category?.name || item.category_name || item.board || rawItem.category?.name || rawItem.category_name || null;
+                let finalBoard = "🔥 綜合閒聊"; 
+                let cId = item.category_id || rawItem.category_id || item.categoryId;
+
+                if (rawBoard) {
+                    if (rawBoard.includes("程式")) finalBoard = "💻 程式開發";
+                    else if (rawBoard.includes("美食")) finalBoard = "🍜 美食特搜";
+                    else if (rawBoard.includes("遊戲")) finalBoard = "🎮 遊戲專區";
+                    else if (rawBoard.includes("閒聊")) finalBoard = "🔥 綜合閒聊";
+                    else finalBoard = rawBoard; 
+                } 
+                else if (cId !== undefined && cId !== null) {
+                    const idToBoard = { 1: "🔥 綜合閒聊", 2: "💻 程式開發", 3: "🍜 美食特搜", 4: "🎮 遊戲專區" };
+                    if (Array.isArray(cId) && cId.length > 0) {
+                        finalBoard = idToBoard[cId[0]] || finalBoard;
+                    } else if (!Array.isArray(cId)) {
+                        finalBoard = idToBoard[cId] || finalBoard;
+                    }
+                }
+
                 return {
                     id: safeId,
-                    board: "🔥 綜合閒聊", 
-                    author: (item.is_anonymous || item.isAnonymous) ? "匿名" : (item.author?.name || item.author_name || "用戶"),
-                    title: item.title,
-                    desc: item.content, 
-                    likes: item.view_count || 0,
-                    msgs: getComments(safeId).length, // 讀取真實的留言數量
-                    
-                    // 🟢 魔法修改：讀取後端傳來的按讚與收藏狀態，沒有的話預設為 false
-                    liked: Boolean(item.is_liked || item.isLiked || false),
-                    saved: Boolean(item.is_saved || item.isSaved || false) 
+                    board: finalBoard, 
+                    author: (item.is_anonymous || item.isAnonymous) ? "匿名" : authorName,
+                    title: item.title || rawItem.title,
+                    desc: item.content || rawItem.content, 
+                    likes: totalLikes,
+                    msgs: getComments(safeId).length,
+                    liked: isActuallyLiked, 
+                    saved: isActuallySaved  
                 };
             });
             
@@ -86,18 +143,15 @@ function renderPosts(data = posts) {
     if (!container) return;
     
     let emptyMsg = '找不到漂流瓶 😢';
-    if (currentView === 'saved') {
-        emptyMsg = '你還沒有收藏任何漂流瓶喔 ⭐';
-    } else if (currentView === 'mine') {
-        emptyMsg = '你目前還沒有發過任何漂流瓶喔 📝';
-    }
+    if (currentView === 'saved') emptyMsg = '你還沒有收藏任何漂流瓶喔 ⭐';
+    else if (currentView === 'mine') emptyMsg = '你目前還沒有發過任何漂流瓶喔 📝';
 
     container.innerHTML = data.length === 0 ? `<h3 style="text-align:center; color:#888; margin-top:40px;">${emptyMsg}</h3>` : 
     data.map(p => `
         <div class="post-card" onclick="openPostDetail('${p.id}')">
             <div style="display:flex; justify-content:space-between; align-items:center;">
                 <div style="font-size:0.85rem; color:#0055a5; font-weight:bold;">${p.board}</div>
-                <div style="font-size:0.8rem; color:#888; background:#f0f4f8; padding:3px 10px; border-radius:12px;">${p.author || '匿名'}</div>
+                <div style="font-size:0.8rem; color:#888; background:#f0f4f8; padding:3px 10px; border-radius:12px;">${p.author}</div>
             </div>
             <h2 style="margin:12px 0; color:#333; font-size: 1.4rem;">${p.title}</h2>
             <p style="color:#666; line-height: 1.5; font-size: 0.95rem;">${p.desc}</p>
@@ -114,12 +168,8 @@ function applyFilters() {
     let res = posts;
     
     if (currentView === 'saved') {
-        // 🟢 魔法改造 2：我們已經從專屬 API 拿到純淨的收藏文章了
-        // 強制把這批文章的狀態設為已收藏（亮星星），不再用前端過濾隱藏
-        res.forEach(p => p.saved = true); 
+        res = res.filter(p => p.saved === true); 
     } else if (currentView === 'mine') {
-        // 🟢 我們已經從 mybottles API 拿到純淨的個人文章了！
-        // 這裡不用再用名字過濾，否則匿名文章會被前端誤殺隱藏起來。
     } else {
         if (currentBoard !== '全部') res = res.filter(p => p.board.includes(currentBoard));
     }
@@ -160,7 +210,6 @@ function renderSearchHistory() {
     let history = getSearchHistory();
     const currentText = searchInput.value.trim().toLowerCase();
 
-    // 🟢 智慧過濾魔法
     if (currentText !== '') {
         history = history.filter(item => item.toLowerCase().includes(currentText));
     }
@@ -209,7 +258,7 @@ window.removeSingleHistory = function(e, keyword) {
 }
 
 // ----------------------------------------------------
-// 📝 留言系統功能 (防呆增強版)
+// 📝 留言系統與文章切換功能 
 // ----------------------------------------------------
 let currentOpenPostId = null;
 
@@ -237,75 +286,132 @@ function saveComment(postId, commentObj) {
     }
 }
 
+// 🟢 新增：處理留言按讚的邏輯
+window.toggleCommentLike = function(postId, index) {
+    try {
+        let allComments = JSON.parse(localStorage.getItem('postComments') || '{}');
+        if (!allComments[postId] || !allComments[postId][index]) return;
+
+        let c = allComments[postId][index];
+        
+        // 切換按讚狀態
+        if (c.liked) {
+            c.likes = Math.max(0, (c.likes || 1) - 1);
+            c.liked = false;
+        } else {
+            c.likes = (c.likes || 0) + 1;
+            c.liked = true;
+        }
+
+        // 存回並重新渲染
+        localStorage.setItem('postComments', JSON.stringify(allComments));
+        renderComments(postId);
+    } catch (error) {
+        console.error("按讚處理失敗", error);
+    }
+}
+
 function renderComments(postId) {
     const comments = getComments(postId);
-    
     const lists = document.querySelectorAll('#detail-comments-list');
-    const listContainer = lists[lists.length - 1];
-    
     const counts = document.querySelectorAll('#detail-comment-count');
-    const countSpan = counts[counts.length - 1];
+    
+    lists.forEach(listContainer => {
+        if (!listContainer) return;
+        
+        if (comments.length === 0) {
+            listContainer.innerHTML = '<div style="text-align:center; color:#888; padding: 30px 0;">目前還沒有留言喔，來搶頭香吧！🐟</div>';
+            return;
+        }
 
-    if (!listContainer) return;
+        let html = '';
+        comments.forEach((c, index) => {
+            const likesCount = c.likes || 0;
+            const isLiked = c.liked || false;
 
-    if (countSpan) countSpan.innerText = comments.length;
-
-    if (comments.length === 0) {
-        listContainer.innerHTML = '<div style="text-align:center; color:#888; padding: 20px 0;">目前還沒有留言喔，來搶頭香吧！🐟</div>';
-        return;
-    }
-
-    let html = '';
-    comments.forEach((c, index) => {
-        html += `
-            <div style="background: #f9fbfd; padding: 15px; border-radius: 12px; border: 1px solid #e0e6ed; margin-bottom: 10px;">
-                <div style="display: flex; justify-content: space-between; margin-bottom: 8px; align-items: center;">
-                    <span style="font-size: 0.9rem; font-weight: bold; color: #0055a5; display: flex; align-items: center; gap: 8px;">
-                        <img src="${c.avatar}" style="width:24px; height:24px; border-radius:50%; object-fit:cover;">
-                        ${c.author}
-                    </span>
-                    <span style="font-size: 0.8rem; color: #8892b0; font-weight: bold;">B${index + 1}</span>
+            html += `
+                <div style="background: #fff; padding: 24px 0; border-bottom: 1px solid #f0f0f0;">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 12px; align-items: center;">
+                        <span style="font-size: 1rem; font-weight: bold; color: #333; display: flex; align-items: center; gap: 12px;">
+                            <img src="${c.avatar}" style="width: 36px; height: 36px; border-radius: 50%; object-fit: cover; box-shadow: 0 1px 3px rgba(0,0,0,0.08);">
+                            ${c.author}
+                        </span>
+                        <span style="font-size: 0.85rem; color: #aaa; font-weight: bold;">B${index + 1}</span>
+                    </div>
+                    <div style="color: #222; font-size: 1.05rem; line-height: 1.7; padding-left: 48px; white-space: pre-wrap; margin-bottom: 10px;">${c.text}</div>
+                    
+                    <div style="text-align: right; padding-right: 15px;">
+                        <span style="cursor: pointer; color: ${isLiked ? '#e74c3c' : '#999'}; font-size: 0.95rem; user-select: none; transition: 0.2s;" onclick="toggleCommentLike('${postId}', ${index})">
+                            ${isLiked ? '❤️' : '🤍'} ${likesCount}
+                        </span>
+                    </div>
                 </div>
-                <div style="color: #444; font-size: 0.95rem; line-height: 1.5; padding-left: 32px; white-space: pre-wrap;">
-                    ${c.text}
-                </div>
-            </div>
-        `;
+            `;
+        });
+        listContainer.innerHTML = html;
     });
-    listContainer.innerHTML = html;
+
+    counts.forEach(countSpan => {
+        if (countSpan) countSpan.innerText = comments.length;
+    });
 }
 
 window.openPostDetail = function(id) {
     const p = posts.find(x => String(x.id) === String(id));
     if (!p) return;
-
     currentOpenPostId = id;
 
     const tagBoards = document.querySelectorAll('#detail-board-tag');
-    if (tagBoards.length > 0) tagBoards[tagBoards.length - 1].innerText = p.board;
+    tagBoards.forEach(el => el.innerText = p.board);
     
     const tagAuthors = document.querySelectorAll('#detail-author-tag');
-    if (tagAuthors.length > 0) tagAuthors[tagAuthors.length - 1].innerText = p.author || '匿名';
+    tagAuthors.forEach(el => el.innerText = p.author || '匿名');
     
     const titleEls = document.querySelectorAll('#detail-post-title');
-    if (titleEls.length > 0) titleEls[titleEls.length - 1].innerText = p.title;
+    titleEls.forEach(el => el.innerText = p.title);
     
     const contentEls = document.querySelectorAll('#detail-post-content');
-    if (contentEls.length > 0) contentEls[contentEls.length - 1].innerText = p.desc;
+    contentEls.forEach(el => el.innerText = p.desc);
 
     renderComments(id);
+    
+    const feedView = document.getElementById('feed-view');
+    const detailView = document.getElementById('detail-view');
+    const detailModals = document.querySelectorAll('#post-detail-modal');
 
-    const modals = document.querySelectorAll('#post-detail-modal');
-    if (modals.length > 0) modals[modals.length - 1].style.display = 'block';
+    if (feedView && detailView) {
+        feedView.style.display = 'none';
+        detailView.style.display = 'block';
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    } else if (detailModals.length > 0) {
+        detailModals.forEach(m => m.style.display = 'block');
+    }
+};
+
+window.closePostDetail = function() {
+    const feedView = document.getElementById('feed-view');
+    const detailView = document.getElementById('detail-view');
+    
+    if (feedView && detailView) {
+        detailView.style.display = 'none';
+        feedView.style.display = 'block';
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
 };
 
 window.submitComment = function() {
     const inputs = document.querySelectorAll('#new-comment-input');
-    const input = inputs[inputs.length - 1];
+    let targetInput = null;
     
-    if (!input) return;
+    for (let i = 0; i < inputs.length; i++) {
+        if (inputs[i].offsetParent !== null) { 
+            targetInput = inputs[i];
+            break;
+        }
+    }
     
-    const text = input.value.trim();
+    if (!targetInput) return;
+    const text = targetInput.value.trim();
 
     if (!text) {
         alert("請輸入留言內容！");
@@ -318,15 +424,17 @@ window.submitComment = function() {
         return;
     }
 
+    // 🟢 新增：送出留言時帶上預設的讚數 0 與未按讚狀態
     const newComment = {
         author: user.name || '用戶',
         avatar: user.avatar || 'images/fish_logo.png',
-        text: text
+        text: text,
+        likes: 0,
+        liked: false
     };
 
     saveComment(currentOpenPostId, newComment);
-    input.value = '';
-    
+    targetInput.value = '';
     renderComments(currentOpenPostId);
 
     const p = posts.find(x => String(x.id) === String(currentOpenPostId));
@@ -335,14 +443,19 @@ window.submitComment = function() {
         applyFilters(); 
     }
 
-    const modals = document.querySelectorAll('#post-detail-modal .modal-content');
-    if (modals.length > 0) {
-        const targetModal = modals[modals.length - 1];
-        targetModal.scrollTo({ top: targetModal.scrollHeight, behavior: 'smooth' });
+    const detailView = document.getElementById('detail-view');
+    if (detailView && detailView.offsetParent !== null) {
+        window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+    } else {
+        const modals = document.querySelectorAll('#post-detail-modal .modal-content');
+        modals.forEach(modal => {
+            if (modal.offsetParent !== null) {
+                modal.scrollTo({ top: modal.scrollHeight, behavior: 'smooth' });
+            }
+        });
     }
 };
 
-// 🟢 樂觀 UI 與 API 串接更新
 window.toggleAction = async function(id, actionType, e) {
     e.stopPropagation();
     const token = localStorage.getItem("authToken");
@@ -355,19 +468,21 @@ window.toggleAction = async function(id, actionType, e) {
     const p = posts.find(x => String(x.id) === String(id));
     if (!p) return;
 
-    // 🟢 樂觀 UI 更新：先讓畫面變化，讓操作感覺超級順暢無延遲
     if (actionType === 'like') {
-        p.liked ? (p.likes--, p.liked=false) : (p.likes++, p.liked=true);
+        if (p.liked) {
+            p.likes = Math.max(0, p.likes - 1); 
+            p.liked = false;
+        } else {
+            p.likes++;
+            p.liked = true;
+        }
     } else if (actionType === 'save') {
         p.saved = !p.saved;
     }
     applyFilters();
 
-    // 🟢 背景打 API 告訴後端資料庫
     try {
-        // 判斷是要打 like 還是 save 的 API
         const endpoint = actionType === 'like' ? `/bottles/${id}/like` : `/bottles/${id}/save`;
-        
         const response = await fetch(`${API_BASE_URL}${endpoint}`, {
             method: 'POST',
             headers: {
@@ -380,13 +495,17 @@ window.toggleAction = async function(id, actionType, e) {
         if (!response.ok) {
             throw new Error(`後端回傳錯誤碼: ${response.status}`);
         }
-        
     } catch (error) {
         console.error(`${actionType} 動作失敗:`, error);
         
-        // 🔴 防呆機制：如果 API 壞掉或網路斷線，把畫面改回原本的狀態 (Rollback)
         if (actionType === 'like') {
-            p.liked ? (p.likes--, p.liked=false) : (p.likes++, p.liked=true);
+            if (p.liked) {
+                p.likes = Math.max(0, p.likes - 1);
+                p.liked = false;
+            } else {
+                p.likes++;
+                p.liked = true;
+            }
         } else if (actionType === 'save') {
             p.saved = !p.saved;
         }
@@ -576,7 +695,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     const profileModal = document.getElementById('profile-modal');
-    const closeProfileBtn = document.getElementById('close-profile-modal');
     const profileMenuItem = document.getElementById('open-profile');
 
     if (profileMenuItem) {
@@ -599,11 +717,29 @@ document.addEventListener('DOMContentLoaded', () => {
         };
     }
 
+    const detailModals = document.querySelectorAll('#post-detail-modal');
+    const closeDetailBtns = document.querySelectorAll('#close-detail-modal');
+    const closeProfileBtn = document.getElementById('close-profile-modal');
+    
     if (closeProfileBtn) {
         closeProfileBtn.onclick = () => profileModal.style.display = 'none';
     }
+
+    closeDetailBtns.forEach(btn => {
+        btn.onclick = () => {
+            detailModals.forEach(m => m.style.display = 'none');
+        };
+    });
+
     window.onclick = (event) => {
-        if (event.target == profileModal) profileModal.style.display = 'none';
+        const postModal = document.getElementById('post-modal');
+        
+        if (profileModal && event.target == profileModal) profileModal.style.display = 'none';
+        if (postModal && event.target == postModal) postModal.style.display = 'none';
+        
+        detailModals.forEach(m => {
+            if (event.target == m) m.style.display = 'none';
+        });
     };
 });
 
