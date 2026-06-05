@@ -70,6 +70,11 @@ export const getMyLikedBottles = async (memberId: number) => {
         include: {
             bottle: {
                 include: {
+                    author: {
+                        select: {
+                            name: true,
+                        }
+                    },
                     _count: {
                         select: { likes: true, saves: true }
                     }
@@ -80,11 +85,12 @@ export const getMyLikedBottles = async (memberId: number) => {
     });
 
     return likedRecords.map(record => {
-        const { _count, ...bottleData } = record.bottle;
+        const { _count, author, ...bottleData } = record.bottle;
         return {
             ...bottleData,
             like_count: _count.likes,
-            save_count: _count.saves
+            save_count: _count.saves,
+            member_name: author?.name || "匿名使用者"
         };
     });
 };
@@ -141,6 +147,11 @@ export const getMySavedBottles = async (memberId: number) => {
         include: {
             bottle: {
                 include: {
+                    author: {
+                        select: {
+                            name: true,
+                        }
+                    },
                     _count: {
                         select: { likes: true, saves: true }
                     }
@@ -151,11 +162,12 @@ export const getMySavedBottles = async (memberId: number) => {
     });
 
     return savedRecords.map(record => {
-        const { _count, ...bottleData } = record.bottle;
+        const { _count, author, ...bottleData } = record.bottle;
         return {
             ...bottleData,
             like_count: _count.likes,
-            save_count: _count.saves
+            save_count: _count.saves,
+            member_name: author?.name || "匿名使用者"
         };
     });
 };
