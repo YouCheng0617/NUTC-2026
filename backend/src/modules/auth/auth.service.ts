@@ -76,7 +76,12 @@ export const loginMember = async (email: string, password: string) => {
     if (!member) {
         throw new Error("信箱或密碼錯誤!");
     }
-
+    if (member.status === "BANNED") {
+        throw new Error("此帳號已被封鎖，無法登入！若有疑問請聯繫客服。");
+    }
+    if (member.status === "INACTIVE") {
+        throw new Error("帳號未啟用，請先完成信箱驗證手續。");
+    }
     /*如果帳號被鎖定*/
     const nowDate = new Date();
     if (member.locked_time && member.locked_time > nowDate) {

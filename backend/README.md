@@ -102,3 +102,17 @@ Headers要給 x-api-key (跟我拿)
 收藏瓶子 POST 給Token /:bottleId/save (:後是他的id，例如給id 11文章收藏，/bottles/11/save)
 查看按讚瓶子 GET 給Token /bottles/liked
 查看收藏瓶子 GET 給Token /bottles/saved
+
+管理員查看使用者名單 GET 給Token /admin/members
+
+更改使用者狀態 PUT 給Token /admin/members/8/status
+{
+  "newStatus": "" /*只能填ACTIVE、INACTIVE 或 BANNED*/
+}
+
+更改瓶子狀態 PUT 給Token /admin/bottles/review
+{
+    "bottle_id": 1,
+    "status": 1, 
+    "violation_reason": "" /*如果輸入1就不用填，輸入2就要填*/
+}

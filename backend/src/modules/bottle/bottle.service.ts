@@ -3,6 +3,7 @@ import { PrismaClient } from "../../generated/prisma/index.js";
 const prismaClient = new PrismaClient();
 import dotenv from "dotenv";
 
+/*獲取我丟的瓶子清單*/
 export const getMybottles = async (memberId: number) => {
     const myBottles = await prismaClient.bottle.findMany({
         where: {
@@ -12,15 +13,28 @@ export const getMybottles = async (memberId: number) => {
             created_at: "desc",
         },
         include: {
+            categories: {
+                include: {
+                    category: true,
+                }
+            },
             _count: {
                 select: { likes: true, saves: true }
             }
         }
     });
-
-    return myBottles;
+    return myBottles.map(bottle => {
+        const { _count, categories, ...bottleData } = bottle;
+        return {
+            ...bottleData,
+            like_count: _count.likes,
+            save_count: _count.saves,
+            category_list: categories.map(c => c.category?.name || "未知類別")
+        };
+    });
 };
 
+/*按讚/取消按讚瓶子*/
 export const likeBottles = async (bottleId: number, memberId: number) => {
     // 1. 先查有沒有按過讚
     const existingLike = await prismaClient.bottleLike.findUnique({
@@ -64,6 +78,8 @@ export const likeBottles = async (bottleId: number, memberId: number) => {
 
     return { isLiked, totalLikes };
 };
+
+/*獲取我按過讚的瓶子清單*/
 export const getMyLikedBottles = async (memberId: number) => {
     const likedRecords = await prismaClient.bottleLike.findMany({
         where: { member_id: memberId },
@@ -73,6 +89,11 @@ export const getMyLikedBottles = async (memberId: number) => {
                     author: {
                         select: {
                             name: true,
+                        }
+                    },
+                    categories: {
+                        include: {
+                            category: true
                         }
                     },
                     _count: {
@@ -90,11 +111,13 @@ export const getMyLikedBottles = async (memberId: number) => {
             ...bottleData,
             like_count: _count.likes,
             save_count: _count.saves,
-            member_name: author?.name || "匿名使用者"
+            member_name: author?.name || "匿名使用者",
+            category_list: record.bottle.categories.map(c => c.category?.name || "未知類別")
         };
     });
 };
 
+/*儲存/取消儲存瓶子*/
 export const saveBottles = async (bottleId: number, memberId: number) => {
     // 1. 先查有沒有按過讚
     const existingSave = await prismaClient.bottleSave.findUnique({
@@ -141,6 +164,8 @@ export const saveBottles = async (bottleId: number, memberId: number) => {
 
     return { isSaved, totalLikes, totalSaves };
 };
+
+/*獲取我儲存的瓶子清單*/
 export const getMySavedBottles = async (memberId: number) => {
     const savedRecords = await prismaClient.bottleSave.findMany({
         where: { member_id: memberId },
@@ -150,6 +175,11 @@ export const getMySavedBottles = async (memberId: number) => {
                     author: {
                         select: {
                             name: true,
+                        }
+                    },
+                    categories: {
+                        include: {
+                            category: true
                         }
                     },
                     _count: {
@@ -167,7 +197,8 @@ export const getMySavedBottles = async (memberId: number) => {
             ...bottleData,
             like_count: _count.likes,
             save_count: _count.saves,
-            member_name: author?.name || "匿名使用者"
+            member_name: author?.name || "匿名使用者",
+            category_list: record.bottle.categories.map(c => c.category?.name || "未知類別")
         };
     });
 };

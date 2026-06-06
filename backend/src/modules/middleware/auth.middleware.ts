@@ -2,7 +2,6 @@ import type { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
 import prisma from "../../lib/prisma.js";
 
-
 export interface AuthRequest extends Request {
     user?: TokenPayload;
 }
@@ -10,6 +9,7 @@ interface TokenPayload {
     member_id: number;
     email: string;
 }
+
 
 export const authCheck = async (req: AuthRequest, res: Response, next: NextFunction) => {
     const authHeader = req.headers.authorization;
@@ -52,5 +52,30 @@ export const authCheck = async (req: AuthRequest, res: Response, next: NextFunct
             real_error_name: error.name,       // 錯誤的種類
             real_error_message: error.message
         });
+    }
+}
+
+/*辨識對方是不是管理員*/
+/*辨識對方是不是管理員 (Schema 升級版)*/
+export const adminCheck = async (req: AuthRequest, res: Response, next: NextFunction) => {
+    try {
+        if (!req.user) {
+            return res.status(401).json({ message: "尚未登入" });
+        }
+
+        // 🌟 直接去資料庫查這個人的 role 是不是 ADMIN
+        const member = await prisma.member.findUnique({
+            where: { member_id: req.user.member_id },
+            select: { role: true } // 只撈權限欄位，節省效能
+        });
+
+        if (!member || member.role !== "ADMIN") {
+            return res.status(403).json({ message: "權限不足！您不是管理員 🚫" });
+        }
+
+        next(); // 是管理員，請進！
+    } catch (error) {
+        console.error("Admin check error:", error);
+        return res.status(500).json({ message: "伺服器錯誤" });
     }
 }
