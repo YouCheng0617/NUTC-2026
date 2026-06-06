@@ -4,7 +4,16 @@ const API_BASE_URL = "http://163.17.135.120";
 let posts = [];
 let currentKeyword = '';
 let currentBoard = '全部';
+let currentCategoryId = null; // 🔴 新增：對應後端的 categoryId 參數
 let currentView = 'all'; // 🔴 紀錄狀態：'all' (一般), 'saved' (收藏頁), 'mine' (我的文章頁)
+
+// 看板名稱 -> 後端 categoryId 對照表
+const BOARD_CATEGORY_MAP = {
+    '🔥 綜合閒聊': 1,
+    '💻 程式開發': 2,
+    '🍜 美食特搜': 3,
+    '🎮 遊戲專區': 4,
+};
 
 // 🌊 向後端抓取文章 API 
 async function fetchBottles() {
@@ -21,6 +30,9 @@ async function fetchBottles() {
             endpointUrl = `${API_BASE_URL}/bottles/mybottles`; 
         } else if (currentView === 'saved') {
             endpointUrl = `${API_BASE_URL}/bottles/saved`; 
+        } else if (currentCategoryId !== null) {
+            // 🔴 傳遞看板分類 ID 給後端，讓後端只回傳該分類的瓶子
+            endpointUrl = `${API_BASE_URL}/bottles/random?categoryId=${currentCategoryId}`;
         }
 
         let likedBottleIds = [];
@@ -96,9 +108,23 @@ async function fetchBottles() {
                     authorName = currentUser.name || "劉茂寅";
                 }
 
-                let rawBoard = item.category?.name || item.category_name || item.board || rawItem.category?.name || rawItem.category_name || null;
+                // --- 替換從這裡開始 ---
+                let rawBoard = item.category_name || item.board || null;
+                
+                // 🔥 新增：解析 Prisma 關聯陣列的格式
+                if (!rawBoard && item.categories && item.categories.length > 0) {
+                    rawBoard = item.categories[0].category?.name;
+                } else if (!rawBoard && rawItem.categories && rawItem.categories.length > 0) {
+                    rawBoard = rawItem.categories[0].category?.name;
+                }
+
                 let finalBoard = "🔥 綜合閒聊"; 
                 let cId = item.category_id || rawItem.category_id || item.categoryId;
+                
+                // 如果 Prisma 陣列裡只有回傳 ID 沒回傳 name，我們在前端手動轉換
+                if (!rawBoard && item.categories && item.categories.length > 0) {
+                    cId = item.categories[0].category_id;
+                }
 
                 if (rawBoard) {
                     if (rawBoard.includes("程式")) finalBoard = "💻 程式開發";
@@ -115,6 +141,7 @@ async function fetchBottles() {
                         finalBoard = idToBoard[cId] || finalBoard;
                     }
                 }
+                // --- 替換到這裡結束 ---
 
                 return {
                     id: safeId,
@@ -575,9 +602,9 @@ function setupNewPost() {
             const identity = document.getElementById('post-identity').value;
             const isAnonymous = identity === "匿名";
             
+            // 🔥 修改點：直接抓取數字 ID 並包裝成陣列
             const boardValue = document.getElementById('post-board').value;
-            const categoryMap = { "綜合閒聊": 1, "程式開發": 2, "美食特搜": 3, "遊戲專區": 4 };
-            const selectedCategoryId = categoryMap[boardValue];
+            const selectedCategoryId = Number(boardValue);
             const categoryPayload = selectedCategoryId ? [selectedCategoryId] : [];
 
             try {
@@ -602,7 +629,7 @@ function setupNewPost() {
                     document.getElementById('post-modal').style.display='none'; 
                     fetchBottles(); 
                 } else {
-                    alert('發文失敗，請稍後再試。');
+                    alert('發文失敗，請確認資料是否正確。');
                 }
             } catch (error) {
                 console.error("連線錯誤:", error);
@@ -673,8 +700,21 @@ document.addEventListener('DOMContentLoaded', () => {
     document.querySelectorAll('.sidebar li').forEach(li => li.onclick = (e) => {
         document.querySelectorAll('.sidebar li').forEach(el => el.classList.remove('active'));
         e.target.classList.add('active');
-        currentBoard = e.target.innerText.includes('綜合閒聊') ? '全部' : e.target.innerText.substring(2); 
-        applyFilters();
+
+        // 取得點擊的看板全名（含 emoji），trim 避免 innerHTML 換行問題
+        const liText = e.target.innerText.trim();
+        
+        if (liText.includes('綜合閒聊')) {
+            currentBoard = '全部';
+            currentCategoryId = null; // 全部不傳 categoryId
+        } else {
+            currentBoard = liText.substring(2).trim(); // 去掉 emoji 和空格
+            // 🔴 查對照表取得後端 categoryId
+            currentCategoryId = BOARD_CATEGORY_MAP[liText] || null;
+        }
+
+        // 🔴 重新向後端 fetch 該分類的文章，而非只過濾前端已載入的資料
+        fetchBottles();
     });
     
     const loginTrigger = document.getElementById('login-trigger');
@@ -707,7 +747,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 document.getElementById('detail-email').innerText = user.email; 
                 document.getElementById('detail-birthday').innerText = user.birthday ? user.birthday.split('T')[0] : '未填寫';
                 document.getElementById('detail-gender').innerText = user.gender || '未填寫';
-                document.getElementById('detail-zodiac').innerText = user.zodiac || '未填寫';
+                document.getElementById('detail-zodiac').innerText = user.zodiac || user.constellation || '未填寫';
                 document.getElementById('detail-bio').innerText = user.bio || '這瓶子裡目前空空的...';
                 
                 profileModal.style.display = 'block';

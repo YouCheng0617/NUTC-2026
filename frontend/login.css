@@ -126,7 +126,8 @@ body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden;
     border: 1px solid #3a4161;
     color: #e0e6ed;
     box-sizing: border-box; /* 這一行一定要有，防止 padding 撐破寬度 */
-}x-sizing:border-box::after/* 確保 padding 不會把寬度撐爆 */
+}
+/* 確保 padding 不會把寬度撐爆 */
 
 
 .close-btn { position: absolute; right: 25px; top: 20px; font-size: 28px; cursor: pointer; color: #8892b0; transition: 0.2s; }

@@ -67,9 +67,9 @@ async function loadUsers() {
                 <td>#${user.member_id}</td>
                 <td>${user.name}</td>
                 <td>${user.email}</td>
-                <td>${new Date(user.birthday).toLocaleDateString()}</td>
+                <td>${user.created_at ? new Date(user.created_at).toLocaleDateString() : (user.birthday ? new Date(user.birthday).toLocaleDateString() : '未知')}</td>
                 <td>正常</td>
-                <td><button class="btn-delete">刪除</button></td>
+                <td><button class="btn-delete" onclick="deleteUser(${user.member_id})">刪除</button></td>
             </tr>
         `).join('');
     } catch (e) {
@@ -105,6 +105,8 @@ async function loadBottles() {
             return;
         }
 
+        // 將資料暫存，避免 onclick 屬性因引號或特殊字元造成 XSS/語法錯誤
+        window._pendingBottle = b;
         tbody.innerHTML = `
             <tr>
                 <td>#${b.bottle_id}</td>
@@ -112,7 +114,7 @@ async function loadBottles() {
                 <td>${b.title}</td>
                 <td>${b.category_id || '一般'}</td>
                 <td>${new Date().toLocaleDateString()}</td>
-                <td><button class="btn-view" onclick="openBottleModal('${b.bottle_id}', '${b.title}', '${b.author}', '${b.content}')">審核</button></td>
+                <td><button class="btn-view" onclick="openBottleModalFromCache()">審核</button></td>
             </tr>
         `;
     } catch(e) {
@@ -155,16 +157,44 @@ async function reviewBottle(bottleId, status, title) {
 // ==========================================
 // 7. UI 控制
 // ==========================================
+function openBottleModalFromCache() {
+    const b = window._pendingBottle;
+    if (!b) return;
+    openBottleModal(b.bottle_id, b.title, b.author, b.content);
+}
+
 function openBottleModal(id, title, author, content) {
     document.getElementById('modal-title').innerText = `審核：${title}`;
     document.getElementById('modal-body').innerHTML = `<p>${content}</p>`;
+    // 暫存 id 與 title 避免 onclick 屬性注入問題
+    window._reviewBottleId = id;
+    window._reviewBottleTitle = title;
     document.getElementById('modal-actions').innerHTML = `
         <button style="background:#888;" onclick="closeAdminModal()">關閉</button>
-        <button class="btn-delete" onclick="reviewBottle('${id}', 2, '${title}'); closeAdminModal();">拒絕(2)</button>
-        <button class="btn-view" onclick="reviewBottle('${id}', 1, '${title}'); closeAdminModal();">通過(1)</button>
+        <button class="btn-delete" onclick="reviewBottle(window._reviewBottleId, 2, window._reviewBottleTitle); closeAdminModal();">拒絕(2)</button>
+        <button class="btn-view" onclick="reviewBottle(window._reviewBottleId, 1, window._reviewBottleTitle); closeAdminModal();">通過(1)</button>
     `;
     document.getElementById('admin-modal').style.display = 'flex';
 }
 
 function closeAdminModal() { document.getElementById('admin-modal').style.display = 'none'; }
+
+async function deleteUser(memberId) {
+    if (!confirm(`⚠️ 確定要刪除會員 #${memberId} 嗎？此操作無法復原！`)) return;
+    const token = localStorage.getItem("authToken");
+    try {
+        const response = await fetch(`${API_BASE_URL}/admin/users/${memberId}`, {
+            method: 'DELETE',
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (response.ok) {
+            alert('✅ 已成功刪除會員！');
+            loadUsers();
+        } else {
+            alert('刪除失敗，請確認權限。');
+        }
+    } catch (e) {
+        alert('伺服器連線失敗');
+    }
+}
 function adminLogout() { localStorage.clear(); window.location.href = "login.html"; }
