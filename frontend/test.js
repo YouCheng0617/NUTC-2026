@@ -111,21 +111,26 @@ async function fetchBottles() {
                 // --- 替換從這裡開始 ---
                 let rawBoard = item.category_name || item.board || null;
                 
-                // 🔥 新增：解析 Prisma 關聯陣列的格式
+                // 🎯 關鍵破案點：後端「我的文章」API 吐出來的欄位叫 category_list！
+                if (!rawBoard && item.category_list && Array.isArray(item.category_list) && item.category_list.length > 0) {
+                    rawBoard = item.category_list[0];
+                }
+                
+                // 保持原有的 Prisma 關聯結構相容（供隨機撈取使用）
                 if (!rawBoard && item.categories && item.categories.length > 0) {
                     rawBoard = item.categories[0].category?.name;
                 } else if (!rawBoard && rawItem.categories && rawItem.categories.length > 0) {
                     rawBoard = rawItem.categories[0].category?.name;
                 }
-
+                
                 let finalBoard = "🔥 綜合閒聊"; 
                 let cId = item.category_id || rawItem.category_id || item.categoryId;
                 
-                // 如果 Prisma 陣列裡只有回傳 ID 沒回傳 name，我們在前端手動轉換
                 if (!rawBoard && item.categories && item.categories.length > 0) {
                     cId = item.categories[0].category_id;
                 }
 
+                // 統一將文字對應到包含 Emoji 的標準看板名稱
                 if (rawBoard) {
                     if (rawBoard.includes("程式")) finalBoard = "💻 程式開發";
                     else if (rawBoard.includes("美食")) finalBoard = "🍜 美食特搜";
@@ -593,6 +598,7 @@ function setupNewPost() {
     if (btnNewPost) btnNewPost.onclick = () => document.getElementById('post-modal').style.display='block';
     if (closePostModal) closePostModal.onclick = () => document.getElementById('post-modal').style.display='none';
     
+    // ... 前面省略 ...
     if (form) {
         form.onsubmit = async (e) => {
             e.preventDefault();
@@ -602,10 +608,14 @@ function setupNewPost() {
             const identity = document.getElementById('post-identity').value;
             const isAnonymous = identity === "匿名";
             
-            // 🔥 修改點：直接抓取數字 ID 並包裝成陣列
-            const boardValue = document.getElementById('post-board').value;
+            // 🔥 終極防呆修改點：直接抓取「被選中的選項 (option)」的值
+            // 這樣就算外面有幾層錯誤的 select 標籤，也能精準抓到使用者的選擇
+            const selectedOption = document.querySelector('#post-board option:checked');
+            const boardValue = selectedOption ? selectedOption.value : "";
             const selectedCategoryId = Number(boardValue);
-            const categoryPayload = selectedCategoryId ? [selectedCategoryId] : [];
+            
+            // 只要不是空字串，且是有效數字，就包成陣列送出
+            const categoryPayload = (boardValue !== "" && !isNaN(selectedCategoryId)) ? [selectedCategoryId] : [];
 
             try {
                 const response = await fetch(`${API_BASE_URL}/bottles`, {
@@ -619,7 +629,7 @@ function setupNewPost() {
                         title: title,
                         content: content,
                         isAnonymous: isAnonymous,
-                        category_id: categoryPayload 
+                        category_id: categoryPayload // 這裡就不會再送出 [] 了！
                     })
                 });
 
