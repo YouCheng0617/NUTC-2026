@@ -598,24 +598,45 @@ function setupNewPost() {
     if (btnNewPost) btnNewPost.onclick = () => document.getElementById('post-modal').style.display='block';
     if (closePostModal) closePostModal.onclick = () => document.getElementById('post-modal').style.display='none';
     
-    // ... 前面省略 ...
     if (form) {
         form.onsubmit = async (e) => {
             e.preventDefault();
             const token = localStorage.getItem("authToken");
+            
+            // 🛑 防呆 1：確保有登入
+            if (!token) {
+                alert("請先登入才能拋出漂流瓶！");
+                return;
+            }
+
             const title = document.getElementById('post-title-input').value;
             const content = document.getElementById('post-content-input').value;
             const identity = document.getElementById('post-identity').value;
             const isAnonymous = identity === "匿名";
             
-            // 🔥 終極防呆修改點：直接抓取「被選中的選項 (option)」的值
-            // 這樣就算外面有幾層錯誤的 select 標籤，也能精準抓到使用者的選擇
-            const selectedOption = document.querySelector('#post-board option:checked');
-            const boardValue = selectedOption ? selectedOption.value : "";
+            // 更精準地抓取表單內的 select，避免被其他頁面的錯誤 HTML 影響
+            const boardSelect = form.querySelector('#post-board');
+            const boardValue = boardSelect ? boardSelect.value : "";
             const selectedCategoryId = Number(boardValue);
             
-            // 只要不是空字串，且是有效數字，就包成陣列送出
+            // 確保有選分類，且轉出來是有效的數字
             const categoryPayload = (boardValue !== "" && !isNaN(selectedCategoryId)) ? [selectedCategoryId] : [];
+
+            // 🛑 防呆 2：沒選分類不給送
+            if (categoryPayload.length === 0) {
+                alert("發文失敗：請確實選擇一個海域 (分類)！");
+                return;
+            }
+
+            const postData = {
+                title: title,
+                content: content,
+                isAnonymous: isAnonymous,
+                category_id: categoryPayload
+            };
+
+            // 🔥 在 Console 印出你要送給後端的證據
+            console.log("=== 準備送出的發文資料 ===", postData);
 
             try {
                 const response = await fetch(`${API_BASE_URL}/bottles`, {
@@ -625,25 +646,23 @@ function setupNewPost() {
                         'Content-Type': 'application/json',
                         'ngrok-skip-browser-warning': 'true'
                     },
-                    body: JSON.stringify({
-                        title: title,
-                        content: content,
-                        isAnonymous: isAnonymous,
-                        category_id: categoryPayload // 這裡就不會再送出 [] 了！
-                    })
+                    body: JSON.stringify(postData)
                 });
 
                 if (response.ok) {
-                    alert('漂流瓶拋出成功！');
+                    alert('漂流瓶拋出成功！🎉');
                     form.reset(); 
                     document.getElementById('post-modal').style.display='none'; 
-                    fetchBottles(); 
+                    fetchBottles(); // 重新抓取文章
                 } else {
-                    alert('發文失敗，請確認資料是否正確。');
+                    // 🔥 終極抓漏：把後端真實的錯誤訊息印出來！
+                    const err = await response.json();
+                    alert(`發文失敗 (狀態碼: ${response.status})：\n${err.message || '未知錯誤'}`);
+                    console.error("後端回傳的錯誤細節:", err);
                 }
             } catch (error) {
                 console.error("連線錯誤:", error);
-                alert('無法連線至伺服器');
+                alert('無法連線至伺服器，請檢查網路或後端是否啟動。');
             }
         };
     }
