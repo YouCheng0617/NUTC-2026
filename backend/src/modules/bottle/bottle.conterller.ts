@@ -92,6 +92,12 @@ export const bottleController = {
                     },
                     _count: {
                         select: { likes: true, saves: true }
+                    },
+                    // 🌟 1. 加入類別關聯
+                    categories: {
+                        include: {
+                            category: true
+                        }
                     }
                 }
             });
@@ -104,7 +110,9 @@ export const bottleController = {
                 created_at: bottle.created_at,
                 like_count: bottle._count.likes,
                 save_count: bottle._count.saves,
-                view_count: bottle.view_count
+                view_count: bottle.view_count,
+                // 🌟 2. 攤平類別資訊
+                category_list: bottle.categories.map(c => c.category?.name || "未知類別")
             }));
 
             res.status(200).json({
