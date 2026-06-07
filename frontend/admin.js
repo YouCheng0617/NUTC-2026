@@ -10,7 +10,6 @@ document.addEventListener('DOMContentLoaded', () => {
     console.log("✅ admin.js 成功執行！");
 
     const token = localStorage.getItem("authToken");
-<<<<<<< HEAD
     const userStr = localStorage.getItem("currentUser");
 
     console.log("🔍 Token 狀態:", token ? "存在" : "空空的");
@@ -26,7 +25,6 @@ document.addEventListener('DOMContentLoaded', () => {
         if (nameEl) nameEl.innerText = user.name + " (管理員)";
     }
 
-=======
     const user = JSON.parse(localStorage.getItem("currentUser"));
 
     if (!token || !user) {
@@ -35,7 +33,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     document.getElementById("admin-name").innerText = user.name + " (管理員)";
->>>>>>> caec4468ca3d8f9ec2bc76843ed1410cf684b0ea
     const lastTab = localStorage.getItem('adminLastTab') || 'dashboard';
     switchAdminTab(lastTab);
 });
