@@ -41,14 +41,21 @@ function switchAdminTab(tabName) {
     document.getElementById('section-' + tabName).style.display = 'block';
 
     const titleEl = document.getElementById("admin-page-title");
-    if (tabName === 'dashboard') titleEl.innerText = "總覽數據";
-    else if (tabName === 'users') { titleEl.innerText = "管理使用者"; loadUsers(); }
-    else if (tabName === 'bottles') { titleEl.innerText = "漂流瓶審核"; loadBottles(); }
-    else if (tabName === 'reports') { titleEl.innerText = "檢舉處理"; }
+    if (tabName === 'dashboard') {
+        titleEl.innerText = "總覽數據";
+    } else if (tabName === 'users') { 
+        titleEl.innerText = "管理使用者"; 
+        loadUsers(); 
+    } else if (tabName === 'bottles') { 
+        titleEl.innerText = "漂流瓶審核"; 
+        loadBottles(); 
+    } else if (tabName === 'reports') { 
+        titleEl.innerText = "檢舉處理"; 
+    }
 }
 
 // ==========================================
-// 4. API 串接：管理使用者 (GET /admin/users)
+// 4. API 串接：管理使用者 (GET /admin/members)
 // ==========================================
 async function loadUsers() {
     const tbody = document.getElementById('admin-users-body');
@@ -56,29 +63,88 @@ async function loadUsers() {
     tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;">載入中...</td></tr>`;
 
     try {
-        const response = await fetch(`${API_BASE_URL}/admin/users`, {
-            headers: { 'Authorization': `Bearer ${token}` }
+        // 💡 修正：依據 README，這裡是 /admin/members
+        const response = await fetch(`${API_BASE_URL}/admin/members`, {
+            headers: { 
+                'Authorization': `Bearer ${token}`,
+                'ngrok-skip-browser-warning': 'true'
+            }
         });
-        const result = await response.json();
-        const users = result.data || [];
-        
-        tbody.innerHTML = users.map(user => `
-            <tr>
-                <td>#${user.member_id}</td>
-                <td>${user.name}</td>
-                <td>${user.email}</td>
-                <td>${user.created_at ? new Date(user.created_at).toLocaleDateString() : (user.birthday ? new Date(user.birthday).toLocaleDateString() : '未知')}</td>
-                <td>正常</td>
-                <td><button class="btn-delete" onclick="deleteUser(${user.member_id})">刪除</button></td>
-            </tr>
-        `).join('');
+
+        if (response.ok) {
+            const result = await response.json();
+            const users = result.data || result || [];
+            
+            if (users.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:#888;">目前沒有任何使用者資料。</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = users.map(user => `
+                <tr>
+                    <td>#${user.member_id || user.id}</td>
+                    <td>${user.name || user.email.split('@')[0]}</td>
+                    <td>${user.email}</td>
+                    <td>${user.created_at ? new Date(user.created_at).toLocaleDateString() : (user.birthday ? new Date(user.birthday).toLocaleDateString() : '未知')}</td>
+                    <td>
+                        <span style="color: ${user.status === 'BANNED' ? 'red' : (user.status === 'INACTIVE' ? 'gray' : 'green')}; font-weight: bold;">
+                            ${user.status || 'ACTIVE'}
+                        </span>
+                    </td>
+                    <td>
+                        <button style="padding: 5px 10px; cursor: pointer; background: #f5b041; border: none; border-radius: 5px; color: white;" onclick="changeUserStatus(${user.member_id || user.id})">更改狀態</button>
+                    </td>
+                </tr>
+            `).join('');
+        } else {
+            const err = await response.json();
+            tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:red;">載入失敗 (${response.status})：${err.message || '無法載入，請確認權限'}</td></tr>`;
+        }
     } catch (e) {
-        tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:red;">無法載入，請確認權限</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:red;">連線錯誤，請檢查後端伺服器</td></tr>`;
     }
 }
 
 // ==========================================
-// 5. API 串接：漂流瓶審核 (GET /bottles/random)
+// API 串接：更改使用者狀態 (PUT /admin/members/:id/status)
+// ==========================================
+window.changeUserStatus = async function(userId) {
+    const newStatus = prompt("請輸入新狀態 (限填: ACTIVE, INACTIVE, BANNED):", "BANNED");
+    
+    if (!newStatus) return; // 按下取消
+    
+    const upperStatus = newStatus.toUpperCase();
+    if (!['ACTIVE', 'INACTIVE', 'BANNED'].includes(upperStatus)) {
+        alert("輸入無效！狀態只能填寫 ACTIVE, INACTIVE 或 BANNED");
+        return;
+    }
+
+    const token = localStorage.getItem("authToken");
+    try {
+        // 💡 修正：依據 README，使用 PUT 更改狀態
+        const response = await fetch(`${API_BASE_URL}/admin/members/${userId}/status`, {
+            method: 'PUT',
+            headers: { 
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ newStatus: upperStatus })
+        });
+
+        if (response.ok) {
+            alert('✅ 使用者狀態已成功更新！');
+            loadUsers(); // 更新畫面
+        } else {
+            const err = await response.json();
+            alert(`更新失敗: ${err.message || '權限不足或伺服器錯誤'}`);
+        }
+    } catch (e) {
+        alert('伺服器連線失敗');
+    }
+}
+
+// ==========================================
+// 5. API 串接：漂流瓶審核清單 (GET /bottles/random)
 // ==========================================
 async function loadBottles() {
     const tbody = document.getElementById('admin-bottles-body');
@@ -88,57 +154,77 @@ async function loadBottles() {
     tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;">讀取中...</td></tr>`;
 
     try {
-        // 使用 README 規格的 GET /bottles/random
         const response = await fetch(`${API_BASE_URL}/bottles/random`, {
-             headers: { 'Authorization': `Bearer ${token}` }
+             headers: { 
+                 'Authorization': `Bearer ${token}`,
+                 'ngrok-skip-browser-warning': 'true'
+             }
         }); 
         
-        if (response.status === 401) {
-            tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:red;">登入驗證失敗 (401)，請重新登入！</td></tr>`;
+        if (!response.ok) {
+            tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:red;">無法取得文章 (${response.status})，請確認權限</td></tr>`;
             return;
         }
         
-        const b = await response.json();
+        const data = await response.json();
+        const bottles = data.bottles || data.data || [];
         
-        if (!b || !b.bottle_id) {
-            tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;">目前無待審核文章</td></tr>`;
+        if (bottles.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;">目前無文章</td></tr>`;
             return;
         }
 
-        // 將資料暫存，避免 onclick 屬性因引號或特殊字元造成 XSS/語法錯誤
-        window._pendingBottle = b;
-        tbody.innerHTML = `
+        // 將陣列存入全域，方便點擊時抓取詳細內容
+        window._pendingBottles = bottles;
+        
+        tbody.innerHTML = bottles.map((b, index) => `
             <tr>
                 <td>#${b.bottle_id}</td>
-                <td>${b.author || '匿名'}</td>
+                <td>${b.author_name || b.author || '匿名'}</td>
                 <td>${b.title}</td>
-                <td>${b.category_id || '一般'}</td>
-                <td>${new Date().toLocaleDateString()}</td>
-                <td><button class="btn-view" onclick="openBottleModalFromCache()">審核</button></td>
+                <td>${b.category_name || b.category_list?.[0] || '綜合閒聊'}</td>
+                <td>${b.created_at ? new Date(b.created_at).toLocaleDateString() : new Date().toLocaleDateString()}</td>
+                <td><button style="padding: 5px 10px; cursor: pointer; background: #0055a5; border: none; border-radius: 5px; color: white;" onclick="openBottleModalFromCache(${index})">查看/審核</button></td>
             </tr>
-        `;
+        `).join('');
+
     } catch(e) {
         tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:red;">連線錯誤</td></tr>`;
     }
 }
 
 // ==========================================
-// 6. API 串接：審核動作 (PATCH /bottles/review)
+// 6. API 串接：審核動作 (PUT /admin/bottles/review)
 // ==========================================
-async function reviewBottle(bottleId, status, title) {
+window.reviewBottle = async function(bottleId, status, title) {
     const action = (status === 1) ? "通過" : "拒絕";
-    if(!confirm(`⚠️ 確定要將「${title}」執行「${action}」嗎？`)) return;
+    let violation_reason = "";
+
+    // 如果狀態是 2 (拒絕)，強迫填寫原因
+    if (status === 2) {
+        violation_reason = prompt(`請輸入拒絕「${title}」的原因 (必填):`, "內容不當");
+        if (!violation_reason) {
+            alert("拒絕必須填寫原因！");
+            return;
+        }
+    } else {
+        if(!confirm(`⚠️ 確定要將「${title}」設定為「${action}」嗎？`)) return;
+    }
 
     try {
-        const response = await fetch(`${API_BASE_URL}/bottles/review`, {
-            method: 'PATCH',
+        const token = localStorage.getItem("authToken"); // 抓取管理員 Token
+
+        // 💡 修正：使用正確的人類管理員專用 API 路徑與 PUT 方法
+        const response = await fetch(`${API_BASE_URL}/admin/bottles/review`, {
+            method: 'PUT', 
             headers: { 
-                'Content-Type': 'application/json',
-                'x-api-key': X_API_KEY // 規格要求的 API Key
+                'Authorization': `Bearer ${token}`, // 只需 Token，不用給 AI 的 Key
+                'Content-Type': 'application/json'
             },
             body: JSON.stringify({
                 "bottle_id": Number(bottleId),
-                "status": status // 1: 通過, 2: 拒絕
+                "status": status, // 1 或 2
+                "violation_reason": violation_reason
             })
         });
 
@@ -147,54 +233,43 @@ async function reviewBottle(bottleId, status, title) {
             closeAdminModal();
             loadBottles(); // 重新整理列表
         } else {
-            alert("審核失敗，請確認 API Key 是否正確");
+            const err = await response.json();
+            alert(`審核失敗: ${err.message || '權限不足或伺服器錯誤'}`);
         }
     } catch (e) {
         alert("伺服器連線失敗");
     }
 }
-
 // ==========================================
-// 7. UI 控制
+// 7. UI 控制 (彈出視窗)
 // ==========================================
-function openBottleModalFromCache() {
-    const b = window._pendingBottle;
+window.openBottleModalFromCache = function(index) {
+    const b = window._pendingBottles[index];
     if (!b) return;
-    openBottleModal(b.bottle_id, b.title, b.author, b.content);
+    openBottleModal(b.bottle_id, b.title, b.author_name, b.content);
 }
 
-function openBottleModal(id, title, author, content) {
+window.openBottleModal = function(id, title, author, content) {
     document.getElementById('modal-title').innerText = `審核：${title}`;
-    document.getElementById('modal-body').innerHTML = `<p>${content}</p>`;
+    document.getElementById('modal-body').innerHTML = `<p style="white-space: pre-wrap; line-height: 1.6;">${content}</p>`;
+    
     // 暫存 id 與 title 避免 onclick 屬性注入問題
     window._reviewBottleId = id;
     window._reviewBottleTitle = title;
+    
     document.getElementById('modal-actions').innerHTML = `
-        <button style="background:#888;" onclick="closeAdminModal()">關閉</button>
-        <button class="btn-delete" onclick="reviewBottle(window._reviewBottleId, 2, window._reviewBottleTitle); closeAdminModal();">拒絕(2)</button>
-        <button class="btn-view" onclick="reviewBottle(window._reviewBottleId, 1, window._reviewBottleTitle); closeAdminModal();">通過(1)</button>
+        <button style="background:#888; padding: 8px 16px; border: none; border-radius: 5px; color: white; cursor: pointer; margin-right: 10px;" onclick="closeAdminModal()">取消關閉</button>
+        <button style="background:#ff4d4d; padding: 8px 16px; border: none; border-radius: 5px; color: white; cursor: pointer; margin-right: 10px;" onclick="reviewBottle(window._reviewBottleId, 2, window._reviewBottleTitle);">違規拒絕 (2)</button>
+        <button style="background:#4da6ff; padding: 8px 16px; border: none; border-radius: 5px; color: white; cursor: pointer;" onclick="reviewBottle(window._reviewBottleId, 1, window._reviewBottleTitle);">審核通過 (1)</button>
     `;
     document.getElementById('admin-modal').style.display = 'flex';
 }
 
-function closeAdminModal() { document.getElementById('admin-modal').style.display = 'none'; }
-
-async function deleteUser(memberId) {
-    if (!confirm(`⚠️ 確定要刪除會員 #${memberId} 嗎？此操作無法復原！`)) return;
-    const token = localStorage.getItem("authToken");
-    try {
-        const response = await fetch(`${API_BASE_URL}/admin/users/${memberId}`, {
-            method: 'DELETE',
-            headers: { 'Authorization': `Bearer ${token}` }
-        });
-        if (response.ok) {
-            alert('✅ 已成功刪除會員！');
-            loadUsers();
-        } else {
-            alert('刪除失敗，請確認權限。');
-        }
-    } catch (e) {
-        alert('伺服器連線失敗');
-    }
+window.closeAdminModal = function() { 
+    document.getElementById('admin-modal').style.display = 'none'; 
 }
-function adminLogout() { localStorage.clear(); window.location.href = "login.html"; }
+
+window.adminLogout = function() { 
+    localStorage.clear(); 
+    window.location.href = "login.html"; 
+}
