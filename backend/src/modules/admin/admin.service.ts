@@ -52,7 +52,11 @@ export const getAllBottlesForAdmin = async () => {
                     status: true // 順便看這個發文者是不是被停權了
                 }
             },
-            // 📊 管理員福利：順便統計這篇文的互動數據
+            categories: {
+                include: {
+                    category: true
+                }
+            },
             _count: {
                 select: {
                     likes: true,
@@ -62,7 +66,19 @@ export const getAllBottlesForAdmin = async () => {
             }
         }
     });
-    return bottles;
+    return bottles.map(bottles => {
+        const { author, categories, _count, ...bottleData } = bottles;
+        return {
+            ...bottleData,
+            member_name: author?.name || "匿名使用者",
+            member_email: author?.email || "匿名使用者",
+            member_status: author?.status || "ACTIVE",
+            categories: categories.map(c => c.category.name || "未知類別"),
+            like_count: _count.likes,
+            save_count: _count.saves,
+            comment_count: _count.Comment
+        }
+    });
 };
 
 export const updateBottleStatus = async (bottle_id: number, newStatus: number, violationReason?: string) => {
