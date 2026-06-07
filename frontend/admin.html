@@ -23,13 +23,17 @@
         <img src="images/fish_logo.png" alt="Logo" />
         <h2>漂流瓶後台</h2>
       </div>
-      <ul class="admin-menu">
+     <ul class="admin-menu">
         <li class="active" onclick="switchAdminTab('dashboard')">
           📊 總覽數據
         </li>
         <li onclick="switchAdminTab('users')">👥 管理使用者</li>
         <li onclick="switchAdminTab('bottles')">🍾 漂流瓶審核</li>
         <li onclick="switchAdminTab('reports')">⚠️ 檢舉處理</li>
+        
+        <li onclick="window.location.href = 'test.html'" style="color: #00f2ff; font-weight: bold; border-top: 1px solid #2d334a; margin-top: 10px; padding-top: 20px;">
+          🏠 返回前台論壇
+        </li>
       </ul>
       <div class="admin-logout" onclick="adminLogout()">🚪 登出系統</div>
     </aside>
