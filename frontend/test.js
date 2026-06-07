@@ -91,6 +91,7 @@ async function fetchBottles() {
                 let totalLikes = parseInt(item.like_count || item.likeCount || item.likes || item.view_count || rawItem.like_count || 0, 10);
                 if (isActuallyLiked && totalLikes === 0) totalLikes = 1;
 
+                // 🟢 終極名字解析：加上後端剛剛揭曉的 member_name
                 let authorName = "用戶";
                 if (typeof item.author === 'string') authorName = item.author;
                 else if (item.author?.name) authorName = item.author.name;
@@ -102,21 +103,22 @@ async function fetchBottles() {
                 else if (rawItem.author?.name) authorName = rawItem.author.name;
                 else if (rawItem.user?.name) authorName = rawItem.user.name;
                 else if (rawItem.User?.name) authorName = rawItem.User.name;
+                else if (rawItem.member?.name) authorName = rawItem.member.name; 
+                else if (item.member?.name) authorName = item.member.name;
+                else if (item.member_name) authorName = item.member_name; // 👈 就是這行，完美對應後端資料！
+                else if (rawItem.member_name) authorName = rawItem.member_name;
 
-                if (currentView === 'mine') {
+                if (authorName === "用戶" && currentView === 'mine') {
                     const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
                     authorName = currentUser.name || "劉茂寅";
                 }
 
-                // --- 替換從這裡開始 ---
                 let rawBoard = item.category_name || item.board || null;
                 
-                // 🎯 關鍵破案點：後端「我的文章」API 吐出來的欄位叫 category_list！
                 if (!rawBoard && item.category_list && Array.isArray(item.category_list) && item.category_list.length > 0) {
                     rawBoard = item.category_list[0];
                 }
                 
-                // 保持原有的 Prisma 關聯結構相容（供隨機撈取使用）
                 if (!rawBoard && item.categories && item.categories.length > 0) {
                     rawBoard = item.categories[0].category?.name;
                 } else if (!rawBoard && rawItem.categories && rawItem.categories.length > 0) {
@@ -130,7 +132,6 @@ async function fetchBottles() {
                     cId = item.categories[0].category_id;
                 }
 
-                // 統一將文字對應到包含 Emoji 的標準看板名稱
                 if (rawBoard) {
                     if (rawBoard.includes("程式")) finalBoard = "💻 程式開發";
                     else if (rawBoard.includes("美食")) finalBoard = "🍜 美食特搜";
@@ -146,7 +147,6 @@ async function fetchBottles() {
                         finalBoard = idToBoard[cId] || finalBoard;
                     }
                 }
-                // --- 替換到這裡結束 ---
 
                 return {
                     id: safeId,
@@ -318,7 +318,6 @@ function saveComment(postId, commentObj) {
     }
 }
 
-// 🟢 新增：處理留言按讚的邏輯
 window.toggleCommentLike = function(postId, index) {
     try {
         let allComments = JSON.parse(localStorage.getItem('postComments') || '{}');
@@ -326,7 +325,6 @@ window.toggleCommentLike = function(postId, index) {
 
         let c = allComments[postId][index];
         
-        // 切換按讚狀態
         if (c.liked) {
             c.likes = Math.max(0, (c.likes || 1) - 1);
             c.liked = false;
@@ -335,7 +333,6 @@ window.toggleCommentLike = function(postId, index) {
             c.liked = true;
         }
 
-        // 存回並重新渲染
         localStorage.setItem('postComments', JSON.stringify(allComments));
         renderComments(postId);
     } catch (error) {
@@ -456,7 +453,6 @@ window.submitComment = function() {
         return;
     }
 
-    // 🟢 新增：送出留言時帶上預設的讚數 0 與未按讚狀態
     const newComment = {
         author: user.name || '用戶',
         avatar: user.avatar || 'images/fish_logo.png',
@@ -546,9 +542,6 @@ window.toggleAction = async function(id, actionType, e) {
     }
 }
 
-// ----------------------------------------------------
-// 🚀 初始化與事件綁定
-// ----------------------------------------------------
 function setupAuth() {
     const userProfile = document.getElementById('user-profile');
     const loginTrigger = document.getElementById('login-trigger');
@@ -603,7 +596,6 @@ function setupNewPost() {
             e.preventDefault();
             const token = localStorage.getItem("authToken");
             
-            // 🛑 防呆 1：確保有登入
             if (!token) {
                 alert("請先登入才能拋出漂流瓶！");
                 return;
@@ -614,15 +606,12 @@ function setupNewPost() {
             const identity = document.getElementById('post-identity').value;
             const isAnonymous = identity === "匿名";
             
-            // 更精準地抓取表單內的 select，避免被其他頁面的錯誤 HTML 影響
             const boardSelect = form.querySelector('#post-board');
             const boardValue = boardSelect ? boardSelect.value : "";
             const selectedCategoryId = Number(boardValue);
             
-            // 確保有選分類，且轉出來是有效的數字
             const categoryPayload = (boardValue !== "" && !isNaN(selectedCategoryId)) ? [selectedCategoryId] : [];
 
-            // 🛑 防呆 2：沒選分類不給送
             if (categoryPayload.length === 0) {
                 alert("發文失敗：請確實選擇一個海域 (分類)！");
                 return;
@@ -635,7 +624,6 @@ function setupNewPost() {
                 category_id: categoryPayload
             };
 
-            // 🔥 在 Console 印出你要送給後端的證據
             console.log("=== 準備送出的發文資料 ===", postData);
 
             try {
@@ -653,9 +641,8 @@ function setupNewPost() {
                     alert('漂流瓶拋出成功！🎉');
                     form.reset(); 
                     document.getElementById('post-modal').style.display='none'; 
-                    fetchBottles(); // 重新抓取文章
+                    fetchBottles(); 
                 } else {
-                    // 🔥 終極抓漏：把後端真實的錯誤訊息印出來！
                     const err = await response.json();
                     alert(`發文失敗 (狀態碼: ${response.status})：\n${err.message || '未知錯誤'}`);
                     console.error("後端回傳的錯誤細節:", err);
@@ -730,19 +717,16 @@ document.addEventListener('DOMContentLoaded', () => {
         document.querySelectorAll('.sidebar li').forEach(el => el.classList.remove('active'));
         e.target.classList.add('active');
 
-        // 取得點擊的看板全名（含 emoji），trim 避免 innerHTML 換行問題
         const liText = e.target.innerText.trim();
         
         if (liText.includes('綜合閒聊')) {
             currentBoard = '全部';
-            currentCategoryId = null; // 全部不傳 categoryId
+            currentCategoryId = null; 
         } else {
-            currentBoard = liText.substring(2).trim(); // 去掉 emoji 和空格
-            // 🔴 查對照表取得後端 categoryId
+            currentBoard = liText.substring(2).trim(); 
             currentCategoryId = BOARD_CATEGORY_MAP[liText] || null;
         }
 
-        // 🔴 重新向後端 fetch 該分類的文章，而非只過濾前端已載入的資料
         fetchBottles();
     });
     
