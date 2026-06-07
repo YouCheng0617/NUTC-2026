@@ -145,17 +145,43 @@ async function loadBottles() {
 
         window._pendingBottles = bottles;
 
-        // 🌟 這裡全數套用 escapeHTML 淨化！
-        tbody.innerHTML = bottles.map((b, index) => `
+        // 🌟 這裡全數套用 escapeHTML 淨化與動態彩色標籤！
+        tbody.innerHTML = bottles.map((b, index) => {
+            // 1. 往下挖找真實分類 (支援後端 Prisma 的俄羅斯娃娃結構)
+            let rawCat = b.category_name || null;
+            if (!rawCat && b.category_list && b.category_list.length > 0) {
+                rawCat = b.category_list[0];
+            }
+            if (!rawCat && b.categories && b.categories.length > 0) {
+                rawCat = b.categories[0].category?.name;
+            }
+            if (!rawCat) {
+                rawCat = '綜合閒聊';
+            }
+
+            // 2. 根據名稱給予專屬 Emoji 與繽紛色彩
+            let catHtml = '';
+            if (rawCat.includes("程式")) {
+                catHtml = `<span class="badge" style="background:#e6f7ff; color:#0066cc; border:1px solid #91d5ff;">💻 程式開發</span>`;
+            } else if (rawCat.includes("美食")) {
+                catHtml = `<span class="badge" style="background:#fff0f6; color:#eb2f96; border:1px solid #ffadd2;">🍜 美食特搜</span>`;
+            } else if (rawCat.includes("遊戲")) {
+                catHtml = `<span class="badge" style="background:#f9f0ff; color:#722ed1; border:1px solid #d3adf7;">🎮 遊戲專區</span>`;
+            } else {
+                catHtml = `<span class="badge" style="background:#fff2e8; color:#fa541c; border:1px solid #ffbb96;">🔥 綜合閒聊</span>`;
+            }
+
+            return `
             <tr>
                 <td>#${escapeHTML(String(b.bottle_id || b.id))}</td>
                 <td>${escapeHTML(String(b.author_name || b.author?.name || b.author || '匿名'))}</td>
                 <td>${escapeHTML(String(b.title))}</td>
-                <td><span class="badge badge-inactive">${escapeHTML(String(b.category_name || b.category_list?.[0] || '綜合閒聊'))}</span></td>
+                <td>${catHtml}</td>
                 <td>${b.created_at ? new Date(b.created_at).toLocaleDateString() : new Date().toLocaleDateString()}</td>
                 <td><button class="btn-action btn-primary" onclick="openBottleModalFromCache(${index})">查看/審核</button></td>
             </tr>
-        `).join('');
+            `;
+        }).join('');
     } catch (e) {
         tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:red;">無法載入，請確認權限或後端是否啟動</td></tr>`;
     }
