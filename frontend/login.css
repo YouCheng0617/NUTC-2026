@@ -3,12 +3,19 @@ body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden;
 .login-container { position: relative; width: 100vw; height: 100vh; display: flex; justify-content: center; align-items: center; }
 .bg-img { position: absolute; width: 100%; height: 100%; object-fit: cover; z-index: 1; }
 .fish-deco { 
-    position: absolute; 
-    width: clamp(100px, 20vw, 200px); /* 螢幕小就變小魚，不佔空間 */
+    position: fixed; 
+    
+    /* 🔴 關鍵點：用 vw (視窗寬度單位) 讓魚隨著螢幕寬度自動伸縮 */
+    /* 18vw 代表魚的寬度永遠是螢幕寬度的 18% */
+    width: 18vw; 
+    height: auto; 
+    
+    /* 🔴 確保魚永遠緊貼左下角 */
+    bottom: 0;
+    left: 0;
+    
     z-index: 5; 
-    bottom: 2%; 
-    left: 2%; 
-    opacity: 0.9; 
+    pointer-events: none; 
 }
 .starfish-deco { 
     position: absolute; 
