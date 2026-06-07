@@ -5,6 +5,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>心情漂流瓶 - 後台管理系統</title>
     <link rel="stylesheet" href="admin.css" />
+
+    <script>
+      const token = localStorage.getItem("authToken");
+      const user = JSON.parse(localStorage.getItem("currentUser") || "{}");
+
+      // 完全依賴後端傳回的 role 欄位進行動態驗證
+      if (!token || user.role !== "ADMIN") {
+        alert("權限不足：您不是管理員，無法進入後台！");
+        window.location.href = "test.html"; // 踢回首頁
+      }
+    </script>
   </head>
   <body>
     <aside class="admin-sidebar">

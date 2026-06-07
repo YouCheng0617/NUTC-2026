@@ -105,12 +105,12 @@ async function fetchBottles() {
                 else if (rawItem.User?.name) authorName = rawItem.User.name;
                 else if (rawItem.member?.name) authorName = rawItem.member.name;
                 else if (item.member?.name) authorName = item.member.name;
-                else if (item.member_name) authorName = item.member_name; // 👈 就是這行，完美對應後端資料！
+                else if (item.member_name) authorName = item.member_name; 
                 else if (rawItem.member_name) authorName = rawItem.member_name;
 
                 if (authorName === "用戶" && currentView === 'mine') {
                     const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
-                    authorName = currentUser.name || "劉茂寅";
+                    authorName = currentUser.name || "用戶";
                 }
 
                 let rawBoard = item.category_name || item.board || null;
@@ -557,10 +557,13 @@ function setupAuth() {
     const userProfile = document.getElementById('user-profile');
     const loginTrigger = document.getElementById('login-trigger');
     const identitySelect = document.getElementById('post-identity');
+    const userDropdown = document.getElementById('user-dropdown'); 
 
     function updateUI() {
-        const user = JSON.parse(localStorage.getItem('currentUser'));
-        if (user) {
+        const user = JSON.parse(localStorage.getItem('currentUser') || '{}');
+        const token = localStorage.getItem('authToken'); // 雙重驗證
+
+        if (user && Object.keys(user).length > 0 && token) {
             if (loginTrigger) loginTrigger.style.display = 'none';
             if (userProfile) userProfile.style.display = 'flex';
             const displayName = user.name || (user.email ? user.email.split('@')[0] : '用戶');
@@ -575,9 +578,36 @@ function setupAuth() {
                 identitySelect.options[0].text = `實名 (${displayName})`;
                 identitySelect.options[0].value = displayName;
             }
+
+            // 🟢 嚴格驗證：確定 role 是 ADMIN 才會動態產生按鈕
+            if (user.role === 'ADMIN' && userDropdown) {
+                if (!document.getElementById('admin-link-item')) {
+                    const adminLink = document.createElement('div');
+                    adminLink.id = 'admin-link-item';
+                    adminLink.className = 'menu-item'; // 套用你寫好的 menu-item 樣式，hover 才會亮
+                    adminLink.style.color = '#e74c3c'; 
+                    adminLink.style.fontWeight = 'bold';
+                    adminLink.style.borderTop = '1px solid #eee'; // 與上面的選項做區隔
+                    adminLink.innerHTML = '🛠️ 進入後台';
+                    
+                    adminLink.onclick = (e) => {
+                        e.stopPropagation(); 
+                        window.location.href = 'admin.html';
+                    };
+
+                    // 剛好插在最後一個元素（退出登入）的前面
+                    userDropdown.insertBefore(adminLink, userDropdown.lastElementChild);
+                }
+            } else {
+                const existingBtn = document.getElementById('admin-link-item');
+                if (existingBtn) existingBtn.remove();
+            }
+
         } else {
             if (loginTrigger) loginTrigger.style.display = 'block';
             if (userProfile) userProfile.style.display = 'none';
+            const existingBtn = document.getElementById('admin-link-item');
+            if (existingBtn) existingBtn.remove();
         }
     }
 
