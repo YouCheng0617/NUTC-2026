@@ -4,38 +4,22 @@
 const API_BASE_URL = "http://163.17.135.120";
 
 // ==========================================
-// 2. 頁面初始化 (防踢人 + 抓漏版)
+// 2. 頁面初始化 (正式安全版)
 // ==========================================
 document.addEventListener('DOMContentLoaded', () => {
-    console.log("✅ admin.js 成功執行！");
-
     const token = localStorage.getItem("authToken");
-<<<<<<< HEAD
     const userStr = localStorage.getItem("currentUser");
+    const user = userStr ? JSON.parse(userStr) : null;
 
-    console.log("🔍 Token 狀態:", token ? "存在" : "空空的");
-    console.log("🔍 User 狀態:", userStr ? "存在" : "空空的");
-
-    if (!token || !userStr) {
-        // 🚨 就算沒資料，這次也「絕對不踢人」！把踢人的程式碼刪掉了
-        document.getElementById("admin-name").innerText = "未登入訪客 (請按 F12 檢查)";
-        alert("⚠️ 系統找不到你的登入憑證！\n但這次不會把你踢走。請按下鍵盤的 F12 點擊 Console (主控台) 截圖給我看！");
-    } else {
-        const user = JSON.parse(userStr);
-        const nameEl = document.getElementById("admin-name");
-        if (nameEl) nameEl.innerText = user.name + " (管理員)";
-    }
-
-=======
-    const user = JSON.parse(localStorage.getItem("currentUser"));
-
+    // 嚴格檢查：只要沒有 Token 或 User 資訊，強制踢回登入頁
     if (!token || !user) {
         window.location.href = "login.html";
         return;
     }
 
-    document.getElementById("admin-name").innerText = user.name + " (管理員)";
->>>>>>> caec4468ca3d8f9ec2bc76843ed1410cf684b0ea
+    const nameEl = document.getElementById("admin-name");
+    if (nameEl) nameEl.innerText = user.name + " (管理員)";
+
     const lastTab = localStorage.getItem('adminLastTab') || 'dashboard';
     switchAdminTab(lastTab);
 });
@@ -104,7 +88,7 @@ async function loadUsers() {
     }
 }
 
-// ✅ 修正：使用 README 指定的 PUT /admin/members/:id/status API
+// API 串接：更改狀態
 window.changeUserStatus = async function (userId) {
     const newStatus = prompt("請輸入新狀態 (限填: ACTIVE, INACTIVE, BANNED):", "BANNED");
     if (!newStatus) return;
@@ -201,7 +185,6 @@ window.openBottleModalFromCache = function (index) {
 window.reviewBottle = async function (bottleId, status, title) {
     let violation_reason = "";
 
-    // 根據 README，選擇 2 必須填寫原因
     if (status === 2) {
         violation_reason = prompt(`請輸入拒絕「${title}」的原因 (必填):`, "內容不當");
         if (!violation_reason) { alert("必須填寫拒絕原因！"); return; }
@@ -212,7 +195,6 @@ window.reviewBottle = async function (bottleId, status, title) {
     try {
         const token = localStorage.getItem("authToken");
 
-        // ✅ 修正：使用 README 指定的 PUT /admin/bottles/review API
         const response = await fetch(`${API_BASE_URL}/admin/bottles/review`, {
             method: 'PUT',
             headers: {
@@ -229,7 +211,7 @@ window.reviewBottle = async function (bottleId, status, title) {
         if (response.ok) {
             alert(`✅ 審核完成！`);
             closeAdminModal();
-            loadBottles(); // 重新整理列表
+            loadBottles(); 
         } else {
             const err = await response.json();
             alert(`審核失敗: ${err.message}`);
