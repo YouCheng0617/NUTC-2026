@@ -4,18 +4,27 @@
 const API_BASE_URL = "http://163.17.135.120";
 
 // ==========================================
-// 2. 頁面初始化
+// 2. 頁面初始化 (防踢人 + 抓漏版)
 // ==========================================
 document.addEventListener('DOMContentLoaded', () => {
+    console.log("✅ admin.js 成功執行！");
+
     const token = localStorage.getItem("authToken");
-    const user = JSON.parse(localStorage.getItem("currentUser"));
-    
-    if (!token || !user) {
-        window.location.href = "login.html";
-        return;
+    const userStr = localStorage.getItem("currentUser");
+
+    console.log("🔍 Token 狀態:", token ? "存在" : "空空的");
+    console.log("🔍 User 狀態:", userStr ? "存在" : "空空的");
+
+    if (!token || !userStr) {
+        // 🚨 就算沒資料，這次也「絕對不踢人」！把踢人的程式碼刪掉了
+        document.getElementById("admin-name").innerText = "未登入訪客 (請按 F12 檢查)";
+        alert("⚠️ 系統找不到你的登入憑證！\n但這次不會把你踢走。請按下鍵盤的 F12 點擊 Console (主控台) 截圖給我看！");
+    } else {
+        const user = JSON.parse(userStr);
+        const nameEl = document.getElementById("admin-name");
+        if (nameEl) nameEl.innerText = user.name + " (管理員)";
     }
-    
-    document.getElementById("admin-name").innerText = user.name + " (管理員)";
+
     const lastTab = localStorage.getItem('adminLastTab') || 'dashboard';
     switchAdminTab(lastTab); 
 });
