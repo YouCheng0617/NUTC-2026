@@ -1,359 +1,232 @@
 <!doctype html>
 <html lang="zh-TW">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>心情漂流瓶 - 登入與註冊</title>
-    <link rel="stylesheet" href="login.css" />
-  </head>
-  <body>
-    <div class="login-container">
-      <img src="images/background.png" class="bg-img" alt="背景" />
-      <img src="images/fish.png" class="fish-deco top-left" alt="魚" />
-      <img
-        src="images/海星一個拷貝.png"
-        class="starfish-deco bottom-right"
-        alt="海星"
-      />
-      <img
-        src="images/海星一個-1拷貝.png"
-        class="starfish-deco bottom-right-1"
-        alt="海星一個-1"
-      />
-      <div class="enter-btn-container" onclick="openAuthModal()">
-        <img
-          src="images/fish_logo.png"
-          style="width: 80px; margin-bottom: 10px"
-        />
-        <h2>開啟漂流瓶</h2>
-        <p>點擊登入 / 註冊</p>
-      </div>
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>心情漂流瓶 - 登入與註冊</title>
+  <link rel="stylesheet" href="login.css" />
+</head>
+
+<body>
+  <div class="login-container">
+    <img src="images/background.png" class="bg-img" alt="背景" />
+    <img src="images/fish.png" class="fish-deco top-left" alt="魚" />
+    <img src="images/海星一個拷貝.png" class="starfish-deco bottom-right" alt="海星" />
+    <img src="images/海星一個-1拷貝.png" class="starfish-deco bottom-right-1" alt="海星一個-1" />
+    <div class="enter-btn-container" onclick="openAuthModal()">
+      <img src="images/fish_logo.png" style="width: 80px; margin-bottom: 10px" />
+      <h2>開啟漂流瓶</h2>
+      <p>點擊登入 / 註冊</p>
     </div>
+  </div>
 
-    <div id="auth-modal" class="dark-modal" style="display: none">
-      <div class="dark-modal-content">
-        <span class="close-btn" onclick="closeAuthModal()">&times;</span>
+  <div id="auth-modal" class="dark-modal" style="display: none">
+    <div class="dark-modal-content">
+      <span class="close-btn" onclick="closeAuthModal()">&times;</span>
 
-        <div class="tab-container" id="main-tabs">
-          <div class="tab active" id="tab-login" onclick="switchTab('login')">
-            登入
+      <div class="tab-container" id="main-tabs">
+        <div class="tab active" id="tab-login" onclick="switchTab('login')">
+          登入
+        </div>
+        <div class="tab" id="tab-register" onclick="switchTab('register')">
+          註冊
+        </div>
+      </div>
+
+      <form id="login-form" class="auth-form" onsubmit="
+            event.preventDefault();
+            processLogin();
+          ">
+        <div class="input-group">
+          <label>信箱 (Email)</label>
+          <input type="email" id="login-email" placeholder="請輸入 Email" required />
+        </div>
+        <div class="input-group">
+          <label>密碼 (Password)</label>
+          <div class="password-wrapper">
+            <input type="password" id="login-password" placeholder="請輸入密碼" required />
+            <span class="toggle-password" onclick="togglePassword('login-password', this)">
+              <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none"
+                stroke-linecap="round" stroke-linejoin="round">
+                <path
+                  d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24">
+                </path>
+                <line x1="1" y1="1" x2="23" y2="23"></line>
+              </svg>
+            </span>
           </div>
-          <div class="tab" id="tab-register" onclick="switchTab('register')">
-            註冊
+        </div>
+        <div style="text-align: right; margin-top: -5px">
+          <a href="#" onclick="switchTab('forgot')"
+            style="color: #00f2ff; font-size: 0.85rem; text-decoration: none">忘記密碼？</a>
+        </div>
+
+        <button type="submit" class="btn-submit-dark" style="margin-top: 15px">
+          登入
+        </button>
+      </form>
+
+      <form id="register-form" class="auth-form" style="display: none">
+        <div class="form-row">
+          <div class="avatar-upload-group"></div>
+          <div class="right-inputs">
+            <div class="input-group">
+              <label>信箱 (Email) <span style="color: #ff4d4d">*</span></label>
+              <input type="email" id="reg-email" placeholder="將作為登入帳號" required />
+            </div>
+            <div class="input-group">
+              <label>密碼 (Password) <span style="color: #ff4d4d">*</span></label>
+              <div class="password-wrapper">
+                <input type="password" id="reg-password" placeholder="8~16字元 (需含大小寫英文)" minlength="8" maxlength="16"
+                  required />
+                <span class="toggle-password" onclick="togglePassword('reg-password', this)">
+                  <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <path
+                      d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24">
+                    </path>
+                    <line x1="1" y1="1" x2="23" y2="23"></line>
+                  </svg>
+                </span>
+              </div>
+            </div>
           </div>
         </div>
 
-        <form
-          id="login-form"
-          class="auth-form"
-          onsubmit="
-            event.preventDefault();
-            processLogin();
-          "
-        >
+        <div class="input-group">
+          <label>姓名 / 暱稱 <span style="color: #ff4d4d">*</span></label>
+          <input type="text" id="reg-name" placeholder="大家怎麼稱呼你？" required />
+        </div>
+
+        <div class="form-row-multi">
           <div class="input-group">
-            <label>信箱 (Email)</label>
-            <input
-              type="email"
-              id="login-email"
-              placeholder="請輸入 Email"
-              required
-            />
+            <label>生日
+              <span style="font-size: 0.8rem; color: #888">(可隱藏)</span></label>
+            <input type="date" id="reg-birthday" />
           </div>
           <div class="input-group">
-            <label>密碼 (Password)</label>
-            <div class="password-wrapper">
-              <input
-                type="password"
-                id="login-password"
-                placeholder="請輸入密碼"
-                required
-              />
-              <span
-                class="toggle-password"
-                onclick="togglePassword('login-password', this)"
-              >
-                <svg
-                  viewBox="0 0 24 24"
-                  width="20"
-                  height="20"
-                  stroke="currentColor"
-                  stroke-width="2"
-                  fill="none"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                >
-                  <path
-                    d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"
-                  ></path>
-                  <line x1="1" y1="1" x2="23" y2="23"></line>
-                </svg>
-              </span>
-            </div>
-          </div>
-          <div style="text-align: right; margin-top: -5px">
-            <a
-              href="#"
-              onclick="switchTab('forgot')"
-              style="color: #00f2ff; font-size: 0.85rem; text-decoration: none"
-              >忘記密碼？</a
-            >
-          </div>
-
-          <button
-            type="submit"
-            class="btn-submit-dark"
-            style="margin-top: 15px"
-          >
-            登入
-          </button>
-        </form>
-
-        <form id="register-form" class="auth-form" style="display: none">
-          <div class="form-row">
-            <div class="avatar-upload-group"></div>
-            <div class="right-inputs">
-              <div class="input-group">
-                <label
-                  >信箱 (Email) <span style="color: #ff4d4d">*</span></label
-                >
-                <input
-                  type="email"
-                  id="reg-email"
-                  placeholder="將作為登入帳號"
-                  required
-                />
-              </div>
-              <div class="input-group">
-                <label
-                  >密碼 (Password) <span style="color: #ff4d4d">*</span></label
-                >
-                <div class="password-wrapper">
-                  <input
-                    type="password"
-                    id="reg-password"
-                    placeholder="8~16字元 (需含大小寫英文)"
-                    minlength="8"
-                    maxlength="16"
-                    required
-                  />
-                  <span
-                    class="toggle-password"
-                    onclick="togglePassword('reg-password', this)"
-                  >
-                    <svg
-                      viewBox="0 0 24 24"
-                      width="20"
-                      height="20"
-                      stroke="currentColor"
-                      stroke-width="2"
-                      fill="none"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                    >
-                      <path
-                        d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"
-                      ></path>
-                      <line x1="1" y1="1" x2="23" y2="23"></line>
-                    </svg>
-                  </span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div class="input-group">
-            <label>姓名 / 暱稱 <span style="color: #ff4d4d">*</span></label>
-            <input
-              type="text"
-              id="reg-name"
-              placeholder="大家怎麼稱呼你？"
-              required
-            />
-          </div>
-
-          <div class="form-row-multi">
-            <div class="input-group">
-              <label
-                >生日
-                <span style="font-size: 0.8rem; color: #888"
-                  >(可隱藏)</span
-                ></label
-              >
-              <input type="date" id="reg-birthday" />
-            </div>
-            <div class="input-group">
-              <label>性別</label>
-              <select id="reg-gender">
-                <option value="生理男">生理男</option>
-                <option value="生理女">生理女</option>
-                <option value="其他">其他</option>
-                <option value="秘密">秘密</option>
-              </select>
-            </div>
-            <div class="input-group">
-              <label>星座</label>
-              <select id="reg-zodiac">
-                <option value="" selected>不透露</option>
-                <option value="牡羊座">牡羊座</option>
-                <option value="金牛座">金牛座</option>
-                <option value="雙子座">雙子座</option>
-                <option value="巨蟹座">巨蟹座</option>
-                <option value="獅子座">獅子座</option>
-                <option value="處女座">處女座</option>
-                <option value="天秤座">天秤座</option>
-                <option value="天蠍座">天蠍座</option>
-                <option value="射手座">射手座</option>
-                <option value="摩羯座">摩羯座</option>
-                <option value="水瓶座">水瓶座</option>
-                <option value="雙魚座">雙魚座</option>
-              </select>
-            </div>
-          </div>
-
-          <div class="input-group">
-            <label>自我介紹</label>
-            <textarea
-              id="reg-bio"
-              placeholder="寫點什麼讓大家認識你吧..."
-              rows="3"
-            ></textarea>
-          </div>
-
-          <button
-            type="button"
-            class="btn-submit-dark"
-            onclick="processRegister()"
-          >
-            註冊並進入
-          </button>
-        </form>
-
-        <form id="forgot-form" class="auth-form" style="display: none">
-          <h3 style="text-align: center; color: #00f2ff; margin-top: 0">
-            找回密碼
-          </h3>
-          <p style="color: #a9b5c7; font-size: 0.9rem; text-align: center">
-            請輸入你註冊時使用的信箱，我們將發送驗證碼(Token)給你。
-          </p>
-          <div class="input-group">
-            <label>信箱 (Email)</label>
-            <input
-              type="email"
-              id="forgot-email"
-              placeholder="請輸入註冊信箱"
-              required
-            />
-          </div>
-          <button
-            type="button"
-            class="btn-submit-dark"
-            onclick="processForgotPassword()"
-          >
-            發送重設信件
-          </button>
-          <div style="text-align: center; margin-top: 10px">
-            <a
-              href="#"
-              onclick="switchTab('login')"
-              style="color: #8892b0; font-size: 0.85rem; text-decoration: none"
-              >返回登入</a
-            >
-          </div>
-        </form>
-
-        <form id="reset-form" class="auth-form" style="display: none">
-          <h3 style="text-align: center; color: #00f2ff; margin-top: 0">
-            設定新密碼
-          </h3>
-          <p style="color: #a9b5c7; font-size: 0.9rem; text-align: center">
-            請去信箱收信，並將驗證碼(Token)填入下方。
-          </p>
-          <div class="input-group">
-            <label>驗證碼 (Token)</label>
-            <input
-              type="text"
-              id="reset-token"
-              placeholder="請輸入信件中的 Token"
-              required
-            />
+            <label>性別</label>
+            <select id="reg-gender">
+              <option value="生理男">生理男</option>
+              <option value="生理女">生理女</option>
+              <option value="其他">其他</option>
+              <option value="秘密">秘密</option>
+            </select>
           </div>
           <div class="input-group">
-            <label>新密碼 (New Password)</label>
-            <div class="password-wrapper">
-              <input
-                type="password"
-                id="reset-password"
-                placeholder="請輸入新密碼"
-                required
-              />
-              <span
-                class="toggle-password"
-                onclick="togglePassword('reset-password', this)"
-              >
-                <svg
-                  viewBox="0 0 24 24"
-                  width="20"
-                  height="20"
-                  stroke="currentColor"
-                  stroke-width="2"
-                  fill="none"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                >
-                  <path
-                    d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"
-                  ></path>
-                  <line x1="1" y1="1" x2="23" y2="23"></line>
-                </svg>
-              </span>
-            </div>
+            <label>星座</label>
+            <select id="reg-zodiac">
+              <option value="" selected>不透露</option>
+              <option value="牡羊座">牡羊座</option>
+              <option value="金牛座">金牛座</option>
+              <option value="雙子座">雙子座</option>
+              <option value="巨蟹座">巨蟹座</option>
+              <option value="獅子座">獅子座</option>
+              <option value="處女座">處女座</option>
+              <option value="天秤座">天秤座</option>
+              <option value="天蠍座">天蠍座</option>
+              <option value="射手座">射手座</option>
+              <option value="摩羯座">摩羯座</option>
+              <option value="水瓶座">水瓶座</option>
+              <option value="雙魚座">雙魚座</option>
+            </select>
           </div>
-          <button
-            type="button"
-            class="btn-submit-dark"
-            onclick="processResetPassword()"
-          >
-            確認重設
-          </button>
-          <div style="text-align: center; margin-top: 10px">
-            <a
-              href="#"
-              onclick="switchTab('login')"
-              style="color: #8892b0; font-size: 0.85rem; text-decoration: none"
-              >返回登入</a
-            >
+        </div>
+
+        <div class="input-group">
+          <label>自我介紹</label>
+          <textarea id="reg-bio" placeholder="寫點什麼讓大家認識你吧..." rows="3"></textarea>
+        </div>
+
+        <button type="button" class="btn-submit-dark" onclick="processRegister()">
+          註冊並進入
+        </button>
+      </form>
+
+      <form id="forgot-form" class="auth-form" style="display: none">
+        <h3 style="text-align: center; color: #00f2ff; margin-top: 0">
+          找回密碼
+        </h3>
+        <p style="color: #a9b5c7; font-size: 0.9rem; text-align: center">
+          請輸入你註冊時使用的信箱，我們將發送驗證碼(Token)給你。
+        </p>
+        <div class="input-group">
+          <label>信箱 (Email)</label>
+          <input type="email" id="forgot-email" placeholder="請輸入註冊信箱" required />
+        </div>
+        <button type="button" class="btn-submit-dark" onclick="processForgotPassword()">
+          發送重設信件
+        </button>
+        <div style="text-align: center; margin-top: 10px">
+          <a href="#" onclick="switchTab('login')"
+            style="color: #8892b0; font-size: 0.85rem; text-decoration: none">返回登入</a>
+        </div>
+      </form>
+
+      <form id="reset-form" class="auth-form" style="display: none">
+        <h3 style="text-align: center; color: #00f2ff; margin-top: 0">
+          設定新密碼
+        </h3>
+        <p style="color: #a9b5c7; font-size: 0.9rem; text-align: center">
+          請去信箱收信，並將驗證碼(Token)填入下方。
+        </p>
+        <div class="input-group">
+          <label>驗證碼 (Token)</label>
+          <input type="text" id="reset-token" placeholder="請輸入信件中的 Token" required />
+        </div>
+        <div class="input-group">
+          <label>新密碼 (New Password)</label>
+          <div class="password-wrapper">
+            <input type="password" id="reset-password" placeholder="請輸入新密碼" required />
+            <span class="toggle-password" onclick="togglePassword('reset-password', this)">
+              <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none"
+                stroke-linecap="round" stroke-linejoin="round">
+                <path
+                  d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24">
+                </path>
+                <line x1="1" y1="1" x2="23" y2="23"></line>
+              </svg>
+            </span>
           </div>
-        </form>
-      </div>
+        </div>
+        <button type="button" class="btn-submit-dark" onclick="processResetPassword()">
+          確認重設
+        </button>
+        <div style="text-align: center; margin-top: 10px">
+          <a href="#" onclick="switchTab('login')"
+            style="color: #8892b0; font-size: 0.85rem; text-decoration: none">返回登入</a>
+        </div>
+      </form>
     </div>
+  </div>
 
-    <script>
-      // ✨ 統一設定後端網址
-      const API_BASE_URL = "http://163.17.135.120";
+  <script>
+    // ✨ 統一設定後端網址
+    const API_BASE_URL = "http://163.17.135.120";
 
-      function openAuthModal() {
-        document.getElementById("auth-modal").style.display = "flex";
-        clearErrorMessage();
-      }
-      function closeAuthModal() {
-        document.getElementById("auth-modal").style.display = "none";
-        clearErrorMessage();
-      }
+    function openAuthModal() {
+      document.getElementById("auth-modal").style.display = "flex";
+      clearErrorMessage();
+    }
+    function closeAuthModal() {
+      document.getElementById("auth-modal").style.display = "none";
+      clearErrorMessage();
+    }
 
-      // 🧹 清除錯誤訊息的輔助函式
-      function clearErrorMessage() {
-        const errorEl = document.getElementById("modal-error-msg");
-        if (errorEl) errorEl.remove();
-      }
+    // 🧹 清除錯誤訊息的輔助函式
+    function clearErrorMessage() {
+      const errorEl = document.getElementById("modal-error-msg");
+      if (errorEl) errorEl.remove();
+    }
 
-      // 🛑 動態在彈窗內顯示精美錯誤訊息
-      function showModalError(message) {
-        clearErrorMessage();
+    // 🛑 動態在彈窗內顯示精美錯誤訊息
+    function showModalError(message) {
+      clearErrorMessage();
 
-        const errorDiv = document.createElement("div");
-        errorDiv.id = "modal-error-msg";
-        errorDiv.style.cssText = `
+      const errorDiv = document.createElement("div");
+      errorDiv.id = "modal-error-msg";
+      errorDiv.style.cssText = `
           background: rgba(255, 77, 77, 0.15);
           border: 1px solid #ff4d4d;
           color: #ff8585;
@@ -365,241 +238,242 @@
           text-align: center;
           animation: fadeIn 0.3s ease;
         `;
-        errorDiv.innerText = message;
+      errorDiv.innerText = message;
 
-        const tabContainer = document.getElementById("main-tabs");
-        tabContainer.parentNode.insertBefore(
-          errorDiv,
-          tabContainer.nextSibling,
-        );
+      const tabContainer = document.getElementById("main-tabs");
+      tabContainer.parentNode.insertBefore(
+        errorDiv,
+        tabContainer.nextSibling,
+      );
+    }
+
+    // 👁️ 切換密碼顯示/隱藏的魔法函式
+    function togglePassword(inputId, iconEl) {
+      const input = document.getElementById(inputId);
+      if (input.type === "password") {
+        // 變成顯示文字
+        input.type = "text";
+        // 換成「睜開眼睛」的圖示
+        iconEl.innerHTML = `<svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>`;
+      } else {
+        // 變回隱藏密碼
+        input.type = "password";
+        // 換回原本「打叉眼睛」的圖示
+        iconEl.innerHTML = `<svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>`;
+      }
+    }
+
+    // 🌟 切換表單邏輯
+    function switchTab(tab) {
+      clearErrorMessage();
+
+      document.getElementById("login-form").style.display = "none";
+      document.getElementById("register-form").style.display = "none";
+      document.getElementById("forgot-form").style.display = "none";
+      document.getElementById("reset-form").style.display = "none";
+
+      const mainTabs = document.getElementById("main-tabs");
+      document.getElementById("tab-login").classList.remove("active");
+      document.getElementById("tab-register").classList.remove("active");
+
+      if (tab === "login") {
+        mainTabs.style.display = "flex";
+        document.getElementById("tab-login").classList.add("active");
+        document.getElementById("login-form").style.display = "flex";
+      } else if (tab === "register") {
+        mainTabs.style.display = "flex";
+        document.getElementById("tab-register").classList.add("active");
+        document.getElementById("register-form").style.display = "flex";
+      } else if (tab === "forgot") {
+        mainTabs.style.display = "none";
+        document.getElementById("forgot-form").style.display = "flex";
+      } else if (tab === "reset") {
+        mainTabs.style.display = "none";
+        document.getElementById("reset-form").style.display = "flex";
+      }
+    }
+
+    // 🌊 串接後端登入 API
+    async function processLogin() {
+      const email = document.getElementById("login-email").value;
+      const password = document.getElementById("login-password").value;
+
+      if (email.trim() === "" || password.trim() === "") {
+        showModalError("⚠️ 請輸入信箱與密碼！");
+        return;
       }
 
-      // 👁️ 切換密碼顯示/隱藏的魔法函式
-      function togglePassword(inputId, iconEl) {
-        const input = document.getElementById(inputId);
-        if (input.type === "password") {
-          // 變成顯示文字
-          input.type = "text";
-          // 換成「睜開眼睛」的圖示
-          iconEl.innerHTML = `<svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>`;
+      try {
+        const response = await fetch(`${API_BASE_URL}/auth/login`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "ngrok-skip-browser-warning": "true",
+          },
+          body: JSON.stringify({ email: email, password: password }),
+        });
+
+        const responseData = await response.json();
+
+        if (response.ok) {
+          const realToken =
+            responseData.data?.result?.token ||
+            responseData.token ||
+            responseData.data?.token;
+          const realUser = responseData.data?.result?.member ||
+            responseData.user ||
+            responseData.data?.user || {
+            email: email,
+            name: email.split("@")[0],
+          };
+
+          localStorage.setItem("authToken", realToken);
+
+          const userToSave = {
+            email: realUser.email || email,
+            name: realUser.name || email.split("@")[0],
+            avatar: realUser.avatar || "images/fish_logo.png",
+            birthday: realUser.birthday || "",
+            bio: realUser.bio || "",
+            constellation: realUser.constellation || "",
+          };
+          localStorage.setItem("currentUser", JSON.stringify(userToSave));
+
+          window.location.href = "test.html";
         } else {
-          // 變回隱藏密碼
-          input.type = "password";
-          // 換回原本「打叉眼睛」的圖示
-          iconEl.innerHTML = `<svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>`;
-        }
-      }
-
-      // 🌟 切換表單邏輯
-      function switchTab(tab) {
-        clearErrorMessage();
-
-        document.getElementById("login-form").style.display = "none";
-        document.getElementById("register-form").style.display = "none";
-        document.getElementById("forgot-form").style.display = "none";
-        document.getElementById("reset-form").style.display = "none";
-
-        const mainTabs = document.getElementById("main-tabs");
-        document.getElementById("tab-login").classList.remove("active");
-        document.getElementById("tab-register").classList.remove("active");
-
-        if (tab === "login") {
-          mainTabs.style.display = "flex";
-          document.getElementById("tab-login").classList.add("active");
-          document.getElementById("login-form").style.display = "flex";
-        } else if (tab === "register") {
-          mainTabs.style.display = "flex";
-          document.getElementById("tab-register").classList.add("active");
-          document.getElementById("register-form").style.display = "flex";
-        } else if (tab === "forgot") {
-          mainTabs.style.display = "none";
-          document.getElementById("forgot-form").style.display = "flex";
-        } else if (tab === "reset") {
-          mainTabs.style.display = "none";
-          document.getElementById("reset-form").style.display = "flex";
-        }
-      }
-
-      // 🌊 串接後端登入 API
-      async function processLogin() {
-        const email = document.getElementById("login-email").value;
-        const password = document.getElementById("login-password").value;
-
-        if (email.trim() === "" || password.trim() === "") {
-          showModalError("⚠️ 請輸入信箱與密碼！");
-          return;
-        }
-
-        try {
-          const response = await fetch(`${API_BASE_URL}/auth/login`, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              "ngrok-skip-browser-warning": "true",
-            },
-            body: JSON.stringify({ email: email, password: password }),
-          });
-
-          const responseData = await response.json();
-
-          if (response.ok) {
-            const realToken =
-              responseData.data?.result?.token ||
-              responseData.token ||
-              responseData.data?.token;
-            const realUser = responseData.data?.result?.member ||
-              responseData.user ||
-              responseData.data?.user || {
-                email: email,
-                name: email.split("@")[0],
-              };
-
-            localStorage.setItem("authToken", realToken);
-
-            const userToSave = {
-              email: realUser.email || email,
-              name: realUser.name || email.split("@")[0],
-              avatar: realUser.avatar || "images/fish_logo.png",
-              birthday: realUser.birthday || "",
-              bio: realUser.bio || "",
-              constellation: realUser.constellation || "",
-            };
-            localStorage.setItem("currentUser", JSON.stringify(userToSave));
-
-            window.location.href = "test.html";
-          } else {
-            showModalError(
-              "❌ 登入失敗：" + (responseData.message || "帳號或密碼錯誤"),
-            );
-          }
-        } catch (error) {
-          console.error("連線錯誤:", error);
-          showModalError("📡 無法連接到後端伺服器！");
-        }
-      }
-
-      // 🌊 串接後端註冊 API
-      async function processRegister() {
-        const email = document.getElementById("reg-email").value;
-        const password = document.getElementById("reg-password").value;
-        const name = document.getElementById("reg-name").value;
-
-        if (
-          email.trim() === "" ||
-          name.trim() === "" ||
-          password.trim() === ""
-        ) {
-          showModalError("⚠️ 信箱、姓名和密碼是必填的喔！");
-          return;
-        }
-
-        const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z]).{8,16}$/;
-        if (!passwordRegex.test(password)) {
           showModalError(
-            "⚠️ 密碼格式錯誤！請設定 8~16 字元，且必須包含「英文大寫」與「小寫」。",
+            "❌ 登入失敗：" + (responseData.message || "帳號或密碼錯誤"),
           );
-          return;
         }
+      } catch (error) {
+        console.error("連線錯誤:", error);
+        showModalError("📡 無法連接到後端伺服器！");
+      }
+    }
 
-        const birthdayRaw = document.getElementById("reg-birthday").value;
-        const finalBirthday = birthdayRaw
-          ? new Date(birthdayRaw).toISOString()
-          : new Date("2000-01-01").toISOString();
+    // 🌊 串接後端註冊 API
+    async function processRegister() {
+      const email = document.getElementById("reg-email").value;
+      const password = document.getElementById("reg-password").value;
+      const name = document.getElementById("reg-name").value;
 
-        const userData = {
-          email: email,
-          password: password,
-          name: name,
-          birthday: finalBirthday,
-          bio: document.getElementById("reg-bio").value || "",
-          blood_type: "",
-          constellation: document.getElementById("reg-zodiac").value || "",
-        };
+      if (
+        email.trim() === "" ||
+        name.trim() === "" ||
+        password.trim() === ""
+      ) {
+        showModalError("⚠️ 信箱、姓名和密碼是必填的喔！");
+        return;
+      }
 
-        try {
-          const response = await fetch(`${API_BASE_URL}/auth/register`, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              "ngrok-skip-browser-warning": "true",
-            },
-            body: JSON.stringify(userData),
-          });
+      const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z]).{8,16}$/;
+      if (!passwordRegex.test(password)) {
+        showModalError(
+          "⚠️ 密碼格式錯誤！請設定 8~16 字元，且必須包含「英文大寫」與「小寫」。",
+        );
+        return;
+      }
 
+      const birthdayRaw = document.getElementById("reg-birthday").value;
+      const finalBirthday = birthdayRaw
+        ? new Date(birthdayRaw).toISOString()
+        : new Date("2000-01-01").toISOString();
+
+      const userData = {
+        email: email,
+        password: password,
+        name: name,
+        birthday: finalBirthday,
+        bio: document.getElementById("reg-bio").value || "",
+        blood_type: "",
+        constellation: document.getElementById("reg-zodiac").value || "",
+      };
+
+      try {
+        const response = await fetch(`${API_BASE_URL}/auth/register`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "ngrok-skip-browser-warning": "true",
+          },
+          body: JSON.stringify(userData),
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+          alert("🎉 註冊成功！請登入。");
+          switchTab("login");
+        } else {
+          console.error("❌ 後端拒絕註冊：", data);
+          showModalError(
+            "❌ 註冊失敗：" + (data.message || "信箱已存在或格式錯誤"),
+          );
+        }
+      } catch (error) {
+        console.error("連線錯誤:", error);
+        showModalError("📡 無法連接到後端伺服器！");
+      }
+    }
+
+    // 🌟 串接後端 忘記密碼申請 API
+    async function processForgotPassword() {
+      const email = document.getElementById("forgot-email").value;
+      if (email.trim() === "") {
+        alert("請填寫信箱！");
+        return;
+      }
+
+      try {
+        const response = await fetch(`${API_BASE_URL}/auth/forgot-password`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email: email }),
+        });
+
+        if (response.ok) {
+          alert("✅ 已成功發送重設信件！請前往信箱點擊重設連結。");
+          switchTab("login");
+        } else {
           const data = await response.json();
-
-          if (response.ok) {
-            alert("🎉 註冊成功！請登入。");
-            switchTab("login");
-          } else {
-            console.error("❌ 後端拒絕註冊：", data);
-            showModalError(
-              "❌ 註冊失敗：" + (data.message || "信箱已存在或格式錯誤"),
-            );
-          }
-        } catch (error) {
-          console.error("連線錯誤:", error);
-          showModalError("📡 無法連接到後端伺服器！");
+          alert("發送失敗：" + (data.message || "請確認信箱是否正確"));
         }
+      } catch (error) {
+        console.error("連線錯誤:", error);
+        alert("無法連接到後端伺服器！");
+      }
+    }
+
+    // 🌟 串接後端 重設密碼 API
+    async function processResetPassword() {
+      const token = document.getElementById("reset-token").value;
+      const newPassword = document.getElementById("reset-password").value;
+
+      if (token.trim() === "" || newPassword.trim() === "") {
+        alert("驗證碼與新密碼不可為空！");
+        return;
       }
 
-      // 🌟 串接後端 忘記密碼申請 API
-      async function processForgotPassword() {
-        const email = document.getElementById("forgot-email").value;
-        if (email.trim() === "") {
-          alert("請填寫信箱！");
-          return;
-        }
+      try {
+        const response = await fetch(`${API_BASE_URL}/auth/reset-password`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ token: token, newPassword: newPassword }),
+        });
 
-        try {
-          const response = await fetch(`${API_BASE_URL}/auth/forgot-password`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ email: email }),
-          });
-
-          if (response.ok) {
-            alert("✅ 已成功發送重設信件！請前往信箱點擊重設連結。");
-            switchTab("login");
-          } else {
-            const data = await response.json();
-            alert("發送失敗：" + (data.message || "請確認信箱是否正確"));
-          }
-        } catch (error) {
-          console.error("連線錯誤:", error);
-          alert("無法連接到後端伺服器！");
+        if (response.ok) {
+          alert("密碼重設成功！請使用新密碼重新登入。");
+          switchTab("login");
+        } else {
+          const data = await response.json();
+          alert("重設失敗：" + (data.message || "Token 無效或過期"));
         }
+      } catch (error) {
+        console.error("連線錯誤:", error);
+        alert("無法連接到後端伺服器！");
       }
+    }
+  </script>
+</body>
 
-      // 🌟 串接後端 重設密碼 API
-      async function processResetPassword() {
-        const token = document.getElementById("reset-token").value;
-        const newPassword = document.getElementById("reset-password").value;
-
-        if (token.trim() === "" || newPassword.trim() === "") {
-          alert("驗證碼與新密碼不可為空！");
-          return;
-        }
-
-        try {
-          const response = await fetch(`${API_BASE_URL}/auth/reset-password`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ token: token, newPassword: newPassword }),
-          });
-
-          if (response.ok) {
-            alert("密碼重設成功！請使用新密碼重新登入。");
-            switchTab("login");
-          } else {
-            const data = await response.json();
-            alert("重設失敗：" + (data.message || "Token 無效或過期"));
-          }
-        } catch (error) {
-          console.error("連線錯誤:", error);
-          alert("無法連接到後端伺服器！");
-        }
-      }
-    </script>
-  </body>
 </html>

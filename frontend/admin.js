@@ -10,6 +10,7 @@ document.addEventListener('DOMContentLoaded', () => {
     console.log("✅ admin.js 成功執行！");
 
     const token = localStorage.getItem("authToken");
+<<<<<<< HEAD
     const userStr = localStorage.getItem("currentUser");
 
     console.log("🔍 Token 狀態:", token ? "存在" : "空空的");
@@ -25,19 +26,29 @@ document.addEventListener('DOMContentLoaded', () => {
         if (nameEl) nameEl.innerText = user.name + " (管理員)";
     }
 
+=======
+    const user = JSON.parse(localStorage.getItem("currentUser"));
+
+    if (!token || !user) {
+        window.location.href = "login.html";
+        return;
+    }
+
+    document.getElementById("admin-name").innerText = user.name + " (管理員)";
+>>>>>>> caec4468ca3d8f9ec2bc76843ed1410cf684b0ea
     const lastTab = localStorage.getItem('adminLastTab') || 'dashboard';
-    switchAdminTab(lastTab); 
+    switchAdminTab(lastTab);
 });
 
 // ==========================================
 // 3. 頁面切換與記憶功能
 // ==========================================
-window.switchAdminTab = function(tabName) {
+window.switchAdminTab = function (tabName) {
     localStorage.setItem('adminLastTab', tabName);
-    
+
     document.querySelectorAll('.admin-menu li').forEach(item => item.classList.remove('active'));
     const activeMenu = Array.from(document.querySelectorAll('.admin-menu li')).find(item => item.getAttribute('onclick')?.includes(tabName));
-    if(activeMenu) activeMenu.classList.add('active');
+    if (activeMenu) activeMenu.classList.add('active');
 
     document.querySelectorAll('.admin-section').forEach(sec => sec.style.display = 'none');
     document.getElementById('section-' + tabName).style.display = 'block';
@@ -58,16 +69,15 @@ async function loadUsers() {
     tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;">載入中...</td></tr>`;
 
     try {
-        // ✅ 修正：使用 README 指定的 /admin/members API
         const response = await fetch(`${API_BASE_URL}/admin/members`, {
             headers: { 'Authorization': `Bearer ${token}` }
         });
-        
+
         if (!response.ok) throw new Error();
-        
+
         const result = await response.json();
         const users = result.data || result || [];
-        
+
         if (users.length === 0) {
             tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;">目前沒有使用者資料</td></tr>`;
             return;
@@ -78,14 +88,15 @@ async function loadUsers() {
             if (user.status === 'BANNED') badgeClass = 'badge-banned';
             if (user.status === 'INACTIVE') badgeClass = 'badge-inactive';
 
+            // 🌟 防禦啟動：把名字、信箱等可能被惡意篡改的字串全數包裝
             return `
             <tr>
-                <td>#${user.member_id || user.id}</td>
-                <td>${user.name || user.email.split('@')[0]}</td>
-                <td>${user.email}</td>
+                <td>#${escapeHTML(String(user.member_id || user.id))}</td>
+                <td>${escapeHTML(String(user.name || user.email.split('@')[0]))}</td>
+                <td>${escapeHTML(String(user.email))}</td>
                 <td>${user.created_at ? new Date(user.created_at).toLocaleDateString() : '未知'}</td>
-                <td><span class="badge ${badgeClass}">${user.status || 'ACTIVE'}</span></td>
-                <td><button class="btn-action btn-warning" onclick="changeUserStatus(${user.member_id || user.id})">更改狀態</button></td>
+                <td><span class="badge ${badgeClass}">${escapeHTML(String(user.status || 'ACTIVE'))}</span></td>
+                <td><button class="btn-action btn-warning" onclick="changeUserStatus(${escapeHTML(String(user.member_id || user.id))})">更改狀態</button></td>
             </tr>
         `}).join('');
     } catch (e) {
@@ -94,10 +105,10 @@ async function loadUsers() {
 }
 
 // ✅ 修正：使用 README 指定的 PUT /admin/members/:id/status API
-window.changeUserStatus = async function(userId) {
+window.changeUserStatus = async function (userId) {
     const newStatus = prompt("請輸入新狀態 (限填: ACTIVE, INACTIVE, BANNED):", "BANNED");
     if (!newStatus) return;
-    
+
     const upperStatus = newStatus.toUpperCase();
     const token = localStorage.getItem("authToken");
     try {
@@ -118,39 +129,50 @@ window.changeUserStatus = async function(userId) {
 // ==========================================
 // 5. API 串接：漂流瓶審核 (GET /admin/bottles)
 // ==========================================
+function escapeHTML(str) {
+    if (typeof str !== 'string') return str;
+    return str.replace(/[&<>'"]/g, tag => ({
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        "'": '&#39;',
+        '"': '&quot;'
+    }[tag]));
+}
+
 async function loadBottles() {
     const tbody = document.getElementById('admin-bottles-body');
     const token = localStorage.getItem("authToken");
     tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;">讀取中...</td></tr>`;
 
     try {
-        // ✅ 修正：使用 README 新增的專屬管理員 API (不再用 random 就不會亂跳 ID 了)
         const response = await fetch(`${API_BASE_URL}/admin/bottles`, {
-             headers: { 'Authorization': `Bearer ${token}` }
-        }); 
-        
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+
         if (!response.ok) throw new Error();
         const data = await response.json();
         const bottles = data.data || data.bottles || data || [];
-        
+
         if (bottles.length === 0) {
             tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;">目前無待審核文章</td></tr>`;
             return;
         }
 
-        window._pendingBottles = bottles; // 存入陣列供 Modal 讀取
-        
+        window._pendingBottles = bottles;
+
+        // 🌟 這裡全數套用 escapeHTML 淨化！
         tbody.innerHTML = bottles.map((b, index) => `
             <tr>
-                <td>#${b.bottle_id || b.id}</td>
-                <td>${b.author_name || b.author?.name || b.author || '匿名'}</td>
-                <td>${b.title}</td>
-                <td><span class="badge badge-inactive">${b.category_name || b.category_list?.[0] || '綜合閒聊'}</span></td>
+                <td>#${escapeHTML(String(b.bottle_id || b.id))}</td>
+                <td>${escapeHTML(String(b.author_name || b.author?.name || b.author || '匿名'))}</td>
+                <td>${escapeHTML(String(b.title))}</td>
+                <td><span class="badge badge-inactive">${escapeHTML(String(b.category_name || b.category_list?.[0] || '綜合閒聊'))}</span></td>
                 <td>${b.created_at ? new Date(b.created_at).toLocaleDateString() : new Date().toLocaleDateString()}</td>
                 <td><button class="btn-action btn-primary" onclick="openBottleModalFromCache(${index})">查看/審核</button></td>
             </tr>
         `).join('');
-    } catch(e) {
+    } catch (e) {
         tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:red;">無法載入，請確認權限或後端是否啟動</td></tr>`;
     }
 }
@@ -158,16 +180,16 @@ async function loadBottles() {
 // ==========================================
 // 6. API 串接：審核動作 (PUT /admin/bottles/review)
 // ==========================================
-window.openBottleModalFromCache = function(index) {
+window.openBottleModalFromCache = function (index) {
     const b = window._pendingBottles[index];
     if (!b) return;
-    
+
     document.getElementById('modal-title').innerText = `審核：${b.title}`;
     document.getElementById('modal-body').innerHTML = `<p style="white-space:pre-wrap; line-height:1.6;">${b.content}</p>`;
-    
+
     window._reviewBottleId = b.bottle_id || b.id;
     window._reviewBottleTitle = b.title;
-    
+
     document.getElementById('modal-actions').innerHTML = `
         <button class="btn-action btn-secondary" onclick="closeAdminModal()">取消</button>
         <button class="btn-action btn-danger" onclick="reviewBottle(window._reviewBottleId, 2, window._reviewBottleTitle);">拒絕 (2)</button>
@@ -176,24 +198,24 @@ window.openBottleModalFromCache = function(index) {
     document.getElementById('admin-modal').style.display = 'flex';
 }
 
-window.reviewBottle = async function(bottleId, status, title) {
+window.reviewBottle = async function (bottleId, status, title) {
     let violation_reason = "";
-    
+
     // 根據 README，選擇 2 必須填寫原因
     if (status === 2) {
         violation_reason = prompt(`請輸入拒絕「${title}」的原因 (必填):`, "內容不當");
         if (!violation_reason) { alert("必須填寫拒絕原因！"); return; }
     } else {
-        if(!confirm(`⚠️ 確定要通過「${title}」嗎？`)) return;
+        if (!confirm(`⚠️ 確定要通過「${title}」嗎？`)) return;
     }
 
     try {
         const token = localStorage.getItem("authToken");
-        
+
         // ✅ 修正：使用 README 指定的 PUT /admin/bottles/review API
         const response = await fetch(`${API_BASE_URL}/admin/bottles/review`, {
             method: 'PUT',
-            headers: { 
+            headers: {
                 'Authorization': `Bearer ${token}`,
                 'Content-Type': 'application/json'
             },
@@ -218,5 +240,5 @@ window.reviewBottle = async function(bottleId, status, title) {
 // ==========================================
 // 7. UI 輔助控制
 // ==========================================
-window.closeAdminModal = function() { document.getElementById('admin-modal').style.display = 'none'; }
-window.adminLogout = function() { localStorage.clear(); window.location.href = "login.html"; }
+window.closeAdminModal = function () { document.getElementById('admin-modal').style.display = 'none'; }
+window.adminLogout = function () { localStorage.clear(); window.location.href = "login.html"; }
