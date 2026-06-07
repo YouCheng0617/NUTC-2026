@@ -25,18 +25,18 @@ async function fetchBottles() {
     }
 
     try {
-        let endpointUrl = `${API_BASE_URL}/bottles/random`; 
+        let endpointUrl = `${API_BASE_URL}/bottles/random`;
         if (currentView === 'mine') {
-            endpointUrl = `${API_BASE_URL}/bottles/mybottles`; 
+            endpointUrl = `${API_BASE_URL}/bottles/mybottles`;
         } else if (currentView === 'saved') {
-            endpointUrl = `${API_BASE_URL}/bottles/saved`; 
+            endpointUrl = `${API_BASE_URL}/bottles/saved`;
         } else if (currentCategoryId !== null) {
             // 🔴 傳遞看板分類 ID 給後端，讓後端只回傳該分類的瓶子
             endpointUrl = `${API_BASE_URL}/bottles/random?categoryId=${currentCategoryId}`;
         }
 
         let likedBottleIds = [];
-        let savedBottleIds = []; 
+        let savedBottleIds = [];
         try {
             const likedRes = await fetch(`${API_BASE_URL}/bottles/liked`, { method: 'GET', headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' } });
             if (likedRes.ok) {
@@ -44,7 +44,7 @@ async function fetchBottles() {
                 let arr = likedData.bottles || likedData.data || likedData;
                 if (Array.isArray(arr)) likedBottleIds = arr.map(i => String(i.bottle_id || i.id || i.bottleId));
             }
-        } catch(e) { console.log('偷偷抓取按讚清單失敗'); }
+        } catch (e) { console.log('偷偷抓取按讚清單失敗'); }
 
         try {
             const savedRes = await fetch(`${API_BASE_URL}/bottles/saved`, { method: 'GET', headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' } });
@@ -53,7 +53,7 @@ async function fetchBottles() {
                 let arr = savedData.bottles || savedData.data || savedData;
                 if (Array.isArray(arr)) savedBottleIds = arr.map(i => String(i.bottle_id || i.id || i.bottleId));
             }
-        } catch(e) { console.log('偷偷抓取收藏清單失敗'); }
+        } catch (e) { console.log('偷偷抓取收藏清單失敗'); }
 
         const response = await fetch(endpointUrl, {
             method: 'GET',
@@ -63,10 +63,10 @@ async function fetchBottles() {
                 'ngrok-skip-browser-warning': 'true'
             }
         });
-        
+
         if (response.ok) {
             const backendData = await response.json();
-            
+
             let postsArray = [];
             if (backendData.bottles && Array.isArray(backendData.bottles)) {
                 postsArray = backendData.bottles;
@@ -80,9 +80,9 @@ async function fetchBottles() {
 
             posts = postsArray.map(rawItem => {
                 const item = rawItem.bottle || rawItem.Bottle || rawItem;
-                
+
                 const safeId = String(item.bottle_id || item.id || item.bottleId || rawItem.bottle_id || `temp_${Math.random().toString(36).substr(2, 9)}`);
-                
+
                 let isActuallyLiked = likedBottleIds.includes(safeId) || Boolean(item.is_liked || item.isLiked || rawItem.is_liked);
                 let isActuallySaved = savedBottleIds.includes(safeId) || Boolean(item.is_saved || item.isSaved || rawItem.is_saved);
 
@@ -103,7 +103,7 @@ async function fetchBottles() {
                 else if (rawItem.author?.name) authorName = rawItem.author.name;
                 else if (rawItem.user?.name) authorName = rawItem.user.name;
                 else if (rawItem.User?.name) authorName = rawItem.User.name;
-                else if (rawItem.member?.name) authorName = rawItem.member.name; 
+                else if (rawItem.member?.name) authorName = rawItem.member.name;
                 else if (item.member?.name) authorName = item.member.name;
                 else if (item.member_name) authorName = item.member_name; // 👈 就是這行，完美對應後端資料！
                 else if (rawItem.member_name) authorName = rawItem.member_name;
@@ -114,20 +114,20 @@ async function fetchBottles() {
                 }
 
                 let rawBoard = item.category_name || item.board || null;
-                
+
                 if (!rawBoard && item.category_list && Array.isArray(item.category_list) && item.category_list.length > 0) {
                     rawBoard = item.category_list[0];
                 }
-                
+
                 if (!rawBoard && item.categories && item.categories.length > 0) {
                     rawBoard = item.categories[0].category?.name;
                 } else if (!rawBoard && rawItem.categories && rawItem.categories.length > 0) {
                     rawBoard = rawItem.categories[0].category?.name;
                 }
-                
-                let finalBoard = "🔥 綜合閒聊"; 
+
+                let finalBoard = "🔥 綜合閒聊";
                 let cId = item.category_id || rawItem.category_id || item.categoryId;
-                
+
                 if (!rawBoard && item.categories && item.categories.length > 0) {
                     cId = item.categories[0].category_id;
                 }
@@ -137,8 +137,8 @@ async function fetchBottles() {
                     else if (rawBoard.includes("美食")) finalBoard = "🍜 美食特搜";
                     else if (rawBoard.includes("遊戲")) finalBoard = "🎮 遊戲專區";
                     else if (rawBoard.includes("閒聊")) finalBoard = "🔥 綜合閒聊";
-                    else finalBoard = rawBoard; 
-                } 
+                    else finalBoard = rawBoard;
+                }
                 else if (cId !== undefined && cId !== null) {
                     const idToBoard = { 1: "🔥 綜合閒聊", 2: "💻 程式開發", 3: "🍜 美食特搜", 4: "🎮 遊戲專區" };
                     if (Array.isArray(cId) && cId.length > 0) {
@@ -150,17 +150,17 @@ async function fetchBottles() {
 
                 return {
                     id: safeId,
-                    board: finalBoard, 
+                    board: finalBoard,
                     author: (item.is_anonymous || item.isAnonymous) ? "匿名" : authorName,
                     title: item.title || rawItem.title,
-                    desc: item.content || rawItem.content, 
+                    desc: item.content || rawItem.content,
                     likes: totalLikes,
                     msgs: getComments(safeId).length,
-                    liked: isActuallyLiked, 
-                    saved: isActuallySaved  
+                    liked: isActuallyLiked,
+                    saved: isActuallySaved
                 };
             });
-            
+
             applyFilters();
         } else {
             console.error("獲取文章失敗，狀態碼:", response.status);
@@ -170,27 +170,38 @@ async function fetchBottles() {
     }
 }
 
+function escapeHTML(str) {
+    if (typeof str !== 'string') return str;
+    return str.replace(/[&<>'"]/g, tag => ({
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        "'": '&#39;',
+        '"': '&quot;'
+    }[tag]));
+}
+
 function renderPosts(data = posts) {
     const container = document.getElementById('post-container');
     if (!container) return;
-    
+
     let emptyMsg = '找不到漂流瓶 😢';
     if (currentView === 'saved') emptyMsg = '你還沒有收藏任何漂流瓶喔 ⭐';
     else if (currentView === 'mine') emptyMsg = '你目前還沒有發過任何漂流瓶喔 📝';
 
-    container.innerHTML = data.length === 0 ? `<h3 style="text-align:center; color:#888; margin-top:40px;">${emptyMsg}</h3>` : 
-    data.map(p => `
-        <div class="post-card" onclick="openPostDetail('${p.id}')">
+    container.innerHTML = data.length === 0 ? `<h3 style="text-align:center; color:#888; margin-top:40px;">${emptyMsg}</h3>` :
+        data.map(p => `
+        <div class="post-card" onclick="openPostDetail('${escapeHTML(String(p.id))}')">
             <div style="display:flex; justify-content:space-between; align-items:center;">
-                <div style="font-size:0.85rem; color:#0055a5; font-weight:bold;">${p.board}</div>
-                <div style="font-size:0.8rem; color:#888; background:#f0f4f8; padding:3px 10px; border-radius:12px;">${p.author}</div>
+                <div style="font-size:0.85rem; color:#0055a5; font-weight:bold;">${escapeHTML(p.board)}</div>
+                <div style="font-size:0.8rem; color:#888; background:#f0f4f8; padding:3px 10px; border-radius:12px;">${escapeHTML(p.author)}</div>
             </div>
-            <h2 style="margin:12px 0; color:#333; font-size: 1.4rem;">${p.title}</h2>
-            <p style="color:#666; line-height: 1.5; font-size: 0.95rem;">${p.desc}</p>
+            <h2 style="margin:12px 0; color:#333; font-size: 1.4rem;">${escapeHTML(p.title)}</h2>
+            <p style="color:#666; line-height: 1.5; font-size: 0.95rem;">${escapeHTML(p.desc)}</p>
             <div class="action-bar">
-                <span class="action-btn ${p.liked ? 'like-active' : ''}" onclick="toggleAction('${p.id}', 'like', event)">${p.liked ? '❤️' : '🤍'} ${p.likes}</span>
+                <span class="action-btn ${p.liked ? 'like-active' : ''}" onclick="toggleAction('${escapeHTML(String(p.id))}', 'like', event)">${p.liked ? '❤️' : '🤍'} ${p.likes}</span>
                 <span class="action-btn">💬 ${p.msgs}</span>
-                <span class="action-btn ${p.saved ? 'save-active' : ''}" onclick="toggleAction('${p.id}', 'save', event)" style="margin-left: auto;">${p.saved ? '⭐ 已收藏' : '☆ 收藏'}</span>
+                <span class="action-btn ${p.saved ? 'save-active' : ''}" onclick="toggleAction('${escapeHTML(String(p.id))}', 'save', event)" style="margin-left: auto;">${p.saved ? '⭐ 已收藏' : '☆ 收藏'}</span>
             </div>
         </div>
     `).join('');
@@ -198,22 +209,22 @@ function renderPosts(data = posts) {
 
 function applyFilters() {
     let res = posts;
-    
+
     if (currentView === 'saved') {
-        res = res.filter(p => p.saved === true); 
+        res = res.filter(p => p.saved === true);
     } else if (currentView === 'mine') {
     } else {
         if (currentBoard !== '全部') res = res.filter(p => p.board.includes(currentBoard));
     }
-    
+
     if (currentKeyword) {
-        res = res.filter(p => 
-            (p.title && p.title.toLowerCase().includes(currentKeyword)) || 
-            (p.desc && p.desc.toLowerCase().includes(currentKeyword)) || 
+        res = res.filter(p =>
+            (p.title && p.title.toLowerCase().includes(currentKeyword)) ||
+            (p.desc && p.desc.toLowerCase().includes(currentKeyword)) ||
             (p.board && p.board.toLowerCase().includes(currentKeyword))
         );
     }
-    
+
     renderPosts(res);
 }
 
@@ -230,7 +241,7 @@ function saveSearchHistory(keyword) {
     history = history.filter(item => item !== keyword);
     history.unshift(keyword);
     if (history.length > 5) history.pop();
-    
+
     localStorage.setItem('searchHistory', JSON.stringify(history));
 }
 
@@ -238,14 +249,14 @@ function renderSearchHistory() {
     const historyBox = document.getElementById('search-history-dropdown');
     const searchInput = document.getElementById('main-search-input');
     if (!historyBox || !searchInput) return;
-    
+
     let history = getSearchHistory();
     const currentText = searchInput.value.trim().toLowerCase();
 
     if (currentText !== '') {
         history = history.filter(item => item.toLowerCase().includes(currentText));
     }
-    
+
     if (history.length === 0) {
         historyBox.style.display = 'none';
         return;
@@ -261,28 +272,28 @@ function renderSearchHistory() {
             </div>
         `;
     });
-    
+
     historyBox.innerHTML = html;
-    historyBox.style.display = 'block'; 
+    historyBox.style.display = 'block';
 }
 
-window.applyHistorySearch = function(e, keyword) {
-    if (e) e.preventDefault(); 
+window.applyHistorySearch = function (e, keyword) {
+    if (e) e.preventDefault();
 
     const searchInput = document.getElementById('main-search-input');
     if (searchInput) searchInput.value = keyword;
-    
+
     currentKeyword = keyword.toLowerCase();
-    applyFilters(); 
+    applyFilters();
     document.getElementById('search-history-dropdown').style.display = 'none';
 }
 
-window.removeSingleHistory = function(e, keyword) {
+window.removeSingleHistory = function (e, keyword) {
     if (e) {
-        e.preventDefault(); 
-        e.stopPropagation(); 
+        e.preventDefault();
+        e.stopPropagation();
     }
-    
+
     let history = getSearchHistory();
     history = history.filter(item => item !== keyword);
     localStorage.setItem('searchHistory', JSON.stringify(history));
@@ -310,7 +321,7 @@ function saveComment(postId, commentObj) {
     try {
         let allComments = JSON.parse(localStorage.getItem('postComments') || '{}');
         if (typeof allComments !== 'object' || Array.isArray(allComments)) allComments = {};
-        if (!allComments[postId]) allComments[postId] = []; 
+        if (!allComments[postId]) allComments[postId] = [];
         allComments[postId].push(commentObj);
         localStorage.setItem('postComments', JSON.stringify(allComments));
     } catch (e) {
@@ -318,13 +329,13 @@ function saveComment(postId, commentObj) {
     }
 }
 
-window.toggleCommentLike = function(postId, index) {
+window.toggleCommentLike = function (postId, index) {
     try {
         let allComments = JSON.parse(localStorage.getItem('postComments') || '{}');
         if (!allComments[postId] || !allComments[postId][index]) return;
 
         let c = allComments[postId][index];
-        
+
         if (c.liked) {
             c.likes = Math.max(0, (c.likes || 1) - 1);
             c.liked = false;
@@ -344,10 +355,10 @@ function renderComments(postId) {
     const comments = getComments(postId);
     const lists = document.querySelectorAll('#detail-comments-list');
     const counts = document.querySelectorAll('#detail-comment-count');
-    
+
     lists.forEach(listContainer => {
         if (!listContainer) return;
-        
+
         if (comments.length === 0) {
             listContainer.innerHTML = '<div style="text-align:center; color:#888; padding: 30px 0;">目前還沒有留言喔，來搶頭香吧！🐟</div>';
             return;
@@ -385,25 +396,25 @@ function renderComments(postId) {
     });
 }
 
-window.openPostDetail = function(id) {
+window.openPostDetail = function (id) {
     const p = posts.find(x => String(x.id) === String(id));
     if (!p) return;
     currentOpenPostId = id;
 
     const tagBoards = document.querySelectorAll('#detail-board-tag');
     tagBoards.forEach(el => el.innerText = p.board);
-    
+
     const tagAuthors = document.querySelectorAll('#detail-author-tag');
     tagAuthors.forEach(el => el.innerText = p.author || '匿名');
-    
+
     const titleEls = document.querySelectorAll('#detail-post-title');
     titleEls.forEach(el => el.innerText = p.title);
-    
+
     const contentEls = document.querySelectorAll('#detail-post-content');
     contentEls.forEach(el => el.innerText = p.desc);
 
     renderComments(id);
-    
+
     const feedView = document.getElementById('feed-view');
     const detailView = document.getElementById('detail-view');
     const detailModals = document.querySelectorAll('#post-detail-modal');
@@ -417,10 +428,10 @@ window.openPostDetail = function(id) {
     }
 };
 
-window.closePostDetail = function() {
+window.closePostDetail = function () {
     const feedView = document.getElementById('feed-view');
     const detailView = document.getElementById('detail-view');
-    
+
     if (feedView && detailView) {
         detailView.style.display = 'none';
         feedView.style.display = 'block';
@@ -428,17 +439,17 @@ window.closePostDetail = function() {
     }
 };
 
-window.submitComment = function() {
+window.submitComment = function () {
     const inputs = document.querySelectorAll('#new-comment-input');
     let targetInput = null;
-    
+
     for (let i = 0; i < inputs.length; i++) {
-        if (inputs[i].offsetParent !== null) { 
+        if (inputs[i].offsetParent !== null) {
             targetInput = inputs[i];
             break;
         }
     }
-    
+
     if (!targetInput) return;
     const text = targetInput.value.trim();
 
@@ -468,7 +479,7 @@ window.submitComment = function() {
     const p = posts.find(x => String(x.id) === String(currentOpenPostId));
     if (p) {
         p.msgs = getComments(currentOpenPostId).length;
-        applyFilters(); 
+        applyFilters();
     }
 
     const detailView = document.getElementById('detail-view');
@@ -484,10 +495,10 @@ window.submitComment = function() {
     }
 };
 
-window.toggleAction = async function(id, actionType, e) {
+window.toggleAction = async function (id, actionType, e) {
     e.stopPropagation();
     const token = localStorage.getItem("authToken");
-    
+
     if (!token) {
         alert("請先登入才能操作喔！");
         return;
@@ -498,7 +509,7 @@ window.toggleAction = async function(id, actionType, e) {
 
     if (actionType === 'like') {
         if (p.liked) {
-            p.likes = Math.max(0, p.likes - 1); 
+            p.likes = Math.max(0, p.likes - 1);
             p.liked = false;
         } else {
             p.likes++;
@@ -525,7 +536,7 @@ window.toggleAction = async function(id, actionType, e) {
         }
     } catch (error) {
         console.error(`${actionType} 動作失敗:`, error);
-        
+
         if (actionType === 'like') {
             if (p.liked) {
                 p.likes = Math.max(0, p.likes - 1);
@@ -546,38 +557,38 @@ function setupAuth() {
     const userProfile = document.getElementById('user-profile');
     const loginTrigger = document.getElementById('login-trigger');
     const identitySelect = document.getElementById('post-identity');
-    
+
     function updateUI() {
         const user = JSON.parse(localStorage.getItem('currentUser'));
         if (user) {
-            if (loginTrigger) loginTrigger.style.display = 'none'; 
+            if (loginTrigger) loginTrigger.style.display = 'none';
             if (userProfile) userProfile.style.display = 'flex';
             const displayName = user.name || (user.email ? user.email.split('@')[0] : '用戶');
-            
+
             const userNameEl = document.getElementById('user-name');
             if (userNameEl) userNameEl.innerText = displayName;
-            
+
             const userAvatarEl = document.getElementById('user-avatar');
             if (user && user.avatar && userAvatarEl) userAvatarEl.src = user.avatar;
-            
+
             if (identitySelect) {
                 identitySelect.options[0].text = `實名 (${displayName})`;
                 identitySelect.options[0].value = displayName;
             }
         } else {
-            if (loginTrigger) loginTrigger.style.display = 'block'; 
+            if (loginTrigger) loginTrigger.style.display = 'block';
             if (userProfile) userProfile.style.display = 'none';
         }
     }
 
     const logoutBtn = document.getElementById('logout-btn');
-    if(logoutBtn) {
+    if (logoutBtn) {
         logoutBtn.onclick = () => {
-            localStorage.removeItem('currentUser'); 
-            localStorage.removeItem('authToken'); 
-            updateUI(); 
+            localStorage.removeItem('currentUser');
+            localStorage.removeItem('authToken');
+            updateUI();
             alert('已登出！期待再次與你相遇。');
-            window.location.href = "login.html"; 
+            window.location.href = "login.html";
         };
     }
     updateUI();
@@ -587,15 +598,15 @@ function setupNewPost() {
     const form = document.getElementById('new-post-form');
     const btnNewPost = document.getElementById('btn-new-post');
     const closePostModal = document.getElementById('close-post-modal');
-    
-    if (btnNewPost) btnNewPost.onclick = () => document.getElementById('post-modal').style.display='block';
-    if (closePostModal) closePostModal.onclick = () => document.getElementById('post-modal').style.display='none';
-    
+
+    if (btnNewPost) btnNewPost.onclick = () => document.getElementById('post-modal').style.display = 'block';
+    if (closePostModal) closePostModal.onclick = () => document.getElementById('post-modal').style.display = 'none';
+
     if (form) {
         form.onsubmit = async (e) => {
             e.preventDefault();
             const token = localStorage.getItem("authToken");
-            
+
             if (!token) {
                 alert("請先登入才能拋出漂流瓶！");
                 return;
@@ -605,11 +616,11 @@ function setupNewPost() {
             const content = document.getElementById('post-content-input').value;
             const identity = document.getElementById('post-identity').value;
             const isAnonymous = identity === "匿名";
-            
+
             const boardSelect = form.querySelector('#post-board');
             const boardValue = boardSelect ? boardSelect.value : "";
             const selectedCategoryId = Number(boardValue);
-            
+
             const categoryPayload = (boardValue !== "" && !isNaN(selectedCategoryId)) ? [selectedCategoryId] : [];
 
             if (categoryPayload.length === 0) {
@@ -639,9 +650,9 @@ function setupNewPost() {
 
                 if (response.ok) {
                     alert('漂流瓶拋出成功！🎉');
-                    form.reset(); 
-                    document.getElementById('post-modal').style.display='none'; 
-                    fetchBottles(); 
+                    form.reset();
+                    document.getElementById('post-modal').style.display = 'none';
+                    fetchBottles();
                 } else {
                     const err = await response.json();
                     alert(`發文失敗 (狀態碼: ${response.status})：\n${err.message || '未知錯誤'}`);
@@ -659,38 +670,38 @@ document.addEventListener('DOMContentLoaded', () => {
     if (window.location.pathname.includes('saved.html')) {
         currentView = 'saved';
     } else if (window.location.pathname.includes('post.html')) {
-        currentView = 'mine'; 
+        currentView = 'mine';
     } else {
         currentView = 'all';
     }
 
-    setupAuth(); 
+    setupAuth();
     setupNewPost();
-    fetchBottles(); 
-    
+    fetchBottles();
+
     const searchInput = document.getElementById('main-search-input');
     const historyBox = document.getElementById('search-history-dropdown');
-    
+
     if (searchInput && historyBox) {
-        searchInput.oninput = (e) => { 
-            currentKeyword = e.target.value.toLowerCase().trim(); 
-            applyFilters(); 
-            
+        searchInput.oninput = (e) => {
+            currentKeyword = e.target.value.toLowerCase().trim();
+            applyFilters();
+
             renderSearchHistory();
             historyBox.style.width = searchInput.offsetWidth + 'px';
             historyBox.style.left = searchInput.offsetLeft + 'px';
         };
-        
+
         searchInput.onfocus = () => {
             renderSearchHistory();
             historyBox.style.width = searchInput.offsetWidth + 'px';
             historyBox.style.left = searchInput.offsetLeft + 'px';
         };
-        
+
         searchInput.onblur = () => {
             setTimeout(() => { historyBox.style.display = 'none'; }, 200);
         };
-        
+
         searchInput.onkeydown = (e) => {
             if (e.isComposing || e.keyCode === 229) {
                 return;
@@ -698,8 +709,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (e.key === 'Enter') {
                 saveSearchHistory(searchInput.value.trim());
-                historyBox.style.display = 'none'; 
-                searchInput.blur(); 
+                historyBox.style.display = 'none';
+                searchInput.blur();
             }
         };
     }
@@ -712,24 +723,24 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         };
     });
-    
+
     document.querySelectorAll('.sidebar li').forEach(li => li.onclick = (e) => {
         document.querySelectorAll('.sidebar li').forEach(el => el.classList.remove('active'));
         e.target.classList.add('active');
 
         const liText = e.target.innerText.trim();
-        
+
         if (liText.includes('綜合閒聊')) {
             currentBoard = '全部';
-            currentCategoryId = null; 
+            currentCategoryId = null;
         } else {
-            currentBoard = liText.substring(2).trim(); 
+            currentBoard = liText.substring(2).trim();
             currentCategoryId = BOARD_CATEGORY_MAP[liText] || null;
         }
 
         fetchBottles();
     });
-    
+
     const loginTrigger = document.getElementById('login-trigger');
     if (loginTrigger) {
         loginTrigger.onclick = () => { window.location.href = "login.html"; };
@@ -739,7 +750,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const userDropdown = document.getElementById('user-dropdown');
     if (userMenuBtn && userDropdown) {
         userMenuBtn.onclick = (e) => {
-            e.stopPropagation(); 
+            e.stopPropagation();
             userDropdown.classList.toggle('show-dropdown');
         };
     }
@@ -757,12 +768,12 @@ document.addEventListener('DOMContentLoaded', () => {
             if (user) {
                 document.getElementById('detail-avatar').src = user.avatar || 'images/fish_logo.png';
                 document.getElementById('detail-name').innerText = user.name || '未設定姓名';
-                document.getElementById('detail-email').innerText = user.email; 
+                document.getElementById('detail-email').innerText = user.email;
                 document.getElementById('detail-birthday').innerText = user.birthday ? user.birthday.split('T')[0] : '未填寫';
                 document.getElementById('detail-gender').innerText = user.gender || '未填寫';
                 document.getElementById('detail-zodiac').innerText = user.zodiac || user.constellation || '未填寫';
                 document.getElementById('detail-bio').innerText = user.bio || '這瓶子裡目前空空的...';
-                
+
                 profileModal.style.display = 'block';
             } else {
                 alert('請先登入！');
@@ -773,7 +784,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const detailModals = document.querySelectorAll('#post-detail-modal');
     const closeDetailBtns = document.querySelectorAll('#close-detail-modal');
     const closeProfileBtn = document.getElementById('close-profile-modal');
-    
+
     if (closeProfileBtn) {
         closeProfileBtn.onclick = () => profileModal.style.display = 'none';
     }
@@ -786,10 +797,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     window.onclick = (event) => {
         const postModal = document.getElementById('post-modal');
-        
+
         if (profileModal && event.target == profileModal) profileModal.style.display = 'none';
         if (postModal && event.target == postModal) postModal.style.display = 'none';
-        
+
         detailModals.forEach(m => {
             if (event.target == m) m.style.display = 'none';
         });
@@ -801,7 +812,7 @@ document.addEventListener('change', (e) => {
         const file = e.target.files[0];
         if (file) {
             const reader = new FileReader();
-            reader.onload = function(event) {
+            reader.onload = function (event) {
                 const imageUrl = event.target.result;
                 if (document.getElementById('detail-avatar')) document.getElementById('detail-avatar').src = imageUrl;
                 if (document.getElementById('user-avatar')) document.getElementById('user-avatar').src = imageUrl;
