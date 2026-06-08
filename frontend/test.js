@@ -3,8 +3,12 @@ const API_BASE_URL = "http://163.17.135.120";
 
 let posts = [];
 let currentKeyword = '';
-let currentBoard = '全部';
-let currentCategoryId = null; // 🔴 新增：對應後端的 categoryId 參數
+
+// 🟢 安全讀取：如果有紀錄就讀取，沒紀錄就給預設值
+let currentBoard = sessionStorage.getItem('savedBoard') || '全部';
+let savedCatId = sessionStorage.getItem('savedCategoryId');
+let currentCategoryId = savedCatId ? Number(savedCatId) : null;
+
 let currentView = 'all'; // 🔴 紀錄狀態：'all' (一般), 'saved' (收藏頁), 'mine' (我的文章頁)
 
 // 看板名稱 -> 後端 categoryId 對照表
@@ -374,11 +378,11 @@ function renderComments(postId) {
                     <div style="display: flex; justify-content: space-between; margin-bottom: 12px; align-items: center;">
                         <span style="font-size: 1rem; font-weight: bold; color: #333; display: flex; align-items: center; gap: 12px;">
                             <img src="${c.avatar}" style="width: 36px; height: 36px; border-radius: 50%; object-fit: cover; box-shadow: 0 1px 3px rgba(0,0,0,0.08);">
-                            ${c.author}
+                            ${escapeHTML(c.author)}
                         </span>
                         <span style="font-size: 0.85rem; color: #aaa; font-weight: bold;">B${index + 1}</span>
                     </div>
-                    <div style="color: #222; font-size: 1.05rem; line-height: 1.7; padding-left: 48px; white-space: pre-wrap; margin-bottom: 10px;">${c.text}</div>
+                    <div style="color: #222; font-size: 1.05rem; line-height: 1.7; padding-left: 48px; white-space: pre-wrap; margin-bottom: 10px;">${escapeHTML(c.text)}</div>
                     
                     <div style="text-align: right; padding-right: 15px;">
                         <span style="cursor: pointer; color: ${isLiked ? '#e74c3c' : '#999'}; font-size: 0.95rem; user-select: none; transition: 0.2s;" onclick="toggleCommentLike('${postId}', ${index})">
@@ -473,7 +477,13 @@ window.submitComment = function () {
     };
 
     saveComment(currentOpenPostId, newComment);
-    targetInput.value = '';
+    
+    // 🟢 延遲 50 毫秒清空：讓瀏覽器有時間把剛剛送出的字存進歷史紀錄
+    setTimeout(() => {
+        inputs.forEach(inp => inp.value = ''); 
+        if (targetInput) targetInput.value = ''; 
+    }, 50);
+    
     renderComments(currentOpenPostId);
 
     const p = posts.find(x => String(x.id) === String(currentOpenPostId));
@@ -561,7 +571,7 @@ function setupAuth() {
 
     function updateUI() {
         const user = JSON.parse(localStorage.getItem('currentUser') || '{}');
-        const token = localStorage.getItem('authToken'); // 雙重驗證
+        const token = localStorage.getItem('authToken');
 
         if (user && Object.keys(user).length > 0 && token) {
             if (loginTrigger) loginTrigger.style.display = 'none';
@@ -579,15 +589,14 @@ function setupAuth() {
                 identitySelect.options[0].value = displayName;
             }
 
-            // 🟢 嚴格驗證：確定 role 是 ADMIN 才會動態產生按鈕
             if (user.role === 'ADMIN' && userDropdown) {
                 if (!document.getElementById('admin-link-item')) {
                     const adminLink = document.createElement('div');
                     adminLink.id = 'admin-link-item';
-                    adminLink.className = 'menu-item'; // 套用你寫好的 menu-item 樣式，hover 才會亮
+                    adminLink.className = 'menu-item'; 
                     adminLink.style.color = '#e74c3c'; 
                     adminLink.style.fontWeight = 'bold';
-                    adminLink.style.borderTop = '1px solid #eee'; // 與上面的選項做區隔
+                    adminLink.style.borderTop = '1px solid #eee'; 
                     adminLink.innerHTML = '🛠️ 進入後台';
                     
                     adminLink.onclick = (e) => {
@@ -595,7 +604,6 @@ function setupAuth() {
                         window.location.href = 'admin.html';
                     };
 
-                    // 剛好插在最後一個元素（退出登入）的前面
                     userDropdown.insertBefore(adminLink, userDropdown.lastElementChild);
                 }
             } else {
@@ -705,6 +713,18 @@ document.addEventListener('DOMContentLoaded', () => {
         currentView = 'all';
     }
 
+    // 🟢 網頁載入時，根據記憶的 currentBoard 自動為側邊欄加上 active 樣式
+    document.querySelectorAll('.sidebar li').forEach(li => {
+        li.classList.remove('active'); // 先清除所有亮起狀態
+        const liText = li.innerText.trim();
+        
+        if (currentBoard === '全部' && liText.includes('綜合閒聊')) {
+            li.classList.add('active');
+        } else if (currentBoard !== '全部' && liText.includes(currentBoard)) {
+            li.classList.add('active');
+        }
+    });
+
     setupAuth();
     setupNewPost();
     fetchBottles();
@@ -745,13 +765,35 @@ document.addEventListener('DOMContentLoaded', () => {
         };
     }
 
+    // 🟢 終極魔法：把所有留言區塊動態轉成 <form>，讓瀏覽器 100% 啟動記憶功能！
     const commentInputs = document.querySelectorAll('#new-comment-input');
     commentInputs.forEach(input => {
-        input.onkeydown = (e) => {
-            if (e.key === 'Enter') {
-                submitComment();
+        input.setAttribute('name', 'user_comment_history'); // 給它一個名字，瀏覽器才認得
+        input.setAttribute('autocomplete', 'off'); // 🔴 徹底關閉歷史紀錄小窗格
+        
+        const wrapper = input.parentElement;
+        if (wrapper && wrapper.tagName.toLowerCase() === 'div') {
+            const form = document.createElement('form');
+            form.style.cssText = wrapper.style.cssText; // 完整繼承原本的 CSS 樣式
+            
+            form.onsubmit = (e) => {
+                e.preventDefault(); // 擋住網頁重新整理
+                submitComment();    // 執行我們的留言邏輯
+            };
+            
+            // 把輸入框跟按鈕搬進 form 裡面
+            while (wrapper.firstChild) {
+                form.appendChild(wrapper.firstChild);
             }
-        };
+            wrapper.parentNode.replaceChild(form, wrapper);
+            
+            // 將原本的 onclick 按鈕改成正規的 submit 按鈕
+            const btn = form.querySelector('button');
+            if (btn) {
+                btn.type = 'submit';
+                btn.removeAttribute('onclick');
+            }
+        }
     });
 
     document.querySelectorAll('.sidebar li').forEach(li => li.onclick = (e) => {
@@ -763,10 +805,19 @@ document.addEventListener('DOMContentLoaded', () => {
         if (liText.includes('綜合閒聊')) {
             currentBoard = '全部';
             currentCategoryId = null;
+            // 🟢 安全清除：不存 null，直接把紀錄刪掉，防止產生 NaN 錯誤
+            sessionStorage.removeItem('savedCategoryId'); 
         } else {
             currentBoard = liText.substring(2).trim();
             currentCategoryId = BOARD_CATEGORY_MAP[liText] || null;
+            // 🟢 只有當有真正的 ID 時才儲存
+            if (currentCategoryId !== null) {
+                sessionStorage.setItem('savedCategoryId', currentCategoryId);
+            }
         }
+        
+        // 記憶當前的看板名稱
+        sessionStorage.setItem('savedBoard', currentBoard);
 
         fetchBottles();
     });
