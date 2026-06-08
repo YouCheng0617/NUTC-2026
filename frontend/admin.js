@@ -147,17 +147,31 @@ async function loadBottles() {
 
         // 🌟 這裡全數套用 escapeHTML 淨化與動態彩色標籤！
         tbody.innerHTML = bottles.map((b, index) => {
-            // 1. 往下挖找真實分類 (支援後端 Prisma 的俄羅斯娃娃結構)
-            let rawCat = b.category_name || null;
-            if (!rawCat && b.category_list && b.category_list.length > 0) {
-                rawCat = b.category_list[0];
-            }
-            if (!rawCat && b.categories && b.categories.length > 0) {
-                rawCat = b.categories[0].category?.name;
-            }
-            if (!rawCat) {
-                rawCat = '綜合閒聊';
-            }
+            // 1. 往下挖找真實分類
+let rawCat = b.category_name || null;
+
+// 修正後的解析邏輯
+if (!rawCat && b.categories && b.categories.length > 0) {
+    // 檢查是不是純字串陣列 (例如 ["遊戲專區"])
+    if (typeof b.categories[0] === 'string') {
+        rawCat = b.categories[0]; 
+    } 
+    // 檢查是不是以前那種複雜物件陣列 (例如 [{category: {name: "..."}}])
+    else if (b.categories[0].category?.name) {
+        rawCat = b.categories[0].category.name;
+    }
+}
+
+// 支援 category_list 的備用方案
+if (!rawCat && b.category_list && b.category_list.length > 0) {
+    rawCat = b.category_list[0];
+}
+
+// 預設值
+if (!rawCat) {
+    rawCat = '綜合閒聊';
+}
+
 
             // 2. 根據名稱給予專屬 Emoji 與繽紛色彩
             let catHtml = '';
@@ -174,7 +188,7 @@ async function loadBottles() {
             return `
             <tr>
                 <td>#${escapeHTML(String(b.bottle_id || b.id))}</td>
-                <td>${escapeHTML(String(b.author_name || b.author?.name || b.author || '匿名'))}</td>
+                <td>${escapeHTML(String(b.member_name || b.author_name || b.author?.name || b.author || '匿名'))}</td>
                 <td>${escapeHTML(String(b.title))}</td>
                 <td>${catHtml}</td>
                 <td>${b.created_at ? new Date(b.created_at).toLocaleDateString() : new Date().toLocaleDateString()}</td>
