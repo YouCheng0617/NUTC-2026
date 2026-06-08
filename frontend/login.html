@@ -214,7 +214,7 @@
 
   <script>
     // ✨ 統一設定後端網址
-    const API_BASE_URL = "http://163.17.135.120";
+    const API_BASE_URL = "https://163.17.135.120";
 
     function openAuthModal() {
       document.getElementById("auth-modal").style.display = "flex";
@@ -307,21 +307,26 @@
     /*驗證碼*/
     async function loadCaptcha() {
       const container = document.getElementById("captcha-container");
-      const idInput = document.getElementById("captcha-id");
+      const idInput = document.getElementById("captcha-id"); // 假設您的 HTML 有這個 input
 
       try {
-        const reponse = await fetch(`${API_BASE_URL}/captcha`)
-        if (!reponse.ok) throw new Error("驗證碼載入失敗")
+        const response = await fetch(`${API_BASE_URL}/captcha`);
+        if (!response.ok) throw new Error("驗證碼載入失敗");
 
-        const data = await reponse.json();
+        // 1. 使用 .json() 解析
+        const data = await response.json();
 
+        // 2. 將 SVG 字串 (data.image) 塞入容器
         container.innerHTML = data.image;
-        idInput.value = data.captchaId;
-      } catch (error) {
-        console.log("驗證碼載入錯誤", error)
-        container.innerHTML = "<span>載入失敗，點擊重試</span>"
-      }
 
+        // 3. 如果有 captchaId，請填入隱藏欄位 (這對登入驗證很重要)
+        if (idInput) {
+          idInput.value = data.captchaId;
+        }
+      } catch (error) {
+        console.log("驗證碼載入錯誤", error);
+        container.innerHTML = "<span>載入失敗，點擊重試</span>";
+      }
     }
 
     // 🌊 串接後端登入 API

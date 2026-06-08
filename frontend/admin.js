@@ -1,7 +1,7 @@
 // ==========================================
 // 1. 設定基礎參數
 // ==========================================
-const API_BASE_URL = "http://163.17.135.120";
+const API_BASE_URL = "https://163.17.135.120";
 
 // ==========================================
 // 2. 頁面初始化 (正式安全版)
@@ -148,29 +148,29 @@ async function loadBottles() {
         // 🌟 這裡全數套用 escapeHTML 淨化與動態彩色標籤！
         tbody.innerHTML = bottles.map((b, index) => {
             // 1. 往下挖找真實分類
-let rawCat = b.category_name || null;
+            let rawCat = b.category_name || null;
 
-// 修正後的解析邏輯
-if (!rawCat && b.categories && b.categories.length > 0) {
-    // 檢查是不是純字串陣列 (例如 ["遊戲專區"])
-    if (typeof b.categories[0] === 'string') {
-        rawCat = b.categories[0]; 
-    } 
-    // 檢查是不是以前那種複雜物件陣列 (例如 [{category: {name: "..."}}])
-    else if (b.categories[0].category?.name) {
-        rawCat = b.categories[0].category.name;
-    }
-}
+            // 修正後的解析邏輯
+            if (!rawCat && b.categories && b.categories.length > 0) {
+                // 檢查是不是純字串陣列 (例如 ["遊戲專區"])
+                if (typeof b.categories[0] === 'string') {
+                    rawCat = b.categories[0];
+                }
+                // 檢查是不是以前那種複雜物件陣列 (例如 [{category: {name: "..."}}])
+                else if (b.categories[0].category?.name) {
+                    rawCat = b.categories[0].category.name;
+                }
+            }
 
-// 支援 category_list 的備用方案
-if (!rawCat && b.category_list && b.category_list.length > 0) {
-    rawCat = b.category_list[0];
-}
+            // 支援 category_list 的備用方案
+            if (!rawCat && b.category_list && b.category_list.length > 0) {
+                rawCat = b.category_list[0];
+            }
 
-// 預設值
-if (!rawCat) {
-    rawCat = '綜合閒聊';
-}
+            // 預設值
+            if (!rawCat) {
+                rawCat = '綜合閒聊';
+            }
 
 
             // 2. 根據名稱給予專屬 Emoji 與繽紛色彩

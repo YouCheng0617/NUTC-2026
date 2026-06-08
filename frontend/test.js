@@ -1,5 +1,5 @@
 // ✨ 統一設定後端網址
-const API_BASE_URL = "http://163.17.135.120";
+const API_BASE_URL = "https://163.17.135.120";
 
 let posts = [];
 let currentKeyword = '';
@@ -109,7 +109,7 @@ async function fetchBottles() {
                 else if (rawItem.User?.name) authorName = rawItem.User.name;
                 else if (rawItem.member?.name) authorName = rawItem.member.name;
                 else if (item.member?.name) authorName = item.member.name;
-                else if (item.member_name) authorName = item.member_name; 
+                else if (item.member_name) authorName = item.member_name;
                 else if (rawItem.member_name) authorName = rawItem.member_name;
 
                 if (authorName === "用戶" && currentView === 'mine') {
@@ -478,12 +478,12 @@ window.submitComment = function () {
     };
 
     saveComment(currentOpenPostId, newComment);
-    
+
     setTimeout(() => {
-        inputs.forEach(inp => inp.value = ''); 
-        if (targetInput) targetInput.value = ''; 
+        inputs.forEach(inp => inp.value = '');
+        if (targetInput) targetInput.value = '';
     }, 50);
-    
+
     renderComments(currentOpenPostId);
 
     const p = posts.find(x => String(x.id) === String(currentOpenPostId));
@@ -567,7 +567,7 @@ function setupAuth() {
     const userProfile = document.getElementById('user-profile');
     const loginTrigger = document.getElementById('login-trigger');
     const identitySelect = document.getElementById('post-identity');
-    const userDropdown = document.getElementById('user-dropdown'); 
+    const userDropdown = document.getElementById('user-dropdown');
 
     function updateUI() {
         const user = JSON.parse(localStorage.getItem('currentUser') || '{}');
@@ -593,14 +593,14 @@ function setupAuth() {
                 if (!document.getElementById('admin-link-item')) {
                     const adminLink = document.createElement('div');
                     adminLink.id = 'admin-link-item';
-                    adminLink.className = 'menu-item'; 
-                    adminLink.style.color = '#e74c3c'; 
+                    adminLink.className = 'menu-item';
+                    adminLink.style.color = '#e74c3c';
                     adminLink.style.fontWeight = 'bold';
-                    adminLink.style.borderTop = '1px solid #eee'; 
+                    adminLink.style.borderTop = '1px solid #eee';
                     adminLink.innerHTML = '🛠️ 進入後台';
-                    
+
                     adminLink.onclick = (e) => {
-                        e.stopPropagation(); 
+                        e.stopPropagation();
                         window.location.href = 'admin.html';
                     };
 
@@ -717,7 +717,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.querySelectorAll('.sidebar li').forEach(li => {
         li.classList.remove('active'); // 先清除所有亮起狀態
         const liText = li.innerText.trim();
-        
+
         if (liText.includes(currentBoard)) {
             li.classList.add('active');
         }
@@ -766,24 +766,24 @@ document.addEventListener('DOMContentLoaded', () => {
     // 🟢 終極魔法：把所有留言區塊動態轉成 <form>
     const commentInputs = document.querySelectorAll('#new-comment-input');
     commentInputs.forEach(input => {
-        input.setAttribute('name', 'user_comment_history'); 
-        input.setAttribute('autocomplete', 'off'); 
-        
+        input.setAttribute('name', 'user_comment_history');
+        input.setAttribute('autocomplete', 'off');
+
         const wrapper = input.parentElement;
         if (wrapper && wrapper.tagName.toLowerCase() === 'div') {
             const form = document.createElement('form');
-            form.style.cssText = wrapper.style.cssText; 
-            
+            form.style.cssText = wrapper.style.cssText;
+
             form.onsubmit = (e) => {
-                e.preventDefault(); 
-                submitComment();    
+                e.preventDefault();
+                submitComment();
             };
-            
+
             while (wrapper.firstChild) {
                 form.appendChild(wrapper.firstChild);
             }
             wrapper.parentNode.replaceChild(form, wrapper);
-            
+
             const btn = form.querySelector('button');
             if (btn) {
                 btn.type = 'submit';
@@ -799,9 +799,9 @@ document.addEventListener('DOMContentLoaded', () => {
         const liText = e.target.innerText.trim();
 
         // 🟢 抓取版面名稱與 ID
-        currentBoard = liText.substring(2).trim(); 
-        currentCategoryId = BOARD_CATEGORY_MAP[liText] || 1; 
-        
+        currentBoard = liText.substring(2).trim();
+        currentCategoryId = BOARD_CATEGORY_MAP[liText] || 1;
+
         sessionStorage.setItem('savedCategoryId', currentCategoryId);
         sessionStorage.setItem('savedBoard', currentBoard);
 
