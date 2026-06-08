@@ -415,7 +415,7 @@
         return;
       }
 
-      const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z]).{8, 16}$/;
+      const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z]).{8,16}$/;
       if (!passwordRegex.test(password)) {
         showModalError(
           "⚠️ 密碼格式錯誤！請設定 8~16 字元，且必須包含「英文大寫」與「小寫」。",
