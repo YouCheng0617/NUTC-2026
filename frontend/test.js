@@ -4,10 +4,10 @@ const API_BASE_URL = "http://163.17.135.120";
 let posts = [];
 let currentKeyword = '';
 
-// 🟢 安全讀取：如果有紀錄就讀取，沒紀錄就給預設值
-let currentBoard = sessionStorage.getItem('savedBoard') || '全部';
+// 🟢 安全讀取：如果有紀錄就讀取，沒紀錄預設就在「綜合閒聊」
+let currentBoard = sessionStorage.getItem('savedBoard') || '綜合閒聊';
 let savedCatId = sessionStorage.getItem('savedCategoryId');
-let currentCategoryId = savedCatId ? Number(savedCatId) : null;
+let currentCategoryId = savedCatId !== null ? Number(savedCatId) : 1; // 預設 1 是綜合閒聊
 
 let currentView = 'all'; // 🔴 紀錄狀態：'all' (一般), 'saved' (收藏頁), 'mine' (我的文章頁)
 
@@ -95,7 +95,7 @@ async function fetchBottles() {
                 let totalLikes = parseInt(item.like_count || item.likeCount || item.likes || item.view_count || rawItem.like_count || 0, 10);
                 if (isActuallyLiked && totalLikes === 0) totalLikes = 1;
 
-                // 🟢 終極名字解析：加上後端剛剛揭曉的 member_name
+                // 🟢 終極名字解析
                 let authorName = "用戶";
                 if (typeof item.author === 'string') authorName = item.author;
                 else if (item.author?.name) authorName = item.author.name;
@@ -218,7 +218,8 @@ function applyFilters() {
         res = res.filter(p => p.saved === true);
     } else if (currentView === 'mine') {
     } else {
-        if (currentBoard !== '全部') res = res.filter(p => p.board.includes(currentBoard));
+        // 🟢 嚴格過濾目前的看板
+        res = res.filter(p => p.board.includes(currentBoard));
     }
 
     if (currentKeyword) {
@@ -478,7 +479,6 @@ window.submitComment = function () {
 
     saveComment(currentOpenPostId, newComment);
     
-    // 🟢 延遲 50 毫秒清空：讓瀏覽器有時間把剛剛送出的字存進歷史紀錄
     setTimeout(() => {
         inputs.forEach(inp => inp.value = ''); 
         if (targetInput) targetInput.value = ''; 
@@ -718,9 +718,7 @@ document.addEventListener('DOMContentLoaded', () => {
         li.classList.remove('active'); // 先清除所有亮起狀態
         const liText = li.innerText.trim();
         
-        if (currentBoard === '全部' && liText.includes('綜合閒聊')) {
-            li.classList.add('active');
-        } else if (currentBoard !== '全部' && liText.includes(currentBoard)) {
+        if (liText.includes(currentBoard)) {
             li.classList.add('active');
         }
     });
@@ -765,29 +763,27 @@ document.addEventListener('DOMContentLoaded', () => {
         };
     }
 
-    // 🟢 終極魔法：把所有留言區塊動態轉成 <form>，讓瀏覽器 100% 啟動記憶功能！
+    // 🟢 終極魔法：把所有留言區塊動態轉成 <form>
     const commentInputs = document.querySelectorAll('#new-comment-input');
     commentInputs.forEach(input => {
-        input.setAttribute('name', 'user_comment_history'); // 給它一個名字，瀏覽器才認得
-        input.setAttribute('autocomplete', 'off'); // 🔴 徹底關閉歷史紀錄小窗格
+        input.setAttribute('name', 'user_comment_history'); 
+        input.setAttribute('autocomplete', 'off'); 
         
         const wrapper = input.parentElement;
         if (wrapper && wrapper.tagName.toLowerCase() === 'div') {
             const form = document.createElement('form');
-            form.style.cssText = wrapper.style.cssText; // 完整繼承原本的 CSS 樣式
+            form.style.cssText = wrapper.style.cssText; 
             
             form.onsubmit = (e) => {
-                e.preventDefault(); // 擋住網頁重新整理
-                submitComment();    // 執行我們的留言邏輯
+                e.preventDefault(); 
+                submitComment();    
             };
             
-            // 把輸入框跟按鈕搬進 form 裡面
             while (wrapper.firstChild) {
                 form.appendChild(wrapper.firstChild);
             }
             wrapper.parentNode.replaceChild(form, wrapper);
             
-            // 將原本的 onclick 按鈕改成正規的 submit 按鈕
             const btn = form.querySelector('button');
             if (btn) {
                 btn.type = 'submit';
@@ -802,22 +798,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const liText = e.target.innerText.trim();
 
-        if (liText.includes('綜合閒聊')) {
-            currentBoard = '全部';
-            currentCategoryId = null;
-            // 🟢 安全清除：不存 null，直接把紀錄刪掉，防止產生 NaN 錯誤
-            sessionStorage.removeItem('savedCategoryId'); 
-        } else {
-            currentBoard = liText.substring(2).trim();
-            currentCategoryId = BOARD_CATEGORY_MAP[liText] || null;
-            // 🟢 只有當有真正的 ID 時才儲存
-            if (currentCategoryId !== null) {
-                sessionStorage.setItem('savedCategoryId', currentCategoryId);
-            }
-        }
+        // 🟢 抓取版面名稱與 ID
+        currentBoard = liText.substring(2).trim(); 
+        currentCategoryId = BOARD_CATEGORY_MAP[liText] || 1; 
         
-        // 記憶當前的看板名稱
+        sessionStorage.setItem('savedCategoryId', currentCategoryId);
         sessionStorage.setItem('savedBoard', currentBoard);
+
+        // 🟢 【關鍵修復】解決當前問題：按左邊熱門看板時，如果正在看文章內頁，要自動跳回列表頁面！
+        closePostDetail();
 
         fetchBottles();
     });
