@@ -21,7 +21,9 @@
     "jsonwebtoken": "^9.0.3",
     "nodemailer": "^8.0.10",
     "resend": "^6.12.4",
-    "tsx": "^4.21.0"
+    "svg-captcha": "^1.4.0",
+    "tsx": "^4.21.0",
+    "uuid": "^14.0.0"
   },
   "devDependencies": {
     "@prisma/client": "^6.0.0",

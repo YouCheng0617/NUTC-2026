@@ -1,9 +1,9 @@
 import { Router } from "express";
 import { authCheck, type AuthRequest } from "../middleware/auth.middleware.js";
 import { authController } from "./auth.controller.js"
+
 export function authRouter() {
     const router = Router();
-
     // Define your authentication routes here
     router.post('/login', authController.login);
     router.post('/register', authController.register);

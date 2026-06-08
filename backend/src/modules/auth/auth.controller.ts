@@ -1,17 +1,24 @@
 import type { Request, Response } from "express";
 import { createMember, loginMember, forgotPassword, resetPassword } from "./auth.service.js";
 import { countHelper } from "../../lib/countHelper.js";
+import { verifyCaptcha } from "../../lib/captchaHelper.js";
 import prisma from "../../lib/prisma.js";
-
 export class AuthController {
 
     async login(req: Request, res: Response) {
         try {
-            const { email, password } = req.body;
+            const { email, password, captchaId, userInput } = req.body;
+            if (!captchaId || !userInput) {
+                return res.status(400).json({ message: "驗證碼為必填欄位" });
+            }
+            if (!verifyCaptcha(captchaId, userInput)) {
+                return res.status(400).json({ message: "驗證碼錯誤或已過期，請重新輸入" });
+            }
             if (!email || !password) {
                 return res.status(400).json({ message: "信箱與密碼為必填欄位" });
             }
             const token = await loginMember(email, password);
+
             res.status(200).json({
                 message: "登入成功!歡迎回來",
                 data: { result: token }

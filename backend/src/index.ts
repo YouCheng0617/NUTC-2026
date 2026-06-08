@@ -3,6 +3,7 @@ import cors from 'cors';
 import { authRouter } from './modules/auth/auth.router.js';
 import { bottleRouter } from './modules/bottle/bottle.router.js';
 import { adminRouter } from './modules/admin/admin.router.js';
+import { generateCaptcha } from './lib/captchaHelper.js';
 import prisma from './lib/prisma.js';
 import "dotenv/config";
 const app = express();
@@ -20,32 +21,11 @@ app.get('/', (req, res) => {
     res.send('🌊 漂流瓶 API 伺服器正常運作中！請對接 /auth 或 /bottles');
 });
 
-app.get('/test-db', async (req, res) => {
-    try {
-        const member = await prisma.member.findMany({
-            select: {
-                member_id: true,
-                email: true,
-                name: true,
-                birthday: true,
-                blood_type: true,
-                constellation: true,
-                bio: true,
-            }
-        });
-
-        res.json({
-            data: member
-        });
-
-    } catch {
-        console.error
-        res.status(500).json({
-            message: "連線失敗",
-            data: String("error")
-        });
-    }
+app.get('/captcha', (req, res) => {
+    const { captchaId, image } = generateCaptcha();
+    res.json({ captchaId, image });
 });
+
 
 
 app.listen(80, () => {
