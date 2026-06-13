@@ -226,7 +226,8 @@ function applyFilters() {
         res = res.filter(p =>
             (p.title && p.title.toLowerCase().includes(currentKeyword)) ||
             (p.desc && p.desc.toLowerCase().includes(currentKeyword)) ||
-            (p.board && p.board.toLowerCase().includes(currentKeyword))
+            (p.board && p.board.toLowerCase().includes(currentKeyword)) ||
+            (p.author && p.author.toLowerCase().includes(currentKeyword)) // 🔴 關鍵升級：直接把作者也加進來一起搜！
         );
     }
 
@@ -607,15 +608,15 @@ function setupAuth() {
                     userDropdown.insertBefore(adminLink, userDropdown.lastElementChild);
                 }
             } else {
-                const existingBtn = document.getElementById('admin-link-item');
-                if (existingBtn) existingBtn.remove();
+                const btnNewPost = document.getElementById('btn-new-post');
+if (btnNewPost) btnNewPost.style.display = 'block'; 
             }
 
         } else {
             if (loginTrigger) loginTrigger.style.display = 'block';
             if (userProfile) userProfile.style.display = 'none';
-            const existingBtn = document.getElementById('admin-link-item');
-            if (existingBtn) existingBtn.remove();
+            const btnNewPost = document.getElementById('btn-new-post');
+if (btnNewPost) btnNewPost.style.display = 'block';
         }
     }
 
