@@ -2,9 +2,11 @@ import { Router } from "express";
 import type { Request, Response } from "express";
 import prisma from "../../lib/prisma.js";
 import dotenv from "dotenv";
-import { getMybottles, likeBottles, saveBottles, getMyLikedBottles, getMySavedBottles } from "./bottle.service.js";
+import { getMybottles, likeBottles, saveBottles, getMyLikedBottles, getMySavedBottles, deleteMyBottle } from "./bottle.service.js";
 export interface TokenPayload {
     member_id: number;
+    email: string;
+    role: string;
 }
 export interface AuthRequest extends Request {
     user?: TokenPayload;
@@ -17,19 +19,35 @@ export const bottleController = {
         try {
             const { title, content, isAnonymous, category_id } = req.body;
             const memberId = req.user?.member_id;
+            const role = req.user?.role; // 🌟 取得剛才從 Middleware 傳過來的權限
 
+            // 1. 基本身分防呆
+            if (!memberId) {
+                return res.status(401).json({ message: "未授權，請先登入" });
+            }
+
+            // 🌟 2. 核心防護：如果是管理員，直接請他換帳號！
+            if (role === "ADMIN") {
+                return res.status(403).json({
+                    message: "管理員帳號無法發文，請切換至一般帳號發文"
+                });
+            }
+
+            // 3. 資料格式防呆
             if (!title || !content) {
                 return res.status(400).json({ message: "瓶子標題和內容不能是空的" });
             }
             if (!Array.isArray(category_id) || category_id.length === 0) {
                 return res.status(400).json({ message: "請至少選擇一個分類" });
             }
+
+            // 4. 寫入資料庫
             const newBottle = await prisma.bottle.create({
                 data: {
                     title,
                     content,
                     is_anonymous: isAnonymous || false,
-                    member_id: memberId!,
+                    member_id: memberId, // 這裡已經確定有 memberId，可以直接放
                     status: 1,  /* 暫時預設審核通過 */
                     categories: {
                         create: category_id.map((id: number) => ({
@@ -261,6 +279,30 @@ export const bottleController = {
             res.status(200).json(bottles);
         } catch (error) {
             console.error("Error fetching saved bottles:", error);
+            res.status(500).json({ message: "內部伺服器錯誤" });
+        }
+    },
+
+    async deleteMyBottle(req: AuthRequest, res: Response) {
+        try {
+            const bottleId = Number(req.params.bottleId);
+            const memberId = req.user?.member_id as number;
+
+            if (!memberId) {
+                return res.status(401).json({ message: "未授權，請先登入" });
+            }
+            if (isNaN(bottleId)) {
+                return res.status(400).json({ message: "無效的瓶子 ID" });
+            }
+
+            await deleteMyBottle(bottleId, memberId);
+            res.status(200).json({ message: "文章刪除成功" });
+
+        } catch (error: any) {
+            if (error.message === "BOTTLE_NOT_FOUND or FORBIDDEN_NOT_AUTHOR") {
+                return res.status(404).json({ message: "找不到該文章 或 權限不足" });
+            }
+            console.error("Error deleting bottle:", error);
             res.status(500).json({ message: "內部伺服器錯誤" });
         }
     },

@@ -117,3 +117,8 @@ Headers要給 x-api-key (跟我拿)
     "status": 1, 
     "violation_reason": "" /*如果輸入1就不用填，輸入2就要填*/
 }
+
+刪除自己的文章 DELETE 給Token /:bottleId/delete (:後是他的id，例如給id 11文章刪除，/bottles/11/delete)
+管理員刪除文章 DELETE 給Token /admin/bottles/:bottleId/delete (:後是他的id，例如給id 11文章刪除，/admin/bottles/11/delete)
+
+

@@ -119,7 +119,7 @@ export const getMyLikedBottles = async (memberId: number) => {
 
 /*儲存/取消儲存瓶子*/
 export const saveBottles = async (bottleId: number, memberId: number) => {
-    // 1. 先查有沒有按過讚
+    // 1. 先查有沒有儲存
     const existingSave = await prismaClient.bottleSave.findUnique({
         where: {
             member_id_bottle_id: {
@@ -201,4 +201,22 @@ export const getMySavedBottles = async (memberId: number) => {
             category_list: record.bottle.categories.map(c => c.category?.name || "未知類別")
         };
     });
+};
+
+/*刪除自己的文章*/
+export const deleteMyBottle = async (bottleId: number, memberId: number) => {
+    const bottle = await prismaClient.bottle.findUnique({
+        where: { bottle_id: bottleId },
+        select: { member_id: true }
+    });
+
+    if (!bottle || bottle.member_id !== memberId) {
+        throw new Error("BOTTLE_NOT_FOUND or FORBIDDEN_NOT_AUTHOR");
+    }
+
+    await prismaClient.bottle.delete({
+        where: { bottle_id: bottleId }
+    });
+
+    return true;
 };

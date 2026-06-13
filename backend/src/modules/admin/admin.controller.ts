@@ -1,5 +1,5 @@
 import type { Response, Request } from "express";
-import { getAllMembers, changeMemberStatus, getAllBottlesForAdmin, updateBottleStatus } from "./admin.service.js";
+import { getAllMembers, changeMemberStatus, getAllBottlesForAdmin, updateBottleStatus, deleteBottleByAdmin } from "./admin.service.js";
 
 export class AdminController {
 
@@ -84,6 +84,24 @@ export class AdminController {
                 return res.status(404).json({ message: "找不到該漂流瓶，請檢查瓶子 ID" });
             }
             return res.status(500).json({ message: "內部伺服器錯誤" });
+        }
+    }
+    async deleteBottle(req: Request, res: Response) {
+        try {
+            const bottleId = Number(req.params.bottleId);
+
+            if (isNaN(bottleId)) {
+                return res.status(400).json({ message: "無效的瓶子 ID" });
+            }
+            await deleteBottleByAdmin(bottleId);
+            return res.status(200).json({ message: "漂流瓶已成功刪除" });
+
+        } catch (error: any) {
+            if (error.message === "BOTTLE_NOT_FOUND" || error.code === 'P2025') {
+                return res.status(404).json({ message: "找不到該漂流瓶，請檢查瓶子 ID" });
+            }
+            console.error("Error deleting bottle:", error);
+            res.status(500).json({ message: "內部伺服器錯誤" });
         }
     }
 }

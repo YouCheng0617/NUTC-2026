@@ -22,7 +22,7 @@ export const getAllMembers = async () => {
         }
     });
     return members;
-}
+};
 
 export const changeMemberStatus = async (member_id: number, newStatus: "ACTIVE" | "INACTIVE" | "BANNED") => {
     const updatedMember = await prisma.member.update({
@@ -36,7 +36,7 @@ export const changeMemberStatus = async (member_id: number, newStatus: "ACTIVE" 
         }
     });
     return updatedMember;
-}
+};
 
 export const getAllBottlesForAdmin = async () => {
     const bottles = await prisma.bottle.findMany({
@@ -90,4 +90,17 @@ export const updateBottleStatus = async (bottle_id: number, newStatus: number, v
         }
     });
     return updatedBottle;
+};
+
+export const deleteBottleByAdmin = async (bottle_id: number) => {
+    const bottle = await prisma.bottle.findUnique({
+        where: { bottle_id: bottle_id }
+    });
+    if (!bottle) {
+        throw new Error("BOTTLE_NOT_FOUND");
+    }
+    await prisma.bottle.delete({
+        where: { bottle_id: bottle_id }
+    });
+    return true;
 }

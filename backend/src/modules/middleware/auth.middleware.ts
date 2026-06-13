@@ -8,6 +8,7 @@ export interface AuthRequest extends Request {
 interface TokenPayload {
     member_id: number;
     email: string;
+    role: string;
 }
 
 
@@ -19,7 +20,6 @@ export const authCheck = async (req: AuthRequest, res: Response, next: NextFunct
 
     const token = authHeader.split(" ")[1] as string;
 
-
     try {
         const isBlacklisted = await prisma.blacklistedToken.findUnique({
             where: { token: token },
@@ -27,29 +27,37 @@ export const authCheck = async (req: AuthRequest, res: Response, next: NextFunct
         if (isBlacklisted) {
             return res.status(403).json({ message: "此憑證已被封鎖，請重新登入" });
         }
-        /*as unknown as TokenPayload ---二次跳轉，先轉成unknown再轉成TokenPayload，解決兩個型別差太多不轉的情況*/
+
+        /*as unknown as TokenPayload ---二次跳轉*/
         const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY!) as unknown as TokenPayload;
 
-        const memberstatus = await prisma.member.findUnique({
+        // 🌟 優化這裡：把 role 也一起 select 出來！
+        const memberData = await prisma.member.findUnique({
             where: { member_id: decoded.member_id },
-            select: { status: true },
+            select: { status: true, role: true }, // 👈 增加 role: true
         });
-        if (!memberstatus) {
+
+        if (!memberData) {
             return res.status(404).json({ message: "找不到使用者" });
         }
-        if (memberstatus?.status === "BANNED") {
+        if (memberData.status === "BANNED") {
             return res.status(403).json({ message: "帳號已被封鎖，若有疑問請聯繫客服" });
         }
-        if (memberstatus?.status === "INACTIVE") {
+        if (memberData.status === "INACTIVE") {
             return res.status(403).json({ message: "帳號未啟用，請先驗證帳號" });
         }
 
-        req.user = decoded;
+        // 🌟 組合技：把解碼的 token 資料，加上資料庫最新的 role 賦予給 req.user
+        req.user = {
+            ...decoded,
+            role: memberData.role
+        };
+
         next();
     } catch (error: any) {
         return res.status(403).json({
             message: "憑證無效或過期!?",
-            real_error_name: error.name,       // 錯誤的種類
+            real_error_name: error.name,
             real_error_message: error.message
         });
     }

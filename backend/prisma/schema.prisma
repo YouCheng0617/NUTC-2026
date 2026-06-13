@@ -102,8 +102,8 @@ model BottleCategory {
   bottle_id   Int
   category_id Int
 
-  bottle   Bottle   @relation(fields: [bottle_id], references: [bottle_id])
-  category Category @relation(fields: [category_id], references: [category_id])
+  bottle   Bottle   @relation(fields: [bottle_id], references: [bottle_id], onDelete: Cascade)
+  category Category @relation(fields: [category_id], references: [category_id], onDelete: Cascade)
 
   @@id([bottle_id, category_id]) // 複合主鍵，確保同一個瓶子不會重複加入同一個類別
 }
