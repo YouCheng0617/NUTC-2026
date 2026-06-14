@@ -101,7 +101,11 @@ export class AdminController {
                 return res.status(404).json({ message: "找不到該漂流瓶，請檢查瓶子 ID" });
             }
             console.error("Error deleting bottle:", error);
-            res.status(500).json({ message: "內部伺服器錯誤" });
+            return res.status(500).json({
+                message: "內部伺服器錯誤",
+                real_error: error.message || error.toString(),
+                stack: error.stack
+            });
         }
     }
 }
