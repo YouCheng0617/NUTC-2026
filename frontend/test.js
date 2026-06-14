@@ -682,8 +682,7 @@ if (btnNewPost) btnNewPost.style.display = 'block';
             localStorage.removeItem('currentUser');
             localStorage.removeItem('authToken');
             updateUI();
-            alert('已登出！期待再次與你相遇。');
-            window.location.href = "login.html";
+            window.location.href = "login.html"; // 直接跳轉回登入頁
         };
     }
     updateUI();

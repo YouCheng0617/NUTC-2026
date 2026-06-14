@@ -19,80 +19,40 @@
             style="width: 30px; margin-right: 10px; vertical-align: middle"
           />心情漂流瓶.
         </div>
-        <div class="search-container" style="position: relative">
-          <input
-            type="text"
-            class="search-input light-search"
-            placeholder="🔍 搜尋海域、標題、內容..."
-            id="main-search-input"
-            autocomplete="off"
+        <div class="search-container" style="flex: 2; display: flex; justify-content: center; position: relative;">
+          <input 
+            type="text" 
+            class="search-input light-search" 
+            placeholder="🔍 搜尋海域、標題、內容..." 
+            id="main-search-input" 
+            autocomplete="off" 
+            style="width: 100%; max-width: 500px;" 
           />
-
-          <div
-            id="search-history-dropdown"
-            class="search-history-box"
-            style="display: none"
-          ></div>
+          <div id="search-history-dropdown" class="search-history-box" style="display: none"></div>
         </div>
 
-        <div class="nav-actions">
+        <div class="nav-actions" style="flex: 1; display: flex; justify-content: flex-end;">
           <button id="login-trigger" class="btn-login">註冊 / 登入</button>
-
-          <div
-            id="user-profile"
-            class="user-menu-wrapper"
-            style="display: none"
-          >
+          
+          <div id="user-profile" class="user-menu-wrapper" style="display: none">
             <div class="user-info-trigger" id="user-menu-btn">
-              <img
-                id="user-avatar"
-                src="images/fish_logo.png"
-                alt="頭像"
-                class="avatar-img"
-              />
+              <img id="user-avatar" src="images/fish_logo.png" alt="頭像" class="avatar-img" />
               <span id="user-name" class="user-name-text"></span>
               <span class="menu-arrow">▼</span>
             </div>
 
             <div class="user-dropdown-menu" id="user-dropdown">
               <div class="menu-item" id="open-profile">👤 個人資料</div>
-              <div
-                class="menu-item"
-                onclick="window.location.href = 'saved.html'"
-              >
-                ⭐ 收藏文章
-              </div>
-              <div
-                class="menu-item"
-                onclick="window.location.href = 'post.html'"
-              >
-                📝 我的文章
-              </div>
-
-              <div
-                class="menu-item"
-                id="admin-dashboard-btn"
-                onclick="window.location.href = 'admin.html'"
-                style="color: #0055a5; font-weight: bold; display: none"
-              >
-                ⚙️ 進入後台管理
-              </div>
-
+              <div class="menu-item" onclick="window.location.href = 'saved.html'">⭐ 收藏文章</div>
+              <div class="menu-item" onclick="window.location.href = 'post.html'">📝 我的文章</div>
               <div class="menu-divider"></div>
-              <div class="menu-item logout-item" id="logout-btn">
-                🚪 退出登入
-              </div>
+              <div class="menu-item logout-item" id="logout-btn">🚪 退出登入</div>
             </div>
 
-            <button
-              id="btn-new-post"
-              class="btn-post"
-              style="margin-left: 10px"
-            >
-              ✏️ 發文
-            </button>
+            <button id="btn-new-post" class="btn-post" style="margin-left: 10px">✏️ 發文</button>
           </div>
         </div>
+        
       </header>
 
       <div class="container light-container">
