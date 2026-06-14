@@ -192,7 +192,10 @@ async function loadBottles() {
                 <td>${escapeHTML(String(b.title))}</td>
                 <td>${catHtml}</td>
                 <td>${b.created_at ? new Date(b.created_at).toLocaleDateString() : new Date().toLocaleDateString()}</td>
-                <td><button class="btn-action btn-primary" onclick="openBottleModalFromCache(${index})">查看/審核</button></td>
+                <td>
+                    <button class="btn-action btn-primary" onclick="openBottleModalFromCache(${index})">查看/審核</button>
+                    <button class="btn-action btn-danger" style="margin-left: 5px;" onclick="deleteBottleAsAdmin('${b.bottle_id || b.id}')">刪除</button>
+                </td>
             </tr>
             `;
         }).join('');
@@ -264,3 +267,42 @@ window.reviewBottle = async function (bottleId, status, title) {
 // ==========================================
 window.closeAdminModal = function () { document.getElementById('admin-modal').style.display = 'none'; }
 window.adminLogout = function () { localStorage.clear(); window.location.href = "login.html"; }
+// 🗑️ 管理員強制刪除漂流瓶
+window.deleteBottleAsAdmin = async function(bottleId) {
+    if (!confirm(`⚠️ 確定要以管理員身分強制刪除 #${bottleId} 號漂流瓶嗎？刪除後將無法復原！`)) {
+        return;
+    }
+
+    const token = localStorage.getItem("authToken");
+    if (!token) {
+        alert("請先登入！");
+        window.location.href = "login.html";
+        return;
+    }
+
+    try {
+        // 呼叫後端 admin.router.ts 設定好的 API
+        const response = await fetch(`${API_BASE_URL}/admin/bottles/${bottleId}/delete`, {
+            method: 'DELETE',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'ngrok-skip-browser-warning': 'true'
+            }
+        });
+
+        if (response.ok) {
+            alert("🗑️ 漂流瓶已成功強制刪除！");
+            
+            // 💡 刪除成功後，記得重新呼叫一次「獲取列表」的函式來更新畫面
+            // 例如：fetchAdminBottles(); 
+            location.reload(); // 如果你還沒寫重新抓取的函式，可以先用這行讓網頁重新整理
+            
+        } else {
+            const err = await response.json();
+            alert("刪除失敗：" + (err.message || "權限不足或伺服器錯誤"));
+        }
+    } catch (error) {
+        console.error("刪除發生錯誤:", error);
+        alert("伺服器連線失敗，請檢查網路！");
+    }
+};
