@@ -72,6 +72,9 @@
         <div id="section-users" class="admin-section" style="display: none">
           <div class="table-container">
             <h3 style="color: #0055a5">👥 管理使用者清單</h3>
+            <div style="margin-bottom: 15px;">
+                <input type="text" id="search-users" placeholder="🔍 搜尋 ID、姓名或 Email..." style="padding: 8px 12px; border: 1px solid #ccc; border-radius: 6px; width: 100%; max-width: 300px;" oninput="filterUsers()">
+            </div>
             <table class="admin-table">
               <thead>
                 <tr>
@@ -88,9 +91,14 @@
           </div>
         </div>
 
+        
+
         <div id="section-bottles" class="admin-section" style="display: none">
           <div class="table-container">
             <h3 style="color: #0055a5">🍾 漂流瓶審核 (文章管理)</h3>
+            <div style="margin-bottom: 15px;">
+                <input type="text" id="search-bottles" placeholder="🔍 搜尋 標題、作者或內容..." style="padding: 8px 12px; border: 1px solid #ccc; border-radius: 6px; width: 100%; max-width: 300px;" oninput="filterBottles()">
+            </div>
             <table class="admin-table">
               <thead>
                 <tr>
