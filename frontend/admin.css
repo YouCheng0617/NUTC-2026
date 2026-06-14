@@ -1,236 +1,221 @@
-/* --- 基礎設定 & 自訂捲軸 --- */
+/* =======================================================
+   現代化 SaaS 後台主題設定 (CSS Variables)
+======================================================= */
+:root {
+  --bg-main: #f3f4f6;
+  --bg-card: #ffffff;
+  --sidebar-bg: #111827;
+  --sidebar-hover: #1f2937;
+  --text-main: #1f2937;
+  --text-muted: #6b7280;
+  --border-light: #e5e7eb;
+  --primary-color: #3b82f6;
+  --primary-hover: #2563eb;
+  --danger-color: #ef4444;
+  --danger-hover: #dc2626;
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  --border-radius: 12px;
+}
+
 body, html {
-  margin: 0; padding: 0; width: 100%; height: 100vh;
-  font-family: "PingFang TC", "Microsoft JhengHei", sans-serif;
-  background-color: #f4f7f9;
+  margin: 0; padding: 0; 
+  width: 100%; height: 100vh;
+  font-family: -apple-system, BlinkMacSystemFont, "PingFang TC", "Microsoft JhengHei", sans-serif;
+  background-color: var(--bg-main);
+  color: var(--text-main);
   display: flex;
   overflow: hidden;
 }
 
-::-webkit-scrollbar { width: 8px; height: 8px; }
+/* 捲軸美化 */
+::-webkit-scrollbar { width: 6px; height: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: #c1c9d2; border-radius: 10px; }
-::-webkit-scrollbar-thumb:hover { background: #a5b0bc; }
+::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
 
-/* --- 側邊欄 --- */
+/* =======================================================
+   側邊欄 (Sidebar)
+======================================================= */
 .admin-sidebar {
-  width: 260px; background: #1e2235; color: #fff;
-  display: flex; flex-direction: column;
-  box-shadow: 4px 0 15px rgba(0, 0, 0, 0.1);
-  z-index: 10; flex-shrink: 0;
+  width: 260px; background-color: var(--sidebar-bg); color: #f9fafb;
+  display: flex; flex-direction: column; z-index: 1000; flex-shrink: 0;
+  transition: transform 0.3s ease-in-out;
 }
-.admin-logo {
-  display: flex; align-items: center; gap: 15px;
-  padding: 25px 20px; border-bottom: 1px solid #2d334a;
-}
-.admin-logo img { width: 40px; }
-.admin-logo h2 { margin: 0; font-size: 1.4rem; color: #00f2ff; letter-spacing: 1px; }
+.admin-logo { display: flex; align-items: center; gap: 12px; padding: 24px; border-bottom: 1px solid #374151; }
+.logo-icon { font-size: 1.8rem; }
+.admin-logo h2 { margin: 0; font-size: 1.25rem; font-weight: 700; color: #fff; letter-spacing: 1px; }
 
-.admin-menu { list-style: none; padding: 20px 0; margin: 0; flex: 1; }
-.admin-menu li {
-  padding: 15px 25px; cursor: pointer; color: #a9b5c7;
-  display: flex; align-items: center; gap: 12px; font-size: 1.05rem; transition: 0.3s;
-}
-.admin-menu li:hover, .admin-menu li.active {
-  background: #2d334a; color: #fff; border-left: 5px solid #00f2ff;
-}
-.admin-logout {
-  padding: 20px; text-align: center; background: #ff4d4d; color: white;
-  cursor: pointer; font-weight: bold; transition: 0.3s; letter-spacing: 2px;
-}
-.admin-logout:hover { background: #e60000; }
+.admin-menu { list-style: none; padding: 16px; margin: 0; flex: 1; }
+.admin-menu li { padding: 12px 16px; margin-bottom: 8px; border-radius: 8px; cursor: pointer; color: #9ca3af; font-weight: 500; transition: all 0.2s; }
+.admin-menu li:hover, .admin-menu li.active { background-color: var(--sidebar-hover); color: #fff; }
+.admin-menu li.active { border-left: 4px solid var(--primary-color); padding-left: 12px; }
 
-/* --- 主畫面區域 --- */
-.admin-main {
-  flex: 1; display: flex; flex-direction: column;
-  overflow-y: auto; background-color: #f4f8fb;
-  min-width: 0;
-  overflow-x: hidden !important; /* 🌟 殺手鐧：絕對不准主畫面產生外圍水平滑動！ */
-}
-.admin-header {
-  background: #fff; padding: 20px 30px; display: flex;
-  justify-content: space-between; align-items: center;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05); position: sticky; top: 0; z-index: 5;
-}
-.admin-header h2 { margin: 0; color: #333; }
-.admin-profile { display: flex; align-items: center; gap: 12px; font-weight: bold; color: #555; }
-.admin-profile img { width: 40px; height: 40px; border-radius: 50%; border: 2px solid #00f2ff; object-fit: cover; }
+.sidebar-footer { padding: 20px; border-top: 1px solid #374151; display: flex; flex-direction: column; gap: 10px; }
+.btn-return, .btn-logout { width: 100%; padding: 10px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.2s; }
+.btn-return { background: transparent; color: #60a5fa; border: 1px solid #3b82f6; }
+.btn-return:hover { background: #3b82f6; color: #fff; }
+.btn-logout { background: #374151; color: #f87171; }
+.btn-logout:hover { background: var(--danger-color); color: #fff; }
 
-.admin-content {
-  padding: 30px; width: 100%; box-sizing: border-box;
-  max-width: 1400px; margin: 0 auto;
-  min-width: 0;
-  overflow-x: hidden !important; /* 確保內容區不被撐破 */
-}
-.admin-section { min-width: 0; }
+/* =======================================================
+   主內容區 (Main Content)
+======================================================= */
+.admin-main { flex: 1; display: flex; flex-direction: column; min-width: 0; overflow-y: auto; overflow-x: hidden; }
+.admin-header { background: var(--bg-card); padding: 16px 32px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-light); position: sticky; top: 0; z-index: 10; }
+.header-left { display: flex; align-items: center; gap: 16px; }
+.hamburger-btn { display: none; background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--text-muted); }
+.admin-header h2 { margin: 0; font-size: 1.4rem; font-weight: 600; color: var(--text-main); }
 
-/* --- 數據卡片 --- */
-.stats-grid {
-  display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 20px; margin-bottom: 30px;
-}
+.admin-profile { display: flex; align-items: center; gap: 12px; }
+.admin-profile img { width: 40px; height: 40px; border-radius: 50%; border: 2px solid var(--border-light); object-fit: cover; }
+.profile-info { display: flex; flex-direction: column; }
+.profile-info #admin-name { font-weight: 600; font-size: 0.9rem; }
+.role-badge { font-size: 0.7rem; color: var(--primary-color); font-weight: bold; background: #eff6ff; padding: 2px 8px; border-radius: 12px; width: fit-content; margin-top: 2px; }
+
+.admin-content { padding: 32px; max-width: 1400px; margin: 0 auto; width: 100%; box-sizing: border-box; }
+
+/* =======================================================
+   數據總覽卡片
+======================================================= */
+.stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 24px; margin-bottom: 32px; }
 .stat-card {
-  background: #fff; padding: 25px; border-radius: 15px;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03); border-left: 6px solid #0088ff;
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  background: var(--bg-card); padding: 24px; border-radius: var(--border-radius); box-shadow: var(--shadow-sm); border: 1px solid var(--border-light);
+  display: flex; align-items: center; gap: 20px; transition: 0.2s;
 }
-.stat-card:hover { transform: translateY(-5px); box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1); }
-.stat-card h3 { margin: 0 0 10px 0; color: #888; font-size: 1.1rem; font-weight: normal; }
-.stat-card p { margin: 0; font-size: 2.2rem; font-weight: 900; color: #222; }
-.warning-card { border-left-color: #ff4d4d; }
+.stat-card:hover { box-shadow: var(--shadow-md); transform: translateY(-2px); }
+.stat-icon { width: 56px; height: 56px; border-radius: 16px; display: flex; justify-content: center; align-items: center; font-size: 1.5rem; }
+.stat-info h3 { margin: 0 0 4px 0; color: var(--text-muted); font-size: 0.9rem; font-weight: 500; }
+.stat-info p { margin: 0; font-size: 1.8rem; font-weight: 700; color: var(--text-main); }
 
-/* --- 表格容器 --- */
-.table-container {
-  background: #fff; padding: 25px; border-radius: 15px;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
-  width: 100%; box-sizing: border-box;
-  max-width: 100% !important; /* 🌟 確保容器絕對不超過外圍 */
-  overflow-x: auto !important; /* 讓滑動軸只出現在白色卡片裡面！ */
-  -webkit-overflow-scrolling: touch;
+/* 🔴 關鍵修復 1：解除 overflow: hidden，讓選單可以掉出卡片外 */
+.modern-card { 
+  background: var(--bg-card); border-radius: var(--border-radius); 
+  box-shadow: var(--shadow-sm); border: 1px solid var(--border-light); 
+  overflow: visible !important; 
 }
-.table-container h3 { margin-top: 0; margin-bottom: 20px; font-size: 1.3rem; border-bottom: 2px solid #f0f0f0; padding-bottom: 10px; }
-.admin-table { width: 100%; border-collapse: collapse; min-width: 800px; }
-.admin-table th { background: #f8fbff; color: #555; font-weight: 900; font-size: 1.25rem; letter-spacing: 2px; padding: 20px 15px; text-transform: uppercase; }
-.admin-table th, .admin-table td { padding: 16px 15px; border-bottom: 1px solid #edf2f7; text-align: center; vertical-align: middle; white-space: nowrap; }
-.admin-table tbody tr { transition: background 0.2s ease; }
-.admin-table tbody tr:hover { background-color: #f0f7ff; }
+.card-header { padding: 20px 24px; border-bottom: 1px solid var(--border-light); background: #f8fafc; border-radius: 12px 12px 0 0; }
+.card-header h3 { margin: 0; font-size: 1.1rem; color: var(--text-main); font-weight: 600; }
 
-/* --- 狀態標籤 & 按鈕 --- */
-.badge { padding: 6px 12px; border-radius: 20px; font-size: 0.85rem; font-weight: bold; display: inline-block; letter-spacing: 0.5px; }
-.badge-active { background: #e6f9ed; color: #2ecc71; border: 1px solid #bdf1d4; }
-.badge-banned { background: #ffebeb; color: #ff4d4d; border: 1px solid #ffd1d1; }
-.badge-inactive { background: #f0f2f5; color: #888; border: 1px solid #e1e4e8; }
-
-.btn-action { cursor: pointer; padding: 8px 16px; border: none; border-radius: 8px; font-weight: bold; font-size: 0.9rem; color: #fff; transition: all 0.2s ease; box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); }
-.btn-action:hover { transform: translateY(-2px); box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15); }
-.btn-action:active { transform: translateY(0); box-shadow: none; }
-.btn-primary { background: linear-gradient(135deg, #4da6ff, #0055a5); }
-.btn-warning { background: linear-gradient(135deg, #f9ca24, #f0932b); }
-.btn-danger { background: linear-gradient(135deg, #ff7675, #d63031); }
-.btn-secondary { background: #a4b0be; color: #fff; }
-
-/* --- Modal --- */
-.admin-modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.5); backdrop-filter: blur(4px); display: flex; justify-content: center; align-items: center; z-index: 1000; }
-.admin-modal-content { background: #fff; width: 90%; max-width: 650px; border-radius: 16px; padding: 35px; position: relative; box-shadow: 0 15px 40px rgba(0, 0, 0, 0.2); animation: popIn 0.3s ease-out; }
-.close-admin-modal { position: absolute; top: 15px; right: 20px; font-size: 28px; color: #aaa; cursor: pointer; transition: 0.2s; }
-.close-admin-modal:hover { color: #ff4d4d; }
-.admin-modal-content h3 { margin-top: 0; color: #0055a5; font-size: 1.4rem; border-bottom: 2px solid #f0f0f0; padding-bottom: 12px; }
-.modal-body-content { margin: 20px 0; padding: 25px; background: #f8fbff; border-radius: 12px; border: 1px solid #e1eefc; font-size: 1.1rem; color: #333; line-height: 1.8; max-height: 400px; overflow-y: auto; }
-.modal-actions { display: flex; justify-content: flex-end; gap: 15px; margin-top: 25px; }
-@keyframes popIn { 0% { transform: scale(0.95); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+.empty-state { padding: 60px 20px; text-align: center; color: var(--text-muted); display: flex; flex-direction: column; align-items: center; gap: 10px; }
+.empty-icon { font-size: 3rem; opacity: 0.5; }
 
 /* =======================================================
-   🌟 響應式 (RWD) 終極完美排版
+   💻 電腦版：精美資料表 (Data Tables)
 ======================================================= */
-/* 💻 平板螢幕 (1024px 以下) */
-@media screen and (max-width: 1024px) {
-    .admin-sidebar { width: 200px; }
-    .admin-content { padding: 20px; }
-}
+/* 🔴 關鍵修復 2：關閉表格外框的隱藏裁切 */
+.table-responsive { width: 100%; overflow: visible !important; }
+.modern-table { width: 100%; border-collapse: collapse; text-align: left; }
+.modern-table th { background: var(--bg-card); color: var(--text-muted); font-weight: 600; font-size: 0.85rem; text-transform: uppercase; padding: 16px 24px; border-bottom: 1px solid var(--border-light); }
+.modern-table td { padding: 16px 24px; border-bottom: 1px solid var(--border-light); color: var(--text-main); font-size: 0.95rem; vertical-align: middle; white-space: nowrap; }
+.modern-table tbody tr { border-bottom: 1px solid var(--border-light); }
+.modern-table tbody tr:hover { background-color: #f8fafc; }
 
-/* 📱 手機螢幕 (768px 以下) */
-@media screen and (max-width: 768px) {
-    body, html { flex-direction: column; }
-    
-    .admin-sidebar {
-        width: 100%; height: auto; flex-direction: row; position: fixed;
-        bottom: 0; left: 0; z-index: 1000; padding: 0; box-shadow: 0 -4px 15px rgba(0,0,0,0.1);
-    }
-    .admin-logo, .admin-logout { display: none; }
-    .admin-menu { display: flex; flex-direction: row; width: 100%; margin: 0; padding: 0; justify-content: space-around; }
-    .admin-menu li {
-        padding: 10px 5px; font-size: 0.8rem; flex: 1; text-align: center;
-        flex-direction: column; gap: 4px; border-left: none; border-bottom: 3px solid transparent;
-    }
-    .admin-menu li.active { border-bottom: 3px solid #00f2ff; background: #2d334a; }
-    
-    .admin-main { padding-bottom: 70px; }
-    .admin-content { padding: 15px; }
-    .stats-grid { grid-template-columns: repeat(2, 1fr); gap: 15px; }
-    .table-container { padding: 15px 10px; }
-    .admin-table { min-width: 700px; }
-    
-    .admin-table td div { display: flex; flex-direction: column; gap: 8px; width: 100%; }
-    .admin-table td .btn-action { width: 100%; margin: 0; padding: 10px 0; }
-    
-}
-/* 🌟 讓最後一欄的操作按鈕乖乖排好，不會疊在一起 */
-.admin-table td:last-child {
-    display: flex;
-    gap: 8px;
-    justify-content: center;
-    align-items: center;
-    min-height: 50px;
-}
-
-/* 手機螢幕時，按鈕改成上下排 */
-@media screen and (max-width: 768px) {
-    .admin-table td:last-child {
-        flex-direction: column;
-    }
-    .admin-table td:last-child .btn-action {
-        width: 100%; /* 讓按鈕填滿，好點擊 */
-        margin: 0;
-    }
-}
 /* =======================================================
-   🔥 最終兵器：版面絕對鎖死術 (專治 Flexbox 與 Table 撐破)
+   ⚙️ 合併型下拉選單核心 CSS 樣式
 ======================================================= */
+.action-dropdown { position: relative; display: inline-block; }
+.btn-dropdown-trigger {
+  background: #f3f4f6; color: #4b5563; border: 1px solid #d1d5db;
+  padding: 8px 14px; border-radius: 6px; font-weight: 600; font-size: 0.85rem;
+  cursor: pointer; transition: 0.2s; white-space: nowrap;
+}
+.btn-dropdown-trigger:hover { background: #e5e7eb; color: #111827; }
 
-/* 1. 斷開外層跟著表格變寬的溺愛連結 */
-.admin-main {
-    min-width: 0 !important; /* 👈 解除 Flexbox 無限撐開魔咒的關鍵 */
-    overflow-x: hidden !important; 
+.action-dropdown-menu {
+  display: none; position: absolute; right: 0; top: 110%;
+  background: #ffffff; min-width: 150px; border-radius: 8px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.15); border: 1px solid #e5e7eb;
+  z-index: 500; overflow: hidden; padding: 4px 0;
 }
-.admin-content, .admin-section {
-    min-width: 0 !important;
-    max-width: 100% !important;
+.action-dropdown-menu.show-menu { display: block; animation: dropdownFadeIn 0.2s ease; }
+.dropdown-item { width: 100%; padding: 10px 16px; border: none; background: transparent; text-align: left; font-size: 0.9rem; font-weight: 500; cursor: pointer; transition: 0.15s; }
+.dropdown-item.btn-primary { color: var(--primary-color); }
+.dropdown-item.btn-primary:hover { background: #eff6ff; }
+.dropdown-item.btn-danger { color: var(--danger-color); }
+.dropdown-item.btn-danger:hover { background: #fef2f2; }
+
+@keyframes dropdownFadeIn { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
+
+/* =======================================================
+   ✨ 彈窗 (Modals) 終極防爆置中術
+======================================================= */
+/* 🔴 關鍵修復 3：加上 !important 絕對鎖死，強迫它蓋在全螢幕的最上層 */
+.admin-modal-overlay { 
+  position: fixed !important; top: 0 !important; left: 0 !important; 
+  width: 100vw !important; height: 100vh !important; 
+  background: rgba(17, 24, 39, 0.7) !important; backdrop-filter: blur(4px); 
+  display: flex; justify-content: center !important; align-items: center !important; 
+  z-index: 9999 !important; 
 }
 
-/* 2. 逼迫白色卡片開啟自己的專屬捲軸 */
-.table-container {
-    width: 100% !important;
-    max-width: 100% !important;
-    overflow-x: auto !important;
-    display: block !important;
-    box-sizing: border-box !important;
-}
+.admin-modal-content { background: var(--bg-card); width: 90%; max-width: 600px; border-radius: var(--border-radius); padding: 32px; position: relative; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); }
+.close-admin-modal { position: absolute; top: 20px; right: 24px; font-size: 24px; color: var(--text-muted); cursor: pointer; }
+.close-admin-modal:hover { color: var(--danger-color); }
+.admin-modal-content h3 { margin-top: 0; font-size: 1.25rem; color: var(--text-main); margin-bottom: 20px; }
+.modal-body-content { background: var(--bg-main); padding: 20px; border-radius: 8px; color: var(--text-main); line-height: 1.6; max-height: 50vh; overflow-y: auto; }
+.modal-actions { display: flex; justify-content: flex-end; gap: 12px; margin-top: 24px; }
 
-/* 3. 確保表格裡面的文字絕對不准換行，撐開內部空間讓它滑動 */
-.admin-table {
-    min-width: 800px !important; 
-}
-.admin-table th, .admin-table td {
-    white-space: nowrap !important;
-}
+/* 按鈕與標籤 */
+.badge { padding: 4px 10px; border-radius: 6px; font-size: 0.8rem; font-weight: 600; white-space: nowrap; }
+.btn-action { padding: 8px 14px; border: none; border-radius: 6px; font-weight: 600; font-size: 0.85rem; cursor: pointer; transition: 0.2s; white-space: nowrap; }
+.btn-primary { background: #eff6ff; color: var(--primary-color); }
+.btn-primary:hover { background: var(--primary-color); color: #fff; }
+.btn-danger { background: #fef2f2; color: var(--danger-color); }
+.btn-danger:hover { background: var(--danger-color); color: #fff; }
+.btn-secondary { background: #f3f4f6; color: var(--text-muted); }
+.btn-secondary:hover { background: #e5e7eb; color: var(--text-main); }
 
-/* 4. 針對平板與手機：提早把最後一欄「操作按鈕」變成上下排，避免擠壓 */
+/* =======================================================
+   📱 響應式設計 (RWD for Mobile/Tablet)
+======================================================= */
+.sidebar-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 999; opacity: 0; transition: opacity 0.3s; }
+
 @media screen and (max-width: 1024px) {
-    .admin-table td:last-child {
-        display: flex !important;
-        flex-direction: column !important;
-        gap: 6px !important;
-        min-height: 80px;
-        justify-content: center;
-    }
-    .admin-table td:last-child .btn-action {
-        width: 100% !important;
-        margin: 0 !important;
-        box-sizing: border-box !important;
-    }
+  .hamburger-btn { display: block; }
+  .admin-sidebar { position: fixed; top: 0; left: 0; height: 100%; transform: translateX(-100%); }
+  .admin-sidebar.active-sidebar { transform: translateX(0); box-shadow: 4px 0 25px rgba(0,0,0,0.5); }
+  .sidebar-overlay.active-overlay { display: block; opacity: 1; }
+
+  .admin-header { padding: 16px 20px; }
+  .admin-content { padding: 20px; }
+  .stats-grid { grid-template-columns: repeat(2, 1fr); gap: 16px; }
+
+  /* 表格轉卡片 */
+  .modern-table { display: block; width: 100%; }
+  .modern-table thead { display: none; }
+  .modern-table tbody { display: block; width: 100%; }
+  
+  .modern-table tbody tr {
+    display: block; background: #ffffff; margin-bottom: 16px; padding: 16px;
+    border: 1px solid var(--border-light); border-radius: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+  }
+
+  .modern-table td {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 10px 0 !important; border-bottom: 1px dashed #f3f4f6 !important;
+    white-space: normal; font-size: 0.95rem;
+  }
+
+  #section-bottles td:nth-child(1)::before { content: "🆔 文章 ID"; font-weight: 600; color: var(--text-muted); }
+  #section-bottles td:nth-child(2)::before { content: "👤 發文作者"; font-weight: 600; color: var(--text-muted); }
+  #section-bottles td:nth-child(3)::before { content: "📝 文章標題"; font-weight: 600; color: var(--text-muted); }
+  #section-bottles td:nth-child(4)::before { content: "🏷️ 看板分類"; font-weight: 600; color: var(--text-muted); }
+  #section-bottles td:nth-child(5)::before { content: "⏰ 發布時間"; font-weight: 600; color: var(--text-muted); }
+  #section-bottles td:nth-child(6)::before { content: "⚙️ 項目操作"; font-weight: 600; color: var(--text-muted); }
+
+  #section-users td:nth-child(1)::before { content: "🆔 會員 ID"; font-weight: 600; color: var(--text-muted); }
+  #section-users td:nth-child(2)::before { content: "👤 姓名暱稱"; font-weight: 600; color: var(--text-muted); }
+  #section-users td:nth-child(3)::before { content: "✉️ 登入 Email"; font-weight: 600; color: var(--text-muted); }
+  #section-users td:nth-child(4)::before { content: "📅 註冊時間"; font-weight: 600; color: var(--text-muted); }
+  #section-users td:nth-child(5)::before { content: "🚦 帳號狀態"; font-weight: 600; color: var(--text-muted); }
+  #section-users td:nth-child(6)::before { content: "⚙️ 項目操作"; font-weight: 600; color: var(--text-muted); }
+
+  .modern-table td:last-child { border-bottom: none !important; }
+  .action-dropdown-menu { right: 0; top: auto; bottom: 110%; }
 }
 
-/* 5. 手機版：強制全螢幕鎖定，杜絕任何一絲向右滑動的可能 */
-@media screen and (max-width: 768px) {
-    body, html {
-        overflow-x: hidden !important;
-        max-width: 100vw !important;
-    }
-    .admin-main {
-        width: 100vw !important;
-        max-width: 100vw !important;
-    }
-    .admin-content {
-        padding: 10px !important;
-    }
+@media screen and (max-width: 600px) {
+  .stats-grid { grid-template-columns: 1fr; }
+  .profile-info { display: none; }
 }
+
