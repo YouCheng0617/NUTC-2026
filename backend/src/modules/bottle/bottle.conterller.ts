@@ -2,7 +2,7 @@ import { Router } from "express";
 import type { Request, Response } from "express";
 import prisma from "../../lib/prisma.js";
 import dotenv from "dotenv";
-import { getMybottles, likeBottles, saveBottles, getMyLikedBottles, getMySavedBottles, deleteMyBottle } from "./bottle.service.js";
+import { getMybottles, likeBottles, saveBottles, getMyLikedBottles, getMySavedBottles, deleteMyBottle as deleteMyBottleService } from "./bottle.service.js";
 export interface TokenPayload {
     member_id: number;
     email: string;
@@ -295,7 +295,7 @@ export const bottleController = {
                 return res.status(400).json({ message: "無效的瓶子 ID" });
             }
 
-            await deleteMyBottle(bottleId, memberId);
+            await deleteMyBottleService(bottleId, memberId);
             res.status(200).json({ message: "文章刪除成功" });
 
         } catch (error: any) {

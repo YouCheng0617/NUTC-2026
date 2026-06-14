@@ -205,7 +205,7 @@ export const getMySavedBottles = async (memberId: number) => {
 
 /*刪除自己的文章*/
 export const deleteMyBottle = async (bottleId: number, memberId: number) => {
-    const bottle = await prismaClient.bottle.findUnique({
+    const bottle = await prisma.bottle.findUnique({
         where: { bottle_id: bottleId },
         select: { member_id: true }
     });
@@ -214,7 +214,10 @@ export const deleteMyBottle = async (bottleId: number, memberId: number) => {
         throw new Error("BOTTLE_NOT_FOUND or FORBIDDEN_NOT_AUTHOR");
     }
 
-    await prismaClient.bottle.delete({
+    await prisma.bottleCategory.deleteMany({
+        where: { bottle_id: bottleId }
+    });
+    await prisma.bottle.delete({
         where: { bottle_id: bottleId }
     });
 
