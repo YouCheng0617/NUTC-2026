@@ -205,12 +205,16 @@ function renderPosts(data = posts) {
             <div class="action-bar">
                 <span class="action-btn ${p.liked ? 'like-active' : ''}" onclick="toggleAction('${escapeHTML(String(p.id))}', 'like', event)">${p.liked ? '❤️' : '🤍'} ${p.likes}</span>
                 <span class="action-btn">💬 ${p.msgs}</span>
-                <span class="action-btn ${p.saved ? 'save-active' : ''}" onclick="toggleAction('${escapeHTML(String(p.id))}', 'save', event)" style="margin-left: auto;">${p.saved ? '⭐ 已收藏' : '☆ 收藏'}</span>
+                
+                <div style="margin-left: auto; display: flex; gap: 15px;">
+                    <span class="action-btn ${p.saved ? 'save-active' : ''}" onclick="toggleAction('${escapeHTML(String(p.id))}', 'save', event)">${p.saved ? '⭐ 已收藏' : '☆ 收藏'}</span>
+                    
+                    ${currentView === 'mine' ? `<span class="action-btn" style="color: #ff4d4d;" onclick="deleteMyBottle('${escapeHTML(String(p.id))}', event)">🗑️ 刪除</span>` : ''}
+                </div>
             </div>
         </div>
     `).join('');
 }
-
 function applyFilters() {
     let res = posts;
 
@@ -564,6 +568,41 @@ window.toggleAction = async function (id, actionType, e) {
     }
 }
 
+// 🗑️ 刪除自己的漂流瓶
+window.deleteMyBottle = async function (id, e) {
+    e.stopPropagation(); // 防止點擊按鈕時不小心點開文章內頁
+    
+    if (!confirm("⚠️ 確定要刪除這個漂流瓶嗎？刪除後無法恢復喔！")) return;
+
+    const token = localStorage.getItem("authToken");
+    if (!token) {
+        alert("請先登入！");
+        return;
+    }
+
+    try {
+        // 🔴 這裡把網址補上後端設定的 /delete
+        const response = await fetch(`${API_BASE_URL}/bottles/${id}/delete`, {
+            method: 'DELETE',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'ngrok-skip-browser-warning': 'true'
+            }
+        });
+
+        if (response.ok) {
+            alert("✅ 漂流瓶已成功刪除！");
+            // 重新抓取文章列表更新畫面
+            fetchBottles();
+        } else {
+            const err = await response.json();
+            alert("刪除失敗：" + (err.message || "權限不足或伺服器錯誤"));
+        }
+    } catch (error) {
+        console.error("刪除失敗:", error);
+        alert("伺服器連線失敗，請稍後再試 😢");
+    }
+}
 function setupAuth() {
     const userProfile = document.getElementById('user-profile');
     const loginTrigger = document.getElementById('login-trigger');
@@ -607,9 +646,26 @@ function setupAuth() {
 
                     userDropdown.insertBefore(adminLink, userDropdown.lastElementChild);
                 }
-            } else {
+                
+                // 🔴 新增這裡：如果是管理員，強制隱藏「✏️ 發文」按鈕！
+                // 🔴 如果是管理員：隱藏發文按鈕、收藏文章、我的文章
                 const btnNewPost = document.getElementById('btn-new-post');
-if (btnNewPost) btnNewPost.style.display = 'block'; 
+                if (btnNewPost) btnNewPost.style.display = 'none';
+                
+                const savedMenuItem = document.querySelector('.menu-item[onclick*="saved.html"]');
+                const postMenuItem = document.querySelector('.menu-item[onclick*="post.html"]');
+                if (savedMenuItem) savedMenuItem.style.display = 'none';
+                if (postMenuItem) postMenuItem.style.display = 'none';
+
+            } else {
+                // 🟢 如果是一般使用者：顯示所有功能
+                const btnNewPost = document.getElementById('btn-new-post');
+                if (btnNewPost) btnNewPost.style.display = 'block'; 
+                
+                const savedMenuItem = document.querySelector('.menu-item[onclick*="saved.html"]');
+                const postMenuItem = document.querySelector('.menu-item[onclick*="post.html"]');
+                if (savedMenuItem) savedMenuItem.style.display = 'block';
+                if (postMenuItem) postMenuItem.style.display = 'block';
             }
 
         } else {
