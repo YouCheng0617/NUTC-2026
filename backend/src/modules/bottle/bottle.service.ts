@@ -1,11 +1,9 @@
 import prisma from "../../lib/prisma.js";
-import { PrismaClient } from "../../generated/prisma/index.js";
-const prismaClient = new PrismaClient();
 import dotenv from "dotenv";
 
 /*獲取我丟的瓶子清單*/
 export const getMybottles = async (memberId: number) => {
-    const myBottles = await prismaClient.bottle.findMany({
+    const myBottles = await prisma.bottle.findMany({
         where: {
             member_id: memberId,
         },
@@ -37,7 +35,7 @@ export const getMybottles = async (memberId: number) => {
 /*按讚/取消按讚瓶子*/
 export const likeBottles = async (bottleId: number, memberId: number) => {
     // 1. 先查有沒有按過讚
-    const existingLike = await prismaClient.bottleLike.findUnique({
+    const existingLike = await prisma.bottleLike.findUnique({
         where: {
             member_id_bottle_id: {
                 member_id: memberId,
@@ -51,7 +49,7 @@ export const likeBottles = async (bottleId: number, memberId: number) => {
     // 2. 邏輯判斷
     if (existingLike) {
         // 🗑️ 情境 A：如果有找到紀錄 (代表想取消讚) -> 執行 delete
-        await prismaClient.bottleLike.delete({
+        await prisma.bottleLike.delete({
             where: {
                 member_id_bottle_id: {
                     member_id: memberId,
@@ -62,7 +60,7 @@ export const likeBottles = async (bottleId: number, memberId: number) => {
         isLiked = false;
     } else {
         // ❤️ 情境 B：如果沒找到紀錄 (代表第一次按讚) -> 執行 create
-        await prismaClient.bottleLike.create({
+        await prisma.bottleLike.create({
             data: {
                 member_id: memberId,
                 bottle_id: bottleId
@@ -72,7 +70,7 @@ export const likeBottles = async (bottleId: number, memberId: number) => {
     }
 
     // 3. 計算最新總讚數並回傳
-    const totalLikes = await prismaClient.bottleLike.count({
+    const totalLikes = await prisma.bottleLike.count({
         where: { bottle_id: bottleId }
     });
 
@@ -81,7 +79,7 @@ export const likeBottles = async (bottleId: number, memberId: number) => {
 
 /*獲取我按過讚的瓶子清單*/
 export const getMyLikedBottles = async (memberId: number) => {
-    const likedRecords = await prismaClient.bottleLike.findMany({
+    const likedRecords = await prisma.bottleLike.findMany({
         where: { member_id: memberId },
         include: {
             bottle: {
@@ -120,7 +118,7 @@ export const getMyLikedBottles = async (memberId: number) => {
 /*儲存/取消儲存瓶子*/
 export const saveBottles = async (bottleId: number, memberId: number) => {
     // 1. 先查有沒有儲存
-    const existingSave = await prismaClient.bottleSave.findUnique({
+    const existingSave = await prisma.bottleSave.findUnique({
         where: {
             member_id_bottle_id: {
                 member_id: memberId,
@@ -133,7 +131,7 @@ export const saveBottles = async (bottleId: number, memberId: number) => {
 
     // 2. 邏輯判斷
     if (existingSave) {
-        await prismaClient.bottleSave.delete({
+        await prisma.bottleSave.delete({
             where: {
                 member_id_bottle_id: {
                     member_id: memberId,
@@ -143,7 +141,7 @@ export const saveBottles = async (bottleId: number, memberId: number) => {
         });
         isSaved = false;
     } else {
-        await prismaClient.bottleSave.create({
+        await prisma.bottleSave.create({
             data: {
                 member_id: memberId,
                 bottle_id: bottleId
@@ -153,12 +151,12 @@ export const saveBottles = async (bottleId: number, memberId: number) => {
     }
 
     // 3. 計算最新總讚數並回傳
-    const totalLikes = await prismaClient.bottleLike.count({
+    const totalLikes = await prisma.bottleLike.count({
         where: { bottle_id: bottleId }
     });
 
     // 4. 計算最新總儲存數並回傳
-    const totalSaves = await prismaClient.bottleSave.count({
+    const totalSaves = await prisma.bottleSave.count({
         where: { bottle_id: bottleId }
     });
 
@@ -167,7 +165,7 @@ export const saveBottles = async (bottleId: number, memberId: number) => {
 
 /*獲取我儲存的瓶子清單*/
 export const getMySavedBottles = async (memberId: number) => {
-    const savedRecords = await prismaClient.bottleSave.findMany({
+    const savedRecords = await prisma.bottleSave.findMany({
         where: { member_id: memberId },
         include: {
             bottle: {
