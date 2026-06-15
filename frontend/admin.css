@@ -39,8 +39,15 @@ body, html {
 .admin-sidebar {
   width: 260px; background-color: var(--sidebar-bg); color: #f9fafb;
   display: flex; flex-direction: column; z-index: 1000; flex-shrink: 0;
-  transition: transform 0.3s ease-in-out;
+  /* 🟢 加入 margin-left 的動畫，讓收合時更絲滑 */
+  transition: transform 0.3s ease-in-out, margin-left 0.3s ease-in-out;
 }
+
+/* 🟢 電腦版收合時的專屬狀態 */
+.admin-sidebar.collapsed {
+  margin-left: -260px;
+}
+
 .admin-logo { display: flex; align-items: center; gap: 12px; padding: 24px; border-bottom: 1px solid #374151; }
 .logo-icon { font-size: 1.8rem; }
 .admin-logo h2 { margin: 0; font-size: 1.25rem; font-weight: 700; color: #fff; letter-spacing: 1px; }
@@ -63,7 +70,15 @@ body, html {
 .admin-main { flex: 1; display: flex; flex-direction: column; min-width: 0; overflow-y: auto; overflow-x: hidden; }
 .admin-header { background: var(--bg-card); padding: 16px 32px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-light); position: sticky; top: 0; z-index: 10; }
 .header-left { display: flex; align-items: center; gap: 16px; }
-.hamburger-btn { display: none; background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--text-muted); }
+
+/* 🟢 強制讓漢堡按鈕在電腦版也顯示 */
+.hamburger-btn { 
+  display: block; 
+  background: none; border: none; font-size: 1.5rem; cursor: pointer; 
+  color: var(--text-muted); transition: color 0.2s ease;
+}
+.hamburger-btn:hover { color: var(--primary-color); }
+
 .admin-header h2 { margin: 0; font-size: 1.4rem; font-weight: 600; color: var(--text-main); }
 
 .admin-profile { display: flex; align-items: center; gap: 12px; }
@@ -87,7 +102,7 @@ body, html {
 .stat-info h3 { margin: 0 0 4px 0; color: var(--text-muted); font-size: 0.9rem; font-weight: 500; }
 .stat-info p { margin: 0; font-size: 1.8rem; font-weight: 700; color: var(--text-main); }
 
-/* 🔴 關鍵修復 1：解除 overflow: hidden，讓選單可以掉出卡片外 */
+/* 解除 overflow: hidden，讓選單可以掉出卡片外 */
 .modern-card { 
   background: var(--bg-card); border-radius: var(--border-radius); 
   box-shadow: var(--shadow-sm); border: 1px solid var(--border-light); 
@@ -102,7 +117,7 @@ body, html {
 /* =======================================================
    💻 電腦版：精美資料表 (Data Tables)
 ======================================================= */
-/* 🔴 關鍵修復 2：關閉表格外框的隱藏裁切 */
+/* 關閉表格外框的隱藏裁切 */
 .table-responsive { width: 100%; overflow: visible !important; }
 .modern-table { width: 100%; border-collapse: collapse; text-align: left; }
 .modern-table th { background: var(--bg-card); color: var(--text-muted); font-weight: 600; font-size: 0.85rem; text-transform: uppercase; padding: 16px 24px; border-bottom: 1px solid var(--border-light); }
@@ -128,18 +143,26 @@ body, html {
   z-index: 500; overflow: hidden; padding: 4px 0;
 }
 .action-dropdown-menu.show-menu { display: block; animation: dropdownFadeIn 0.2s ease; }
-.dropdown-item { width: 100%; padding: 10px 16px; border: none; background: transparent; text-align: left; font-size: 0.9rem; font-weight: 500; cursor: pointer; transition: 0.15s; }
-.dropdown-item.btn-primary { color: var(--primary-color); }
-.dropdown-item.btn-primary:hover { background: #eff6ff; }
-.dropdown-item.btn-danger { color: var(--danger-color); }
-.dropdown-item.btn-danger:hover { background: #fef2f2; }
+
+.action-dropdown-menu .dropdown-item { 
+  width: 100%; padding: 10px 16px; border: none; 
+  background: transparent !important;
+  text-align: left; font-size: 0.9rem; font-weight: 500; 
+  cursor: pointer; transition: 0.15s; 
+  color: #333 !important;
+}
+
+.action-dropdown-menu .dropdown-item.btn-primary { color: var(--primary-color) !important; }
+.action-dropdown-menu .dropdown-item.btn-primary:hover { background: #eff6ff !important; }
+
+.action-dropdown-menu .dropdown-item.btn-danger { color: var(--danger-color) !important; }
+.action-dropdown-menu .dropdown-item.btn-danger:hover { background: #fef2f2 !important; }
 
 @keyframes dropdownFadeIn { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
 
 /* =======================================================
    ✨ 彈窗 (Modals) 終極防爆置中術
 ======================================================= */
-/* 🔴 關鍵修復 3：加上 !important 絕對鎖死，強迫它蓋在全螢幕的最上層 */
 .admin-modal-overlay { 
   position: fixed !important; top: 0 !important; left: 0 !important; 
   width: 100vw !important; height: 100vh !important; 
@@ -171,8 +194,8 @@ body, html {
 .sidebar-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 999; opacity: 0; transition: opacity 0.3s; }
 
 @media screen and (max-width: 1024px) {
-  .hamburger-btn { display: block; }
-  .admin-sidebar { position: fixed; top: 0; left: 0; height: 100%; transform: translateX(-100%); }
+  /* 🟢 手機版確保收合狀態不會影響正常滑出 */
+  .admin-sidebar { position: fixed; top: 0; left: 0; height: 100%; transform: translateX(-100%); margin-left: 0 !important; }
   .admin-sidebar.active-sidebar { transform: translateX(0); box-shadow: 4px 0 25px rgba(0,0,0,0.5); }
   .sidebar-overlay.active-overlay { display: block; opacity: 1; }
 
@@ -218,4 +241,3 @@ body, html {
   .stats-grid { grid-template-columns: 1fr; }
   .profile-info { display: none; }
 }
-

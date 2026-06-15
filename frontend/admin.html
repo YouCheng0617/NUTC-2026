@@ -262,15 +262,28 @@
 
     <script>
       function toggleSidebar() {
-        document
-          .getElementById("admin-sidebar")
-          .classList.toggle("active-sidebar");
-        document
-          .getElementById("sidebar-overlay")
-          .classList.toggle("active-overlay");
+        const sidebar = document.getElementById("admin-sidebar");
+        const overlay = document.getElementById("sidebar-overlay");
+
+        if (window.innerWidth <= 1024) {
+          // 📱 手機/平板模式：滑出側邊欄 + 顯示暗色遮罩
+          sidebar.classList.toggle("active-sidebar");
+          overlay.classList.toggle("active-overlay");
+        } else {
+          // 💻 電腦版模式：直接將側邊欄向左收起，主畫面會自動延伸
+          sidebar.classList.toggle("collapsed");
+        }
       }
+
       function toggleSidebarIfMobile() {
-        if (window.innerWidth <= 1024) toggleSidebar();
+        if (window.innerWidth <= 1024) {
+          document
+            .getElementById("admin-sidebar")
+            .classList.remove("active-sidebar");
+          document
+            .getElementById("sidebar-overlay")
+            .classList.remove("active-overlay");
+        }
       }
     </script>
     <script src="admin.js"></script>
