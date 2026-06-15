@@ -18,9 +18,12 @@
   --border-radius: 12px;
 }
 
-body, html {
-  margin: 0; padding: 0; 
-  width: 100%; height: 100vh;
+body,
+html {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100vh;
   font-family: -apple-system, BlinkMacSystemFont, "PingFang TC", "Microsoft JhengHei", sans-serif;
   background-color: var(--bg-main);
   color: var(--text-main);
@@ -29,16 +32,31 @@ body, html {
 }
 
 /* 捲軸美化 */
-::-webkit-scrollbar { width: 6px; height: 6px; }
-::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 10px;
+}
 
 /* =======================================================
    側邊欄 (Sidebar)
 ======================================================= */
 .admin-sidebar {
-  width: 260px; background-color: var(--sidebar-bg); color: #f9fafb;
-  display: flex; flex-direction: column; z-index: 1000; flex-shrink: 0;
+  width: 260px;
+  background-color: var(--sidebar-bg);
+  color: #f9fafb;
+  display: flex;
+  flex-direction: column;
+  z-index: 1000;
+  flex-shrink: 0;
   /* 🟢 加入 margin-left 的動畫，讓收合時更絲滑 */
   transition: transform 0.3s ease-in-out, margin-left 0.3s ease-in-out;
 }
@@ -48,196 +66,696 @@ body, html {
   margin-left: -260px;
 }
 
-.admin-logo { display: flex; align-items: center; gap: 12px; padding: 24px; border-bottom: 1px solid #374151; }
-.logo-icon { font-size: 1.8rem; }
-.admin-logo h2 { margin: 0; font-size: 1.25rem; font-weight: 700; color: #fff; letter-spacing: 1px; }
+.admin-logo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 24px;
+  border-bottom: 1px solid #374151;
+}
 
-.admin-menu { list-style: none; padding: 16px; margin: 0; flex: 1; }
-.admin-menu li { padding: 12px 16px; margin-bottom: 8px; border-radius: 8px; cursor: pointer; color: #9ca3af; font-weight: 500; transition: all 0.2s; }
-.admin-menu li:hover, .admin-menu li.active { background-color: var(--sidebar-hover); color: #fff; }
-.admin-menu li.active { border-left: 4px solid var(--primary-color); padding-left: 12px; }
+.logo-icon {
+  font-size: 1.8rem;
+}
 
-.sidebar-footer { padding: 20px; border-top: 1px solid #374151; display: flex; flex-direction: column; gap: 10px; }
-.btn-return, .btn-logout { width: 100%; padding: 10px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.2s; }
-.btn-return { background: transparent; color: #60a5fa; border: 1px solid #3b82f6; }
-.btn-return:hover { background: #3b82f6; color: #fff; }
-.btn-logout { background: #374151; color: #f87171; }
-.btn-logout:hover { background: var(--danger-color); color: #fff; }
+.admin-logo h2 {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #fff;
+  letter-spacing: 1px;
+}
+
+.admin-menu {
+  list-style: none;
+  padding: 16px;
+  margin: 0;
+  flex: 1;
+}
+
+.admin-menu li {
+  padding: 12px 16px;
+  margin-bottom: 8px;
+  border-radius: 8px;
+  cursor: pointer;
+  color: #9ca3af;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.admin-menu li:hover,
+.admin-menu li.active {
+  background-color: var(--sidebar-hover);
+  color: #fff;
+}
+
+.admin-menu li.active {
+  border-left: 4px solid var(--primary-color);
+  padding-left: 12px;
+}
+
+.sidebar-footer {
+  padding: 20px;
+  border-top: 1px solid #374151;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.btn-return,
+.btn-logout {
+  width: 100%;
+  padding: 10px;
+  border: none;
+  border-radius: 8px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.btn-return {
+  background: transparent;
+  color: #60a5fa;
+  border: 1px solid #3b82f6;
+}
+
+.btn-return:hover {
+  background: #3b82f6;
+  color: #fff;
+}
+
+.btn-logout {
+  background: #374151;
+  color: #f87171;
+}
+
+.btn-logout:hover {
+  background: var(--danger-color);
+  color: #fff;
+}
 
 /* =======================================================
    主內容區 (Main Content)
 ======================================================= */
-.admin-main { flex: 1; display: flex; flex-direction: column; min-width: 0; overflow-y: auto; overflow-x: hidden; }
-.admin-header { background: var(--bg-card); padding: 16px 32px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-light); position: sticky; top: 0; z-index: 10; }
-.header-left { display: flex; align-items: center; gap: 16px; }
+.admin-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.admin-header {
+  background: var(--bg-card);
+  padding: 16px 32px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid var(--border-light);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
 
 /* 🟢 強制讓漢堡按鈕在電腦版也顯示 */
-.hamburger-btn { 
-  display: block; 
-  background: none; border: none; font-size: 1.5rem; cursor: pointer; 
-  color: var(--text-muted); transition: color 0.2s ease;
+.hamburger-btn {
+  display: block;
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: var(--text-muted);
+  transition: color 0.2s ease;
 }
-.hamburger-btn:hover { color: var(--primary-color); }
 
-.admin-header h2 { margin: 0; font-size: 1.4rem; font-weight: 600; color: var(--text-main); }
+.hamburger-btn:hover {
+  color: var(--primary-color);
+}
 
-.admin-profile { display: flex; align-items: center; gap: 12px; }
-.admin-profile img { width: 40px; height: 40px; border-radius: 50%; border: 2px solid var(--border-light); object-fit: cover; }
-.profile-info { display: flex; flex-direction: column; }
-.profile-info #admin-name { font-weight: 600; font-size: 0.9rem; }
-.role-badge { font-size: 0.7rem; color: var(--primary-color); font-weight: bold; background: #eff6ff; padding: 2px 8px; border-radius: 12px; width: fit-content; margin-top: 2px; }
+.admin-header h2 {
+  margin: 0;
+  font-size: 1.4rem;
+  font-weight: 600;
+  color: var(--text-main);
+}
 
-.admin-content { padding: 32px; max-width: 1400px; margin: 0 auto; width: 100%; box-sizing: border-box; }
+.admin-profile {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.admin-profile img {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 2px solid var(--border-light);
+  object-fit: cover;
+}
+
+.profile-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.profile-info #admin-name {
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.role-badge {
+  font-size: 0.7rem;
+  color: var(--primary-color);
+  font-weight: bold;
+  background: #eff6ff;
+  padding: 2px 8px;
+  border-radius: 12px;
+  width: fit-content;
+  margin-top: 2px;
+}
+
+.admin-content {
+  padding: 32px;
+  max-width: 1400px;
+  margin: 0 auto;
+  width: 100%;
+  box-sizing: border-box;
+}
 
 /* =======================================================
    數據總覽卡片
 ======================================================= */
-.stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 24px; margin-bottom: 32px; }
-.stat-card {
-  background: var(--bg-card); padding: 24px; border-radius: var(--border-radius); box-shadow: var(--shadow-sm); border: 1px solid var(--border-light);
-  display: flex; align-items: center; gap: 20px; transition: 0.2s;
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 24px;
+  margin-bottom: 32px;
 }
-.stat-card:hover { box-shadow: var(--shadow-md); transform: translateY(-2px); }
-.stat-icon { width: 56px; height: 56px; border-radius: 16px; display: flex; justify-content: center; align-items: center; font-size: 1.5rem; }
-.stat-info h3 { margin: 0 0 4px 0; color: var(--text-muted); font-size: 0.9rem; font-weight: 500; }
-.stat-info p { margin: 0; font-size: 1.8rem; font-weight: 700; color: var(--text-main); }
+
+.stat-card {
+  background: var(--bg-card);
+  padding: 24px;
+  border-radius: var(--border-radius);
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--border-light);
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  transition: 0.2s;
+}
+
+.stat-card:hover {
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
+}
+
+.stat-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 16px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 1.5rem;
+}
+
+.stat-info h3 {
+  margin: 0 0 4px 0;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.stat-info p {
+  margin: 0;
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: var(--text-main);
+}
 
 /* 解除 overflow: hidden，讓選單可以掉出卡片外 */
-.modern-card { 
-  background: var(--bg-card); border-radius: var(--border-radius); 
-  box-shadow: var(--shadow-sm); border: 1px solid var(--border-light); 
-  overflow: visible !important; 
+.modern-card {
+  background: var(--bg-card);
+  border-radius: var(--border-radius);
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--border-light);
+  overflow: visible !important;
 }
-.card-header { padding: 20px 24px; border-bottom: 1px solid var(--border-light); background: #f8fafc; border-radius: 12px 12px 0 0; }
-.card-header h3 { margin: 0; font-size: 1.1rem; color: var(--text-main); font-weight: 600; }
 
-.empty-state { padding: 60px 20px; text-align: center; color: var(--text-muted); display: flex; flex-direction: column; align-items: center; gap: 10px; }
-.empty-icon { font-size: 3rem; opacity: 0.5; }
+.card-header {
+  padding: 20px 24px;
+  border-bottom: 1px solid var(--border-light);
+  background: #f8fafc;
+  border-radius: 12px 12px 0 0;
+}
+
+.card-header h3 {
+  margin: 0;
+  font-size: 1.1rem;
+  color: var(--text-main);
+  font-weight: 600;
+}
+
+.empty-state {
+  padding: 60px 20px;
+  text-align: center;
+  color: var(--text-muted);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.empty-icon {
+  font-size: 3rem;
+  opacity: 0.5;
+}
 
 /* =======================================================
    💻 電腦版：精美資料表 (Data Tables)
 ======================================================= */
 /* 關閉表格外框的隱藏裁切 */
-.table-responsive { width: 100%; overflow: visible !important; }
-.modern-table { width: 100%; border-collapse: collapse; text-align: left; }
-.modern-table th { background: var(--bg-card); color: var(--text-muted); font-weight: 600; font-size: 0.85rem; text-transform: uppercase; padding: 16px 24px; border-bottom: 1px solid var(--border-light); }
-.modern-table td { padding: 16px 24px; border-bottom: 1px solid var(--border-light); color: var(--text-main); font-size: 0.95rem; vertical-align: middle; white-space: nowrap; }
-.modern-table tbody tr { border-bottom: 1px solid var(--border-light); }
-.modern-table tbody tr:hover { background-color: #f8fafc; }
+.table-responsive {
+  width: 100%;
+  overflow: visible !important;
+}
+
+.modern-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.modern-table th {
+  background: var(--bg-card);
+  color: var(--text-muted);
+  font-weight: 600;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  padding: 16px 24px;
+  border-bottom: 1px solid var(--border-light);
+}
+
+.modern-table td {
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border-light);
+  color: var(--text-main);
+  font-size: 0.95rem;
+  vertical-align: middle;
+  white-space: nowrap;
+}
+
+.modern-table tbody tr {
+  border-bottom: 1px solid var(--border-light);
+}
+
+.modern-table tbody tr:hover {
+  background-color: #f8fafc;
+}
 
 /* =======================================================
    ⚙️ 合併型下拉選單核心 CSS 樣式
 ======================================================= */
-.action-dropdown { position: relative; display: inline-block; }
-.btn-dropdown-trigger {
-  background: #f3f4f6; color: #4b5563; border: 1px solid #d1d5db;
-  padding: 8px 14px; border-radius: 6px; font-weight: 600; font-size: 0.85rem;
-  cursor: pointer; transition: 0.2s; white-space: nowrap;
+.action-dropdown {
+  position: relative;
+  display: inline-block;
 }
-.btn-dropdown-trigger:hover { background: #e5e7eb; color: #111827; }
+
+.btn-dropdown-trigger {
+  background: #f3f4f6;
+  color: #4b5563;
+  border: 1px solid #d1d5db;
+  padding: 8px 14px;
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: 0.2s;
+  white-space: nowrap;
+}
+
+.btn-dropdown-trigger:hover {
+  background: #e5e7eb;
+  color: #111827;
+}
 
 .action-dropdown-menu {
-  display: none; position: absolute; right: 0; top: 110%;
-  background: #ffffff; min-width: 150px; border-radius: 8px;
-  box-shadow: 0 10px 25px rgba(0,0,0,0.15); border: 1px solid #e5e7eb;
-  z-index: 500; overflow: hidden; padding: 4px 0;
+  display: none;
+  position: absolute;
+  right: 0;
+  top: 110%;
+  background: #ffffff;
+  min-width: 150px;
+  border-radius: 8px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+  border: 1px solid #e5e7eb;
+  z-index: 500;
+  overflow: hidden;
+  padding: 4px 0;
 }
-.action-dropdown-menu.show-menu { display: block; animation: dropdownFadeIn 0.2s ease; }
 
-.action-dropdown-menu .dropdown-item { 
-  width: 100%; padding: 10px 16px; border: none; 
+.action-dropdown-menu.show-menu {
+  display: block;
+  animation: dropdownFadeIn 0.2s ease;
+}
+
+.action-dropdown-menu .dropdown-item {
+  width: 100%;
+  padding: 10px 16px;
+  border: none;
   background: transparent !important;
-  text-align: left; font-size: 0.9rem; font-weight: 500; 
-  cursor: pointer; transition: 0.15s; 
+  text-align: left;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: 0.15s;
   color: #333 !important;
 }
 
-.action-dropdown-menu .dropdown-item.btn-primary { color: var(--primary-color) !important; }
-.action-dropdown-menu .dropdown-item.btn-primary:hover { background: #eff6ff !important; }
+.action-dropdown-menu .dropdown-item.btn-primary {
+  color: var(--primary-color) !important;
+}
 
-.action-dropdown-menu .dropdown-item.btn-danger { color: var(--danger-color) !important; }
-.action-dropdown-menu .dropdown-item.btn-danger:hover { background: #fef2f2 !important; }
+.action-dropdown-menu .dropdown-item.btn-primary:hover {
+  background: #eff6ff !important;
+}
 
-@keyframes dropdownFadeIn { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
+.action-dropdown-menu .dropdown-item.btn-danger {
+  color: var(--danger-color) !important;
+}
+
+.action-dropdown-menu .dropdown-item.btn-danger:hover {
+  background: #fef2f2 !important;
+}
+
+@keyframes dropdownFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-5px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
 
 /* =======================================================
    ✨ 彈窗 (Modals) 終極防爆置中術
 ======================================================= */
-.admin-modal-overlay { 
-  position: fixed !important; top: 0 !important; left: 0 !important; 
-  width: 100vw !important; height: 100vh !important; 
-  background: rgba(17, 24, 39, 0.7) !important; backdrop-filter: blur(4px); 
-  display: flex; justify-content: center !important; align-items: center !important; 
-  z-index: 9999 !important; 
+.admin-modal-overlay {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  background: rgba(17, 24, 39, 0.7) !important;
+  backdrop-filter: blur(4px);
+  display: flex;
+  justify-content: center !important;
+  align-items: center !important;
+  z-index: 9999 !important;
 }
 
-.admin-modal-content { background: var(--bg-card); width: 90%; max-width: 600px; border-radius: var(--border-radius); padding: 32px; position: relative; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); }
-.close-admin-modal { position: absolute; top: 20px; right: 24px; font-size: 24px; color: var(--text-muted); cursor: pointer; }
-.close-admin-modal:hover { color: var(--danger-color); }
-.admin-modal-content h3 { margin-top: 0; font-size: 1.25rem; color: var(--text-main); margin-bottom: 20px; }
-.modal-body-content { background: var(--bg-main); padding: 20px; border-radius: 8px; color: var(--text-main); line-height: 1.6; max-height: 50vh; overflow-y: auto; }
-.modal-actions { display: flex; justify-content: flex-end; gap: 12px; margin-top: 24px; }
+.admin-modal-content {
+  background: var(--bg-card);
+  width: 90%;
+  max-width: 600px;
+  border-radius: var(--border-radius);
+  padding: 32px;
+  position: relative;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+}
+
+.close-admin-modal {
+  position: absolute;
+  top: 20px;
+  right: 24px;
+  font-size: 24px;
+  color: var(--text-muted);
+  cursor: pointer;
+}
+
+.close-admin-modal:hover {
+  color: var(--danger-color);
+}
+
+.admin-modal-content h3 {
+  margin-top: 0;
+  font-size: 1.25rem;
+  color: var(--text-main);
+  margin-bottom: 20px;
+}
+
+.modal-body-content {
+  background: var(--bg-main);
+  padding: 20px;
+  border-radius: 8px;
+  color: var(--text-main);
+  line-height: 1.6;
+  max-height: 50vh;
+  overflow-y: auto;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 24px;
+}
 
 /* 按鈕與標籤 */
-.badge { padding: 4px 10px; border-radius: 6px; font-size: 0.8rem; font-weight: 600; white-space: nowrap; }
-.btn-action { padding: 8px 14px; border: none; border-radius: 6px; font-weight: 600; font-size: 0.85rem; cursor: pointer; transition: 0.2s; white-space: nowrap; }
-.btn-primary { background: #eff6ff; color: var(--primary-color); }
-.btn-primary:hover { background: var(--primary-color); color: #fff; }
-.btn-danger { background: #fef2f2; color: var(--danger-color); }
-.btn-danger:hover { background: var(--danger-color); color: #fff; }
-.btn-secondary { background: #f3f4f6; color: var(--text-muted); }
-.btn-secondary:hover { background: #e5e7eb; color: var(--text-main); }
+.badge {
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.btn-action {
+  padding: 8px 14px;
+  border: none;
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: 0.2s;
+  white-space: nowrap;
+}
+
+.btn-primary {
+  background: #eff6ff;
+  color: var(--primary-color);
+}
+
+.btn-primary:hover {
+  background: var(--primary-color);
+  color: #fff;
+}
+
+.btn-danger {
+  background: #fef2f2;
+  color: var(--danger-color);
+}
+
+.btn-danger:hover {
+  background: var(--danger-color);
+  color: #fff;
+}
+
+.btn-secondary {
+  background: #f3f4f6;
+  color: var(--text-muted);
+}
+
+.btn-secondary:hover {
+  background: #e5e7eb;
+  color: var(--text-main);
+}
 
 /* =======================================================
    📱 響應式設計 (RWD for Mobile/Tablet)
 ======================================================= */
-.sidebar-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 999; opacity: 0; transition: opacity 0.3s; }
+.sidebar-overlay {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 999;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
 
 @media screen and (max-width: 1024px) {
-  /* 🟢 手機版確保收合狀態不會影響正常滑出 */
-  .admin-sidebar { position: fixed; top: 0; left: 0; height: 100%; transform: translateX(-100%); margin-left: 0 !important; }
-  .admin-sidebar.active-sidebar { transform: translateX(0); box-shadow: 4px 0 25px rgba(0,0,0,0.5); }
-  .sidebar-overlay.active-overlay { display: block; opacity: 1; }
 
-  .admin-header { padding: 16px 20px; }
-  .admin-content { padding: 20px; }
-  .stats-grid { grid-template-columns: repeat(2, 1fr); gap: 16px; }
+  /* 🟢 手機版確保收合狀態不會影響正常滑出 */
+  .admin-sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100%;
+    transform: translateX(-100%);
+    margin-left: 0 !important;
+  }
+
+  .admin-sidebar.active-sidebar {
+    transform: translateX(0);
+    box-shadow: 4px 0 25px rgba(0, 0, 0, 0.5);
+  }
+
+  .sidebar-overlay.active-overlay {
+    display: block;
+    opacity: 1;
+  }
+
+  .admin-header {
+    padding: 16px 20px;
+  }
+
+  .admin-content {
+    padding: 20px;
+  }
+
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+  }
 
   /* 表格轉卡片 */
-  .modern-table { display: block; width: 100%; }
-  .modern-table thead { display: none; }
-  .modern-table tbody { display: block; width: 100%; }
-  
+  .modern-table {
+    display: block;
+    width: 100%;
+  }
+
+  .modern-table thead {
+    display: none;
+  }
+
+  .modern-table tbody {
+    display: block;
+    width: 100%;
+  }
+
   .modern-table tbody tr {
-    display: block; background: #ffffff; margin-bottom: 16px; padding: 16px;
-    border: 1px solid var(--border-light); border-radius: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+    display: block;
+    background: #ffffff;
+    margin-bottom: 16px;
+    padding: 16px;
+    border: 1px solid var(--border-light);
+    border-radius: 10px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
   }
 
   .modern-table td {
-    display: flex; justify-content: space-between; align-items: center;
-    padding: 10px 0 !important; border-bottom: 1px dashed #f3f4f6 !important;
-    white-space: normal; font-size: 0.95rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 0 !important;
+    border-bottom: 1px dashed #f3f4f6 !important;
+    white-space: normal;
+    font-size: 0.95rem;
   }
 
-  #section-bottles td:nth-child(1)::before { content: "🆔 文章 ID"; font-weight: 600; color: var(--text-muted); }
-  #section-bottles td:nth-child(2)::before { content: "👤 發文作者"; font-weight: 600; color: var(--text-muted); }
-  #section-bottles td:nth-child(3)::before { content: "📝 文章標題"; font-weight: 600; color: var(--text-muted); }
-  #section-bottles td:nth-child(4)::before { content: "🏷️ 看板分類"; font-weight: 600; color: var(--text-muted); }
-  #section-bottles td:nth-child(5)::before { content: "⏰ 發布時間"; font-weight: 600; color: var(--text-muted); }
-  #section-bottles td:nth-child(6)::before { content: "⚙️ 項目操作"; font-weight: 600; color: var(--text-muted); }
+  #section-bottles td:nth-child(1)::before {
+    content: "🆔 文章 ID";
+    font-weight: 600;
+    color: var(--text-muted);
+  }
 
-  #section-users td:nth-child(1)::before { content: "🆔 會員 ID"; font-weight: 600; color: var(--text-muted); }
-  #section-users td:nth-child(2)::before { content: "👤 姓名暱稱"; font-weight: 600; color: var(--text-muted); }
-  #section-users td:nth-child(3)::before { content: "✉️ 登入 Email"; font-weight: 600; color: var(--text-muted); }
-  #section-users td:nth-child(4)::before { content: "📅 註冊時間"; font-weight: 600; color: var(--text-muted); }
-  #section-users td:nth-child(5)::before { content: "🚦 帳號狀態"; font-weight: 600; color: var(--text-muted); }
-  #section-users td:nth-child(6)::before { content: "⚙️ 項目操作"; font-weight: 600; color: var(--text-muted); }
+  #section-bottles td:nth-child(2)::before {
+    content: "👤 發文作者";
+    font-weight: 600;
+    color: var(--text-muted);
+  }
 
-  .modern-table td:last-child { border-bottom: none !important; }
-  .action-dropdown-menu { right: 0; top: auto; bottom: 110%; }
+  #section-bottles td:nth-child(3)::before {
+    content: "📝 文章標題";
+    font-weight: 600;
+    color: var(--text-muted);
+  }
+
+  #section-bottles td:nth-child(4)::before {
+    content: "🏷️ 看板分類";
+    font-weight: 600;
+    color: var(--text-muted);
+  }
+
+  #section-bottles td:nth-child(5)::before {
+    content: "⏰ 發布時間";
+    font-weight: 600;
+    color: var(--text-muted);
+  }
+
+  #section-bottles td:nth-child(6)::before {
+    content: "⚙️ 項目操作";
+    font-weight: 600;
+    color: var(--text-muted);
+  }
+
+  #section-users td:nth-child(1)::before {
+    content: "🆔 會員 ID";
+    font-weight: 600;
+    color: var(--text-muted);
+  }
+
+  #section-users td:nth-child(2)::before {
+    content: "👤 姓名暱稱";
+    font-weight: 600;
+    color: var(--text-muted);
+  }
+
+  #section-users td:nth-child(3)::before {
+    content: "✉️ 登入 Email";
+    font-weight: 600;
+    color: var(--text-muted);
+  }
+
+  #section-users td:nth-child(4)::before {
+    content: "📅 註冊時間";
+    font-weight: 600;
+    color: var(--text-muted);
+  }
+
+  #section-users td:nth-child(5)::before {
+    content: "🚦 帳號狀態";
+    font-weight: 600;
+    color: var(--text-muted);
+  }
+
+  #section-users td:nth-child(6)::before {
+    content: "⚙️ 項目操作";
+    font-weight: 600;
+    color: var(--text-muted);
+  }
+
+  .modern-table td:last-child {
+    border-bottom: none !important;
+  }
+
+  .action-dropdown-menu {
+    right: 0;
+    top: auto;
+    bottom: 110%;
+  }
 }
 
 @media screen and (max-width: 600px) {
-  .stats-grid { grid-template-columns: 1fr; }
-  .profile-info { display: none; }
+  .stats-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .profile-info {
+    display: none;
+  }
 }
