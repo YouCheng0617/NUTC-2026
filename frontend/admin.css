@@ -50,7 +50,7 @@ html {
    側邊欄 (Sidebar)
 ======================================================= */
 .admin-sidebar {
-  width: 260px;
+  width: 250px;
   background-color: var(--sidebar-bg);
   color: #f9fafb;
   display: flex;
