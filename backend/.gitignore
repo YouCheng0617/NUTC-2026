@@ -5,3 +5,9 @@ node_modules
 /src/generated/prisma
 
 /測試帳密.md
+/dist
+*.js
+*.d.js
+*.d.ts
+*.ts.map
+*.js.map
