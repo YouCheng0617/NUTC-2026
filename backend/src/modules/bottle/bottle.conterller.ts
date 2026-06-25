@@ -73,46 +73,54 @@ export const bottleController = {
     /* 獲取瓶子 */
     async getBottles(req: AuthRequest, res: Response) {
         try {
-            const memberId = req.user?.member_id;
-            const limit = 10; /* 每次獲取的瓶子數量 */
+            const memberId = req.user?.member_id; // 💡 訪客會是 undefined
+            const limit = 10;
             const categoryIdParam = req.query.categoryId as string;
             const targetCategoryId = categoryIdParam ? parseInt(categoryIdParam) : undefined;
 
+            // 🌟 1. 動態組裝 where 條件
+            const whereCondition: any = {
+                status: 1, // 只撈取審核通過的瓶子
+            };
+
+            // 🌟 如果是會員，就不撈自己的瓶子；如果是訪客，這段就不會加進去
+            if (memberId) {
+                whereCondition.member_id = { not: memberId };
+            }
+
+            // 處理分類過濾
+            if (targetCategoryId) {
+                whereCondition.categories = {
+                    some: { category_id: targetCategoryId }
+                };
+            }
+
+            // 🌟 2. 第一次查詢：撈出符合條件的瓶子 ID
             const availableBottles = await prisma.bottle.findMany({
-                where: {
-                    member_id: { not: memberId! },
-                    status: 1,/* 只撈取審核通過的瓶子 */
-                    ...(targetCategoryId && {
-                        categories: {
-                            some: {
-                                category_id: targetCategoryId
-                            }
-                        }
-                    })
-                },
+                where: whereCondition, // 👈 換成我們剛剛動態組裝的條件
                 select: { bottle_id: true }
             });
+
             if (availableBottles.length === 0) {
                 return res.status(404).json({ message: "茫茫大海中，目前沒有撈到任何瓶子" });
             }
-            /* 隨機選取瓶子 */
+
+            // 隨機選取瓶子
             const suffledBottles = availableBottles.sort(() => 0.5 - Math.random());
-            /* 取出前 limit 個瓶子 ID ，如果瓶子數量<limit，則取所有瓶子 */
             const seletBottles = suffledBottles.slice(0, limit).map(bottle => bottle.bottle_id);
 
-            /* 根據選取的瓶子 ID 獲取瓶子詳細信息 */
+            // 🌟 3. 第二次查詢：獲取詳細資訊
             const randomBottles = await prisma.bottle.findMany({
                 where: {
-                    bottle_id: { in: seletBottles! }
+                    bottle_id: { in: seletBottles }
                 },
                 include: {
                     author: {
-                        select: { name: true, }
+                        select: { name: true }
                     },
                     _count: {
                         select: { likes: true, saves: true }
                     },
-                    // 🌟 1. 加入類別關聯
                     categories: {
                         include: {
                             category: true
@@ -121,6 +129,7 @@ export const bottleController = {
                 }
             });
 
+            // 🌟 4. 整理回傳格式，並清楚告知前端目前的狀態
             const responseBottles = randomBottles.map(bottle => ({
                 bottle_id: bottle.bottle_id,
                 title: bottle.title,
@@ -130,20 +139,23 @@ export const bottleController = {
                 like_count: bottle._count.likes,
                 save_count: bottle._count.saves,
                 view_count: bottle.view_count,
-                // 🌟 2. 攤平類別資訊
                 category_list: bottle.categories.map(c => c.category?.name || "未知類別")
             }));
 
             res.status(200).json({
-                message: `海水退去，你成功撈取了 ${responseBottles.length} 個瓶子`,
+                // 💡 可以在這裡明確回傳是否為訪客，方便前端判斷
+                is_guest: !memberId,
+                message: !memberId
+                    ? `訪客模式：海水退去，你成功撈取了 ${responseBottles.length} 個瓶子`
+                    : `會員模式：海水退去，你成功撈取了 ${responseBottles.length} 個瓶子`,
                 bottles: responseBottles
             });
+
         } catch (error) {
             console.error("Error fetching bottles:", error);
             res.status(500).json({ message: "內部伺服器錯誤" });
         }
     },
-
     /* AI審核瓶子 */
     async reviewBottle(req: AuthRequest, res: Response) {
         try {

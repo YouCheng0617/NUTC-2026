@@ -86,4 +86,40 @@ export const adminCheck = async (req: AuthRequest, res: Response, next: NextFunc
         console.error("Admin check error:", error);
         return res.status(500).json({ message: "伺服器錯誤" });
     }
+};
+
+export const optionalAuthCheck = async (req: AuthRequest, res: Response, next: NextFunction) => {
+    const authHeader = req.headers.authorization;
+
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+        return next();
+    }
+    const token = authHeader.split(" ")[1] as string;
+
+    try {
+        const isBlacklisted = await prisma.blacklistedToken.findUnique({
+            where: { token: token },
+        });
+        if (isBlacklisted) {
+            return next()
+        }
+
+        const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY!) as unknown as TokenPayload;
+        const memberData = await prisma.member.findUnique({
+            where: { member_id: decoded.member_id },
+            select: { status: true, role: true },
+        });
+
+        if (!memberData || memberData.status === "BANNED" || memberData.status === "INACTIVE") {
+            return next();
+        }
+
+        req.user = {
+            ...decoded,
+            role: memberData.role
+        };
+        next();
+    } catch (error: any) {
+        return next();
+    }
 }
