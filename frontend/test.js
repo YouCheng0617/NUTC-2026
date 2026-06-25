@@ -19,53 +19,63 @@ const BOARD_CATEGORY_MAP = {
     '🎮 遊戲專區': 4,
 };
 
-// 🌊 向後端抓取文章 API 
+// 🌊 向後端抓取文章 API (🟢 訪客友善版)
 async function fetchBottles() {
     const token = localStorage.getItem("authToken");
-    if (!token) {
-        console.log("尚未登入，無法取得漂流瓶");
-        renderPosts([]);
-        return;
-    }
+
+    // 1. 移除原本的強制阻擋，讓訪客也能繼續往下走！
 
     try {
         let endpointUrl = `${API_BASE_URL}/bottles/random`;
+        
+        // 2. 訪客不能看「我的文章」或「收藏文章」，直接回傳空陣列
         if (currentView === 'mine') {
+            if (!token) { renderPosts([]); return; }
             endpointUrl = `${API_BASE_URL}/bottles/mybottles`;
         } else if (currentView === 'saved') {
+            if (!token) { renderPosts([]); return; }
             endpointUrl = `${API_BASE_URL}/bottles/saved`;
         } else if (currentCategoryId !== null) {
-            // 🔴 傳遞看板分類 ID 給後端，讓後端只回傳該分類的瓶子
+            // 傳遞看板分類 ID 給後端
             endpointUrl = `${API_BASE_URL}/bottles/random?categoryId=${currentCategoryId}`;
         }
 
         let likedBottleIds = [];
         let savedBottleIds = [];
-        try {
-            const likedRes = await fetch(`${API_BASE_URL}/bottles/liked`, { method: 'GET', headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' } });
-            if (likedRes.ok) {
-                const likedData = await likedRes.json();
-                let arr = likedData.bottles || likedData.data || likedData;
-                if (Array.isArray(arr)) likedBottleIds = arr.map(i => String(i.bottle_id || i.id || i.bottleId));
-            }
-        } catch (e) { console.log('偷偷抓取按讚清單失敗'); }
+        
+        // 3. 只有「有登入」的人，才去抓按讚跟收藏的清單
+        if (token) {
+            try {
+                const likedRes = await fetch(`${API_BASE_URL}/bottles/liked`, { method: 'GET', headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' } });
+                if (likedRes.ok) {
+                    const likedData = await likedRes.json();
+                    let arr = likedData.bottles || likedData.data || likedData;
+                    if (Array.isArray(arr)) likedBottleIds = arr.map(i => String(i.bottle_id || i.id || i.bottleId));
+                }
+            } catch (e) { console.log('偷偷抓取按讚清單失敗'); }
 
-        try {
-            const savedRes = await fetch(`${API_BASE_URL}/bottles/saved`, { method: 'GET', headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' } });
-            if (savedRes.ok) {
-                const savedData = await savedRes.json();
-                let arr = savedData.bottles || savedData.data || savedData;
-                if (Array.isArray(arr)) savedBottleIds = arr.map(i => String(i.bottle_id || i.id || i.bottleId));
-            }
-        } catch (e) { console.log('偷偷抓取收藏清單失敗'); }
+            try {
+                const savedRes = await fetch(`${API_BASE_URL}/bottles/saved`, { method: 'GET', headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' } });
+                if (savedRes.ok) {
+                    const savedData = await savedRes.json();
+                    let arr = savedData.bottles || savedData.data || savedData;
+                    if (Array.isArray(arr)) savedBottleIds = arr.map(i => String(i.bottle_id || i.id || i.bottleId));
+                }
+            } catch (e) { console.log('偷偷抓取收藏清單失敗'); }
+        }
+
+        // 4. 設定 Header：如果有 Token 才帶上 Authorization
+        const headers = {
+            'Content-Type': 'application/json',
+            'ngrok-skip-browser-warning': 'true'
+        };
+        if (token) {
+            headers['Authorization'] = `Bearer ${token}`;
+        }
 
         const response = await fetch(endpointUrl, {
             method: 'GET',
-            headers: {
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json',
-                'ngrok-skip-browser-warning': 'true'
-            }
+            headers: headers
         });
 
         if (response.ok) {
@@ -189,12 +199,14 @@ function renderPosts(data = posts) {
     const container = document.getElementById('post-container');
     if (!container) return;
 
-    let emptyMsg = '找不到漂流瓶 😢';
-    if (currentView === 'saved') emptyMsg = '你還沒有收藏任何漂流瓶喔 ⭐';
-    else if (currentView === 'mine') emptyMsg = '你目前還沒有發過任何漂流瓶喔 📝';
+    // 🟢 這裡的邏輯：如果資料還是空的，顯示提示訊息
+    if (!data || data.length === 0) {
+        container.innerHTML = `<h3 style="text-align:center; color:#888; margin-top:40px;">目前沒有漂流瓶，快來拋出第一個吧！🌊</h3>`;
+        return;
+    }
 
-    container.innerHTML = data.length === 0 ? `<h3 style="text-align:center; color:#888; margin-top:40px;">${emptyMsg}</h3>` :
-        data.map(p => `
+    // 🟢 如果有資料，就正常渲染
+    container.innerHTML = data.map(p => `
         <div class="post-card" onclick="openPostDetail('${escapeHTML(String(p.id))}')">
             <div style="display:flex; justify-content:space-between; align-items:center;">
                 <div style="font-size:0.85rem; color:#0055a5; font-weight:bold;">${escapeHTML(p.board)}</div>
@@ -222,7 +234,6 @@ function applyFilters() {
         res = res.filter(p => p.saved === true);
     } else if (currentView === 'mine') {
     } else {
-        // 🟢 嚴格過濾目前的看板
         res = res.filter(p => p.board.includes(currentBoard));
     }
 
@@ -231,7 +242,7 @@ function applyFilters() {
             (p.title && p.title.toLowerCase().includes(currentKeyword)) ||
             (p.desc && p.desc.toLowerCase().includes(currentKeyword)) ||
             (p.board && p.board.toLowerCase().includes(currentKeyword)) ||
-            (p.author && p.author.toLowerCase().includes(currentKeyword)) // 🔴 關鍵升級：直接把作者也加進來一起搜！
+            (p.author && p.author.toLowerCase().includes(currentKeyword)) 
         );
     }
 
@@ -516,6 +527,7 @@ window.toggleAction = async function (id, actionType, e) {
 
     if (!token) {
         alert("請先登入才能操作喔！");
+        window.location.href = 'login.html'; // 貼心導向登入頁面
         return;
     }
 
@@ -568,9 +580,8 @@ window.toggleAction = async function (id, actionType, e) {
     }
 }
 
-// 🗑️ 刪除自己的漂流瓶
 window.deleteMyBottle = async function (id, e) {
-    e.stopPropagation(); // 防止點擊按鈕時不小心點開文章內頁
+    e.stopPropagation(); 
     
     if (!confirm("⚠️ 確定要刪除這個漂流瓶嗎？刪除後無法恢復喔！")) return;
 
@@ -581,7 +592,6 @@ window.deleteMyBottle = async function (id, e) {
     }
 
     try {
-        // 🔴 這裡把網址補上後端設定的 /delete
         const response = await fetch(`${API_BASE_URL}/bottles/${id}/delete`, {
             method: 'DELETE',
             headers: {
@@ -592,7 +602,6 @@ window.deleteMyBottle = async function (id, e) {
 
         if (response.ok) {
             alert("✅ 漂流瓶已成功刪除！");
-            // 重新抓取文章列表更新畫面
             fetchBottles();
         } else {
             const err = await response.json();
@@ -647,8 +656,6 @@ function setupAuth() {
                     userDropdown.insertBefore(adminLink, userDropdown.lastElementChild);
                 }
                 
-                // 🔴 新增這裡：如果是管理員，強制隱藏「✏️ 發文」按鈕！
-                // 🔴 如果是管理員：隱藏發文按鈕、收藏文章、我的文章
                 const btnNewPost = document.getElementById('btn-new-post');
                 if (btnNewPost) btnNewPost.style.display = 'none';
                 
@@ -658,7 +665,6 @@ function setupAuth() {
                 if (postMenuItem) postMenuItem.style.display = 'none';
 
             } else {
-                // 🟢 如果是一般使用者：顯示所有功能
                 const btnNewPost = document.getElementById('btn-new-post');
                 if (btnNewPost) btnNewPost.style.display = 'block'; 
                 
@@ -672,7 +678,7 @@ function setupAuth() {
             if (loginTrigger) loginTrigger.style.display = 'block';
             if (userProfile) userProfile.style.display = 'none';
             const btnNewPost = document.getElementById('btn-new-post');
-if (btnNewPost) btnNewPost.style.display = 'block';
+            if (btnNewPost) btnNewPost.style.display = 'block';
         }
     }
 
@@ -682,7 +688,7 @@ if (btnNewPost) btnNewPost.style.display = 'block';
             localStorage.removeItem('currentUser');
             localStorage.removeItem('authToken');
             updateUI();
-            window.location.href = "login.html"; // 直接跳轉回登入頁
+            window.location.href = "login.html"; 
         };
     }
     updateUI();
@@ -693,7 +699,17 @@ function setupNewPost() {
     const btnNewPost = document.getElementById('btn-new-post');
     const closePostModal = document.getElementById('close-post-modal');
 
-    if (btnNewPost) btnNewPost.onclick = () => document.getElementById('post-modal').style.display = 'block';
+    if (btnNewPost) {
+        btnNewPost.onclick = () => {
+            const token = localStorage.getItem("authToken");
+            if (!token) {
+                alert("請先登入才能發文喔！");
+                window.location.href = "login.html"; // 直接導向登入頁
+                return;
+            }
+            document.getElementById('post-modal').style.display = 'block';
+        }
+    }
     if (closePostModal) closePostModal.onclick = () => document.getElementById('post-modal').style.display = 'none';
 
     if (form) {
@@ -769,9 +785,8 @@ document.addEventListener('DOMContentLoaded', () => {
         currentView = 'all';
     }
 
-    // 🟢 網頁載入時，根據記憶的 currentBoard 自動為側邊欄加上 active 樣式
     document.querySelectorAll('.sidebar li').forEach(li => {
-        li.classList.remove('active'); // 先清除所有亮起狀態
+        li.classList.remove('active'); 
         const liText = li.innerText.trim();
 
         if (liText.includes(currentBoard)) {
@@ -781,7 +796,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     setupAuth();
     setupNewPost();
-    fetchBottles();
+    fetchBottles(); // 🟢 訪客模式：現在沒登入也會去抓文章了！
 
     const searchInput = document.getElementById('main-search-input');
     const historyBox = document.getElementById('search-history-dropdown');
@@ -819,7 +834,6 @@ document.addEventListener('DOMContentLoaded', () => {
         };
     }
 
-    // 🟢 終極魔法：把所有留言區塊動態轉成 <form>
     const commentInputs = document.querySelectorAll('#new-comment-input');
     commentInputs.forEach(input => {
         input.setAttribute('name', 'user_comment_history');
@@ -854,16 +868,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const liText = e.target.innerText.trim();
 
-        // 🟢 抓取版面名稱與 ID
         currentBoard = liText.substring(2).trim();
         currentCategoryId = BOARD_CATEGORY_MAP[liText] || 1;
 
         sessionStorage.setItem('savedCategoryId', currentCategoryId);
         sessionStorage.setItem('savedBoard', currentBoard);
 
-        // 🟢 【關鍵修復】解決當前問題：按左邊熱門看板時，如果正在看文章內頁，要自動跳回列表頁面！
         closePostDetail();
-
         fetchBottles();
     });
 
