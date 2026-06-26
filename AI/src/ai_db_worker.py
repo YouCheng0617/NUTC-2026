@@ -10,7 +10,6 @@ from main import LocalStickyNoteAI
 env_path = os.path.join(os.path.dirname(__file__), '.env')
 load_dotenv(env_path)
 
-# 🌟 完美的寫法：只從 .env 讀取，絕對不留下任何明碼
 WEBHOOK_URL = os.getenv("BACKEND_URL")
 API_KEY = os.getenv("AI_WEBHOOK_API_KEY")
 
@@ -23,7 +22,7 @@ if not API_KEY:
 
 class AIDBWorker:
     def __init__(self):
-        # 資料庫的設定也可以寫在 .env，這裡保留預設值防呆
+        # 保留預設值防呆
         self.db_params = {
             "host": os.getenv("DB_HOST", "127.0.0.1"), 
             "user": os.getenv("DB_USER", "postgres"),
@@ -33,7 +32,7 @@ class AIDBWorker:
         }
         self.ai_engine = LocalStickyNoteAI()
         
-        # 💡 優化 1：預先編譯正則表達式，提升效能
+        # 💡 優化 1：提升效能
         self.phone_regex = re.compile(r"09\d{2}[-?\s]?\d{3}[-?\s]?\d{3}")
 
     def send_webhook(self, bottle_id, status_str, reason):
@@ -51,7 +50,7 @@ class AIDBWorker:
             else:
                 print(f"⚠️ 後端拒絕接收 (狀態碼: {response.status_code})")
         except requests.exceptions.ConnectionError:
-            # 💡 把這裡改成只顯示簡短提示，看起來就乾淨多啦！
+            # 💡 這裡改成只顯示簡短提示
             print(f"💤 系統提示：後端伺服器未開啟，Webhook 暫存於資料庫，待下次重試。")
         except Exception as e:
             print(f"❌ Webhook 發生非預期錯誤: {e}")
@@ -63,7 +62,7 @@ class AIDBWorker:
             if word in text:
                 return "不通過", f"偵測到違規關鍵字：{word}", "未分類"
 
-        # --- 第二層：正規表達式 (使用已預先編譯的版本) ---
+        # --- 第二層：正規表達式  ---
         if self.phone_regex.search(text):
             return "不通過", "偵測到敏感聯絡資訊 (電話)", "未分類"
 
