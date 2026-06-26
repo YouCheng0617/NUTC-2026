@@ -122,21 +122,37 @@ class AIDBWorker:
             finally:
                 if conn is not None:
                     conn.close()
-def get_category(text):
+def get_category(self, text): # 如果在類別裡，記得加上 self
     prompt = f"""
     請將以下內容分類。妳只能且必須從【生活瑣事, 心情告白, 匿名抱怨, 技術分享, 違規訊息】這五個詞中選擇一個。
     請不要輸出任何多餘的文字、括號、標點符號或解釋。
     內容：{text}
     """
-    # 這裡假設 response 是 AI 的回傳結果
-    raw_response = ai_model.generate(prompt)
     
-    # 只留關鍵字
+    # 正確呼叫並抓取純文字
+    response = self.ai_engine.generate_content(prompt)
+    
+    raw_response = response.text 
+    
+    print(f"AI 原始回覆: {raw_response}") 
+    
     allowed = ["生活瑣事", "心情告白", "匿名抱怨", "技術分享", "違規訊息"]
     for category in allowed:
         if category in raw_response:
             return category
-    return "生活瑣事" 
+            
+    return "生活瑣事"
 if __name__ == "__main__":
     worker = AIDBWorker()
     worker.run()
+while True:
+    # 系統自動撈出所有「還沒處理過」的資料
+    # 不需要指定 ID，只要 ai_status 是空的，就全部抓出來！
+    rows = db.query('SELECT id, content FROM "posts" WHERE ai_status IS NULL')
+    
+    for row in rows:
+        # 自動審核、自動分類、自動填入
+        category = get_category(row['content'])
+        db.execute('UPDATE "posts" SET ai_status = "完成", category = %s WHERE id = %s', (category, row['id']))
+        
+    time.sleep(5) # 休息一下再繼續監聽
