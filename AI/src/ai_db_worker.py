@@ -57,25 +57,25 @@ class AIDBWorker:
 
     def check_content(self, text):
         # --- 第一層：硬核黑名單 ---
-        bad_words = ['砸', '球棒', '打人', '堵人', '報仇', '笨蛋', '醜', '垃圾', '加賴', 'LINE']
+        bad_words = ['砸', '球棒', '打人', '堵人', '報仇', '笨蛋', '醜', '垃圾', '加賴', 'LINE', '賺錢', '領取']
         for word in bad_words:
             if word in text:
-                return "不通過", f"偵測到違規關鍵字：{word}", "未分類"
+                # 💡 優化：就算被攔截，也強制賦予一個「違規訊息」的分類
+                return "不通過", f"偵測到違規關鍵字：{word}", "違規訊息"
 
-        # --- 第二層：正規表達式  ---
+        # --- 第二層：正規表達式 ---
         if self.phone_regex.search(text):
-            return "不通過", "偵測到敏感聯絡資訊 (電話)", "未分類"
+            return "不通過", "偵測到敏感聯絡資訊 (電話)", "違規訊息"
 
         # --- 第三層：AI 語意審核 ---
         try:
-            print(f"🤖 AI 深度審核中...")
             res = self.ai_engine.check_content(text)
             status = res.get("ai_status", "通過") if isinstance(res, dict) else "通過"
             reason = res.get("ai_reason", "無") if isinstance(res, dict) else "格式異常"
             category = self.ai_engine.get_category(text)
             return status, reason, category
         except Exception as e:
-            return "通過", f"AI 連線異常: {str(e)}", "未分類"
+            return "通過", f"AI 連線異常: {str(e)}", "生活瑣事"
 
     def run(self):
         # 💡 優化 3 & 4：加上外層迴圈與資料庫斷線重連機制 (Auto-Reconnect)
@@ -122,7 +122,21 @@ class AIDBWorker:
             finally:
                 if conn is not None:
                     conn.close()
-
+def get_category(text):
+    prompt = f"""
+    請將以下內容分類。妳只能且必須從【生活瑣事, 心情告白, 匿名抱怨, 技術分享, 違規訊息】這五個詞中選擇一個。
+    請不要輸出任何多餘的文字、括號、標點符號或解釋。
+    內容：{text}
+    """
+    # 這裡假設 response 是 AI 的回傳結果
+    raw_response = ai_model.generate(prompt)
+    
+    # 只留關鍵字
+    allowed = ["生活瑣事", "心情告白", "匿名抱怨", "技術分享", "違規訊息"]
+    for category in allowed:
+        if category in raw_response:
+            return category
+    return "生活瑣事" 
 if __name__ == "__main__":
     worker = AIDBWorker()
     worker.run()
