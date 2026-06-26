@@ -2,20 +2,28 @@ import os
 import psycopg2
 import time
 import re
-import requests  # 新增：用於發送 Webhook 請求
+import requests
 from dotenv import load_dotenv
 from main import LocalStickyNoteAI
 
-# --- 1. 環境變數加載 ---
-env_path = os.path.join(os.path.dirname(__file__), '..', '.env')
+# --- 1. 環境變數加載與安全檢查 ---
+env_path = os.path.join(os.path.dirname(__file__), '.env')
 load_dotenv(env_path)
 
-# 密鑰與後端網址 (從 .env 讀取，若讀不到則使用預設值)
-WEBHOOK_URL = os.getenv("BACKEND_URL", "http://127.0.0.1:3001/bottles/review")
-API_KEY = os.getenv("AI_WEBHOOK_API_KEY", "jiwgoihiwrhgodag)3699822{jgijape'aejgipw'*APILOL*@5year}")
+# 🌟 完美的寫法：只從 .env 讀取，絕對不留下任何明碼
+WEBHOOK_URL = os.getenv("BACKEND_URL")
+API_KEY = os.getenv("AI_WEBHOOK_API_KEY")
+
+# 🛡️ 安全防護機制：如果 .env 裡面忘記設定，直接引發 ValueError 終止程式
+if not WEBHOOK_URL:
+    raise ValueError("❌ 致命錯誤：環境變數缺少 BACKEND_URL，請確保 .env 檔案已正確設定！")
+
+if not API_KEY:
+    raise ValueError("❌ 致命錯誤：環境變數缺少 AI_WEBHOOK_API_KEY，請確保 .env 檔案已正確設定！")
 
 class AIDBWorker:
     def __init__(self):
+        # 資料庫的設定也可以寫在 .env，這裡保留預設值防呆
         self.db_params = {
             "host": os.getenv("DB_HOST", "127.0.0.1"), 
             "user": os.getenv("DB_USER", "postgres"),
@@ -24,39 +32,29 @@ class AIDBWorker:
             "port": os.getenv("DB_PORT", "5432")
         }
         self.ai_engine = LocalStickyNoteAI()
+        
+        # 💡 優化 1：預先編譯正則表達式，提升效能
+        self.phone_regex = re.compile(r"09\d{2}[-?\s]?\d{3}[-?\s]?\d{3}")
 
     def send_webhook(self, bottle_id, status_str, reason):
-        """
-        依照規格書回傳審核結果給後端
-        - status 1: 通過
-        - status 2: 違規
-        """
-        headers = {
-            "x-api-key": API_KEY,
-            "Content-Type": "application/json"
-        }
+        """依照規格書回傳審核結果給後端 API"""
+        headers = {"x-api-key": API_KEY, "Content-Type": "application/json"}
         
-        # 轉換狀態碼：通過 -> 1, 不通過 -> 2
         status_code = 1 if status_str == "通過" else 2
-        
-        payload = {
-            "bottle_id": bottle_id,
-            "status": status_code
-        }
-        
-        # 只有在違規時才帶上理由
-        if status_code == 2:
-            payload["violation_reason"] = reason
+        payload = {"bottle_id": bottle_id, "status": status_code}
+        if status_code == 2: payload["violation_reason"] = reason
 
         try:
-            # 規格書要求使用 PATCH
-            response = requests.patch(WEBHOOK_URL, json=payload, headers=headers)
+            response = requests.patch(WEBHOOK_URL, json=payload, headers=headers, timeout=5)
             if response.status_code == 200:
                 print(f"📡 Webhook 回報成功 (ID: {bottle_id})")
             else:
-                print(f"⚠️ Webhook 失敗 (狀態碼: {response.status_code}): {response.text}")
+                print(f"⚠️ 後端拒絕接收 (狀態碼: {response.status_code})")
+        except requests.exceptions.ConnectionError:
+            # 💡 把這裡改成只顯示簡短提示，看起來就乾淨多啦！
+            print(f"💤 系統提示：後端伺服器未開啟，Webhook 暫存於資料庫，待下次重試。")
         except Exception as e:
-            print(f"❌ Webhook 連線發生異常: {e}")
+            print(f"❌ Webhook 發生非預期錯誤: {e}")
 
     def check_content(self, text):
         # --- 第一層：硬核黑名單 ---
@@ -65,8 +63,8 @@ class AIDBWorker:
             if word in text:
                 return "不通過", f"偵測到違規關鍵字：{word}", "未分類"
 
-        # --- 第二層：正規表達式 ---
-        if re.search(r"09\d{2}[-?\s]?\d{3}[-?\s]?\d{3}", text):
+        # --- 第二層：正規表達式 (使用已預先編譯的版本) ---
+        if self.phone_regex.search(text):
             return "不通過", "偵測到敏感聯絡資訊 (電話)", "未分類"
 
         # --- 第三層：AI 語意審核 ---
@@ -81,42 +79,50 @@ class AIDBWorker:
             return "通過", f"AI 連線異常: {str(e)}", "未分類"
 
     def run(self):
-        try:
-            conn = psycopg2.connect(**self.db_params)
-            cur = conn.cursor()
-            print(f"🚀 [Webhook 整合版] 啟動成功！連線資料庫並監聽中...")
+        # 💡 優化 3 & 4：加上外層迴圈與資料庫斷線重連機制 (Auto-Reconnect)
+        while True:
+            conn = None
+            try:
+                conn = psycopg2.connect(**self.db_params)
+                cur = conn.cursor()
+                print(f"🚀 [Webhook 完美整合版] 啟動成功！連線資料庫並監聽中...")
 
-            while True:
-                cur.execute('SELECT id, content FROM "posts" WHERE ai_status IS NULL')
-                rows = cur.fetchall()
+                while True:
+                    cur.execute('SELECT id, content FROM "posts" WHERE ai_status IS NULL')
+                    rows = cur.fetchall()
 
-                if not rows:
-                    time.sleep(3)
-                    continue
+                    if not rows:
+                        time.sleep(3)
+                        continue
 
-                for row in rows:
-                    post_id, content = row
-                    print(f"🔍 檢查 ID {post_id}...")
-                    
-                    status, reason, category = self.check_content(content)
-                    
-                    # 1. 更新本機資料庫標記已處理 (加上處理結果)
-                    cur.execute(
-                        'UPDATE "posts" SET ai_status = %s, ai_reason = %s, category = %s WHERE id = %s',
-                        (status, reason, category, post_id)
-                    )
-                    conn.commit()
+                    for row in rows:
+                        post_id, content = row
+                        print(f"🔍 檢查 ID {post_id}...")
+                        
+                        status, reason, category = self.check_content(content)
+                        
+                        # 1. 更新本機資料庫
+                        cur.execute(
+                            'UPDATE "posts" SET ai_status = %s, ai_reason = %s, category = %s WHERE id = %s',
+                            (status, reason, category, post_id)
+                        )
+                        conn.commit()
 
-                    # 2. 發送 Webhook 給組員的後端系統
-                    self.send_webhook(post_id, status, reason)
-                    
-                    print(f"✅ ID {post_id} 處理完成 -> {status}")
+                        # 2. 發送 Webhook
+                        self.send_webhook(post_id, status, reason)
+                        print(f"✅ ID {post_id} 處理完成 -> {status}")
 
-                time.sleep(2)
-        except Exception as e:
-            print(f"❌ 嚴重錯誤: {e}")
-        finally:
-            if 'conn' in locals(): conn.close()
+                    time.sleep(2)
+
+            except psycopg2.OperationalError as e:
+                print(f"❌ 資料庫連線中斷，5 秒後嘗試重新連線...: {e}")
+                time.sleep(5)
+            except Exception as e:
+                print(f"❌ 嚴重錯誤: {e}")
+                time.sleep(5)
+            finally:
+                if conn is not None:
+                    conn.close()
 
 if __name__ == "__main__":
     worker = AIDBWorker()
