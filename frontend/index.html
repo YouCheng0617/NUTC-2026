@@ -125,34 +125,6 @@
         console.error("找不到 weather-display 這個 ID，請確認 HTML！");
     }
 </script>
-<script type="module">
-    // 直接從 Firebase 官方伺服器抓取功能，完全不用安裝！
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-app.js";
-    import { getDatabase, ref, onValue, runTransaction } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-database.js";
-
-    // 這一大段就是從 Firebase 複製來的！
-    const firebaseConfig = {
-        apiKey: "AIzaSyBivEbLxOXesF7fYOF0Rp4kW7uPlq7tHOM",
-        authDomain: "myweiqoewi.firebaseapp.com",
-        projectId: "myweiqoewi",
-        storageBucket: "myweiqoewi.firebasestorage.app",
-        messagingSenderId: "455360414028",
-        appId: "1:455360414028:web:369658ca0a1c0c19e18fe9",
-        measurementId: "G-7ZJ998GDFS"
-    };
-
-    const app = initializeApp(firebaseConfig);
-    const db = getDatabase(app);
-
-    // 顯示人數
-    const statsElement = document.querySelector('.btn-submit');
-    if (!statsElement) {
-        onValue(ref(db, 'submissionCount'), (snapshot) => {
-            const count = snapshot.val() || 0;
-            statsElement.innerText = `今日共有 ${count} 人在此投遞心情`;
-        });
-    }
-</script>
 
 <body>
     <div class="bottle-background">
@@ -196,7 +168,7 @@
         </div>
         <div class="bottom-right-info">
             <div class="greeting">今天的心情是什麼呢？</div>
-            <div class="stats" onclick="incrementCount()" style="cursor: pointer;">
+            <div class="stats" style="cursor: pointer;">
                 今日共有 0 人在此投遞心情
             </div>
         </div>

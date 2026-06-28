@@ -14,5 +14,6 @@ export function bottleRouter() {
     bottleRouter.post("/:bottleId/like", authCheck, bottleController.likeBottle);
     bottleRouter.post("/:bottleId/save", authCheck, bottleController.saveBottle);
     bottleRouter.delete("/:bottleId/delete", authCheck, bottleController.deleteMyBottle);
+    bottleRouter.get("/today", optionalAuthCheck, bottleController.getTodayBottleConterller);
     return bottleRouter;
 }
