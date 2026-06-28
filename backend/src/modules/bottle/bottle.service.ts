@@ -1,3 +1,4 @@
+import { count } from "node:console";
 import prisma from "../../lib/prisma.js";
 import dotenv from "dotenv";
 
@@ -220,4 +221,23 @@ export const deleteMyBottle = async (bottleId: number, memberId: number) => {
     });
 
     return true;
+};
+
+export const getTodayBottle = async () => {
+    const startToday = new Date();
+    startToday.setHours(0, 0, 0, 0);
+    const endToday = new Date();
+    endToday.setHours(23, 59, 59, 999);
+
+    const todayBottlesCount = await prisma.bottle.count({
+        where: {
+            created_at: {
+                gte: startToday,
+                lte: endToday,
+            },
+        }
+    });
+    return {
+        todayBottles: todayBottlesCount
+    }
 };

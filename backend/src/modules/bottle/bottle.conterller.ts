@@ -2,7 +2,7 @@ import { Router } from "express";
 import type { Request, Response } from "express";
 import prisma from "../../lib/prisma.js";
 import dotenv from "dotenv";
-import { getMybottles, likeBottles, saveBottles, getMyLikedBottles, getMySavedBottles, deleteMyBottle as deleteMyBottleService } from "./bottle.service.js";
+import { getMybottles, likeBottles, saveBottles, getMyLikedBottles, getMySavedBottles, deleteMyBottle as deleteMyBottleService, getTodayBottle } from "./bottle.service.js";
 export interface TokenPayload {
     member_id: number;
     email: string;
@@ -318,4 +318,14 @@ export const bottleController = {
             res.status(500).json({ message: "內部伺服器錯誤" });
         }
     },
+
+    async getTodayBottleConterller(req: AuthRequest, res: Response) {
+        try {
+            const result = await getTodayBottle();
+            res.status(200).json(result)
+        } catch (error) {
+            console.error("Error fetching today bottles:", error);
+            res.status(500).json({ message: "內部伺服器錯誤" });
+        }
+    }
 }
