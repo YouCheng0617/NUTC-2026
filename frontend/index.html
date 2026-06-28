@@ -124,6 +124,32 @@
     } else {
         console.error("找不到 weather-display 這個 ID，請確認 HTML！");
     }
+
+    document.addEventListener("DOMContentLoaded", async () => {
+        // 🌟 抓取專門用來塞數字的數字節點
+        const countElement = document.getElementById('today-count-number');
+        if (!countElement) return;
+
+        try {
+            // 💡 請記得將網址改為你實際對應的後端 API 路由網址（例如 /api/bottles/today-count）
+            // 如果是在學校 VM 測試，記得把 localhost 改成 VM 的 IP
+            const response = await fetch('https://163.17.135.120/bottles/today');
+
+            if (!response.ok) {
+                throw new Error(`HTTP 錯誤！狀態碼: ${response.status}`);
+            }
+
+            const data = await response.json();
+
+            // 🌟 完美塞入你後端傳回來的 {"todayBottles": 數字}
+            countElement.innerText = data.todayBottles;
+
+        } catch (error) {
+            console.error("無法取得今日投遞人數，使用預設值:", error);
+            // 發生錯誤時的備用機制，保持原本的 0
+            countElement.innerText = "0";
+        }
+    });
 </script>
 
 <body>
@@ -169,7 +195,7 @@
         <div class="bottom-right-info">
             <div class="greeting">今天的心情是什麼呢？</div>
             <div class="stats" style="cursor: pointer;">
-                今日共有 0 人在此投遞心情
+                今日共有 <span id="today-count-number">0</span> 人在此投遞心情
             </div>
         </div>
 

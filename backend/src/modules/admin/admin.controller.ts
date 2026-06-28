@@ -41,7 +41,6 @@ export class AdminController {
             res.status(500).json({ message: "內部伺服器錯誤" });
         }
     }
-
     /*獲取瓶子列表*/
     async getBottlesList(req: Request, res: Response) {
         try {

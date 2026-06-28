@@ -18,7 +18,7 @@ if (!process.env["DATABASE_URL"]) {
 }
 
 app.get('/', (req, res) => {
-    res.send('🌊 漂流瓶 API 伺服器正常運作中！請對接 /auth 或 /bottles');
+    res.send('🌊 漂流瓶 API 伺服器正常運作中！請對接 /auth 或 /bottles 或 /admin');
 });
 
 app.get('/captcha', (req, res) => {
