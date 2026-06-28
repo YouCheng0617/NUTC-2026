@@ -67,6 +67,14 @@ export const authCheck = async (req: AuthRequest, res: Response, next: NextFunct
 /*辨識對方是不是管理員 (Schema 升級版)*/
 export const adminCheck = async (req: AuthRequest, res: Response, next: NextFunction) => {
     try {
+        const aiApiKey = req.headers["x-ai-api-key"] || req.query.key;
+
+        if (aiApiKey && aiApiKey === process.env.AI_SECRT_KEY) {
+            console.log("系統提示：AI通過驗證");
+            return next();
+        }
+
+
         if (!req.user) {
             return res.status(401).json({ message: "尚未登入" });
         }
@@ -122,4 +130,5 @@ export const optionalAuthCheck = async (req: AuthRequest, res: Response, next: N
     } catch (error: any) {
         return next();
     }
+
 }
