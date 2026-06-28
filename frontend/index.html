@@ -131,8 +131,6 @@
         if (!countElement) return;
 
         try {
-            // 💡 請記得將網址改為你實際對應的後端 API 路由網址（例如 /api/bottles/today-count）
-            // 如果是在學校 VM 測試，記得把 localhost 改成 VM 的 IP
             const response = await fetch('https://163.17.135.120/bottles/today');
 
             if (!response.ok) {
@@ -193,9 +191,9 @@
             <div id="weather-display">天氣偵測中...</div>
         </div>
         <div class="bottom-right-info">
-            <div class="greeting">今天的心情是什麼呢？</div>
+            <div class="greeting">現在的心情是什麼呢？</div>
             <div class="stats" style="cursor: pointer;">
-                今日共有 <span id="today-count-number">0</span> 人在此投遞心情
+                今天 發現 <span id="today-count-number">0</span> 瓶 新漂流瓶
             </div>
         </div>
 
@@ -230,6 +228,27 @@
 
     // 啟動偵測
     updateWeather();
+
+    // 隨機問候語
+    function updateGreeting() {
+        const greetings = [
+            "現在的心情是什麼呢？",
+            "今天有什麼想對大海說的嗎？",
+            "每一份心情，都值得被傾聽。",
+            "讓海浪帶走煩惱，留下寧靜。",
+            "將心事裝進瓶子，讓它隨波逐流。",
+            "你的故事，正在前往未知的遠方。",
+            "撿到一個漂流瓶，裡面裝著什麼故事？",
+        ];
+        const greetingEl = document.querySelector('.greeting');
+        if (greetingEl) {
+            const randomIndex = Math.floor(Math.random() * greetings.length);
+            greetingEl.innerText = greetings[randomIndex];
+        } else {
+            setTimeout(updateGreeting, 500);
+        }
+    }
+    updateGreeting();
 </script>
 
 </html>
