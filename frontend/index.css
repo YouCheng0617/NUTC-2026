@@ -1,0 +1,503 @@
+/* --- 1. 最基礎的畫布設定 (清理重複代碼) --- */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: "微軟正黑體", sans-serif;
+}
+
+body, html {
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden; /* 鎖死螢幕，不讓捲軸出現 */
+}
+
+/* --- 2. 完美的深海背景 --- */
+body {
+    background: url("images/background.png") no-repeat center center fixed;
+    background-size: cover; 
+    background-color: #0d4b75; 
+    /* 🌟 加入這兩行，就不會反白選取了！ */
+    user-select: none; 
+    -webkit-user-select: none; /* 給不同瀏覽器的雙重保險 */
+}
+
+/* 🌙 晚上的黑魔法薄紗 (不會破壞原圖的絕招) */
+body::before {
+    content: "";
+    position: fixed; 
+    top: 0; left: 0;
+    width: 100vw; height: 100vh;
+    background: rgba(0, 20, 50, 0.6); /* 深海暗藍色遮罩 */
+    pointer-events: none; /* 絕對不能擋住妳點擊按鈕 */
+    opacity: 0; /* 白天是透明的，看不見 */
+    transition: opacity 2s ease; /* 變晚上的時候，給它2秒鐘優雅變暗 */
+    z-index: 1; /* 確保它只蓋在背景圖片上 */
+}
+
+/* 當網頁被加上 night-mode 時，這層薄紗就會顯現 */
+body.night-mode::before {
+    opacity: 1;
+}
+
+/* --- 3. 海洋容器 (地基) --- */
+.ocean-container {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center; 
+    align-items: center;     
+    /* 🌟 這兩行很重要：讓看板浮在晚上那層薄紗的上面，泡泡才會亮！ */
+    position: relative;      
+    z-index: 10;             
+}
+/* =========================
+   🔮 毛玻璃
+========================= */
+.glass-panel {
+    /* 🔥 這裡！把最後面的數字改成 0.22，讓白霧感更明顯 */
+    background: rgba(255, 255, 255, 0); 
+    backdrop-filter: blur(16px); 
+    -webkit-backdrop-filter: blur(16px); 
+    border: 2px solid rgba(255, 255, 255, 0.5); 
+    box-shadow: 
+        0 8px 32px 0 rgba(0, 0, 0, 0.2), 
+        inset 0 0 20px rgba(255, 255, 255, 0.2); 
+}
+
+/* =========================
+   左側：強制直排且不會跑位的文字牆
+========================= */
+.vertical-title {
+    position: absolute;
+    left: 12%;           
+    top: 50%;           
+    transform: translateY(-50%); 
+    
+    /* 🌟 修正橫向問題的關鍵： */
+    width: 60px;        /* 強制限制寬度，讓字只能一個接一個排下去 */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 30px;          
+    
+    z-index: 20;
+    pointer-events: none;
+}
+
+/* 每個字的樣式 */
+.char {
+    display: block;
+    font-family: "標楷體", serif;
+    font-size: 65px; /* 字調小一點點，避免在小螢幕被切掉 */
+    font-weight: 900;
+    color: rgba(255, 255, 255, 0.95);
+    text-shadow: 0 0 15px rgba(255, 255, 255, 0.5);
+    
+    /* 錯落浮動動畫 */
+    animation: floating-char 4s ease-in-out infinite;
+}
+
+/* 錯開動畫時間 */
+.char:nth-child(1) { animation-delay: 0s; }
+.char:nth-child(2) { animation-delay: 0.3s; }
+.char:nth-child(3) { animation-delay: 0.6s; }
+.char:nth-child(4) { animation-delay: 0.9s; }
+.char:nth-child(5) { animation-delay: 1.2s; }
+
+@keyframes floating-char {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-15px); }
+}
+
+.center-board {
+    /* 🦴 這裡的「骨架」完全保留妳原本的，一個字都不要動！ */
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    width: 90vw; 
+    height: 90vw;
+    max-width: 800px; 
+    max-height: 800px;
+    border-radius: 50%; 
+
+    /* ✨ 只要從這裡開始，把「皮」換成高級深海玻璃風格 ✨ */
+    background: radial-gradient(
+        circle at 30% 30%, 
+        rgba(255, 255, 255, 0.15) 0%, 
+        rgba(20, 60, 100, 0.3) 50%, 
+        rgba(5, 25, 55, 0.5) 100%
+    );
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    border: 1px solid rgba(255, 255, 255, 0.2); /* 加上細細的水光邊界 */
+    box-shadow: 
+        inset 0 0 25px rgba(255, 255, 255, 0.1), 
+        0 10px 30px rgba(0, 0, 0, 0.4);
+    /* ✨ 風格替換到這裡結束 ✨ */
+
+    /* 🦴 下面這段排版「骨架」一樣保留妳原本的，絕對不要動它！ */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 30px;
+    z-index: 10;
+}
+
+/* 🌟 關鍵：鎖住溢出的部分 */
+body {
+    overflow: hidden; /* 確保超出的部分不會出現捲軸 */
+}
+/* 讓按鈕在滑鼠移上去時，變亮或變透明，而不是跳走 */
+.enter-button:hover {
+    transform: scale(1.05); /* 輕微放大 */
+    background: rgba(255, 255, 255, 0.4); /* 溫柔地變亮 */
+    box-shadow: 0 0 20px rgba(255, 255, 255, 0.6);
+}
+/* =========================
+   👇 雙層點擊進入按鈕
+========================= */
+.enter-btn {
+    background: rgba(255, 255, 255, 0.25);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.7); 
+    padding: 12px 35px;
+    border-radius: 40px; 
+    color: white;
+    font-size: clamp(18px, 2vw, 24px);
+    font-weight: bold;
+    letter-spacing: 5px;
+    cursor: pointer;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2); 
+    transition: all 0.3s ease;
+    animation: float 3s ease-in-out infinite;
+}
+
+.enter-btn:hover {
+    background: rgba(255, 255, 255, 0.4);
+    transform: scale(1.05);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+}
+
+@keyframes float {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-5px); }
+}
+
+.main-fish {
+    width: clamp(300px, 45vw, 600px); 
+    transform: scale(1.5) translateY(20px); 
+    
+    filter: drop-shadow(0 15px 25px rgba(0,0,0,0.2));
+    
+}
+
+/* 🌟 滑鼠滑過去的超讚回饋感 */
+.enter-btn:hover {
+    background: rgba(255, 255, 255, 0.4);
+    transform: translateY(-5px) scale(1.05); /* 滑鼠移過去不只變大，還會往上浮！ */
+    box-shadow: 0 12px 25px rgba(0,0,0,0.3);
+}
+
+@keyframes float {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-8px); }
+}
+
+/* 漂流瓶容器，固定在背景 */
+.floating-bottles {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1; /* 確保在所有介面之下 */
+    pointer-events: none; /* 滑鼠絕對穿透 */
+    overflow: hidden;
+}
+
+/* 🌟 隨機漂流瓶系統 */
+.bottle {
+    position: fixed;
+    width: 60px;
+    background-image: url('bottle.png'); /* 請換成妳的圖片路徑 */
+    background-size: contain;
+    background-repeat: no-repeat;
+    opacity: 0.15;
+    pointer-events: none;
+    z-index: 5;
+    /* 這裡關鍵：每個瓶子都有不同的動畫周期 */
+    animation: drift-randomly linear infinite;
+}
+
+/* 🌟 為 8 個瓶子設定不同的起點、速度與大小，打造隨機感 */
+.b1 { left: 5%; animation-duration: 30s; animation-delay: 0s; width: 50px; }
+.b2 { left: 20%; animation-duration: 45s; animation-delay: -5s; width: 80px; opacity: 0.2; }
+.b3 { left: 35%; animation-duration: 35s; animation-delay: -10s; width: 40px; }
+.b4 { left: 50%; animation-duration: 50s; animation-delay: -2s; width: 100px; opacity: 0.25; }
+.b5 { left: 65%; animation-duration: 40s; animation-delay: -15s; width: 60px; }
+.b6 { left: 80%; animation-duration: 25s; animation-delay: -8s; width: 50px; }
+.b7 { left: 90%; animation-duration: 55s; animation-delay: -20s; width: 70px; }
+.b8 { left: 45%; animation-duration: 38s; animation-delay: -3s; width: 90px; }
+
+/* 🌟 複雜的路徑：不再是直線，而是帶有左右晃動的隨機漂流 */
+@keyframes drift-randomly {
+    0% { transform: translateY(100vh) translateX(0px) rotate(0deg); }
+    25% { transform: translateY(75vh) translateX(30px) rotate(10deg); }
+    50% { transform: translateY(50vh) translateX(-20px) rotate(-5deg); }
+    75% { transform: translateY(25vh) translateX(40px) rotate(15deg); }
+    100% { transform: translateY(-20vh) translateX(0px) rotate(0deg); }
+}
+.main-fish {
+    animation: rotate-and-float 25s linear infinite;
+    transform-origin: center;
+    width: 1000px; 
+}
+
+@keyframes rotate-and-float {
+    0% { transform: rotate(0deg) translateY(0px) scale(1); }
+    25% { transform: rotate(-90deg) translateY(-15px) scale(1.02); }
+    50% { transform: rotate(-180deg) translateY(0px) scale(1); }
+    75% { transform: rotate(-270deg) translateY(15px) scale(1.02); }
+    100% { transform: rotate(-360deg) translateY(0px) scale(1); }
+}
+/* New: 高級氣泡破碎上浮特效 (Shatter and Rise) */
+.pop-effect {
+    /* ease-out 讓它開始時有爆發力， forwards 讓它消失在半空中 */
+    animation: bubble-shatter-up 0.5s ease-out forwards;
+    pointer-events: none; /* 爆破中不准再點它 */
+}
+
+@keyframes bubble-shatter-up {
+    0% {
+        /* 初始狀態 */
+        transform: scale(1) translateY(0);
+        opacity: 1;
+        filter: blur(0px); /* 文字清晰 */
+        box-shadow: 0 0 10px rgba(255,255,255,0); /* 沒光暈 */
+    }
+    30% {
+        /* 瞬間 pop：大膨脹 (-10px) 閃光 (+0.8), 文字開始溶解 */
+        transform: scale(1.3) translateY(-10px); /* 瞬間膨脹並微浮 */
+        opacity: 1;
+        filter: blur(2px); /* 文字開始模糊 */
+        background-color: rgba(255,255,255, 0.8); /* 瞬間變得很透亮的水水質感 */
+        box-shadow: 0 0 40px rgba(255,255,255,0.9); /* 超大爆發光暈 */
+    }
+    100% {
+        /* 上浮溶解：大幅上移 (-50px)，完全消失 (0) */
+        transform: scale(1.5) translateY(-50px); /* 繼續往上衝刺並縮小 */
+        opacity: 0;
+        filter: blur(10px); /* 文字完全溶解消失 */
+        background-color: rgba(255,255,255, 0); /* 變透明 */
+        box-shadow: 0 0 0px rgba(255,255,255,0); /* 光暈消失 */
+    }
+}
+/* =========================================
+   🫧 養在大氣泡裡的迷你水珠 (高透光 + 微光動態版)
+========================================= */
+
+.mini-bubble {
+    position: absolute;
+    border-radius: 50%;
+    
+    /* 1. 氣泡本體：中間完全透明，只留下一圈細細的水膜邊框 */
+    background: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.4); /* 氣泡邊緣的水感 */
+    box-shadow: 
+        inset 0 0 10px rgba(255, 255, 255, 0.3), /* 內部的微弱反光 */
+        0 4px 10px rgba(0, 0, 0, 0.1);           /* 水珠的微弱陰影 */
+    
+    pointer-events: none; 
+    z-index: 1; 
+
+    /* 🌟 給氣泡生命力：讓它微微上下浮動呼吸 */
+    animation: float-wobble 4s ease-in-out infinite alternate;
+}
+
+/* 🌟 2. 畫龍點睛的「高光點」：沒有這個就不像水珠！ */
+.mini-bubble::before {
+    content: '';
+    position: absolute;
+    top: 15%;
+    left: 20%;
+    width: 25%;
+    height: 25%;
+    background: white;
+    border-radius: 50%;
+    filter: blur(1px); /* 讓亮點稍微柔和地融入水裡 */
+    opacity: 0.8;
+}
+
+/* 氣泡上下飄動的動畫設定 */
+@keyframes float-wobble {
+    0% { transform: translateY(0px) scale(1); }
+    100% { transform: translateY(-10px) scale(1.02); } /* 往上飄一點點，稍微變大 */
+}
+
+/* 確保這三顆小水珠的位置還在，並給它們不同的飄動節奏 */
+.bubble-1 {
+    width: 35px; height: 35px; top: 22%; left: 15%;
+    animation-delay: 0s; /* 第一顆馬上飄 */
+}
+
+.bubble-2 {
+    width: 15px; height: 15px; top: 32%; left: 24%;
+    animation-delay: 1.5s; /* 第二顆晚一點飄，錯開節奏 */
+}
+
+.bubble-3 {
+    width: 25px; height: 25px; bottom: 28%; right: 18%;
+    animation-delay: 0.7s; 
+}
+.floating-bottle {
+    position: absolute;
+    right: -100px; /* 把它放在氣泡的右側外面一點點 */
+    top: 50px;
+    width: 120px;  /* 調整適合的大小 */
+    height: auto;
+    
+    /* 🌟 給它深海透光感 */
+    opacity: 0.7;
+    filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.3));
+    
+    /* 🌟 讓它像在海中一樣輕輕搖曳 */
+    animation: float-bottle 6s ease-in-out infinite;
+    pointer-events: none; /* 不會干擾按鈕點擊 */
+}
+
+/* 讓瓶子溫柔地上下擺動 */
+@keyframes float-bottle {
+    0%, 100% { transform: translateY(0) rotate(5deg); }
+    50% { transform: translateY(-20px) rotate(-5deg); }
+}
+.stars-container {
+    position: absolute;
+    /* 🌟 改用這個，強行貼到右邊界 */
+    right: 5%; 
+    left: auto; 
+    
+    top: 50%;
+    transform: translateY(-50%);
+    
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    
+    z-index: 20;
+    
+    /* 加上一點點淡出效果，讓邊緣不那麼生硬 */
+    pointer-events: none; 
+}
+
+/* 讓點點跟氣泡邊緣保持一點點距離，不要黏死 */
+.star {
+    width: 5px;
+    height: 5px;
+    background: rgba(255, 255, 255, 0.5);
+    border-radius: 50%;
+    box-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
+}
+
+/* 文字也跟著往右對齊 */
+.star-text {
+    position: absolute;
+    right: 0; /* 文字靠右對齊 */
+    top: 120%;
+    text-align: right;
+    color: white;
+    font-size: 0.75rem;
+    white-space: nowrap;
+    opacity: 0.7;
+}
+.hidden-stats {
+    position: absolute;
+    right: 10px; /* 緊貼氣泡右緣 */
+    top: 50%;
+    transform: translateY(-50%);
+    
+    padding: 10px 20px;
+    background: rgba(255, 255, 255, 0.1); /* 極薄的玻璃底色 */
+    backdrop-filter: blur(4px);
+    border-radius: 20px 0 0 20px; /* 圓弧狀融入氣泡 */
+    
+    color: white;
+    font-size: 0.8rem;
+    opacity: 0; /* 預設隱藏 */
+    transition: opacity 0.5s ease;
+    pointer-events: none;
+}
+
+/* 刪除那個醜醜的矩形，只留內容 */
+.screen-edge-info {
+    position: fixed;
+    right: 30px; /* 把它放在最右側，不要離氣泡太近 */
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 999;
+    
+    /* 這裡原本的背景和邊框通通移除！ */
+    background: transparent !important;
+    border: none !important;
+}
+
+.diary-window {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 15px;
+    writing-mode: vertical-rl;
+    text-orientation: upright;
+    color: rgba(255, 255, 255, 0.6); /* 更加透明，讓它像水霧一樣 */
+    font-size: 0.85rem;
+    letter-spacing: 3px;
+}
+
+/* 數字區塊強制橫向，維持閱讀舒適度 */
+.date-time, .stats {
+    writing-mode: horizontal-tb;
+    font-family: 'Segoe UI', sans-serif;
+    color: rgba(255, 255, 255, 0.4);
+}
+.weather-widget {
+    position: fixed;
+    right: 50px;
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 0.9rem;
+    letter-spacing: 2px;
+    text-align: right;
+    pointer-events: none;
+}
+/* 右上角區塊 */
+.top-right-info {
+    position: fixed;
+    right: 50px;
+    top: 50px; /* 貼頂部 */
+    text-align: right;
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 0.9rem;
+    pointer-events: none;
+}
+
+/* 右下角區塊 */
+.bottom-right-info {
+    position: fixed;
+    right: 50px;
+    bottom: 50px; /* 貼底部 */
+    text-align: right;
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 0.9rem;
+    pointer-events: none;
+}
+
+/* 讓字體間距舒服一點 */
+.bottom-right-info div { margin-top: 15px; }

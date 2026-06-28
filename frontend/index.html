@@ -1,26 +1,229 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="zh-TW">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>心情漂流瓶 - 首頁</title>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>心情漂流瓶</title>
+    <link rel="stylesheet" href="index.css">
+</head>
+<script>
+    // 🌟 全自動等待魔法：等整個網頁的 HTML 都準備好後才開始抓人
+    document.addEventListener('DOMContentLoaded', () => {
+        
+        // 用 ID 抓人，絕對精準
+        const myBtn = document.getElementById('magic-btn');
+        
+        if (myBtn) {
+            myBtn.addEventListener('click', () => {
+                // 加上爆破動畫
+                myBtn.classList.add('pop-effect');
+                
+                // 等 0.5 秒動畫跑完，優雅跳轉到秘密基地
+                setTimeout(() => {
+                    window.location.href = 'test.html'; 
+                }, 500);
+            });
+        } else {
+            // 就算真的找不到，也只會在工程師後台默默流淚，絕對不會跳出醜醜的彈窗嚇到寶寶！
+            console.log('後台回報：依然找不到 magic-btn，請確認 HTML 是否有成功存檔。');
+        }
+        
+    });
+</script>
+<script>
+        // 強制執行：在網頁讀取完畢後，再做檢查
+        window.addEventListener('DOMContentLoaded', () => {
+            const hour = new Date().getHours();
+            console.log("現在時間是：" + hour + " 點"); // 讓我們看看這裡顯示什麼？
+            
+            if (hour < 6 || hour >= 18) {
+                document.body.classList.add('night-mode');
+                console.log("已經幫妳加上 night-mode 了！");
+            }
+        });
+    </script>
+    <script>
+    // 確保網頁讀取完才執行
+    window.addEventListener('DOMContentLoaded', () => {
+        const today = new Date();
+        const year = today.getFullYear();
+        const month = String(today.getMonth() + 1).padStart(2, '0');
+        const day = String(today.getDate()).padStart(2, '0');
+        
+        // 組合成 2026.06.28
+        const dateString = `${year}.${month}.${day}`;
+        
+        // 強制更新畫面上的那個日期位置
+        const dateElement = document.getElementById('date-display');
+        if (dateElement) {
+            dateElement.innerText = dateString;
+            console.log("日期已更新為：" + dateString); // 打開 F12 Console 就能看到它在運作
+        } else {
+            console.error("找不到 id='date-display' 的標籤，請檢查 HTML！");
+        }
+    });
+</script>
+<script>
+    // 網頁準備好後，自動執行
+    window.addEventListener('load', () => {
+        
+        // 1. 自動顯示日期 (2026.06.28)
+        const today = new Date();
+        const dateString = `${today.getFullYear()}.${String(today.getMonth() + 1).padStart(2, '0')}.${String(today.getDate()).padStart(2, '0')}`;
+        const dateEl = document.getElementById('date-display');
+        if (dateEl) {
+            dateEl.innerText = dateString;
+        }
 
-    <link rel="stylesheet" href="splash.css" />
-  </head>
+        // 獲取位置，然後抓天氣
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition((position) => {
+            const lat = position.coords.latitude;
+            const lon = position.coords.longitude;
+            // 呼叫 API，改用經緯度 (lat, lon) 來查詢，而不是城市名
+            fetchWeatherByCoords(lat, lon);
+        }, () => {
+            // 如果使用者拒絕，我們就預設顯示台中
+            fetchWeatherByCity("Taichung");
+        });
+    } else {
+        fetchWeatherByCity("Taichung");
+    }
 
-  <body>
-    <div class="landing-container">
-      <img src="images/大標題拷貝2.png" class="title-img" alt="心情漂流瓶" />
+    function fetchWeatherByCoords(lat, lon) {
+        const apiKey = 'e126fab7abb9c316feaa6a400d7a30aa';
+        const url = `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${apiKey}&units=metric&lang=zh_tw`;
+    }
+        fetch(url)
+            .then(response => response.json())
+            .then(data => {
+                const weatherEl = document.getElementById('weather-display');
+                if (weatherEl && data.weather) {
+                    const desc = data.weather[0].description;
+                    const temp = Math.round(data.main.temp);
+                    weatherEl.innerText = `天氣：${desc} ${temp}°C`;
+                }
+            })
+            .catch(err => {
+                console.error("天氣抓取失敗:", err);
+                const weatherEl = document.getElementById('weather-display');
+                if (weatherEl) weatherEl.innerText = "天氣：深海平靜";
+            });
+    });
+</script>
+<script>
+    // 1. 強制更新日期
+    const dateEl = document.getElementById('date-display');
+    if(dateEl) dateEl.innerText = "2026.06.28";
 
-      <img src="images/fish_logo.png" class="main-logo" alt="雙魚" />
+    // 2. 強制直接顯示天氣，完全不透過網路抓取
+    const weatherEl = document.getElementById('weather-display');
+    if(weatherEl) {
+        weatherEl.innerText = "天氣：測試成功，顯示正常";
+        console.log("天氣顯示程式已執行");
+    } else {
+        console.error("找不到 weather-display 這個 ID，請確認 HTML！");
+    }
+</script>
+<script type="module">
+  // 直接從 Firebase 官方伺服器抓取功能，完全不用安裝！
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-app.js";
+  import { getDatabase, ref, onValue, runTransaction } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-database.js";
 
-      <div class="enter-btn-text" onclick="window.location.href = 'test.html'">
-        👆 點擊進入
-      </div>
+  // 這一大段就是從 Firebase 複製來的！
+  const firebaseConfig = {
+    apiKey: "AIzaSyBivEbLxOXesF7fYOF0Rp4kW7uPlq7tHOM",
+    authDomain: "myweiqoewi.firebaseapp.com",
+    projectId: "myweiqoewi",
+    storageBucket: "myweiqoewi.firebasestorage.app",
+    messagingSenderId: "455360414028",
+    appId: "1:455360414028:web:369658ca0a1c0c19e18fe9",
+    measurementId: "G-7ZJ998GDFS"
+  };
 
-      <img src="images/海星一個拷貝.png" class="starfish star-1" alt="海星" />
+  const app = initializeApp(firebaseConfig);
+  const db = getDatabase(app);
 
-      <img src="images/海星一個-1拷貝.png" class="starfish star-2" alt="海星" />
+  // 顯示人數
+  const statsElement = document.querySelector('.stats');
+  onValue(ref(db, 'submissionCount'), (snapshot) => {
+    const count = snapshot.val() || 0;
+    statsElement.innerText = `今日共有 ${count} 人在此投遞心情`;
+  });
+</script>
+<body>
+<div class="bottle-background">
+    <img src="images/bottle.png" class="bottle b1">
+    <img src="images/bottle.png" class="bottle b2">
+    <img src="images/bottle.png" class="bottle b3">
+    <img src="images/bottle.png" class="bottle b4">
+</div>
+<div class="bottle-background">
+    <div class="bottle b1"></div> <div class="bottle b2"></div>
+    <div class="bottle b3"></div> <div class="bottle b4"></div>
+    <div class="bottle b5"></div> <div class="bottle b6"></div>
+    <div class="bottle b7"></div> <div class="bottle b8"></div>
+</div>
+    <div class="ocean-container">
+        
+        <div class="vertical-title">
+    <span class="char">心</span>
+    <span class="char">情</span>
+    <span class="char">漂</span>
+    <span class="char">流</span>
+    <span class="char">瓶</span>
+</div>
+
+<div class="glass-panel center-board">
+    <div class="mini-bubble bubble-1"></div>
+    <div class="mini-bubble bubble-2"></div>
+    <div class="mini-bubble bubble-3"></div>
+    <img class="main-fish" src="images/fish.png" alt="粉色雙魚">
+    <div class="btn-groove">
+        <div class="enter-btn" id="magic-btn">👇 點擊進入</div>
     </div>
-  </body>
+</div>
+<div class="top-right-info">
+    <div id="date-display">--.--.--</div>
+    <div id="weather-display">天氣偵測中...</div>
+</div>
+<div class="bottom-right-info">
+    <div class="greeting">今天的心情是什麼呢？</div>
+    <div class="stats" onclick="incrementCount()" style="cursor: pointer;">
+        今日共有 0 人在此投遞心情
+    </div>
+</div>
+
+</body>
+<script>
+    // 這個函數會一直嘗試，直到找到 ID 為止
+    function updateWeather() {
+        const weatherEl = document.getElementById('weather-display');
+        const dateEl = document.getElementById('date-display');
+        
+        if (weatherEl && dateEl) {
+            // 抓到 ID 了！開始更新
+            dateEl.innerText = "2026.06.28";
+            
+            // 這裡直接執行 API 抓取
+            const apiKey = 'e126fab7abb9c316feaa6a400d7a30aa';
+            fetch(`https://api.openweathermap.org/data/2.5/weather?q=Taichung&appid=${apiKey}&units=metric&lang=zh_tw`)
+                .then(res => res.json())
+                .then(data => {
+                    const desc = data.weather[0].description;
+                    const temp = Math.round(data.main.temp);
+                    weatherEl.innerText = `天氣：${desc} ${temp}°C`;
+                })
+                .catch(() => {
+                    weatherEl.innerText = "天氣：深海平靜";
+                });
+        } else {
+            // 如果還沒找到，0.5秒後再試一次
+            setTimeout(updateWeather, 500);
+        }
+    }
+
+    // 啟動偵測
+    updateWeather();
+</script>
 </html>
