@@ -246,9 +246,13 @@ function applyFilters() {
         );
     }
 
+    // ✨ 寶寶專屬洗牌魔法：打亂順序，並且每次只挑選最精華的 6 個瓶子！
+    if (res.length > 6) {
+        res = res.sort(() => 0.5 - Math.random()).slice(0, 6);
+    }
+
     renderPosts(res);
 }
-
 // ----------------------------------------------------
 // 🔍 搜尋歷史紀錄功能
 // ----------------------------------------------------
@@ -438,24 +442,35 @@ window.openPostDetail = function (id) {
 
     const feedView = document.getElementById('feed-view');
     const detailView = document.getElementById('detail-view');
-    const detailModals = document.querySelectorAll('#post-detail-modal');
+    const sidebar = document.querySelector('.sidebar');
+    const oceanBtn = document.querySelector('.ocean-refresh-btn');
 
     if (feedView && detailView) {
         feedView.style.display = 'none';
         detailView.style.display = 'block';
+        
+        // ✨ 終極強制隱藏法：打破 !important 護盾
+        if(sidebar) sidebar.style.setProperty('display', 'none', 'important');
+        if(oceanBtn) oceanBtn.style.setProperty('display', 'none', 'important');
+        
         window.scrollTo({ top: 0, behavior: 'smooth' });
-    } else if (detailModals.length > 0) {
-        detailModals.forEach(m => m.style.display = 'block');
     }
 };
 
 window.closePostDetail = function () {
     const feedView = document.getElementById('feed-view');
     const detailView = document.getElementById('detail-view');
+    const sidebar = document.querySelector('.sidebar');
+    const oceanBtn = document.querySelector('.ocean-refresh-btn');
 
     if (feedView && detailView) {
         detailView.style.display = 'none';
         feedView.style.display = 'block';
+        
+        // ✨ 關閉信件時，強制把它們叫回來
+        if(sidebar) sidebar.style.setProperty('display', 'block', 'important');
+        if(oceanBtn) oceanBtn.style.setProperty('display', 'block', 'important');
+        
         window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 };

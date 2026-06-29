@@ -417,3 +417,37 @@ body, html {
 @keyframes sweepOut {
     to { transform: translateX(-100vw) rotate(-45deg); opacity: 0; }
 }
+
+
+/* 1. 信紙本體：恢復乾淨的紙張形狀與超強立體感 */
+#detail-view {
+    background: #FDFDFB !important; /* 非常乾淨、微暖的高級紙白色 */
+    
+    /* ✨ 終極立體陰影：用三層陰影疊加，製造完美的漂浮感 */
+    box-shadow: 
+        0 20px 50px rgba(0, 15, 30, 0.5),   /* 最底層：大面積的深海模糊陰影，拉開距離 */
+        0 8px 15px rgba(0, 0, 0, 0.2),      /* 中間層：加深紙張邊緣的厚度感 */
+        inset 0 0 0 1px rgba(255, 255, 255, 1) !important; /* 最內層：一條極細的高光白線，讓紙張邊緣發光 */
+        
+    /* 恢復自然、滑順的微圓角，不再歪七扭八 */
+    border-radius: 16px !important; 
+
+    /* 拿掉傾斜，讓它端正、優雅地浮在正中央 */
+    transform: translateX(-50%) !important;
+
+    /* 維持絕對置中與防擋設定 */
+    position: fixed !important;
+    top: 100px !important; 
+    left: 50% !important;
+    z-index: 150 !important;
+
+    width: 90% !important;
+    max-width: 650px !important;
+    
+    /* 高度與捲軸控制 */
+    height: auto !important; 
+    max-height: calc(100vh - 160px) !important; 
+    margin: 0 !important; 
+    padding: 50px 60px !important;
+    overflow-y: auto !important;
+}
