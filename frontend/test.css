@@ -40,9 +40,90 @@ body, html { margin: 0; font-family: 'PingFang TC', sans-serif; background-color
 .sidebar li { padding: 12px 15px; border-radius: 10px; cursor: pointer; transition: 0.2s; list-style: none; color: #555; font-weight: bold; margin-bottom: 5px; }
 .sidebar li:hover, .sidebar li.active { background: #fff; color: #0055a5; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
 
-.post-card { background: rgba(255, 255, 255, 0.95); padding: 24px; border-radius: 16px; margin-bottom: 20px; border: 1px solid #e0e6ed; cursor: pointer; transition: 0.3s; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
-.post-card:hover { transform: translateY(-3px); border-color: #4da6ff; box-shadow: 0 8px 20px rgba(0,0,0,0.1); }
+/*.post-card { background: rgba(255, 255, 255, 0.95); padding: 24px; border-radius: 16px; margin-bottom: 20px; border: 1px solid #e0e6ed; cursor: pointer; transition: 0.3s; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+.post-card:hover { transform: translateY(-3px); border-color: #4da6ff; box-shadow: 0 8px 20px rgba(0,0,0,0.1); }*/
+/* 1. 讓裝瓶子的容器變成彈性網格，不要排排站 */
+#post-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    justify-content: center;
+    padding: 30px;
+}
 
+/* 2. 圓滾滾的漂流瓶身 */
+.post-card {
+    position: relative; /* 這是為了讓軟木塞能準確放在瓶口 */
+    width: 140px;
+    height: 140px;
+    border-radius: 50%; 
+    background: radial-gradient(circle at 30% 30%, rgba(224, 242, 254, 0.9), rgba(125, 211, 252, 0.6));
+    border: 2px solid rgba(255, 255, 255, 0.6);
+    box-shadow: 0 8px 20px rgba(0, 85, 165, 0.15), inset 0 0 15px rgba(255, 255, 255, 0.8);
+    padding: 20px;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    margin: 35px 15px 15px 15px; /* 上面多留一點空間給軟木塞 */
+    
+    overflow: visible !important; /* ⚠️ 超級重要：這樣軟木塞才不會被切掉！ */
+    animation: float-bubble 4s infinite ease-in-out;
+}
+
+.post-card:hover {
+    transform: scale(1.1); 
+    box-shadow: 0 10px 25px rgba(0, 85, 165, 0.3), inset 0 0 20px rgba(255, 255, 255, 1);
+}
+
+/* 🌟 魔法 1：幫瓶子加上「軟木塞」 */
+.post-card::before {
+    content: "";
+    position: absolute;
+    top: -24px; /* 放在瓶子頂部突出 */
+    left: 50%;
+    transform: translateX(-50%);
+    width: 45px;
+    height: 25px;
+    background: #a67c52; /* 軟木塞的木頭色 */
+    border-radius: 5px 5px 0 0;
+    box-shadow: inset -5px 0 10px rgba(0,0,0,0.2);
+    z-index: 1;
+}
+
+/* 🌟 魔法 2：幫瓶子加上「玻璃瓶口」 */
+.post-card::after {
+    content: "";
+    position: absolute;
+    top: -5px; /* 剛好卡在軟木塞和瓶身中間 */
+    left: 50%;
+    transform: translateX(-50%);
+    width: 55px;
+    height: 12px;
+    background: rgba(224, 242, 254, 0.9);
+    border: 2px solid rgba(255, 255, 255, 0.9);
+    border-radius: 10px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    z-index: 2;
+}
+
+/* 下面保留原本的隱藏設定跟標題設定 */
+.post-card p, .post-card .action-bar {
+    display: none !important; 
+}
+.post-card h2 {
+    font-size: 1.1rem !important;
+    margin: 5px 0 !important;
+    color: #0055a5 !important;
+    font-weight: 900;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 2; 
+    -webkit-box-orient: vertical;
+}
 .action-bar { display: flex; gap: 20px; color: #888; font-weight: bold; margin-top: 15px; font-size: 0.95rem; }
 .action-btn { cursor: pointer; transition: 0.2s; display: flex; align-items: center; gap: 5px; }
 .action-btn:hover { color: #0055a5; transform: scale(1.05); }
@@ -215,5 +296,124 @@ body, html { margin: 0; font-family: 'PingFang TC', sans-serif; background-color
     color: #ff4d4d; /* 滑鼠移過去變紅色 */
     background: rgba(255, 77, 77, 0.1);
 }
+/* =========================================
+   🌊 寶寶專屬：深海鎖定 ＆ 底部懸浮分類 ＆ 呼喚海流
+   ========================================= */
 
-/* (如果你完全不需要清除所有紀錄的按鈕了，可以直接把 .clear-history 的樣式刪除) */
+/* 1. 拯救頂部導覽列：融入深海 */
+.light-header {
+    background: linear-gradient(to bottom, rgba(0, 30, 60, 0.7) 0%, rgba(0, 30, 60, 0) 100%) !important;
+    backdrop-filter: none !important;
+    box-shadow: none !important;
+    border-bottom: none !important;
+}
+.logo { color: #ffffff !important; text-shadow: 0 2px 4px rgba(0,0,0,0.3); }
+.logo img { filter: brightness(0) invert(1) !important; }
+.user-name-text { color: #ffffff !important; }
+.user-info-trigger .menu-arrow { color: #ffffff !important; }
+.light-search {
+    background: rgba(255, 255, 255, 0.2) !important;
+    color: #fff !important;
+    border: 1px solid rgba(255, 255, 255, 0.4) !important;
+}
+.light-search::placeholder { color: rgba(255,255,255,0.7); }
+
+/* 2. 鎖死全螢幕，消滅萬惡的滾動條 */
+body, html {
+    height: 100vh !important;
+    overflow: hidden !important; 
+    background-color: #001528;
+}
+#forum-view {
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+.light-container {
+    flex: 1;
+    position: relative;
+    padding: 0 !important;
+    max-width: 100% !important;
+    width: 100%;
+    margin: 0 !important;
+}
+.main-feed {
+    flex: none !important;
+    width: 100% !important;
+    height: 100%;
+}
+
+/* 3. 海浪般自然的瓶子排列 (一上一下，不破圖) */
+#post-container {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-content: center; /* 讓瓶子永遠置中 */
+    gap: 50px; 
+    padding: 20px 40px 100px 40px;
+    width: 100%;
+    height: 100%;
+}
+.post-card { margin: 0 !important; }
+.post-card:nth-child(even) { transform: translateY(40px); }
+.post-card:nth-child(odd) { transform: translateY(-20px); }
+
+/* 4. 把右邊側邊欄隱藏，左邊變成底部「懸浮分類列」 */
+.right-panel { display: none !important; }
+.sidebar {
+    display: block !important;
+    position: fixed;
+    bottom: 30px; 
+    left: 50%;
+    transform: translateX(-50%); 
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(12px); 
+    border-radius: 50px;
+    padding: 12px 25px;
+    border: 1px solid rgba(255,255,255,0.3);
+    z-index: 100;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+}
+.sidebar h3 { display: none !important; } 
+.sidebar ul { display: flex; gap: 15px; margin: 0; padding: 0; }
+.sidebar li {
+    background: rgba(0, 85, 165, 0.4);
+    color: white !important;
+    border-radius: 30px;
+    padding: 10px 20px;
+    border: 1px solid rgba(255,255,255,0.4);
+    white-space: nowrap;
+    box-shadow: none !important;
+}
+.sidebar li.active, .sidebar li:hover { 
+    background: rgba(255, 255, 255, 0.95); 
+    color: #0055a5 !important;
+    transform: translateY(-5px); 
+}
+
+/* 5. 呼喚海流按鈕與動畫 */
+.ocean-refresh-btn {
+    position: fixed;
+    right: 40px;
+    bottom: 40px;
+    background: radial-gradient(circle, rgba(77, 166, 255, 0.8), rgba(0, 85, 165, 0.8));
+    color: white;
+    padding: 15px 25px;
+    border-radius: 50px;
+    cursor: pointer;
+    z-index: 100;
+    font-weight: bold;
+    border: 2px solid rgba(255,255,255,0.5);
+    box-shadow: 0 0 20px rgba(77, 166, 255, 0.5);
+    transition: 0.3s;
+}
+.ocean-refresh-btn:hover {
+    transform: scale(1.1) rotate(-5deg);
+    box-shadow: 0 0 30px rgba(77, 166, 255, 0.9);
+}
+.swept-away {
+    animation: sweepOut 0.8s forwards ease-in !important;
+}
+@keyframes sweepOut {
+    to { transform: translateX(-100vw) rotate(-45deg); opacity: 0; }
+}

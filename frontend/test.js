@@ -963,3 +963,19 @@ document.addEventListener('change', (e) => {
         }
     }
 });
+// 呼喚海流：專屬寶寶的換瓶子特效
+window.callOceanCurrent = function() {
+    const bottles = document.querySelectorAll('.post-card');
+    
+    // 1. 讓現有的瓶子通通被海流沖走
+    bottles.forEach((bottle, index) => {
+        setTimeout(() => {
+            bottle.classList.add('swept-away');
+        }, index * 100); 
+    });
+
+    // 2. 等動畫播完後，換上新瓶子
+    setTimeout(() => {
+        fetchBottles(); 
+    }, 1000);
+}
