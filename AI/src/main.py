@@ -1,37 +1,36 @@
-import ollama
+import os
 import json
 import re
+from dotenv import load_dotenv
+from google import genai
+from google.genai import types
+
+# 加載環境變數
+env_path = os.path.join(os.path.dirname(__file__), '.env')
+load_dotenv(env_path)
+
+# 設定 Gemini API 金鑰並初始化新版 Client
+GEMINI_KEY = os.getenv("GEMINI_API_KEY")
+if GEMINI_KEY:
+    client = genai.Client(api_key=GEMINI_KEY)
+else:
+    print("⚠️ 警告：未在 .env 中偵測到 GEMINI_API_KEY")
+    client = None
 
 class LocalStickyNoteAI:
     """
-    資管系專題：本地 AI 模組 (Ollama 版)
+    資管系專題：校園 AI 模組 (Google GenAI 最新版 SDK)
     功能：內容審核、自動分類、標籤生成
     """
     
-    def __init__(self, model_name="llama3.2:1b"):
-        # 使用輕量化模型，確保一般筆電也能流暢運行
+    def __init__(self, model_name="gemini-3.0-flash"):
         self.model_name = model_name
-        print(f"🏠 本地 AI 引擎初始化：使用模型 {self.model_name}")
-
-    def _invoke_ai(self, prompt):
-        try:
-            # 加入 timeout 與 num_predict，控制輸出速度與穩定度
-            response = ollama.chat(
-                model=self.model_name, 
-                messages=[{'role': 'user', 'content': prompt}],
-                options={
-                    'num_predict': 150,  # 限制輸出長度
-                    'temperature': 0.1   # 降低隨機性，讓格式更固定
-                },
-            )
-            return response['message']['content']
-        except Exception as e:
-            print(f"⚠️ AI 服務回應過慢或錯誤: {e}")
-            # 如果出錯，回傳一個標準的 JSON 格式字串，避免後端解析崩潰
-            return '{"ai_status": "通過", "ai_reason": "AI回應異常"}'
+        print(f"✨ Gemini AI 引擎初始化：使用模型 {self.model_name}")
 
     def check_content(self, text):
-        """功能 1：自動審核貼文內容（強硬格式版 + JSON 挖掘）"""
+        """功能 1：自動審核貼文內容（使用官方 JSON 模式）"""
+        if not client: return {"ai_status": "通過", "ai_reason": "無 API Key 防護"}
+        
         prompt = f"""
         你現在是一個社交平台的內容審核員。請審核以下「漂流瓶」內容：
         「{text}」
@@ -41,59 +40,86 @@ class LocalStickyNoteAI:
         2. 個人隱私：嚴禁分享電話號碼、LINE ID、手機號碼。
         3. 侮辱與霸凌：嚴禁人身攻擊、謾罵、歧視言論。
 
-        [重要規則]：必須「僅回傳」JSON 格式，不要有任何解釋。
+        請嚴格遵循以下 JSON 格式回傳，不要有任何額外的解釋或中文字：
         {{
           "ai_status": "通過" 或 "不通過",
           "ai_reason": "原因說明"
         }}
         """
-        raw_res = self._invoke_ai(prompt)
         
-        # --- 強力 JSON 挖掘邏輯 ---
-        # 即使 AI 回傳：「好的，這是我幫你審核的結果：{...}」，我們也能把中間的 {} 挖出來
         try:
-            match = re.search(r'\{.*\}', raw_res, re.DOTALL)
-            if match:
-                return json.loads(match.group())
-            else:
-                return {"ai_status": "通過", "ai_reason": "AI未按格式回傳"}
+            # 最新版的 generate_content 寫法
+            response = client.models.generate_content(
+                model=self.model_name,
+                contents=prompt,
+                config=types.GenerateContentConfig(
+                    response_mime_type="application/json",
+                ),
+            )
+            return json.loads(response.text)
         except Exception as e:
-            return {"ai_status": "通過", "ai_reason": f"解析失敗: {str(e)}"}
+            print(f"⚠️ Gemini 審核異常: {e}")
+            return {"ai_status": "通過", "ai_reason": "AI回應異常防護"}
 
     def get_category(self, text):
-        """功能 2：自動分類便利貼"""
-        prompt = (f"請分析這段話的類型：『{text}』。"
-                  f"從 [心情點滴, 技術分享, 匿名告白, 生活瑣事] 選一個最適合的類別，只需回傳類別名稱。")
-        res = self._invoke_ai(prompt)
-        # 清理掉 AI 可能多噴出來的句號或空格
-        return res.strip().replace("。", "") if res else "未分類"
+        """功能 2：自動分類便利貼 (回傳前端指定的數字代號 1~4)"""
+        if not client: return 2
+        
+        prompt = f"""
+        請嚴格分析這段漂流瓶文字：『{text}』。
+        並從以下四個類別中，選擇一個最符合這段話心境的「數字代號」回傳：
+        1 : 代表極度憤怒、生氣、不滿、抱怨、罵人
+        2 : 代表秘密、心事、沒人知道的事情、悄悄話、表白
+        3 : 代表傷心、難過、失戀、破碎、沮喪、想哭
+        4 : 代表厭世、無聊、躺平、不想工作或上學、生活日常瑣事
+
+        ⚠️ 規則：你「只能」且「必須」回傳數字 1、2、3 或 4 的其中一個。絕對不要輸出任何其他中文字、標點符號、括號或空格。
+        """
+        
+        try:
+            response = client.models.generate_content(
+                model=self.model_name,
+                contents=prompt,
+            )
+            result_text = response.text.strip()
+            
+            # 確保拿出來的是乾淨的數字
+            if result_text in ["1", "2", "3", "4"]:
+                return int(result_text)
+                
+            # 防呆：萬一 AI 還是加了廢話，強制從中挖出 1~4 的數字
+            digits = re.findall(r'[1-4]', result_text)
+            if digits:
+                return int(digits[0])
+                
+        except Exception as e:
+            print(f"⚠️ Gemini 分類異常: {e}")
+            
+        return 2  # 防呆預設值
 
     def get_user_tags(self, intro, interests):
         """功能 3：分析會員特質標籤"""
-        prompt = f"分析自介『{intro}』與興趣『{interests}』，提取三個反映性格的標籤，用逗號隔開。只需回傳標籤。"
-        res = self._invoke_ai(prompt)
-        return res.strip() if res else "熱情, 友善, 學習者"
+        if not client: return "熱情, 友善, 學習者"
+        
+        prompt = f"分析自介『{intro}』與興趣『{interests}』，提取三個反映性格的中文標籤，用逗號隔開。只需回傳標籤。"
+        try:
+            response = client.models.generate_content(
+                model=self.model_name,
+                contents=prompt,
+            )
+            return response.text.strip()
+        except Exception as e:
+            return "熱情, 友善, 學習者"
 
-# --- 專題開發測試區 (if __name__ == "__main__" 代表直接執行此檔案時才會跑，import 時不會跑) ---
+
+# --- 專題測試區 ---
 if __name__ == "__main__":
     ai = LocalStickyNoteAI()
     print("\n" + "="*40)
-    print("🚀 內部邏輯測試中...")
+    print("🚀 Gemini 新版 SDK 內部邏輯測試中...")
     
-    # 測試 1：正常訊息
-    test_text_1 = "今天去圖書館看書，感覺心情很平靜。"
-    print(f"1. 測試正常審核: {ai.check_content(test_text_1)}")
-    print(f"1. 測試分類: {ai.get_category(test_text_1)}")
-    
-    print("-" * 20)
-
-    # 測試 2：違規訊息 (含電話)
-    test_text_2 = "想認識我的話可以打 0912-345-678 找我喔！"
-    print(f"2. 測試違規審核: {ai.check_content(test_text_2)}")
-    
-    print("-" * 20)
-    
-    # 測試 3：標籤生成
-    print(f"3. 測試標籤: {ai.get_user_tags('我是個愛運動的人', '籃球, 游泳, 爬山')}")
-    
+    test_text = "今天微積分被當掉，真的很不爽，超討厭教授的！"
+    print(f"測試文字：{test_text}")
+    print(f"1. 審核結果: {ai.check_content(test_text)}")
+    print(f"2. 分類結果 (數字): {ai.get_category(test_text)}")
     print("="*40)
