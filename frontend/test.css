@@ -42,24 +42,19 @@ body, html { margin: 0; font-family: 'PingFang TC', sans-serif; background-color
 
 /*.post-card { background: rgba(255, 255, 255, 0.95); padding: 24px; border-radius: 16px; margin-bottom: 20px; border: 1px solid #e0e6ed; cursor: pointer; transition: 0.3s; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
 .post-card:hover { transform: translateY(-3px); border-color: #4da6ff; box-shadow: 0 8px 20px rgba(0,0,0,0.1); }*/
-/* 1. 讓裝瓶子的容器變成彈性網格，不要排排站 */
-#post-container {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 20px;
-    justify-content: center;
-    padding: 30px;
-}
-
-/* 2. 圓滾滾的漂流瓶身 */
+/* 2. 圓滾滾的漂流瓶身 (清晰毛玻璃 + 溫柔海浪流動 完美終極版) */
 .post-card {
-    position: relative; /* 這是為了讓軟木塞能準確放在瓶口 */
+    position: relative; 
     width: 140px;
     height: 140px;
     border-radius: 50%; 
-    background: radial-gradient(circle at 30% 30%, rgba(224, 242, 254, 0.9), rgba(125, 211, 252, 0.6));
-    border: 2px solid rgba(255, 255, 255, 0.6);
-    box-shadow: 0 8px 20px rgba(0, 85, 165, 0.15), inset 0 0 15px rgba(255, 255, 255, 0.8);
+    
+    /* ✨ 清晰毛玻璃：讓背後海水模糊，瓶子變明顯，字體超清楚 */
+    background: radial-gradient(circle at 30% 30%, rgba(224, 242, 254, 0.75), rgba(125, 211, 252, 0.45)) !important;
+    backdrop-filter: blur(4px); 
+    border: 2px solid rgba(255, 255, 255, 0.6) !important;
+    box-shadow: 0 8px 20px rgba(0, 30, 70, 0.2), inset 0 0 15px rgba(255, 255, 255, 0.6) !important;
+    
     padding: 20px;
     cursor: pointer;
     display: flex;
@@ -67,17 +62,25 @@ body, html { margin: 0; font-family: 'PingFang TC', sans-serif; background-color
     justify-content: center;
     align-items: center;
     text-align: center;
-    margin: 35px 15px 15px 15px; /* 上面多留一點空間給軟木塞 */
+    margin: 35px 15px 15px 15px; 
+    overflow: visible !important; 
     
-    overflow: visible !important; /* ⚠️ 超級重要：這樣軟木塞才不會被切掉！ */
-    animation: float-bubble 4s infinite ease-in-out;
+    /* ✨ 寶寶最愛的溫柔海浪流動感 */
+    animation: ocean-gentle-flow 5s infinite ease-in-out !important;
+    transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1), box-shadow 0.3s;
 }
 
+/* 🌟 滑鼠懸停：優雅放大與發光 */
 .post-card:hover {
-    transform: scale(1.1); 
-    box-shadow: 0 10px 25px rgba(0, 85, 165, 0.3), inset 0 0 20px rgba(255, 255, 255, 1);
+    transform: scale(1.1) !important; 
+    box-shadow: 0 12px 28px rgba(0, 85, 165, 0.25), inset 0 0 18px rgba(255, 255, 255, 0.7) !important;
 }
 
+/* 🌟 真正的溫柔海浪慢浮動動畫 (就是這個讓瓶子動起來！) */
+@keyframes ocean-gentle-flow {
+    0%, 100% { top: 0px; }
+    50% { top: -12px; }
+}
 /* 🌟 魔法 1：幫瓶子加上「軟木塞」 */
 .post-card::before {
     content: "";
@@ -123,6 +126,33 @@ body, html { margin: 0; font-family: 'PingFang TC', sans-serif; background-color
     display: -webkit-box;
     -webkit-line-clamp: 2; 
     -webkit-box-orient: vertical;
+}
+/* 🌟 魔法 3：拯救寶寶的擠擠字！讓看板名稱跟作者乖乖排上下隊 */
+.post-card > div:first-child {
+    flex-direction: column !important; /* 強制改成上下排列 */
+    justify-content: center !important;
+    align-items: center !important;
+    gap: 4px; /* 中間留一點點呼吸空間 */
+    width: 100%;
+    margin-bottom: 8px; /* 跟下面的標題稍微拉開一點距離 */
+}
+
+/* 讓作者標籤稍微精緻一點，絕對不換行 */
+.post-card > div:first-child > div:nth-child(2) {
+    font-size: 0.75rem !important;
+    padding: 2px 8px !important;
+    white-space: nowrap !important; /* 封印術：不准換行！ */
+}
+
+/* 稍微微調一下標題，讓整體更和諧 */
+.post-card h2 {
+    font-size: 1.05rem !important; /* 字體稍微縮小一點點點 */
+    margin: 5px 0 0 0 !important;
+    line-height: 1.3;
+}
+/* 下面保留原本的隱藏設定，維持外觀整潔 */
+.post-card p, .post-card .action-bar {
+    display: none !important; 
 }
 .action-bar { display: flex; gap: 20px; color: #888; font-weight: bold; margin-top: 15px; font-size: 0.95rem; }
 .action-btn { cursor: pointer; transition: 0.2s; display: flex; align-items: center; gap: 5px; }
