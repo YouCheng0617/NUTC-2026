@@ -449,35 +449,134 @@ body, html {
 }
 
 
-/* 1. 信紙本體：恢復乾淨的紙張形狀與超強立體感 */
+/* =========================================
+   💌 寶寶專屬：深海發光信箋 (結構 + 視覺 完整終極版)
+   ========================================= */
+
+/* 1. 信紙本體：完美置中漂浮 + 半透明磨砂玻璃感 */
 #detail-view {
-    background: #FDFDFB !important; /* 非常乾淨、微暖的高級紙白色 */
-    
-    /* ✨ 終極立體陰影：用三層陰影疊加，製造完美的漂浮感 */
-    box-shadow: 
-        0 20px 50px rgba(0, 15, 30, 0.5),   /* 最底層：大面積的深海模糊陰影，拉開距離 */
-        0 8px 15px rgba(0, 0, 0, 0.2),      /* 中間層：加深紙張邊緣的厚度感 */
-        inset 0 0 0 1px rgba(255, 255, 255, 1) !important; /* 最內層：一條極細的高光白線，讓紙張邊緣發光 */
-        
-    /* 恢復自然、滑順的微圓角，不再歪七扭八 */
-    border-radius: 16px !important; 
-
-    /* 拿掉傾斜，讓它端正、優雅地浮在正中央 */
-    transform: translateX(-50%) !important;
-
-    /* 維持絕對置中與防擋設定 */
+    /* --- 守護版面的魔法骨架 (把它拉回中間，不再變大餅) --- */
     position: fixed !important;
-    top: 100px !important; 
+    top: 100px !important;
     left: 50% !important;
-    z-index: 150 !important;
-
+    transform: translateX(-50%) !important;
     width: 90% !important;
     max-width: 650px !important;
-    
-    /* 高度與捲軸控制 */
-    height: auto !important; 
-    max-height: calc(100vh - 160px) !important; 
-    margin: 0 !important; 
-    padding: 50px 60px !important;
+    max-height: calc(100vh - 160px) !important;
     overflow-y: auto !important;
+    z-index: 150 !important;
+    margin: 0 !important;
+
+    /* --- 寶寶專屬的深海發光特效 (漂亮衣服) --- */
+    background: rgba(255, 255, 255, 0.85) !important; 
+    backdrop-filter: blur(15px) !important;
+    border: 1px solid rgba(255, 255, 255, 0.6) !important;
+    box-shadow: 
+        0 20px 50px rgba(0, 15, 30, 0.3), 
+        inset 0 0 25px rgba(255, 255, 255, 0.9) !important;
+    border-radius: 24px !important; 
+    padding: 40px 50px !important;
+}
+
+/* 2. 文章標題：套用海洋波光漸層色 */
+#detail-post-title {
+    color: transparent !important;
+    background: linear-gradient(90deg, #0055a5, #4da6ff, #0055a5);
+    background-size: 200% auto;
+    -webkit-background-clip: text;
+    font-size: 2.2rem !important;
+    text-shadow: 0 2px 10px rgba(77, 166, 255, 0.2);
+    animation: text-shine 4s linear infinite; 
+}
+
+/* 3. 留言區塊外框：淡淡的海水透亮底色 */
+#detail-view > div:last-child {
+    background: rgba(240, 248, 255, 0.6) !important; 
+    border: 1px solid rgba(255, 255, 255, 0.7) !important;
+    box-shadow: inset 0 0 15px rgba(255, 255, 255, 0.8) !important;
+    border-radius: 20px !important;
+}
+
+/* 4. 留言輸入框：圓潤柔軟、點擊發光 */
+#new-comment-input {
+    background: rgba(255, 255, 255, 0.9) !important;
+    border: 1px solid #cce5ff !important;
+    box-shadow: inset 0 2px 5px rgba(0,0,0,0.03) !important;
+    transition: 0.3s;
+}
+#new-comment-input:focus {
+    border-color: #4da6ff !important;
+    box-shadow: 0 0 12px rgba(77, 166, 255, 0.4) !important;
+    background: #ffffff !important;
+}
+
+/* 5. 留言送出按鈕：讓它更有立體果凍感 */
+#detail-view .btn-submit {
+    background: linear-gradient(45deg, #4da6ff, #0073e6) !important;
+    border: none !important;
+    box-shadow: 0 4px 15px rgba(77, 166, 255, 0.4) !important;
+}
+#detail-view .btn-submit:hover {
+    transform: translateY(-2px) scale(1.05) !important;
+    box-shadow: 0 6px 20px rgba(77, 166, 255, 0.6) !important;
+}
+
+/* 標題流動光澤動畫 */
+@keyframes text-shine {
+    to { background-position: 200% center; }
+}
+/* =========================================
+   📌 寶寶專屬：超Q手寫風膠帶便利貼 (完美服貼版)
+   ========================================= */
+
+/* 1. 把便利貼移到紙張「裡面」的左上角，避開魔法剪刀！ */
+#detail-view > div:first-child {
+    background: linear-gradient(135deg, #fffae3 0%, #fff099 100%) !important; 
+    padding: 10px 25px !important;
+    border-radius: 2px 12px 2px 12px !important; 
+    box-shadow: 
+        2px 5px 10px rgba(0, 0, 0, 0.12), 
+        inset -2px -3px 6px rgba(210, 190, 100, 0.3) !important;
+    
+    /* ✨ 靈魂修改：往內移，乖乖貼在紙上不超線 */
+    position: absolute !important;
+    top: 25px !important;    /* 往下移進信紙裡 */
+    left: 25px !important;   /* 往右移進信紙裡 */
+    transform: rotate(-6deg) !important; /* 稍微傾斜，保持隨性可愛 */
+    
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1) !important;
+    border: 1px solid #ebd874 !important;
+    z-index: 200 !important;
+    margin-bottom: 0 !important; 
+}
+
+#detail-view > div:first-child * {
+    color: #6b4e31 !important; 
+}
+
+/* 2. 膠帶位置微調，牢牢黏住！ */
+#detail-view > div:first-child::before {
+    content: "";
+    position: absolute;
+    top: -10px;
+    left: 50%;
+    transform: translateX(-50%) rotate(4deg); 
+    width: 40px;
+    height: 14px;
+    background: rgba(255, 255, 255, 0.6);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+    border-radius: 1px;
+    backdrop-filter: blur(2px);
+}
+
+/* 3. 滑鼠摸上去的時候，一樣會翹起來互動 */
+#detail-view > div:first-child:hover {
+    transform: rotate(-2deg) scale(1.08) translateY(-3px) !important; 
+    box-shadow: 4px 8px 15px rgba(0, 0, 0, 0.18) !important;
+}
+
+/* 🌟 貼心小防護：因為便利貼往下移了，我們把標題也往下推一點，才不會撞在一起 */
+#detail-post-title {
+    margin-top: 50px !important;
 }
