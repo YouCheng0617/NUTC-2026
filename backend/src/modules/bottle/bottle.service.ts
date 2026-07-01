@@ -241,3 +241,64 @@ export const getTodayBottle = async () => {
         todayBottles: todayBottlesCount
     }
 };
+/*新增瓶子並透過 AI 自動審核與分類*/
+export const createBottle = async (
+    memberId: number, 
+    title: string, 
+    content: string, 
+    isAnonymous: boolean
+) => {
+    // 1. 設定預設值 (萬一 AI 伺服器掛掉，文章還是能以狀態 1 存入)
+    let finalStatus = 1; 
+    let violationReason = null;
+    let aiCategory = 4; // 預設分類代號
+
+    try {
+        // 2. 把使用者的內容送給妳的 Python AI 大腦
+        console.log("📡 正在將貼文傳送給 AI 進行審核...");
+        const aiResponse = await fetch("http://127.0.0.1:5000/api/analyze", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ content: content })
+        });
+
+        // 3. 解析 AI 回傳的結果
+        if (aiResponse.ok) {
+            const aiResult = await aiResponse.json();
+            const aiData = aiResult.data;
+
+            // 判斷狀態 (2 = 通過, 3 = 不通過)
+            finalStatus = aiData.ai_status === "通過" ? 2 : 3;
+            violationReason = aiData.ai_status === "通過" ? null : aiData.ai_reason;
+            aiCategory = aiData.category;
+            
+            console.log(`✅ AI 處理完畢！狀態: ${finalStatus}, 分類: ${aiCategory}`);
+        } else {
+            console.warn("⚠️ AI 伺服器回傳異常狀態碼，將使用預設值 (1)");
+        }
+    } catch (error) {
+        console.error("❌ 無法連線到 AI 伺服器 (請確認 python api_server.py 是否有啟動):", error);
+    }
+
+    // 4. 將最終結果存入 Prisma 資料庫
+    const newBottle = await prisma.bottle.create({
+        data: {
+            member_id: memberId,
+            title: title,
+            content: content,
+            is_anonymous: isAnonymous,
+            status: finalStatus,
+            violation_reason: violationReason,
+            
+            // 💡 這裡將 AI 算出來的分類代號直接寫入關聯表
+            // (注意：這裡的寫法是基於妳前面的 Prisma 結構推測的，如果報錯請依妳的 schema 微調)
+            categories: {
+                create: {
+                    category_id: aiCategory
+                }
+            }
+        }
+    });
+
+    return newBottle;
+};
