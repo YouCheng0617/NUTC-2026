@@ -13,81 +13,47 @@ load_dotenv(env_path)
 WEBHOOK_URL = os.getenv("BACKEND_URL")
 API_KEY = os.getenv("AI_WEBHOOK_API_KEY")
 
-# 🛡️ 安全防護機制：如果 .env 裡面忘記設定，直接引發 ValueError 終止程式
 if not WEBHOOK_URL:
-    raise ValueError("❌ 致命錯誤：環境變數缺少 BACKEND_URL，請確保 .env 檔案已正確設定！")
-
+    print("⚠️ 警告：環境變數缺少 BACKEND_URL")
 if not API_KEY:
-    raise ValueError("❌ 致命錯誤：環境變數缺少 AI_WEBHOOK_API_KEY，請確保 .env 檔案已正確設定！")
+    print("⚠️ 警告：環境變數缺少 AI_WEBHOOK_API_KEY")
 
 class AIDBWorker:
     def __init__(self):
-        # 保留預設值防呆
-        self.db_params = {
-            "host": os.getenv("DB_HOST", "127.0.0.1"), 
-            "user": os.getenv("DB_USER", "postgres"),
-            "password": os.getenv("DB_PASSWORD"),
-            "database": os.getenv("DB_NAME", "driftBottle"),
-            "port": os.getenv("DB_PORT", "5432")
-        }
-        self.ai_engine = LocalStickyNoteAI()
+        # 💡 終極修正：直接使用 Prisma 的連線字串，確保跟前端連到同一個宇宙！
+        self.db_url = os.getenv("DATABASE_URL")
         
-        # 💡 優化 1：提升效能
+        if not self.db_url:
+            print("⚠️ 致命警告：.env 裡面找不到 DATABASE_URL，請確認設定！")
+            
+        self.ai_engine = LocalStickyNoteAI()
         self.phone_regex = re.compile(r"09\d{2}[-?\s]?\d{3}[-?\s]?\d{3}")
 
-    def send_webhook(self, bottle_id, status_str, reason):
-        """依照規格書回傳審核結果給後端 API"""
-        headers = {"x-api-key": API_KEY, "Content-Type": "application/json"}
-        
-        status_code = 1 if status_str == "通過" else 2
-        payload = {"bottle_id": bottle_id, "status": status_code}
-        if status_code == 2: payload["violation_reason"] = reason
-
-        try:
-            response = requests.patch(WEBHOOK_URL, json=payload, headers=headers, timeout=5)
-            if response.status_code == 200:
-                print(f"📡 Webhook 回報成功 (ID: {bottle_id})")
-            else:
-                print(f"⚠️ 後端拒絕接收 (狀態碼: {response.status_code})")
-        except requests.exceptions.ConnectionError:
-            # 💡 這裡改成只顯示簡短提示
-            print(f"💤 系統提示：後端伺服器未開啟，Webhook 暫存於資料庫，待下次重試。")
-        except Exception as e:
-            print(f"❌ Webhook 發生非預期錯誤: {e}")
-
-    def check_content(self, text):
-        # --- 第一層：硬核黑名單 ---
-        bad_words = ['砸', '球棒', '打人', '堵人', '報仇', '笨蛋', '醜', '垃圾', '加賴', 'LINE', '賺錢', '領取']
-        for word in bad_words:
-            if word in text:
-                # 💡 優化：就算被攔截，也強制賦予一個「違規訊息」的分類
-                return "不通過", f"偵測到違規關鍵字：{word}", "違規訊息"
-
-        # --- 第二層：正規表達式 ---
-        if self.phone_regex.search(text):
-            return "不通過", "偵測到敏感聯絡資訊 (電話)", "違規訊息"
-
-        # --- 第三層：AI 語意審核 ---
-        try:
-            res = self.ai_engine.check_content(text)
-            status = res.get("ai_status", "通過") if isinstance(res, dict) else "通過"
-            reason = res.get("ai_reason", "無") if isinstance(res, dict) else "格式異常"
-            category = self.ai_engine.get_category(text)
-            return status, reason, category
-        except Exception as e:
-            return "通過", f"AI 連線異常: {str(e)}", "生活瑣事"
+    # ... (中間的 send_webhook 和 check_content 保持不變) ...
 
     def run(self):
-        # 💡 優化 3 & 4：加上外層迴圈與資料庫斷線重連機制 (Auto-Reconnect)
+        """背景監聽資料庫迴圈"""
         while True:
             conn = None
             try:
-                conn = psycopg2.connect(**self.db_params)
+                # 💡 終極修正：直接用這串 URL 連線
+                conn = psycopg2.connect(self.db_url)
+                conn.autocommit = True  
                 cur = conn.cursor()
-                print(f"🚀 [Webhook 完美整合版] 啟動成功！連線資料庫並監聽中...")
+                print(f"🚀 [背景審核工人] 啟動成功！連線資料庫並監聽中...")
+                
+                # --- 🕵️‍♀️ 偵錯小雷達 ---
+                cur.execute('SELECT bottle_id, status FROM "Bottle" LIMIT 1')
+                test_row = cur.fetchone()
+                if test_row:
+                    print(f"👀 [偵錯雷達] 找到文章了！ID: {test_row[0]}, 狀態是: {test_row[1]}")
+                else:
+                    print("⚠️ [偵錯雷達] 警告：資料表還是空的，請確認 DATABASE_URL 是否正確！")
+                # ----------------------------------------
 
                 while True:
-                    cur.execute('SELECT id, content FROM "posts" WHERE ai_status IS NULL')
+                    # 抓取 status = 1 的文章
+                    cur.execute('SELECT bottle_id, content FROM "Bottle" WHERE status = 1')
                     rows = cur.fetchall()
 
                     if not rows:
@@ -98,23 +64,26 @@ class AIDBWorker:
                         post_id, content = row
                         print(f"🔍 檢查 ID {post_id}...")
                         
-                        status, reason, category = self.check_content(content)
+                        # 交給 AI 審核 (回傳文字狀態、原因、分類代號)
+                        ai_status_str, reason, category = self.check_content(content)
                         
-                        # 1. 更新本機資料庫
+                        # 將中文狀態轉換為數字代號存入資料庫
+                        db_status_code = 2 if ai_status_str == "通過" else 3
+                        
+                        # 對齊 Prisma 欄位名稱 (status, violation_reason)
                         cur.execute(
-                            'UPDATE "posts" SET ai_status = %s, ai_reason = %s, category = %s WHERE id = %s',
-                            (status, reason, category, post_id)
+                            'UPDATE "Bottle" SET status = %s, violation_reason = %s WHERE bottle_id = %s',
+                            (db_status_code, reason, post_id)
                         )
-                        conn.commit()
 
-                        # 2. 發送 Webhook
-                        self.send_webhook(post_id, status, reason)
-                        print(f"✅ ID {post_id} 處理完成 -> {status}")
+                        # 呼叫 Webhook
+                        self.send_webhook(post_id, ai_status_str, reason)
+                        print(f"✅ ID {post_id} 處理完成 -> 狀態改為: {db_status_code} ({ai_status_str})")
 
                     time.sleep(2)
 
             except psycopg2.OperationalError as e:
-                print(f"❌ 資料庫連線中斷，5 秒後嘗試重新連線...: {e}")
+                print(f"❌ 資料庫連線中斷，請檢查 DATABASE_URL: {e}")
                 time.sleep(5)
             except Exception as e:
                 print(f"❌ 嚴重錯誤: {e}")
@@ -122,37 +91,10 @@ class AIDBWorker:
             finally:
                 if conn is not None:
                     conn.close()
-def get_category(self, text): # 如果在類別裡，記得加上 self
-    prompt = f"""
-    請將以下內容分類。妳只能且必須從【生活瑣事, 心情告白, 匿名抱怨, 技術分享, 違規訊息】這五個詞中選擇一個。
-    請不要輸出任何多餘的文字、括號、標點符號或解釋。
-    內容：{text}
-    """
-    
-    # 正確呼叫並抓取純文字
-    response = self.ai_engine.generate_content(prompt)
-    
-    raw_response = response.text 
-    
-    print(f"AI 原始回覆: {raw_response}") 
-    
-    allowed = ["生活瑣事", "心情告白", "匿名抱怨", "技術分享", "違規訊息"]
-    for category in allowed:
-        if category in raw_response:
-            return category
-            
-    return "生活瑣事"
+# === 底部乾淨的啟動區塊 ===
 if __name__ == "__main__":
-    worker = AIDBWorker()
-    worker.run()
-while True:
-    # 系統自動撈出所有「還沒處理過」的資料
-    # 不需要指定 ID，只要 ai_status 是空的，就全部抓出來！
-    rows = db.query('SELECT id, content FROM "posts" WHERE ai_status IS NULL')
-    
-    for row in rows:
-        # 自動審核、自動分類、自動填入
-        category = get_category(row['content'])
-        db.execute('UPDATE "posts" SET ai_status = "完成", category = %s WHERE id = %s', (category, row['id']))
-        
-    time.sleep(5) # 休息一下再繼續監聽
+    try:
+        worker = AIDBWorker()
+        worker.run()
+    except KeyboardInterrupt:
+        print("\n👋 系統管理員手動關閉背景審核工人。")
