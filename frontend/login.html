@@ -10,17 +10,15 @@
   <body>
     <div class="login-container">
       <img src="images/background.png" class="bg-img" alt="背景" />
-      <img src="images/fish.png" class="fish-deco top-left" alt="魚" />
-      <img
-        src="images/海星一個拷貝.png"
-        class="starfish-deco bottom-right"
-        alt="海星"
-      />
-      <img
-        src="images/海星一個-1拷貝.png"
-        class="starfish-deco bottom-right-1"
-        alt="海星一個-1"
-      />
+      
+      <div class="css-bubbles">
+        <div class="bubble"></div>
+        <div class="bubble"></div>
+        <div class="bubble"></div>
+        <div class="bubble"></div>
+        <div class="bubble"></div>
+      </div>
+
       <div class="enter-btn-container" onclick="openAuthModal()">
         <img
           src="images/fish_logo.png"
@@ -31,8 +29,8 @@
       </div>
     </div>
 
-    <div id="auth-modal" class="dark-modal" style="display: none">
-      <div class="dark-modal-content">
+    <div id="auth-modal" class="cute-modal" style="display: none">
+      <div class="cute-modal-content">
         <span class="close-btn" onclick="closeAuthModal()">&times;</span>
 
         <div class="tab-container" id="main-tabs">
@@ -116,7 +114,7 @@
             <a
               href="#"
               onclick="switchTab('forgot')"
-              style="color: #00f2ff; font-size: 0.85rem; text-decoration: none"
+              style="color: #66b3ff; font-size: 0.85rem; text-decoration: none; font-weight: bold;"
               >忘記密碼？</a
             >
           </div>
@@ -197,7 +195,7 @@
             <div class="input-group">
               <label
                 >生日
-                <span style="font-size: 0.8rem; color: #888"
+                <span style="font-size: 0.8rem; color: #8bb8e8"
                   >(可隱藏)</span
                 ></label
               >
@@ -251,10 +249,10 @@
         </form>
 
         <form id="forgot-form" class="auth-form" style="display: none">
-          <h3 style="text-align: center; color: #00f2ff; margin-top: 0">
+          <h3 style="text-align: center; color: #0055a5; margin-top: 0">
             找回密碼
           </h3>
-          <p style="color: #a9b5c7; font-size: 0.9rem; text-align: center">
+          <p style="color: #66b3ff; font-size: 0.9rem; text-align: center; font-weight: bold;">
             請輸入你註冊時使用的信箱，我們將發送驗證碼(Token)給你。
           </p>
           <div class="input-group">
@@ -277,17 +275,17 @@
             <a
               href="#"
               onclick="switchTab('login')"
-              style="color: #8892b0; font-size: 0.85rem; text-decoration: none"
+              style="color: #8bb8e8; font-size: 0.85rem; text-decoration: none; font-weight: bold;"
               >返回登入</a
             >
           </div>
         </form>
 
         <form id="reset-form" class="auth-form" style="display: none">
-          <h3 style="text-align: center; color: #00f2ff; margin-top: 0">
+          <h3 style="text-align: center; color: #0055a5; margin-top: 0">
             設定新密碼
           </h3>
-          <p style="color: #a9b5c7; font-size: 0.9rem; text-align: center">
+          <p style="color: #66b3ff; font-size: 0.9rem; text-align: center; font-weight: bold;">
             請去信箱收信，並將驗證碼(Token)填入下方。
           </p>
           <div class="input-group">
@@ -341,7 +339,7 @@
             <a
               href="#"
               onclick="switchTab('login')"
-              style="color: #8892b0; font-size: 0.85rem; text-decoration: none"
+              style="color: #8bb8e8; font-size: 0.85rem; text-decoration: none; font-weight: bold;"
               >返回登入</a
             >
           </div>
@@ -362,13 +360,11 @@
         clearErrorMessage();
       }
 
-      // 🧹 清除錯誤訊息的輔助函式
       function clearErrorMessage() {
         const errorEl = document.getElementById("modal-error-msg");
         if (errorEl) errorEl.remove();
       }
 
-      // 🛑 動態在彈窗內顯示精美錯誤訊息
       function showModalError(message) {
         clearErrorMessage();
 
@@ -377,9 +373,9 @@
         errorDiv.style.cssText = `
           background: rgba(255, 77, 77, 0.15);
           border: 1px solid #ff4d4d;
-          color: #ff8585;
+          color: #ff4d4d;
           padding: 12px;
-          border-radius: 10px;
+          border-radius: 15px;
           margin-bottom: 15px;
           font-size: 0.95rem;
           font-weight: bold;
@@ -395,23 +391,17 @@
         );
       }
 
-      // 👁️ 切換密碼顯示/隱藏的魔法函式
       function togglePassword(inputId, iconEl) {
         const input = document.getElementById(inputId);
         if (input.type === "password") {
-          // 變成顯示文字
           input.type = "text";
-          // 換成「睜開眼睛」的圖示
           iconEl.innerHTML = `<svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>`;
         } else {
-          // 變回隱藏密碼
           input.type = "password";
-          // 換回原本「打叉眼睛」的圖示
           iconEl.innerHTML = `<svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>`;
         }
       }
 
-      // 🌟 切換表單邏輯
       function switchTab(tab) {
         clearErrorMessage();
 
@@ -441,32 +431,26 @@
         }
       }
 
-      /*驗證碼*/
       async function loadCaptcha() {
         const container = document.getElementById("captcha-container");
-        const idInput = document.getElementById("captcha-id"); // 假設您的 HTML 有這個 input
+        const idInput = document.getElementById("captcha-id"); 
 
         try {
           const response = await fetch(`${API_BASE_URL}/captcha`);
           if (!response.ok) throw new Error("驗證碼載入失敗");
 
-          // 1. 使用 .json() 解析
           const data = await response.json();
-
-          // 2. 將 SVG 字串 (data.image) 塞入容器
           container.innerHTML = data.image;
 
-          // 3. 如果有 captchaId，請填入隱藏欄位 (這對登入驗證很重要)
           if (idInput) {
             idInput.value = data.captchaId;
           }
         } catch (error) {
           console.log("驗證碼載入錯誤", error);
-          container.innerHTML = "<span>載入失敗，點擊重試</span>";
+          container.innerHTML = "<span style='color:#0055a5; font-weight:bold;'>載入失敗，點擊重試</span>";
         }
       }
 
-      // 🌊 串接後端登入 API
       async function processLogin() {
         const email = document.getElementById("login-email").value;
         const password = document.getElementById("login-password").value;
@@ -513,7 +497,6 @@
 
             localStorage.setItem("authToken", realToken);
 
-            // 在 login.html 裡面找到這段，加上最後一行 role
             const userToSave = {
               email: realUser.email || email,
               name: realUser.name || email.split("@")[0],
@@ -521,7 +504,7 @@
               birthday: realUser.birthday || "",
               bio: realUser.bio || "",
               constellation: realUser.constellation || "",
-              role: realUser.role || "USER", // 🔴 必須加上這一行！把權限存起來！
+              role: realUser.role || "USER",
             };
             localStorage.setItem("currentUser", JSON.stringify(userToSave));
 
@@ -542,7 +525,6 @@
         }
       }
 
-      // 🌊 串接後端註冊 API
       async function processRegister() {
         const email = document.getElementById("reg-email").value;
         const password = document.getElementById("reg-password").value;
@@ -607,7 +589,6 @@
         }
       }
 
-      // 🌟 串接後端 忘記密碼申請 API
       async function processForgotPassword() {
         const email = document.getElementById("forgot-email").value;
         if (email.trim() === "") {
@@ -635,7 +616,6 @@
         }
       }
 
-      // 🌟 串接後端 重設密碼 API
       async function processResetPassword() {
         const token = document.getElementById("reset-token").value;
         const newPassword = document.getElementById("reset-password").value;

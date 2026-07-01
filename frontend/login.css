@@ -2,76 +2,81 @@
 body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background-color: #5BA7FF; font-family: 'PingFang TC', sans-serif; }
 .login-container { position: relative; width: 100vw; height: 100vh; display: flex; justify-content: center; align-items: center; }
 .bg-img { position: absolute; width: 100%; height: 100%; object-fit: cover; z-index: 1; }
-.fish-deco { 
-    position: fixed; 
-    
-    /* 🔴 關鍵點：用 vw (視窗寬度單位) 讓魚隨著螢幕寬度自動伸縮 */
-    /* 18vw 代表魚的寬度永遠是螢幕寬度的 18% */
-    width: 18vw; 
-    height: auto; 
-    
-    /* 🔴 確保魚永遠緊貼左下角 */
-    bottom: 0;
-    left: 0;
-    
-    z-index: 5; 
-    pointer-events: none; 
+
+/* =========================================
+   ✨ 寶寶專屬：深海夢幻泡泡與呼吸水晶球
+   ========================================= */
+
+/* 1. 魔法泡泡設定 */
+.css-bubbles { 
+    position: absolute; top: 0; left: 0; width: 100%; height: 100%; 
+    overflow: hidden; z-index: 2; pointer-events: none; 
 }
-.starfish-deco { 
-    position: absolute; 
-    width: clamp(120px, 25vw, 250px); 
-    z-index: 5; 
-    bottom: 3%; 
-    right: 0px; 
+
+.bubble { 
+    position: absolute; bottom: -100px; 
+    background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.8), rgba(255, 255, 255, 0.1)); 
+    border-radius: 50%; 
+    box-shadow: 0 0 15px rgba(255, 255, 255, 0.3); 
+    animation: rise linear infinite; 
 }
-.bottom-right-1 {
-        /* 改用百分比定位 */
-    bottom: 10%;         
-    width: clamp(150px, 25vw, 300px);          
-    height: auto;
+
+.bubble:nth-child(1) { width: 60px; height: 60px; left: 15%; animation-duration: 8s; }
+.bubble:nth-child(2) { width: 30px; height: 30px; left: 35%; animation-duration: 5s; animation-delay: 2s; }
+.bubble:nth-child(3) { width: 80px; height: 80px; left: 75%; animation-duration: 10s; animation-delay: 1s; }
+.bubble:nth-child(4) { width: 40px; height: 40px; left: 85%; animation-duration: 7s; animation-delay: 4s; }
+.bubble:nth-child(5) { width: 25px; height: 25px; left: 55%; animation-duration: 6s; animation-delay: 3s; }
+
+@keyframes rise {
+    0% { transform: translateY(0) scale(1); opacity: 0.7; }
+    50% { opacity: 1; }
+    100% { transform: translateY(-100vh) scale(1.2); opacity: 0; }
+}
+
+@keyframes crystalBreathe {
+    0%, 100% { 
+        box-shadow: inset -20px -20px 40px rgba(0, 85, 165, 0.2), inset 20px 20px 40px rgba(255, 255, 255, 0.7), 0 25px 50px rgba(0, 0, 0, 0.15), 0 0 30px rgba(255, 255, 255, 0.2); 
+    }
+    50% { 
+        box-shadow: inset -20px -20px 40px rgba(0, 85, 165, 0.3), inset 20px 20px 40px rgba(255, 255, 255, 0.9), 0 30px 60px rgba(0, 0, 0, 0.25), 0 0 70px rgba(106, 183, 255, 0.6); 
+    }
 }
 
 /* =========================================
    ✨ 巨無霸版：750px 3D 立體水晶泡泡登入按鈕
    ========================================= */
 .enter-btn-container { 
-    /* 🔴 關鍵修改 1：改為絕對定位，死死鎖在畫面正中央 */
     position: absolute; 
     top: 50%;
     left: 50%;
-    transform: translate(-50%, -50%); /* 置中魔法 */
+    transform: translate(-50%, -50%);
     z-index: 10; 
     display: flex; 
     flex-direction: column; 
     justify-content: center; 
     align-items: center; 
     
-    /* 🔴 關鍵修改 2：把固定的 750px 改成響應式大小 */
-    width: 80vw;                  /* 手機版時，寬度佔螢幕的 80% */
-    height: 80vw;                 /* 保持正圓形 */
-    max-width: 750px;             /* 電腦版最大就維持你原本的 750px */
-    max-height: 750px;            /* 電腦版最大高度 */
+    width: 80vw;                  
+    height: 80vw;                 
+    max-width: 750px;             
+    max-height: 750px;            
     
     background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.5) 0%, rgba(255, 255, 255, 0.1) 50%, rgba(0, 85, 165, 0.15) 100%); 
     backdrop-filter: blur(8px); 
     border-radius: 50%; 
     border: 1px solid rgba(255, 255, 255, 0.6); 
-    box-shadow: 
-        inset -20px -20px 40px rgba(0, 85, 165, 0.2), 
-        inset 20px 20px 40px rgba(255, 255, 255, 0.7), 
-        0 25px 50px rgba(0, 0, 0, 0.15),               
-        0 0 50px rgba(255, 255, 255, 0.3);             
+    
+    animation: crystalBreathe 4s ease-in-out infinite; 
         
     cursor: pointer; 
     transition: all 0.5s cubic-bezier(0.25, 0.8, 0.25, 1); 
     color: #fff; 
     text-align: center;
-    box-sizing: border-box; /* 防止 padding 撐開圓圈 */
+    box-sizing: border-box; 
     padding: 20px;
 }
 
 .enter-btn-container:hover { 
-    /* 🔴 關鍵修改 3：必須保留 translate(-50%, -50%)，再加上原本的向上微調 Y 軸 */
     transform: translate(-50%, -54%) scale(1.02); 
     box-shadow: 
         inset -20px -20px 40px rgba(0, 85, 165, 0.2),
@@ -81,14 +86,12 @@ body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden;
 }
 
 .enter-btn-container img {
-    /* 🔴 寬度隨螢幕縮放：最小 100px，最大 260px */
     width: clamp(100px, 28vw, 260px) !important;       
     margin-bottom: 3% !important;
     filter: drop-shadow(0 6px 10px rgba(0, 50, 100, 0.3));
 }
 
 .enter-btn-container h2 {
-    /* 🔴 字體隨螢幕縮放：最小 2rem，最大 5.5rem */
     font-size: clamp(2rem, 6.5vw, 5.5rem);             
     font-weight: 900;
     letter-spacing: clamp(4px, 1.5vw, 16px);          
@@ -97,114 +100,145 @@ body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden;
 }
 
 .enter-btn-container p {
-    /* 🔴 字體隨螢幕縮放：最小 1rem，最大 2.2rem */
     font-size: clamp(1rem, 2.5vw, 2.2rem);             
     font-weight: bold;
     letter-spacing: 3px;
     margin: 0;
     background: rgba(0, 85, 165, 0.6); 
-    padding: 2% 6%; /* 改用百分比內距 */           
+    padding: 2% 6%; 
     border-radius: 50px;
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
     border: 2px solid rgba(255, 255, 255, 0.3);
 }
+
 /* ==================================================
-   深色科技感彈窗 (對應架構圖的設計)
+   🫧 寶寶專屬：超萌水藍透白泡泡彈窗 (對應第三張圖風格)
    ================================================== */
-.dark-modal {
+.cute-modal {
     display: none; position: fixed; z-index: 1000; left: 0; top: 0; 
-    width: 100%; height: 100%; background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(8px);
+    width: 100%; height: 100%; 
+    background: rgba(0, 40, 80, 0.4); /* 外圍變成柔和的深海藍遮罩 */
+    backdrop-filter: blur(8px);
     justify-content: center; align-items: center;
 }
 
-.dark-modal-content {
-    background: #1e2235; 
-    
-    /* 🔴 關鍵修改 1：允許在小螢幕時自動縮小到 90% */
+.cute-modal-content {
+    /* ✨ 核心魔法：半透明水光玻璃感 */
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(230, 245, 255, 0.7)); 
     width: 92%;            
-    max-width: 500px;      /* 大螢幕時維持 500px */
-    
-    max-height: 85vh;      /* 限制最高高度，避免超出螢幕範圍 */
-    overflow-y: auto;      /* 如果內容太長，允許在彈窗內滾動 */
-    border-radius: 20px; 
-    padding: 20px;         /* 手機版內距縮小一點，留更多空間給內容 */
+    max-width: 480px;      
+    max-height: 85vh;      
+    overflow-y: auto;      
+    border-radius: 35px; /* 超級圓滾滾 */
+    padding: 30px 25px;         
     position: relative;
-    box-shadow: 0 20px 50px rgba(0,0,0,0.5); 
-    border: 1px solid #3a4161;
-    color: #e0e6ed;
-    box-sizing: border-box; /* 這一行一定要有，防止 padding 撐破寬度 */
+    box-shadow: 0 20px 40px rgba(0, 85, 165, 0.2), inset 0 0 20px rgba(255, 255, 255, 0.8); 
+    border: 3px solid rgba(255, 255, 255, 0.9); /* 粗一點的白邊框，像泡泡邊緣 */
+    color: #004b87; /* 文字變成海洋深藍色，才可愛 */
+    box-sizing: border-box; 
 }
-/* 確保 padding 不會把寬度撐爆 */
 
+/* 右上角打叉按鈕 */
+.close-btn { 
+    position: absolute; right: 20px; top: 15px; font-size: 32px; 
+    cursor: pointer; color: #8bb8e8; transition: 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); 
+    font-weight: bold;
+}
+.close-btn:hover { color: #ff7675; transform: scale(1.2) rotate(90deg); }
 
-.close-btn { position: absolute; right: 25px; top: 20px; font-size: 28px; cursor: pointer; color: #8892b0; transition: 0.2s; }
-.close-btn:hover { color: #ff4d4d; }
+/* 圓潤的登入/註冊切換頁籤 */
+.tab-container { 
+    display: flex; 
+    background: rgba(255, 255, 255, 0.5); 
+    border-radius: 30px; 
+    padding: 6px;
+    margin-bottom: 25px; 
+    box-shadow: inset 0 2px 5px rgba(0,0,0,0.05);
+}
+.tab { 
+    flex: 1; text-align: center; padding: 12px; font-size: 1.1rem; font-weight: 900; 
+    cursor: pointer; color: #8bb8e8; transition: 0.3s; border-radius: 25px;
+}
+.tab:hover { color: #4da6ff; }
+.tab.active { 
+    background: #ffffff; color: #0073e6; 
+    box-shadow: 0 4px 10px rgba(0, 115, 230, 0.15); 
+}
 
-.tab-container { display: flex; border-bottom: 2px solid #2d334a; margin-bottom: 25px; }
-.tab { flex: 1; text-align: center; padding: 12px; font-size: 1.2rem; font-weight: bold; cursor: pointer; color: #8892b0; transition: 0.3s; }
-.tab:hover { color: #fff; }
-.tab.active { color: #00f2ff; border-bottom: 3px solid #00f2ff; }
-
-.auth-form { display: flex; flex-direction: column; gap: 15px; }
+/* 表單與輸入框 (全部變成圓形泡泡) */
+.auth-form { display: flex; flex-direction: column; gap: 18px; }
 .input-group { display: flex; flex-direction: column; flex: 1; }
-.input-group label { font-size: 0.9rem; color: #a9b5c7; margin-bottom: 5px; font-weight: bold; }
-.input-group input, .input-group select, .input-group textarea {
-    background: #131624; border: 1px solid #2d334a; color: #fff;
-    padding: 12px; border-radius: 10px; font-size: 1rem; outline: none; transition: 0.3s;
+.input-group label { 
+    font-size: 0.95rem; color: #0055a5; margin-bottom: 8px; font-weight: 900; 
+    padding-left: 10px;
 }
-.input-group input:focus, .input-group select:focus, .input-group textarea:focus { border-color: #00f2ff; box-shadow: 0 0 8px rgba(0, 242, 255, 0.2); }
-.input-group textarea { resize: none; font-family: inherit; }
+.input-group input, .input-group select, .input-group textarea {
+    background: rgba(255, 255, 255, 0.8); 
+    border: 2px solid #cce5ff; color: #003366;
+    padding: 14px 20px; border-radius: 25px; /* 超圓角 */
+    font-size: 1rem; font-weight: bold; outline: none; transition: 0.3s;
+    box-shadow: inset 0 2px 5px rgba(0,0,0,0.03);
+}
+.input-group input:focus, .input-group select:focus, .input-group textarea:focus { 
+    border-color: #66b3ff; background: #ffffff;
+    box-shadow: 0 0 15px rgba(102, 179, 255, 0.4), inset 0 2px 5px rgba(0,0,0,0.02); 
+}
+.input-group textarea { border-radius: 20px; resize: none; font-family: inherit; }
+
+/* 讓密碼眼睛的圖示也變藍色 */
+.toggle-password { color: #8bb8e8; }
+.toggle-password:hover { color: #0073e6; }
 
 .form-row { display: flex; gap: 20px; align-items: center; }
 .right-inputs { flex: 1; display: flex; flex-direction: column; gap: 15px; }
 .form-row-multi { display: flex; gap: 15px; }
 
+/* 🌟 超萌果凍送出按鈕 */
 .btn-submit-dark {
-    margin-top: 10px; padding: 14px; font-size: 1.1rem; font-weight: bold; color: #000;
-    background: linear-gradient(90deg, #00f2ff, #0088ff); border: none; border-radius: 10px;
-    cursor: pointer; transition: 0.3s; box-shadow: 0 4px 15px rgba(0, 136, 255, 0.3);
+    margin-top: 15px; padding: 16px; font-size: 1.2rem; font-weight: 900; color: #fff;
+    background: linear-gradient(45deg, #4da6ff, #0073e6); 
+    border: 2px solid #ffffff; border-radius: 30px;
+    cursor: pointer; transition: 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); 
+    box-shadow: 0 8px 20px rgba(0, 115, 230, 0.3), inset 0 -3px 0 rgba(0,0,0,0.1);
+    letter-spacing: 2px;
 }
-.btn-submit-dark:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0, 242, 255, 0.5); }
-
-.dark-modal-content::-webkit-scrollbar { width: 6px; }
-.dark-modal-content::-webkit-scrollbar-thumb { background: #3a4161; border-radius: 10px; }
-
-input[type="date"] { color-scheme: dark !important; }
-input[type="date"]::-webkit-calendar-picker-indicator {
-    background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%23ffffff"><path d="M19 4h-1V2h-2v2H8V2H6v2H5c-1.11 0-1.99.9-1.99 2L3 20a2 2 0 0 0 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V10h14v10zm0-12H5V6h14v2z"/></svg>') !important;
-    cursor: pointer !important; opacity: 0.8; transition: 0.3s;
+.btn-submit-dark:hover { 
+    transform: translateY(-3px) scale(1.02); 
+    box-shadow: 0 12px 25px rgba(0, 115, 230, 0.4), inset 0 -3px 0 rgba(0,0,0,0.1); 
 }
-input[type="date"]::-webkit-calendar-picker-indicator:hover { opacity: 1; }
+
+/* 捲軸可愛化 */
+.cute-modal-content::-webkit-scrollbar { width: 8px; }
+.cute-modal-content::-webkit-scrollbar-thumb { background: #b3d8ff; border-radius: 10px; }
+
+/* 日期選擇器顏色微調 */
+input[type="date"] { color-scheme: light !important; }
 
 /* ==================================================
    🚀 專門拯救 Mobile S (320px) 與所有手機版的終極特訓樣式
    ================================================== */
 @media screen and (max-width: 576px) {
-    /* 1. 彈窗外殼：寬度自動縮到 92%，留出兩邊精緻縫隙 */
-    .dark-modal-content {
+    .cute-modal-content {
         width: 92% !important;
         max-width: 100% !important;
-        padding: 15px !important; /* 縮小內距，把空間留給輸入框 */
+        padding: 20px 15px !important; 
         max-height: 85vh !important;
         box-sizing: border-box !important;
     }
 
-    /* 2. 核心致命傷：強制「生日、性別、星座」全部拆開成單列垂直排列 */
     .form-row-multi {
         display: flex !important;
-        flex-direction: column !important; /* 變直排 */
+        flex-direction: column !important; 
         gap: 12px !important;
         width: 100% !important;
     }
 
-    /* 3. 確保裡面的每一個輸入框群組都維持 100% 滿版，不准亂縮 */
     .form-row-multi .input-group,
     .form-row .input-group {
         width: 100% !important;
         flex: none !important;
     }
 
-    /* 4. 如果頭像區塊有橫向排版，也強制拆開成上下排 */
     .form-row {
         display: flex !important;
         flex-direction: column !important;
@@ -212,53 +246,27 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover { opacity: 1; }
         gap: 15px !important;
     }
 
-    /* 5. 微調輸入框跟下拉選單的大小，讓 320px 畫面不擁擠 */
     .input-group input, 
     .input-group select, 
     .input-group textarea {
         font-size: 0.9rem !important;
-        padding: 10px !important;
+        padding: 12px !important;
         width: 100% !important;
         box-sizing: border-box !important; 
     }
 
-    /* 6. 右上角的 X 關閉按鈕微調 */
     .close-btn {
         right: 15px !important;
-        top: 12px !important;
-        font-size: 24px !important;
+        top: 10px !important;
+        font-size: 28px !important;
     }
 
-    /* 7. 底部的註冊進入按鈕高度微調 */
     .btn-submit-dark {
-        padding: 12px !important;
-        font-size: 1rem !important;
+        padding: 14px !important;
+        font-size: 1.1rem !important;
     }
-} /* 手機版媒體查詢結束 */
+} 
 
-/* =======================================================
-   ✨ 全域游標與懸浮視覺優化 (讓頁籤跟打叉都完美變成手指頭)
-   ======================================================= */
-
-/* 1. 登入/註冊 頁籤 */
-.tab {
-    cursor: pointer !important; /* 強制讓滑鼠移上去時變成手指頭 */
-    transition: color 0.3s ease, text-shadow 0.3s ease;
-}
-.tab:hover {
-    color: #00f2ff !important; /* 滑鼠移上去時文字變亮藍色 */
-    text-shadow: 0 0 10px rgba(0, 242, 255, 0.6); /* 霓虹藍發光效果 */
-}
-
-/* 2. 🔥 右上角的打叉關閉按鈕 */
-.close-btn {
-    cursor: pointer !important; /* 🔥 強制讓打叉移上去也變成手指頭 */
-    transition: color 0.2s ease, transform 0.2s ease;
-}
-.close-btn:hover {
-    color: #ff4d4d !important; /* 滑鼠移上去時打叉變紅色 */
-    transform: scale(1.2); /* 微微放大，點擊感更好 */
-}
 /* =========================================
    👁️ 密碼顯示/隱藏 眼睛圖示設定
    ========================================= */
@@ -271,7 +279,7 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover { opacity: 1; }
 
 .password-wrapper input {
     width: 100%;
-    padding-right: 45px !important; /* 右邊預留空間給眼睛，避免文字跟圖示重疊 */
+    padding-right: 45px !important; 
 }
 
 .toggle-password {
@@ -280,12 +288,36 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover { opacity: 1; }
     display: flex;
     align-items: center;
     justify-content: center;
-    color: #8892b0;
     cursor: pointer !important;
     transition: 0.3s ease;
 }
 
 .toggle-password:hover {
-    color: #00f2ff; /* 滑鼠移上去時跟著發亮變藍色 */
     transform: scale(1.1);
+}
+
+/* 圖形驗證碼區塊圓潤化 */
+.captcha-wrapper {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+.captcha-wrapper input {
+    flex: 1;
+}
+#captcha-container {
+    background: rgba(255, 255, 255, 0.8);
+    border: 2px solid #cce5ff;
+    border-radius: 15px; /* 圓潤驗證碼框 */
+    overflow: hidden;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2px;
+    transition: 0.3s;
+}
+#captcha-container:hover {
+    border-color: #66b3ff;
+    box-shadow: 0 0 10px rgba(102, 179, 255, 0.3);
 }
