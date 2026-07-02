@@ -289,6 +289,20 @@
     });
   </script>
   <script src="admin.js"></script>
+  <!-- ✨ 寶寶專屬：超可愛的退回原因小彈窗 -->
+  <div id="reject-modal" class="admin-modal-overlay" style="display: none; z-index: 10001;">
+    <div class="admin-modal-content" style="max-width: 320px; text-align: center; padding: 25px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.15);">
+      <h3 style="color: #ef4444; font-size: 1.25rem; margin-top: 0; margin-bottom: 10px;">❌ 拒絕文章</h3>
+      <p style="color: #64748b; font-size: 0.9rem; margin-bottom: 20px;">請告訴作者為什麼這篇文章不能流入海中：</p>
+      
+      <input type="text" id="reject-reason-input" placeholder="例如：內容包含不雅字眼..." style="width: 100%; padding: 12px; border: 2px solid #e2e8f0; border-radius: 12px; margin-bottom: 20px; font-size: 0.95rem; outline: none; box-sizing: border-box; color: #334155;">
+      
+      <div style="display: flex; gap: 10px; justify-content: center;">
+        <button class="btn-action btn-secondary" style="flex: 1; border-radius: 10px;" onclick="closeRejectModal()">取消</button>
+        <button class="btn-action btn-danger" style="flex: 1; border-radius: 10px;" onclick="confirmRejectAction()">確定退回</button>
+      </div>
+    </div>
+  </div>
 </body>
 
 </html>

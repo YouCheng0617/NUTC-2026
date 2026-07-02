@@ -174,7 +174,7 @@ window.filterUsers = function () {
     renderUsers(filtered);
 }
 
-// 補上渲染使用者的函數 (進化版：把使用者名字傳給彈窗)
+// 補上渲染使用者的函數 (進化版：狀態自動變色魔法 🎨)
 function renderUsers(users) {
     const tbody = document.getElementById('admin-users-body');
     if (!tbody) return;
@@ -182,20 +182,37 @@ function renderUsers(users) {
         tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;">目前沒有符合的資料</td></tr>`;
         return;
     }
-    tbody.innerHTML = users.map(u => `
+    
+    tbody.innerHTML = users.map(u => {
+        // ✨ 寶寶專屬：自動判斷狀態並換上對應的衣服
+        let currentStatus = u.status || 'ACTIVE';
+        let statusBadge = '';
+
+        if (currentStatus === 'BANNED') {
+            // 🔴 被封鎖的壞蛋：紅色警報
+            statusBadge = `<span class="badge" style="background:#fff1f0; color:#cf1322; border:1px solid #ffa39e;">🔴 ${currentStatus}</span>`;
+        } else if (currentStatus === 'INACTIVE') {
+            // 🟡 暫時停用：黃色警告
+            statusBadge = `<span class="badge" style="background:#fff7e6; color:#d46b08; border:1px solid #ffd591;">🟡 ${currentStatus}</span>`;
+        } else {
+            // 🟢 正常乖寶寶：水藍色正常版
+            statusBadge = `<span class="badge" style="background:#e6f7ff; color:#0066cc; border:1px solid #91d5ff;">🟢 ${currentStatus}</span>`;
+        }
+
+        return `
         <tr>
             <td data-label="會員 ID">${escapeHTML(String(u.member_id || u.id || '未知'))}</td>
             <td data-label="姓名暱稱">${escapeHTML(u.name || '未命名')}</td>
             <td data-label="登入 Email">${escapeHTML(u.email || '無')}</td>
             <td data-label="註冊時間">${u.created_at ? new Date(u.created_at).toLocaleDateString() : '未知'}</td>
-            <td data-label="帳號狀態"><span class="badge" style="background:#e6f7ff; color:#0066cc; border:1px solid #91d5ff;">${u.status || 'ACTIVE'}</span></td>
+            <td data-label="帳號狀態">${statusBadge}</td>
             <td data-label="項目操作">
                 <button class="btn-action btn-secondary" onclick="changeUserStatus('${u.member_id || u.id}', '${escapeHTML(u.name || '未命名')}')">更改狀態</button>
             </td>
         </tr>
-    `).join('');
+        `;
+    }).join('');
 }
-
 // ==========================================
 // ✨ 寶寶專屬：漂亮彈窗控制邏輯
 // ==========================================
@@ -263,6 +280,9 @@ async function loadBottles() {
     }
 }
 
+// ==========================================
+// 5. API 串接：漂流瓶審核 (醫美級排版對齊版 💅)
+// ==========================================
 function renderBottles(bottles) {
     const tbody = document.getElementById('admin-bottles-body');
     if (!tbody) return;
@@ -280,7 +300,6 @@ function renderBottles(bottles) {
         if (!rawCat && b.category_list && b.category_list.length > 0) rawCat = b.category_list[0];
         if (!rawCat) rawCat = '綜合閒聊';
 
-        // ✨ 寶寶的專屬情緒分類 (完美兼容舊文章)
         let catHtml = '';
         if (rawCat.includes("憤怒") || rawCat.includes("閒聊")) {
             catHtml = `<span class="badge" style="background:#fff1f0; color:#cf1322; border:1px solid #ffa39e;">😡 極度憤怒中</span>`;
@@ -292,22 +311,47 @@ function renderBottles(bottles) {
             catHtml = `<span class="badge" style="background:#f6ffed; color:#389e0d; border:1px solid #b7eb8f;">😑 極度厭世/躺平</span>`;
         }
 
+        // ✨ 狀態標籤去除了醜醜的 margin，改交給外層對齊；透明度調回健康的 0.8
+        let statusBadge = '';
+        let rowStyle = '';
+        let btnText = '審核'; 
+
+        if (b.status === 2) {
+            statusBadge = `<span class="badge" style="background:#dcfce7; color:#16a34a; border:1px solid #bbf7d0;">✅ 已通過</span>`;
+            rowStyle = `opacity: 0.8; background: #f8fafc;`; 
+            btnText = '查看'; 
+        } else if (b.status === 3) {
+            statusBadge = `<span class="badge" style="background:#fee2e2; color:#dc2626; border:1px solid #fecaca;">❌ 已拒絕</span>`;
+            rowStyle = `opacity: 0.8; background: #f8fafc;`; 
+            btnText = '查看'; 
+        } else {
+            statusBadge = `<span class="badge" style="background:#e0f2fe; color:#0284c7; border:1px solid #bae6fd;">⏳ 待審核</span>`;
+            rowStyle = `opacity: 1; background: #ffffff; box-shadow: 0 2px 8px rgba(0,0,0,0.04);`; // 待審核的給一點微凸的陰影，讓它更立體
+            btnText = '審核';
+        }
+
         return `
-        <tr>
-            <td data-label="文章 ID">#${escapeHTML(String(b.bottle_id || b.id))}</td>
+        <tr style="${rowStyle} transition: 0.3s;">
+            <td data-label="文章 ID" style="color: #64748b; font-weight: 600;">#${escapeHTML(String(b.bottle_id || b.id))}</td>
             <td data-label="發文者">${escapeHTML(String(b.member_name || b.author_name || '匿名'))}</td>
-            <td data-label="標題">${escapeHTML(String(b.title))}</td>
+            
+            <td data-label="標題">
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <span style="font-weight: 600; color: #1e293b; font-size: 1.05rem;">${escapeHTML(String(b.title))}</span>
+                    ${statusBadge}
+                </div>
+            </td>
+            
             <td data-label="看板分類">${catHtml}</td>
-            <td data-label="發布時間">${b.created_at ? new Date(b.created_at).toLocaleDateString() : '未知'}</td>
+            <td data-label="發布時間" style="color: #64748b;">${b.created_at ? new Date(b.created_at).toLocaleDateString() : '未知'}</td>
             <td data-label="項目操作">
-                <button class="btn-action btn-primary" onclick="openBottleModalFromCache('${b.bottle_id || b.id}')">查看/審核</button>
+                <button class="btn-action btn-primary" onclick="openBottleModalFromCache('${b.bottle_id || b.id}')">${btnText}</button>
                 <button class="btn-action btn-danger" style="margin-left: 5px;" onclick="deleteBottleAsAdmin('${b.bottle_id || b.id}')">刪除</button>
             </td>
         </tr>
         `;
     }).join('');
 }
-
 window.filterBottles = function () {
     const keyword = document.getElementById('search-bottles').value.toLowerCase();
     const filtered = window._allBottles.filter(b =>
@@ -320,36 +364,157 @@ window.filterBottles = function () {
 }
 
 // ==========================================
-// 6. API 串接：審核動作與強制刪除
+// 6. API 串接：審核動作與強制刪除 (精品彈窗版 💅)
 // ==========================================
 window.openBottleModalFromCache = function (bottleId) {
     const b = window._allBottles.find(item => String(item.bottle_id || item.id) === String(bottleId));
     if (!b) return;
 
-    document.getElementById('modal-title').innerText = `審核：${b.title}`;
-    document.getElementById('modal-body').innerHTML = `<p style="white-space:pre-wrap; line-height:1.6;">${escapeHTML(b.content)}</p>`;
+    // 重新解析分類，為了在彈窗裡也顯示漂亮的膠囊標籤
+    let rawCat = b.category_name || null;
+    if (!rawCat && b.categories && b.categories.length > 0) {
+        rawCat = (typeof b.categories[0] === 'string') ? b.categories[0] : b.categories[0].category?.name;
+    }
+    if (!rawCat && b.category_list && b.category_list.length > 0) rawCat = b.category_list[0];
+    if (!rawCat) rawCat = '綜合閒聊';
+
+    let catHtml = '';
+    if (rawCat.includes("憤怒") || rawCat.includes("閒聊")) {
+        catHtml = `<span class="badge" style="background:#fff1f0; color:#cf1322; border:1px solid #ffa39e;">😡 極度憤怒中</span>`;
+    } else if (rawCat.includes("秘密") || rawCat.includes("程式")) {
+        catHtml = `<span class="badge" style="background:#f9f0ff; color:#531dab; border:1px solid #d3adf7;">🤫 沒人懂的秘密</span>`;
+    } else if (rawCat.includes("破碎") || rawCat.includes("碎片") || rawCat.includes("美食")) {
+        catHtml = `<span class="badge" style="background:#fff7e6; color:#d46b08; border:1px solid #ffd591;">💔 破碎的碎片</span>`;
+    } else {
+        catHtml = `<span class="badge" style="background:#f6ffed; color:#389e0d; border:1px solid #b7eb8f;">😑 極度厭世/躺平</span>`;
+    }
+
+    // 🌟 1. 美化彈窗標題
+    document.getElementById('modal-title').innerHTML = `
+        <div style="display: flex; align-items: center; gap: 10px; font-size: 1.4rem; color: #1e293b; border-bottom: 2px solid #e2e8f0; padding-bottom: 12px; margin-bottom: 0;">
+            <span style="font-size: 1.6rem;">📝</span> 
+            ${escapeHTML(b.title)}
+        </div>
+    `;
+
+    // 🌟 2. 美化文章內容 (加入作者、時間標籤 + 引言式卡片設計)
+    document.getElementById('modal-body').innerHTML = `
+        <div style="margin: 15px 0; display: flex; gap: 10px; flex-wrap: wrap; align-items: center;">
+            <span class="badge" style="background:#f1f5f9; color:#475569; border:1px solid #cbd5e1;">👤 作者：${escapeHTML(b.member_name || b.author_name || '匿名')}</span>
+            <span class="badge" style="background:#f1f5f9; color:#475569; border:1px solid #cbd5e1;">📅 ${b.created_at ? new Date(b.created_at).toLocaleDateString() : '未知'}</span>
+            ${catHtml}
+        </div>
+        
+        <div style="background: #ffffff; border-left: 5px solid #3b82f6; padding: 24px; border-radius: 0 12px 12px 0; font-size: 1.05rem; color: #334155; white-space: pre-wrap; line-height: 1.8; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); margin-top: 20px;">
+            ${escapeHTML(b.content)}
+        </div>
+    `;
 
     window._reviewBottleId = b.bottle_id || b.id;
     window._reviewBottleTitle = b.title;
 
+    // 🌟 3. 美化底部按鈕 (左右排開，視覺更平衡)
     document.getElementById('modal-actions').innerHTML = `
-        <button class="btn-action btn-secondary" onclick="closeAdminModal()">取消</button>
-        <button class="btn-action btn-danger" onclick="reviewBottle(window._reviewBottleId, 2, window._reviewBottleTitle);">拒絕 (2)</button>
-        <button class="btn-action btn-primary" onclick="reviewBottle(window._reviewBottleId, 1, window._reviewBottleTitle);">通過 (1)</button>
+        <button class="btn-action btn-secondary" onclick="closeAdminModal()">返回</button>
+        <div style="margin-left: auto; display: flex; gap: 12px;">
+            <button class="btn-action btn-danger" onclick="reviewBottle(window._reviewBottleId, 3, window._reviewBottleTitle);">❌ 拒絕 (違規)</button>
+            <button class="btn-action btn-primary" onclick="reviewBottle(window._reviewBottleId, 2, window._reviewBottleTitle);">✅ 審核通過</button>
+        </div>
     `;
+    
     document.getElementById('admin-modal').style.display = 'flex';
 }
 
-window.reviewBottle = async function (bottleId, status, title) {
-    let violation_reason = "";
+// ==========================================
+// 6. API 串接：審核動作與強制刪除 (密語正確版 💅)
+// ==========================================
+window.openBottleModalFromCache = function (bottleId) {
+    const b = window._allBottles.find(item => String(item.bottle_id || item.id) === String(bottleId));
+    if (!b) return;
 
-    if (status === 2) {
-        violation_reason = prompt(`請輸入拒絕「${title}」的原因 (必填):`, "內容不當");
-        if (!violation_reason) { alert("必須填寫拒絕原因！"); return; }
+    let rawCat = b.category_name || null;
+    if (!rawCat && b.categories && b.categories.length > 0) {
+        rawCat = (typeof b.categories[0] === 'string') ? b.categories[0] : b.categories[0].category?.name;
+    }
+    if (!rawCat && b.category_list && b.category_list.length > 0) rawCat = b.category_list[0];
+    if (!rawCat) rawCat = '綜合閒聊';
+
+    let catHtml = '';
+    if (rawCat.includes("憤怒") || rawCat.includes("閒聊")) {
+        catHtml = `<span class="badge" style="background:#fff1f0; color:#cf1322; border:1px solid #ffa39e;">😡 極度憤怒中</span>`;
+    } else if (rawCat.includes("秘密") || rawCat.includes("程式")) {
+        catHtml = `<span class="badge" style="background:#f9f0ff; color:#531dab; border:1px solid #d3adf7;">🤫 沒人懂的秘密</span>`;
+    } else if (rawCat.includes("破碎") || rawCat.includes("碎片") || rawCat.includes("美食")) {
+        catHtml = `<span class="badge" style="background:#fff7e6; color:#d46b08; border:1px solid #ffd591;">💔 破碎的碎片</span>`;
     } else {
-        if (!confirm(`⚠️ 確定要通過「${title}」嗎？`)) return;
+        catHtml = `<span class="badge" style="background:#f6ffed; color:#389e0d; border:1px solid #b7eb8f;">😑 極度厭世/躺平</span>`;
     }
 
+    document.getElementById('modal-title').innerHTML = `
+        <div style="display: flex; align-items: center; gap: 10px; font-size: 1.4rem; color: #1e293b; border-bottom: 2px solid #e2e8f0; padding-bottom: 12px; margin-bottom: 0;">
+            <span style="font-size: 1.6rem;">📝</span> 
+            ${escapeHTML(b.title)}
+        </div>
+    `;
+
+    document.getElementById('modal-body').innerHTML = `
+        <div style="margin: 15px 0; display: flex; gap: 10px; flex-wrap: wrap; align-items: center;">
+            <span class="badge" style="background:#f1f5f9; color:#475569; border:1px solid #cbd5e1;">👤 作者：${escapeHTML(b.member_name || b.author_name || '匿名')}</span>
+            <span class="badge" style="background:#f1f5f9; color:#475569; border:1px solid #cbd5e1;">📅 ${b.created_at ? new Date(b.created_at).toLocaleDateString() : '未知'}</span>
+            ${catHtml}
+        </div>
+        
+        <div style="background: #ffffff; border-left: 5px solid #3b82f6; padding: 24px; border-radius: 0 12px 12px 0; font-size: 1.05rem; color: #334155; white-space: pre-wrap; line-height: 1.8; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); margin-top: 20px;">
+            ${escapeHTML(b.content)}
+        </div>
+    `;
+
+    window._reviewBottleId = b.bottle_id || b.id;
+    window._reviewBottleTitle = b.title;
+
+    // 🌟 修正密語：傳入 2 代表拒絕，1 代表通過
+    document.getElementById('modal-actions').innerHTML = `
+        <button class="btn-action btn-secondary" onclick="closeAdminModal()">返回</button>
+        <div style="margin-left: auto; display: flex; gap: 12px;">
+            <button class="btn-action btn-danger" onclick="reviewBottle(window._reviewBottleId, 2, window._reviewBottleTitle);">❌ 拒絕 (違規)</button>
+            <button class="btn-action btn-primary" onclick="reviewBottle(window._reviewBottleId, 1, window._reviewBottleTitle);">✅ 審核通過</button>
+        </div>
+    `;
+    
+    document.getElementById('admin-modal').style.display = 'flex';
+}
+
+window.reviewBottle = function (bottleId, status, title) {
+    window._pendingReviewId = bottleId;
+    window._pendingReviewTitle = title;
+
+    // 🌟 修正邏輯：2 代表違規/拒絕
+    if (status === 2) {
+        document.getElementById('reject-reason-input').value = '內容不當'; 
+        document.getElementById('reject-modal').style.display = 'flex';
+    } else {
+        // 1 代表通過
+        if (!confirm(`✅ 確定要通過「${title}」，讓它流入海中嗎？`)) return;
+        executeReviewAction(bottleId, 1, "");
+    }
+}
+
+window.closeRejectModal = function() {
+    document.getElementById('reject-modal').style.display = 'none';
+}
+
+window.confirmRejectAction = function() {
+    const reason = document.getElementById('reject-reason-input').value.trim();
+    if (!reason) {
+        alert("必須填寫拒絕原因唷！");
+        return;
+    }
+    // 🌟 在小彈窗按下確定後，傳送 2 (拒絕) 給後端
+    executeReviewAction(window._pendingReviewId, 2, reason);
+    closeRejectModal(); 
+}
+
+window.executeReviewAction = async function(bottleId, status, reason) {
     try {
         const token = localStorage.getItem("authToken");
         const response = await fetch(`${API_BASE_URL}/admin/bottles/review`, {
@@ -360,22 +525,23 @@ window.reviewBottle = async function (bottleId, status, title) {
             },
             body: JSON.stringify({
                 "bottle_id": Number(bottleId),
-                "status": status,
-                "violation_reason": violation_reason
+                "status": status, // 這裡現在會正確傳送 1 或是 2 囉！
+                "violation_reason": reason
             })
         });
 
         if (response.ok) {
-            alert(`✅ 審核完成！`);
-            closeAdminModal();
-            loadBottles();
+            alert(`🎉 審核完成！`);
+            closeAdminModal(); 
+            loadBottles();     
         } else {
             const err = await response.json();
             alert(`審核失敗: ${err.message}`);
         }
-    } catch (e) { alert("伺服器連線失敗"); }
+    } catch (e) { 
+        alert("伺服器連線失敗"); 
+    }
 }
-
 window.deleteBottleAsAdmin = async function(bottleId) {
     if (!confirm(`⚠️ 確定要以管理員身分強制刪除 #${bottleId} 號漂流瓶嗎？刪除後將無法復原！`)) {
         return;
