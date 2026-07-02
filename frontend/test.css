@@ -3,24 +3,19 @@
    ========================================= */
 body, html { margin: 0; font-family: 'PingFang TC', sans-serif; background-color: #f0f7ff; background-image: url('images/background.png'); background-size: cover; background-attachment: fixed; background-position: center; color: #333; line-height: 1.6; }
 
-/* 頂部導覽列 */
 .light-header { background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(10px); padding: 0.8rem 2rem; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
-
-/* ✨ 修改 Logo 區塊：字體放大到 2.2rem，並往右推 20px */
 .logo { font-size: 2.2rem; font-weight: 900; color: #0055a5; flex: 1; display: flex; align-items: center; margin-left: 20px; cursor: pointer; }
 .logo img { filter: brightness(0) saturate(100%) invert(19%) sepia(87%) saturate(2359%) hue-rotate(192deg) brightness(97%) contrast(105%); }
 
-.search-container { flex: 2; display: flex; justify-content: center; }
+.search-container { flex: 2; display: flex; justify-content: center; position: relative; }
 .light-search { width: 100%; max-width: 500px; padding: 10px 20px; background: rgba(255, 255, 255, 0.7); border: 1px solid #e0e6ed; border-radius: 20px; color: #333; outline: none; transition: 0.3s; }
-.light-search:focus { background: #fff; border-color: #4da6ff; box-shadow: 0 0 5px rgba(77, 166, 255, 0.3); }
+.nav-actions { flex: 1; display: flex; justify-content: flex-end; align-items: center; }
 
-/* 按鈕類 */
 .btn-login, .btn-post { padding: 8px 20px; border-radius: 20px; font-weight: bold; cursor: pointer; border: none; color: #fff; box-shadow: 0 4px 10px rgba(0,0,0,0.1); transition: 0.3s;}
 .btn-login { background-color: #0073e6; }
 .btn-post { background: linear-gradient(45deg, #4da6ff, #0055a5); }
 .btn-post:hover { transform: translateY(-2px); box-shadow: 0 6px 15px rgba(0, 85, 165, 0.3); }
 
-/* ✨ 修改使用者名稱：字體放大到 1.25rem */
 .user-name-text { font-weight: bold; color: #333; font-size: 1.25rem; }
 
 /* =========================================
@@ -32,138 +27,33 @@ body, html { margin: 0; font-family: 'PingFang TC', sans-serif; background-color
 
 .sidebar, .right-panel { background: rgba(255, 255, 255, 0.75); backdrop-filter: blur(5px); padding: 20px; border-radius: 16px; border: 1px solid rgba(255,255,255,0.5); height: fit-content;}
 .sidebar h3, .right-panel h3 { color: #555; font-weight: 900; margin-top: 0; margin-bottom: 15px; border-bottom: 2px solid #e0e6ed; padding-bottom: 5px; }
-/* 🟢 新增這段：清除列表預設的左邊空白 */
-.sidebar ul {
-    padding: 0;
-    margin: 0;
-}
+
+.sidebar ul { padding: 0; margin: 0; }
 .sidebar li { padding: 12px 15px; border-radius: 10px; cursor: pointer; transition: 0.2s; list-style: none; color: #555; font-weight: bold; margin-bottom: 5px; }
 .sidebar li:hover, .sidebar li.active { background: #fff; color: #0055a5; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
 
-/*.post-card { background: rgba(255, 255, 255, 0.95); padding: 24px; border-radius: 16px; margin-bottom: 20px; border: 1px solid #e0e6ed; cursor: pointer; transition: 0.3s; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
-.post-card:hover { transform: translateY(-3px); border-color: #4da6ff; box-shadow: 0 8px 20px rgba(0,0,0,0.1); }*/
-/* 2. 圓滾滾的漂流瓶身 (清晰毛玻璃 + 溫柔海浪流動 完美終極版) */
+/* 圓滾滾的漂流瓶身 */
 .post-card {
-    position: relative; 
-    width: 140px;
-    height: 140px;
-    border-radius: 50%; 
-    
-    /* ✨ 清晰毛玻璃：讓背後海水模糊，瓶子變明顯，字體超清楚 */
+    position: relative; width: 140px; height: 140px; border-radius: 50%; 
     background: radial-gradient(circle at 30% 30%, rgba(224, 242, 254, 0.75), rgba(125, 211, 252, 0.45)) !important;
-    backdrop-filter: blur(4px); 
-    border: 2px solid rgba(255, 255, 255, 0.6) !important;
+    backdrop-filter: blur(4px); border: 2px solid rgba(255, 255, 255, 0.6) !important;
     box-shadow: 0 8px 20px rgba(0, 30, 70, 0.2), inset 0 0 15px rgba(255, 255, 255, 0.6) !important;
-    
-    padding: 20px;
-    cursor: pointer;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    text-align: center;
-    margin: 35px 15px 15px 15px; 
-    overflow: visible !important; 
-    
-    /* ✨ 寶寶最愛的溫柔海浪流動感 */
+    padding: 20px; cursor: pointer; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center;
+    margin: 35px 15px 15px 15px; overflow: visible !important; 
     animation: ocean-gentle-flow 5s infinite ease-in-out !important;
     transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1), box-shadow 0.3s;
 }
-
-/* 🌟 滑鼠懸停：優雅放大與發光 */
-.post-card:hover {
-    transform: scale(1.1) !important; 
-    box-shadow: 0 12px 28px rgba(0, 85, 165, 0.25), inset 0 0 18px rgba(255, 255, 255, 0.7) !important;
-}
-
-/* 🌟 真正的溫柔海浪慢浮動動畫 (就是這個讓瓶子動起來！) */
-@keyframes ocean-gentle-flow {
-    0%, 100% { top: 0px; }
-    50% { top: -12px; }
-}
-/* 🌟 魔法 1：幫瓶子加上「軟木塞」 */
-.post-card::before {
-    content: "";
-    position: absolute;
-    top: -24px; /* 放在瓶子頂部突出 */
-    left: 50%;
-    transform: translateX(-50%);
-    width: 45px;
-    height: 25px;
-    background: #a67c52; /* 軟木塞的木頭色 */
-    border-radius: 5px 5px 0 0;
-    box-shadow: inset -5px 0 10px rgba(0,0,0,0.2);
-    z-index: 1;
-}
-
-/* 🌟 魔法 2：幫瓶子加上「玻璃瓶口」 */
-.post-card::after {
-    content: "";
-    position: absolute;
-    top: -5px; /* 剛好卡在軟木塞和瓶身中間 */
-    left: 50%;
-    transform: translateX(-50%);
-    width: 55px;
-    height: 12px;
-    background: rgba(224, 242, 254, 0.9);
-    border: 2px solid rgba(255, 255, 255, 0.9);
-    border-radius: 10px;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-    z-index: 2;
-}
-
-/* 下面保留原本的隱藏設定跟標題設定 */
-.post-card p, .post-card .action-bar {
-    display: none !important; 
-}
-.post-card h2 {
-    font-size: 1.1rem !important;
-    margin: 5px 0 !important;
-    color: #0055a5 !important;
-    font-weight: 900;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    display: -webkit-box;
-    -webkit-line-clamp: 2; 
-    -webkit-box-orient: vertical;
-}
-/* 🌟 魔法 3：拯救寶寶的擠擠字！讓看板名稱跟作者乖乖排上下隊 */
-.post-card > div:first-child {
-    flex-direction: column !important; /* 強制改成上下排列 */
-    justify-content: center !important;
-    align-items: center !important;
-    gap: 4px; /* 中間留一點點呼吸空間 */
-    width: 100%;
-    margin-bottom: 8px; /* 跟下面的標題稍微拉開一點距離 */
-}
-
-/* 讓作者標籤稍微精緻一點，絕對不換行 */
-.post-card > div:first-child > div:nth-child(2) {
-    font-size: 0.75rem !important;
-    padding: 2px 8px !important;
-    white-space: nowrap !important; /* 封印術：不准換行！ */
-}
-
-/* 稍微微調一下標題，讓整體更和諧 */
-.post-card h2 {
-    font-size: 1.05rem !important; /* 字體稍微縮小一點點點 */
-    margin: 5px 0 0 0 !important;
-    line-height: 1.3;
-}
-/* 下面保留原本的隱藏設定，維持外觀整潔 */
-.post-card p, .post-card .action-bar {
-    display: none !important; 
-}
-.action-bar { display: flex; gap: 20px; color: #888; font-weight: bold; margin-top: 15px; font-size: 0.95rem; }
-.action-btn { cursor: pointer; transition: 0.2s; display: flex; align-items: center; gap: 5px; }
-.action-btn:hover { color: #0055a5; transform: scale(1.05); }
-.like-active { color: #ff4d4d !important; }
-.save-active { color: #f5b041 !important; }
-
-.tag-cloud .tag { display: inline-block; background: #eaf4ff; color: #0055a5; padding: 6px 14px; border-radius: 20px; font-size: 0.85rem; font-weight: bold; margin: 5px; }
+.post-card:hover { transform: scale(1.1) !important; box-shadow: 0 12px 28px rgba(0, 85, 165, 0.25), inset 0 0 18px rgba(255, 255, 255, 0.7) !important; }
+@keyframes ocean-gentle-flow { 0%, 100% { top: 0px; } 50% { top: -12px; } }
+.post-card::before { content: ""; position: absolute; top: -24px; left: 50%; transform: translateX(-50%); width: 45px; height: 25px; background: #a67c52; border-radius: 5px 5px 0 0; box-shadow: inset -5px 0 10px rgba(0,0,0,0.2); z-index: 1; }
+.post-card::after { content: ""; position: absolute; top: -5px; left: 50%; transform: translateX(-50%); width: 55px; height: 12px; background: rgba(224, 242, 254, 0.9); border: 2px solid rgba(255, 255, 255, 0.9); border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); z-index: 2; }
+.post-card p, .post-card .action-bar { display: none !important; }
+.post-card h2 { font-size: 1.05rem !important; margin: 5px 0 0 0 !important; color: #0055a5 !important; font-weight: 900; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; line-height: 1.3; }
+.post-card > div:first-child { flex-direction: column !important; justify-content: center !important; align-items: center !important; gap: 4px; width: 100%; margin-bottom: 8px; }
+.post-card > div:first-child > div:nth-child(2) { font-size: 0.75rem !important; padding: 2px 8px !important; white-space: nowrap !important; }
 
 /* =========================================
-   3. 彈窗樣式 (明亮版)
+   3. 彈窗樣式 & 使用者選單
    ========================================= */
 .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); backdrop-filter: blur(3px); }
 .light-modal { background: #ffffff; margin: 8% auto; padding: 35px; border-radius: 20px; width: 360px; position: relative; box-shadow: 0 15px 35px rgba(0,0,0,0.15); }
@@ -175,7 +65,6 @@ body, html { margin: 0; font-family: 'PingFang TC', sans-serif; background-color
 .btn-submit:hover { background: #0073e6; transform: translateY(-2px); }
 .avatar-img { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; border: 2px solid #e0e0e0; }
 
-/* 🌟 下拉選單樣式 */
 .user-menu-wrapper { position: relative; display: flex; align-items: center; }
 .user-info-trigger { display: flex; align-items: center; gap: 8px; cursor: pointer; padding: 5px 12px; border-radius: 25px; transition: 0.2s; }
 .user-info-trigger:hover { background: rgba(0,0,0,0.05); }
@@ -188,395 +77,196 @@ body, html { margin: 0; font-family: 'PingFang TC', sans-serif; background-color
 .logout-item { color: #ff4d4d; }
 .logout-item:hover { background: #fff1f0; color: #ff4d4d; }
 @keyframes fadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
-/* ==================================================
-   📱 平板與手機版 RWD 響應式排版 (提早觸發，防擠壓)
-   ================================================== */
-@media screen and (max-width: 992px) {   /* 🔴 把這裡的 768px 改成 992px */
-    
-    /* 1. 頂部導覽列：讓搜尋框掉到第二行，保持上方清爽 */
-    .light-header {
-        flex-wrap: wrap;       /* 允許內容折行 */
-        padding: 10px 15px;
-        gap: 12px;
-    }
-    
-    /* ... 保持裡面原本的內容不變 ... */
-
-    /* ✨ 修改 Logo 區塊：加入不換行與防擠壓 */
-    .logo { 
-        font-size: 2.2rem; font-weight: 900; color: #0055a5; 
-        flex: 1; display: flex; align-items: center; 
-        margin-left: 20px; cursor: pointer; 
-        white-space: nowrap; /* 🔴 關鍵 1：絕對不允許文字變成垂直的 */
-        flex-shrink: 0;      /* 🔴 關鍵 2：不允許被旁邊的搜尋框擠壓 */
-}
-
-    /* 使用者名稱與按鈕區塊 */
-    .nav-actions {
-        flex: 1 1 auto;
-        display: flex;
-        justify-content: flex-end;
-    }
-    
-    .user-name-text {
-        font-size: 1rem;
-        white-space: nowrap;   /* 防止名字變直排 */
-    }
-
-    /* 讓搜尋框獨立佔滿整排，移到最下方 */
-    .search-container { 
-    flex: 2; display: flex; justify-content: center; 
-    min-width: 200px; /* 給予搜尋框基本寬度，讓它有彈性伸縮的空間 */
-    padding: 0 15px; 
-}
-
-    /* 2. 主體版面：從「左右並排」改成「上下疊加」 */
-    .light-container {
-        flex-direction: column; /* 🔴 關鍵：將三個直行改成上下排列 */
-        margin: 15px auto;
-        gap: 20px;
-    }
-
-    /* 解除原本的比例限制，全部變成 100% 滿版 */
-    .sidebar, .main-feed, .right-panel {
-        flex: none;
-        width: 100%;
-        box-sizing: border-box;
-    }
-
-    /* 讓左側看板在手機上不要佔太多高度 */
-    .sidebar ul {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 10px;
-        padding: 0;
-    }
-    .sidebar li {
-        flex: 1 1 calc(50% - 10px); /* 變成兩兩並排的按鈕 */
-        text-align: center;
-        margin-bottom: 0;
-    }
-}
-
-/* ==================================================
-   📲 極窄螢幕 (Mobile S - 320px) 的終極保護
-   ================================================== */
-@media screen and (max-width: 480px) {
-    .logo {
-        font-size: 1.2rem;
-    }
-    
-    .user-info-trigger {
-        padding: 5px;
-    }
-    
-    .user-name-text {
-        display: none; /* 螢幕太小時，把名字隱藏，只留頭像避免擠爆 */
-    }
-    
-    .btn-post {
-        padding: 6px 12px;
-        font-size: 0.9rem;
-    }
-}
 
 /* =========================================
-   🔍 搜尋歷史紀錄下拉選單 (Dcard 深色風格)
+   4. 🌊 深海鎖定 ＆ 電腦版底部膠囊分類 
    ========================================= */
-.search-history-box {
-    position: absolute;
-    top: 110%; /* 黏在搜尋框的正下方 */
-    left: 15px;
-    right: 15px;
-    background: #2b2b2b; /* Dcard 風格的深灰色背景 */
-    border-radius: 8px;
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
-    z-index: 300;
-    overflow: hidden;
-    padding: 5px 0;
-}
-
-.history-item {
-    padding: 12px 20px;
-    color: #e0e0e0;
-    cursor: pointer;
-    font-size: 0.95rem;
-    display: flex;
-    align-items: center;
-    justify-content: space-between; /* 🟢 讓文字在左、叉叉在右 */
-    transition: 0.2s;
-}
-
-.history-item:hover {
-    background: #404040; 
-    color: #00f2ff;
-}
-
-/* 🟢 新增小叉叉的專屬樣式 */
-.delete-history-btn {
-    color: #888;
-    font-size: 1.2rem;
-    line-height: 1;
-    padding: 2px 8px;
-    border-radius: 5px;
-    transition: 0.2s;
-}
-
-.delete-history-btn:hover {
-    color: #ff4d4d; /* 滑鼠移過去變紅色 */
-    background: rgba(255, 77, 77, 0.1);
-}
-/* =========================================
-   🌊 寶寶專屬：深海鎖定 ＆ 底部懸浮分類 ＆ 呼喚海流
-   ========================================= */
-
-/* 1. 拯救頂部導覽列：融入深海 */
-.light-header {
-    background: linear-gradient(to bottom, rgba(0, 30, 60, 0.7) 0%, rgba(0, 30, 60, 0) 100%) !important;
-    backdrop-filter: none !important;
-    box-shadow: none !important;
-    border-bottom: none !important;
-}
+.light-header { background: linear-gradient(to bottom, rgba(0, 30, 60, 0.7) 0%, rgba(0, 30, 60, 0) 100%) !important; backdrop-filter: none !important; box-shadow: none !important; border-bottom: none !important; }
 .logo { color: #ffffff !important; text-shadow: 0 2px 4px rgba(0,0,0,0.3); }
 .logo img { filter: brightness(0) invert(1) !important; }
 .user-name-text { color: #ffffff !important; }
 .user-info-trigger .menu-arrow { color: #ffffff !important; }
-.light-search {
-    background: rgba(255, 255, 255, 0.2) !important;
-    color: #fff !important;
-    border: 1px solid rgba(255, 255, 255, 0.4) !important;
-}
+.light-search { background: rgba(255, 255, 255, 0.2) !important; color: #fff !important; border: 1px solid rgba(255, 255, 255, 0.4) !important; }
 .light-search::placeholder { color: rgba(255,255,255,0.7); }
 
-/* 2. 鎖死全螢幕，消滅萬惡的滾動條 */
-body, html {
-    height: 100vh !important;
-    overflow: hidden !important; 
-    background-color: #001528;
-}
-#forum-view {
-    height: 100vh;
-    display: flex;
-    flex-direction: column;
-}
-.light-container {
-    flex: 1;
-    position: relative;
-    padding: 0 !important;
-    max-width: 100% !important;
-    width: 100%;
-    margin: 0 !important;
-}
-.main-feed {
-    flex: none !important;
-    width: 100% !important;
-    height: 100%;
-}
+body, html { height: 100vh !important; overflow: hidden !important; background-color: #001528; }
+#forum-view { height: 100vh; display: flex; flex-direction: column; }
+.light-container { flex: 1; position: relative; padding: 0 !important; max-width: 100% !important; width: 100%; margin: 0 !important; }
+.main-feed { flex: none !important; width: 100% !important; height: 100%; }
 
-/* 3. 海浪般自然的瓶子排列 (一上一下，不破圖) */
-#post-container {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    align-content: center; /* 讓瓶子永遠置中 */
-    gap: 50px; 
-    padding: 20px 40px 100px 40px;
-    width: 100%;
-    height: 100%;
-}
+#post-container { display: flex; flex-wrap: wrap; justify-content: center; align-content: center; gap: 50px; padding: 20px 40px 100px 40px; width: 100%; height: 100%; position: relative; }
 .post-card { margin: 0 !important; }
 .post-card:nth-child(even) { transform: translateY(40px); }
 .post-card:nth-child(odd) { transform: translateY(-20px); }
 
-/* 4. 把右邊側邊欄隱藏，左邊變成底部「懸浮分類列」 */
 .right-panel { display: none !important; }
+
+/* 🚀 電腦版：底部毛玻璃膠囊選單 (防撞設計) */
 .sidebar {
-    display: block !important;
-    position: fixed;
-    bottom: 30px; 
-    left: 50%;
-    transform: translateX(-50%); 
-    background: rgba(255, 255, 255, 0.1);
-    backdrop-filter: blur(12px); 
-    border-radius: 50px;
-    padding: 12px 25px;
-    border: 1px solid rgba(255,255,255,0.3);
-    z-index: 100;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-}
-.sidebar h3 { display: none !important; } 
-.sidebar ul { display: flex; gap: 15px; margin: 0; padding: 0; }
-.sidebar li {
-    background: rgba(0, 85, 165, 0.4);
-    color: white !important;
-    border-radius: 30px;
-    padding: 10px 20px;
-    border: 1px solid rgba(255,255,255,0.4);
-    white-space: nowrap;
-    box-shadow: none !important;
-}
-.sidebar li.active, .sidebar li:hover { 
-    background: rgba(255, 255, 255, 0.95); 
-    color: #0055a5 !important;
-    transform: translateY(-5px); 
-}
-
-/* 5. 呼喚海流按鈕與動畫 */
-.ocean-refresh-btn {
-    position: fixed;
-    right: 40px;
-    bottom: 40px;
-    background: radial-gradient(circle, rgba(77, 166, 255, 0.8), rgba(0, 85, 165, 0.8));
-    color: white;
-    padding: 15px 25px;
-    border-radius: 50px;
-    cursor: pointer;
-    z-index: 100;
-    font-weight: bold;
-    border: 2px solid rgba(255,255,255,0.5);
-    box-shadow: 0 0 20px rgba(77, 166, 255, 0.5);
-    transition: 0.3s;
-}
-.ocean-refresh-btn:hover {
-    transform: scale(1.1) rotate(-5deg);
-    box-shadow: 0 0 30px rgba(77, 166, 255, 0.9);
-}
-.swept-away {
-    animation: sweepOut 0.8s forwards ease-in !important;
-}
-@keyframes sweepOut {
-    to { transform: translateX(-100vw) rotate(-45deg); opacity: 0; }
-}
-
-
-/* =========================================
-   💌 寶寶專屬：深海發光信箋 (結構 + 視覺 完整終極版)
-   ========================================= */
-
-/* 1. 信紙本體：完美置中漂浮 + 半透明磨砂玻璃感 */
-#detail-view {
-    /* --- 守護版面的魔法骨架 (把它拉回中間，不再變大餅) --- */
-    position: fixed !important;
-    top: 100px !important;
-    left: 50% !important;
+    display: block !important; 
+    position: fixed !important; 
+    bottom: 30px !important; 
+    left: 50% !important; 
     transform: translateX(-50%) !important;
-    width: 90% !important;
-    max-width: 650px !important;
-    max-height: calc(100vh - 160px) !important;
-    overflow-y: auto !important;
-    z-index: 150 !important;
-    margin: 0 !important;
-
-    /* --- 寶寶專屬的深海發光特效 (漂亮衣服) --- */
-    background: rgba(255, 255, 255, 0.85) !important; 
-    backdrop-filter: blur(15px) !important;
-    border: 1px solid rgba(255, 255, 255, 0.6) !important;
-    box-shadow: 
-        0 20px 50px rgba(0, 15, 30, 0.3), 
-        inset 0 0 25px rgba(255, 255, 255, 0.9) !important;
-    border-radius: 24px !important; 
-    padding: 40px 50px !important;
+    background: rgba(255, 255, 255, 0.15) !important; 
+    backdrop-filter: blur(12px) !important; 
+    border-radius: 50px !important;
+    padding: 8px 10px !important; 
+    border: 1px solid rgba(255, 255, 255, 0.3) !important; 
+    z-index: 100 !important; 
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15) !important;
+    
+    width: fit-content !important; 
+    max-width: calc(100vw - 360px) !important; 
+    box-sizing: border-box !important;
 }
 
-/* 2. 文章標題：套用海洋波光漸層色 */
-#detail-post-title {
-    color: transparent !important;
-    background: linear-gradient(90deg, #0055a5, #4da6ff, #0055a5);
-    background-size: 200% auto;
-    -webkit-background-clip: text;
-    font-size: 2.2rem !important;
-    text-shadow: 0 2px 10px rgba(77, 166, 255, 0.2);
-    animation: text-shine 4s linear infinite; 
+.sidebar h3 { display: none !important; }
+
+.sidebar ul { 
+    display: flex !important; 
+    gap: 8px !important; 
+    margin: 0 !important; 
+    padding: 0 5px !important; 
+    width: 100% !important;
+    flex-wrap: nowrap !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    scrollbar-width: none !important; 
+}
+.sidebar ul::-webkit-scrollbar { display: none !important; } 
+
+.sidebar li {
+    flex: 0 0 auto !important;
+    background: rgba(30, 90, 140, 0.85) !important; 
+    color: white !important; 
+    border-radius: 30px !important; 
+    padding: 10px 22px !important;
+    border: 1px solid rgba(255, 255, 255, 0.25) !important; 
+    white-space: nowrap !important; 
+    font-weight: bold !important; 
+    font-size: 0.95rem !important; 
+    transition: all 0.2s ease !important; 
+    transform: none !important;
 }
 
-/* 3. 留言區塊外框：淡淡的海水透亮底色 */
-#detail-view > div:last-child {
-    background: rgba(240, 248, 255, 0.6) !important; 
-    border: 1px solid rgba(255, 255, 255, 0.7) !important;
-    box-shadow: inset 0 0 15px rgba(255, 255, 255, 0.8) !important;
-    border-radius: 20px !important;
+.sidebar li.active, .sidebar li:hover { 
+    background: #ffffff !important; 
+    color: #1a5b92 !important; 
+    border-color: #ffffff !important; 
+    transform: scale(1.02) !important; 
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important; 
 }
 
-/* 4. 留言輸入框：圓潤柔軟、點擊發光 */
-#new-comment-input {
-    background: rgba(255, 255, 255, 0.9) !important;
-    border: 1px solid #cce5ff !important;
-    box-shadow: inset 0 2px 5px rgba(0,0,0,0.03) !important;
-    transition: 0.3s;
-}
-#new-comment-input:focus {
-    border-color: #4da6ff !important;
-    box-shadow: 0 0 12px rgba(77, 166, 255, 0.4) !important;
-    background: #ffffff !important;
-}
-
-/* 5. 留言送出按鈕：讓它更有立體果凍感 */
-#detail-view .btn-submit {
-    background: linear-gradient(45deg, #4da6ff, #0073e6) !important;
-    border: none !important;
-    box-shadow: 0 4px 15px rgba(77, 166, 255, 0.4) !important;
-}
-#detail-view .btn-submit:hover {
-    transform: translateY(-2px) scale(1.05) !important;
-    box-shadow: 0 6px 20px rgba(77, 166, 255, 0.6) !important;
-}
-
-/* 標題流動光澤動畫 */
-@keyframes text-shine {
-    to { background-position: 200% center; }
-}
 /* =========================================
-   📌 寶寶專屬：超Q手寫風膠帶便利貼 (完美服貼版)
+   5. 💌 深海發光信箋 & 空狀態置中
    ========================================= */
+.empty-state-text { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: rgba(255, 255, 255, 0.7) !important; font-size: 1.2rem; font-weight: bold; text-shadow: 0 2px 5px rgba(0, 0, 0, 0.5); text-align: center; width: 100%; pointer-events: none; }
 
-/* 1. 把便利貼移到紙張「裡面」的左上角，避開魔法剪刀！ */
-#detail-view > div:first-child {
-    background: linear-gradient(135deg, #fffae3 0%, #fff099 100%) !important; 
-    padding: 10px 25px !important;
-    border-radius: 2px 12px 2px 12px !important; 
-    box-shadow: 
-        2px 5px 10px rgba(0, 0, 0, 0.12), 
-        inset -2px -3px 6px rgba(210, 190, 100, 0.3) !important;
+#detail-view { position: fixed !important; top: 100px !important; left: 50% !important; transform: translateX(-50%) !important; width: 90% !important; max-width: 650px !important; max-height: calc(100vh - 160px) !important; overflow-y: auto !important; z-index: 150 !important; margin: 0 !important; background: rgba(255, 255, 255, 0.85) !important; backdrop-filter: blur(15px) !important; border: 1px solid rgba(255, 255, 255, 0.6) !important; box-shadow: 0 20px 50px rgba(0, 15, 30, 0.3), inset 0 0 25px rgba(255, 255, 255, 0.9) !important; border-radius: 24px !important; padding: 40px 50px !important; }
+#detail-post-title { color: transparent !important; background: linear-gradient(90deg, #0055a5, #4da6ff, #0055a5); background-size: 200% auto; -webkit-background-clip: text; font-size: 2.2rem !important; text-shadow: 0 2px 10px rgba(77, 166, 255, 0.2); animation: text-shine 4s linear infinite; margin-top: 50px !important; }
+#detail-view > div:last-child { background: rgba(240, 248, 255, 0.6) !important; border: 1px solid rgba(255, 255, 255, 0.7) !important; box-shadow: inset 0 0 15px rgba(255, 255, 255, 0.8) !important; border-radius: 20px !important; }
+#new-comment-input { background: rgba(255, 255, 255, 0.9) !important; border: 1px solid #cce5ff !important; box-shadow: inset 0 2px 5px rgba(0,0,0,0.03) !important; transition: 0.3s; }
+#new-comment-input:focus { border-color: #4da6ff !important; box-shadow: 0 0 12px rgba(77, 166, 255, 0.4) !important; background: #ffffff !important; }
+#detail-view .btn-submit { background: linear-gradient(45deg, #4da6ff, #0073e6) !important; border: none !important; box-shadow: 0 4px 15px rgba(77, 166, 255, 0.4) !important; }
+#detail-view .btn-submit:hover { transform: translateY(-2px) scale(1.05) !important; box-shadow: 0 6px 20px rgba(77, 166, 255, 0.6) !important; }
+@keyframes text-shine { to { background-position: 200% center; } }
+#detail-view > div:first-child { background: linear-gradient(135deg, #fffae3 0%, #fff099 100%) !important; padding: 10px 25px !important; border-radius: 2px 12px 2px 12px !important; box-shadow: 2px 5px 10px rgba(0, 0, 0, 0.12), inset -2px -3px 6px rgba(210, 190, 100, 0.3) !important; position: absolute !important; top: 25px !important; left: 25px !important; transform: rotate(-6deg) !important; transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1) !important; border: 1px solid #ebd874 !important; z-index: 200 !important; margin-bottom: 0 !important; }
+#detail-view > div:first-child * { color: #6b4e31 !important; }
+#detail-view > div:first-child::before { content: ""; position: absolute; top: -10px; left: 50%; transform: translateX(-50%) rotate(4deg); width: 40px; height: 14px; background: rgba(255, 255, 255, 0.6); border: 1px solid rgba(255, 255, 255, 0.3); box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08); border-radius: 1px; backdrop-filter: blur(2px); }
+#detail-view > div:first-child:hover { transform: rotate(-2deg) scale(1.08) translateY(-3px) !important; box-shadow: 4px 8px 15px rgba(0, 0, 0, 0.18) !important; }
+
+/* 🌊 電腦版：呼喚海流按鈕 (字體完整保留) */
+.ocean-refresh-btn { 
+    position: fixed; right: 20px; bottom: 31px; 
+    background: radial-gradient(circle, rgba(77, 166, 255, 0.8), rgba(0, 85, 165, 0.8)); 
+    color: white !important; 
+    padding: 15px 25px; border-radius: 50px; cursor: pointer; z-index: 100; font-weight: bold; border: 2px solid rgba(255,255,255,0.5); box-shadow: 0 0 20px rgba(77, 166, 255, 0.5); transition: 0.3s; 
+    display: flex; align-items: center; gap: 8px; font-size: 1rem !important;
+}
+.ocean-refresh-btn:hover { transform: scale(1.1) rotate(-5deg); box-shadow: 0 0 30px rgba(77, 166, 255, 0.9); }
+.ocean-refresh-btn::before { content: "🌊"; font-size: 1.4rem; }
+.swept-away { animation: sweepOut 0.8s forwards ease-in !important; }
+@keyframes sweepOut { to { transform: translateX(-100vw) rotate(-45deg); opacity: 0; } }
+
+
+/* =========================================
+   📱💻 手機版專屬：左側抽屜選單 + 按鈕文字全保留！
+   ========================================= */
+@media screen and (min-width: 1025px) {
+    .forum-container { display: flex; gap: 2rem; max-width: 1400px; margin: 0 auto; padding: 2rem; }
+}
+
+@media screen and (max-width: 1024px) and (min-width: 769px) {
+    .light-header { padding: 1rem 2rem; }
+    .forum-container { display: flex; flex-direction: column; padding: 1.5rem; gap: 1.5rem; }
+}
+
+@media screen and (max-width: 768px) {
+    body { background-attachment: scroll; } 
+
+    /* 1. 頂部導覽列：開啟彈性排版，顯示你最愛的左側 ☰ 漢堡按鈕 */
+    .light-header { display: flex !important; flex-wrap: wrap !important; padding: 10px 15px !important; align-items: center !important; }
+    .hamburger-btn { display: block !important; } /* 🔥 漢堡按鈕回來了！ */
+    .logo { flex: 1 !important; display: flex !important; align-items: center !important; margin: 0 !important; white-space: nowrap !important; font-size: 1.35rem !important; }
+    .nav-actions { margin: 0 !important; }
+    .search-container { flex: 0 0 100% !important; order: 3 !important; width: 100% !important; margin-top: 10px !important; }
+    .light-search { width: 100% !important; max-width: 100% !important; box-sizing: border-box !important; }
+
+    /* 2. ✨ 手機版側邊抽屜選單 (完美後台體驗回歸) */
+    .sidebar { 
+        position: fixed !important; 
+        top: 0 !important; left: 0 !important; bottom: 0 !important;
+        width: 260px !important; height: 100vh !important;
+        background: rgba(10, 35, 65, 0.95) !important; 
+        backdrop-filter: blur(15px) !important;
+        border: none !important; border-right: 1px solid rgba(255, 255, 255, 0.15) !important;
+        border-radius: 0 !important; padding: 25px 20px !important; box-sizing: border-box !important; 
+        transform: translateX(-100%) !important; transition: transform 0.3s ease-in-out !important; 
+        z-index: 1000 !important; display: block !important; 
+        max-width: none !important; 
+    }
+    .sidebar.active-sidebar { transform: translateX(0) !important; box-shadow: 4px 0 25px rgba(0, 0, 0, 0.6) !important; }
+    .sidebar h3 { display: block !important; color: #4da6ff !important; border-bottom: 1px solid rgba(255, 255, 255, 0.2) !important; padding-bottom: 15px !important; margin-bottom: 20px !important; font-size: 1.2rem !important; }
     
-    /* ✨ 靈魂修改：往內移，乖乖貼在紙上不超線 */
-    position: absolute !important;
-    top: 25px !important;    /* 往下移進信紙裡 */
-    left: 25px !important;   /* 往右移進信紙裡 */
-    transform: rotate(-6deg) !important; /* 稍微傾斜，保持隨性可愛 */
+    .sidebar ul { display: flex !important; flex-direction: column !important; gap: 10px !important; padding: 0 !important; margin: 0 !important; width: 100% !important; }
+    .sidebar li { width: 100% !important; background: transparent !important; color: #d1e8ff !important; border-radius: 10px !important; padding: 14px 20px !important; border: none !important; font-size: 1rem !important; font-weight: bold !important; text-align: left !important; transform: none !important; transition: all 0.2s ease !important; box-sizing: border-box !important; }
+    .sidebar li.active, .sidebar li:hover { background: rgba(77, 166, 255, 0.2) !important; color: #ffffff !important; border-radius: 0 10px 10px 0 !important; border-left: 4px solid #4da6ff !important; box-shadow: none !important; transform: translateX(5px) !important; }
     
-    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1) !important;
-    border: 1px solid #ebd874 !important;
-    z-index: 200 !important;
-    margin-bottom: 0 !important; 
+    /* 側邊欄專用暗色遮罩層 */
+    .sidebar-overlay { visibility: hidden; opacity: 0; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(2px); z-index: 999; transition: opacity 0.3s, visibility 0.3s; display: block !important; }
+    .sidebar-overlay.active-overlay { visibility: visible; opacity: 1; }
+
+    /* 3. 呼喚海流：手機版按鈕 (🔥 文字完整保留，字全部還給你！) */
+    .ocean-refresh-btn { 
+        bottom: 30px !important; 
+        right: 15px !important; 
+        width: auto !important; 
+        height: auto !important; 
+        padding: 12px 20px !important; 
+        border-radius: 30px !important; 
+        font-size: 0.95rem !important; 
+        color: white !important; 
+        position: fixed !important;
+        z-index: 90 !important;
+        display: flex !important;
+        align-items: center !important;
+        gap: 8px !important;
+    }
+    .ocean-refresh-btn::before { content: "🌊"; font-size: 1.2rem !important; position: static !important; transform: none !important; }
+    
+    /* 4. 調整海域容器與瓶子間距 */
+    #post-container { gap: 20px; padding: 10px 15px 120px 15px; }
+    .post-card { width: 120px; height: 120px; margin: 15px 5px !important; }
+    .post-card::before { width: 35px; height: 20px; top: -18px; }
+    .post-card::after { width: 45px; height: 10px; top: -4px; }
+    .post-card h2 { font-size: 0.95rem !important; }
+    .post-card > div:first-child > div:nth-child(2) { font-size: 0.7rem !important; }
+    .post-card:nth-child(even) { transform: translateY(20px); }
+    .post-card:nth-child(odd) { transform: translateY(-10px); }
 }
 
-#detail-view > div:first-child * {
-    color: #6b4e31 !important; 
-}
-
-/* 2. 膠帶位置微調，牢牢黏住！ */
-#detail-view > div:first-child::before {
-    content: "";
-    position: absolute;
-    top: -10px;
-    left: 50%;
-    transform: translateX(-50%) rotate(4deg); 
-    width: 40px;
-    height: 14px;
-    background: rgba(255, 255, 255, 0.6);
-    border: 1px solid rgba(255, 255, 255, 0.3);
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
-    border-radius: 1px;
-    backdrop-filter: blur(2px);
-}
-
-/* 3. 滑鼠摸上去的時候，一樣會翹起來互動 */
-#detail-view > div:first-child:hover {
-    transform: rotate(-2deg) scale(1.08) translateY(-3px) !important; 
-    box-shadow: 4px 8px 15px rgba(0, 0, 0, 0.18) !important;
-}
-
-/* 🌟 貼心小防護：因為便利貼往下移了，我們把標題也往下推一點，才不會撞在一起 */
-#detail-post-title {
-    margin-top: 50px !important;
+@media screen and (max-width: 425px) {
+    .user-name-text { display: none !important; }
+    .logo { font-size: 1.25rem !important; }
 }

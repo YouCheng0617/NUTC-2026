@@ -4,34 +4,31 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>心情漂流瓶 - 論壇</title>
-    <link rel="stylesheet" href="test.css" />
+    <link rel="stylesheet" href="test.css?v=2" />
   </head>
   <body>
+    <div class="sidebar-overlay" id="mobile-sidebar-overlay" onclick="toggleMobileSidebar()"></div>
+
     <div id="forum-view">
       <header class="light-header">
-        <div
-          class="logo"
-          onclick="window.location.href = 'test.html'"
-          title="回到主頁"
-        >
-          <img
-            src="images/fish_logo.png"
-            style="width: 30px; margin-right: 10px; vertical-align: middle"
-          />心情漂流瓶
+        <button class="hamburger-btn" id="mobile-menu-btn" onclick="toggleMobileSidebar()" style="display: none; background: none; border: none; color: white; font-size: 1.8rem; cursor: pointer; margin-right: 15px; padding: 0;">☰</button>
+
+        <div class="logo" onclick="window.location.href = 'test.html'" title="回到主頁">
+          <img src="images/fish_logo.png" style="width: 30px; margin-right: 10px; vertical-align: middle" />心情漂流瓶
         </div>
-        <div class="search-container" style="flex: 2; display: flex; justify-content: center; position: relative;">
+        
+        <div class="search-container">
           <input 
             type="text" 
             class="search-input light-search" 
             placeholder="🔍 搜尋海域、標題、內容..." 
             id="main-search-input" 
             autocomplete="off" 
-            style="width: 100%; max-width: 500px;" 
           />
           <div id="search-history-dropdown" class="search-history-box" style="display: none"></div>
         </div>
 
-        <div class="nav-actions" style="flex: 1; display: flex; justify-content: flex-end;">
+        <div class="nav-actions">
           <button id="login-trigger" class="btn-login">註冊 / 登入</button>
           
           <div id="user-profile" class="user-menu-wrapper" style="display: none">
@@ -52,7 +49,6 @@
             <button id="btn-new-post" class="btn-post" style="margin-left: 10px">✏️ 發文</button>
           </div>
         </div>
-        
       </header>
 
       <div class="container light-container">
@@ -66,160 +62,42 @@
           </ul>
         </aside>
 
-        <!-- 🟢 列表模式：原本的瀑布流文章列表 -->
         <main class="main-feed" id="feed-view">
-          <div id="post-container"></div>
+            <div id="post-container">
+                <div class="empty-state-text">目前沒有漂流瓶，快來拋出第一個吧！🌊</div>
+            </div>
         </main>
 
-        <!-- 🟢 閱讀模式：已優化高度與排版，不再產生異常空白與重疊 -->
-        <main
-          class="main-feed"
-          id="detail-view"
-          style="
-            display: none;
-            background: #fff;
-            border-radius: 8px;
-            padding: 30px;
-            box-shadow: 0 1px 5px rgba(0, 0, 0, 0.05);
-            height: fit-content;
-          "
-        >
-          <!-- 返回按鈕列 -->
-          <div
-            style="
-              display: flex;
-              align-items: center;
-              gap: 12px;
-              margin-bottom: 20px;
-              cursor: pointer;
-              color: #3397cf;
-              width: fit-content;
-            "
-            onclick="closePostDetail()"
-          >
+        <main class="main-feed" id="detail-view" style="display: none;">
+          <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 20px; cursor: pointer; color: #3397cf; width: fit-content;" onclick="closePostDetail()">
             <span style="font-size: 1.6rem; font-weight: bold">&larr;</span>
-            <img
-              src="images/fish_logo.png"
-              style="width: 24px; height: 24px; border-radius: 50%"
-            />
-            <span
-              id="detail-board-tag"
-              style="font-weight: bold; font-size: 1rem"
-            ></span>
+            <img src="images/fish_logo.png" style="width: 24px; height: 24px; border-radius: 50%" />
+            <span id="detail-board-tag" style="font-weight: bold; font-size: 1rem"></span>
           </div>
 
-          <!-- 文章標題 -->
-          <h2
-            id="detail-post-title"
-            style="
-              margin-top: 0;
-              font-size: 1.8rem;
-              font-weight: bold;
-              color: #000;
-              margin-bottom: 15px;
-            "
-          ></h2>
+          <h2 id="detail-post-title" style="margin-top: 0; font-size: 1.8rem; font-weight: bold; color: #000; margin-bottom: 15px;"></h2>
 
-          <!-- 作者資訊 -->
-          <div
-            style="
-              display: flex;
-              align-items: center;
-              gap: 12px;
-              margin-bottom: 20px;
-            "
-          >
-            <img
-              src="images/fish_logo.png"
-              style="
-                width: 44px;
-                height: 44px;
-                border-radius: 50%;
-                background: #f0f4f8;
-                padding: 4px;
-              "
-            />
+          <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 20px;">
+            <img src="images/fish_logo.png" style="width: 44px; height: 44px; border-radius: 50%; background: #f0f4f8; padding: 4px;" />
             <div>
-              <div
-                id="detail-author-tag"
-                style="font-weight: 500; color: #333; font-size: 1.1rem"
-              ></div>
-              <div style="font-size: 0.85rem; color: #999; margin-top: 4px">
-                今天發布
-              </div>
+              <div id="detail-author-tag" style="font-weight: 500; color: #333; font-size: 1.1rem"></div>
+              <div style="font-size: 0.85rem; color: #999; margin-top: 4px">今天發布</div>
             </div>
           </div>
 
-          <!-- 文章內容 (移除 min-height 讓它隨字數自動縮放) -->
-          <p
-            id="detail-post-content"
-            style="
-              font-size: 1.15rem;
-              line-height: 1.8;
-              color: #111;
-              white-space: pre-wrap;
-              margin-bottom: 30px;
-            "
-          ></p>
+          <p id="detail-post-content" style="font-size: 1.15rem; line-height: 1.8; color: #111; white-space: pre-wrap; margin-bottom: 30px;"></p>
 
-          <!-- 留言區 -->
           <div style="background: #fafafa; border-radius: 12px; padding: 20px">
-            <h3
-              style="
-                font-size: 1.1rem;
-                color: #333;
-                margin-top: 0;
-                margin-bottom: 15px;
-              "
-            >
+            <h3 style="font-size: 1.1rem; color: #333; margin-top: 0; margin-bottom: 15px;">
               共 <span id="detail-comment-count">0</span> 則留言
             </h3>
 
-            <div
-              id="detail-comments-list"
-              style="
-                margin-bottom: 20px;
-                display: flex;
-                flex-direction: column;
-                gap: 15px;
-              "
-            ></div>
+            <div id="detail-comments-list" style="margin-bottom: 20px; display: flex; flex-direction: column; gap: 15px;"></div>
 
-            <!-- 留言輸入框 (移除 Sticky 懸浮，改用自然排列並加上頂部邊線) -->
-            <div
-              style="
-                display: flex;
-                gap: 12px;
-                align-items: center;
-                border-top: 1px solid #eaeaea;
-                padding-top: 15px;
-              "
-            >
-              <img
-                src="images/fish_logo.png"
-                style="width: 36px; height: 36px; border-radius: 50%"
-              />
-              <input
-                type="text"
-                id="new-comment-input"
-                placeholder="留言......"
-                class="form-input light-input"
-                style="
-                  flex: 1;
-                  margin: 0;
-                  border-radius: 20px;
-                  padding: 12px 20px;
-                  background: #ebebeb;
-                  border: none;
-                "
-              />
-              <button
-                onclick="submitComment()"
-                class="btn-submit"
-                style="width: auto; padding: 10px 24px; border-radius: 20px"
-              >
-                送出
-              </button>
+            <div style="display: flex; gap: 12px; align-items: center; border-top: 1px solid #eaeaea; padding-top: 15px;">
+              <img src="images/fish_logo.png" style="width: 36px; height: 36px; border-radius: 50%" />
+              <input type="text" id="new-comment-input" placeholder="留言......" class="form-input light-input" style="flex: 1; margin: 0; border-radius: 20px; padding: 12px 20px; background: #ebebeb; border: none;" />
+              <button onclick="submitComment()" class="btn-submit" style="width: auto; padding: 10px 24px; border-radius: 20px">送出</button>
             </div>
           </div>
         </main>
@@ -233,156 +111,79 @@
       </div>
     </div>
 
-    <!-- 發文視窗 -->
     <div id="post-modal" class="modal">
-      <div
-        class="modal-content light-modal"
-        style="width: 500px; text-align: left"
-      >
-        <span class="close-btn" id="close-post-modal" style="color: #666"
-          >&times;</span
-        >
-        <h2
-          style="
-            margin-top: 0;
-            color: #0055a5;
-            border-bottom: 2px solid #e0e0e0;
-            padding-bottom: 10px;
-          "
-        >
-          撰寫漂流瓶
-        </h2>
+      <div class="modal-content light-modal" style="width: 500px; text-align: left">
+        <span class="close-btn" id="close-post-modal" style="color: #666">&times;</span>
+        <h2 style="margin-top: 0; color: #0055a5; border-bottom: 2px solid #e0e0e0; padding-bottom: 10px;">撰寫漂流瓶</h2>
         <form id="new-post-form">
           <div style="display: flex; gap: 10px; margin-bottom: 15px">
-            <select
-              id="post-board"
-              required
-              class="form-input light-input"
-              style="flex: 1; margin: 0"
-            >
+            <select id="post-board" required class="form-input light-input" style="flex: 1; margin: 0">
               <option value="" disabled selected>選擇海域...</option>
               <option value="1">😡 極度憤怒中</option>
               <option value="2">🤫 沒人懂的秘密</option>
               <option value="3">💔 破碎的碎片</option>
               <option value="4">😑 極度厭世/躺平</option>
             </select>
-            <select
-              id="post-identity"
-              required
-              class="form-input light-input"
-              style="flex: 1; margin: 0"
-            >
+            <select id="post-identity" required class="form-input light-input" style="flex: 1; margin: 0">
               <option value="真實姓名">實名</option>
               <option value="匿名">偷偷說 (匿名)</option>
             </select>
           </div>
-          <input
-            type="text"
-            id="post-title-input"
-            placeholder="文章標題"
-            required
-            class="form-input light-input"
-          />
-          <textarea
-            id="post-content-input"
-            placeholder="請輸入內容..."
-            required
-            class="form-input light-input"
-            style="height: 150px; resize: none"
-          ></textarea>
+          <input type="text" id="post-title-input" placeholder="文章標題" required class="form-input light-input" />
+          <textarea id="post-content-input" placeholder="請輸入內容..." required class="form-input light-input" style="height: 150px; resize: none"></textarea>
           <button type="submit" class="btn-submit">拋出漂流瓶</button>
         </form>
       </div>
     </div>
 
-    <!-- 個人資料視窗 -->
     <div id="profile-modal" class="modal">
-      <div
-        class="modal-content light-modal"
-        style="width: 400px; text-align: center"
-      >
+      <div class="modal-content light-modal" style="width: 400px; text-align: center">
         <span class="close-btn" id="close-profile-modal">&times;</span>
         <h2 style="color: #0055a5; margin-bottom: 20px">個人資訊</h2>
 
         <div class="profile-detail">
-          <div
-            style="position: relative; display: inline-block; cursor: pointer"
-            onclick="document.getElementById('change-avatar-input').click()"
-          >
-            <img
-              id="detail-avatar"
-              src="images/fish_logo.png"
-              style="
-                width: 100px;
-                height: 100px;
-                border-radius: 50%;
-                border: 3px solid #4da6ff;
-                margin-bottom: 15px;
-                object-fit: cover;
-              "
-            />
-            <div
-              style="
-                position: absolute;
-                bottom: 15px;
-                right: 0;
-                background: #4da6ff;
-                color: white;
-                border-radius: 50%;
-                width: 25px;
-                height: 25px;
-                font-size: 14px;
-                line-height: 25px;
-                text-align: center;
-              "
-            >
-              📷
-            </div>
+          <div style="position: relative; display: inline-block; cursor: pointer" onclick="document.getElementById('change-avatar-input').click()">
+            <img id="detail-avatar" src="images/fish_logo.png" style="width: 100px; height: 100px; border-radius: 50%; border: 3px solid #4da6ff; margin-bottom: 15px; object-fit: cover;" />
+            <div style="position: absolute; bottom: 15px; right: 0; background: #4da6ff; color: white; border-radius: 50%; width: 25px; height: 25px; font-size: 14px; line-height: 25px; text-align: center;">📷</div>
           </div>
-
-          <input
-            type="file"
-            id="change-avatar-input"
-            accept="image/*"
-            style="display: none"
-          />
+          <input type="file" id="change-avatar-input" accept="image/*" style="display: none" />
 
           <h3 id="detail-name" style="margin: 5px 0">姓名</h3>
-          <p id="detail-email" style="color: #888; font-size: 0.9rem">
-            email@example.com
-          </p>
+          <p id="detail-email" style="color: #888; font-size: 0.9rem">email@example.com</p>
           <hr style="border: 0; border-top: 1px solid #eee; margin: 15px 0" />
 
           <div style="text-align: left; padding: 0 20px; line-height: 2">
-            <div>
-              <strong>🎂 生日：</strong><span id="detail-birthday">未填寫</span>
-            </div>
-            <div>
-              <strong>🚻 性別：</strong><span id="detail-gender">未填寫</span>
-            </div>
-            <div>
-              <strong>✨ 星座：</strong><span id="detail-zodiac">未填寫</span>
-            </div>
+            <div><strong>🎂 生日：</strong><span id="detail-birthday">未填寫</span></div>
+            <div><strong>🚻 性別：</strong><span id="detail-gender">未填寫</span></div>
+            <div><strong>✨ 星座：</strong><span id="detail-zodiac">未填寫</span></div>
             <div style="margin-top: 10px"><strong>📝 自我介紹：</strong></div>
-            <p
-              id="detail-bio"
-              style="
-                background: #f9fbfd;
-                padding: 10px;
-                border-radius: 8px;
-                font-size: 0.9rem;
-              "
-            >
-              尚未填寫自我介紹...
-            </p>
+            <p id="detail-bio" style="background: #f9fbfd; padding: 10px; border-radius: 8px; font-size: 0.9rem;">尚未填寫自我介紹...</p>
           </div>
         </div>
       </div>
     </div>
 
     <script type="module" src="test.js"></script>
-    <div class="ocean-refresh-btn" onclick="callOceanCurrent()">
-    🌊 呼喚海流
-</div>
+    <div class="ocean-refresh-btn" onclick="callOceanCurrent()">呼喚海流</div>
+
+    <script>
+      function toggleMobileSidebar() {
+        const sidebar = document.querySelector('.sidebar');
+        const overlay = document.getElementById('mobile-sidebar-overlay');
+        if(sidebar && overlay) {
+          sidebar.classList.toggle('active-sidebar');
+          overlay.classList.toggle('active-overlay');
+        }
+      }
+
+      // 點擊任一分類後，自動收合選單
+      document.querySelectorAll('.sidebar li').forEach(item => {
+        item.addEventListener('click', () => {
+            if(window.innerWidth <= 768) {
+                toggleMobileSidebar();
+            }
+        });
+      });
+    </script>
   </body>
 </html>
