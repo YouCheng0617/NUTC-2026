@@ -1,5 +1,5 @@
 import type { Response, Request } from "express";
-import { getAllMembers, changeMemberStatus, getAllBottlesForAdmin, updateBottleStatus, deleteBottleByAdmin } from "./admin.service.js";
+import { getAllMembers, changeMemberStatus, getAllBottlesForAdmin, updateBottleStatus, deleteBottleByAdmin, deleteMemberByAdmin } from "./admin.service.js";
 
 export class AdminController {
 
@@ -100,6 +100,29 @@ export class AdminController {
                 return res.status(404).json({ message: "找不到該漂流瓶，請檢查瓶子 ID" });
             }
             console.error("Error deleting bottle:", error);
+            return res.status(500).json({
+                message: "內部伺服器錯誤",
+                real_error: error.message || error.toString(),
+                stack: error.stack
+            });
+        }
+    }
+
+    async deleteMember(req: Request, res: Response) {
+        try {
+            const memberId = Number(req.params.memberId);
+
+            if (isNaN(memberId)) {
+                return res.status(400).json({ message: "無效的會員 ID" });
+            }
+            await deleteMemberByAdmin(memberId);
+            return res.status(200).json({ message: "會員已成功刪除" });
+
+        } catch (error: any) {
+            if (error.message === "MEMBER_NOT_FOUND") {
+                return res.status(404).json({ message: "找不到該會員，請檢查會員 ID" });
+            }
+            console.error("Error deleting member:", error);
             return res.status(500).json({
                 message: "內部伺服器錯誤",
                 real_error: error.message || error.toString(),
