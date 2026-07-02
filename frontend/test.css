@@ -580,3 +580,45 @@ body, html {
 #detail-post-title {
     margin-top: 50px !important;
 }
+/* =========================================
+   🏠 回到主頁按鈕 (海洋風格同步版)
+   ========================================= */
+.back-to-home-btn {
+    position: fixed;
+    /* 位置建議：為了不跟重新整理按鈕重疊，我們可以把它放左下角，或是堆疊在上方 */
+    bottom: 40px; 
+    right: 40px;  /* 👈 建議放左邊，或者你想放右邊請修改這裡 */
+    
+    background: radial-gradient(circle, rgba(77, 166, 255, 0.8), rgba(0, 85, 165, 0.8));
+    color: white;
+    padding: 15px 25px;
+    border-radius: 50px;
+    cursor: pointer;
+    z-index: 100;
+    font-weight: bold;
+    border: 2px solid rgba(255, 255, 255, 0.5);
+    box-shadow: 0 0 20px rgba(77, 166, 255, 0.5);
+    transition: all 0.3s ease;
+}
+
+/* =========================================
+   ✨ 互動特效：放大 + 傾斜 (加入 rotate)
+   ========================================= */
+.back-to-home-btn:hover, .ocean-refresh-btn:hover {
+    /* 這裡加入 rotate(-8deg) 產生傾斜感 */
+    transform: scale(1.1) rotate(-8deg); 
+    
+    /* 保持原有的光暈與亮度特效 */
+    box-shadow: 0 0 30px rgba(77, 166, 255, 0.8);
+    filter: brightness(1.2);
+}
+
+/* 📱 手機版調整 */
+@media screen and (max-width: 600px) {
+    .back-to-home-btn {
+        bottom: 20px;
+        left: 20px;
+        padding: 12px 20px;
+        font-size: 0.9rem;
+    }
+}
