@@ -103,4 +103,19 @@ export const deleteBottleByAdmin = async (bottle_id: number) => {
         where: { bottle_id: bottle_id }
     });
     return true;
+};
+
+export const deleteMemberByAdmin = async (member_id: number) => {
+    const member = await prisma.member.findUnique({
+        where: { member_id: member_id }
+    });
+
+    if (!member) {
+        throw new Error("MEMBER_NOT_FOUND");
+    }
+
+    await prisma.member.delete({
+        where: { member_id: member_id }
+    });
+    return true;
 }

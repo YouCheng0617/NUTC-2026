@@ -266,7 +266,81 @@ body, html { height: 100vh !important; overflow: hidden !important; background-c
     .post-card:nth-child(odd) { transform: translateY(-10px); }
 }
 
+<<<<<<< HEAD
 @media screen and (max-width: 425px) {
     .user-name-text { display: none !important; }
     .logo { font-size: 1.25rem !important; }
+=======
+#detail-view > div:first-child * {
+    color: #6b4e31 !important; 
+}
+
+/* 2. 膠帶位置微調，牢牢黏住！ */
+#detail-view > div:first-child::before {
+    content: "";
+    position: absolute;
+    top: -10px;
+    left: 50%;
+    transform: translateX(-50%) rotate(4deg); 
+    width: 40px;
+    height: 14px;
+    background: rgba(255, 255, 255, 0.6);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+    border-radius: 1px;
+    backdrop-filter: blur(2px);
+}
+
+/* 3. 滑鼠摸上去的時候，一樣會翹起來互動 */
+#detail-view > div:first-child:hover {
+    transform: rotate(-2deg) scale(1.08) translateY(-3px) !important; 
+    box-shadow: 4px 8px 15px rgba(0, 0, 0, 0.18) !important;
+}
+
+/* 🌟 貼心小防護：因為便利貼往下移了，我們把標題也往下推一點，才不會撞在一起 */
+#detail-post-title {
+    margin-top: 50px !important;
+}
+/* =========================================
+   🏠 回到主頁按鈕 (海洋風格同步版)
+   ========================================= */
+.back-to-home-btn {
+    position: fixed;
+    /* 位置建議：為了不跟重新整理按鈕重疊，我們可以把它放左下角，或是堆疊在上方 */
+    bottom: 40px; 
+    right: 40px;  /* 👈 建議放左邊，或者你想放右邊請修改這裡 */
+    
+    background: radial-gradient(circle, rgba(77, 166, 255, 0.8), rgba(0, 85, 165, 0.8));
+    color: white;
+    padding: 15px 25px;
+    border-radius: 50px;
+    cursor: pointer;
+    z-index: 100;
+    font-weight: bold;
+    border: 2px solid rgba(255, 255, 255, 0.5);
+    box-shadow: 0 0 20px rgba(77, 166, 255, 0.5);
+    transition: all 0.3s ease;
+}
+
+/* =========================================
+   ✨ 互動特效：放大 + 傾斜 (加入 rotate)
+   ========================================= */
+.back-to-home-btn:hover, .ocean-refresh-btn:hover {
+    /* 這裡加入 rotate(-8deg) 產生傾斜感 */
+    transform: scale(1.1) rotate(-8deg); 
+    
+    /* 保持原有的光暈與亮度特效 */
+    box-shadow: 0 0 30px rgba(77, 166, 255, 0.8);
+    filter: brightness(1.2);
+}
+
+/* 📱 手機版調整 */
+@media screen and (max-width: 600px) {
+    .back-to-home-btn {
+        bottom: 20px;
+        left: 20px;
+        padding: 12px 20px;
+        font-size: 0.9rem;
+    }
+>>>>>>> 58dc3482a23b328603b728da27d09919d640743d
 }

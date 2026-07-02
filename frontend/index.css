@@ -187,12 +187,12 @@ body {
     50% { transform: translateY(-5px); }
 }
 
+/* 1. 基礎設定：這裡只放大小、陰影，不要放 transform */
 .main-fish {
-    width: clamp(300px, 45vw, 600px); 
-    transform: scale(1.5) translateY(20px); 
-    
+    width: 300px; 
     filter: drop-shadow(0 15px 25px rgba(0,0,0,0.2));
-    
+    animation: rotate-and-float 25s linear infinite; /* 這條動畫給它 */
+    transform-origin: center;
 }
 
 /* 🌟 滑鼠滑過去的超讚回饋感 */
@@ -258,11 +258,11 @@ body {
 }
 
 @keyframes rotate-and-float {
-    0% { transform: rotate(0deg) translateY(0px) scale(1); }
-    25% { transform: rotate(-90deg) translateY(-15px) scale(1.02); }
-    50% { transform: rotate(-180deg) translateY(0px) scale(1); }
-    75% { transform: rotate(-270deg) translateY(15px) scale(1.02); }
-    100% { transform: rotate(-360deg) translateY(0px) scale(1); }
+    0% { transform: scale(1.2) translateY(5%) rotate(0deg); }
+    25% { transform: scale(1.2) translateY(5%) rotate(-90deg); }
+    50% { transform: scale(1.2) translateY(5%) rotate(-180deg); }
+    75% { transform: scale(1.2) translateY(5%) rotate(-270deg); }
+    100% { transform: scale(1.2) translateY(5%) rotate(-360deg); }
 }
 /* New: 高級氣泡破碎上浮特效 (Shatter and Rise) */
 .pop-effect {
@@ -501,3 +501,73 @@ body {
 
 /* 讓字體間距舒服一點 */
 .bottom-right-info div { margin-top: 15px; }
+/* ==================================================
+   📱 終極防跑版：全元素等比例動態縮放 (RWD)
+   ================================================== */
+@media screen and (max-width: 1200px) {
+    /* 1. 中央玻璃圈：縮小比例，讓出兩側空間 */
+    .center-board {
+        width: clamp(280px, 70vmin, 600px);
+        height: clamp(280px, 70vmin, 600px);
+        gap: 3vmin;
+    }
+
+    /* 1. 魚的基本設定：調高比例，讓魚更突出 */
+.main-fish {
+    /* 調整重點：把最小值調高到 300px，佔比拉到 90%，最大值拉到 500px */
+    width: clamp(300px, 90%, 500px) !important;
+    
+    /* 動畫設定維持不變，確保它是持續轉動的 */
+    animation: rotate-and-float 25s linear infinite !important;
+    transform-origin: center;
+    filter: drop-shadow(0 15px 25px rgba(0,0,0,0.2));
+}
+    /* 3. 左側標題：按比例縮小並貼近左側邊緣 */
+    .vertical-title {
+        left: 4vw;
+        gap: 2vmin;
+        width: auto;
+    }
+    .char {
+        font-size: clamp(22px, 5vmin, 50px);
+    }
+
+    /* 4. 點擊進入按鈕：縮小字體與內距 */
+    .enter-btn {
+        padding: 6px 16px !important; 
+        font-size: clamp(14px, 3vw, 16px) !important;
+    }
+
+    /* 5. 角落資訊：縮小字體並貼緊螢幕邊緣 */
+    .top-right-info {
+        right: 4vw;
+        top: 4vh;
+        font-size: clamp(11px, 2.5vmin, 16px);
+    }
+    .bottom-right-info {
+        right: 4vw;
+        bottom: 4vh;
+        font-size: clamp(11px, 2.5vmin, 16px);
+        width: 80%; /* 限制寬度，避免文字太長撞到圈圈 */
+    }
+}
+
+/* 📲 手機直式螢幕 (終極防護：把圈圈稍微往右推，徹底避開左邊文字) */
+@media screen and (max-width: 600px) {
+    .center-board {
+        left: 55%; /* 把圈圈中心點往右移一點點，把左邊讓給文字 */
+        width: 75vw;
+        height: 75vw;
+    }
+    .vertical-title {
+        left: 3vw;
+    }
+    .bottom-right-info {
+        bottom: 2vh;
+        right: 4vw;
+    }
+    .top-right-info {
+        top: 2vh;
+        right: 4vw;
+    }
+}
