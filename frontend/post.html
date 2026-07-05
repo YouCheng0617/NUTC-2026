@@ -6,33 +6,33 @@
     <title>心情漂流瓶 - 我的文章</title>
     <link rel="stylesheet" href="test.css" />
     <style>
-     /* ==================================================
-   🏠 回到主頁按鈕：寶寶專屬深海發光水滴特效
-   ================================================== */
-.ocean-refresh-btn {
-    position: fixed;
-    right: 40px;
-    bottom: 40px;
-    background: radial-gradient(circle, rgba(77, 166, 255, 0.8), rgba(0, 85, 165, 0.8));
-    color: white;
-    padding: 15px 25px;
-    border-radius: 50px;
-    cursor: pointer;
-    z-index: 100;
-    font-weight: bold;
-    border: 2px solid rgba(255, 255, 255, 0.5);
-    box-shadow: 0 0 20px rgba(77, 166, 255, 0.5);
-    transition: 0.3s;
-}
-
-/* 滑鼠移過去的時候，讓它稍微往上浮並且發出更亮的光芒 ✨ */
-.ocean-refresh-btn:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 0 30px rgba(77, 166, 255, 0.9);
-    background: radial-gradient(circle, rgba(102, 179, 255, 0.9), rgba(0, 102, 204, 0.9));
-}
       /* ==================================================
-         🫧 個人資訊：深海毛玻璃透光泡泡
+         🏠 回到主頁按鈕：固定右下角 + 深海浮力特效
+         ================================================== */
+      .ocean-refresh-btn {
+          position: fixed;
+          right: 40px;
+          bottom: 40px;
+          background: radial-gradient(circle, rgba(77, 166, 255, 0.8), rgba(0, 85, 165, 0.8));
+          color: white;
+          padding: 15px 25px;
+          border-radius: 50px;
+          cursor: pointer;
+          z-index: 100;
+          font-weight: bold;
+          border: 2px solid rgba(255, 255, 255, 0.5);
+          box-shadow: 0 0 20px rgba(77, 166, 255, 0.5);
+          transition: 0.3s;
+      }
+
+      .ocean-refresh-btn:hover {
+          transform: translateY(-5px);
+          box-shadow: 0 0 30px rgba(77, 166, 255, 0.9);
+          background: radial-gradient(circle, rgba(102, 179, 255, 0.9), rgba(0, 102, 204, 0.9));
+      }
+
+      /* ==================================================
+         🫧 個人資訊：深海毛玻璃透光泡泡 (純展示版)
          ================================================== */
       .glass-profile-card {
           background: rgba(255, 255, 255, 0.85); 
@@ -55,34 +55,21 @@
       .profile-header { text-align: center; border-bottom: 2px dashed rgba(77, 166, 255, 0.3); padding-bottom: 20px; margin-bottom: 20px; }
       .avatar-container { position: relative; display: inline-block; }
       .avatar-container img { width: 90px; height: 90px; border-radius: 50%; border: 3px solid #4da6ff; object-fit: cover; box-shadow: 0 4px 15px rgba(77, 166, 255, 0.3); }
-      .edit-avatar-btn { position: absolute; bottom: 0; right: -5px; background: #4da6ff; color: white; width: 28px; height: 28px; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 14px; cursor: pointer; border: 2px solid white; transition: 0.2s; }
-      .edit-avatar-btn:hover { background: #0073e6; transform: scale(1.1); }
+      /* 拿掉原本的照相機編輯按鈕，變回純展示 */
       .profile-name { margin: 10px 0 5px; color: #004b87; font-size: 1.5rem; font-weight: 800; }
       .profile-email { margin: 0; color: #66b3ff; font-size: 0.9rem; }
       .info-row { display: flex; margin-bottom: 15px; font-size: 1.05rem; color: #003366; background: rgba(255,255,255, 0.6); padding: 10px 15px; border-radius: 12px; }
       .info-row span:first-child { font-weight: bold; color: #0055a5; margin-right: 10px; width: 80px; }
-      .info-bio { background: rgba(255,255,255, 0.6); padding: 15px; border-radius: 12px; margin-bottom: 20px; }
+      .info-bio { background: rgba(255,255,255, 0.6); padding: 15px; border-radius: 12px; } /* 拿掉 bottom margin 讓排版更緊湊 */
       .info-bio span { font-weight: bold; color: #0055a5; display: block; margin-bottom: 8px; }
       .bio-content { color: #003366; line-height: 1.6; white-space: pre-wrap; font-size: 0.95rem; }
-      .btn-ocean { width: 100%; background: linear-gradient(135deg, #4da6ff, #0073e6); color: white; border: none; padding: 12px; border-radius: 12px; font-size: 1.1rem; font-weight: bold; cursor: pointer; transition: 0.3s; box-shadow: 0 4px 15px rgba(0, 115, 230, 0.3); }
-      .btn-ocean:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0, 115, 230, 0.4); }
-      .btn-group { display: flex; gap: 10px; margin-top: 20px; }
-      .btn-cancel { flex: 1; background: #e2e8f0; color: #475569; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; transition: 0.2s; }
-      .btn-cancel:hover { background: #cbd5e1; }
-      .edit-title { text-align: center; color: #004b87; margin-bottom: 20px; font-size: 1.4rem; }
-      .input-group { margin-bottom: 15px; }
-      .input-group label { display: block; margin-bottom: 5px; color: #0055a5; font-weight: bold; font-size: 0.9rem; }
-      .input-row { display: flex; gap: 15px; }
-      .input-row .input-group { flex: 1; }
-      .ocean-input { width: 100%; padding: 10px 15px; border: 2px solid #bae6fd; border-radius: 10px; background: rgba(255, 255, 255, 0.9); color: #0f172a; font-size: 1rem; box-sizing: border-box; outline: none; transition: 0.2s; }
-      .ocean-input:focus { border-color: #38bdf8; box-shadow: 0 0 10px rgba(56, 189, 248, 0.2); }
     </style>
   </head>
   
   <body>
-<button class="ocean-refresh-btn" onclick="window.location.href = 'test.html'">
-  回到主頁
-</button>
+    <button class="ocean-refresh-btn" onclick="window.location.href = 'test.html'">
+      🏠 回到主頁
+    </button>
 
     <div id="forum-view">
       <header class="light-header">
@@ -166,9 +153,7 @@
           <div class="profile-header">
             <div class="avatar-container">
               <img id="detail-avatar" src="images/fish_logo.png" alt="頭像" />
-              <div class="edit-avatar-btn" onclick="document.getElementById('change-avatar-input').click()">📷</div>
             </div>
-            <input type="file" id="change-avatar-input" accept="image/*" style="display: none" />
             <h2 id="detail-name" class="profile-name">管理員</h2>
             <p id="detail-email" class="profile-email">Admin@gmail.com</p>
           </div>
@@ -182,45 +167,8 @@
               <div id="detail-bio" class="bio-content">ej03</div>
             </div>
           </div>
-
-          <button class="btn-ocean" onclick="toggleProfileMode('edit')">✏️ 更改資料</button>
         </div>
 
-        <div id="profile-edit-mode" style="display: none;">
-          <h2 class="edit-title">✨ 編輯個人檔案</h2>
-          <div class="edit-form">
-            <div class="input-group">
-              <label>暱稱</label>
-              <input type="text" id="edit-name" class="ocean-input">
-            </div>
-            <div class="input-row">
-              <div class="input-group">
-                <label>生日</label>
-                <input type="date" id="edit-birthday" class="ocean-input">
-              </div>
-              <div class="input-group">
-                <label>性別</label>
-                <select id="edit-gender" class="ocean-input">
-                  <option>生理男</option><option>生理女</option><option>其他</option><option>秘密</option>
-                </select>
-              </div>
-            </div>
-            <div class="input-group">
-              <label>星座</label>
-              <select id="edit-zodiac" class="ocean-input">
-                <option>牡羊座</option><option>金牛座</option><option>雙子座</option><option>巨蟹座</option><option>獅子座</option><option>處女座</option><option>天秤座</option><option>天蠍座</option><option>射手座</option><option>魔羯座</option><option>水瓶座</option><option>雙魚座</option><option>不透露</option>
-              </select>
-            </div>
-            <div class="input-group">
-              <label>自我介紹</label>
-              <textarea id="edit-bio" class="ocean-input" rows="3"></textarea>
-            </div>
-            <div class="btn-group">
-              <button class="btn-cancel" onclick="toggleProfileMode('view')">取消</button>
-              <button class="btn-ocean" onclick="saveProfile()">💾 儲存</button>
-            </div>
-          </div>
-        </div>
       </div>
     </div>
 
@@ -248,37 +196,6 @@
         </form>
       </div>
     </div>
-
-    <script>
-      window.toggleProfileMode = function(mode) {
-          if (mode === 'edit') {
-              // 把資料放進輸入框
-              document.getElementById('edit-name').value = document.getElementById('detail-name').innerText;
-              document.getElementById('edit-birthday').value = document.getElementById('detail-birthday').innerText;
-              document.getElementById('edit-gender').value = document.getElementById('detail-gender').innerText;
-              document.getElementById('edit-zodiac').value = document.getElementById('detail-zodiac').innerText;
-              document.getElementById('edit-bio').value = document.getElementById('detail-bio').innerText;
-              
-              document.getElementById('profile-view-mode').style.display = 'none';
-              document.getElementById('profile-edit-mode').style.display = 'block';
-          } else {
-              document.getElementById('profile-edit-mode').style.display = 'none';
-              document.getElementById('profile-view-mode').style.display = 'block';
-          }
-      }
-
-      window.saveProfile = function() {
-          // 儲存資料到畫面上
-          document.getElementById('detail-name').innerText = document.getElementById('edit-name').value;
-          document.getElementById('detail-birthday').innerText = document.getElementById('edit-birthday').value;
-          document.getElementById('detail-gender').innerText = document.getElementById('edit-gender').value;
-          document.getElementById('detail-zodiac').innerText = document.getElementById('edit-zodiac').value;
-          document.getElementById('detail-bio').innerText = document.getElementById('edit-bio').value;
-          
-          alert("🎉 個人資料已更新！");
-          toggleProfileMode('view');
-      }
-    </script>
 
     <script type="module" src="test.js"></script>
   </body>

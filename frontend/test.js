@@ -11,19 +11,17 @@ let currentCategoryId = savedCatId !== null ? Number(savedCatId) : 1; // 預設 
 
 let currentView = 'all'; // 🔴 紀錄狀態：'all' (一般), 'saved' (收藏頁), 'mine' (我的文章頁)
 
-// 看板名稱 -> 後端 categoryId 對照表
+// 看板名稱 -> 後端 categoryId 對照表 (✨ 已更新為最新四種情緒分類)
 const BOARD_CATEGORY_MAP = {
-    '🔥 綜合閒聊': 1,
-    '💻 程式開發': 2,
-    '🍜 美食特搜': 3,
-    '🎮 遊戲專區': 4,
+    '😡 極度憤怒中': 1,
+    '🤫 沒人懂的秘密': 2,
+    '💔 破碎的碎片': 3,
+    '😑 極度厭世/躺平': 4,
 };
 
 // 🌊 向後端抓取文章 API (🟢 訪客友善版)
 async function fetchBottles() {
     const token = localStorage.getItem("authToken");
-
-    // 1. 移除原本的強制阻擋，讓訪客也能繼續往下走！
 
     try {
         let endpointUrl = `${API_BASE_URL}/bottles/random`;
@@ -139,7 +137,8 @@ async function fetchBottles() {
                     rawBoard = rawItem.categories[0].category?.name;
                 }
 
-                let finalBoard = "🔥 綜合閒聊";
+                // ✨ 已更新：終極版分類名稱判斷邏輯 (四種情緒分類)
+                let finalBoard = "😑 極度厭世/躺平"; // 預設值
                 let cId = item.category_id || rawItem.category_id || item.categoryId;
 
                 if (!rawBoard && item.categories && item.categories.length > 0) {
@@ -147,21 +146,25 @@ async function fetchBottles() {
                 }
 
                 if (rawBoard) {
-                    if (rawBoard.includes("程式")) finalBoard = "💻 程式開發";
-                    else if (rawBoard.includes("美食")) finalBoard = "🍜 美食特搜";
-                    else if (rawBoard.includes("遊戲")) finalBoard = "🎮 遊戲專區";
-                    else if (rawBoard.includes("閒聊")) finalBoard = "🔥 綜合閒聊";
+                    if (rawBoard.includes("憤怒")) finalBoard = "😡 極度憤怒中";
+                    else if (rawBoard.includes("秘密")) finalBoard = "🤫 沒人懂的秘密";
+                    else if (rawBoard.includes("破碎")) finalBoard = "💔 破碎的碎片";
+                    else if (rawBoard.includes("厭世") || rawBoard.includes("躺平")) finalBoard = "😑 極度厭世/躺平";
                     else finalBoard = rawBoard;
                 }
                 else if (cId !== undefined && cId !== null) {
-                    const idToBoard = { 1: "🔥 綜合閒聊", 2: "💻 程式開發", 3: "🍜 美食特搜", 4: "🎮 遊戲專區" };
+                    const idToBoard = { 
+                        1: "😡 極度憤怒中", 
+                        2: "🤫 沒人懂的秘密", 
+                        3: "💔 破碎的碎片", 
+                        4: "😑 極度厭世/躺平" 
+                    };
                     if (Array.isArray(cId) && cId.length > 0) {
                         finalBoard = idToBoard[cId[0]] || finalBoard;
                     } else if (!Array.isArray(cId)) {
                         finalBoard = idToBoard[cId] || finalBoard;
                     }
                 }
-
                 return {
                     id: safeId,
                     board: finalBoard,
@@ -178,6 +181,9 @@ async function fetchBottles() {
             applyFilters();
         } else {
             console.error("獲取文章失敗，狀態碼:", response.status);
+            // ✨ 寶寶專屬修復：如果後端說沒瓶子 (404)，就強制清空舊資料並更新畫面！
+            posts = []; 
+            applyFilters(); 
         }
     } catch (error) {
         console.error("連線錯誤:", error);
@@ -227,6 +233,7 @@ function renderPosts(data = posts) {
         </div>
     `).join('');
 }
+
 function applyFilters() {
     let res = posts;
 
@@ -253,6 +260,7 @@ function applyFilters() {
 
     renderPosts(res);
 }
+
 // ----------------------------------------------------
 // 🔍 搜尋歷史紀錄功能
 // ----------------------------------------------------
@@ -449,7 +457,6 @@ window.openPostDetail = function (id) {
         feedView.style.display = 'none';
         detailView.style.display = 'block';
         
-        // ✨ 終極強制隱藏法：打破 !important 護盾
         if(sidebar) sidebar.style.setProperty('display', 'none', 'important');
         if(oceanBtn) oceanBtn.style.setProperty('display', 'none', 'important');
         
@@ -467,7 +474,6 @@ window.closePostDetail = function () {
         detailView.style.display = 'none';
         feedView.style.display = 'block';
         
-        // ✨ 關閉信件時，強制把它們叫回來
         if(sidebar) sidebar.style.setProperty('display', 'block', 'important');
         if(oceanBtn) oceanBtn.style.setProperty('display', 'block', 'important');
         
