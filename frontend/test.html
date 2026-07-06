@@ -4,15 +4,14 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>心情漂流瓶 - 論壇</title>
-    <link rel="stylesheet" href="test.css?v=2" />
+    <link rel="stylesheet" href="test.css?v=8" />
   </head>
   <body>
     <div class="sidebar-overlay" id="mobile-sidebar-overlay" onclick="toggleMobileSidebar()"></div>
 
     <div id="forum-view">
-      <header class="light-header">
+        <header class="light-header">
         <button class="hamburger-btn" id="mobile-menu-btn" onclick="toggleMobileSidebar()" style="display: none; background: none; border: none; color: white; font-size: 1.8rem; cursor: pointer; margin-right: 15px; padding: 0;">☰</button>
-
         <div class="logo" onclick="window.location.href = 'test.html'" title="回到主頁">
           <img src="images/fish_logo.png" style="width: 30px; margin-right: 10px; vertical-align: middle" />心情漂流瓶
         </div>
@@ -64,7 +63,17 @@
 
         <main class="main-feed" id="feed-view">
             <div id="post-container">
-                <div class="empty-state-text">目前沒有漂流瓶，快來拋出第一個吧！🌊</div>
+                <div class="empty-state-text" style="display: none;">目前沒有漂流瓶，快來拋出第一個吧！🌊</div>
+                </div>
+
+            <div class="pagination-container" id="pagination-controls">
+                <button class="page-btn prev-btn">&lt;</button>
+                <button class="page-btn active">1</button>
+                <button class="page-btn">2</button>
+                <button class="page-btn">3</button>
+                <span class="page-dots">...</span>
+                <button class="page-btn">10</button>
+                <button class="page-btn next-btn">&gt;</button>
             </div>
         </main>
 
@@ -140,18 +149,15 @@
       <div class="modal-content light-modal" style="width: 400px; text-align: center">
         <span class="close-btn" id="close-profile-modal">&times;</span>
         <h2 style="color: #0055a5; margin-bottom: 20px">個人資訊</h2>
-
         <div class="profile-detail">
           <div style="position: relative; display: inline-block; cursor: pointer" onclick="document.getElementById('change-avatar-input').click()">
             <img id="detail-avatar" src="images/fish_logo.png" style="width: 100px; height: 100px; border-radius: 50%; border: 3px solid #4da6ff; margin-bottom: 15px; object-fit: cover;" />
             <div style="position: absolute; bottom: 15px; right: 0; background: #4da6ff; color: white; border-radius: 50%; width: 25px; height: 25px; font-size: 14px; line-height: 25px; text-align: center;">📷</div>
           </div>
           <input type="file" id="change-avatar-input" accept="image/*" style="display: none" />
-
           <h3 id="detail-name" style="margin: 5px 0">姓名</h3>
           <p id="detail-email" style="color: #888; font-size: 0.9rem">email@example.com</p>
           <hr style="border: 0; border-top: 1px solid #eee; margin: 15px 0" />
-
           <div style="text-align: left; padding: 0 20px; line-height: 2">
             <div><strong>🎂 生日：</strong><span id="detail-birthday">未填寫</span></div>
             <div><strong>🚻 性別：</strong><span id="detail-gender">未填寫</span></div>
@@ -164,7 +170,10 @@
     </div>
 
     <script type="module" src="test.js"></script>
-    <div class="ocean-refresh-btn" onclick="callOceanCurrent()">呼喚海流</div>
+    
+    <div class="ocean-refresh-btn" onclick="callOceanCurrent()">🌊 呼喚海流</div>
+    
+    <div class="back-to-home-btn" onclick="window.location.href='test.html'" style="display: none !important;">🏠 回到主頁</div>
 
     <script>
       function toggleMobileSidebar() {
@@ -175,8 +184,6 @@
           overlay.classList.toggle('active-overlay');
         }
       }
-
-      // 點擊任一分類後，自動收合選單
       document.querySelectorAll('.sidebar li').forEach(item => {
         item.addEventListener('click', () => {
             if(window.innerWidth <= 768) {
