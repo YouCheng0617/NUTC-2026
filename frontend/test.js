@@ -4,6 +4,9 @@ const API_BASE_URL = "https://163.17.135.120";
 let posts = [];
 let currentKeyword = '';
 
+// 👇 這裡要補上這兩行，分頁功能才知道現在在哪一頁 👇
+let currentPage = 1; 
+const POSTS_PER_PAGE = 5; // 設定每頁顯示 5 篇文章
 // 🟢 安全讀取：如果有紀錄就讀取，沒紀錄預設就在「綜合閒聊」
 let currentBoard = sessionStorage.getItem('savedBoard') || '綜合閒聊';
 let savedCatId = sessionStorage.getItem('savedCategoryId');
@@ -11,17 +14,19 @@ let currentCategoryId = savedCatId !== null ? Number(savedCatId) : 1; // 預設 
 
 let currentView = 'all'; // 🔴 紀錄狀態：'all' (一般), 'saved' (收藏頁), 'mine' (我的文章頁)
 
-// 看板名稱 -> 後端 categoryId 對照表 (✨ 已更新為最新四種情緒分類)
+// 看板名稱 -> 後端 categoryId 對照表
 const BOARD_CATEGORY_MAP = {
-    '😡 極度憤怒中': 1,
-    '🤫 沒人懂的秘密': 2,
-    '💔 破碎的碎片': 3,
-    '😑 極度厭世/躺平': 4,
+    '🔥 綜合閒聊': 1,
+    '💻 程式開發': 2,
+    '🍜 美食特搜': 3,
+    '🎮 遊戲專區': 4,
 };
 
 // 🌊 向後端抓取文章 API (🟢 訪客友善版)
 async function fetchBottles() {
     const token = localStorage.getItem("authToken");
+
+    // 1. 移除原本的強制阻擋，讓訪客也能繼續往下走！
 
     try {
         let endpointUrl = `${API_BASE_URL}/bottles/random`;
@@ -137,8 +142,7 @@ async function fetchBottles() {
                     rawBoard = rawItem.categories[0].category?.name;
                 }
 
-                // ✨ 已更新：終極版分類名稱判斷邏輯 (四種情緒分類)
-                let finalBoard = "😑 極度厭世/躺平"; // 預設值
+                let finalBoard = "🔥 綜合閒聊";
                 let cId = item.category_id || rawItem.category_id || item.categoryId;
 
                 if (!rawBoard && item.categories && item.categories.length > 0) {
@@ -146,25 +150,21 @@ async function fetchBottles() {
                 }
 
                 if (rawBoard) {
-                    if (rawBoard.includes("憤怒")) finalBoard = "😡 極度憤怒中";
-                    else if (rawBoard.includes("秘密")) finalBoard = "🤫 沒人懂的秘密";
-                    else if (rawBoard.includes("破碎")) finalBoard = "💔 破碎的碎片";
-                    else if (rawBoard.includes("厭世") || rawBoard.includes("躺平")) finalBoard = "😑 極度厭世/躺平";
+                    if (rawBoard.includes("程式")) finalBoard = "💻 程式開發";
+                    else if (rawBoard.includes("美食")) finalBoard = "🍜 美食特搜";
+                    else if (rawBoard.includes("遊戲")) finalBoard = "🎮 遊戲專區";
+                    else if (rawBoard.includes("閒聊")) finalBoard = "🔥 綜合閒聊";
                     else finalBoard = rawBoard;
                 }
                 else if (cId !== undefined && cId !== null) {
-                    const idToBoard = { 
-                        1: "😡 極度憤怒中", 
-                        2: "🤫 沒人懂的秘密", 
-                        3: "💔 破碎的碎片", 
-                        4: "😑 極度厭世/躺平" 
-                    };
+                    const idToBoard = { 1: "🔥 綜合閒聊", 2: "💻 程式開發", 3: "🍜 美食特搜", 4: "🎮 遊戲專區" };
                     if (Array.isArray(cId) && cId.length > 0) {
                         finalBoard = idToBoard[cId[0]] || finalBoard;
                     } else if (!Array.isArray(cId)) {
                         finalBoard = idToBoard[cId] || finalBoard;
                     }
                 }
+
                 return {
                     id: safeId,
                     board: finalBoard,
@@ -181,9 +181,6 @@ async function fetchBottles() {
             applyFilters();
         } else {
             console.error("獲取文章失敗，狀態碼:", response.status);
-            // ✨ 寶寶專屬修復：如果後端說沒瓶子 (404)，就強制清空舊資料並更新畫面！
-            posts = []; 
-            applyFilters(); 
         }
     } catch (error) {
         console.error("連線錯誤:", error);
@@ -201,18 +198,31 @@ function escapeHTML(str) {
     }[tag]));
 }
 
+// ====================================================
+// 替換區塊 1：渲染文章 (只負責加上「切蛋糕」的分頁邏輯)
+// ====================================================
 function renderPosts(data = posts) {
     const container = document.getElementById('post-container');
+    const pageContainer = document.getElementById('pagination-container');
     if (!container) return;
 
-    // 🟢 這裡的邏輯：如果資料還是空的，顯示提示訊息
+    // 🟢 如果資料是空的，顯示提示訊息並清空分頁按鈕
     if (!data || data.length === 0) {
         container.innerHTML = `<h3 style="text-align:center; color:#888; margin-top:40px;">目前沒有漂流瓶，快來拋出第一個吧！🌊</h3>`;
+        if (pageContainer) pageContainer.innerHTML = '';
         return;
     }
 
-    // 🟢 如果有資料，就正常渲染
-    container.innerHTML = data.map(p => `
+    // 🔪 核心分頁邏輯：計算頁數與切出這一頁要顯示的資料
+    const totalPages = Math.ceil(data.length / POSTS_PER_PAGE);
+    if (currentPage > totalPages) currentPage = totalPages || 1;
+
+    const startIndex = (currentPage - 1) * POSTS_PER_PAGE;
+    const endIndex = startIndex + POSTS_PER_PAGE;
+    const pageData = data.slice(startIndex, endIndex); // 👈 只取目前頁面的文章
+
+    // 🖨️ 印出「這頁」的漂流瓶 (使用 pageData)
+    container.innerHTML = pageData.map(p => `
         <div class="post-card" onclick="openPostDetail('${escapeHTML(String(p.id))}')">
             <div style="display:flex; justify-content:space-between; align-items:center;">
                 <div style="font-size:0.85rem; color:#0055a5; font-weight:bold;">${escapeHTML(p.board)}</div>
@@ -232,8 +242,14 @@ function renderPosts(data = posts) {
             </div>
         </div>
     `).join('');
+
+    // 👇 呼叫你寫在最底下的分頁按鈕函數
+    renderPagination(totalPages, data);
 }
 
+// ====================================================
+// 替換區塊 2：篩選文章 (只負責暫停洗牌魔法，讓分頁能算所有文章)
+// ====================================================
 function applyFilters() {
     let res = posts;
 
@@ -253,14 +269,16 @@ function applyFilters() {
         );
     }
 
-    // ✨ 寶寶專屬洗牌魔法：打亂順序，並且每次只挑選最精華的 6 個瓶子！
+    // ✨ 這裡幫你把「洗牌限制 6 篇」的魔法先註解掉。
+    // 因為如果不註解掉，文章總數永遠只會剩 6 篇，分頁按鈕最多就只能產生 2 頁喔！
+    /*
     if (res.length > 6) {
         res = res.sort(() => 0.5 - Math.random()).slice(0, 6);
     }
+    */
 
     renderPosts(res);
 }
-
 // ----------------------------------------------------
 // 🔍 搜尋歷史紀錄功能
 // ----------------------------------------------------
@@ -457,6 +475,7 @@ window.openPostDetail = function (id) {
         feedView.style.display = 'none';
         detailView.style.display = 'block';
         
+        // ✨ 終極強制隱藏法：打破 !important 護盾
         if(sidebar) sidebar.style.setProperty('display', 'none', 'important');
         if(oceanBtn) oceanBtn.style.setProperty('display', 'none', 'important');
         
@@ -474,6 +493,7 @@ window.closePostDetail = function () {
         detailView.style.display = 'none';
         feedView.style.display = 'block';
         
+        // ✨ 關閉信件時，強制把它們叫回來
         if(sidebar) sidebar.style.setProperty('display', 'block', 'important');
         if(oceanBtn) oceanBtn.style.setProperty('display', 'block', 'important');
         
@@ -999,4 +1019,53 @@ window.callOceanCurrent = function() {
     setTimeout(() => {
         fetchBottles(); 
     }, 1000);
+}
+// 產生分頁按鈕的函數
+function renderPagination(totalPages, dataArray) {
+    const pageContainer = document.getElementById('pagination-container');
+    if (!pageContainer) return;
+    
+    pageContainer.innerHTML = ''; // 清空舊按鈕
+
+    // 如果資料太少只有 1 頁，就不顯示分頁按鈕
+    if (totalPages <= 1) return;
+
+    // ◀ 上一頁按鈕
+    const prevBtn = document.createElement('button');
+    prevBtn.className = 'page-btn';
+    prevBtn.innerText = '◀';
+    prevBtn.disabled = (currentPage === 1);
+    prevBtn.onclick = () => {
+        currentPage--;
+        renderPosts(dataArray);
+        window.scrollTo({ top: 0, behavior: 'smooth' }); // 翻頁後自動捲回頂部
+    };
+    pageContainer.appendChild(prevBtn);
+
+    // 數字頁碼按鈕 (1, 2, 3...)
+    for (let i = 1; i <= totalPages; i++) {
+        const pageBtn = document.createElement('button');
+        pageBtn.className = `page-btn ${i === currentPage ? 'active' : ''}`;
+        pageBtn.innerText = i;
+        pageBtn.onclick = () => {
+            currentPage = i;
+            renderPosts(dataArray);
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        };
+        pageContainer.appendChild(pageBtn);
+    }
+
+    // ▶ 下一頁按鈕
+    const nextBtn = document.createElement('button');
+    nextBtn.className = 'page-btn';
+    nextBtn.innerText = '▶';
+    nextBtn.disabled = (currentPage === totalPages);
+    nextBtn.onclick = () => {
+        currentPage++;
+        renderPosts(dataArray);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    };
+    pageContainer.appendChild(nextBtn);
+    
+    // ❌ 剛才這裡多了一行呼叫自己的程式碼，我已經幫你刪除了！
 }

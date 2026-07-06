@@ -10,91 +10,199 @@
          🏠 回到主頁按鈕：寶寶專屬深海發光水滴特效
          ================================================== */
       .ocean-refresh-btn {
-          position: fixed;
-          right: 40px;
-          bottom: 40px;
-          background: radial-gradient(circle, rgba(77, 166, 255, 0.8), rgba(0, 85, 165, 0.8));
-          color: white;
-          padding: 15px 25px;
-          border-radius: 50px;
-          cursor: pointer;
-          z-index: 100;
-          font-weight: bold;
-          border: 2px solid rgba(255, 255, 255, 0.5);
-          box-shadow: 0 0 20px rgba(77, 166, 255, 0.5);
-          transition: 0.3s;
+        position: fixed;
+        right: 40px;
+        bottom: 40px;
+        background: radial-gradient(
+          circle,
+          rgba(77, 166, 255, 0.8),
+          rgba(0, 85, 165, 0.8)
+        );
+        color: white;
+        padding: 15px 25px;
+        border-radius: 50px;
+        cursor: pointer;
+        z-index: 100;
+        font-weight: bold;
+        border: 2px solid rgba(255, 255, 255, 0.5);
+        box-shadow: 0 0 20px rgba(77, 166, 255, 0.5);
+        transition: 0.3s;
       }
       .ocean-refresh-btn:hover {
-          transform: translateY(-5px);
-          box-shadow: 0 0 30px rgba(77, 166, 255, 0.9);
-          background: radial-gradient(circle, rgba(102, 179, 255, 0.9), rgba(0, 102, 204, 0.9));
+        transform: translateY(-5px);
+        box-shadow: 0 0 30px rgba(77, 166, 255, 0.9);
+        background: radial-gradient(
+          circle,
+          rgba(102, 179, 255, 0.9),
+          rgba(0, 102, 204, 0.9)
+        );
       }
 
       /* ==================================================
          🫧 個人資訊：深海毛玻璃透光泡泡 (純展示版)
          ================================================== */
       .glass-profile-card {
-          background: rgba(255, 255, 255, 0.85); 
-          backdrop-filter: blur(12px); 
-          -webkit-backdrop-filter: blur(12px);
-          border: 1px solid rgba(255, 255, 255, 0.5);
-          border-radius: 24px;
-          width: 400px;
-          padding: 30px;
-          box-shadow: 0 10px 30px rgba(0, 40, 80, 0.15), inset 0 0 15px rgba(255, 255, 255, 0.8);
-          position: relative;
-          margin: 10vh auto;
-          text-align: left;
-          animation: floatUp 0.4s ease-out;
+        background: rgba(255, 255, 255, 0.85);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border: 1px solid rgba(255, 255, 255, 0.5);
+        border-radius: 24px;
+        width: 400px;
+        padding: 30px;
+        box-shadow:
+          0 10px 30px rgba(0, 40, 80, 0.15),
+          inset 0 0 15px rgba(255, 255, 255, 0.8);
+        position: relative;
+        margin: 10vh auto;
+        text-align: left;
+        animation: floatUp 0.4s ease-out;
       }
       @keyframes floatUp {
-          from { opacity: 0; transform: translateY(20px) scale(0.95); }
-          to { opacity: 1; transform: translateY(0) scale(1); }
+        from {
+          opacity: 0;
+          transform: translateY(20px) scale(0.95);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0) scale(1);
+        }
       }
-      .profile-header { text-align: center; border-bottom: 2px dashed rgba(77, 166, 255, 0.3); padding-bottom: 20px; margin-bottom: 20px; }
-      .avatar-container { position: relative; display: inline-block; }
-      .avatar-container img { width: 90px; height: 90px; border-radius: 50%; border: 3px solid #4da6ff; object-fit: cover; box-shadow: 0 4px 15px rgba(77, 166, 255, 0.3); }
-      .profile-name { margin: 10px 0 5px; color: #004b87; font-size: 1.5rem; font-weight: 800; }
-      .profile-email { margin: 0; color: #66b3ff; font-size: 0.9rem; }
-      .info-row { display: flex; margin-bottom: 15px; font-size: 1.05rem; color: #003366; background: rgba(255,255,255, 0.6); padding: 10px 15px; border-radius: 12px; }
-      .info-row span:first-child { font-weight: bold; color: #0055a5; margin-right: 10px; width: 80px; }
-      .info-bio { background: rgba(255,255,255, 0.6); padding: 15px; border-radius: 12px; }
-      .info-bio span { font-weight: bold; color: #0055a5; display: block; margin-bottom: 8px; }
-      .bio-content { color: #003366; line-height: 1.6; white-space: pre-wrap; font-size: 0.95rem; }
+      .profile-header {
+        text-align: center;
+        border-bottom: 2px dashed rgba(77, 166, 255, 0.3);
+        padding-bottom: 20px;
+        margin-bottom: 20px;
+      }
+      .avatar-container {
+        position: relative;
+        display: inline-block;
+      }
+      .avatar-container img {
+        width: 90px;
+        height: 90px;
+        border-radius: 50%;
+        border: 3px solid #4da6ff;
+        object-fit: cover;
+        box-shadow: 0 4px 15px rgba(77, 166, 255, 0.3);
+      }
+      .profile-name {
+        margin: 10px 0 5px;
+        color: #004b87;
+        font-size: 1.5rem;
+        font-weight: 800;
+      }
+      .profile-email {
+        margin: 0;
+        color: #66b3ff;
+        font-size: 0.9rem;
+      }
+      .info-row {
+        display: flex;
+        margin-bottom: 15px;
+        font-size: 1.05rem;
+        color: #003366;
+        background: rgba(255, 255, 255, 0.6);
+        padding: 10px 15px;
+        border-radius: 12px;
+      }
+      .info-row span:first-child {
+        font-weight: bold;
+        color: #0055a5;
+        margin-right: 10px;
+        width: 80px;
+      }
+      .info-bio {
+        background: rgba(255, 255, 255, 0.6);
+        padding: 15px;
+        border-radius: 12px;
+      }
+      .info-bio span {
+        font-weight: bold;
+        color: #0055a5;
+        display: block;
+        margin-bottom: 8px;
+      }
+      .bio-content {
+        color: #003366;
+        line-height: 1.6;
+        white-space: pre-wrap;
+        font-size: 0.95rem;
+      }
     </style>
   </head>
-  
+
   <body>
-    <button class="ocean-refresh-btn" onclick="window.location.href = 'test.html'">
+    <button
+      class="ocean-refresh-btn"
+      onclick="window.location.href = 'test.html'"
+    >
       🏠 回到主頁
     </button>
 
     <div id="forum-view">
       <header class="light-header">
-        <div class="logo" onclick="window.location.href = 'test.html'" title="回到主頁">
-          <img src="images/fish_logo.png" style="width: 30px; margin-right: 10px; vertical-align: middle" />心情漂流瓶.
+        <div
+          class="logo"
+          onclick="window.location.href = 'test.html'"
+          title="回到主頁"
+        >
+          <img
+            src="images/fish_logo.png"
+            style="width: 30px; margin-right: 10px; vertical-align: middle"
+          />心情漂流瓶.
         </div>
         <div class="search-container">
-          <input type="text" class="search-input light-search" placeholder="🔍 搜尋我收藏的文章..." />
+          <input
+            type="text"
+            class="search-input light-search"
+            placeholder="🔍 搜尋我收藏的文章..."
+          />
         </div>
 
         <div class="nav-actions">
           <button id="login-trigger" class="btn-login">註冊 / 登入</button>
-          <div id="user-profile" class="user-menu-wrapper" style="display: none">
+          <div
+            id="user-profile"
+            class="user-menu-wrapper"
+            style="display: none"
+          >
             <div class="user-info-trigger" id="user-menu-btn">
-              <img id="user-avatar" src="images/fish_logo.png" alt="頭像" class="avatar-img" />
+              <img
+                id="user-avatar"
+                src="images/fish_logo.png"
+                alt="頭像"
+                class="avatar-img"
+              />
               <span id="user-name" class="user-name-text"></span>
               <span class="menu-arrow">▼</span>
             </div>
 
             <div class="user-dropdown-menu" id="user-dropdown">
               <div class="menu-item" id="open-profile">👤 個人資料</div>
-              <div class="menu-item" onclick="window.location.href = 'saved.html'">⭐ 收藏文章</div>
-              <div class="menu-item" onclick="window.location.href = 'post.html'">📝 我的文章</div>
+              <div
+                class="menu-item"
+                onclick="window.location.href = 'saved.html'"
+              >
+                ⭐ 收藏文章
+              </div>
+              <div
+                class="menu-item"
+                onclick="window.location.href = 'post.html'"
+              >
+                📝 我的文章
+              </div>
               <div class="menu-divider"></div>
-              <div class="menu-item logout-item" id="logout-btn">🚪 退出登入</div>
+              <div class="menu-item logout-item" id="logout-btn">
+                🚪 退出登入
+              </div>
             </div>
-            <button id="btn-new-post" class="btn-post" style="margin-left: 10px">✏️ 發文</button>
+            <button
+              id="btn-new-post"
+              class="btn-post"
+              style="margin-left: 10px"
+            >
+              ✏️ 發文
+            </button>
           </div>
         </div>
       </header>
@@ -102,34 +210,166 @@
       <div class="container light-container">
         <main class="main-feed" id="feed-view">
           <div id="post-container"></div>
+
+          <!-- 👇 補上這段：分頁按鈕的專屬容器 -->
+          <div
+            id="pagination-container"
+            class="pagination-container"
+            style="
+              position: fixed !important;
+              bottom: 40px !important;
+              left: 50% !important;
+              transform: translateX(-50%) !important;
+              z-index: 999999 !important;
+              background: rgba(255, 255, 255, 0.8) !important;
+              padding: 10px 20px !important;
+              border-radius: 50px !important;
+              display: flex;
+              gap: 10px;
+            "
+          ></div>
         </main>
 
-        <main class="main-feed" id="detail-view" style="display: none; background: #fff; border-radius: 8px; padding: 30px; box-shadow: 0 1px 5px rgba(0, 0, 0, 0.05); height: fit-content;">
-          <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 20px; cursor: pointer; color: #3397cf; width: fit-content;" onclick="closePostDetail()">
+        <main
+          class="main-feed"
+          id="detail-view"
+          style="
+            display: none;
+            background: #fff;
+            border-radius: 8px;
+            padding: 30px;
+            box-shadow: 0 1px 5px rgba(0, 0, 0, 0.05);
+            height: fit-content;
+          "
+        >
+          <div
+            style="
+              display: flex;
+              align-items: center;
+              gap: 12px;
+              margin-bottom: 20px;
+              cursor: pointer;
+              color: #3397cf;
+              width: fit-content;
+            "
+            onclick="closePostDetail()"
+          >
             <span style="font-size: 1.6rem; font-weight: bold">&larr;</span>
-            <img src="images/fish_logo.png" style="width: 24px; height: 24px; border-radius: 50%" />
-            <span id="detail-board-tag" style="font-weight: bold; font-size: 1rem"></span>
+            <img
+              src="images/fish_logo.png"
+              style="width: 24px; height: 24px; border-radius: 50%"
+            />
+            <span
+              id="detail-board-tag"
+              style="font-weight: bold; font-size: 1rem"
+            ></span>
           </div>
 
-          <h2 id="detail-post-title" style="margin-top: 0; font-size: 1.8rem; font-weight: bold; color: #000; margin-bottom: 15px;"></h2>
+          <h2
+            id="detail-post-title"
+            style="
+              margin-top: 0;
+              font-size: 1.8rem;
+              font-weight: bold;
+              color: #000;
+              margin-bottom: 15px;
+            "
+          ></h2>
 
-          <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 20px;">
-            <img src="images/fish_logo.png" style="width: 44px; height: 44px; border-radius: 50%; background: #f0f4f8; padding: 4px;" />
+          <div
+            style="
+              display: flex;
+              align-items: center;
+              gap: 12px;
+              margin-bottom: 20px;
+            "
+          >
+            <img
+              src="images/fish_logo.png"
+              style="
+                width: 44px;
+                height: 44px;
+                border-radius: 50%;
+                background: #f0f4f8;
+                padding: 4px;
+              "
+            />
             <div>
-              <div id="detail-author-tag" style="font-weight: 500; color: #333; font-size: 1.1rem"></div>
-              <div style="font-size: 0.85rem; color: #999; margin-top: 4px">今天發布</div>
+              <div
+                id="detail-author-tag"
+                style="font-weight: 500; color: #333; font-size: 1.1rem"
+              ></div>
+              <div style="font-size: 0.85rem; color: #999; margin-top: 4px">
+                今天發布
+              </div>
             </div>
           </div>
 
-          <p id="detail-post-content" style="font-size: 1.15rem; line-height: 1.8; color: #111; white-space: pre-wrap; margin-bottom: 30px;"></p>
+          <p
+            id="detail-post-content"
+            style="
+              font-size: 1.15rem;
+              line-height: 1.8;
+              color: #111;
+              white-space: pre-wrap;
+              margin-bottom: 30px;
+            "
+          ></p>
 
           <div style="background: #fafafa; border-radius: 12px; padding: 20px">
-            <h3 style="font-size: 1.1rem; color: #333; margin-top: 0; margin-bottom: 15px;">共 <span id="detail-comment-count">0</span> 則留言</h3>
-            <div id="detail-comments-list" style="margin-bottom: 20px; display: flex; flex-direction: column; gap: 15px;"></div>
-            <div style="display: flex; gap: 12px; align-items: center; border-top: 1px solid #eaeaea; padding-top: 15px;">
-              <img src="images/fish_logo.png" style="width: 36px; height: 36px; border-radius: 50%" />
-              <input type="text" id="new-comment-input" placeholder="留言......" class="form-input light-input" style="flex: 1; margin: 0; border-radius: 20px; padding: 12px 20px; background: #ebebeb; border: none;" />
-              <button onclick="submitComment()" class="btn-submit" style="width: auto; padding: 10px 24px; border-radius: 20px">送出</button>
+            <h3
+              style="
+                font-size: 1.1rem;
+                color: #333;
+                margin-top: 0;
+                margin-bottom: 15px;
+              "
+            >
+              共 <span id="detail-comment-count">0</span> 則留言
+            </h3>
+            <div
+              id="detail-comments-list"
+              style="
+                margin-bottom: 20px;
+                display: flex;
+                flex-direction: column;
+                gap: 15px;
+              "
+            ></div>
+            <div
+              style="
+                display: flex;
+                gap: 12px;
+                align-items: center;
+                border-top: 1px solid #eaeaea;
+                padding-top: 15px;
+              "
+            >
+              <img
+                src="images/fish_logo.png"
+                style="width: 36px; height: 36px; border-radius: 50%"
+              />
+              <input
+                type="text"
+                id="new-comment-input"
+                placeholder="留言......"
+                class="form-input light-input"
+                style="
+                  flex: 1;
+                  margin: 0;
+                  border-radius: 20px;
+                  padding: 12px 20px;
+                  background: #ebebeb;
+                  border: none;
+                "
+              />
+              <button
+                onclick="submitComment()"
+                class="btn-submit"
+                style="width: auto; padding: 10px 24px; border-radius: 20px"
+              >
+                送出
+              </button>
             </div>
           </div>
         </main>
@@ -137,15 +377,32 @@
         <aside class="right-panel light-right-panel">
           <h3 id="current-board-title">⭐ 我的收藏庫</h3>
           <div class="tag-cloud">
-            <span class="tag"># 收藏文章</span><span class="tag"># 美好回憶</span>
+            <span class="tag"># 收藏文章</span
+            ><span class="tag"># 美好回憶</span>
           </div>
         </aside>
       </div>
     </div>
 
-    <div id="profile-modal" class="modal" style="display: none;">
+    <div id="profile-modal" class="modal" style="display: none">
       <div class="glass-profile-card">
-        <span class="close-btn" id="close-profile-modal" style="position: absolute; top: 15px; right: 20px; font-size: 24px; cursor: pointer; color: #0055a5; z-index: 10;" onclick="document.getElementById('profile-modal').style.display='none'">&times;</span>
+        <span
+          class="close-btn"
+          id="close-profile-modal"
+          style="
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            font-size: 24px;
+            cursor: pointer;
+            color: #0055a5;
+            z-index: 10;
+          "
+          onclick="
+            document.getElementById('profile-modal').style.display = 'none'
+          "
+          >&times;</span
+        >
 
         <div id="profile-view-mode">
           <div class="profile-header">
@@ -157,39 +414,80 @@
           </div>
 
           <div class="profile-body">
-            <div class="info-row"><span>🎂 生日：</span><span id="detail-birthday">1995-01-01</span></div>
-            <div class="info-row"><span>🚻 性別：</span><span id="detail-gender">未填寫</span></div>
-            <div class="info-row"><span>✨ 星座：</span><span id="detail-zodiac">魔羯座</span></div>
+            <div class="info-row">
+              <span>🎂 生日：</span><span id="detail-birthday">1995-01-01</span>
+            </div>
+            <div class="info-row">
+              <span>🚻 性別：</span><span id="detail-gender">未填寫</span>
+            </div>
+            <div class="info-row">
+              <span>✨ 星座：</span><span id="detail-zodiac">魔羯座</span>
+            </div>
             <div class="info-bio">
               <span>📝 自我介紹：</span>
               <div id="detail-bio" class="bio-content">ej03</div>
             </div>
           </div>
         </div>
-
       </div>
     </div>
 
     <div id="post-modal" class="modal">
-      <div class="modal-content light-modal" style="width: 500px; text-align: left">
-        <span class="close-btn" id="close-post-modal" style="color: #666">&times;</span>
-        <h2 style="margin-top: 0; color: #0055a5; border-bottom: 2px solid #e0e0e0; padding-bottom: 10px;">撰寫漂流瓶</h2>
+      <div
+        class="modal-content light-modal"
+        style="width: 500px; text-align: left"
+      >
+        <span class="close-btn" id="close-post-modal" style="color: #666"
+          >&times;</span
+        >
+        <h2
+          style="
+            margin-top: 0;
+            color: #0055a5;
+            border-bottom: 2px solid #e0e0e0;
+            padding-bottom: 10px;
+          "
+        >
+          撰寫漂流瓶
+        </h2>
         <form id="new-post-form">
           <div style="display: flex; gap: 10px; margin-bottom: 15px">
-            <select id="post-board" required class="form-input light-input" style="flex: 1; margin: 0">
+            <select
+              id="post-board"
+              required
+              class="form-input light-input"
+              style="flex: 1; margin: 0"
+            >
               <option value="" disabled selected>選擇海域...</option>
               <option value="1">😡 極度憤怒中</option>
               <option value="2">🤫 沒人懂的秘密</option>
               <option value="3">💔 破碎的碎片</option>
               <option value="4">😑 極度厭世/躺平</option>
             </select>
-            <select id="post-identity" required class="form-input light-input" style="flex: 1; margin: 0">
+            <select
+              id="post-identity"
+              required
+              class="form-input light-input"
+              style="flex: 1; margin: 0"
+            >
               <option value="真實姓名">實名</option>
               <option value="匿名">偷偷說 (匿名)</option>
             </select>
           </div>
-          <input type="text" id="post-title-input" placeholder="文章標題" required class="form-input light-input" />
-          <textarea id="post-content-input" placeholder="請輸入內容..." required class="form-input light-input" style="height: 150px; resize: none"></textarea>
+          <input
+            type="text"
+            id="post-title-input"
+            placeholder="文章標題"
+            required
+            class="form-input light-input"
+          />
+          <textarea
+            id="post-content-input"
+            placeholder="請輸入內容..."
+            required
+            class="form-input light-input"
+            style="height: 150px; resize: none"
+          ></textarea>
           <button type="submit" class="btn-submit">拋出漂流瓶</button>
         </form>
       </div>
