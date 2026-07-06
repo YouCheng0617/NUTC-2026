@@ -3,6 +3,7 @@ import cors from 'cors';
 import { authRouter } from './modules/auth/auth.router.js';
 import { bottleRouter } from './modules/bottle/bottle.router.js';
 import { adminRouter } from './modules/admin/admin.router.js';
+import { categoryRouter } from './modules/category/category.router.js';
 import { generateCaptcha } from './lib/captchaHelper.js';
 import prisma from './lib/prisma.js';
 import "dotenv/config";
@@ -12,6 +13,7 @@ app.use(express.json());
 app.use('/auth', authRouter());
 app.use('/bottles', bottleRouter());
 app.use('/admin', adminRouter());
+app.use('/category', categoryRouter());
 
 if (!process.env["DATABASE_URL"]) {
     console.error("DATABASE_URL is not defined in env.");
