@@ -341,10 +341,10 @@ html {
 /* =======================================================
    💻 電腦版：精美資料表 (Data Tables)
 ======================================================= */
-/* 關閉表格外框的隱藏裁切 */
+/* 關閉表格外框的隱藏裁切，改為超出版面時可滑動 */
 .table-responsive {
   width: 100%;
-  overflow: visible !important;
+  overflow-x: auto !important; /* 🌟 改成這個！保護表格不會衝出畫面 */
 }
 
 .modern-table {
@@ -363,21 +363,34 @@ html {
   border-bottom: 1px solid var(--border-light);
 }
 
+/* =======================================================
+   💻 表格通用樣式 (精準分工：保護日期與按鈕不換行)
+======================================================= */
 .modern-table td {
   padding: 16px 20px;
   border-bottom: 1px solid var(--border-light);
   color: var(--text-main);
   font-size: 0.95rem;
   vertical-align: middle;
-  white-space: nowrap;
+  white-space: nowrap; /* 1. 預設全體不換行：保護日期、ID、按鈕永遠都在同一行 */
 }
 
-.modern-table tbody tr {
-  border-bottom: 1px solid var(--border-light);
+/* 2. 🌟 專門指定「第 3 欄 (文章標題 / Email)」可以自動換行，解決超長文字撐爆螢幕！ */
+.modern-table td:nth-child(3) {
+  white-space: normal;
+  word-break: break-word;
+  min-width: 220px; /* 給標題一個舒適的最小寬度 */
+  max-width: 450px; /* 限制最大寬度，超過就自動折到下一行 */
 }
 
-.modern-table tbody tr:hover {
-  background-color: #f8fafc;
+/* 3. 🌟 專門鎖定最後一欄 (操作按鈕)，強制左右水平並排，絕不上下重疊！ */
+.modern-table td:last-child {
+  white-space: nowrap !important;
+}
+
+.modern-table td:last-child button {
+  display: inline-block !important;
+  margin-bottom: 0 !important;
 }
 
 /* =======================================================
@@ -757,5 +770,20 @@ html {
 
   .profile-info {
     display: none;
+  }
+}
+/* =======================================================
+   🌟 修正 RWD (平板/手機) 模式下，按鈕被分散隔開的問題
+======================================================= */
+@media screen and (max-width: 1024px) {
+  /* 讓最後一欄 (項目操作) 改為靠右對齊，並且按鈕之間保持 8px 距離 */
+  .modern-table td:last-child {
+    justify-content: flex-end !important;
+    gap: 8px !important;
+  }
+  
+  /* 讓左邊的「⚙️ 項目操作」標籤吸附在最左邊，把後面的按鈕往右邊推在一起 */
+  .modern-table td:last-child::before {
+    margin-right: auto !important;
   }
 }
