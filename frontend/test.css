@@ -257,9 +257,6 @@ body, html { height: 100vh !important; overflow: hidden !important; background-c
 #detail-view > div:first-child { background: linear-gradient(135deg, #fffae3 0%, #fff099 100%) !important; padding: 10px 25px !important; border-radius: 2px 12px 2px 12px !important; box-shadow: 2px 5px 10px rgba(0, 0, 0, 0.12), inset -2px -3px 6px rgba(210, 190, 100, 0.3) !important; position: absolute !important; top: 25px !important; left: 25px !important; transform: rotate(-6deg) !important; transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1) !important; border: 1px solid #ebd874 !important; z-index: 200 !important; margin-bottom: 0 !important; }
 #detail-view > div:first-child * { color: #6b4e31 !important; }
 #detail-view > div:first-child::before { content: ""; position: absolute; top: -10px; left: 50%; transform: translateX(-50%) rotate(4deg); width: 40px; height: 14px; background: rgba(255, 255, 255, 0.6); border: 1px solid rgba(255, 255, 255, 0.3); box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08); border-radius: 1px; backdrop-filter: blur(2px); }
-<<<<<<< HEAD
-#detail-view > div:first-child:hover { transform: rotate(-2deg) scale(1.08) translateY(-3px) !important; box-shadow: 4px 8px 15px rgba(0, 0, 0, 0.18) !important; }
-=======
 #detail-view > div:first-child:hover { transform: rotate(-2deg) scale(1.08) translateY(-3px) !important; box-shadow: 4px 8px 15px rgba(0, 0, 0, 0.18) !important; }
 
 /* =========================================
@@ -426,4 +423,3 @@ body, html { height: 100vh !important; overflow: hidden !important; background-c
     color: #b0c4de;
     cursor: not-allowed;
 }
->>>>>>> 45c2a7a (feat: 更新分頁功能與樣式修正)
