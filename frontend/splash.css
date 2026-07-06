@@ -105,28 +105,6 @@ body{
     }
 }
 
-/* =========================
-   ⭐ 海星
-========================= */
-.starfish{
-    position:absolute;
-    filter:drop-shadow(0 8px 12px rgba(0,0,0,0.3));
-    z-index:6;
-}
-
-.star-1{
-    width:clamp(90px, 16vw, 240px);
-    right:10%;
-    bottom:5%;
-    transform:rotate(15deg);
-}
-
-.star-2{
-    width:clamp(60px, 15vw, 170px);
-    right:3%;
-    bottom:14%;
-    transform:rotate(-18deg);
-}
 
 /* =====================================
    📱 平板與手機版微調 (768px 以下)

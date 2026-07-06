@@ -1,205 +1,22 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="zh-TW">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>心情漂流瓶 - 首頁</title>
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>心情漂流瓶</title>
-    <link rel="stylesheet" href="index.css">
-</head>
-<script>
-    // 🌟 全自動等待魔法：等整個網頁的 HTML 都準備好後才開始抓人
-    document.addEventListener('DOMContentLoaded', () => {
+    <link rel="stylesheet" href="splash.css" />
+  </head>
 
-        // 用 ID 抓人，絕對精準
-        const myBtn = document.getElementById('magic-btn');
+  <body>
+    <div class="landing-container">
+      <img src="images/大標題拷貝2.png" class="title-img" alt="心情漂流瓶" />
 
-        if (myBtn) {
-            myBtn.addEventListener('click', () => {
-                // 加上爆破動畫
-                myBtn.classList.add('pop-effect');
+      <img src="images/fish_logo.png" class="main-logo" alt="雙魚" />
 
-                // 等 0.5 秒動畫跑完，優雅跳轉到秘密基地
-                setTimeout(() => {
-                    window.location.href = 'test.html';
-                    setTimeout(() => {
-                        myBtn.classList.remove('pop-effect');
-                    }, 100);
-                }, 500);
-            });
-        } else {
-            console.log('後台回報：依然找不到 magic-btn，請確認 HTML 是否有成功存檔。');
-        }
-    });
-
-    // 強制執行：在網頁讀取完畢後，檢查早晚切換夜間模式
-    window.addEventListener('DOMContentLoaded', () => {
-        const hour = new Date().getHours();
-        if (hour < 6 || hour >= 18) {
-            document.body.classList.add('night-mode');
-        }
-    });
-
-    // 🌟 已修復：全自動動態日期顯示邏輯
-    window.addEventListener('DOMContentLoaded', () => {
-        const dateElement = document.getElementById('date-display');
-        if (dateElement) {
-            const today = new Date();
-            const year = today.getFullYear();
-            const month = String(today.getMonth() + 1).padStart(2, '0');
-            const day = String(today.getDate()).padStart(2, '0');
-            
-            // 自動組合成 YYYY.MM.DD 格式（例如：2026.07.02）
-            dateElement.innerText = `${year}.${month}.${day}`;
-        }
-    });
-
-    // 🌟 天氣 API 魔法
-    window.addEventListener('load', () => {
-        if (navigator.geolocation) {
-            navigator.geolocation.getCurrentPosition((position) => {
-                const lat = position.coords.latitude;
-                const lon = position.coords.longitude;
-                fetchWeatherByCoords(lat, lon);
-            }, () => {
-                // 如果使用者拒絕定位，預設顯示台中
-                fetchWeatherByCity("Taichung");
-            });
-        } else {
-            fetchWeatherByCity("Taichung");
-        }
-
-        // 用經緯度抓天氣
-        function fetchWeatherByCoords(lat, lon) {
-            const apiKey = 'e126fab7abb9c316feaa6a400d7a30aa';
-            const url = `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${apiKey}&units=metric&lang=zh_tw`;
-            
-            fetch(url)
-                .then(response => response.json())
-                .then(data => {
-                    const weatherEl = document.getElementById('weather-display');
-                    if (weatherEl && data.weather) {
-                        const desc = data.weather[0].description;
-                        const temp = Math.round(data.main.temp);
-                        weatherEl.innerText = `天氣：${desc} ${temp}°C`;
-                    }
-                })
-                .catch(err => {
-                    console.error("天氣抓取失敗:", err);
-                    const weatherEl = document.getElementById('weather-display');
-                    if (weatherEl) weatherEl.innerText = "天氣：深海平靜";
-                });
-        }
-
-        // 用城市名抓天氣 (備用計畫)
-        function fetchWeatherByCity(city) {
-            const apiKey = 'e126fab7abb9c316feaa6a400d7a30aa';
-            const url = `https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${apiKey}&units=metric&lang=zh_tw`;
-            
-            fetch(url)
-                .then(response => response.json())
-                .then(data => {
-                    const weatherEl = document.getElementById('weather-display');
-                    if (weatherEl && data.weather) {
-                        const desc = data.weather[0].description;
-                        const temp = Math.round(data.main.temp);
-                        weatherEl.innerText = `天氣：${desc} ${temp}°C`;
-                    }
-                })
-                .catch(() => {
-                    const weatherEl = document.getElementById('weather-display');
-                    if (weatherEl) weatherEl.innerText = "天氣：深海平靜";
-                });
-        }
-    });
-
-    // 今日新增漂流瓶數量 API
-    document.addEventListener("DOMContentLoaded", async () => {
-        const countElement = document.getElementById('today-count-number');
-        if (!countElement) return;
-
-        try {
-            const response = await fetch('https://163.17.135.120/bottles/today');
-            if (!response.ok) {
-                throw new Error(`HTTP 錯誤！狀態碼: ${response.status}`);
-            }
-            const data = await response.json();
-            countElement.innerText = data.todayBottles;
-        } catch (error) {
-            console.error("無法取得今日投遞人數，使用預設值:", error);
-            countElement.innerText = "0";
-        }
-    });
-</script>
-
-<body>
-    <div class="bottle-background">
-        <img src="images/bottle.png" class="bottle b1">
-        <img src="images/bottle.png" class="bottle b2">
-        <img src="images/bottle.png" class="bottle b3">
-        <img src="images/bottle.png" class="bottle b4">
-    </div>
-    <div class="bottle-background">
-        <div class="bottle b1"></div>
-        <div class="bottle b2"></div>
-        <div class="bottle b3"></div>
-        <div class="bottle b4"></div>
-        <div class="bottle b5"></div>
-        <div class="bottle b6"></div>
-        <div class="bottle b7"></div>
-        <div class="bottle b8"></div>
-    </div>
-    <div class="ocean-container">
-
-        <div class="vertical-title">
-            <span class="char">心</span>
-            <span class="char">情</span>
-            <span class="char">漂</span>
-            <span class="char">流</span>
-            <span class="char">瓶</span>
-        </div>
-
-        <div class="glass-panel center-board">
-            <div class="mini-bubble bubble-1"></div>
-            <div class="mini-bubble bubble-2"></div>
-            <div class="mini-bubble bubble-3"></div>
-            <img class="main-fish" src="images/fish.png" alt="粉色雙魚">
-            <div class="btn-groove">
-                <div class="enter-btn" id="magic-btn">👇 點擊進入</div>
-            </div>
-        </div>
-        <div class="top-right-info">
-            <div id="date-display">--.--.--</div>
-            <div id="weather-display">天氣偵測中...</div>
-        </div>
-        <div class="bottom-right-info">
-            <div class="greeting">現在的心情是什麼呢？</div>
-            <div class="stats" style="cursor: pointer;">
-                今天 發現 <span id="today-count-number">0</span> 瓶 新漂流瓶
-            </div>
-        </div>
-    </div>
-</body>
-<script>
-    // 隨機問候語
-    function updateGreeting() {
-        const greetings = [
-            "現在的心情是什麼呢？",
-            "今天有什麼想對大海說的嗎？",
-            "每一份心情，都值得被傾聽。",
-            "讓海浪帶走煩惱，留下寧靜。",
-            "將心事裝進瓶子，讓它隨波逐流。",
-            "你的故事，正在前往未知的遠方。",
-            "撿到一個漂流瓶，裡面裝著什麼故事？",
-        ];
-        const greetingEl = document.querySelector('.greeting');
-        if (greetingEl) {
-            const randomIndex = Math.floor(Math.random() * greetings.length);
-            greetingEl.innerText = greetings[randomIndex];
-        } else {
-            setTimeout(updateGreeting, 500);
-        }
-    }
-    updateGreeting();
-</script>
+      <div class="enter-btn-text" onclick="window.location.href = 'test.html'">
+        👆 點擊進入
+ 
+  </body>
 </html>
+
