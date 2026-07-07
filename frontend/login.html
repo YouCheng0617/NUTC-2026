@@ -65,7 +65,7 @@
           </div>
 
           <div style="width: 100%; text-align: right; padding-right: 15px; margin-top: -5px; z-index: 10;">
-            <a href="#" onclick="switchTab('forgot')" style="color: #b80119; font-size: 0.85rem; text-decoration: none; font-weight: bold;">忘記密碼？</a>
+            <a href="#" onclick="switchTab('forgot')" style="color: #004b87; font-size: 0.85rem; text-decoration: none; font-weight: bold;">忘記密碼？</a>
           </div>
 
           <button type="submit" class="b-check-btn" title="確認登入">
@@ -144,38 +144,39 @@
           </button>
         </form>
 
-        <form id="forgot-form" class="auth-form bubble-layout" style="display: none" onsubmit="event.preventDefault(); processForgotPassword();">
+        <form id="forgot-form" class="auth-form bubble-layout" style="display: none; align-items: center;" onsubmit="event.preventDefault(); processForgotPassword();">
           <div class="bg-watermark">心情漂流瓶</div>
-          <h3 style="color: #003366; margin-top: 10px; margin-bottom: 5px;">找回密碼</h3>
-          <p style="color: #004b87; font-size: 0.9rem; text-align: center; font-weight: bold; margin-bottom: 20px;">請輸入你註冊時使用的信箱，<br>我們將發送驗證碼給你。</p>
+          <h2 style="color: #004b87; margin-top: 20px; margin-bottom: 10px; font-weight: 900; letter-spacing: 2px;">找回密碼</h2>
+          <p style="color: #004b87; font-size: 0.95rem; text-align: center; font-weight: bold; margin-bottom: 25px; line-height: 1.5;">請輸入你註冊時使用的信箱，<br>我們將發送驗證碼給你。</p>
           
-          <div class="b-row">
+          <div class="b-row" style="width: 100%;">
             <div class="b-item b-pill" style="width: 100%;">
               <label>信箱 (Email):</label>
               <input type="email" id="forgot-email" required />
             </div>
           </div>
           
-          <div style="text-align: center; margin-top: 10px; z-index: 10;">
-            <a href="#" onclick="switchTab('login')" style="color: #004b87; font-size: 0.85rem; font-weight: bold; text-decoration: none;">返回登入</a>
+          <div style="text-align: center; margin-top: 15px; z-index: 10;">
+            <a href="#" onclick="switchTab('login')" style="color: #004b87; font-size: 0.9rem; font-weight: bold; text-decoration: none;">返回登入</a>
           </div>
 
-          <button type="submit" class="b-check-btn" title="送出">
+          <button type="submit" class="b-check-btn" title="發送驗證碼" style="margin-top: 20px;">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
           </button>
         </form>
         
-        <form id="reset-form" class="auth-form bubble-layout" style="display: none" onsubmit="event.preventDefault(); processResetPassword();">
+        <form id="reset-form" class="auth-form bubble-layout" style="display: none; align-items: center;" onsubmit="event.preventDefault(); processResetPassword();">
           <div class="bg-watermark">心情漂流瓶</div>
-          <h3 style="color: #003366; margin-top: 10px; margin-bottom: 10px;">設定新密碼</h3>
+          <h2 style="color: #004b87; margin-top: 20px; margin-bottom: 10px; font-weight: 900; letter-spacing: 2px;">設定新密碼</h2>
+          <p style="color: #004b87; font-size: 0.95rem; text-align: center; font-weight: bold; margin-bottom: 25px;">請輸入信件中的驗證碼與新密碼。</p>
           
-          <div class="b-row">
+          <div class="b-row" style="width: 100%;">
             <div class="b-item b-pill" style="width: 100%;">
               <label>驗證碼 (Token):</label>
               <input type="text" id="reset-token" required />
             </div>
           </div>
-          <div class="b-row">
+          <div class="b-row" style="width: 100%;">
             <div class="b-item b-pill" style="width: 100%;">
               <label>新密碼 (New Password):</label>
               <div class="password-wrapper">
@@ -187,11 +188,11 @@
             </div>
           </div>
 
-          <div style="text-align: center; margin-top: 10px; z-index: 10;">
-            <a href="#" onclick="switchTab('login')" style="color: #004b87; font-size: 0.85rem; font-weight: bold; text-decoration: none;">返回登入</a>
+          <div style="text-align: center; margin-top: 15px; z-index: 10;">
+            <a href="#" onclick="switchTab('login')" style="color: #004b87; font-size: 0.9rem; font-weight: bold; text-decoration: none;">返回登入</a>
           </div>
 
-          <button type="submit" class="b-check-btn" title="送出">
+          <button type="submit" class="b-check-btn" title="確認重設" style="margin-top: 20px;">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
           </button>
         </form>
