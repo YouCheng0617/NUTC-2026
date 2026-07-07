@@ -24,7 +24,7 @@ body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden;
 .enter-btn-container p { font-size: clamp(1rem, 2.5vw, 2.2rem); font-weight: bold; letter-spacing: 3px; margin: 0; background: rgba(0, 85, 165, 0.6); padding: 2% 6%; border-radius: 50px; box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); border: 2px solid rgba(255, 255, 255, 0.3); }
 
 /* ==================================================
-   🫧 巨無霸正圓形大泡泡 (終極 vmin 黑科技)
+   🫧 巨無霸正圓形大泡泡彈窗 (加大型防撞版)
    ================================================== */
 .cute-modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0, 40, 80, 0.4); backdrop-filter: blur(8px); justify-content: center; align-items: center; }
 
@@ -33,26 +33,20 @@ body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden;
     backdrop-filter: blur(12px) !important; 
     border: 2px solid rgba(255, 255, 255, 0.6) !important; 
     
-    /* 🚨 終極魔法：vmin 代表「螢幕寬度和高度中，比較小的那一個」 */
-    /* 這樣無論怎麼旋轉設備，它絕對是一顆不被切掉的完美正圓！ */
-    width: 95vmin !important;            
-    height: 95vmin !important;  
-    max-width: 720px !important;      
-    max-height: 720px !important; 
+    width: 96vmin !important;            
+    height: 96vmin !important;  
+    max-width: 740px !important; /* 👈 稍微加大極限尺寸，讓它更寬敞 */
+    max-height: 740px !important; 
     aspect-ratio: 1 / 1 !important; 
     border-radius: 50% !important; 
     
-    box-shadow: 
-        inset -20px -20px 40px rgba(0, 85, 165, 0.2), 
-        inset 20px 20px 40px rgba(255, 255, 255, 0.8), 
-        0 25px 50px rgba(0, 0, 0, 0.15), 
-        0 0 30px rgba(255, 255, 255, 0.3) !important;
+    box-shadow: inset -20px -20px 40px rgba(0, 85, 165, 0.2), inset 20px 20px 40px rgba(255, 255, 255, 0.8), 0 25px 50px rgba(0, 0, 0, 0.15), 0 0 30px rgba(255, 255, 255, 0.3) !important;
         
     display: flex !important;
     flex-direction: column !important;
     justify-content: center !important;
     align-items: center !important;
-    padding: 5% !important; 
+    padding: 4% !important; 
     position: relative;
     color: #004b87; 
     box-sizing: border-box; 
@@ -63,47 +57,19 @@ body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden;
 .close-btn { position: absolute; right: 30px; top: 25px; font-size: 32px; cursor: pointer; color: #fff; transition: 0.3s; font-weight: bold; z-index: 20; }
 .close-btn:hover { color: #ff7675; transform: scale(1.2) rotate(90deg); }
 
-/* 頁籤 */
-.tab-container { display: flex; width: 60%; background: rgba(255, 255, 255, 0.4); border-radius: 30px; padding: 6px; margin-bottom: 20px; z-index: 10; }
-.tab { flex: 1; text-align: center; padding: 10px; font-size: 1.1rem; font-weight: 900; cursor: pointer; color: #004b87; transition: 0.3s; border-radius: 25px; }
+/* 🌟 頁籤防撞魔法：變窄一點、間距變小一點 */
+.tab-container { display: flex; width: 50%; max-width: 280px; background: rgba(255, 255, 255, 0.4); border-radius: 30px; padding: 4px; margin-bottom: 8px; z-index: 10; }
+.tab { flex: 1; text-align: center; padding: 8px; font-size: 1.05rem; font-weight: 900; cursor: pointer; color: #004b87; transition: 0.3s; border-radius: 25px; }
 .tab.active { background: #ffffff; color: #0073e6; box-shadow: 0 4px 10px rgba(0, 115, 230, 0.15); }
 
-/* 背景浮水印字樣 */
-.bg-watermark { position: absolute; top: 18%; left: 50%; transform: translate(-50%, -50%); font-size: 4rem; font-weight: 900; color: rgba(255, 255, 255, 0.25); white-space: nowrap; pointer-events: none; z-index: 0; letter-spacing: 5px; }
+/* 背景浮水印字樣：稍微縮扁一點，釋放空間 */
+.bg-watermark { position: relative; font-size: 2rem; font-weight: 900; color: #004b87; text-align: center; width: 100%; margin-top: -5px; margin-bottom: 5px; letter-spacing: 4px; text-shadow: 0 2px 10px rgba(255, 255, 255, 0.9), 0 0 5px rgba(255, 255, 255, 0.6); z-index: 10; }
 
 /* ==================================================
-   🚨 登入表單與其他表單「強制垂直排列」
+   🫧 散落的水晶泡泡表單佈局 (瘦身呼吸版)
    ================================================== */
-#login-form, #forgot-form, #reset-form {
-    flex-direction: column !important; 
-    gap: 15px;
-    width: 80%;
-    max-width: 420px;
-    margin: 0 auto;
-    z-index: 5;
-    align-items: stretch;
-}
-
-/* 一般表單細節 */
-.input-group { display: flex; flex-direction: column; margin-bottom: 5px; }
-.input-group label { font-size: 0.95rem; color: #003366; margin-bottom: 5px; font-weight: 900; }
-.input-group input { background: rgba(255,255,255,0.7); border: 2px solid #fff; padding: 12px; border-radius: 20px; font-weight: bold; width: 100%; box-sizing: border-box; }
-.btn-submit-dark { margin-top: 10px; padding: 14px; font-size: 1.1rem; font-weight: 900; color: #fff; background: #0055a5; border: none; border-radius: 30px; cursor: pointer; }
-.password-wrapper { position: relative; width: 100%; display: flex; align-items: center; }
-.toggle-password { position: absolute; right: 10px; cursor: pointer; color: #666; }
-
-/* 驗證碼專區乖乖排隊 */
-.captcha-wrapper { display: flex !important; gap: 10px !important; align-items: center !important; width: 100% !important; }
-.captcha-wrapper input { flex: 1 !important; width: auto !important; margin: 0 !important; }
-#captcha-container { background: rgba(255, 255, 255, 0.8); border: 2px solid #fff; border-radius: 15px; overflow: hidden; cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 2px; flex-shrink: 0 !important; height: 100%; }
-
-/* ==================================================
-   🫧 註冊表單專用：寬敞散落的泡泡佈局 
-   ================================================== */
-.bubble-layout { position: relative; z-index: 1; display: flex; flex-direction: column; align-items: center; width: 100%; }
-
-/* 增加每一排的間距 */
-.b-row { display: flex; gap: 15px; width: 100%; justify-content: center; align-items: center; margin-top: 15px !important; }
+.bubble-layout { position: relative; z-index: 1; display: flex; flex-direction: column; align-items: center; width: 90%; max-width: 500px; margin: 0 auto; }
+.b-row { display: flex; gap: 10px; width: 100%; justify-content: center; align-items: center; margin-top: 8px !important; }
 
 /* 小泡泡共通樣式 */
 .b-item {
@@ -111,65 +77,96 @@ body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden;
     border: 2px solid rgba(255, 255, 255, 0.6);
     box-shadow: 4px 6px 15px rgba(0, 50, 100, 0.15), inset -2px -2px 10px rgba(0, 100, 200, 0.1), inset 4px 4px 10px rgba(255, 255, 255, 0.9);
     display: flex; flex-direction: column; align-items: center; justify-content: center;
-    padding: 10px; box-sizing: border-box; color: #002244;
+    padding: 8px; box-sizing: border-box; color: #002244;
 }
-.b-item label { font-weight: 900; font-size: 0.9rem; margin-bottom: 5px; letter-spacing: 1px; }
+.b-item label { font-weight: 900; font-size: 0.9rem; margin-bottom: 3px; letter-spacing: 1px; width: 100%; text-align: left; padding-left: 5px;}
+.b-circle label { text-align: center; padding-left: 0; }
 
 /* 圖片中的灰色輸入框 */
 .b-item input, .b-item select, .b-item textarea {
-    background: #e2e8f0 !important; border: none !important; padding: 8px !important; color: #333 !important; font-weight: bold !important; font-size: 0.85rem !important; outline: none !important; box-shadow: inset 2px 2px 5px rgba(0,0,0,0.1) !important;
+    background: #e2e8f0 !important; border: none !important; padding: 6px !important; color: #333 !important; font-weight: bold !important; font-size: 0.85rem !important; outline: none !important; box-shadow: inset 2px 2px 5px rgba(0,0,0,0.1) !important;
 }
 .b-item input:focus, .b-item select:focus, .b-item textarea:focus { background: #fff !important; box-shadow: 0 0 10px rgba(102, 179, 255, 0.6) !important; }
 
-/* 🎈 內部泡泡放大，讓生日不再被擠壓 */
-.b-circle { width: 110px; height: 110px; border-radius: 50%; }
-.b-circle input, .b-circle select { width: 90% !important; border-radius: 4px !important; text-align: center; padding: 4px !important; }
-
-/* 特別處理生日的 input，讓字稍微緊湊一點 */
+/* 內部泡泡尺寸 (高度稍微壓扁釋放上下空間) */
+.b-circle { width: 95px; height: 95px; border-radius: 50%; }
+.b-circle input, .b-circle select { width: 90% !important; border-radius: 6px !important; text-align: center; padding: 4px !important; }
 .b-circle input[type="date"] { font-size: 0.75rem !important; letter-spacing: -0.5px; padding: 4px 0 !important; }
 
-.b-pill { border-radius: 35px; height: 65px; padding: 10px 20px; align-items: flex-start; }
-.b-pill input { width: 100% !important; border-radius: 6px !important; text-align: left; }
-.b-rect { border-radius: 20px; width: 90%; padding: 15px 20px; align-items: flex-start; }
-.b-rect textarea { width: 100% !important; border-radius: 6px !important; text-align: left; resize: none; height: 40px !important; }
+.b-pill { border-radius: 35px; height: 65px; padding: 8px 20px; align-items: flex-start; justify-content: center; }
+.b-pill input { width: 100% !important; border-radius: 8px !important; text-align: left; box-sizing: border-box; }
 
-/* 黑色打勾按鈕 */
+.b-rect { border-radius: 20px; width: 100%; padding: 12px 20px; align-items: flex-start; }
+.b-rect textarea { width: 100% !important; border-radius: 8px !important; text-align: left; resize: none; height: 40px !important; box-sizing: border-box; }
+
+/* 密碼眼睛 */
+.password-wrapper { position: relative; width: 100%; display: flex; align-items: center; }
+.toggle-password { position: absolute; right: 10px; cursor: pointer; color: #666; }
+
+/* 圖形驗證碼專用泡泡 */
+.b-captcha-img { padding: 4px !important; height: 65px; border-radius: 20px; cursor: pointer; }
+.b-captcha-img div { width: 100%; height: 100%; border-radius: 15px; overflow: hidden; display: flex; justify-content: center; align-items: center; background: rgba(255,255,255,0.5); }
+.b-captcha-img img { width: 100%; height: 100%; object-fit: cover; }
+
+/* 黑色打勾按鈕：稍微縮小、離上方近一點 */
 .b-check-btn {
-    width: 60px; height: 60px; border-radius: 50%; background: transparent; border: 3px solid #000; color: #000; display: flex; justify-content: center; align-items: center; cursor: pointer; margin-top: 15px; transition: 0.3s;
+    width: 55px; 
+    height: 55px; 
+    border-radius: 50%; 
+    background: transparent; 
+    border: 4px solid #000; 
+    color: #000; 
+    display: flex; 
+    justify-content: center; 
+    align-items: center; 
+    cursor: pointer; 
+    margin-top: 10px; 
+    transition: 0.3s;
+    align-self: center; /* ✨ 關鍵魔法：不管在哪個表單，都強制站在正中間！ */
 }
-.b-check-btn svg { width: 32px; height: 32px; stroke-width: 3; }
-.b-check-btn:hover { transform: scale(1.1) rotate(15deg); background: rgba(0,0,0,0.1); }
 
 /* ==================================================
-   📱 終極手機版防護 (梯級式縮小，完美 RWD)
+   🚨 登入表單與其他表單「強制垂直排列」
+   ================================================== */
+#login-form, #forgot-form, #reset-form {
+    flex-direction: column !important; 
+    gap: 12px;
+    width: 80%;
+    max-width: 420px;
+    margin: 0 auto;
+    z-index: 5;
+    align-items: stretch;
+}
+
+/* ==================================================
+   📱 手機版 RWD 自適應縮放，保證不跑版
    ================================================== */
 @media screen and (max-width: 768px) {
-    .b-circle { width: 90px; height: 90px; }
-    .b-row { gap: 10px; margin-top: 10px !important; }
+    .bg-watermark { font-size: 1.8rem; margin-bottom: 5px; }
+    .b-circle { width: 85px; height: 85px; }
+    .b-pill { height: 60px; padding: 6px 15px; }
+    .b-captcha-img { height: 60px; }
+    .b-row { gap: 8px; margin-top: 8px !important; }
     .b-item label { font-size: 0.8rem; }
-    .bg-watermark { font-size: 3.5rem; }
 }
 
 @media screen and (max-width: 480px) {
-    .cute-modal-content { padding: 15px 10px !important; }
+    .cute-modal-content { padding: 10px 5px !important; }
     
-    /* 註冊表單微調 */
+    .bg-watermark { font-size: 1.5rem; margin-top: -2px; margin-bottom: 5px; letter-spacing: 2px; }
+    .tab-container { margin-bottom: 5px; width: 65%; }
+    
     .b-row { gap: 6px; margin-top: 6px !important; }
-    .b-circle { width: 75px; height: 75px; }
+    .b-circle { width: 72px; height: 72px; }
     .b-pill { height: 50px; padding: 5px 15px; }
-    .b-rect { padding: 8px 15px; width: 95%; }
-    .b-item label { font-size: 0.65rem; margin-bottom: 2px; }
-    .b-item input, .b-item select, .b-item textarea { font-size: 0.7rem !important; padding: 2px !important; }
-    .b-circle input[type="date"] { font-size: 0.65rem !important; }
+    .b-rect { padding: 8px 15px; }
+    .b-rect textarea { height: 32px !important; }
+    .b-captcha-img { height: 50px; }
     
-    .b-check-btn { width: 45px; height: 45px; margin-top: 5px; border-width: 2px; }
+    .b-item label { font-size: 0.7rem; margin-bottom: 2px; }
+    .b-item input, .b-item select, .b-item textarea { font-size: 0.75rem !important; padding: 4px !important; }
+    .b-circle input[type="date"] { font-size: 0.6rem !important; }
+    
+    .b-check-btn { width: 45px; height: 45px; margin-top: 6px; border-width: 2px; }
     .b-check-btn svg { width: 25px; height: 25px; }
-    
-    .bg-watermark { font-size: 2.5rem; top: 12%; }
-    .tab-container { margin-bottom: 8px; width: 75%; }
-    
-    /* 登入表單微調 */
-    #login-form, #forgot-form, #reset-form { width: 95%; gap: 10px; }
-    .input-group label { font-size: 0.8rem; }
-    .input-group input { padding: 10px; font-size: 0.85rem; }
 }

@@ -31,44 +31,57 @@
           <div class="tab" id="tab-register" onclick="switchTab('register')">註冊</div>
         </div>
 
-        <form id="login-form" class="auth-form" onsubmit="event.preventDefault(); processLogin();">
-          <div class="input-group">
-            <label>信箱 (Email)</label>
-            <input type="email" id="login-email" placeholder="請輸入 Email" required />
-          </div>
-          <div class="input-group">
-            <label>密碼 (Password)</label>
-            <div class="password-wrapper">
-              <input type="password" id="login-password" placeholder="請輸入密碼" required style="padding-right:40px;" />
-              <span class="toggle-password" onclick="togglePassword('login-password', this)">
-                <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>
-              </span>
+        <form id="login-form" class="auth-form bubble-layout" onsubmit="event.preventDefault(); processLogin();">
+          <div class="bg-watermark">心情漂流瓶</div>
+          
+          <div class="b-row">
+            <div class="b-item b-pill" style="width: 100%;">
+              <label>信箱 (Email):</label>
+              <input type="email" id="login-email" required />
             </div>
           </div>
-          <div class="input-group">
-            <label for="captcha-input">圖形驗證碼 (Captcha)</label>
-            <div class="captcha-wrapper">
-              <input type="text" id="captcha-input" placeholder="請輸入右方文字" required />
-              <div id="captcha-container" onclick="loadCaptcha()" title="看不清楚？點擊換一張"><span>載入中...</span></div>
+          
+          <div class="b-row">
+            <div class="b-item b-pill" style="width: 100%;">
+              <label>密碼 (Password):</label>
+              <div class="password-wrapper">
+                <input type="password" id="login-password" required style="padding-right:35px !important;" />
+                <span class="toggle-password" onclick="togglePassword('login-password', this)" style="right: 5px;">
+                  <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>
+                </span>
+              </div>
             </div>
-            <input type="hidden" id="captcha-id" />
+          </div>
+          
+          <div class="b-row">
+            <div class="b-item b-pill" style="flex: 1.5;">
+              <label>圖形驗證碼:</label>
+              <input type="text" id="captcha-input" required />
+              <input type="hidden" id="captcha-id" />
+            </div>
+            <div class="b-item b-captcha-img" style="flex: 1;" onclick="loadCaptcha()" title="看不清楚？點擊換一張">
+              <div id="captcha-container"><span>載入中...</span></div>
+            </div>
           </div>
 
-          <div style="text-align: right; margin-top: -5px">
-            <a href="#" onclick="switchTab('forgot')" style="color: #003366; font-size: 0.85rem; text-decoration: none; font-weight: bold;">忘記密碼？</a>
+          <div style="width: 100%; text-align: right; padding-right: 15px; margin-top: -5px; z-index: 10;">
+            <a href="#" onclick="switchTab('forgot')" style="color: #b80119; font-size: 0.85rem; text-decoration: none; font-weight: bold;">忘記密碼？</a>
           </div>
-          <button type="submit" class="btn-submit-dark">登入</button>
+
+          <button type="submit" class="b-check-btn" title="確認登入">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+          </button>
         </form>
 
         <form id="register-form" class="auth-form bubble-layout" style="display: none" onsubmit="event.preventDefault(); processRegister();">
           <div class="bg-watermark">心情漂流瓶</div>
 
-          <div class="b-row" style="margin-top: 5px;">
+          <div class="b-row">
             <div class="b-item b-circle">
               <label>暱稱:</label>
               <input type="text" id="reg-name" required />
             </div>
-            <div class="b-item b-circle" style="transform: translateY(15px);"> 
+            <div class="b-item b-circle"> 
               <label>性別:</label>
               <select id="reg-gender">
                 <option value="生理男">生理男</option>
@@ -82,12 +95,12 @@
             </div>
           </div>
 
-          <div class="b-row" style="margin-top: 5px;">
+          <div class="b-row">
             <div class="b-item b-pill" style="flex: 1.3;">
               <label>GMAIL:</label>
               <input type="email" id="reg-email" required />
             </div>
-            <div class="b-item b-circle" style="flex: 0.7; transform: scale(0.9);"> 
+            <div class="b-item b-circle" style="flex: 0.7;"> 
               <label>星座:</label>
               <select id="reg-zodiac">
                 <option value="">不透露</option>
@@ -131,33 +144,56 @@
           </button>
         </form>
 
-        <form id="forgot-form" class="auth-form" style="display: none" onsubmit="event.preventDefault(); processForgotPassword();">
-          <h3 style="text-align: center; color: #003366; margin-top: 0">找回密碼</h3>
-          <p style="color: #004b87; font-size: 0.9rem; text-align: center; font-weight: bold;">請輸入你註冊時使用的信箱，我們將發送驗證碼給你。</p>
-          <div class="input-group">
-            <label>信箱 (Email)</label>
-            <input type="email" id="forgot-email" required />
+        <form id="forgot-form" class="auth-form bubble-layout" style="display: none" onsubmit="event.preventDefault(); processForgotPassword();">
+          <div class="bg-watermark">心情漂流瓶</div>
+          <h3 style="color: #003366; margin-top: 10px; margin-bottom: 5px;">找回密碼</h3>
+          <p style="color: #004b87; font-size: 0.9rem; text-align: center; font-weight: bold; margin-bottom: 20px;">請輸入你註冊時使用的信箱，<br>我們將發送驗證碼給你。</p>
+          
+          <div class="b-row">
+            <div class="b-item b-pill" style="width: 100%;">
+              <label>信箱 (Email):</label>
+              <input type="email" id="forgot-email" required />
+            </div>
           </div>
-          <button type="submit" class="btn-submit-dark">發送重設信件</button>
-          <div style="text-align: center; margin-top: 10px">
-            <a href="#" onclick="switchTab('login')" style="color: #003366; font-size: 0.85rem; font-weight: bold;">返回登入</a>
+          
+          <div style="text-align: center; margin-top: 10px; z-index: 10;">
+            <a href="#" onclick="switchTab('login')" style="color: #004b87; font-size: 0.85rem; font-weight: bold; text-decoration: none;">返回登入</a>
           </div>
+
+          <button type="submit" class="b-check-btn" title="送出">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+          </button>
         </form>
         
-        <form id="reset-form" class="auth-form" style="display: none" onsubmit="event.preventDefault(); processResetPassword();">
-          <h3 style="text-align: center; color: #003366; margin-top: 0">設定新密碼</h3>
-          <div class="input-group">
-            <label>驗證碼 (Token)</label>
-            <input type="text" id="reset-token" required />
+        <form id="reset-form" class="auth-form bubble-layout" style="display: none" onsubmit="event.preventDefault(); processResetPassword();">
+          <div class="bg-watermark">心情漂流瓶</div>
+          <h3 style="color: #003366; margin-top: 10px; margin-bottom: 10px;">設定新密碼</h3>
+          
+          <div class="b-row">
+            <div class="b-item b-pill" style="width: 100%;">
+              <label>驗證碼 (Token):</label>
+              <input type="text" id="reset-token" required />
+            </div>
           </div>
-          <div class="input-group" style="margin-top:10px;">
-            <label>新密碼 (New Password)</label>
-            <input type="password" id="reset-password" required />
+          <div class="b-row">
+            <div class="b-item b-pill" style="width: 100%;">
+              <label>新密碼 (New Password):</label>
+              <div class="password-wrapper">
+                <input type="password" id="reset-password" required style="padding-right:35px !important;" />
+                <span class="toggle-password" onclick="togglePassword('reset-password', this)" style="right: 5px;">
+                  <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>
+                </span>
+              </div>
+            </div>
           </div>
-          <button type="submit" class="btn-submit-dark">確認重設</button>
-          <div style="text-align: center; margin-top: 10px">
-            <a href="#" onclick="switchTab('login')" style="color: #003366; font-size: 0.85rem; font-weight: bold;">返回登入</a>
+
+          <div style="text-align: center; margin-top: 10px; z-index: 10;">
+            <a href="#" onclick="switchTab('login')" style="color: #004b87; font-size: 0.85rem; font-weight: bold; text-decoration: none;">返回登入</a>
           </div>
+
+          <button type="submit" class="b-check-btn" title="送出">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+          </button>
         </form>
       </div>
     </div>
