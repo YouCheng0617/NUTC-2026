@@ -4,48 +4,106 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>心情漂流瓶 - 論壇</title>
-    <link rel="stylesheet" href="test.css?v=18" />
+    <link rel="stylesheet" href="test.css?v=19" />
   </head>
   <body>
-    <div class="sidebar-overlay" id="mobile-sidebar-overlay" onclick="toggleMobileSidebar()"></div>
+    <div
+      class="sidebar-overlay"
+      id="mobile-sidebar-overlay"
+      onclick="toggleMobileSidebar()"
+    ></div>
 
     <div id="forum-view">
-        <header class="light-header">
-        <button class="hamburger-btn" id="mobile-menu-btn" onclick="toggleMobileSidebar()" style="display: none; background: none; border: none; color: white; font-size: 1.8rem; cursor: pointer; margin-right: 15px; padding: 0;">☰</button>
-        <div class="logo" onclick="window.location.href = 'test.html'" title="回到主頁">
-          <img src="images/fish_logo.png" style="width: 30px; margin-right: 10px; vertical-align: middle" />心情漂流瓶
+      <header class="light-header">
+        <button
+          class="hamburger-btn"
+          id="mobile-menu-btn"
+          onclick="toggleMobileSidebar()"
+          style="
+            display: none;
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.8rem;
+            cursor: pointer;
+            margin-right: 15px;
+            padding: 0;
+          "
+        >
+          ☰
+        </button>
+        <div
+          class="logo"
+          onclick="window.location.href = 'test.html'"
+          title="回到主頁"
+        >
+          <img
+            src="images/fish_logo.png"
+            style="width: 30px; margin-right: 10px; vertical-align: middle"
+          />心情漂流瓶
         </div>
-        
+
         <div class="search-container">
-          <input 
-            type="text" 
-            class="search-input light-search" 
-            placeholder="🔍 搜尋海域、標題、內容..." 
-            id="main-search-input" 
-            autocomplete="off" 
+          <input
+            type="text"
+            class="search-input light-search"
+            placeholder="🔍 搜尋海域、標題、內容..."
+            id="main-search-input"
+            autocomplete="off"
           />
-          <div id="search-history-dropdown" class="search-history-box" style="display: none"></div>
+          <div
+            id="search-history-dropdown"
+            class="search-history-box"
+            style="display: none"
+          ></div>
         </div>
 
         <div class="nav-actions">
           <button id="login-trigger" class="btn-login">註冊 / 登入</button>
-          
-          <div id="user-profile" class="user-menu-wrapper" style="display: none">
+
+          <div
+            id="user-profile"
+            class="user-menu-wrapper"
+            style="display: none"
+          >
             <div class="user-info-trigger" id="user-menu-btn">
-              <img id="user-avatar" src="images/fish_logo.png" alt="頭像" class="avatar-img" />
+              <img
+                id="user-avatar"
+                src="images/fish_logo.png"
+                alt="頭像"
+                class="avatar-img"
+              />
               <span id="user-name" class="user-name-text"></span>
               <span class="menu-arrow">▼</span>
             </div>
 
             <div class="user-dropdown-menu" id="user-dropdown">
               <div class="menu-item" id="open-profile">👤 個人資料</div>
-              <div class="menu-item" onclick="window.location.href = 'saved.html'">⭐ 收藏瓶子</div>
-              <div class="menu-item" onclick="window.location.href = 'post.html'">📝 我的瓶子</div>
+              <div
+                class="menu-item"
+                onclick="window.location.href = 'saved.html'"
+              >
+                ⭐ 收藏瓶子
+              </div>
+              <div
+                class="menu-item"
+                onclick="window.location.href = 'post.html'"
+              >
+                📝 我的瓶子
+              </div>
               <div class="menu-divider"></div>
-              <div class="menu-item logout-item" id="logout-btn">🚪 退出登入</div>
+              <div class="menu-item logout-item" id="logout-btn">
+                🚪 退出登入
+              </div>
             </div>
 
-            <button id="btn-new-post" class="btn-post" style="margin-left: 10px">✏️ 發文</button>
+            <button
+              id="btn-new-post"
+              class="btn-post"
+              style="margin-left: 10px"
+            >
+              ✏️ 發文
+            </button>
           </div>
         </div>
       </header>
@@ -58,6 +116,7 @@
             <li>🤫 沒人懂的秘密</li>
             <li>💔 破碎的碎片</li>
             <li>😑 極度厭世/躺平</li>
+            <li>😁 開心的事</li>
           </ul>
         </aside>
 
@@ -131,6 +190,7 @@
               <option value="2">🤫 沒人懂的秘密</option>
               <option value="3">💔 破碎的碎片</option>
               <option value="4">😑 極度厭世/躺平</option>
+              <option value="5">😁 開心的事</option>
             </select>
             <select id="post-identity" required class="ocean-input">
               <option value="真實姓名">👤 實名發布</option>
@@ -145,24 +205,80 @@
     </div>
 
     <div id="profile-modal" class="modal">
-      <div class="modal-content light-modal" style="width: 400px; text-align: center">
+      <div
+        class="modal-content light-modal"
+        style="width: 400px; text-align: center"
+      >
         <span class="close-btn" id="close-profile-modal">&times;</span>
         <h2 style="color: #0055a5; margin-bottom: 20px">個人資訊</h2>
         <div class="profile-detail">
-          <div style="position: relative; display: inline-block; cursor: pointer" onclick="document.getElementById('change-avatar-input').click()">
-            <img id="detail-avatar" src="images/fish_logo.png" style="width: 100px; height: 100px; border-radius: 50%; border: 3px solid #4da6ff; margin-bottom: 15px; object-fit: cover;" />
-            <div style="position: absolute; bottom: 15px; right: 0; background: #4da6ff; color: white; border-radius: 50%; width: 25px; height: 25px; font-size: 14px; line-height: 25px; text-align: center;">📷</div>
+          <div
+            style="position: relative; display: inline-block; cursor: pointer"
+            onclick="document.getElementById('change-avatar-input').click()"
+          >
+            <img
+              id="detail-avatar"
+              src="images/fish_logo.png"
+              style="
+                width: 100px;
+                height: 100px;
+                border-radius: 50%;
+                border: 3px solid #4da6ff;
+                margin-bottom: 15px;
+                object-fit: cover;
+              "
+            />
+            <div
+              style="
+                position: absolute;
+                bottom: 15px;
+                right: 0;
+                background: #4da6ff;
+                color: white;
+                border-radius: 50%;
+                width: 25px;
+                height: 25px;
+                font-size: 14px;
+                line-height: 25px;
+                text-align: center;
+              "
+            >
+              📷
+            </div>
           </div>
-          <input type="file" id="change-avatar-input" accept="image/*" style="display: none" />
+          <input
+            type="file"
+            id="change-avatar-input"
+            accept="image/*"
+            style="display: none"
+          />
           <h3 id="detail-name" style="margin: 5px 0">姓名</h3>
-          <p id="detail-email" style="color: #888; font-size: 0.9rem">email@example.com</p>
+          <p id="detail-email" style="color: #888; font-size: 0.9rem">
+            email@example.com
+          </p>
           <hr style="border: 0; border-top: 1px solid #eee; margin: 15px 0" />
           <div style="text-align: left; padding: 0 20px; line-height: 2">
-            <div><strong>🎂 生日：</strong><span id="detail-birthday">未填寫</span></div>
-            <div><strong>🚻 性別：</strong><span id="detail-gender">未填寫</span></div>
-            <div><strong>✨ 星座：</strong><span id="detail-zodiac">未填寫</span></div>
+            <div>
+              <strong>🎂 生日：</strong><span id="detail-birthday">未填寫</span>
+            </div>
+            <div>
+              <strong>🚻 性別：</strong><span id="detail-gender">未填寫</span>
+            </div>
+            <div>
+              <strong>✨ 星座：</strong><span id="detail-zodiac">未填寫</span>
+            </div>
             <div style="margin-top: 10px"><strong>📝 自我介紹：</strong></div>
-            <p id="detail-bio" style="background: #f9fbfd; padding: 10px; border-radius: 8px; font-size: 0.9rem;">尚未填寫自我介紹...</p>
+            <p
+              id="detail-bio"
+              style="
+                background: #f9fbfd;
+                padding: 10px;
+                border-radius: 8px;
+                font-size: 0.9rem;
+              "
+            >
+              尚未填寫自我介紹...
+            </p>
           </div>
         </div>
       </div>
@@ -175,18 +291,18 @@
 
     <script>
       function toggleMobileSidebar() {
-        const sidebar = document.querySelector('.sidebar');
-        const overlay = document.getElementById('mobile-sidebar-overlay');
-        if(sidebar && overlay) {
-          sidebar.classList.toggle('active-sidebar');
-          overlay.classList.toggle('active-overlay');
+        const sidebar = document.querySelector(".sidebar");
+        const overlay = document.getElementById("mobile-sidebar-overlay");
+        if (sidebar && overlay) {
+          sidebar.classList.toggle("active-sidebar");
+          overlay.classList.toggle("active-overlay");
         }
       }
-      document.querySelectorAll('.sidebar li').forEach(item => {
-        item.addEventListener('click', () => {
-            if(window.innerWidth <= 768) {
-                toggleMobileSidebar();
-            }
+      document.querySelectorAll(".sidebar li").forEach((item) => {
+        item.addEventListener("click", () => {
+          if (window.innerWidth <= 768) {
+            toggleMobileSidebar();
+          }
         });
       });
     </script>
