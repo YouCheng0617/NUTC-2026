@@ -18,7 +18,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const userStr = localStorage.getItem("currentUser");
     const user = userStr ? JSON.parse(userStr) : null;
 
-    // 嚴格檢查：只要沒有 Token 或 User 資訊，強制踢回登入頁
     if (!token || !user) {
         window.location.href = "login.html";
         return;
@@ -32,7 +31,7 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // ==========================================
-// 3. 頁面切換與記憶功能 (升級版：自動抓數據)
+// 3. 頁面切換與記憶功能
 // ==========================================
 window.switchAdminTab = function (tabName) {
     localStorage.setItem('adminLastTab', tabName);
@@ -47,7 +46,7 @@ window.switchAdminTab = function (tabName) {
     const titleEl = document.getElementById("admin-page-title");
     if (tabName === 'dashboard') { 
         titleEl.innerText = "總覽數據"; 
-        loadDashboardData(); // 🌟 切換到總覽時，啟動抓資料與畫圖表的魔法！
+        loadDashboardData(); 
     }
     else if (tabName === 'users') { titleEl.innerText = "管理使用者"; loadUsers(); }
     else if (tabName === 'bottles') { titleEl.innerText = "漂流瓶審核"; loadBottles(); }
@@ -55,15 +54,14 @@ window.switchAdminTab = function (tabName) {
 }
 
 // ==========================================
-// ✨ 寶寶專屬：總覽數據與 Chart.js 圖表魔法
+// 4. 總覽數據與 Chart.js 圖表
 // ==========================================
-let myDoughnutChart = null; // 用來記住圖表，避免重複畫疊在一起
+let myDoughnutChart = null; 
 
 async function loadDashboardData() {
     const token = localStorage.getItem("authToken");
 
     try {
-        // 1. 同時發送請求，把「所有會員」跟「所有文章」抓下來
         const [usersRes, bottlesRes] = await Promise.all([
             fetch(`${API_BASE_URL}/admin/members`, { headers: { 'Authorization': `Bearer ${token}`, 'ngrok-skip-browser-warning': 'true' } }),
             fetch(`${API_BASE_URL}/admin/bottles`, { headers: { 'Authorization': `Bearer ${token}`, 'ngrok-skip-browser-warning': 'true' } })
@@ -75,11 +73,9 @@ async function loadDashboardData() {
         const users = usersData.data || usersData || [];
         const bottles = bottlesData.data || bottlesData.bottles || bottlesData || [];
 
-        // 2. 🌟 更新上方卡片的真實數字！(算出陣列有幾個，就是總數)
         document.getElementById('stat-users').innerText = users.length;
         document.getElementById('stat-bottles').innerText = bottles.length;
 
-        // 3. 計算各個「情緒分類」的數量
         let angry = 0, secret = 0, broken = 0, apathy = 0;
 
         bottles.forEach(b => {
@@ -96,7 +92,6 @@ async function loadDashboardData() {
             else apathy++;
         });
 
-        // 4. 畫出漂亮甜甜圈圖表
         drawDoughnutChart([angry, secret, broken, apathy]);
 
     } catch (error) {
@@ -108,7 +103,6 @@ function drawDoughnutChart(dataArray) {
     const ctx = document.getElementById('categoryChart');
     if (!ctx) return;
 
-    // 如果已經畫過圖了，要先把它毀滅，不然新舊圖表會疊在一起閃爍
     if (myDoughnutChart) {
         myDoughnutChart.destroy();
     }
@@ -119,11 +113,10 @@ function drawDoughnutChart(dataArray) {
             labels: ['😡 憤怒', '🤫 秘密', '💔 破碎', '😑 厭世'],
             datasets: [{
                 data: dataArray,
-                // 對應我們前面設定的柔和色彩
                 backgroundColor: ['#fff1f0', '#f9f0ff', '#fff7e6', '#f6ffed'],
                 borderColor: ['#ffa39e', '#d3adf7', '#ffd591', '#b7eb8f'],
                 borderWidth: 2,
-                hoverOffset: 10 // 滑鼠移過去會彈出來的動畫
+                hoverOffset: 10 
             }]
         },
         options: {
@@ -131,15 +124,16 @@ function drawDoughnutChart(dataArray) {
             maintainAspectRatio: false,
             plugins: {
                 legend: {
-                    position: 'right', // 標籤放在右邊
+                    position: 'right', 
                     labels: { font: { size: 14 } }
                 }
             }
         }
     });
 }
+
 // ==========================================
-// 4. API 串接：管理使用者 (支援搜尋)
+// 5. API 串接：管理使用者
 // ==========================================
 window._allUsers = [];
 
@@ -163,7 +157,6 @@ async function loadUsers() {
     }
 }
 
-
 window.filterUsers = function () {
     const keyword = document.getElementById('search-users').value.toLowerCase();
     const filtered = window._allUsers.filter(u =>
@@ -174,7 +167,6 @@ window.filterUsers = function () {
     renderUsers(filtered);
 }
 
-// 補上渲染使用者的函數 (進化版：狀態自動變色魔法 🎨)
 function renderUsers(users) {
     const tbody = document.getElementById('admin-users-body');
     if (!tbody) return;
@@ -184,18 +176,14 @@ function renderUsers(users) {
     }
     
     tbody.innerHTML = users.map(u => {
-        // ✨ 寶寶專屬：自動判斷狀態並換上對應的衣服
         let currentStatus = u.status || 'ACTIVE';
         let statusBadge = '';
 
         if (currentStatus === 'BANNED') {
-            // 🔴 被封鎖的壞蛋：紅色警報
             statusBadge = `<span class="badge" style="background:#fff1f0; color:#cf1322; border:1px solid #ffa39e;">🔴 ${currentStatus}</span>`;
         } else if (currentStatus === 'INACTIVE') {
-            // 🟡 暫時停用：黃色警告
             statusBadge = `<span class="badge" style="background:#fff7e6; color:#d46b08; border:1px solid #ffd591;">🟡 ${currentStatus}</span>`;
         } else {
-            // 🟢 正常乖寶寶：水藍色正常版
             statusBadge = `<span class="badge" style="background:#e6f7ff; color:#0066cc; border:1px solid #91d5ff;">🟢 ${currentStatus}</span>`;
         }
 
@@ -213,26 +201,20 @@ function renderUsers(users) {
         `;
     }).join('');
 }
-// ==========================================
-// ✨ 寶寶專屬：漂亮彈窗控制邏輯
-// ==========================================
+
 let currentEditingUserId = null;
 
-// 1. 打開漂亮彈窗
 window.changeUserStatus = function (userId, userName) {
     currentEditingUserId = userId;
-    // 貼心地顯示正在修改誰
     document.getElementById('status-modal-user-name').innerText = `正在修改帳號：${userName}`;
     document.getElementById('status-modal').style.display = 'flex';
 }
 
-// 2. 關閉彈窗
 window.closeStatusModal = function () {
     document.getElementById('status-modal').style.display = 'none';
     currentEditingUserId = null;
 }
 
-// 3. 點擊三個按鈕後，真正發送 API 給後端
 window.confirmChangeStatus = async function (newStatus) {
     if (!currentEditingUserId) return;
     
@@ -246,8 +228,8 @@ window.confirmChangeStatus = async function (newStatus) {
         
         if (response.ok) {
             alert('✅ 狀態已成功更新！');
-            closeStatusModal(); // 成功後自動關閉彈窗
-            loadUsers();        // 重新載入最新列表
+            closeStatusModal(); 
+            loadUsers();        
         } else {
             alert('更新失敗，請確認權限或網路狀態');
         }
@@ -255,8 +237,9 @@ window.confirmChangeStatus = async function (newStatus) {
         alert('伺服器連線失敗'); 
     }
 }
+
 // ==========================================
-// 5. API 串接：漂流瓶審核 (包含新舊兼容情緒分類)
+// 6. API 串接：漂流瓶審核
 // ==========================================
 window._allBottles = [];
 
@@ -280,9 +263,6 @@ async function loadBottles() {
     }
 }
 
-// ==========================================
-// 5. API 串接：漂流瓶審核 (醫美級排版對齊版 💅)
-// ==========================================
 function renderBottles(bottles) {
     const tbody = document.getElementById('admin-bottles-body');
     if (!tbody) return;
@@ -311,7 +291,7 @@ function renderBottles(bottles) {
             catHtml = `<span class="badge" style="background:#f6ffed; color:#389e0d; border:1px solid #b7eb8f;">😑 極度厭世/躺平</span>`;
         }
 
-        // ✨ 狀態標籤去除了醜醜的 margin，改交給外層對齊；透明度調回健康的 0.8
+        // 🌟 顯示邏輯：2 = 通過，3 = 拒絕
         let statusBadge = '';
         let rowStyle = '';
         let btnText = '審核'; 
@@ -326,7 +306,7 @@ function renderBottles(bottles) {
             btnText = '查看'; 
         } else {
             statusBadge = `<span class="badge" style="background:#e0f2fe; color:#0284c7; border:1px solid #bae6fd;">⏳ 待審核</span>`;
-            rowStyle = `opacity: 1; background: #ffffff; box-shadow: 0 2px 8px rgba(0,0,0,0.04);`; // 待審核的給一點微凸的陰影，讓它更立體
+            rowStyle = `opacity: 1; background: #ffffff; box-shadow: 0 2px 8px rgba(0,0,0,0.04);`;
             btnText = '審核';
         }
 
@@ -352,6 +332,7 @@ function renderBottles(bottles) {
         `;
     }).join('');
 }
+
 window.filterBottles = function () {
     const keyword = document.getElementById('search-bottles').value.toLowerCase();
     const filtered = window._allBottles.filter(b =>
@@ -364,13 +345,12 @@ window.filterBottles = function () {
 }
 
 // ==========================================
-// 6. API 串接：審核動作與強制刪除 (精品彈窗版 💅)
+// 7. 審核動作 (🌟 狀態碼修正版：2=通過, 3=拒絕)
 // ==========================================
 window.openBottleModalFromCache = function (bottleId) {
     const b = window._allBottles.find(item => String(item.bottle_id || item.id) === String(bottleId));
     if (!b) return;
 
-    // 重新解析分類，為了在彈窗裡也顯示漂亮的膠囊標籤
     let rawCat = b.category_name || null;
     if (!rawCat && b.categories && b.categories.length > 0) {
         rawCat = (typeof b.categories[0] === 'string') ? b.categories[0] : b.categories[0].category?.name;
@@ -389,7 +369,6 @@ window.openBottleModalFromCache = function (bottleId) {
         catHtml = `<span class="badge" style="background:#f6ffed; color:#389e0d; border:1px solid #b7eb8f;">😑 極度厭世/躺平</span>`;
     }
 
-    // 🌟 1. 美化彈窗標題
     document.getElementById('modal-title').innerHTML = `
         <div style="display: flex; align-items: center; gap: 10px; font-size: 1.4rem; color: #1e293b; border-bottom: 2px solid #e2e8f0; padding-bottom: 12px; margin-bottom: 0;">
             <span style="font-size: 1.6rem;">📝</span> 
@@ -397,7 +376,6 @@ window.openBottleModalFromCache = function (bottleId) {
         </div>
     `;
 
-    // 🌟 2. 美化文章內容 (加入作者、時間標籤 + 引言式卡片設計)
     document.getElementById('modal-body').innerHTML = `
         <div style="margin: 15px 0; display: flex; gap: 10px; flex-wrap: wrap; align-items: center;">
             <span class="badge" style="background:#f1f5f9; color:#475569; border:1px solid #cbd5e1;">👤 作者：${escapeHTML(b.member_name || b.author_name || '匿名')}</span>
@@ -413,7 +391,7 @@ window.openBottleModalFromCache = function (bottleId) {
     window._reviewBottleId = b.bottle_id || b.id;
     window._reviewBottleTitle = b.title;
 
-    // 🌟 3. 美化底部按鈕 (左右排開，視覺更平衡)
+    // 🌟 修改這裡：按下拒絕傳送 3，按下通過傳送 2
     document.getElementById('modal-actions').innerHTML = `
         <button class="btn-action btn-secondary" onclick="closeAdminModal()">返回</button>
         <div style="margin-left: auto; display: flex; gap: 12px;">
@@ -425,77 +403,18 @@ window.openBottleModalFromCache = function (bottleId) {
     document.getElementById('admin-modal').style.display = 'flex';
 }
 
-// ==========================================
-// 6. API 串接：審核動作與強制刪除 (密語正確版 💅)
-// ==========================================
-window.openBottleModalFromCache = function (bottleId) {
-    const b = window._allBottles.find(item => String(item.bottle_id || item.id) === String(bottleId));
-    if (!b) return;
-
-    let rawCat = b.category_name || null;
-    if (!rawCat && b.categories && b.categories.length > 0) {
-        rawCat = (typeof b.categories[0] === 'string') ? b.categories[0] : b.categories[0].category?.name;
-    }
-    if (!rawCat && b.category_list && b.category_list.length > 0) rawCat = b.category_list[0];
-    if (!rawCat) rawCat = '綜合閒聊';
-
-    let catHtml = '';
-    if (rawCat.includes("憤怒") || rawCat.includes("閒聊")) {
-        catHtml = `<span class="badge" style="background:#fff1f0; color:#cf1322; border:1px solid #ffa39e;">😡 極度憤怒中</span>`;
-    } else if (rawCat.includes("秘密") || rawCat.includes("程式")) {
-        catHtml = `<span class="badge" style="background:#f9f0ff; color:#531dab; border:1px solid #d3adf7;">🤫 沒人懂的秘密</span>`;
-    } else if (rawCat.includes("破碎") || rawCat.includes("碎片") || rawCat.includes("美食")) {
-        catHtml = `<span class="badge" style="background:#fff7e6; color:#d46b08; border:1px solid #ffd591;">💔 破碎的碎片</span>`;
-    } else {
-        catHtml = `<span class="badge" style="background:#f6ffed; color:#389e0d; border:1px solid #b7eb8f;">😑 極度厭世/躺平</span>`;
-    }
-
-    document.getElementById('modal-title').innerHTML = `
-        <div style="display: flex; align-items: center; gap: 10px; font-size: 1.4rem; color: #1e293b; border-bottom: 2px solid #e2e8f0; padding-bottom: 12px; margin-bottom: 0;">
-            <span style="font-size: 1.6rem;">📝</span> 
-            ${escapeHTML(b.title)}
-        </div>
-    `;
-
-    document.getElementById('modal-body').innerHTML = `
-        <div style="margin: 15px 0; display: flex; gap: 10px; flex-wrap: wrap; align-items: center;">
-            <span class="badge" style="background:#f1f5f9; color:#475569; border:1px solid #cbd5e1;">👤 作者：${escapeHTML(b.member_name || b.author_name || '匿名')}</span>
-            <span class="badge" style="background:#f1f5f9; color:#475569; border:1px solid #cbd5e1;">📅 ${b.created_at ? new Date(b.created_at).toLocaleDateString() : '未知'}</span>
-            ${catHtml}
-        </div>
-        
-        <div style="background: #ffffff; border-left: 5px solid #3b82f6; padding: 24px; border-radius: 0 12px 12px 0; font-size: 1.05rem; color: #334155; white-space: pre-wrap; line-height: 1.8; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); margin-top: 20px;">
-            ${escapeHTML(b.content)}
-        </div>
-    `;
-
-    window._reviewBottleId = b.bottle_id || b.id;
-    window._reviewBottleTitle = b.title;
-
-    // 🌟 修正密語：傳入 2 代表拒絕，1 代表通過
-    document.getElementById('modal-actions').innerHTML = `
-        <button class="btn-action btn-secondary" onclick="closeAdminModal()">返回</button>
-        <div style="margin-left: auto; display: flex; gap: 12px;">
-            <button class="btn-action btn-danger" onclick="reviewBottle(window._reviewBottleId, 2, window._reviewBottleTitle);">❌ 拒絕 (違規)</button>
-            <button class="btn-action btn-primary" onclick="reviewBottle(window._reviewBottleId, 1, window._reviewBottleTitle);">✅ 審核通過</button>
-        </div>
-    `;
-    
-    document.getElementById('admin-modal').style.display = 'flex';
-}
-
 window.reviewBottle = function (bottleId, status, title) {
     window._pendingReviewId = bottleId;
     window._pendingReviewTitle = title;
 
-    // 🌟 修正邏輯：2 代表違規/拒絕
-    if (status === 2) {
+    // 🌟 判斷：傳入 3 代表要打開拒絕理由彈窗
+    if (status === 3) {
         document.getElementById('reject-reason-input').value = '內容不當'; 
         document.getElementById('reject-modal').style.display = 'flex';
     } else {
-        // 1 代表通過
+        // 傳入 2 代表確認通過
         if (!confirm(`✅ 確定要通過「${title}」，讓它流入海中嗎？`)) return;
-        executeReviewAction(bottleId, 1, "");
+        executeReviewAction(bottleId, 2, ""); // 發送 2 給後端
     }
 }
 
@@ -509,8 +428,8 @@ window.confirmRejectAction = function() {
         alert("必須填寫拒絕原因唷！");
         return;
     }
-    // 🌟 在小彈窗按下確定後，傳送 2 (拒絕) 給後端
-    executeReviewAction(window._pendingReviewId, 2, reason);
+    // 🌟 發送 3 (拒絕) 給後端
+    executeReviewAction(window._pendingReviewId, 3, reason);
     closeRejectModal(); 
 }
 
@@ -525,7 +444,7 @@ window.executeReviewAction = async function(bottleId, status, reason) {
             },
             body: JSON.stringify({
                 "bottle_id": Number(bottleId),
-                "status": status, // 這裡現在會正確傳送 1 或是 2 囉！
+                "status": status, // 這裡會完美傳送 2 或是 3
                 "violation_reason": reason
             })
         });
@@ -542,24 +461,20 @@ window.executeReviewAction = async function(bottleId, status, reason) {
         alert("伺服器連線失敗"); 
     }
 }
+
 window.deleteBottleAsAdmin = async function(bottleId) {
-    if (!confirm(`⚠️ 確定要以管理員身分強制刪除 #${bottleId} 號漂流瓶嗎？刪除後將無法復原！`)) {
-        return;
-    }
+    if (!confirm(`⚠️ 確定要以管理員身分強制刪除 #${bottleId} 號漂流瓶嗎？刪除後將無法復原！`)) return;
 
     const token = localStorage.getItem("authToken");
     try {
         const response = await fetch(`${API_BASE_URL}/admin/bottles/${bottleId}/delete`, {
             method: 'DELETE',
-            headers: {
-                'Authorization': `Bearer ${token}`,
-                'ngrok-skip-browser-warning': 'true'
-            }
+            headers: { 'Authorization': `Bearer ${token}`, 'ngrok-skip-browser-warning': 'true' }
         });
 
         if (response.ok) {
             alert("🗑️ 漂流瓶已成功強制刪除！");
-            loadBottles(); // 刪除成功後自動重新抓取列表，不用重整頁面
+            loadBottles(); 
         } else {
             const err = await response.json();
             alert("刪除失敗：" + (err.message || "權限不足或伺服器錯誤"));
@@ -570,7 +485,7 @@ window.deleteBottleAsAdmin = async function(bottleId) {
 };
 
 // ==========================================
-// 7. UI 輔助控制
+// 8. UI 輔助控制
 // ==========================================
 window.closeAdminModal = function () { document.getElementById('admin-modal').style.display = 'none'; }
 window.adminLogout = function () { localStorage.clear(); window.location.href = "login.html"; }
