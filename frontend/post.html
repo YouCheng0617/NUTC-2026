@@ -42,22 +42,24 @@
       /* ==================================================
          🫧 個人資訊：深海毛玻璃透光泡泡 (純展示版)
          ================================================== */
-      .glass-profile-card {
-        background: rgba(255, 255, 255, 0.85);
-        backdrop-filter: blur(12px);
-        -webkit-backdrop-filter: blur(12px);
-        border: 1px solid rgba(255, 255, 255, 0.5);
-        border-radius: 24px;
-        width: 400px;
-        padding: 30px;
-        box-shadow:
-          0 10px 30px rgba(0, 40, 80, 0.15),
-          inset 0 0 15px rgba(255, 255, 255, 0.8);
-        position: relative;
-        margin: 10vh auto;
-        text-align: left;
-        animation: floatUp 0.4s ease-out;
-      }
+      /* 修改這一段 */
+.glass-profile-card {
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(12px);
+    border-radius: 24px;
+    width: 400px;
+    padding: 30px;
+    box-shadow: 0 10px 30px rgba(0, 40, 80, 0.15);
+    
+    /* 🚀 關鍵修改：讓它垂直水平置中 */
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    
+    text-align: left;
+    animation: floatUp 0.4s ease-out;
+}
       @keyframes floatUp {
         from {
           opacity: 0;
@@ -86,7 +88,6 @@
         object-fit: cover;
         box-shadow: 0 4px 15px rgba(77, 166, 255, 0.3);
       }
-      /* 拿掉原本的照相機編輯按鈕，變回純展示 */
       .profile-name {
         margin: 10px 0 5px;
         color: #004b87;
@@ -117,7 +118,7 @@
         background: rgba(255, 255, 255, 0.6);
         padding: 15px;
         border-radius: 12px;
-      } /* 拿掉 bottom margin 讓排版更緊湊 */
+      }
       .info-bio span {
         font-weight: bold;
         color: #0055a5;
@@ -129,6 +130,64 @@
         line-height: 1.6;
         white-space: pre-wrap;
         font-size: 0.95rem;
+      }
+
+      /* ==================================================
+         🫧 漂流瓶換頁器：深海氣泡風格 (修復版)
+         ================================================== */
+      .ocean-pagination {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 8px;
+        margin-top: 50px;
+        margin-bottom: 30px;
+        padding: 10px 20px;
+        background: rgba(255, 255, 255, 0.15);
+        backdrop-filter: blur(8px);
+        border-radius: 50px;
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        box-shadow: 0 4px 15px rgba(0, 40, 80, 0.2);
+        width: fit-content;
+        margin-left: auto;
+        margin-right: auto;
+      }
+      .ocean-pagination button, 
+      .ocean-pagination span {
+        width: 35px;
+        height: 35px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        border-radius: 50%;
+        border: 1px solid rgba(255, 255, 255, 0.4);
+        background: rgba(255, 255, 255, 0.2);
+        color: #ffffff;
+        font-weight: bold;
+        font-size: 0.95rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+      }
+      .ocean-pagination button:hover:not(:disabled) {
+        background: rgba(255, 255, 255, 0.8);
+        color: #0055a5;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 10px rgba(255, 255, 255, 0.5);
+        text-shadow: none;
+      }
+      .ocean-pagination .active {
+        background: #4da6ff;
+        color: white;
+        border: 2px solid #ffffff;
+        box-shadow: 0 0 15px rgba(77, 166, 255, 0.8);
+        transform: scale(1.1);
+      }
+      .ocean-pagination button:disabled {
+        opacity: 0.4;
+        cursor: not-allowed;
+        background: transparent;
+        border: 1px solid rgba(255, 255, 255, 0.2);
       }
     </style>
   </head>
@@ -213,22 +272,7 @@
         <main class="main-feed" id="feed-view">
           <div id="post-container"></div>
 
-          <div
-            id="pagination-container"
-            class="pagination-container"
-            style="
-              position: fixed !important;
-              bottom: 40px !important;
-              left: 50% !important;
-              transform: translateX(-50%) !important;
-              z-index: 999999 !important;
-              background: rgba(255, 255, 255, 0.8) !important;
-              padding: 10px 20px !important;
-              border-radius: 50px !important;
-              display: flex;
-              gap: 10px;
-            "
-          ></div>
+          <div id="pagination-container" class="ocean-pagination"></div>
         </main>
 
         <main
@@ -460,6 +504,7 @@
               style="flex: 1; margin: 0"
             >
               <option value="" disabled selected>選擇海域...</option>
+              <option value="5">😁 開心的事</option>
               <option value="1">😡 極度憤怒中</option>
               <option value="2">🤫 沒人懂的秘密</option>
               <option value="3">💔 破碎的碎片</option>
