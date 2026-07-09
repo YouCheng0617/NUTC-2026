@@ -6,7 +6,7 @@ const captchaMap = new Map<string, string>();
 export const generateCaptcha = () => {
     const captcha = svgCaptcha.create({
         size: 5,
-        ignoreChars: '0o1iljJLI',
+        charPreset: '123456789',
         noise: 5,
         color: true,
         background: '#a1a1a1',

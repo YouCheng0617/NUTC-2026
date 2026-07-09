@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>心情漂流瓶 - 論壇</title>
-    <link rel="stylesheet" href="test.css?v=13" />
+    <link rel="stylesheet" href="test.css?v=14" />
   </head>
   <body>
     <div class="sidebar-overlay" id="mobile-sidebar-overlay" onclick="toggleMobileSidebar()"></div>
@@ -64,7 +64,7 @@
         <main class="main-feed" id="feed-view">
             <div id="post-container">
                 <div class="empty-state-text" style="display: none;">目前沒有漂流瓶，快來拋出第一個吧！🌊</div>
-                </div>
+            </div>
         </main>
 
         <main class="main-feed" id="detail-view" style="display: none;">
@@ -93,11 +93,11 @@
 
             <div id="detail-comments-list" style="margin-bottom: 20px; display: flex; flex-direction: column; gap: 15px;"></div>
 
-            <div style="display: flex; gap: 12px; align-items: center; border-top: 1px solid #eaeaea; padding-top: 15px;">
-              <img src="images/fish_logo.png" style="width: 36px; height: 36px; border-radius: 50%" />
-              <input type="text" id="new-comment-input" placeholder="留言......" class="form-input light-input" style="flex: 1; margin: 0; border-radius: 20px; padding: 12px 20px; background: #ebebeb; border: none;" />
-              <button onclick="submitComment()" class="btn-submit" style="width: auto; padding: 10px 24px; border-radius: 20px">送出</button>
-            </div>
+           <div class="comment-action-bar">
+  <button type="button" id="save-bottle-btn" class="save-btn" title="收藏這個瓶子" onclick="this.classList.toggle('active')">⭐</button>
+  <input type="text" id="new-comment-input" placeholder="寫下溫暖的留言..." class="comment-input" autocomplete="off" />
+  <button type="button" onclick="submitComment()" class="send-btn">送出</button>
+</div>
           </div>
         </main>
 

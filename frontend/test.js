@@ -420,19 +420,20 @@ function renderComments(postId) {
             const likesCount = c.likes || 0;
             const isLiked = c.liked || false;
 
+            // ✨ 全新設計：給予充足的 padding (20px 24px)，並改成獨立圓角卡片
             html += `
-                <div style="background: #fff; padding: 24px 0; border-bottom: 1px solid #f0f0f0;">
+                <div style="background: #ffffff; padding: 20px 24px; border-radius: 16px; margin-bottom: 16px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03); border: 1px solid #edf2f7;">
                     <div style="display: flex; justify-content: space-between; margin-bottom: 12px; align-items: center;">
-                        <span style="font-size: 1rem; font-weight: bold; color: #333; display: flex; align-items: center; gap: 12px;">
-                            <img src="${c.avatar}" style="width: 36px; height: 36px; border-radius: 50%; object-fit: cover; box-shadow: 0 1px 3px rgba(0,0,0,0.08);">
+                        <span style="font-size: 1.05rem; font-weight: bold; color: #2c3e50; display: flex; align-items: center; gap: 12px;">
+                            <img src="${c.avatar}" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover; border: 2px solid #e2e8f0;">
                             ${escapeHTML(c.author)}
                         </span>
-                        <span style="font-size: 0.85rem; color: #aaa; font-weight: bold;">B${index + 1}</span>
+                        <span style="font-size: 0.85rem; color: #64748b; font-weight: bold; background: #f1f5f9; padding: 4px 12px; border-radius: 20px;">B${index + 1}</span>
                     </div>
-                    <div style="color: #222; font-size: 1.05rem; line-height: 1.7; padding-left: 48px; white-space: pre-wrap; margin-bottom: 10px;">${escapeHTML(c.text)}</div>
+                    <div style="color: #334155; font-size: 1.05rem; line-height: 1.7; padding-left: 52px; padding-right: 10px; white-space: pre-wrap; margin-bottom: 12px;">${escapeHTML(c.text)}</div>
                     
-                    <div style="text-align: right; padding-right: 15px;">
-                        <span style="cursor: pointer; color: ${isLiked ? '#e74c3c' : '#999'}; font-size: 0.95rem; user-select: none; transition: 0.2s;" onclick="toggleCommentLike('${postId}', ${index})">
+                    <div style="text-align: right; padding-top: 12px; border-top: 1px dashed #e2e8f0;">
+                        <span style="cursor: pointer; color: ${isLiked ? '#ff4757' : '#94a3b8'}; font-size: 0.95rem; user-select: none; transition: 0.2s; font-weight: bold;" onclick="toggleCommentLike('${postId}', ${index})">
                             ${isLiked ? '❤️' : '🤍'} ${likesCount}
                         </span>
                     </div>
@@ -884,6 +885,9 @@ document.addEventListener('DOMContentLoaded', () => {
         if (wrapper && wrapper.tagName.toLowerCase() === 'div') {
             const form = document.createElement('form');
             form.style.cssText = wrapper.style.cssText;
+            
+            // 🔥 關鍵修復 1：把 class 名字完整複製過來，這樣 CSS 才會生效！
+            form.className = wrapper.className; 
 
             form.onsubmit = (e) => {
                 e.preventDefault();
@@ -895,10 +899,11 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             wrapper.parentNode.replaceChild(form, wrapper);
 
-            const btn = form.querySelector('button');
-            if (btn) {
-                btn.type = 'submit';
-                btn.removeAttribute('onclick');
+            // 🔥 關鍵修復 2：精準抓取「送出按鈕」，放過星星按鈕！
+            const sendBtn = form.querySelector('.send-btn');
+            if (sendBtn) {
+                sendBtn.type = 'submit';
+                sendBtn.removeAttribute('onclick');
             }
         }
     });
