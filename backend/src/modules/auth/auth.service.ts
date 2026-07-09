@@ -192,3 +192,53 @@ export const resetPassword = async (token: string, newPassword: string) => {
 
     return true;
 };
+
+/*更改使用者自己資料*/
+export const updateMember = async (memberId: number, updateData: Partial<MemberData>) => {
+    const dataToUpdate: any = {};
+
+    if (updateData.name !== undefined) {
+        dataToUpdate.name = updateData.name;
+    }
+    if (updateData.blood_type !== undefined) {
+        dataToUpdate.blood_type = updateData.blood_type;
+    }
+    if (updateData.bio !== undefined) {
+        dataToUpdate.bio = updateData.bio;
+    }
+    if (updateData.birthday !== undefined) {
+        if (updateData.birthday === null || updateData.birthday === "") {
+            dataToUpdate.birthday = null;
+            dataToUpdate.constellation = "";
+        } else {
+            const birthday = new Date(updateData.birthday);
+            if (isNaN(birthday.getTime())) {
+                throw new Error("生日格式錯誤，請使用有效的日期格式!");
+            } else {
+                dataToUpdate.birthday = birthday;
+                dataToUpdate.constellation = signHelper(birthday);
+            }
+        }
+    }
+    try {
+        const updatedMember = await prisma.member.update({
+            where: { member_id: memberId },
+            data: dataToUpdate,
+            select: {
+                member_id: true,
+                email: true,
+                name: true,
+                birthday: true,
+                blood_type: true,
+                constellation: true,
+                bio: true,
+            }
+        });
+        return updatedMember;
+    } catch (error: any) {
+        if (error.code === "P2025") {
+            throw new Error("找不到該會員，無法更新資料。");
+        }
+        throw error;
+    }
+};
