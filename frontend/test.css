@@ -116,6 +116,7 @@ body, html { height: 100vh !important; overflow: hidden !important; background-c
 
 .right-panel { display: none !important; }
 
+
 /* =========================================
    🚀 電腦版：懸浮按鈕 與 底部膠囊
    ========================================= */
@@ -283,25 +284,158 @@ body, html { height: 100vh !important; overflow: hidden !important; background-c
 }
 
 /* =========================================
-   💌 深海發光信箋 & 空狀態置中 (保留於底端)
+   💌 空狀態置中 
    ========================================= */
 .empty-state-text { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: rgba(255, 255, 255, 0.7) !important; font-size: 1.2rem; font-weight: bold; text-shadow: 0 2px 5px rgba(0, 0, 0, 0.5); text-align: center; width: 100%; pointer-events: none; }
 
-#detail-view { position: fixed !important; top: 100px !important; left: 50% !important; transform: translateX(-50%) !important; width: 90% !important; max-width: 650px !important; max-height: calc(100vh - 160px) !important; overflow-y: auto !important; z-index: 150 !important; margin: 0 !important; background: rgba(255, 255, 255, 0.85) !important; backdrop-filter: blur(15px) !important; border: 1px solid rgba(255, 255, 255, 0.6) !important; box-shadow: 0 20px 50px rgba(0, 15, 30, 0.3), inset 0 0 25px rgba(255, 255, 255, 0.9) !important; border-radius: 24px !important; padding: 40px 50px !important; }
-#detail-post-title { color: transparent !important; background: linear-gradient(90deg, #0055a5, #4da6ff, #0055a5); background-size: 200% auto; -webkit-background-clip: text; font-size: 2.2rem !important; text-shadow: 0 2px 10px rgba(77, 166, 255, 0.2); animation: text-shine 4s linear infinite; margin-top: 50px !important; }
-#detail-view > div:last-child { background: rgba(240, 248, 255, 0.6) !important; border: 1px solid rgba(255, 255, 255, 0.7) !important; box-shadow: inset 0 0 15px rgba(255, 255, 255, 0.8) !important; border-radius: 20px !important; }
+/* =========================================
+   📖 閱讀模式 (文章詳細版面) 全新質感美化
+   ========================================= */
+.ocean-detail-card {
+    position: fixed !important;
+    top: 80px !important;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+    width: 100% !important;
+    max-width: 700px !important;
+    max-height: calc(100vh - 100px) !important;
+    overflow-y: auto !important;
+    z-index: 150 !important;
+    margin: 0 !important;
+    background: #ffffff !important; 
+    border: 1px solid #e0e6ed !important;
+    box-shadow: 0 15px 40px rgba(0, 20, 50, 0.12) !important;
+    border-radius: 20px !important;
+    padding: 0 !important; 
+    scrollbar-width: thin;
+}
 
-/* 🌟 (已修復！) 這裡的錯字已被徹底清除，不再阻擋後面的樣式！ */
-#new-comment-input { background: rgba(255, 255, 255, 0.9) !important; border: 1px solid #cce5ff !important; box-shadow: inset 0 2px 5px rgba(0,0,0,0.03) !important; transition: 0.3s; }
-#new-comment-input:focus { border-color: #4da6ff !important; box-shadow: 0 0 12px rgba(77, 166, 255, 0.4) !important; background: #ffffff !important; }
+.ocean-detail-card::-webkit-scrollbar { width: 6px; }
+.ocean-detail-card::-webkit-scrollbar-thumb { background: #cce0f5; border-radius: 10px; }
 
-#detail-view .btn-submit { background: linear-gradient(45deg, #4da6ff, #0073e6) !important; border: none !important; box-shadow: 0 4px 15px rgba(77, 166, 255, 0.4) !important; }
-#detail-view .btn-submit:hover { transform: translateY(-2px) scale(1.05) !important; box-shadow: 0 6px 20px rgba(77, 166, 255, 0.6) !important; }
-@keyframes text-shine { to { background-position: 200% center; } }
-#detail-view > div:first-child { background: linear-gradient(135deg, #fffae3 0%, #fff099 100%) !important; padding: 10px 25px !important; border-radius: 2px 12px 2px 12px !important; box-shadow: 2px 5px 10px rgba(0, 0, 0, 0.12), inset -2px -3px 6px rgba(210, 190, 100, 0.3) !important; position: absolute !important; top: 25px !important; left: 25px !important; transform: rotate(-6deg) !important; transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1) !important; border: 1px solid #ebd874 !important; z-index: 200 !important; margin-bottom: 0 !important; }
-#detail-view > div:first-child * { color: #6b4e31 !important; }
-#detail-view > div:first-child::before { content: ""; position: absolute; top: -10px; left: 50%; transform: translateX(-50%) rotate(4deg); width: 40px; height: 14px; background: rgba(255, 255, 255, 0.6); border: 1px solid rgba(255, 255, 255, 0.3); box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08); border-radius: 1px; backdrop-filter: blur(2px); }
-#detail-view > div:first-child:hover { transform: rotate(-2deg) scale(1.08) translateY(-3px) !important; box-shadow: 4px 8px 15px rgba(0, 0, 0, 0.18) !important; }
+/* 頂部導覽列 */
+.detail-nav-bar {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    padding: 20px 30px 15px 30px !important;
+    border-bottom: 1px solid #f0f4f8 !important;
+    background: rgba(255, 255, 255, 0.95) !important;
+    position: sticky !important;
+    top: 0 !important;
+    z-index: 10 !important;
+    backdrop-filter: blur(10px) !important;
+}
+
+.back-action {
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+    cursor: pointer !important;
+    color: #0055a5 !important;
+    font-weight: bold !important;
+    font-size: 1.1rem !important;
+    transition: 0.2s !important;
+}
+
+.back-action:hover {
+    color: #0073e6 !important;
+    transform: translateX(-3px) !important;
+}
+
+.board-badge {
+    display: flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+    background: #f0f7ff !important;
+    color: #0055a5 !important;
+    padding: 6px 14px !important;
+    border-radius: 20px !important;
+    font-size: 0.9rem !important;
+    font-weight: bold !important;
+}
+
+.board-icon {
+    width: 18px !important;
+    height: 18px !important;
+}
+
+/* 標題與作者 */
+.detail-title {
+    font-size: 1.8rem !important;
+    font-weight: 900 !important;
+    color: #111 !important;
+    margin: 25px 30px 15px 30px !important;
+    line-height: 1.4 !important;
+}
+
+.detail-author-box {
+    display: flex !important;
+    align-items: center !important;
+    gap: 12px !important;
+    margin: 0 30px 25px 30px !important;
+}
+
+.detail-avatar {
+    width: 44px !important;
+    height: 44px !important;
+    border-radius: 50% !important;
+    background: #f0f4f8 !important;
+    padding: 2px !important;
+    border: 2px solid #e0e6ed !important;
+    object-fit: cover !important;
+}
+
+.detail-author-name {
+    font-weight: bold !important;
+    color: #333 !important;
+    font-size: 1.05rem !important;
+}
+
+.detail-post-time {
+    font-size: 0.85rem !important;
+    color: #8899aa !important;
+    margin-top: 2px !important;
+}
+
+/* 正文內容 */
+.detail-content {
+    font-size: 1.1rem !important;
+    line-height: 1.8 !important;
+    color: #222 !important;
+    white-space: pre-wrap !important;
+    margin: 0 30px 40px 30px !important;
+    word-break: break-word !important;
+}
+
+/* 留言區塊外層 */
+.detail-comments-wrapper {
+    background: #f8fafc !important; 
+    padding: 30px !important;
+    border-top: 1px solid #eef2f6 !important;
+}
+
+.comments-title {
+    font-size: 1.1rem !important;
+    color: #333 !important;
+    margin-top: 0 !important;
+    margin-bottom: 20px !important;
+    font-weight: bold !important;
+}
+
+/* 閱讀模式的手機版微調 */
+@media (max-width: 768px) {
+    .ocean-detail-card {
+        top: 0 !important;
+        max-height: 100vh !important;
+        border-radius: 0 !important;
+    }
+    .detail-nav-bar { padding: 15px 20px !important; }
+    .detail-title { margin: 20px 20px 15px 20px !important; font-size: 1.5rem !important; }
+    .detail-author-box { margin: 0 20px 20px 20px !important; }
+    .detail-content { margin: 0 20px 30px 20px !important; font-size: 1.05rem !important; }
+    .detail-comments-wrapper { padding: 25px 20px !important; }
+}
 
 
 /* =========================================
@@ -309,8 +443,8 @@ body, html { height: 100vh !important; overflow: hidden !important; background-c
    ========================================= */
 .comment-action-bar {
     display: flex !important;
-    flex-direction: row !important; /* 強制橫向排好 */
-    flex-wrap: nowrap !important; /* 絕對不准換行！ */
+    flex-direction: row !important; 
+    flex-wrap: nowrap !important; 
     align-items: center !important;
     gap: 12px !important;
     width: 100% !important;
@@ -322,12 +456,12 @@ body, html { height: 100vh !important; overflow: hidden !important; background-c
 
 /* ⭐ 收藏按鈕 (星星) */
 .comment-action-bar .save-btn {
-    flex: 0 0 auto !important; /* 大小鎖死，絕對不變形 */
+    flex: 0 0 auto !important; 
     width: 44px !important;
     height: 44px !important;
     border-radius: 50% !important;
     border: none !important;
-    background: #f0f4f8 !important; /* 預設有質感的淺灰底 */
+    background: #f0f4f8 !important; 
     font-size: 1.3rem !important;
     display: flex !important;
     justify-content: center !important;
@@ -335,19 +469,17 @@ body, html { height: 100vh !important; overflow: hidden !important; background-c
     cursor: pointer !important;
     transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1) !important;
     box-shadow: inset 0 2px 4px rgba(0,0,0,0.03) !important;
-    filter: grayscale(100%) opacity(0.4) !important; /* 預設暗灰色 */
+    filter: grayscale(100%) opacity(0.4) !important; 
 }
 
-/* 星星 Hover 效果 */
 .comment-action-bar .save-btn:hover {
     background: #e4eaf0 !important;
     filter: grayscale(30%) opacity(0.8) !important;
     transform: scale(1.05) !important;
 }
 
-/* ⭐ 當點擊收藏時 (啟動 active 狀態) */
 .comment-action-bar .save-btn.active {
-    background: #fff8e1 !important; /* 溫暖的亮黃底 */
+    background: #fff8e1 !important; 
     filter: grayscale(0%) opacity(1) !important;
     box-shadow: 0 4px 10px rgba(255, 193, 7, 0.3), inset 0 0 0 2px #ffc107 !important;
     transform: scale(1.1) rotate(-10deg) !important;
@@ -355,13 +487,13 @@ body, html { height: 100vh !important; overflow: hidden !important; background-c
 
 /* 💬 高質感留言輸入框 */
 .comment-action-bar .comment-input {
-    flex: 1 1 auto !important; /* 乖乖填滿中間剩餘空間 */
-    min-width: 0 !important; /* 防止文字太多撐破版面 */
+    flex: 1 1 auto !important; 
+    min-width: 0 !important; 
     height: 44px !important;
     border-radius: 22px !important;
     padding: 0 20px !important;
-    border: 1px solid #dce4ec !important; /* 溫和的邊框 */
-    background: #f9fbfd !important;
+    border: 1px solid #dce4ec !important; 
+    background: #ffffff !important;
     font-size: 0.95rem !important;
     color: #333 !important;
     box-sizing: border-box !important;
@@ -369,12 +501,11 @@ body, html { height: 100vh !important; overflow: hidden !important; background-c
     box-shadow: inset 0 2px 5px rgba(0,0,0,0.02) !important;
 }
 
-/* 輸入框聚焦時發光 */
 .comment-action-bar .comment-input:focus {
     background: #ffffff !important;
     border-color: #4da6ff !important;
     outline: none !important;
-    box-shadow: 0 0 0 4px rgba(77, 166, 255, 0.15) !important; /* 柔和的外圍發光 */
+    box-shadow: 0 0 0 4px rgba(77, 166, 255, 0.15) !important; 
 }
 
 .comment-action-bar .comment-input::placeholder {
@@ -387,7 +518,7 @@ body, html { height: 100vh !important; overflow: hidden !important; background-c
     height: 44px !important;
     padding: 0 24px !important;
     border-radius: 22px !important;
-    background: linear-gradient(45deg, #4da6ff, #0073e6) !important; /* 超美漸層藍 */
+    background: linear-gradient(45deg, #4da6ff, #0073e6) !important; 
     color: white !important;
     font-weight: bold !important;
     font-size: 1rem !important;
@@ -402,6 +533,7 @@ body, html { height: 100vh !important; overflow: hidden !important; background-c
     box-shadow: 0 6px 15px rgba(0, 115, 230, 0.4) !important;
     background: linear-gradient(45deg, #3399ff, #0066cc) !important;
 }
+
 /* =========================================
    🌊 發文視窗 (Post Modal) 全新深海玻璃美化
    ========================================= */
@@ -417,7 +549,6 @@ body, html { height: 100vh !important; overflow: hidden !important; background-c
     position: relative;
 }
 
-/* 關閉按鈕 */
 .ocean-post-modal .close-btn {
     position: absolute;
     top: 20px;
@@ -433,7 +564,6 @@ body, html { height: 100vh !important; overflow: hidden !important; background-c
     transform: scale(1.15) rotate(90deg);
 }
 
-/* 視窗標題區 */
 .post-modal-header {
     text-align: center;
     margin-bottom: 25px;
@@ -452,7 +582,6 @@ body, html { height: 100vh !important; overflow: hidden !important; background-c
     font-size: 0.95rem !important;
 }
 
-/* 表單排版 */
 .ocean-post-form {
     display: flex;
     flex-direction: column;
@@ -464,7 +593,6 @@ body, html { height: 100vh !important; overflow: hidden !important; background-c
     gap: 12px;
 }
 
-/* 高質感輸入框 & 下拉選單 */
 .ocean-input {
     width: 100% !important;
     background: #f4f7fa !important;
@@ -490,7 +618,6 @@ body, html { height: 100vh !important; overflow: hidden !important; background-c
     color: #aeb9c3 !important;
 }
 
-/* 內容大文字框 */
 .ocean-textarea {
     height: 180px !important;
     resize: none !important;
@@ -498,7 +625,6 @@ body, html { height: 100vh !important; overflow: hidden !important; background-c
     border-radius: 20px !important;
 }
 
-/* 🚀 超美漸層發送按鈕 */
 .ocean-submit-btn {
     margin-top: 10px !important;
     background: linear-gradient(45deg, #4da6ff, #0073e6) !important;
