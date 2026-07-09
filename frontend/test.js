@@ -4,17 +4,14 @@ const API_BASE_URL = "https://163.17.135.120";
 let posts = [];
 let currentKeyword = '';
 
-// 👇 這裡要補上這兩行，分頁功能才知道現在在哪一頁 👇
 let currentPage = 1; 
-const POSTS_PER_PAGE = 5; // 設定每頁顯示 5 篇文章
-// 🟢 安全讀取：如果有紀錄就讀取，沒紀錄預設就在「綜合閒聊」
+const POSTS_PER_PAGE = 5; 
 let currentBoard = sessionStorage.getItem('savedBoard') || '綜合閒聊';
 let savedCatId = sessionStorage.getItem('savedCategoryId');
-let currentCategoryId = savedCatId !== null ? Number(savedCatId) : 1; // 預設 1 是綜合閒聊
+let currentCategoryId = savedCatId !== null ? Number(savedCatId) : 1; 
 
-let currentView = 'all'; // 🔴 紀錄狀態：'all' (一般), 'saved' (收藏頁), 'mine' (我的文章頁)
+let currentView = 'all'; 
 
-// 看板名稱 -> 後端 categoryId 對照表
 const BOARD_CATEGORY_MAP = {
     '🔥 綜合閒聊': 1,
     '💻 程式開發': 2,
@@ -22,16 +19,12 @@ const BOARD_CATEGORY_MAP = {
     '🎮 遊戲專區': 4,
 };
 
-// 🌊 向後端抓取文章 API (🟢 訪客友善版)
 async function fetchBottles() {
     const token = localStorage.getItem("authToken");
-
-    // 1. 移除原本的強制阻擋，讓訪客也能繼續往下走！
 
     try {
         let endpointUrl = `${API_BASE_URL}/bottles/random`;
         
-        // 2. 訪客不能看「我的文章」或「收藏文章」，直接回傳空陣列
         if (currentView === 'mine') {
             if (!token) { renderPosts([]); return; }
             endpointUrl = `${API_BASE_URL}/bottles/mybottles`;
@@ -39,14 +32,12 @@ async function fetchBottles() {
             if (!token) { renderPosts([]); return; }
             endpointUrl = `${API_BASE_URL}/bottles/saved`;
         } else if (currentCategoryId !== null) {
-            // 傳遞看板分類 ID 給後端
             endpointUrl = `${API_BASE_URL}/bottles/random?categoryId=${currentCategoryId}`;
         }
 
         let likedBottleIds = [];
         let savedBottleIds = [];
         
-        // 3. 只有「有登入」的人，才去抓按讚跟收藏的清單
         if (token) {
             try {
                 const likedRes = await fetch(`${API_BASE_URL}/bottles/liked`, { method: 'GET', headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' } });
@@ -67,7 +58,6 @@ async function fetchBottles() {
             } catch (e) { console.log('偷偷抓取收藏清單失敗'); }
         }
 
-        // 4. 設定 Header：如果有 Token 才帶上 Authorization
         const headers = {
             'Content-Type': 'application/json',
             'ngrok-skip-browser-warning': 'true'
@@ -97,7 +87,6 @@ async function fetchBottles() {
 
             posts = postsArray.map(rawItem => {
                 const item = rawItem.bottle || rawItem.Bottle || rawItem;
-
                 const safeId = String(item.bottle_id || item.id || item.bottleId || rawItem.bottle_id || `temp_${Math.random().toString(36).substr(2, 9)}`);
 
                 let isActuallyLiked = likedBottleIds.includes(safeId) || Boolean(item.is_liked || item.isLiked || rawItem.is_liked);
@@ -108,7 +97,6 @@ async function fetchBottles() {
                 let totalLikes = parseInt(item.like_count || item.likeCount || item.likes || item.view_count || rawItem.like_count || 0, 10);
                 if (isActuallyLiked && totalLikes === 0) totalLikes = 1;
 
-                // 🟢 終極名字解析
                 let authorName = "用戶";
                 if (typeof item.author === 'string') authorName = item.author;
                 else if (item.author?.name) authorName = item.author.name;
@@ -198,30 +186,24 @@ function escapeHTML(str) {
     }[tag]));
 }
 
-// ====================================================
-// 替換區塊 1：渲染文章 (只負責加上「切蛋糕」的分頁邏輯)
-// ====================================================
 function renderPosts(data = posts) {
     const container = document.getElementById('post-container');
     const pageContainer = document.getElementById('pagination-container');
     if (!container) return;
 
-    // 🟢 如果資料是空的，顯示提示訊息並清空分頁按鈕
     if (!data || data.length === 0) {
         container.innerHTML = `<h3 style="text-align:center; color:#888; margin-top:40px;">目前沒有漂流瓶，快來拋出第一個吧！🌊</h3>`;
         if (pageContainer) pageContainer.innerHTML = '';
         return;
     }
 
-    // 🔪 核心分頁邏輯：計算頁數與切出這一頁要顯示的資料
     const totalPages = Math.ceil(data.length / POSTS_PER_PAGE);
     if (currentPage > totalPages) currentPage = totalPages || 1;
 
     const startIndex = (currentPage - 1) * POSTS_PER_PAGE;
     const endIndex = startIndex + POSTS_PER_PAGE;
-    const pageData = data.slice(startIndex, endIndex); // 👈 只取目前頁面的文章
+    const pageData = data.slice(startIndex, endIndex);
 
-    // 🖨️ 印出「這頁」的漂流瓶 (使用 pageData)
     container.innerHTML = pageData.map(p => `
         <div class="post-card" onclick="openPostDetail('${escapeHTML(String(p.id))}')">
             <div style="display:flex; justify-content:space-between; align-items:center;">
@@ -243,13 +225,9 @@ function renderPosts(data = posts) {
         </div>
     `).join('');
 
-    // 👇 呼叫你寫在最底下的分頁按鈕函數
     renderPagination(totalPages, data);
 }
 
-// ====================================================
-// 替換區塊 2：篩選文章 (只負責暫停洗牌魔法，讓分頁能算所有文章)
-// ====================================================
 function applyFilters() {
     let res = posts;
 
@@ -269,19 +247,9 @@ function applyFilters() {
         );
     }
 
-    // ✨ 這裡幫你把「洗牌限制 6 篇」的魔法先註解掉。
-    // 因為如果不註解掉，文章總數永遠只會剩 6 篇，分頁按鈕最多就只能產生 2 頁喔！
-    /*
-    if (res.length > 6) {
-        res = res.sort(() => 0.5 - Math.random()).slice(0, 6);
-    }
-    */
-
     renderPosts(res);
 }
-// ----------------------------------------------------
-// 🔍 搜尋歷史紀錄功能
-// ----------------------------------------------------
+
 function getSearchHistory() {
     return JSON.parse(localStorage.getItem('searchHistory') || '[]');
 }
@@ -351,9 +319,6 @@ window.removeSingleHistory = function (e, keyword) {
     renderSearchHistory();
 }
 
-// ----------------------------------------------------
-// 📝 留言系統與文章切換功能 
-// ----------------------------------------------------
 let currentOpenPostId = null;
 
 function getComments(postId) {
@@ -402,6 +367,7 @@ window.toggleCommentLike = function (postId, index) {
     }
 }
 
+// ✨ 完美修復的留言排版函數 (不再貼著邊界了！)
 function renderComments(postId) {
     const comments = getComments(postId);
     const lists = document.querySelectorAll('#detail-comments-list');
@@ -420,7 +386,6 @@ function renderComments(postId) {
             const likesCount = c.likes || 0;
             const isLiked = c.liked || false;
 
-            // ✨ 全新設計：給予充足的 padding (20px 24px)，並改成獨立圓角卡片
             html += `
                 <div style="background: #ffffff; padding: 20px 24px; border-radius: 16px; margin-bottom: 16px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03); border: 1px solid #edf2f7;">
                     <div style="display: flex; justify-content: space-between; margin-bottom: 12px; align-items: center;">
@@ -476,7 +441,6 @@ window.openPostDetail = function (id) {
         feedView.style.display = 'none';
         detailView.style.display = 'block';
         
-        // ✨ 終極強制隱藏法：打破 !important 護盾
         if(sidebar) sidebar.style.setProperty('display', 'none', 'important');
         if(oceanBtn) oceanBtn.style.setProperty('display', 'none', 'important');
         
@@ -494,7 +458,6 @@ window.closePostDetail = function () {
         detailView.style.display = 'none';
         feedView.style.display = 'block';
         
-        // ✨ 關閉信件時，強制把它們叫回來
         if(sidebar) sidebar.style.setProperty('display', 'block', 'important');
         if(oceanBtn) oceanBtn.style.setProperty('display', 'block', 'important');
         
@@ -569,7 +532,7 @@ window.toggleAction = async function (id, actionType, e) {
 
     if (!token) {
         alert("請先登入才能操作喔！");
-        window.location.href = 'login.html'; // 貼心導向登入頁面
+        window.location.href = 'login.html'; 
         return;
     }
 
@@ -654,6 +617,7 @@ window.deleteMyBottle = async function (id, e) {
         alert("伺服器連線失敗，請稍後再試 😢");
     }
 }
+
 function setupAuth() {
     const userProfile = document.getElementById('user-profile');
     const loginTrigger = document.getElementById('login-trigger');
@@ -746,7 +710,7 @@ function setupNewPost() {
             const token = localStorage.getItem("authToken");
             if (!token) {
                 alert("請先登入才能發文喔！");
-                window.location.href = "login.html"; // 直接導向登入頁
+                window.location.href = "login.html"; 
                 return;
             }
             document.getElementById('post-modal').style.display = 'block';
@@ -786,8 +750,6 @@ function setupNewPost() {
                 isAnonymous: isAnonymous,
                 category_id: categoryPayload
             };
-
-            console.log("=== 準備送出的發文資料 ===", postData);
 
             try {
                 const response = await fetch(`${API_BASE_URL}/bottles`, {
@@ -838,7 +800,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     setupAuth();
     setupNewPost();
-    fetchBottles(); // 🟢 訪客模式：現在沒登入也會去抓文章了！
+    fetchBottles(); 
 
     const searchInput = document.getElementById('main-search-input');
     const historyBox = document.getElementById('search-history-dropdown');
@@ -876,6 +838,7 @@ document.addEventListener('DOMContentLoaded', () => {
         };
     }
 
+    // ✨ 完美修復的留言框綁定 (解決 class 消失的問題，以及過濾掉星星按鈕)
     const commentInputs = document.querySelectorAll('#new-comment-input');
     commentInputs.forEach(input => {
         input.setAttribute('name', 'user_comment_history');
@@ -885,9 +848,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (wrapper && wrapper.tagName.toLowerCase() === 'div') {
             const form = document.createElement('form');
             form.style.cssText = wrapper.style.cssText;
-            
-            // 🔥 關鍵修復 1：把 class 名字完整複製過來，這樣 CSS 才會生效！
-            form.className = wrapper.className; 
+            form.className = wrapper.className; // 🔥 確保 css class 有帶過來
 
             form.onsubmit = (e) => {
                 e.preventDefault();
@@ -899,11 +860,11 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             wrapper.parentNode.replaceChild(form, wrapper);
 
-            // 🔥 關鍵修復 2：精準抓取「送出按鈕」，放過星星按鈕！
-            const sendBtn = form.querySelector('.send-btn');
-            if (sendBtn) {
-                sendBtn.type = 'submit';
-                sendBtn.removeAttribute('onclick');
+            // 🔥 指定只抓 .send-btn，不要抓到星星
+            const btn = form.querySelector('.send-btn');
+            if (btn) {
+                btn.type = 'submit';
+                btn.removeAttribute('onclick');
             }
         }
     });
@@ -1009,33 +970,29 @@ document.addEventListener('change', (e) => {
         }
     }
 });
-// 呼喚海流：專屬寶寶的換瓶子特效
+
 window.callOceanCurrent = function() {
     const bottles = document.querySelectorAll('.post-card');
     
-    // 1. 讓現有的瓶子通通被海流沖走
     bottles.forEach((bottle, index) => {
         setTimeout(() => {
             bottle.classList.add('swept-away');
         }, index * 100); 
     });
 
-    // 2. 等動畫播完後，換上新瓶子
     setTimeout(() => {
         fetchBottles(); 
     }, 1000);
 }
-// 產生分頁按鈕的函數
+
 function renderPagination(totalPages, dataArray) {
     const pageContainer = document.getElementById('pagination-container');
     if (!pageContainer) return;
     
-    pageContainer.innerHTML = ''; // 清空舊按鈕
+    pageContainer.innerHTML = ''; 
 
-    // 如果資料太少只有 1 頁，就不顯示分頁按鈕
     if (totalPages <= 1) return;
 
-    // ◀ 上一頁按鈕
     const prevBtn = document.createElement('button');
     prevBtn.className = 'page-btn';
     prevBtn.innerText = '◀';
@@ -1043,11 +1000,10 @@ function renderPagination(totalPages, dataArray) {
     prevBtn.onclick = () => {
         currentPage--;
         renderPosts(dataArray);
-        window.scrollTo({ top: 0, behavior: 'smooth' }); // 翻頁後自動捲回頂部
+        window.scrollTo({ top: 0, behavior: 'smooth' }); 
     };
     pageContainer.appendChild(prevBtn);
 
-    // 數字頁碼按鈕 (1, 2, 3...)
     for (let i = 1; i <= totalPages; i++) {
         const pageBtn = document.createElement('button');
         pageBtn.className = `page-btn ${i === currentPage ? 'active' : ''}`;
@@ -1060,7 +1016,6 @@ function renderPagination(totalPages, dataArray) {
         pageContainer.appendChild(pageBtn);
     }
 
-    // ▶ 下一頁按鈕
     const nextBtn = document.createElement('button');
     nextBtn.className = 'page-btn';
     nextBtn.innerText = '▶';
@@ -1071,6 +1026,4 @@ function renderPagination(totalPages, dataArray) {
         window.scrollTo({ top: 0, behavior: 'smooth' });
     };
     pageContainer.appendChild(nextBtn);
-    
-    // ❌ 剛才這裡多了一行呼叫自己的程式碼，我已經幫你刪除了！
 }
