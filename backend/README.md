@@ -122,3 +122,15 @@ Headers要給 x-api-key (跟我拿)
 管理員刪除文章 DELETE 給Token /admin/bottles/:bottleId/delete (:後是他的id，例如給id 11文章刪除，/admin/bottles/11/delete)
 
 
+類別新增 POST 給Token /category/create
+{
+    "name": ""
+}
+
+會員資料更改 PATCH 給Token /auth/update-data
+{
+  "name": "",           
+  "birthday": "",  
+  "blood_type": "",         
+  "bio": "" 
+}

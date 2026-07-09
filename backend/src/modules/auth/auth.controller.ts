@@ -1,5 +1,5 @@
 import type { Request, Response } from "express";
-import { createMember, loginMember, forgotPassword, resetPassword } from "./auth.service.js";
+import { createMember, loginMember, forgotPassword, resetPassword, updateMember } from "./auth.service.js";
 import { countHelper } from "../../lib/countHelper.js";
 import { verifyCaptcha } from "../../lib/captchaHelper.js";
 import prisma from "../../lib/prisma.js";
@@ -52,7 +52,6 @@ export class AuthController {
             });
         }
     }
-
     async logout(req: Request, res: Response) {
         try {
             const token = req.headers.authorization?.split(" ")[1] as string;
@@ -69,7 +68,6 @@ export class AuthController {
             return res.status(500).json({ message: "登出過程出了一點小意外" });
         }
     }
-
     async forgotPassword(req: Request, res: Response) {
         try {
             const { email } = req.body;
@@ -87,7 +85,6 @@ export class AuthController {
             return res.status(500).json({ message: '伺服器發生錯誤，請稍後再試' });
         }
     }
-
     async resetPassword(req: Request, res: Response) {
         try {
             const { token, newPassword } = req.body;
@@ -106,8 +103,34 @@ export class AuthController {
             return res.status(500).json({ message: '伺服器發生錯誤，請稍後再試' });
         }
     }
+    async updateMemberData(req: Request, res: Response) {
+        try {
+            const memberId = (req as any).user?.member_id;
+
+            if (!memberId) {
+                return res.status(400).json({ message: "未授權，請先登入" });
+            }
+            const { name, birthday, blood_type, bio } = req.body;
+
+            const updatedMember = await updateMember(memberId, {
+                name,
+                birthday,
+                blood_type,
+                bio
+            });
+            res.status(200).json({ message: "會員資料更新成功", data: updatedMember });
+
+        } catch (error: any) {
+            if (error.message === "生日格式錯誤，請使用有效的日期格式!") {
+                return res.status(400).json({ message: error.message });
+            }
+            if (error.message === "找不到該會員，無法更新資料。") {
+                return res.status(404).json({ message: error.message });
+            }
+
+            console.error('updateMemberData Controller 錯誤:', error);
+            return res.status(500).json({ message: '伺服器發生錯誤，請稍後再試', data: String(error) });
+        }
+    }
 }
-
-
-
 export const authController = new AuthController();
