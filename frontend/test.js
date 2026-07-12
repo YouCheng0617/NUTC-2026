@@ -4,27 +4,35 @@ const API_BASE_URL = "https://163.17.135.120";
 let posts = [];
 let currentKeyword = '';
 
+// 👇 分頁設定與狀態紀錄
 let currentPage = 1; 
-const POSTS_PER_PAGE = 5; 
+const POSTS_PER_PAGE = 5; // 設定每頁顯示 5 篇文章
+
+// 🟢 安全讀取：如果有紀錄就讀取，沒紀錄預設就在「綜合閒聊」 (或你的預設看板)
 let currentBoard = sessionStorage.getItem('savedBoard') || '綜合閒聊';
 let savedCatId = sessionStorage.getItem('savedCategoryId');
 let currentCategoryId = savedCatId !== null ? Number(savedCatId) : 1; 
 
+// 🔴 紀錄狀態：'all' (一般), 'saved' (收藏頁), 'mine' (我的文章頁)
 let currentView = 'all'; 
 
+// 🌟 看板名稱 -> 後端 categoryId 對照表 (已嚴格對齊 HTML 裡的空格與表情符號！)
 const BOARD_CATEGORY_MAP = {
-    '🔥 綜合閒聊': 1,
-    '💻 程式開發': 2,
-    '🍜 美食特搜': 3,
-    '🎮 遊戲專區': 4,
+    '😡 極度憤怒中': 1,
+    '🤫 沒人懂的秘密': 2,
+    '💔 破碎的碎片': 3,
+    '😑 極度厭世/躺平': 4,
+    '😁 開心的事': 5,
 };
 
+// 🌊 向後端抓取文章 API (🟢 訪客友善版)
 async function fetchBottles() {
     const token = localStorage.getItem("authToken");
 
     try {
         let endpointUrl = `${API_BASE_URL}/bottles/random`;
         
+        // 訪客不能看「我的文章」或「收藏文章」，直接回傳空陣列
         if (currentView === 'mine') {
             if (!token) { renderPosts([]); return; }
             endpointUrl = `${API_BASE_URL}/bottles/mybottles`;
@@ -83,6 +91,10 @@ async function fetchBottles() {
                 postsArray = backendData.data;
             } else if (backendData.data?.result && Array.isArray(backendData.data.result)) {
                 postsArray = backendData.data.result;
+            } else if (backendData.mybottles && Array.isArray(backendData.mybottles)) { 
+                postsArray = backendData.mybottles;
+            } else if (backendData.result && Array.isArray(backendData.result)) { 
+                postsArray = backendData.result;
             }
 
             posts = postsArray.map(rawItem => {
@@ -130,7 +142,8 @@ async function fetchBottles() {
                     rawBoard = rawItem.categories[0].category?.name;
                 }
 
-                let finalBoard = "🔥 綜合閒聊";
+                // 🌟 終極五大海域辨識邏輯
+                let finalBoard = "😑 極度厭世/躺平";
                 let cId = item.category_id || rawItem.category_id || item.categoryId;
 
                 if (!rawBoard && item.categories && item.categories.length > 0) {
@@ -138,14 +151,21 @@ async function fetchBottles() {
                 }
 
                 if (rawBoard) {
-                    if (rawBoard.includes("程式")) finalBoard = "💻 程式開發";
-                    else if (rawBoard.includes("美食")) finalBoard = "🍜 美食特搜";
-                    else if (rawBoard.includes("遊戲")) finalBoard = "🎮 遊戲專區";
-                    else if (rawBoard.includes("閒聊")) finalBoard = "🔥 綜合閒聊";
+                    if (rawBoard.includes("憤怒")) finalBoard = "😡 極度憤怒中";
+                    else if (rawBoard.includes("秘密")) finalBoard = "🤫 沒人懂的秘密";
+                    else if (rawBoard.includes("破碎")) finalBoard = "💔 破碎的碎片";
+                    else if (rawBoard.includes("厭世") || rawBoard.includes("躺平")) finalBoard = "😑 極度厭世/躺平";
+                    else if (rawBoard.includes("開心")) finalBoard = "😁 開心的事"; 
                     else finalBoard = rawBoard;
                 }
                 else if (cId !== undefined && cId !== null) {
-                    const idToBoard = { 1: "🔥 綜合閒聊", 2: "💻 程式開發", 3: "🍜 美食特搜", 4: "🎮 遊戲專區" };
+                    const idToBoard = { 
+                        1: "😡 極度憤怒中", 
+                        2: "🤫 沒人懂的秘密", 
+                        3: "💔 破碎的碎片", 
+                        4: "😑 極度厭世/躺平",
+                        5: "😁 開心的事" 
+                    };
                     if (Array.isArray(cId) && cId.length > 0) {
                         finalBoard = idToBoard[cId[0]] || finalBoard;
                     } else if (!Array.isArray(cId)) {
@@ -167,43 +187,50 @@ async function fetchBottles() {
             });
 
             applyFilters();
-        } else {
-            console.error("獲取文章失敗，狀態碼:", response.status);
-        }
-    } catch (error) {
-        console.error("連線錯誤:", error);
+      } else if (response.status === 404) {
+        // 🔥 新增這段：優雅處理 404 空海域狀態
+        console.log(`🌊 該海域 (Category ${currentCategoryId}) 目前還沒有漂流瓶`);
+        posts = []; 
+        applyFilters(); 
+    } else {
+        console.error("獲取文章失敗，狀態碼:", response.status);
+        posts = []; 
+        applyFilters(); 
     }
-}
-
+} catch (error) {     // 👈 你不小心刪到這裡了！(捕捉錯誤的區塊)
+    console.error("連線錯誤:", error);
+}                    
+}                    
 function escapeHTML(str) {
     if (typeof str !== 'string') return str;
     return str.replace(/[&<>'"]/g, tag => ({
-        '&': '&amp;',
-        '<': '&lt;',
-        '>': '&gt;',
-        "'": '&#39;',
-        '"': '&quot;'
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;'
     }[tag]));
 }
 
+// ==========================================
+// 🖨️ 渲染文章與切換分頁核心
+// ==========================================
 function renderPosts(data = posts) {
     const container = document.getElementById('post-container');
     const pageContainer = document.getElementById('pagination-container');
     if (!container) return;
 
+    // 🌟 沒文章時：使用「發光白字」提示，不會再被夜間深海吃掉！
     if (!data || data.length === 0) {
-        container.innerHTML = `<h3 style="text-align:center; color:#888; margin-top:40px;">目前沒有漂流瓶，快來拋出第一個吧！🌊</h3>`;
+        container.innerHTML = `<h3 style="text-align:center; color:#ffffff; text-shadow: 0 0 10px rgba(77, 166, 255, 0.8); margin-top:100px; font-size: 1.4rem;">目前這個海域空空的，快來拋出你的第一個漂流瓶吧！🌊</h3>`;
         if (pageContainer) pageContainer.innerHTML = '';
         return;
     }
 
+    // 🔪 核心分頁邏輯：計算頁數與切出這一頁要顯示的資料
     const totalPages = Math.ceil(data.length / POSTS_PER_PAGE);
     if (currentPage > totalPages) currentPage = totalPages || 1;
 
     const startIndex = (currentPage - 1) * POSTS_PER_PAGE;
     const endIndex = startIndex + POSTS_PER_PAGE;
     const pageData = data.slice(startIndex, endIndex);
-
+    
     container.innerHTML = pageData.map(p => `
         <div class="post-card" onclick="openPostDetail('${escapeHTML(String(p.id))}')">
             <div style="display:flex; justify-content:space-between; align-items:center;">
@@ -247,9 +274,13 @@ function applyFilters() {
         );
     }
 
+    // ❌ 已經把 slice(0, 6) 的洗牌魔法移除，分頁才能完整顯示所有筆數！
     renderPosts(res);
 }
 
+// ----------------------------------------------------
+// 🔍 搜尋歷史紀錄功能
+// ----------------------------------------------------
 function getSearchHistory() {
     return JSON.parse(localStorage.getItem('searchHistory') || '[]');
 }
@@ -260,7 +291,6 @@ function saveSearchHistory(keyword) {
     history = history.filter(item => item !== keyword);
     history.unshift(keyword);
     if (history.length > 5) history.pop();
-
     localStorage.setItem('searchHistory', JSON.stringify(history));
 }
 
@@ -271,7 +301,7 @@ function renderSearchHistory() {
 
     let history = getSearchHistory();
     const currentText = searchInput.value.trim().toLowerCase();
-
+    
     if (currentText !== '') {
         history = history.filter(item => item.toLowerCase().includes(currentText));
     }
@@ -284,41 +314,37 @@ function renderSearchHistory() {
     let html = '';
     history.forEach(item => {
         html += `
-            <div class="history-item" 
-                 onmousedown="applyHistorySearch(event, '${item}')">
+            <div class="history-item" onmousedown="applyHistorySearch(event, '${item}')">
                 <span>${item}</span>
                 <span class="delete-history-btn" onmousedown="removeSingleHistory(event, '${item}')">&times;</span>
             </div>
         `;
     });
-
+    
     historyBox.innerHTML = html;
     historyBox.style.display = 'block';
 }
 
 window.applyHistorySearch = function (e, keyword) {
     if (e) e.preventDefault();
-
     const searchInput = document.getElementById('main-search-input');
     if (searchInput) searchInput.value = keyword;
-
     currentKeyword = keyword.toLowerCase();
     applyFilters();
     document.getElementById('search-history-dropdown').style.display = 'none';
 }
 
 window.removeSingleHistory = function (e, keyword) {
-    if (e) {
-        e.preventDefault();
-        e.stopPropagation();
-    }
-
+    if (e) { e.preventDefault(); e.stopPropagation(); }
     let history = getSearchHistory();
     history = history.filter(item => item !== keyword);
     localStorage.setItem('searchHistory', JSON.stringify(history));
     renderSearchHistory();
 }
 
+// ----------------------------------------------------
+// 📝 留言系統與文章切換功能 
+// ----------------------------------------------------
 let currentOpenPostId = null;
 
 function getComments(postId) {
@@ -327,9 +353,7 @@ function getComments(postId) {
         let allComments = JSON.parse(localStorage.getItem('postComments') || '{}');
         if (typeof allComments !== 'object' || Array.isArray(allComments)) allComments = {};
         return allComments[postId] || [];
-    } catch (e) {
-        return [];
-    }
+    } catch (e) { return []; }
 }
 
 function saveComment(postId, commentObj) {
@@ -340,16 +364,13 @@ function saveComment(postId, commentObj) {
         if (!allComments[postId]) allComments[postId] = [];
         allComments[postId].push(commentObj);
         localStorage.setItem('postComments', JSON.stringify(allComments));
-    } catch (e) {
-        console.error("儲存留言時發生錯誤", e);
-    }
+    } catch (e) { console.error("儲存留言時發生錯誤", e); }
 }
 
 window.toggleCommentLike = function (postId, index) {
     try {
         let allComments = JSON.parse(localStorage.getItem('postComments') || '{}');
         if (!allComments[postId] || !allComments[postId][index]) return;
-
         let c = allComments[postId][index];
 
         if (c.liked) {
@@ -359,23 +380,18 @@ window.toggleCommentLike = function (postId, index) {
             c.likes = (c.likes || 0) + 1;
             c.liked = true;
         }
-
         localStorage.setItem('postComments', JSON.stringify(allComments));
         renderComments(postId);
-    } catch (error) {
-        console.error("按讚處理失敗", error);
-    }
+    } catch (error) { console.error("按讚處理失敗", error); }
 }
 
-// ✨ 完美修復的留言排版函數 (不再貼著邊界了！)
 function renderComments(postId) {
     const comments = getComments(postId);
     const lists = document.querySelectorAll('#detail-comments-list');
     const counts = document.querySelectorAll('#detail-comment-count');
-
+    
     lists.forEach(listContainer => {
         if (!listContainer) return;
-
         if (comments.length === 0) {
             listContainer.innerHTML = '<div style="text-align:center; color:#888; padding: 30px 0;">目前還沒有留言喔，來搶頭香吧！🐟</div>';
             return;
@@ -387,18 +403,18 @@ function renderComments(postId) {
             const isLiked = c.liked || false;
 
             html += `
-                <div style="background: #ffffff; padding: 20px 24px; border-radius: 16px; margin-bottom: 16px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03); border: 1px solid #edf2f7;">
+                <div style="background: #fff; padding: 24px 0; border-bottom: 1px solid #f0f0f0;">
                     <div style="display: flex; justify-content: space-between; margin-bottom: 12px; align-items: center;">
-                        <span style="font-size: 1.05rem; font-weight: bold; color: #2c3e50; display: flex; align-items: center; gap: 12px;">
-                            <img src="${c.avatar}" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover; border: 2px solid #e2e8f0;">
+                        <span style="font-size: 1rem; font-weight: bold; color: #333; display: flex; align-items: center; gap: 12px;">
+                            <img src="${c.avatar}" style="width: 36px; height: 36px; border-radius: 50%; object-fit: cover; box-shadow: 0 1px 3px rgba(0,0,0,0.08);">
                             ${escapeHTML(c.author)}
                         </span>
-                        <span style="font-size: 0.85rem; color: #64748b; font-weight: bold; background: #f1f5f9; padding: 4px 12px; border-radius: 20px;">B${index + 1}</span>
+                        <span style="font-size: 0.85rem; color: #aaa; font-weight: bold;">B${index + 1}</span>
                     </div>
-                    <div style="color: #334155; font-size: 1.05rem; line-height: 1.7; padding-left: 52px; padding-right: 10px; white-space: pre-wrap; margin-bottom: 12px;">${escapeHTML(c.text)}</div>
+                    <div style="color: #222; font-size: 1.05rem; line-height: 1.7; padding-left: 48px; white-space: pre-wrap; margin-bottom: 10px;">${escapeHTML(c.text)}</div>
                     
-                    <div style="text-align: right; padding-top: 12px; border-top: 1px dashed #e2e8f0;">
-                        <span style="cursor: pointer; color: ${isLiked ? '#ff4757' : '#94a3b8'}; font-size: 0.95rem; user-select: none; transition: 0.2s; font-weight: bold;" onclick="toggleCommentLike('${postId}', ${index})">
+                    <div style="text-align: right; padding-right: 15px;">
+                        <span style="cursor: pointer; color: ${isLiked ? '#e74c3c' : '#999'}; font-size: 0.95rem; user-select: none; transition: 0.2s;" onclick="toggleCommentLike('${postId}', ${index})">
                             ${isLiked ? '❤️' : '🤍'} ${likesCount}
                         </span>
                     </div>
@@ -408,9 +424,7 @@ function renderComments(postId) {
         listContainer.innerHTML = html;
     });
 
-    counts.forEach(countSpan => {
-        if (countSpan) countSpan.innerText = comments.length;
-    });
+    counts.forEach(countSpan => { if (countSpan) countSpan.innerText = comments.length; });
 }
 
 window.openPostDetail = function (id) {
@@ -418,17 +432,10 @@ window.openPostDetail = function (id) {
     if (!p) return;
     currentOpenPostId = id;
 
-    const tagBoards = document.querySelectorAll('#detail-board-tag');
-    tagBoards.forEach(el => el.innerText = p.board);
-
-    const tagAuthors = document.querySelectorAll('#detail-author-tag');
-    tagAuthors.forEach(el => el.innerText = p.author || '匿名');
-
-    const titleEls = document.querySelectorAll('#detail-post-title');
-    titleEls.forEach(el => el.innerText = p.title);
-
-    const contentEls = document.querySelectorAll('#detail-post-content');
-    contentEls.forEach(el => el.innerText = p.desc);
+    document.querySelectorAll('#detail-board-tag').forEach(el => el.innerText = p.board);
+    document.querySelectorAll('#detail-author-tag').forEach(el => el.innerText = p.author || '匿名');
+    document.querySelectorAll('#detail-post-title').forEach(el => el.innerText = p.title);
+    document.querySelectorAll('#detail-post-content').forEach(el => el.innerText = p.desc);
 
     renderComments(id);
 
@@ -440,10 +447,8 @@ window.openPostDetail = function (id) {
     if (feedView && detailView) {
         feedView.style.display = 'none';
         detailView.style.display = 'block';
-        
         if(sidebar) sidebar.style.setProperty('display', 'none', 'important');
         if(oceanBtn) oceanBtn.style.setProperty('display', 'none', 'important');
-        
         window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 };
@@ -457,10 +462,8 @@ window.closePostDetail = function () {
     if (feedView && detailView) {
         detailView.style.display = 'none';
         feedView.style.display = 'block';
-        
         if(sidebar) sidebar.style.setProperty('display', 'block', 'important');
         if(oceanBtn) oceanBtn.style.setProperty('display', 'block', 'important');
-        
         window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 };
@@ -468,27 +471,18 @@ window.closePostDetail = function () {
 window.submitComment = function () {
     const inputs = document.querySelectorAll('#new-comment-input');
     let targetInput = null;
-
+    
     for (let i = 0; i < inputs.length; i++) {
-        if (inputs[i].offsetParent !== null) {
-            targetInput = inputs[i];
-            break;
-        }
+        if (inputs[i].offsetParent !== null) { targetInput = inputs[i]; break; }
     }
-
+    
     if (!targetInput) return;
     const text = targetInput.value.trim();
 
-    if (!text) {
-        alert("請輸入留言內容！");
-        return;
-    }
+    if (!text) { alert("請輸入留言內容！"); return; }
 
     const user = JSON.parse(localStorage.getItem('currentUser'));
-    if (!user) {
-        alert("請先登入才能留言喔！");
-        return;
-    }
+    if (!user) { alert("請先登入才能留言喔！"); return; }
 
     const newComment = {
         author: user.name || '用戶',
@@ -497,31 +491,25 @@ window.submitComment = function () {
         likes: 0,
         liked: false
     };
-
+    
     saveComment(currentOpenPostId, newComment);
 
     setTimeout(() => {
         inputs.forEach(inp => inp.value = '');
         if (targetInput) targetInput.value = '';
     }, 50);
-
+    
     renderComments(currentOpenPostId);
 
     const p = posts.find(x => String(x.id) === String(currentOpenPostId));
-    if (p) {
-        p.msgs = getComments(currentOpenPostId).length;
-        applyFilters();
-    }
+    if (p) { p.msgs = getComments(currentOpenPostId).length; applyFilters(); }
 
     const detailView = document.getElementById('detail-view');
     if (detailView && detailView.offsetParent !== null) {
         window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
     } else {
-        const modals = document.querySelectorAll('#post-detail-modal .modal-content');
-        modals.forEach(modal => {
-            if (modal.offsetParent !== null) {
-                modal.scrollTo({ top: modal.scrollHeight, behavior: 'smooth' });
-            }
+        document.querySelectorAll('#post-detail-modal .modal-content').forEach(modal => {
+            if (modal.offsetParent !== null) modal.scrollTo({ top: modal.scrollHeight, behavior: 'smooth' });
         });
     }
 };
@@ -529,7 +517,7 @@ window.submitComment = function () {
 window.toggleAction = async function (id, actionType, e) {
     e.stopPropagation();
     const token = localStorage.getItem("authToken");
-
+    
     if (!token) {
         alert("請先登入才能操作喔！");
         window.location.href = 'login.html'; 
@@ -538,7 +526,7 @@ window.toggleAction = async function (id, actionType, e) {
 
     const p = posts.find(x => String(x.id) === String(id));
     if (!p) return;
-
+    
     if (actionType === 'like') {
         if (p.liked) {
             p.likes = Math.max(0, p.likes - 1);
@@ -547,9 +535,8 @@ window.toggleAction = async function (id, actionType, e) {
             p.likes++;
             p.liked = true;
         }
-    } else if (actionType === 'save') {
-        p.saved = !p.saved;
-    }
+    } else if (actionType === 'save') { p.saved = !p.saved; }
+    
     applyFilters();
 
     try {
@@ -562,24 +549,16 @@ window.toggleAction = async function (id, actionType, e) {
                 'ngrok-skip-browser-warning': 'true'
             }
         });
-
-        if (!response.ok) {
-            throw new Error(`後端回傳錯誤碼: ${response.status}`);
-        }
+        
+        if (!response.ok) throw new Error(`後端回傳錯誤碼: ${response.status}`);
     } catch (error) {
         console.error(`${actionType} 動作失敗:`, error);
-
+        
         if (actionType === 'like') {
-            if (p.liked) {
-                p.likes = Math.max(0, p.likes - 1);
-                p.liked = false;
-            } else {
-                p.likes++;
-                p.liked = true;
-            }
-        } else if (actionType === 'save') {
-            p.saved = !p.saved;
-        }
+            if (p.liked) { p.likes = Math.max(0, p.likes - 1); p.liked = false; }
+            else { p.likes++; p.liked = true; }
+        } else if (actionType === 'save') { p.saved = !p.saved; }
+        
         applyFilters();
         alert("伺服器開小差了，操作失敗請稍後再試 😢");
     }
@@ -587,14 +566,10 @@ window.toggleAction = async function (id, actionType, e) {
 
 window.deleteMyBottle = async function (id, e) {
     e.stopPropagation(); 
-    
     if (!confirm("⚠️ 確定要刪除這個漂流瓶嗎？刪除後無法恢復喔！")) return;
 
     const token = localStorage.getItem("authToken");
-    if (!token) {
-        alert("請先登入！");
-        return;
-    }
+    if (!token) { alert("請先登入！"); return; }
 
     try {
         const response = await fetch(`${API_BASE_URL}/bottles/${id}/delete`, {
@@ -631,14 +606,15 @@ function setupAuth() {
         if (user && Object.keys(user).length > 0 && token) {
             if (loginTrigger) loginTrigger.style.display = 'none';
             if (userProfile) userProfile.style.display = 'flex';
+            
             const displayName = user.name || (user.email ? user.email.split('@')[0] : '用戶');
-
             const userNameEl = document.getElementById('user-name');
+            
             if (userNameEl) userNameEl.innerText = displayName;
 
             const userAvatarEl = document.getElementById('user-avatar');
             if (user && user.avatar && userAvatarEl) userAvatarEl.src = user.avatar;
-
+            
             if (identitySelect) {
                 identitySelect.options[0].text = `實名 (${displayName})`;
                 identitySelect.options[0].value = displayName;
@@ -653,33 +629,28 @@ function setupAuth() {
                     adminLink.style.fontWeight = 'bold';
                     adminLink.style.borderTop = '1px solid #eee';
                     adminLink.innerHTML = '🛠️ 進入後台';
-
-                    adminLink.onclick = (e) => {
-                        e.stopPropagation();
-                        window.location.href = 'admin.html';
-                    };
-
+                    
+                    adminLink.onclick = (e) => { e.stopPropagation(); window.location.href = 'admin.html'; };
                     userDropdown.insertBefore(adminLink, userDropdown.lastElementChild);
                 }
-                
                 const btnNewPost = document.getElementById('btn-new-post');
                 if (btnNewPost) btnNewPost.style.display = 'none';
                 
                 const savedMenuItem = document.querySelector('.menu-item[onclick*="saved.html"]');
                 const postMenuItem = document.querySelector('.menu-item[onclick*="post.html"]');
+                
                 if (savedMenuItem) savedMenuItem.style.display = 'none';
                 if (postMenuItem) postMenuItem.style.display = 'none';
-
             } else {
                 const btnNewPost = document.getElementById('btn-new-post');
                 if (btnNewPost) btnNewPost.style.display = 'block'; 
                 
                 const savedMenuItem = document.querySelector('.menu-item[onclick*="saved.html"]');
                 const postMenuItem = document.querySelector('.menu-item[onclick*="post.html"]');
+                
                 if (savedMenuItem) savedMenuItem.style.display = 'block';
                 if (postMenuItem) postMenuItem.style.display = 'block';
             }
-
         } else {
             if (loginTrigger) loginTrigger.style.display = 'block';
             if (userProfile) userProfile.style.display = 'none';
@@ -704,7 +675,7 @@ function setupNewPost() {
     const form = document.getElementById('new-post-form');
     const btnNewPost = document.getElementById('btn-new-post');
     const closePostModal = document.getElementById('close-post-modal');
-
+    
     if (btnNewPost) {
         btnNewPost.onclick = () => {
             const token = localStorage.getItem("authToken");
@@ -716,17 +687,14 @@ function setupNewPost() {
             document.getElementById('post-modal').style.display = 'block';
         }
     }
+    
     if (closePostModal) closePostModal.onclick = () => document.getElementById('post-modal').style.display = 'none';
-
+    
     if (form) {
         form.onsubmit = async (e) => {
             e.preventDefault();
             const token = localStorage.getItem("authToken");
-
-            if (!token) {
-                alert("請先登入才能拋出漂流瓶！");
-                return;
-            }
+            if (!token) { alert("請先登入才能拋出漂流瓶！"); return; }
 
             const title = document.getElementById('post-title-input').value;
             const content = document.getElementById('post-content-input').value;
@@ -736,13 +704,9 @@ function setupNewPost() {
             const boardSelect = form.querySelector('#post-board');
             const boardValue = boardSelect ? boardSelect.value : "";
             const selectedCategoryId = Number(boardValue);
-
             const categoryPayload = (boardValue !== "" && !isNaN(selectedCategoryId)) ? [selectedCategoryId] : [];
 
-            if (categoryPayload.length === 0) {
-                alert("發文失敗：請確實選擇一個海域 (分類)！");
-                return;
-            }
+            if (categoryPayload.length === 0) { alert("發文失敗：請確實選擇一個海域 (分類)！"); return; }
 
             const postData = {
                 title: title,
@@ -750,7 +714,7 @@ function setupNewPost() {
                 isAnonymous: isAnonymous,
                 category_id: categoryPayload
             };
-
+            
             try {
                 const response = await fetch(`${API_BASE_URL}/bottles`, {
                     method: 'POST',
@@ -761,7 +725,7 @@ function setupNewPost() {
                     },
                     body: JSON.stringify(postData)
                 });
-
+                
                 if (response.ok) {
                     alert('漂流瓶拋出成功！🎉');
                     form.reset();
@@ -770,7 +734,6 @@ function setupNewPost() {
                 } else {
                     const err = await response.json();
                     alert(`發文失敗 (狀態碼: ${response.status})：\n${err.message || '未知錯誤'}`);
-                    console.error("後端回傳的錯誤細節:", err);
                 }
             } catch (error) {
                 console.error("連線錯誤:", error);
@@ -783,8 +746,10 @@ function setupNewPost() {
 document.addEventListener('DOMContentLoaded', () => {
     if (window.location.pathname.includes('saved.html')) {
         currentView = 'saved';
+        currentPage = 1; 
     } else if (window.location.pathname.includes('post.html')) {
         currentView = 'mine';
+        currentPage = 1; 
     } else {
         currentView = 'all';
     }
@@ -792,10 +757,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.querySelectorAll('.sidebar li').forEach(li => {
         li.classList.remove('active'); 
         const liText = li.innerText.trim();
-
-        if (liText.includes(currentBoard)) {
-            li.classList.add('active');
-        }
+        if (liText.includes(currentBoard)) { li.classList.add('active'); }
     });
 
     setupAuth();
@@ -808,28 +770,20 @@ document.addEventListener('DOMContentLoaded', () => {
     if (searchInput && historyBox) {
         searchInput.oninput = (e) => {
             currentKeyword = e.target.value.toLowerCase().trim();
+            currentPage = 1; // 🌟 搜尋關鍵字改變時，自動歸零回到第一頁！
             applyFilters();
-
             renderSearchHistory();
             historyBox.style.width = searchInput.offsetWidth + 'px';
             historyBox.style.left = searchInput.offsetLeft + 'px';
         };
-
         searchInput.onfocus = () => {
             renderSearchHistory();
             historyBox.style.width = searchInput.offsetWidth + 'px';
             historyBox.style.left = searchInput.offsetLeft + 'px';
         };
-
-        searchInput.onblur = () => {
-            setTimeout(() => { historyBox.style.display = 'none'; }, 200);
-        };
-
+        searchInput.onblur = () => { setTimeout(() => { historyBox.style.display = 'none'; }, 200); };
         searchInput.onkeydown = (e) => {
-            if (e.isComposing || e.keyCode === 229) {
-                return;
-            }
-
+            if (e.isComposing || e.keyCode === 229) return;
             if (e.key === 'Enter') {
                 saveSearchHistory(searchInput.value.trim());
                 historyBox.style.display = 'none';
@@ -838,45 +792,40 @@ document.addEventListener('DOMContentLoaded', () => {
         };
     }
 
-    // ✨ 完美修復的留言框綁定 (解決 class 消失的問題，以及過濾掉星星按鈕)
     const commentInputs = document.querySelectorAll('#new-comment-input');
     commentInputs.forEach(input => {
         input.setAttribute('name', 'user_comment_history');
         input.setAttribute('autocomplete', 'off');
-
         const wrapper = input.parentElement;
-        if (wrapper && wrapper.tagName.toLowerCase() === 'div') {
+        
+        // 確保只處理我們想要替換的目標
+        if (wrapper && wrapper.tagName.toLowerCase() === 'div' && wrapper.classList.contains('comment-action-bar')) {
             const form = document.createElement('form');
             form.style.cssText = wrapper.style.cssText;
-            form.className = wrapper.className; // 🔥 確保 css class 有帶過來
-
-            form.onsubmit = (e) => {
-                e.preventDefault();
-                submitComment();
-            };
-
-            while (wrapper.firstChild) {
-                form.appendChild(wrapper.firstChild);
-            }
+            
+            // 🔥 核心修復 1：把原本 div 的 class 完美繼承給 form，CSS 才不會失效！
+            form.className = wrapper.className; 
+            
+            form.onsubmit = (e) => { e.preventDefault(); submitComment(); };
+            while (wrapper.firstChild) { form.appendChild(wrapper.firstChild); }
             wrapper.parentNode.replaceChild(form, wrapper);
-
-            // 🔥 指定只抓 .send-btn，不要抓到星星
+            
+            // 🔥 核心修復 2：精準只抓取「送出」按鈕，不要抓到前面的「⭐ 收藏」按鈕！
             const btn = form.querySelector('.send-btn');
-            if (btn) {
-                btn.type = 'submit';
-                btn.removeAttribute('onclick');
-            }
+            if (btn) { btn.type = 'submit'; btn.removeAttribute('onclick'); }
         }
     });
-
+    
+    // 🌟 左邊欄點擊分類：自動歸零到第一頁並載入該分類！
     document.querySelectorAll('.sidebar li').forEach(li => li.onclick = (e) => {
         document.querySelectorAll('.sidebar li').forEach(el => el.classList.remove('active'));
         e.target.classList.add('active');
 
         const liText = e.target.innerText.trim();
-
         currentBoard = liText.substring(2).trim();
         currentCategoryId = BOARD_CATEGORY_MAP[liText] || 1;
+
+        currentPage = 1; // 🌟 關鍵修正：點選任何新海域，強制頁碼歸零從第一頁開始看！
 
         sessionStorage.setItem('savedCategoryId', currentCategoryId);
         sessionStorage.setItem('savedBoard', currentBoard);
@@ -884,23 +833,16 @@ document.addEventListener('DOMContentLoaded', () => {
         closePostDetail();
         fetchBottles();
     });
-
+    
     const loginTrigger = document.getElementById('login-trigger');
-    if (loginTrigger) {
-        loginTrigger.onclick = () => { window.location.href = "login.html"; };
-    }
+    if (loginTrigger) loginTrigger.onclick = () => { window.location.href = "login.html"; };
 
     const userMenuBtn = document.getElementById('user-menu-btn');
     const userDropdown = document.getElementById('user-dropdown');
     if (userMenuBtn && userDropdown) {
-        userMenuBtn.onclick = (e) => {
-            e.stopPropagation();
-            userDropdown.classList.toggle('show-dropdown');
-        };
+        userMenuBtn.onclick = (e) => { e.stopPropagation(); userDropdown.classList.toggle('show-dropdown'); };
     }
-    document.addEventListener('click', () => {
-        if (userDropdown) userDropdown.classList.remove('show-dropdown');
-    });
+    document.addEventListener('click', () => { if (userDropdown) userDropdown.classList.remove('show-dropdown'); });
 
     const profileModal = document.getElementById('profile-modal');
     const profileMenuItem = document.getElementById('open-profile');
@@ -917,11 +859,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 document.getElementById('detail-gender').innerText = user.gender || '未填寫';
                 document.getElementById('detail-zodiac').innerText = user.zodiac || user.constellation || '未填寫';
                 document.getElementById('detail-bio').innerText = user.bio || '這瓶子裡目前空空的...';
-
                 profileModal.style.display = 'block';
-            } else {
-                alert('請先登入！');
-            }
+            } else { alert('請先登入！'); }
         };
     }
 
@@ -929,25 +868,14 @@ document.addEventListener('DOMContentLoaded', () => {
     const closeDetailBtns = document.querySelectorAll('#close-detail-modal');
     const closeProfileBtn = document.getElementById('close-profile-modal');
 
-    if (closeProfileBtn) {
-        closeProfileBtn.onclick = () => profileModal.style.display = 'none';
-    }
-
-    closeDetailBtns.forEach(btn => {
-        btn.onclick = () => {
-            detailModals.forEach(m => m.style.display = 'none');
-        };
-    });
-
+    if (closeProfileBtn) closeProfileBtn.onclick = () => profileModal.style.display = 'none';
+    closeDetailBtns.forEach(btn => { btn.onclick = () => { detailModals.forEach(m => m.style.display = 'none'); }; });
+    
     window.onclick = (event) => {
         const postModal = document.getElementById('post-modal');
-
         if (profileModal && event.target == profileModal) profileModal.style.display = 'none';
         if (postModal && event.target == postModal) postModal.style.display = 'none';
-
-        detailModals.forEach(m => {
-            if (event.target == m) m.style.display = 'none';
-        });
+        detailModals.forEach(m => { if (event.target == m) m.style.display = 'none'; });
     };
 });
 
@@ -971,27 +899,24 @@ document.addEventListener('change', (e) => {
     }
 });
 
+// 呼喚海流：專屬寶寶的換瓶子特效
 window.callOceanCurrent = function() {
     const bottles = document.querySelectorAll('.post-card');
-    
     bottles.forEach((bottle, index) => {
-        setTimeout(() => {
-            bottle.classList.add('swept-away');
-        }, index * 100); 
+        setTimeout(() => { bottle.classList.add('swept-away'); }, index * 100); 
     });
-
-    setTimeout(() => {
-        fetchBottles(); 
-    }, 1000);
+    setTimeout(() => { fetchBottles(); }, 1000);
 }
 
+// ==========================================
+// 🚀 產生分頁按鈕的函數
+// ==========================================
 function renderPagination(totalPages, dataArray) {
     const pageContainer = document.getElementById('pagination-container');
     if (!pageContainer) return;
     
     pageContainer.innerHTML = ''; 
-
-    if (totalPages <= 1) return;
+    if (totalPages <= 1) return;  
 
     const prevBtn = document.createElement('button');
     prevBtn.className = 'page-btn';
@@ -1000,7 +925,7 @@ function renderPagination(totalPages, dataArray) {
     prevBtn.onclick = () => {
         currentPage--;
         renderPosts(dataArray);
-        window.scrollTo({ top: 0, behavior: 'smooth' }); 
+        window.scrollTo({ top: 0, behavior: 'smooth' });
     };
     pageContainer.appendChild(prevBtn);
 
@@ -1026,4 +951,4 @@ function renderPagination(totalPages, dataArray) {
         window.scrollTo({ top: 0, behavior: 'smooth' });
     };
     pageContainer.appendChild(nextBtn);
-}
+}   
