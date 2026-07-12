@@ -83,7 +83,7 @@ postman 測試用語
 Headers要給 x-api-key (跟我拿)
 {
     "bottle_id":,
-    "status":1 /*只能輸入0 or 1*/
+    "status":1 /*只能輸入1 or 2*/
 }
 
 忘記密碼申請： POST /auth/forgot-password

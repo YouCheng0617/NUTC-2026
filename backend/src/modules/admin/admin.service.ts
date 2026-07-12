@@ -124,7 +124,11 @@ export const deleteMemberByAdmin = async (member_id: number) => {
 export const getReportedBottles = async () => {
     const reportedBottles = await prisma.bottleReport.findMany({
         orderBy: [
-            { status: "asc" },
+            {
+                bottle: {
+                    status: "asc"
+                }
+            },
             { created_at: "desc" }
         ],
         include: {
