@@ -45,6 +45,7 @@ model Member {
   bottleLikes      BottleLike[]
   bottleSaves      BottleSave[]
   Comment          Comment[]
+  report           BottleReport[]
 }
 
 model BlacklistedToken {
@@ -86,6 +87,7 @@ model Bottle {
   likes      BottleLike[]
   saves      BottleSave[]
   Comment    Comment[]
+  report     BottleReport[]
 }
 
 // 類別表
@@ -144,4 +146,20 @@ model Comment {
   // 關聯：留言是誰留的、留在哪個瓶子上 (一樣加上 Cascade 級聯刪除，保證資料庫乾淨)
   member Member @relation(fields: [member_id], references: [member_id], onDelete: Cascade)
   bottle Bottle @relation(fields: [bottle_id], references: [bottle_id], onDelete: Cascade)
+}
+
+model BottleReport {
+  id         Int      @id @default(autoincrement())
+  member_id  Int // 檢舉人 ID
+  bottle_id  Int // 被檢舉的瓶子 ID
+  reason     String   @db.Text // 檢舉理由 (例如：血腥暴力、洗頻、惡意攻擊)
+  status     Int      @default(0) // 審核狀態 (0:待處理, 1:檢舉成立, 2:檢舉不成立)
+  created_at DateTime @default(now()) // 檢舉時間
+
+  // 關聯：誰檢舉的、檢舉哪篇 (加上 Cascade，文章或人被刪時紀錄自動消失)
+  reporter Member @relation(fields: [member_id], references: [member_id], onDelete: Cascade)
+  bottle   Bottle @relation(fields: [bottle_id], references: [bottle_id], onDelete: Cascade)
+
+  // 🌟 重要防呆：確保同一個使用者對同一篇貼文，只能發送一次檢舉 (防惡意洗版)
+  @@unique([member_id, bottle_id])
 }

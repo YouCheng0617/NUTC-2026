@@ -327,5 +327,5 @@ export const bottleController = {
             console.error("Error fetching today bottles:", error);
             res.status(500).json({ message: "內部伺服器錯誤" });
         }
-    }
+    },
 }

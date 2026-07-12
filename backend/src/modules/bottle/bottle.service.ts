@@ -241,15 +241,16 @@ export const getTodayBottle = async () => {
         todayBottles: todayBottlesCount
     }
 };
+
 /*新增瓶子並透過 AI 自動審核與分類*/
 export const createBottle = async (
-    memberId: number, 
-    title: string, 
-    content: string, 
+    memberId: number,
+    title: string,
+    content: string,
     isAnonymous: boolean
 ) => {
     // 1. 設定預設值 (萬一 AI 伺服器掛掉，文章還是能以狀態 1 存入)
-    let finalStatus = 1; 
+    let finalStatus = 1;
     let violationReason = null;
     let aiCategory = 4; // 預設分類代號
 
@@ -271,7 +272,7 @@ export const createBottle = async (
             finalStatus = aiData.ai_status === "通過" ? 2 : 3;
             violationReason = aiData.ai_status === "通過" ? null : aiData.ai_reason;
             aiCategory = aiData.category;
-            
+
             console.log(`✅ AI 處理完畢！狀態: ${finalStatus}, 分類: ${aiCategory}`);
         } else {
             console.warn("⚠️ AI 伺服器回傳異常狀態碼，將使用預設值 (1)");
@@ -289,7 +290,7 @@ export const createBottle = async (
             is_anonymous: isAnonymous,
             status: finalStatus,
             violation_reason: violationReason,
-            
+
             // 💡 這裡將 AI 算出來的分類代號直接寫入關聯表
             // (注意：這裡的寫法是基於妳前面的 Prisma 結構推測的，如果報錯請依妳的 schema 微調)
             categories: {
