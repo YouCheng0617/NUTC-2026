@@ -245,9 +245,10 @@ window.confirmChangeStatus = async function (newStatus) {
 }
 
 // ==========================================
-// 6. API 串接：漂流瓶審核 (加上開心分類)
+// 6. API 串接：漂流瓶審核 (加上開心分類與一鍵篩選)
 // ==========================================
 window._allBottles = [];
+window._currentStatusFilter = 'all'; // 預設顯示全部
 
 async function loadBottles() {
     const tbody = document.getElementById('admin-bottles-body');
@@ -262,7 +263,7 @@ async function loadBottles() {
 
         const data = await response.json();
         window._allBottles = data.data || data.bottles || data || [];
-        renderBottles(window._allBottles);
+        filterBottles(); // 載入後直接過濾並渲染
 
     } catch (e) {
         tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:red;">無法載入，請確認權限或後端是否啟動</td></tr>`;
@@ -274,7 +275,7 @@ function renderBottles(bottles) {
     if (!tbody) return;
     
     if (bottles.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;">目前沒有符合的資料</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;">目前沒有符合條件的文章唷 🏖️</td></tr>`;
         return;
     }
 
@@ -287,7 +288,6 @@ function renderBottles(bottles) {
         if (!rawCat) rawCat = '綜合閒聊';
 
         let catHtml = '';
-        // ✨ 新增開心的判斷
         if (rawCat.includes("開心") || rawCat.includes("喜悅") || rawCat.includes("快樂")) {
             catHtml = `<span class="badge" style="background:#e6f7ff; color:#0050b3; border:1px solid #91d5ff;">😁 開心的事</span>`;
         } else if (rawCat.includes("憤怒") || rawCat.includes("閒聊")) {
@@ -304,11 +304,11 @@ function renderBottles(bottles) {
         let rowStyle = '';
         let btnText = '審核'; 
 
-        if (b.status === 2) {
+        if (b.status === 1) {
             statusBadge = `<span class="badge" style="background:#dcfce7; color:#16a34a; border:1px solid #bbf7d0;">✅ 已通過</span>`;
             rowStyle = `opacity: 0.8; background: #f8fafc;`; 
             btnText = '查看'; 
-        } else if (b.status === 3) {
+        } else if (b.status === 2) {
             statusBadge = `<span class="badge" style="background:#fee2e2; color:#dc2626; border:1px solid #fecaca;">❌ 已拒絕</span>`;
             rowStyle = `opacity: 0.8; background: #f8fafc;`; 
             btnText = '查看'; 
@@ -341,14 +341,30 @@ function renderBottles(bottles) {
     }).join('');
 }
 
+// 👇 這裡重新寫了過濾器，結合關鍵字和狀態篩選
 window.filterBottles = function () {
     const keyword = document.getElementById('search-bottles').value.toLowerCase();
-    const filtered = window._allBottles.filter(b =>
-        String(b.bottle_id || '').includes(keyword) ||
-        String(b.title || '').toLowerCase().includes(keyword) ||
-        String(b.content || '').toLowerCase().includes(keyword) ||
-        String(b.member_name || b.author?.name || '').toLowerCase().includes(keyword)
-    );
+    
+    const filtered = window._allBottles.filter(b => {
+        // 1. 檢查關鍵字
+        const matchKeyword = String(b.bottle_id || '').includes(keyword) ||
+            String(b.title || '').toLowerCase().includes(keyword) ||
+            String(b.content || '').toLowerCase().includes(keyword) ||
+            String(b.member_name || b.author?.name || '').toLowerCase().includes(keyword);
+
+        // 2. 檢查目前點擊的一鍵分類狀態
+        let matchStatus = true;
+        if (window._currentStatusFilter === 'pending') {
+            matchStatus = (b.status !== 1 && b.status !== 2); // 待審核
+        } else if (window._currentStatusFilter === 'passed') {
+            matchStatus = (b.status === 1); // 已通過
+        } else if (window._currentStatusFilter === 'rejected') {
+            matchStatus = (b.status === 2); // 已拒絕
+        }
+
+        return matchKeyword && matchStatus;
+    });
+    
     renderBottles(filtered);
 }
 
@@ -367,7 +383,6 @@ window.openBottleModalFromCache = function (bottleId) {
     if (!rawCat) rawCat = '綜合閒聊';
 
     let catHtml = '';
-    // ✨ 新增開心的判斷
     if (rawCat.includes("開心") || rawCat.includes("喜悅") || rawCat.includes("快樂")) {
         catHtml = `<span class="badge" style="background:#e6f7ff; color:#0050b3; border:1px solid #91d5ff;">😁 開心的事</span>`;
     } else if (rawCat.includes("憤怒") || rawCat.includes("閒聊")) {
@@ -405,8 +420,8 @@ window.openBottleModalFromCache = function (bottleId) {
     document.getElementById('modal-actions').innerHTML = `
         <button class="btn-action btn-secondary" onclick="closeAdminModal()">返回</button>
         <div style="margin-left: auto; display: flex; gap: 12px;">
-            <button class="btn-action btn-danger" onclick="reviewBottle(window._reviewBottleId, 3, window._reviewBottleTitle);">❌ 拒絕 (違規)</button>
-            <button class="btn-action btn-primary" onclick="reviewBottle(window._reviewBottleId, 2, window._reviewBottleTitle);">✅ 審核通過</button>
+            <button class="btn-action btn-danger" onclick="reviewBottle(window._reviewBottleId, 2, window._reviewBottleTitle);">❌ 拒絕 (違規)</button>
+            <button class="btn-action btn-primary" onclick="reviewBottle(window._reviewBottleId, 1, window._reviewBottleTitle);">✅ 審核通過</button>
         </div>
     `;
     
@@ -417,12 +432,12 @@ window.reviewBottle = function (bottleId, status, title) {
     window._pendingReviewId = bottleId;
     window._pendingReviewTitle = title;
 
-    if (status === 3) {
+    if (status === 2) {
         document.getElementById('reject-reason-input').value = '內容不當'; 
         document.getElementById('reject-modal').style.display = 'flex';
     } else {
         if (!confirm(`✅ 確定要通過「${title}」，讓它流入海中嗎？`)) return;
-        executeReviewAction(bottleId, 2, ""); 
+        executeReviewAction(bottleId, 1, ""); 
     }
 }
 
@@ -436,7 +451,7 @@ window.confirmRejectAction = function() {
         alert("必須填寫拒絕原因唷！");
         return;
     }
-    executeReviewAction(window._pendingReviewId, 3, reason);
+    executeReviewAction(window._pendingReviewId, 2, reason);
     closeRejectModal(); 
 }
 
@@ -498,45 +513,75 @@ window.closeAdminModal = function () { document.getElementById('admin-modal').st
 window.adminLogout = function () { localStorage.clear(); window.location.href = "login.html"; }
 
 // ==========================================
-// 9. API 串接：新增文章類別魔法 ✨
+// 9. API 串接：文章列表一鍵分類篩選 ✨
 // ==========================================
-window.openAddCategoryModal = function() {
-    document.getElementById('new-category-name').value = '';
-    document.getElementById('add-category-modal').style.display = 'flex';
-}
-
-window.closeAddCategoryModal = function() {
-    document.getElementById('add-category-modal').style.display = 'none';
-}
-
-window.confirmAddCategory = async function() {
-    const catName = document.getElementById('new-category-name').value.trim();
+window.filterByStatus = function(status) {
+    window._currentStatusFilter = status; // 記住現在點了哪個標籤
     
-    if (!catName) {
-        alert("⚠️ 必須輸入類別名稱唷！");
+    // 幫按鈕換上漂亮的點擊顏色
+    const btns = ['all', 'pending', 'passed', 'rejected'];
+    btns.forEach(id => {
+        const el = document.getElementById('filter-btn-' + id);
+        if (!el) return;
+        if (id === status) {
+            el.style.background = '#3b82f6';
+            el.style.color = '#fff';
+            el.style.borderColor = '#3b82f6';
+        } else {
+            el.style.background = '#f8fafc';
+            el.style.color = '#64748b';
+            el.style.borderColor = '#e2e8f0';
+        }
+    });
+
+    // 重新執行上面寫好的過濾器
+    filterBottles(); 
+}
+
+// ==========================================
+// 10. 🚀 專屬特製：一鍵審核所有待處理文章
+// ==========================================
+window.approveAllPendingBottles = async function() {
+    // 找出所有「還沒審核」的瓶子 (狀態不是 1 通過，也不是 2 拒絕)
+    const pendingBottles = window._allBottles.filter(b => b.status !== 1 && b.status !== 2);
+    
+    if (pendingBottles.length === 0) {
+        alert("寶寶，目前沒有需要審核的漂流瓶唷！海灘已經很乾淨啦 🏖️✨");
+        return;
+    }
+
+    if (!confirm(`🚀 準備將 ${pendingBottles.length} 個漂流瓶「一鍵全部通過」流入海中，確定要施展魔法嗎？`)) {
         return;
     }
 
     const token = localStorage.getItem("authToken");
     
     try {
-        const response = await fetch(`${API_BASE_URL}/category/create`, {
-            method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ "name": catName }) 
+        // 同時對所有待審核的瓶子發送「通過(1)」的請求
+        const requests = pendingBottles.map(b => {
+            const bottleId = b.bottle_id || b.id;
+            return fetch(`${API_BASE_URL}/admin/bottles/review`, {
+                method: 'PUT',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    "bottle_id": Number(bottleId),
+                    "status": 1, 
+                    "violation_reason": ""
+                })
+            });
         });
 
-        if (response.ok) {
-            alert(`🎉 成功新增分類：「${catName}」！`);
-            closeAddCategoryModal(); 
-        } else {
-            const err = await response.json();
-            alert(`新增失敗: ${err.message || '格式錯誤或名稱已存在'}`);
-        }
-    } catch (e) {
-        alert("伺服器連線失敗，請檢查網路！");
+        // 等待所有請求都完成
+        await Promise.all(requests);
+        
+        alert(`🎉 太神啦！成功一鍵通過了 ${pendingBottles.length} 個漂流瓶！`);
+        loadBottles(); // 幫你自動重新載入列表
+        
+    } catch (error) {
+        alert("哎呀，批次施法過程中有些小失誤，請檢查網路狀態喔！");
+        loadBottles(); // 就算出錯也幫你重整一下畫面
     }
-}
+};
