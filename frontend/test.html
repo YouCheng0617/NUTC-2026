@@ -204,82 +204,78 @@
       </div>
     </div>
 
+    <!-- 👇 個人資料區塊 👇 -->
     <div id="profile-modal" class="modal">
-      <div
-        class="modal-content light-modal"
-        style="width: 400px; text-align: center"
-      >
+      <div class="modal-content light-modal" style="width: 400px; text-align: center; max-height: 90vh; overflow-y: auto;">
         <span class="close-btn" id="close-profile-modal">&times;</span>
-        <h2 style="color: #0055a5; margin-bottom: 20px">個人資訊</h2>
+        <h2 style="color: #0055a5; margin-bottom: 20px; font-weight: 900;">個人資訊</h2>
         <div class="profile-detail">
-          <div
-            style="position: relative; display: inline-block; cursor: pointer"
-            onclick="document.getElementById('change-avatar-input').click()"
-          >
-            <img
-              id="detail-avatar"
-              src="images/fish_logo.png"
-              style="
-                width: 100px;
-                height: 100px;
-                border-radius: 50%;
-                border: 3px solid #4da6ff;
-                margin-bottom: 15px;
-                object-fit: cover;
-              "
-            />
-            <div
-              style="
-                position: absolute;
-                bottom: 15px;
-                right: 0;
-                background: #4da6ff;
-                color: white;
-                border-radius: 50%;
-                width: 25px;
-                height: 25px;
-                font-size: 14px;
-                line-height: 25px;
-                text-align: center;
-              "
-            >
-              📷
+          
+          <!-- 👁️ 檢視模式 -->
+          <div id="profile-view-mode">
+            <h3 id="detail-name" style="margin: 5px 0; font-size: 1.4rem;">姓名</h3>
+            <p id="detail-email" style="color: #888; font-size: 0.9rem">email@example.com</p>
+            <hr style="border: 0; border-top: 1px solid #eee; margin: 15px 0" />
+            <div style="text-align: left; padding: 0 20px; line-height: 2">
+              <div><strong>🎂 生日：</strong><span id="detail-birthday">未填寫</span></div>
+              <div><strong>🚻 性別：</strong><span id="detail-gender">未填寫</span></div>
+              <div><strong>✨ 星座：</strong><span id="detail-zodiac">未填寫</span></div>
+              <div style="margin-top: 10px"><strong>📝 自我介紹：</strong></div>
+              <p id="detail-bio" style="background: #f9fbfd; padding: 10px; border-radius: 8px; font-size: 0.9rem; word-break: break-word;">尚未填寫自我介紹...</p>
+            </div>
+            <button id="btn-edit-profile" class="btn-submit" style="margin-top: 15px; padding: 10px; border-radius: 20px;">✏️ 編輯個人資料</button>
+          </div>
+
+          <!-- 📝 編輯模式 -->
+          <div id="profile-edit-mode" style="display: none; text-align: left; padding: 0 10px;">
+            <label style="font-weight: bold; font-size: 0.9rem; color: #555;">姓名：</label>
+            <input type="text" id="edit-name" class="light-input" style="padding: 10px; margin-bottom: 10px;">
+
+            <label style="font-weight: bold; font-size: 0.9rem; color: #555;">Email (帳號綁定不可更改)：</label>
+            <input type="text" id="edit-email" class="light-input" style="padding: 10px; margin-bottom: 10px; background: #eef2f6; color: #999; cursor: not-allowed;" disabled>
+
+            <div style="display: flex; gap: 10px;">
+              <div style="flex: 1;">
+                <label style="font-weight: bold; font-size: 0.9rem; color: #555;">🎂 生日：</label>
+                <input type="date" id="edit-birthday" class="light-input" style="padding: 10px; margin-bottom: 10px;">
+              </div>
+              <div style="flex: 1;">
+                <label style="font-weight: bold; font-size: 0.9rem; color: #555;">🚻 性別：</label>
+                <select id="edit-gender" class="light-input" style="padding: 10px; margin-bottom: 10px;">
+                  <option value="未填寫">未填寫</option>
+                  <option value="男">男</option>
+                  <option value="女">女</option>
+                  <option value="不公開">不公開</option>
+                </select>
+              </div>
+            </div>
+
+            <label style="font-weight: bold; font-size: 0.9rem; color: #555;">✨ 星座：</label>
+            <select id="edit-zodiac" class="light-input" style="padding: 10px; margin-bottom: 10px;">
+              <option value="未填寫">未填寫</option>
+              <option value="牡羊座">牡羊座</option>
+              <option value="金牛座">金牛座</option>
+              <option value="雙子座">雙子座</option>
+              <option value="巨蟹座">巨蟹座</option>
+              <option value="獅子座">獅子座</option>
+              <option value="處女座">處女座</option>
+              <option value="天秤座">天秤座</option>
+              <option value="天蠍座">天蠍座</option>
+              <option value="射手座">射手座</option>
+              <option value="摩羯座">摩羯座</option>
+              <option value="水瓶座">水瓶座</option>
+              <option value="雙魚座">雙魚座</option>
+            </select>
+
+            <label style="font-weight: bold; font-size: 0.9rem; color: #555;">📝 自我介紹：</label>
+            <textarea id="edit-bio" class="light-input" style="padding: 10px; margin-bottom: 15px; height: 80px; resize: none;"></textarea>
+
+            <div style="display: flex; gap: 10px;">
+              <button id="btn-cancel-edit" class="btn-submit" style="background: #f1f5f9; color: #475569; box-shadow: none; border-radius: 20px;">取消</button>
+              <button id="btn-save-profile" class="btn-submit" style="border-radius: 20px;">💾 儲存變更</button>
             </div>
           </div>
-          <input
-            type="file"
-            id="change-avatar-input"
-            accept="image/*"
-            style="display: none"
-          />
-          <h3 id="detail-name" style="margin: 5px 0">姓名</h3>
-          <p id="detail-email" style="color: #888; font-size: 0.9rem">
-            email@example.com
-          </p>
-          <hr style="border: 0; border-top: 1px solid #eee; margin: 15px 0" />
-          <div style="text-align: left; padding: 0 20px; line-height: 2">
-            <div>
-              <strong>🎂 生日：</strong><span id="detail-birthday">未填寫</span>
-            </div>
-            <div>
-              <strong>🚻 性別：</strong><span id="detail-gender">未填寫</span>
-            </div>
-            <div>
-              <strong>✨ 星座：</strong><span id="detail-zodiac">未填寫</span>
-            </div>
-            <div style="margin-top: 10px"><strong>📝 自我介紹：</strong></div>
-            <p
-              id="detail-bio"
-              style="
-                background: #f9fbfd;
-                padding: 10px;
-                border-radius: 8px;
-                font-size: 0.9rem;
-              "
-            >
-              尚未填寫自我介紹...
-            </p>
-          </div>
+          <!-- 👆 編輯模式結束 👆 -->
         </div>
       </div>
     </div>
