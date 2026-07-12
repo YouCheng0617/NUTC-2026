@@ -105,6 +105,7 @@ export const deleteBottleByAdmin = async (bottle_id: number) => {
     return true;
 };
 
+/*To 未來的me 記得要加上防呆功能，具體怎麼防呆你知道的*/
 export const deleteMemberByAdmin = async (member_id: number) => {
     const member = await prisma.member.findUnique({
         where: { member_id: member_id }
@@ -118,4 +119,34 @@ export const deleteMemberByAdmin = async (member_id: number) => {
         where: { member_id: member_id }
     });
     return true;
+};
+
+export const getReportedBottles = async () => {
+    const reportedBottles = await prisma.bottleReport.findMany({
+        orderBy: [
+            { status: "asc" },
+            { created_at: "desc" }
+        ],
+        include: {
+            reporter: {
+                select: {
+                    name: true,
+                    email: true
+                }
+            },
+            bottle: {
+                select: {
+                    bottle_id: true,
+                    title: true,
+                    content: true,
+                    status: true,
+                    author: {
+                        select: { name: true, email: true }
+                    }
+                }
+            }
+        }
+    });
+
+    return reportedBottles
 }

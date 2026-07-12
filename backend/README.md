@@ -120,6 +120,7 @@ Headers要給 x-api-key (跟我拿)
 
 刪除自己的文章 DELETE 給Token /:bottleId/delete (:後是他的id，例如給id 11文章刪除，/bottles/11/delete)
 管理員刪除文章 DELETE 給Token /admin/bottles/:bottleId/delete (:後是他的id，例如給id 11文章刪除，/admin/bottles/11/delete)
+管理員刪除使用者 DELETE 給Token /admin/members/:memberId/delete (:後是他的id，例如給id 11使用者刪除，/admin/members/11/delete)
 
 
 類別新增 POST 給Token /category/create
@@ -134,3 +135,10 @@ Headers要給 x-api-key (跟我拿)
   "blood_type": "",         
   "bio": "" 
 }
+
+使用者檢舉瓶子 POST 給Token /bottles/:bottleId/report (:bottleId 是被檢舉的瓶子id，例如要檢舉 id 84 的瓶子，/bottles/84/report)
+{
+"reason": "這篇文章包含惡意攻擊與髒話"
+}
+
+管理員獲取檢舉列表 GET 給Token /admin/bottles/reported

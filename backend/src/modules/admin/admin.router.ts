@@ -12,5 +12,6 @@ export function adminRouter() {
     router.put("/bottles/review", authCheck, adminCheck, (req, res) => adminController.reviewBottle(req, res));
     router.delete("/bottles/:bottleId/delete", authCheck, adminCheck, (req, res) => adminController.deleteBottle(req, res));
     router.delete("/members/:memberId/delete", authCheck, adminCheck, (req, res) => adminController.deleteMember(req, res));
+    router.get("/bottles/reported", authCheck, adminCheck, (req: AuthRequest, res) => adminController.getReportedBottlesController(req, res));
     return router;
 }

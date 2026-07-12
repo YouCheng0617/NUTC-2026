@@ -2,7 +2,7 @@ import { Router } from "express";
 import type { Request, Response } from "express";
 import prisma from "../../lib/prisma.js";
 import dotenv from "dotenv";
-import { getMybottles, likeBottles, saveBottles, getMyLikedBottles, getMySavedBottles, deleteMyBottle as deleteMyBottleService, getTodayBottle } from "./bottle.service.js";
+import { getMybottles, likeBottles, saveBottles, getMyLikedBottles, getMySavedBottles, deleteMyBottle as deleteMyBottleService, getTodayBottle, reportBottle } from "./bottle.service.js";
 export interface TokenPayload {
     member_id: number;
     email: string;
@@ -326,6 +326,44 @@ export const bottleController = {
         } catch (error) {
             console.error("Error fetching today bottles:", error);
             res.status(500).json({ message: "內部伺服器錯誤" });
+        }
+    },
+
+    async reportBottleController(req: AuthRequest, res: Response) {
+        try {
+            const memberId = req.user?.member_id as number;
+            if (!memberId || isNaN(memberId)) {
+                return res.status(400).json({ message: "無效的會員，請重新登入" });
+            }
+
+            const bottleId = Number(req.params.bottleId);
+            const { reason } = req.body;
+            if (isNaN(bottleId)) {
+                return res.status(400).json({ message: "無效的瓶子 ID" });
+            }
+            if (!reason || reason.trim() === "") {
+                return res.status(400).json({ message: "檢舉原因不能為空" });
+            }
+
+            const newReport = await reportBottle(bottleId, memberId, reason);
+            res.status(201).json({
+                message: "檢舉成功，感謝你的回報",
+                report: newReport
+            });
+
+        } catch (error: any) {
+            if (error.message === "REPORT_REASON_EMPTY") {
+                return res.status(400).json({ message: "檢舉理由不能為空字串" });
+            }
+            if (error.message === "BOTTLE_NOT_FOUND") {
+                return res.status(404).json({ message: "找不到該篇文章，可能已被刪除" });
+            }
+            if (error.message === "ALREADY_REPORTED") {
+                return res.status(409).json({ message: "您已經檢舉過此文章囉！感謝您的回報。" });
+            }
+
+            console.error("reportBottleController 錯誤:", error);
+            return res.status(500).json({ message: "伺服器發生錯誤，請稍後再試" });
         }
     },
 }

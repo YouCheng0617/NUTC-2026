@@ -303,3 +303,34 @@ export const createBottle = async (
 
     return newBottle;
 };
+
+/*檢舉瓶子*/
+export const reportBottle = async (bottleId: number, memberId: number, reason: string) => {
+    const trimmedReason = reason.trim();
+    if (!trimmedReason) {
+        throw new Error("REPORT_REASON_EMPTY");
+    }
+
+    const bottle = await prisma.bottle.findUnique({
+        where: { bottle_id: bottleId },
+    });
+    if (!bottle) {
+        throw new Error("BOTTLE_NOT_FOUND");
+    }
+
+    try {
+        const newReport = await prisma.bottleReport.create({
+            data: {
+                member_id: memberId,
+                bottle_id: bottleId,
+                reason: trimmedReason,
+            }
+        });
+        return newReport;
+    } catch (error: any) {
+        if (error.code === 'P2002') {
+            throw new Error("ALREADY_REPORTED");
+        }
+        throw error;
+    }
+};

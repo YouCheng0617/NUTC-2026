@@ -1,5 +1,5 @@
 import type { Response, Request } from "express";
-import { getAllMembers, changeMemberStatus, getAllBottlesForAdmin, updateBottleStatus, deleteBottleByAdmin, deleteMemberByAdmin } from "./admin.service.js";
+import { getAllMembers, changeMemberStatus, getAllBottlesForAdmin, updateBottleStatus, deleteBottleByAdmin, deleteMemberByAdmin, getReportedBottles } from "./admin.service.js";
 
 export class AdminController {
 
@@ -85,6 +85,7 @@ export class AdminController {
             return res.status(500).json({ message: "內部伺服器錯誤" });
         }
     }
+    /*刪除瓶子*/
     async deleteBottle(req: Request, res: Response) {
         try {
             const bottleId = Number(req.params.bottleId);
@@ -107,7 +108,7 @@ export class AdminController {
             });
         }
     }
-
+    /*刪除會員*/
     async deleteMember(req: Request, res: Response) {
         try {
             const memberId = Number(req.params.memberId);
@@ -123,6 +124,24 @@ export class AdminController {
                 return res.status(404).json({ message: "找不到該會員，請檢查會員 ID" });
             }
             console.error("Error deleting member:", error);
+            return res.status(500).json({
+                message: "內部伺服器錯誤",
+                real_error: error.message || error.toString(),
+                stack: error.stack
+            });
+        }
+    }
+    /*獲取被檢舉的瓶子列表*/
+    async getReportedBottlesController(req: Request, res: Response) {
+        try {
+            const reportedBottles = await getReportedBottles();
+
+            return res.status(200).json({
+                message: "成功獲取被檢舉的瓶子列表",
+                data: reportedBottles
+            });
+        } catch (error: any) {
+            console.error("Error fetching reported bottles:", error);
             return res.status(500).json({
                 message: "內部伺服器錯誤",
                 real_error: error.message || error.toString(),
