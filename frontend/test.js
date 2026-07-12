@@ -25,6 +25,25 @@ const BOARD_CATEGORY_MAP = {
     '😁 開心的事': 5,
 };
 
+// ==========================================
+// 🌟 星座自動計算小精靈
+// ==========================================
+function calculateZodiac(month, day) {
+    if ((month == 1 && day >= 20) || (month == 2 && day <= 18)) return "水瓶座";
+    if ((month == 2 && day >= 19) || (month == 3 && day <= 20)) return "雙魚座";
+    if ((month == 3 && day >= 21) || (month == 4 && day <= 19)) return "牡羊座";
+    if ((month == 4 && day >= 20) || (month == 5 && day <= 20)) return "金牛座";
+    if ((month == 5 && day >= 21) || (month == 6 && day <= 20)) return "雙子座";
+    if ((month == 6 && day >= 21) || (month == 7 && day <= 22)) return "巨蟹座";
+    if ((month == 7 && day >= 23) || (month == 8 && day <= 22)) return "獅子座";
+    if ((month == 8 && day >= 23) || (month == 9 && day <= 22)) return "處女座";
+    if ((month == 9 && day >= 23) || (month == 10 && day <= 22)) return "天秤座";
+    if ((month == 10 && day >= 23) || (month == 11 && day <= 21)) return "天蠍座";
+    if ((month == 11 && day >= 22) || (month == 12 && day <= 21)) return "射手座";
+    if ((month == 12 && day >= 22) || (month == 1 && day <= 19)) return "摩羯座";
+    return "未填寫";
+}
+
 // 🌊 向後端抓取文章 API (🟢 訪客友善版)
 async function fetchBottles() {
     const token = localStorage.getItem("authToken");
@@ -188,7 +207,6 @@ async function fetchBottles() {
 
             applyFilters();
       } else if (response.status === 404) {
-        // 🔥 新增這段：優雅處理 404 空海域狀態
         console.log(`🌊 該海域 (Category ${currentCategoryId}) 目前還沒有漂流瓶`);
         posts = []; 
         applyFilters(); 
@@ -197,7 +215,7 @@ async function fetchBottles() {
         posts = []; 
         applyFilters(); 
     }
-} catch (error) {     // 👈 你不小心刪到這裡了！(捕捉錯誤的區塊)
+} catch (error) {     
     console.error("連線錯誤:", error);
 }                    
 }                    
@@ -216,14 +234,12 @@ function renderPosts(data = posts) {
     const pageContainer = document.getElementById('pagination-container');
     if (!container) return;
 
-    // 🌟 沒文章時：使用「發光白字」提示，不會再被夜間深海吃掉！
     if (!data || data.length === 0) {
         container.innerHTML = `<h3 style="text-align:center; color:#ffffff; text-shadow: 0 0 10px rgba(77, 166, 255, 0.8); margin-top:100px; font-size: 1.4rem;">目前這個海域空空的，快來拋出你的第一個漂流瓶吧！🌊</h3>`;
         if (pageContainer) pageContainer.innerHTML = '';
         return;
     }
 
-    // 🔪 核心分頁邏輯：計算頁數與切出這一頁要顯示的資料
     const totalPages = Math.ceil(data.length / POSTS_PER_PAGE);
     if (currentPage > totalPages) currentPage = totalPages || 1;
 
@@ -274,7 +290,6 @@ function applyFilters() {
         );
     }
 
-    // ❌ 已經把 slice(0, 6) 的洗牌魔法移除，分頁才能完整顯示所有筆數！
     renderPosts(res);
 }
 
@@ -770,7 +785,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (searchInput && historyBox) {
         searchInput.oninput = (e) => {
             currentKeyword = e.target.value.toLowerCase().trim();
-            currentPage = 1; // 🌟 搜尋關鍵字改變時，自動歸零回到第一頁！
+            currentPage = 1; 
             applyFilters();
             renderSearchHistory();
             historyBox.style.width = searchInput.offsetWidth + 'px';
@@ -798,25 +813,21 @@ document.addEventListener('DOMContentLoaded', () => {
         input.setAttribute('autocomplete', 'off');
         const wrapper = input.parentElement;
         
-        // 確保只處理我們想要替換的目標
         if (wrapper && wrapper.tagName.toLowerCase() === 'div' && wrapper.classList.contains('comment-action-bar')) {
             const form = document.createElement('form');
             form.style.cssText = wrapper.style.cssText;
             
-            // 🔥 核心修復 1：把原本 div 的 class 完美繼承給 form，CSS 才不會失效！
             form.className = wrapper.className; 
             
             form.onsubmit = (e) => { e.preventDefault(); submitComment(); };
             while (wrapper.firstChild) { form.appendChild(wrapper.firstChild); }
             wrapper.parentNode.replaceChild(form, wrapper);
             
-            // 🔥 核心修復 2：精準只抓取「送出」按鈕，不要抓到前面的「⭐ 收藏」按鈕！
             const btn = form.querySelector('.send-btn');
             if (btn) { btn.type = 'submit'; btn.removeAttribute('onclick'); }
         }
     });
     
-    // 🌟 左邊欄點擊分類：自動歸零到第一頁並載入該分類！
     document.querySelectorAll('.sidebar li').forEach(li => li.onclick = (e) => {
         document.querySelectorAll('.sidebar li').forEach(el => el.classList.remove('active'));
         e.target.classList.add('active');
@@ -825,7 +836,7 @@ document.addEventListener('DOMContentLoaded', () => {
         currentBoard = liText.substring(2).trim();
         currentCategoryId = BOARD_CATEGORY_MAP[liText] || 1;
 
-        currentPage = 1; // 🌟 關鍵修正：點選任何新海域，強制頁碼歸零從第一頁開始看！
+        currentPage = 1; 
 
         sessionStorage.setItem('savedCategoryId', currentCategoryId);
         sessionStorage.setItem('savedBoard', currentBoard);
@@ -852,15 +863,121 @@ document.addEventListener('DOMContentLoaded', () => {
             e.stopPropagation();
             const user = JSON.parse(localStorage.getItem('currentUser'));
             if (user) {
-                document.getElementById('detail-avatar').src = user.avatar || 'images/fish_logo.png';
+                // 已移除頭像載入程式碼
                 document.getElementById('detail-name').innerText = user.name || '未設定姓名';
                 document.getElementById('detail-email').innerText = user.email;
                 document.getElementById('detail-birthday').innerText = user.birthday ? user.birthday.split('T')[0] : '未填寫';
                 document.getElementById('detail-gender').innerText = user.gender || '未填寫';
                 document.getElementById('detail-zodiac').innerText = user.zodiac || user.constellation || '未填寫';
                 document.getElementById('detail-bio').innerText = user.bio || '這瓶子裡目前空空的...';
+                
+                document.getElementById('profile-view-mode').style.display = 'block';
+                document.getElementById('profile-edit-mode').style.display = 'none';
+
                 profileModal.style.display = 'block';
             } else { alert('請先登入！'); }
+        };
+    }
+
+    const btnEditProfile = document.getElementById('btn-edit-profile');
+    const btnCancelEdit = document.getElementById('btn-cancel-edit');
+    const btnSaveProfile = document.getElementById('btn-save-profile');
+    
+    const editBirthdayInput = document.getElementById('edit-birthday');
+    const editZodiacSelect = document.getElementById('edit-zodiac');
+
+    if (editBirthdayInput && editZodiacSelect) {
+        editBirthdayInput.addEventListener('change', (e) => {
+            const dateStr = e.target.value;
+            if (dateStr) {
+                const dateObj = new Date(dateStr);
+                const month = dateObj.getMonth() + 1;
+                const day = dateObj.getDate();
+                editZodiacSelect.value = calculateZodiac(month, day);
+            }
+        });
+    }
+
+    if (btnEditProfile) {
+        btnEditProfile.onclick = () => {
+            const user = JSON.parse(localStorage.getItem('currentUser'));
+            if (!user) return;
+            
+            document.getElementById('edit-name').value = user.name || '';
+            document.getElementById('edit-email').value = user.email || '';
+            document.getElementById('edit-birthday').value = user.birthday ? user.birthday.split('T')[0] : '';
+            document.getElementById('edit-gender').value = user.gender || '未填寫';
+            document.getElementById('edit-zodiac').value = user.zodiac || user.constellation || '未填寫';
+            document.getElementById('edit-bio').value = user.bio || '';
+
+            document.getElementById('profile-view-mode').style.display = 'none';
+            document.getElementById('profile-edit-mode').style.display = 'block';
+        };
+    }
+
+    if (btnCancelEdit) {
+        btnCancelEdit.onclick = () => {
+            document.getElementById('profile-edit-mode').style.display = 'none';
+            document.getElementById('profile-view-mode').style.display = 'block';
+        };
+    }
+
+    if (btnSaveProfile) {
+        btnSaveProfile.onclick = async () => {
+            const user = JSON.parse(localStorage.getItem('currentUser'));
+            if (!user) return;
+
+            const newName = document.getElementById('edit-name').value.trim();
+            if (!newName) {
+                alert("寶寶，姓名不能空白唷！");
+                return;
+            }
+
+            user.name = newName;
+            user.birthday = document.getElementById('edit-birthday').value;
+            user.gender = document.getElementById('edit-gender').value;
+            user.zodiac = document.getElementById('edit-zodiac').value;
+            user.constellation = user.zodiac; 
+            user.bio = document.getElementById('edit-bio').value.trim();
+
+            const token = localStorage.getItem("authToken");
+
+            try {
+                fetch(`${API_BASE_URL}/auth/update-data`, {
+                    method: 'PATCH',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json',
+                        'ngrok-skip-browser-warning': 'true'
+                    },
+                    body: JSON.stringify({
+                        name: user.name,
+                        birthday: user.birthday,
+                        constellation: user.zodiac,
+                        bio: user.bio
+                    })
+                }).catch(e => console.log('API 更新稍有延遲，優先更新本地顯示', e));
+                
+                localStorage.setItem('currentUser', JSON.stringify(user));
+
+                document.getElementById('detail-name').innerText = user.name;
+                document.getElementById('detail-birthday').innerText = user.birthday || '未填寫';
+                document.getElementById('detail-gender').innerText = user.gender || '未填寫';
+                document.getElementById('detail-zodiac').innerText = user.zodiac || '未填寫';
+                document.getElementById('detail-bio').innerText = user.bio || '這瓶子裡目前空空的...';
+                
+                const userNameEl = document.getElementById('user-name');
+                if (userNameEl) userNameEl.innerText = user.name;
+
+                document.getElementById('profile-edit-mode').style.display = 'none';
+                document.getElementById('profile-view-mode').style.display = 'block';
+
+                alert("🎉 資料修改成功！");
+
+            } catch (error) {
+                console.error("更新發生錯誤", error);
+                alert("哎呀，好像出了一點小錯，請再試一次喔！");
+            }
         };
     }
 
@@ -879,25 +996,7 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 });
 
-document.addEventListener('change', (e) => {
-    if (e.target.id === 'change-avatar-input') {
-        const file = e.target.files[0];
-        if (file) {
-            const reader = new FileReader();
-            reader.onload = function (event) {
-                const imageUrl = event.target.result;
-                if (document.getElementById('detail-avatar')) document.getElementById('detail-avatar').src = imageUrl;
-                if (document.getElementById('user-avatar')) document.getElementById('user-avatar').src = imageUrl;
-                const user = JSON.parse(localStorage.getItem('currentUser'));
-                if (user) {
-                    user.avatar = imageUrl;
-                    localStorage.setItem('currentUser', JSON.stringify(user));
-                }
-            };
-            reader.readAsDataURL(file);
-        }
-    }
-});
+// 已移除頭像變更事件監聽器
 
 // 呼喚海流：專屬寶寶的換瓶子特效
 window.callOceanCurrent = function() {
@@ -951,4 +1050,4 @@ function renderPagination(totalPages, dataArray) {
         window.scrollTo({ top: 0, behavior: 'smooth' });
     };
     pageContainer.appendChild(nextBtn);
-}   
+}
