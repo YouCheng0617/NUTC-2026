@@ -454,6 +454,24 @@ window.openPostDetail = function (id) {
 
     renderComments(id);
 
+    // 👇 就是這裡！幫星星按鈕接上真正的收藏魔法 👇
+    const saveBtn = document.getElementById('save-bottle-btn');
+    if (saveBtn) {
+        // 1. 打開文章時，先檢查是不是已經收藏過了，是的話就讓星星亮起來
+        if (p.saved) {
+            saveBtn.classList.add('active');
+        } else {
+            saveBtn.classList.remove('active');
+        }
+
+        // 2. 蓋掉原本只有視覺效果的點擊事件，換成會呼叫後端 API 的版本！
+        saveBtn.onclick = (e) => {
+            saveBtn.classList.toggle('active'); // 立刻給寶寶切換星星顏色的視覺回饋
+            toggleAction(id, 'save', e);        // 呼叫原本寫好的 API 把資料存進資料庫！
+        };
+    }
+    // 👆 就是這裡！幫星星按鈕接上真正的收藏魔法 👆
+
     const feedView = document.getElementById('feed-view');
     const detailView = document.getElementById('detail-view');
     const sidebar = document.querySelector('.sidebar');
