@@ -118,19 +118,42 @@ body, html { height: 100vh !important; overflow: hidden !important; background-c
 }
 .main-feed::-webkit-scrollbar { display: none !important; } 
 
-/* 縮小底部 padding，將空間留給「分頁按鈕」 */
+/* 🌟 改用 Grid 網格排版，強制上面三個、下面三個 */
 #post-container { 
-    display: flex; flex-wrap: wrap; justify-content: center; 
+    display: grid !important; 
+    grid-template-columns: repeat(3, auto) !important; /* 強制 3 個一排 */
+    justify-content: center !important; 
     align-content: flex-start !important; 
-    gap: 50px; 
-    padding: 60px 40px 20px 40px !important; 
-    width: 100%; height: auto !important; 
+    gap: 50px 80px !important; /* 調整上下間距 50px，左右間距 80px */
+    padding: 60px 40px 40px 40px !important; 
+    width: 100%; 
+    max-width: 950px; /* 限制寬度讓排版更集中，不會散太開 */
+    margin: 0 auto; /* 整個區塊置中 */
+    height: auto !important; 
     min-height: 400px !important; 
-    position: relative; box-sizing: border-box; 
+    box-sizing: border-box; 
 }
-.post-card:nth-child(even) { transform: translateY(40px); }
-.post-card:nth-child(odd) { transform: translateY(-20px); }
 
+/* 清除原本 flex 殘留的間距，讓 Grid 完美接管 */
+#post-container .post-card {
+    margin: 0 auto !important; 
+}
+/* ✅ 全新波浪魔法：專為 3 排網格設計 */
+/* 讓左右兩側的瓶子保持在上面 */
+#post-container .post-card:nth-child(3n+1),
+#post-container .post-card:nth-child(3n) {
+    margin-top: 0 !important;
+}
+
+/* 讓「中間那一排」的瓶子統一下沉，形成完美的 V 字型，絕對不相撞！ */
+#post-container .post-card:nth-child(3n+2) {
+    margin-top: 50px !important;
+}
+
+/* 順便把網格上下的間距再拉開一點，呼吸空間更舒服 */
+#post-container {
+    gap: 60px 80px !important; 
+}
 .right-panel { display: none !important; }
 
 /* =========================================
@@ -279,7 +302,23 @@ body, html { height: 100vh !important; overflow: hidden !important; background-c
     }
     
     /* 🔥 手機版：海域容器微調 */
-    #post-container { gap: 25px !important; padding: 40px 15px 20px 15px !important; align-content: flex-start !important; min-height: 300px !important; }
+    /* 🔥 手機版：海域容器微調 (改為一行兩個，避免太擠) */
+    /* 🔥 手機版：海域容器微調 (改為一行兩個) */
+    #post-container { 
+        grid-template-columns: repeat(2, auto) !important; 
+        gap: 30px 15px !important; 
+        padding: 40px 15px 20px 15px !important; 
+        align-content: flex-start !important; 
+        min-height: 300px !important; 
+    }
+    
+    /* 📱 手機專屬：一行只有 2 個，所以變成左上、右下 */
+    #post-container .post-card:nth-child(n) {
+        margin-top: 0 !important; /* 先全部歸零 */
+    }
+    #post-container .post-card:nth-child(even) {
+        margin-top: 30px !important; /* 只有右邊往下沉 */
+    }
     .post-card { width: 120px; height: 120px; margin: 15px 5px !important; }
     .post-card::before { width: 35px; height: 20px; top: -18px; }
     .post-card::after { width: 45px; height: 10px; top: -4px; }
