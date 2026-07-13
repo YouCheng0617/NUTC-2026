@@ -48,7 +48,6 @@ export const bottleController = {
                     content,
                     is_anonymous: isAnonymous || false,
                     member_id: memberId, // 這裡已經確定有 memberId，可以直接放
-                    status: 1,  /* 暫時預設審核通過 */
                     categories: {
                         create: category_id.map((id: number) => ({
                             category_id: id
