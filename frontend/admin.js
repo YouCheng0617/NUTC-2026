@@ -704,22 +704,32 @@ function renderReports(reports) {
     }
 
     tbody.innerHTML = reports.map(r => {
-        // 考量後端各種常見的欄位命名規則
+        // 解析後端資料
         const bottleId = r.bottle_id || r.id || '未知';
-        const reason = r.reason || r.report_reason || r.content || '未提供原因';
+        const reason = r.reason || r.report_reason || '未提供原因';
         const reporter = r.reporter_id || r.member_id || r.reporter_name || '匿名';
         const date = r.created_at ? new Date(r.created_at).toLocaleDateString() : '未知';
+        
+        // ✨ 解析文章內容 (這裡請依照你後端 API 實際回傳的欄位名稱調整)
+        const bottleContent = r.bottle_content || r.bottle?.content || r.content || '（無法取得文章內容）';
 
         return `
         <tr style="background: #fffafa; transition: 0.3s;">
             <td data-label="文章 ID" style="color: #64748b; font-weight: 600;">#${bottleId}</td>
+            
+            <!-- ✨ 新增：被檢舉內容 (設定最多顯示三行，超過會變 ...) -->
+            <td data-label="被檢舉內容" style="min-width: 220px; max-width: 350px;">
+                <div style="display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; white-space: normal; color: #334155; line-height: 1.5; font-size: 0.95rem;">
+                    ${escapeHTML(String(bottleContent))}
+                </div>
+            </td>
+
             <td data-label="檢舉原因" style="color: #ef4444; font-weight: bold; white-space: normal; min-width: 150px;">
                 ${escapeHTML(String(reason))}
             </td>
             <td data-label="檢舉者 ID">${escapeHTML(String(reporter))}</td>
             <td data-label="檢舉時間" style="color: #64748b;">${date}</td>
             <td data-label="操作">
-                <!-- 直接利用先前寫好的強制刪除功能 -->
                 <button class="btn-action btn-danger" onclick="deleteBottleAsAdmin('${bottleId}'); loadReports();">🗑️ 刪除違規文章</button>
             </td>
         </tr>
