@@ -50,7 +50,7 @@ window.switchAdminTab = function (tabName) {
     }
     else if (tabName === 'users') { titleEl.innerText = "管理使用者"; loadUsers(); }
     else if (tabName === 'bottles') { titleEl.innerText = "漂流瓶審核"; loadBottles(); }
-    else if (tabName === 'reports') { titleEl.innerText = "檢舉處理"; }
+    else if (tabName === 'reports') { titleEl.innerText = "檢舉處理"; loadReports();}
 }
 
 // ==========================================
@@ -637,3 +637,102 @@ window.approveAllPendingBottles = async function() {
         loadBottles(); 
     }
 };
+// ==========================================
+// 11. API 串接：檢舉列表管理
+// ==========================================
+window._allReports = [];
+
+async function loadReports() {
+    const tbody = document.getElementById('admin-reports-body');
+    const token = localStorage.getItem("authToken");
+    if (!tbody) return;
+    
+    tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;">讀取中...</td></tr>`;
+
+    try {
+        const response = await fetch(`${API_BASE_URL}/admin/bottles/reported`, {
+            headers: { 
+                'Authorization': `Bearer ${token}`, 
+                'ngrok-skip-browser-warning': 'true' 
+            }
+        });
+        
+        if (!response.ok) throw new Error();
+
+        const data = await response.json();
+        // 兼容不同的後端回傳格式
+        window._allReports = data.data || data || [];
+        
+        // 更新總覽儀表板的「待處理檢舉」數字
+        const statReports = document.getElementById('stat-reports');
+        if (statReports) statReports.innerText = window._allReports.length;
+
+        filterReports();
+
+    } catch (e) {
+        tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; color:red;">無法載入，請確認權限或後端是否啟動</td></tr>`;
+    }
+}
+
+window.filterReports = function () {
+    const keyword = document.getElementById('search-reports')?.value.toLowerCase() || '';
+    
+    const filtered = window._allReports.filter(r => {
+        const bottleId = String(r.bottle_id || r.id || '');
+        const reason = String(r.reason || r.report_reason || r.content || '').toLowerCase();
+        return bottleId.includes(keyword) || reason.includes(keyword);
+    });
+    
+    renderReports(filtered);
+}
+
+function renderReports(reports) {
+    const tbody = document.getElementById('admin-reports-body');
+    if (!tbody) return;
+    
+    if (reports.length === 0) {
+        tbody.innerHTML = `
+        <tr>
+            <td colspan="5">
+                <div class="empty-state">
+                    <span class="empty-icon">☕</span>
+                    <p>目前尚無待處理的檢舉案件，喝杯咖啡休息一下吧！</p>
+                </div>
+            </td>
+        </tr>`;
+        return;
+    }
+
+    tbody.innerHTML = reports.map(r => {
+        // 解析後端資料
+        const bottleId = r.bottle_id || r.id || '未知';
+        const reason = r.reason || r.report_reason || '未提供原因';
+        const reporter = r.reporter_id || r.member_id || r.reporter_name || '匿名';
+        const date = r.created_at ? new Date(r.created_at).toLocaleDateString() : '未知';
+        
+        // ✨ 解析文章內容 (這裡請依照你後端 API 實際回傳的欄位名稱調整)
+        const bottleContent = r.bottle_content || r.bottle?.content || r.content || '（無法取得文章內容）';
+
+        return `
+        <tr style="background: #fffafa; transition: 0.3s;">
+            <td data-label="文章 ID" style="color: #64748b; font-weight: 600;">#${bottleId}</td>
+            
+            <!-- ✨ 新增：被檢舉內容 (設定最多顯示三行，超過會變 ...) -->
+            <td data-label="被檢舉內容" style="min-width: 220px; max-width: 350px;">
+                <div style="display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; white-space: normal; color: #334155; line-height: 1.5; font-size: 0.95rem;">
+                    ${escapeHTML(String(bottleContent))}
+                </div>
+            </td>
+
+            <td data-label="檢舉原因" style="color: #ef4444; font-weight: bold; white-space: normal; min-width: 150px;">
+                ${escapeHTML(String(reason))}
+            </td>
+            <td data-label="檢舉者 ID">${escapeHTML(String(reporter))}</td>
+            <td data-label="檢舉時間" style="color: #64748b;">${date}</td>
+            <td data-label="操作">
+                <button class="btn-action btn-danger" onclick="deleteBottleAsAdmin('${bottleId}'); loadReports();">🗑️ 刪除違規文章</button>
+            </td>
+        </tr>
+        `;
+    }).join('');
+}
