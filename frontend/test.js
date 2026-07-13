@@ -6,7 +6,7 @@ let currentKeyword = '';
 
 // 👇 分頁設定與狀態紀錄
 let currentPage = 1; 
-const POSTS_PER_PAGE = 5; 
+const POSTS_PER_PAGE = 6; // 🌟 從 5 改成 6，讓一頁抓出 6 個瓶子
 
 let currentBoard = sessionStorage.getItem('savedBoard') || '綜合閒聊';
 let savedCatId = sessionStorage.getItem('savedCategoryId');
