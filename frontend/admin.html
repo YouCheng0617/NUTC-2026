@@ -212,18 +212,37 @@
         </div>
       </div>
 
-      <div id="section-reports" class="admin-section" style="display: none">
+     <div id="section-reports" class="admin-section" style="display: none">
         <div class="modern-card">
-          <div class="card-header">
-            <h3 style="color: #ef4444">檢舉案件</h3>
+          <div class="card-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+            <h3 style="color: #ef4444; margin: 0;">⚠️ 檢舉案件處理</h3>
+            <input type="text" id="search-reports" placeholder="🔍 搜尋檢舉原因或文章 ID..." style="
+                  padding: 8px 12px;
+                  border: 1px solid #ccc;
+                  border-radius: 6px;
+                  width: 100%;
+                  max-width: 300px;
+                " oninput="filterReports()" />
           </div>
-          <div class="empty-state">
-            <span class="empty-icon">☕</span>
-            <p>目前尚無待處理的檢舉案件，喝杯咖啡休息一下吧！</p>
+          
+          <div class="table-responsive">
+            <table class="modern-table">
+              <thead>
+                <tr>
+                  <th>文章 ID</th>
+                  <th>檢舉原因</th>
+                  <th>檢舉者 ID</th>
+                  <th>檢舉時間</th>
+                  <th>操作</th>
+                </tr>
+              </thead>
+              <tbody id="admin-reports-body">
+                 <!-- 資料會從 JS 渲染進來 -->
+              </tbody>
+            </table>
           </div>
         </div>
       </div>
-    </div>
   </main>
 
   <div id="admin-modal" class="admin-modal-overlay" style="display: none">
