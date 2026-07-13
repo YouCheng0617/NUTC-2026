@@ -5,7 +5,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>心情漂流瓶 - 論壇</title>
-  <link rel="stylesheet" href="test.css?v=19" />
+  <link rel="stylesheet" href="test.css?v=20" />
 </head>
 
 <body>
@@ -91,11 +91,15 @@
             <span class="back-arrow">&larr;</span>
             <span class="back-text">返回海域</span>
           </div>
-          <div class="board-badge">
-            <img src="images/fish_logo.png" class="board-icon" />
-            <span id="detail-board-tag">綜合閒聊</span>
+          
+          <div style="display: flex; gap: 12px; align-items: center;">
+            <div class="report-action" onclick="openReportModal()" title="檢舉此瓶子">⚠️ 檢舉</div>
+            <div class="board-badge">
+              <img src="images/fish_logo.png" class="board-icon" />
+              <span id="detail-board-tag">綜合閒聊</span>
+            </div>
           </div>
-        </div>
+          </div>
 
         <h2 id="detail-post-title" class="detail-title"></h2>
 
@@ -166,7 +170,6 @@
     </div>
   </div>
 
-  <!-- 👇 個人資料區塊 👇 -->
   <div id="profile-modal" class="modal">
     <div class="modal-content light-modal"
       style="width: 400px; text-align: center; max-height: 90vh; overflow-y: auto;">
@@ -174,7 +177,6 @@
       <h2 style="color: #0055a5; margin-bottom: 20px; font-weight: 900;">個人資訊</h2>
       <div class="profile-detail">
 
-        <!-- 👁️ 檢視模式 -->
         <div id="profile-view-mode">
           <h3 id="detail-name" style="margin: 5px 0; font-size: 1.4rem;">姓名</h3>
           <p id="detail-email" style="color: #888; font-size: 0.9rem">email@example.com</p>
@@ -192,7 +194,6 @@
             style="margin-top: 15px; padding: 10px; border-radius: 20px;">✏️ 編輯個人資料</button>
         </div>
 
-        <!-- 📝 編輯模式 -->
         <div id="profile-edit-mode" style="display: none; text-align: left; padding: 0 10px;">
           <label style="font-weight: bold; font-size: 0.9rem; color: #555;">姓名：</label>
           <input type="text" id="edit-name" class="light-input" style="padding: 10px; margin-bottom: 10px;">
@@ -244,11 +245,19 @@
             <button id="btn-save-profile" class="btn-submit" style="border-radius: 20px;">💾 儲存變更</button>
           </div>
         </div>
-        <!-- 👆 編輯模式結束 👆 -->
       </div>
     </div>
   </div>
 
+  <div id="report-modal" class="modal">
+    <div class="modal-content light-modal" style="width: 320px; text-align: center; padding: 25px;">
+      <span class="close-btn" onclick="closeReportModal()">&times;</span>
+      <h3 style="color: #ef4444; margin-top: 0; font-size: 1.3rem;">⚠️ 檢舉此瓶子</h3>
+      <p style="color: #64748b; font-size: 0.9rem; margin-bottom: 15px;">請告訴我們這個瓶子出了什麼問題：</p>
+      <textarea id="report-reason" class="light-input" rows="3" placeholder="例如：這篇文章包含惡意攻擊與髒話..."></textarea>
+      <button class="btn-submit" style="background: #ef4444; box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3); border-radius: 20px;" onclick="submitReport()">送出檢舉</button>
+    </div>
+  </div>
   <script type="module" src="test.js?v=18"></script>
 
   <div class="ocean-refresh-btn" onclick="callOceanCurrent()">🌊 呼喚海流</div>

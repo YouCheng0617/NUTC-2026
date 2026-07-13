@@ -52,10 +52,6 @@
           to { opacity: 1; transform: translateY(0) scale(1); }
       }
       .profile-header { text-align: center; border-bottom: 2px dashed rgba(77, 166, 255, 0.3); padding-bottom: 20px; margin-bottom: 20px; }
-      .avatar-container { position: relative; display: inline-block; }
-      .avatar-container img { width: 90px; height: 90px; border-radius: 50%; border: 3px solid #4da6ff; object-fit: cover; box-shadow: 0 4px 15px rgba(77, 166, 255, 0.3); }
-      .edit-avatar-btn { position: absolute; bottom: 0; right: -5px; background: #4da6ff; color: white; width: 28px; height: 28px; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 14px; cursor: pointer; border: 2px solid white; transition: 0.2s; }
-      .edit-avatar-btn:hover { background: #0073e6; transform: scale(1.1); }
       .profile-name { margin: 10px 0 5px; color: #004b87; font-size: 1.5rem; font-weight: 800; }
       .profile-email { margin: 0; color: #66b3ff; font-size: 0.9rem; }
       .info-row { display: flex; margin-bottom: 15px; font-size: 1.05rem; color: #003366; background: rgba(255,255,255, 0.6); padding: 10px 15px; border-radius: 12px; }
@@ -138,9 +134,13 @@
               <span class="back-arrow">&larr;</span> 
               <span class="back-text">返回列表</span>
             </div>
-            <div class="board-badge">
-              <img src="images/fish_logo.png" class="board-icon" />
-              <span id="detail-board-tag">綜合閒聊</span>
+            <!-- 👇 加入了檢舉按鈕 👇 -->
+            <div style="display: flex; gap: 12px; align-items: center;">
+              <div class="report-action" onclick="openReportModal()" title="檢舉此瓶子">⚠️ 檢舉</div>
+              <div class="board-badge">
+                <img src="images/fish_logo.png" class="board-icon" />
+                <span id="detail-board-tag">綜合閒聊</span>
+              </div>
             </div>
           </div>
 
@@ -186,11 +186,7 @@
 
         <div id="profile-view-mode">
           <div class="profile-header">
-            <div class="avatar-container">
-              <img id="detail-avatar" src="images/fish_logo.png" alt="頭像" />
-              <div class="edit-avatar-btn" onclick="document.getElementById('change-avatar-input').click()">📷</div>
-            </div>
-            <input type="file" id="change-avatar-input" accept="image/*" style="display: none" />
+            <!-- ✂️ 已經幫寶寶把頭像刪掉囉 -->
             <h2 id="detail-name" class="profile-name">管理員</h2>
             <p id="detail-email" class="profile-email">Admin@gmail.com</p>
           </div>
@@ -245,6 +241,18 @@
         </div>
       </div>
     </div>
+
+    <!-- 👇 新增的專屬檢舉視窗 👇 -->
+    <div id="report-modal" class="modal">
+      <div class="modal-content light-modal" style="width: 320px; text-align: center; padding: 25px;">
+        <span class="close-btn" onclick="closeReportModal()">&times;</span>
+        <h3 style="color: #ef4444; margin-top: 0; font-size: 1.3rem;">⚠️ 檢舉此瓶子</h3>
+        <p style="color: #64748b; font-size: 0.9rem; margin-bottom: 15px;">請告訴我們這個瓶子出了什麼問題：</p>
+        <textarea id="report-reason" class="light-input" rows="3" placeholder="例如：這篇文章包含惡意攻擊與髒話..."></textarea>
+        <button class="btn-submit" style="background: #ef4444; box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3); border-radius: 20px;" onclick="submitReport()">送出檢舉</button>
+      </div>
+    </div>
+    <!-- 👆 檢舉視窗結束 👆 -->
 
     <div id="post-modal" class="modal">
       <div class="modal-content ocean-post-modal">

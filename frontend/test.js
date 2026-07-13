@@ -6,17 +6,14 @@ let currentKeyword = '';
 
 // 👇 分頁設定與狀態紀錄
 let currentPage = 1; 
-const POSTS_PER_PAGE = 5; // 設定每頁顯示 5 篇文章
+const POSTS_PER_PAGE = 5; 
 
-// 🟢 安全讀取：如果有紀錄就讀取，沒紀錄預設就在「綜合閒聊」 (或你的預設看板)
 let currentBoard = sessionStorage.getItem('savedBoard') || '綜合閒聊';
 let savedCatId = sessionStorage.getItem('savedCategoryId');
 let currentCategoryId = savedCatId !== null ? Number(savedCatId) : 1; 
 
-// 🔴 紀錄狀態：'all' (一般), 'saved' (收藏頁), 'mine' (我的文章頁)
 let currentView = 'all'; 
 
-// 🌟 看板名稱 -> 後端 categoryId 對照表 (已嚴格對齊 HTML 裡的空格與表情符號！)
 const BOARD_CATEGORY_MAP = {
     '😡 極度憤怒中': 1,
     '🤫 沒人懂的秘密': 2,
@@ -25,9 +22,6 @@ const BOARD_CATEGORY_MAP = {
     '😁 開心的事': 5,
 };
 
-// ==========================================
-// 🌟 星座自動計算小精靈
-// ==========================================
 function calculateZodiac(month, day) {
     if ((month == 1 && day >= 20) || (month == 2 && day <= 18)) return "水瓶座";
     if ((month == 2 && day >= 19) || (month == 3 && day <= 20)) return "雙魚座";
@@ -51,7 +45,6 @@ async function fetchBottles() {
     try {
         let endpointUrl = `${API_BASE_URL}/bottles/random`;
         
-        // 訪客不能看「我的文章」或「收藏文章」，直接回傳空陣列
         if (currentView === 'mine') {
             if (!token) { renderPosts([]); return; }
             endpointUrl = `${API_BASE_URL}/bottles/mybottles`;
@@ -161,7 +154,6 @@ async function fetchBottles() {
                     rawBoard = rawItem.categories[0].category?.name;
                 }
 
-                // 🌟 終極五大海域辨識邏輯
                 let finalBoard = "😑 極度厭世/躺平";
                 let cId = item.category_id || rawItem.category_id || item.categoryId;
 
@@ -226,9 +218,6 @@ function escapeHTML(str) {
     }[tag]));
 }
 
-// ==========================================
-// 🖨️ 渲染文章與切換分頁核心
-// ==========================================
 function renderPosts(data = posts) {
     const container = document.getElementById('post-container');
     const pageContainer = document.getElementById('pagination-container');
@@ -293,9 +282,6 @@ function applyFilters() {
     renderPosts(res);
 }
 
-// ----------------------------------------------------
-// 🔍 搜尋歷史紀錄功能
-// ----------------------------------------------------
 function getSearchHistory() {
     return JSON.parse(localStorage.getItem('searchHistory') || '[]');
 }
@@ -357,9 +343,6 @@ window.removeSingleHistory = function (e, keyword) {
     renderSearchHistory();
 }
 
-// ----------------------------------------------------
-// 📝 留言系統與文章切換功能 
-// ----------------------------------------------------
 let currentOpenPostId = null;
 
 function getComments(postId) {
@@ -454,23 +437,18 @@ window.openPostDetail = function (id) {
 
     renderComments(id);
 
-    // 👇 就是這裡！幫星星按鈕接上真正的收藏魔法 👇
     const saveBtn = document.getElementById('save-bottle-btn');
     if (saveBtn) {
-        // 1. 打開文章時，先檢查是不是已經收藏過了，是的話就讓星星亮起來
         if (p.saved) {
             saveBtn.classList.add('active');
         } else {
             saveBtn.classList.remove('active');
         }
-
-        // 2. 蓋掉原本只有視覺效果的點擊事件，換成會呼叫後端 API 的版本！
         saveBtn.onclick = (e) => {
-            saveBtn.classList.toggle('active'); // 立刻給寶寶切換星星顏色的視覺回饋
-            toggleAction(id, 'save', e);        // 呼叫原本寫好的 API 把資料存進資料庫！
+            saveBtn.classList.toggle('active'); 
+            toggleAction(id, 'save', e);        
         };
     }
-    // 👆 就是這裡！幫星星按鈕接上真正的收藏魔法 👆
 
     const feedView = document.getElementById('feed-view');
     const detailView = document.getElementById('detail-view');
@@ -500,6 +478,57 @@ window.closePostDetail = function () {
         window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 };
+
+// 👇 這裡就是寶寶許願的：開起檢舉視窗的魔法！ 👇
+window.openReportModal = function() {
+    const token = localStorage.getItem("authToken");
+    if (!token) {
+        alert("寶寶，要先登入才能檢舉喔！");
+        window.location.href = 'login.html';
+        return;
+    }
+    document.getElementById('report-reason').value = '';
+    document.getElementById('report-modal').style.display = 'block';
+};
+
+window.closeReportModal = function() {
+    document.getElementById('report-modal').style.display = 'none';
+};
+
+window.submitReport = async function() {
+    const reason = document.getElementById('report-reason').value.trim();
+    if (!reason) {
+        alert("請告訴我們檢舉的原因唷！");
+        return;
+    }
+
+    const token = localStorage.getItem("authToken");
+    if (!token) return;
+
+    try {
+        const response = await fetch(`${API_BASE_URL}/bottles/${currentOpenPostId}/report`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json',
+                'ngrok-skip-browser-warning': 'true'
+            },
+            body: JSON.stringify({ reason: reason })
+        });
+
+        if (response.ok) {
+            alert("🚨 檢舉已成功送出，我們會盡快處理！謝謝你的回報！");
+            closeReportModal();
+        } else {
+            const err = await response.json();
+            alert(`檢舉失敗：${err.message || '伺服器錯誤'}`);
+        }
+    } catch (error) {
+        console.error("檢舉發生錯誤", error);
+        alert("伺服器連線失敗，請稍後再試 😢");
+    }
+};
+// 👆 檢舉魔法到這邊結束 👆
 
 window.submitComment = function () {
     const inputs = document.querySelectorAll('#new-comment-input');
@@ -871,7 +900,19 @@ document.addEventListener('DOMContentLoaded', () => {
     if (userMenuBtn && userDropdown) {
         userMenuBtn.onclick = (e) => { e.stopPropagation(); userDropdown.classList.toggle('show-dropdown'); };
     }
-    document.addEventListener('click', () => { if (userDropdown) userDropdown.classList.remove('show-dropdown'); });
+    
+    window.onclick = (event) => {
+        if (userDropdown) userDropdown.classList.remove('show-dropdown');
+        
+        // 點擊背景關閉檢舉視窗
+        const reportModal = document.getElementById('report-modal');
+        if (reportModal && event.target == reportModal) reportModal.style.display = 'none';
+
+        const postModal = document.getElementById('post-modal');
+        const profileModal = document.getElementById('profile-modal');
+        if (profileModal && event.target == profileModal) profileModal.style.display = 'none';
+        if (postModal && event.target == postModal) postModal.style.display = 'none';
+    };
 
     const profileModal = document.getElementById('profile-modal');
     const profileMenuItem = document.getElementById('open-profile');
@@ -881,7 +922,6 @@ document.addEventListener('DOMContentLoaded', () => {
             e.stopPropagation();
             const user = JSON.parse(localStorage.getItem('currentUser'));
             if (user) {
-                // 已移除頭像載入程式碼
                 document.getElementById('detail-name').innerText = user.name || '未設定姓名';
                 document.getElementById('detail-email').innerText = user.email;
                 document.getElementById('detail-birthday').innerText = user.birthday ? user.birthday.split('T')[0] : '未填寫';
@@ -999,24 +1039,10 @@ document.addEventListener('DOMContentLoaded', () => {
         };
     }
 
-    const detailModals = document.querySelectorAll('#post-detail-modal');
-    const closeDetailBtns = document.querySelectorAll('#close-detail-modal');
     const closeProfileBtn = document.getElementById('close-profile-modal');
-
     if (closeProfileBtn) closeProfileBtn.onclick = () => profileModal.style.display = 'none';
-    closeDetailBtns.forEach(btn => { btn.onclick = () => { detailModals.forEach(m => m.style.display = 'none'); }; });
-    
-    window.onclick = (event) => {
-        const postModal = document.getElementById('post-modal');
-        if (profileModal && event.target == profileModal) profileModal.style.display = 'none';
-        if (postModal && event.target == postModal) postModal.style.display = 'none';
-        detailModals.forEach(m => { if (event.target == m) m.style.display = 'none'; });
-    };
 });
 
-// 已移除頭像變更事件監聽器
-
-// 呼喚海流：專屬寶寶的換瓶子特效
 window.callOceanCurrent = function() {
     const bottles = document.querySelectorAll('.post-card');
     bottles.forEach((bottle, index) => {
@@ -1025,9 +1051,6 @@ window.callOceanCurrent = function() {
     setTimeout(() => { fetchBottles(); }, 1000);
 }
 
-// ==========================================
-// 🚀 產生分頁按鈕的函數
-// ==========================================
 function renderPagination(totalPages, dataArray) {
     const pageContainer = document.getElementById('pagination-container');
     if (!pageContainer) return;
