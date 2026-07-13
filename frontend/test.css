@@ -682,3 +682,43 @@ body, html { height: 100vh !important; overflow: hidden !important; background-c
     box-shadow: 0 8px 20px rgba(0, 115, 230, 0.4) !important;
     background: linear-gradient(45deg, #3399ff, #0066cc) !important;
 }
+/* =======================================================
+   🎮 頂部 Logo 旁邊的「遊樂場」快捷按鈕
+======================================================= */
+.header-game-btn {
+    margin-left: 15px;
+    background: rgba(255, 255, 255, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    color: #fff;
+    padding: 6px 16px;
+    border-radius: 20px;
+    font-size: 1.05rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+    backdrop-filter: blur(5px);
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    text-shadow: none; /* 抵銷 logo 原本的文字陰影 */
+}
+
+.header-game-btn:hover {
+    background: rgba(255, 255, 255, 0.3);
+    border-color: rgba(255, 255, 255, 0.6);
+    transform: translateY(-2px) scale(1.05);
+    box-shadow: 0 6px 15px rgba(77, 166, 255, 0.4);
+}
+
+/* 📱 手機版 RWD 微調：如果螢幕太小，把「遊樂場」文字藏起來，只留手把圖示防破版 */
+@media screen and (max-width: 450px) {
+    .header-game-btn {
+        margin-left: 10px;
+        padding: 5px 10px;
+        font-size: 1rem;
+    }
+    .header-game-btn span {
+        display: none; 
+    }
+}

@@ -1,19 +1,26 @@
 <!doctype html>
 <html lang="zh-TW">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>心情漂流瓶 - 論壇</title>
+    <link rel="stylesheet" href="test.css?v=20" />
+  </head>
 
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>心情漂流瓶 - 論壇</title>
-  <link rel="stylesheet" href="test.css?v=20" />
-</head>
+  <body>
+    <div
+      class="sidebar-overlay"
+      id="mobile-sidebar-overlay"
+      onclick="toggleMobileSidebar()"
+    ></div>
 
-<body>
-  <div class="sidebar-overlay" id="mobile-sidebar-overlay" onclick="toggleMobileSidebar()"></div>
-
-  <div id="forum-view">
-    <header class="light-header">
-      <button class="hamburger-btn" id="mobile-menu-btn" onclick="toggleMobileSidebar()" style="
+    <div id="forum-view">
+      <header class="light-header">
+        <button
+          class="hamburger-btn"
+          id="mobile-menu-btn"
+          onclick="toggleMobileSidebar()"
+          style="
             display: none;
             background: none;
             border: none;
@@ -22,265 +29,476 @@
             cursor: pointer;
             margin-right: 15px;
             padding: 0;
-          ">
-        ☰
-      </button>
-      <div class="logo" onclick="window.location.href = 'test.html'" title="回到主頁">
-        <img src="images/fish_logo.png" style="width: 30px; margin-right: 10px; vertical-align: middle" />心情漂流瓶
-      </div>
+          "
+        >
+          ☰
+        </button>
+        <div
+          class="logo"
+          onclick="window.location.href = 'test.html'"
+          title="回到主頁"
+        >
+          <img
+            src="images/fish_logo.png"
+            style="width: 30px; margin-right: 10px; vertical-align: middle"
+          />心情漂流瓶
 
-      <div class="search-container">
-        <input type="text" class="search-input light-search" placeholder="🔍 搜尋海域、標題、內容..." id="main-search-input"
-          autocomplete="off" />
-        <div id="search-history-dropdown" class="search-history-box" style="display: none"></div>
-      </div>
-
-      <div class="nav-actions">
-        <button id="login-trigger" class="btn-login">註冊 / 登入</button>
-
-        <div id="user-profile" class="user-menu-wrapper" style="display: none">
-          <div class="user-info-trigger" id="user-menu-btn">
-            <img id="user-avatar" src="images/fish_logo.png" alt="頭像" class="avatar-img" />
-            <span id="user-name" class="user-name-text"></span>
-            <span class="menu-arrow">▼</span>
-          </div>
-
-          <div class="user-dropdown-menu" id="user-dropdown">
-            <div class="menu-item" id="open-profile">👤 個人資料</div>
-            <div class="menu-item" onclick="window.location.href = 'saved.html'">
-              ⭐ 收藏瓶子
-            </div>
-            <div class="menu-item" onclick="window.location.href = 'post.html'">
-              📝 我的瓶子
-            </div>
-            <div class="menu-divider"></div>
-            <div class="menu-item logout-item" id="logout-btn">
-              🚪 退出登入
-            </div>
-          </div>
-
-          <button id="btn-new-post" class="btn-post" style="margin-left: 10px">
-            ✏️ 發文
+          <button
+            class="header-game-btn"
+            onclick="
+              event.stopPropagation();
+              window.location.href = 'games.html';
+            "
+            title="前往秘密海域遊樂場"
+          >
+            🎮 <span>遊樂場</span>
           </button>
         </div>
-      </div>
-    </header>
 
-    <div class="container light-container">
-      <aside class="sidebar light-sidebar">
-        <h3>熱門看板</h3>
-        <ul>
-          <li class="active">😡 極度憤怒中</li>
-          <li>🤫 沒人懂的秘密</li>
-          <li>💔 破碎的碎片</li>
-          <li>😑 極度厭世/躺平</li>
-          <li>😁 開心的事</li>
-        </ul>
-      </aside>
-
-      <main class="main-feed" id="feed-view">
-        <div id="post-container">
-          <div class="empty-state-text" style="display: none;">目前沒有漂流瓶，快來拋出第一個吧！🌊</div>
+        <div class="search-container">
+          <input
+            type="text"
+            class="search-input light-search"
+            placeholder="🔍 搜尋海域、標題、內容..."
+            id="main-search-input"
+            autocomplete="off"
+          />
+          <div
+            id="search-history-dropdown"
+            class="search-history-box"
+            style="display: none"
+          ></div>
         </div>
-      </main>
 
-      <main class="main-feed ocean-detail-card" id="detail-view" style="display: none;">
+        <div class="nav-actions">
+          <button id="login-trigger" class="btn-login">註冊 / 登入</button>
 
-        <div class="detail-nav-bar">
-          <div class="back-action" onclick="closePostDetail()">
-            <span class="back-arrow">&larr;</span>
-            <span class="back-text">返回海域</span>
+          <div
+            id="user-profile"
+            class="user-menu-wrapper"
+            style="display: none"
+          >
+            <div class="user-info-trigger" id="user-menu-btn">
+              <img
+                id="user-avatar"
+                src="images/fish_logo.png"
+                alt="頭像"
+                class="avatar-img"
+              />
+              <span id="user-name" class="user-name-text"></span>
+              <span class="menu-arrow">▼</span>
+            </div>
+
+            <div class="user-dropdown-menu" id="user-dropdown">
+              <div class="menu-item" id="open-profile">👤 個人資料</div>
+              <div
+                class="menu-item"
+                onclick="window.location.href = 'saved.html'"
+              >
+                ⭐ 收藏瓶子
+              </div>
+              <div
+                class="menu-item"
+                onclick="window.location.href = 'post.html'"
+              >
+                📝 我的瓶子
+              </div>
+              <div class="menu-divider"></div>
+              <div class="menu-item logout-item" id="logout-btn">
+                🚪 退出登入
+              </div>
+            </div>
+
+            <button
+              id="btn-new-post"
+              class="btn-post"
+              style="margin-left: 10px"
+            >
+              ✏️ 發文
+            </button>
           </div>
-          
-          <div style="display: flex; gap: 12px; align-items: center;">
-            <div class="report-action" onclick="openReportModal()" title="檢舉此瓶子">⚠️ 檢舉</div>
-            <div class="board-badge">
-              <img src="images/fish_logo.png" class="board-icon" />
-              <span id="detail-board-tag">綜合閒聊</span>
+        </div>
+      </header>
+
+      <div class="container light-container">
+        <aside class="sidebar light-sidebar">
+          <h3>熱門看板</h3>
+          <ul>
+            <li class="active">😡 極度憤怒中</li>
+            <li>🤫 沒人懂的秘密</li>
+            <li>💔 破碎的碎片</li>
+            <li>😑 極度厭世/躺平</li>
+            <li>😁 開心的事</li>
+          </ul>
+        </aside>
+
+        <main class="main-feed" id="feed-view">
+          <div id="post-container">
+            <div class="empty-state-text" style="display: none">
+              目前沒有漂流瓶，快來拋出第一個吧！🌊
             </div>
           </div>
-          </div>
+        </main>
 
-        <h2 id="detail-post-title" class="detail-title"></h2>
-
-        <div class="detail-author-box">
-          <img src="images/fish_logo.png" class="detail-avatar" />
-          <div class="detail-author-text">
-            <div id="detail-author-tag" class="detail-author-name"></div>
-            <div class="detail-post-time">今天發布</div>
-          </div>
-        </div>
-
-        <div id="detail-post-content" class="detail-content"></div>
-
-        <div class="detail-comments-wrapper">
-          <h3 class="comments-title">
-            💬 共 <span id="detail-comment-count">0</span> 則留言
-          </h3>
-
-          <div id="detail-comments-list" class="comments-list"></div>
-
-          <div class="comment-action-bar">
-            <button type="button" id="save-bottle-btn" class="save-btn" title="收藏這個瓶子"
-              onclick="this.classList.toggle('active')">⭐</button>
-            <input type="text" id="new-comment-input" placeholder="寫下溫暖的留言..." class="comment-input"
-              autocomplete="off" />
-            <button type="button" onclick="submitComment()" class="send-btn">送出</button>
-          </div>
-        </div>
-      </main>
-
-      <aside class="right-panel light-right-panel">
-        <h3>熱門話題</h3>
-        <div class="tag-cloud">
-          <span class="tag"># AI革命</span><span class="tag"># 心情點滴</span>
-        </div>
-      </aside>
-    </div>
-  </div>
-
-  <div id="post-modal" class="modal">
-    <div class="modal-content ocean-post-modal">
-      <span class="close-btn" id="close-post-modal">&times;</span>
-      <div class="post-modal-header">
-        <h2>📝 撰寫漂流瓶</h2>
-        <p>把你的心事裝進瓶子，讓海浪替你傳遞...</p>
-      </div>
-      <form id="new-post-form" class="ocean-post-form">
-        <div class="form-row">
-          <select id="post-board" required class="ocean-input">
-            <option value="" disabled selected>🌊 選擇拋出的海域...</option>
-            <option value="1">😡 極度憤怒中</option>
-            <option value="2">🤫 沒人懂的秘密</option>
-            <option value="3">💔 破碎的碎片</option>
-            <option value="4">😑 極度厭世/躺平</option>
-            <option value="5">😁 開心的事</option>
-          </select>
-          <select id="post-identity" required class="ocean-input">
-            <option value="真實姓名">👤 實名發布</option>
-            <option value="匿名">🎭 偷偷說 (匿名)</option>
-          </select>
-        </div>
-        <input type="text" id="post-title-input" placeholder="為這瓶心事下個標題吧！" required class="ocean-input"
-          autocomplete="off" />
-        <textarea id="post-content-input" placeholder="寫下你想說的話..." required
-          class="ocean-input ocean-textarea"></textarea>
-        <button type="submit" class="ocean-submit-btn">拋出漂流瓶</button>
-      </form>
-    </div>
-  </div>
-
-  <div id="profile-modal" class="modal">
-    <div class="modal-content light-modal"
-      style="width: 400px; text-align: center; max-height: 90vh; overflow-y: auto;">
-      <span class="close-btn" id="close-profile-modal">&times;</span>
-      <h2 style="color: #0055a5; margin-bottom: 20px; font-weight: 900;">個人資訊</h2>
-      <div class="profile-detail">
-
-        <div id="profile-view-mode">
-          <h3 id="detail-name" style="margin: 5px 0; font-size: 1.4rem;">姓名</h3>
-          <p id="detail-email" style="color: #888; font-size: 0.9rem">email@example.com</p>
-          <hr style="border: 0; border-top: 1px solid #eee; margin: 15px 0" />
-          <div style="text-align: left; padding: 0 20px; line-height: 2">
-            <div><strong>🎂 生日：</strong><span id="detail-birthday">未填寫</span></div>
-            <div><strong>🚻 性別：</strong><span id="detail-gender">未填寫</span></div>
-            <div><strong>✨ 星座：</strong><span id="detail-zodiac">未填寫</span></div>
-            <div style="margin-top: 10px"><strong>📝 自我介紹：</strong></div>
-            <p id="detail-bio"
-              style="background: #f9fbfd; padding: 10px; border-radius: 8px; font-size: 0.9rem; word-break: break-word;">
-              尚未填寫自我介紹...</p>
-          </div>
-          <button id="btn-edit-profile" class="btn-submit"
-            style="margin-top: 15px; padding: 10px; border-radius: 20px;">✏️ 編輯個人資料</button>
-        </div>
-
-        <div id="profile-edit-mode" style="display: none; text-align: left; padding: 0 10px;">
-          <label style="font-weight: bold; font-size: 0.9rem; color: #555;">姓名：</label>
-          <input type="text" id="edit-name" class="light-input" style="padding: 10px; margin-bottom: 10px;">
-
-          <label style="font-weight: bold; font-size: 0.9rem; color: #555;">Email (帳號綁定不可更改)：</label>
-          <input type="text" id="edit-email" class="light-input"
-            style="padding: 10px; margin-bottom: 10px; background: #eef2f6; color: #999; cursor: not-allowed;" disabled>
-
-          <div style="display: flex; gap: 10px;">
-            <div style="flex: 1;">
-              <label style="font-weight: bold; font-size: 0.9rem; color: #555;">🎂 生日：</label>
-              <input type="date" id="edit-birthday" class="light-input" style="padding: 10px; margin-bottom: 10px;">
+        <main
+          class="main-feed ocean-detail-card"
+          id="detail-view"
+          style="display: none"
+        >
+          <div class="detail-nav-bar">
+            <div class="back-action" onclick="closePostDetail()">
+              <span class="back-arrow">&larr;</span>
+              <span class="back-text">返回海域</span>
             </div>
-            <div style="flex: 1;">
-              <label style="font-weight: bold; font-size: 0.9rem; color: #555;">🚻 性別：</label>
-              <select id="edit-gender" class="light-input" style="padding: 10px; margin-bottom: 10px;">
-                <option value="未填寫">未填寫</option>
-                <option value="男">男</option>
-                <option value="女">女</option>
-                <option value="不公開">不公開</option>
-              </select>
+
+            <div style="display: flex; gap: 12px; align-items: center">
+              <div
+                class="report-action"
+                onclick="openReportModal()"
+                title="檢舉此瓶子"
+              >
+                ⚠️ 檢舉
+              </div>
+              <div class="board-badge">
+                <img src="images/fish_logo.png" class="board-icon" />
+                <span id="detail-board-tag">綜合閒聊</span>
+              </div>
             </div>
           </div>
 
-          <label style="font-weight: bold; font-size: 0.9rem; color: #555;">✨ 星座：</label>
-          <select id="edit-zodiac" class="light-input" style="padding: 10px; margin-bottom: 10px;">
-            <option value="未填寫">未填寫</option>
-            <option value="牡羊座">牡羊座</option>
-            <option value="金牛座">金牛座</option>
-            <option value="雙子座">雙子座</option>
-            <option value="巨蟹座">巨蟹座</option>
-            <option value="獅子座">獅子座</option>
-            <option value="處女座">處女座</option>
-            <option value="天秤座">天秤座</option>
-            <option value="天蠍座">天蠍座</option>
-            <option value="射手座">射手座</option>
-            <option value="摩羯座">摩羯座</option>
-            <option value="水瓶座">水瓶座</option>
-            <option value="雙魚座">雙魚座</option>
-          </select>
+          <h2 id="detail-post-title" class="detail-title"></h2>
 
-          <label style="font-weight: bold; font-size: 0.9rem; color: #555;">📝 自我介紹：</label>
-          <textarea id="edit-bio" class="light-input"
-            style="padding: 10px; margin-bottom: 15px; height: 80px; resize: none;"></textarea>
+          <div class="detail-author-box">
+            <img src="images/fish_logo.png" class="detail-avatar" />
+            <div class="detail-author-text">
+              <div id="detail-author-tag" class="detail-author-name"></div>
+              <div class="detail-post-time">今天發布</div>
+            </div>
+          </div>
 
-          <div style="display: flex; gap: 10px;">
-            <button id="btn-cancel-edit" class="btn-submit"
-              style="background: #f1f5f9; color: #475569; box-shadow: none; border-radius: 20px;">取消</button>
-            <button id="btn-save-profile" class="btn-submit" style="border-radius: 20px;">💾 儲存變更</button>
+          <div id="detail-post-content" class="detail-content"></div>
+
+          <div class="detail-comments-wrapper">
+            <h3 class="comments-title">
+              💬 共 <span id="detail-comment-count">0</span> 則留言
+            </h3>
+
+            <div id="detail-comments-list" class="comments-list"></div>
+
+            <div class="comment-action-bar">
+              <button
+                type="button"
+                id="save-bottle-btn"
+                class="save-btn"
+                title="收藏這個瓶子"
+                onclick="this.classList.toggle('active')"
+              >
+                ⭐
+              </button>
+              <input
+                type="text"
+                id="new-comment-input"
+                placeholder="寫下溫暖的留言..."
+                class="comment-input"
+                autocomplete="off"
+              />
+              <button type="button" onclick="submitComment()" class="send-btn">
+                送出
+              </button>
+            </div>
+          </div>
+        </main>
+
+        <aside class="right-panel light-right-panel">
+          <h3>熱門話題</h3>
+          <div class="tag-cloud">
+            <span class="tag"># AI革命</span><span class="tag"># 心情點滴</span>
+          </div>
+        </aside>
+      </div>
+    </div>
+
+    <div id="post-modal" class="modal">
+      <div class="modal-content ocean-post-modal">
+        <span class="close-btn" id="close-post-modal">&times;</span>
+        <div class="post-modal-header">
+          <h2>📝 撰寫漂流瓶</h2>
+          <p>把你的心事裝進瓶子，讓海浪替你傳遞...</p>
+        </div>
+        <form id="new-post-form" class="ocean-post-form">
+          <div class="form-row">
+            <select id="post-board" required class="ocean-input">
+              <option value="" disabled selected>🌊 選擇拋出的海域...</option>
+              <option value="1">😡 極度憤怒中</option>
+              <option value="2">🤫 沒人懂的秘密</option>
+              <option value="3">💔 破碎的碎片</option>
+              <option value="4">😑 極度厭世/躺平</option>
+              <option value="5">😁 開心的事</option>
+            </select>
+            <select id="post-identity" required class="ocean-input">
+              <option value="真實姓名">👤 實名發布</option>
+              <option value="匿名">🎭 偷偷說 (匿名)</option>
+            </select>
+          </div>
+          <input
+            type="text"
+            id="post-title-input"
+            placeholder="為這瓶心事下個標題吧！"
+            required
+            class="ocean-input"
+            autocomplete="off"
+          />
+          <textarea
+            id="post-content-input"
+            placeholder="寫下你想說的話..."
+            required
+            class="ocean-input ocean-textarea"
+          ></textarea>
+          <button type="submit" class="ocean-submit-btn">拋出漂流瓶</button>
+        </form>
+      </div>
+    </div>
+
+    <div id="profile-modal" class="modal">
+      <div
+        class="modal-content light-modal"
+        style="
+          width: 400px;
+          text-align: center;
+          max-height: 90vh;
+          overflow-y: auto;
+        "
+      >
+        <span class="close-btn" id="close-profile-modal">&times;</span>
+        <h2 style="color: #0055a5; margin-bottom: 20px; font-weight: 900">
+          個人資訊
+        </h2>
+        <div class="profile-detail">
+          <div id="profile-view-mode">
+            <h3 id="detail-name" style="margin: 5px 0; font-size: 1.4rem">
+              姓名
+            </h3>
+            <p id="detail-email" style="color: #888; font-size: 0.9rem">
+              email@example.com
+            </p>
+            <hr style="border: 0; border-top: 1px solid #eee; margin: 15px 0" />
+            <div style="text-align: left; padding: 0 20px; line-height: 2">
+              <div>
+                <strong>🎂 生日：</strong
+                ><span id="detail-birthday">未填寫</span>
+              </div>
+              <div>
+                <strong>🚻 性別：</strong><span id="detail-gender">未填寫</span>
+              </div>
+              <div>
+                <strong>✨ 星座：</strong><span id="detail-zodiac">未填寫</span>
+              </div>
+              <div style="margin-top: 10px"><strong>📝 自我介紹：</strong></div>
+              <p
+                id="detail-bio"
+                style="
+                  background: #f9fbfd;
+                  padding: 10px;
+                  border-radius: 8px;
+                  font-size: 0.9rem;
+                  word-break: break-word;
+                "
+              >
+                尚未填寫自我介紹...
+              </p>
+            </div>
+            <button
+              id="btn-edit-profile"
+              class="btn-submit"
+              style="margin-top: 15px; padding: 10px; border-radius: 20px"
+            >
+              ✏️ 編輯個人資料
+            </button>
+          </div>
+
+          <div
+            id="profile-edit-mode"
+            style="display: none; text-align: left; padding: 0 10px"
+          >
+            <label style="font-weight: bold; font-size: 0.9rem; color: #555"
+              >姓名：</label
+            >
+            <input
+              type="text"
+              id="edit-name"
+              class="light-input"
+              style="padding: 10px; margin-bottom: 10px"
+            />
+
+            <label style="font-weight: bold; font-size: 0.9rem; color: #555"
+              >Email (帳號綁定不可更改)：</label
+            >
+            <input
+              type="text"
+              id="edit-email"
+              class="light-input"
+              style="
+                padding: 10px;
+                margin-bottom: 10px;
+                background: #eef2f6;
+                color: #999;
+                cursor: not-allowed;
+              "
+              disabled
+            />
+
+            <div style="display: flex; gap: 10px">
+              <div style="flex: 1">
+                <label style="font-weight: bold; font-size: 0.9rem; color: #555"
+                  >🎂 生日：</label
+                >
+                <input
+                  type="date"
+                  id="edit-birthday"
+                  class="light-input"
+                  style="padding: 10px; margin-bottom: 10px"
+                />
+              </div>
+              <div style="flex: 1">
+                <label style="font-weight: bold; font-size: 0.9rem; color: #555"
+                  >🚻 性別：</label
+                >
+                <select
+                  id="edit-gender"
+                  class="light-input"
+                  style="padding: 10px; margin-bottom: 10px"
+                >
+                  <option value="未填寫">未填寫</option>
+                  <option value="男">男</option>
+                  <option value="女">女</option>
+                  <option value="不公開">不公開</option>
+                </select>
+              </div>
+            </div>
+
+            <label style="font-weight: bold; font-size: 0.9rem; color: #555"
+              >✨ 星座：</label
+            >
+            <select
+              id="edit-zodiac"
+              class="light-input"
+              style="padding: 10px; margin-bottom: 10px"
+            >
+              <option value="未填寫">未填寫</option>
+              <option value="牡羊座">牡羊座</option>
+              <option value="金牛座">金牛座</option>
+              <option value="雙子座">雙子座</option>
+              <option value="巨蟹座">巨蟹座</option>
+              <option value="獅子座">獅子座</option>
+              <option value="處女座">處女座</option>
+              <option value="天秤座">天秤座</option>
+              <option value="天蠍座">天蠍座</option>
+              <option value="射手座">射手座</option>
+              <option value="摩羯座">摩羯座</option>
+              <option value="水瓶座">水瓶座</option>
+              <option value="雙魚座">雙魚座</option>
+            </select>
+
+            <label style="font-weight: bold; font-size: 0.9rem; color: #555"
+              >📝 自我介紹：</label
+            >
+            <textarea
+              id="edit-bio"
+              class="light-input"
+              style="
+                padding: 10px;
+                margin-bottom: 15px;
+                height: 80px;
+                resize: none;
+              "
+            ></textarea>
+
+            <div style="display: flex; gap: 10px">
+              <button
+                id="btn-cancel-edit"
+                class="btn-submit"
+                style="
+                  background: #f1f5f9;
+                  color: #475569;
+                  box-shadow: none;
+                  border-radius: 20px;
+                "
+              >
+                取消
+              </button>
+              <button
+                id="btn-save-profile"
+                class="btn-submit"
+                style="border-radius: 20px"
+              >
+                💾 儲存變更
+              </button>
+            </div>
           </div>
         </div>
       </div>
     </div>
-  </div>
 
-  <div id="report-modal" class="modal">
-    <div class="modal-content light-modal" style="width: 320px; text-align: center; padding: 25px;">
-      <span class="close-btn" onclick="closeReportModal()">&times;</span>
-      <h3 style="color: #ef4444; margin-top: 0; font-size: 1.3rem;">⚠️ 檢舉此瓶子</h3>
-      <p style="color: #64748b; font-size: 0.9rem; margin-bottom: 15px;">請告訴我們這個瓶子出了什麼問題：</p>
-      <textarea id="report-reason" class="light-input" rows="3" placeholder="例如：這篇文章包含惡意攻擊與髒話..."></textarea>
-      <button class="btn-submit" style="background: #ef4444; box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3); border-radius: 20px;" onclick="submitReport()">送出檢舉</button>
+    <div id="report-modal" class="modal">
+      <div
+        class="modal-content light-modal"
+        style="width: 320px; text-align: center; padding: 25px"
+      >
+        <span class="close-btn" onclick="closeReportModal()">&times;</span>
+        <h3 style="color: #ef4444; margin-top: 0; font-size: 1.3rem">
+          ⚠️ 檢舉此瓶子
+        </h3>
+        <p style="color: #64748b; font-size: 0.9rem; margin-bottom: 15px">
+          請告訴我們這個瓶子出了什麼問題：
+        </p>
+        <textarea
+          id="report-reason"
+          class="light-input"
+          rows="3"
+          placeholder="例如：這篇文章包含惡意攻擊與髒話..."
+        ></textarea>
+        <button
+          class="btn-submit"
+          style="
+            background: #ef4444;
+            box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3);
+            border-radius: 20px;
+          "
+          onclick="submitReport()"
+        >
+          送出檢舉
+        </button>
+      </div>
     </div>
-  </div>
-  <script type="module" src="test.js?v=18"></script>
+    <script type="module" src="test.js?v=18"></script>
 
-  <div class="ocean-refresh-btn" onclick="callOceanCurrent()">🌊 呼喚海流</div>
-  <div class="back-to-home-btn" onclick="window.location.href='test.html'" style="display: none !important;">🏠 回到主頁
-  </div>
+    <div class="ocean-refresh-btn" onclick="callOceanCurrent()">
+      🌊 呼喚海流
+    </div>
+    <div
+      class="back-to-home-btn"
+      onclick="window.location.href = 'test.html'"
+      style="display: none !important"
+    >
+      🏠 回到主頁
+    </div>
 
-  <script>
-    function toggleMobileSidebar() {
-      const sidebar = document.querySelector(".sidebar");
-      const overlay = document.getElementById("mobile-sidebar-overlay");
-      if (sidebar && overlay) {
-        sidebar.classList.toggle("active-sidebar");
-        overlay.classList.toggle("active-overlay");
-      }
-    }
-    document.querySelectorAll(".sidebar li").forEach((item) => {
-      item.addEventListener("click", () => {
-        if (window.innerWidth <= 768) {
-          toggleMobileSidebar();
+    <script>
+      function toggleMobileSidebar() {
+        const sidebar = document.querySelector(".sidebar");
+        const overlay = document.getElementById("mobile-sidebar-overlay");
+        if (sidebar && overlay) {
+          sidebar.classList.toggle("active-sidebar");
+          overlay.classList.toggle("active-overlay");
         }
+      }
+      document.querySelectorAll(".sidebar li").forEach((item) => {
+        item.addEventListener("click", () => {
+          if (window.innerWidth <= 768) {
+            toggleMobileSidebar();
+          }
+        });
       });
-    });
-  </script>
-</body>
-
+    </script>
+  </body>
 </html>
