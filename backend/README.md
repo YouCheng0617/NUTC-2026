@@ -109,7 +109,7 @@ Headers要給 x-api-key (跟我拿)
 {
   "newStatus": "" /*只能填ACTIVE、INACTIVE 或 BANNED*/
 }
-管理員查看使用者名單 GET 給Token  /admin/bottles
+管理員查看  瓶子清單 GET 給Token  /admin/bottles
 
 更改瓶子狀態 PUT 給Token /admin/bottles/review
 {

@@ -52,8 +52,8 @@ class AIDBWorker:
                 # ----------------------------------------
 
                 while True:
-                    # 抓取 status = 1 的文章
-                    cur.execute('SELECT bottle_id, content FROM "Bottle" WHERE status = 1')
+                    # 抓取 status = 0 的文章
+                    cur.execute('SELECT bottle_id, content FROM "Bottle" WHERE status = 0')
                     rows = cur.fetchall()
 
                     if not rows:
