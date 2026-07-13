@@ -178,13 +178,13 @@
               <button class="btn-action" style="padding: 6px 12px; font-size: 0.85rem; background: #10b981; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; box-shadow: 0 2px 4px rgba(16,185,129,0.3);" onclick="approveAllPendingBottles()" onmouseover="this.style.background='#059669'" onmouseout="this.style.background='#10b981'">✨ 一鍵全部通過</button>
             </div>
             
-            <input type="text" id="search-bottles" placeholder="🔍 搜尋 標題、作者或內容..." style="
-                  padding: 8px 12px;
-                  border: 1px solid #ccc;
-                  border-radius: 6px;
-                  width: 100%;
-                  max-width: 300px;
-                " oninput="filterBottles()" />
+            <input type="text" id="search-bottles" placeholder="🔍 搜尋 ID、標題、作者或內容..." style="
+  padding: 8px 12px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  width: 100%;
+  max-width: 300px;
+" oninput="filterBottles()" />
           </div>
 
           <div style="padding: 12px 24px; background: #ffffff; border-bottom: 1px solid var(--border-light); display: flex; gap: 10px; flex-wrap: wrap; align-items: center;">
@@ -230,6 +230,7 @@
               <thead>
                 <tr>
                   <th>文章 ID</th>
+                  <th>被檢舉內容</th>
                   <th>檢舉原因</th>
                   <th>檢舉者 ID</th>
                   <th>檢舉時間</th>
