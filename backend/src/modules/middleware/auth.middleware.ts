@@ -13,6 +13,14 @@ interface TokenPayload {
 
 
 export const authCheck = async (req: AuthRequest, res: Response, next: NextFunction) => {
+    /*給AI用的*/
+    const aiApiKey = req.headers["x-ai-api-key"] || req.query.key;
+    if (aiApiKey && aiApiKey === process.env.AI_SECRT_KEY) {
+        console.log("系統提示：AI通過驗證");
+        return next();
+    }
+
+    /*給人用的*/
     const authHeader = req.headers.authorization;
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
         return res.status(401).json({ message: "無此授權或格式錯誤" });
