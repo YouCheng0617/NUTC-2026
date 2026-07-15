@@ -8,7 +8,7 @@ let currentKeyword = '';
 let currentPage = 1; 
 const POSTS_PER_PAGE = 6; // 🌟 從 5 改成 6，讓一頁抓出 6 個瓶子
 
-let currentBoard = sessionStorage.getItem('savedBoard') || '綜合閒聊';
+let currentBoard = sessionStorage.getItem('savedBoard') || '😡 極度憤怒中';
 let savedCatId = sessionStorage.getItem('savedCategoryId');
 let currentCategoryId = savedCatId !== null ? Number(savedCatId) : 1; 
 
