@@ -151,3 +151,17 @@ Headers要給 x-api-key (跟我拿)
 
 獲取特定瓶子的所有留言 GET /comments/bottles/:bottleId
 (要拿 ID 84 瓶子的所有留言，網址為 /comments/bottles/84)
+
+儲存或更新遊戲分數 POST 給Token /game/:gameName
+(例如漂流瓶遊戲：/game/little-bottle)
+{
+    "difficulty": "EASY",
+    "score": 150
+}
+
+獲取個人特定難度最高分 GET 給Token /game/:gameName/:difficulty
+(例如獲取漂流瓶 EASY 最高分：/game/little-bottle/EASY)
+
+獲取特定難度排行榜 GET 給Token /game/:gameName/:difficulty/ranking
+(例如獲取漂流瓶 EASY 排行榜：/game/little-bottle/EASY/ranking)
+Query 參數 (選填)：?limit=20 (預設為 10，如要拿前 20 名可帶此參數)
