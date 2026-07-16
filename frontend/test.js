@@ -1092,3 +1092,257 @@ function renderPagination(totalPages, dataArray) {
     };
     pageContainer.appendChild(nextBtn);
 }
+/* =======================================================
+   🎮 🌊 ✨ 純程式碼生成：SVG 高顏值手繪風貓貓半人魚 
+   (完美降落版：海豚不再強吻！位置精準下移 + 溫馨抱抱姿勢)
+   ======================================================= */
+
+document.addEventListener('DOMContentLoaded', () => {
+    // 建立吉祥物容器
+    const mascotContainer = document.createElement('div');
+    mascotContainer.id = 'svg-mermecat-mascot';
+    mascotContainer.title = '點擊我去找 AI 小助理聊天！';
+
+    // ✨ 終極完美進化：小海豚乖乖降落到胸口，不擋嘴巴啦！
+    mascotContainer.innerHTML = `
+        <div class="svg-mermecat-wrapper">
+            <svg width="130" height="140" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                <style>
+                    /* 統一的深藍色粗邊框，完美還原手繪感 */
+                    .line { stroke: #1a4c6d; stroke-width: 3.5; stroke-linejoin: round; stroke-linecap: round; }
+                    .tail { fill: #7ac2c4; }
+                    .fin { fill: #50b4ba; }
+                    .cat { fill: #fcfdfe; }
+                    .red-line { stroke: #b83e33; stroke-width: 3.5; stroke-linecap: round; fill: none; }
+                    .blush { fill: #ffbaba; }
+                    .bubble { fill: #e0f2f5; stroke: #1a4c6d; stroke-width: 2.5; }
+                    
+                    /* ✨ 胖嘟嘟海豚與貓爪專屬樣式 */
+                    .dolphin-body { fill: #9bcbf1; } /* 完美的柔軟淺藍色 */
+                    .cat-paw { fill: #fcfdfe; }     
+
+                    /* 👋 超萌右手揮手動畫 (繞著肩膀旋轉) */
+                    @keyframes paw-wave {
+                        0% { transform: rotate(0deg); }
+                        20% { transform: rotate(-12deg); }
+                        40% { transform: rotate(8deg); }
+                        60% { transform: rotate(-10deg); }
+                        80% { transform: rotate(6deg); }
+                        100% { transform: rotate(0deg); }
+                    }
+                    .wave-animation {
+                        animation: paw-wave 1.8s infinite ease-in-out;
+                        transform-origin: 75px 48px; /* 以肩膀為圓心旋轉 */
+                    }
+                </style>
+                
+                <circle cx="15" cy="25" r="4.5" class="bubble"><animate attributeName="cy" values="25;20;25" dur="3s" repeatCount="indefinite"/></circle>
+                <circle cx="22" cy="40" r="2.5" class="bubble"><animate attributeName="cy" values="40;36;40" dur="2s" repeatCount="indefinite"/></circle>
+                <circle cx="85" cy="80" r="3.5" class="bubble"><animate attributeName="cy" values="80;75;80" dur="4s" repeatCount="indefinite"/></circle>
+
+                <path d="M 25 75 C 5 70 5 95 18 95 C 15 105 35 100 35 85 Z" class="fin line">
+                     <animateTransform attributeName="transform" type="rotate" values="-3 25 85; 3 25 85; -3 25 85" dur="3s" repeatCount="indefinite"/>
+                </path>
+
+                <path d="M 20 50 C 15 95 85 95 80 50 Z" class="tail line"/>
+
+                <path d="M 32 65 Q 40 72 48 65 M 52 65 Q 60 72 68 65 M 42 75 Q 50 82 58 75" fill="none" stroke="#1a4c6d" stroke-width="2.5" stroke-linecap="round" opacity="0.6"/>
+
+                <path d="M 22 55 C 20 28 25 25 35 25 L 38 12 L 46 22 L 54 22 L 62 12 L 65 25 C 75 25 80 28 78 55 Z" class="cat line"/>
+
+                <circle cx="38" cy="40" r="4.5" fill="#1a4c6d"/>
+                <circle cx="62" cy="40" r="4.5" fill="#1a4c6d"/>
+
+                <ellipse cx="28" cy="44" rx="4.5" ry="3" class="blush"/>
+                <ellipse cx="72" cy="44" rx="4.5" ry="3" class="blush"/>
+
+                <path d="M 46 43 Q 50 47 54 43" class="red-line"/>
+
+                <g id="cute-dolphin" transform="translate(33, 46) scale(1.1)">
+                    <path d="M 28 16 
+                             C 27 12, 25 9, 21 9 
+                             C 17 9, 14 5, 13 3 
+                             C 12 6, 13 8, 10 10 
+                             C 6 12, 3 16, 2 20 
+                             C 1 23, 0 26, 1 26 
+                             C 3 25, 4 23, 5 22 
+                             C 6 24, 8 26, 9 25 
+                             C 8 22, 10 20, 11 19 
+                             C 16 21, 23 20, 28 16 Z" 
+                          class="dolphin-body line"/>
+                             
+                    <path d="M 27.5 16.5 C 22 20, 15 20, 11.5 18.5 C 15 16, 22 15, 27.5 15 Z" fill="#ffffff" stroke="none"/>
+                             
+                    <path d="M 18 18 C 16 23, 14 25, 16 26 C 18 25, 19 22, 20 18 Z" class="dolphin-body line"/>
+
+                    <circle cx="23" cy="14" r="1.3" fill="#1a4c6d" stroke="none" />
+                </g>
+
+                <path d="M 26 63 C 30 67, 36 69, 41 67 C 43 66, 42 62, 39 62 C 35 62, 30 62, 26 62 Z" class="cat-paw line"/>
+                
+                <g class="wave-animation">
+                    <path d="M 76 48 C 82 45, 85 38, 85 32 C 85 27, 78 27, 76 34 C 75 38, 75 42, 76 48 Z" class="cat-paw line"/>
+                    <path d="M 88 28 Q 91 31 89 34" fill="none" stroke="#1a4c6d" stroke-width="2" stroke-linecap="round"/>
+                    <path d="M 91 24 Q 95 28 92 32" fill="none" stroke="#1a4c6d" stroke-width="2" stroke-linecap="round"/>
+                </g>
+            </svg>
+            
+            <div class="cute-dialogue" id="mermecat-dialogue"></div>
+        </div>
+    `;
+
+    document.body.appendChild(mascotContainer);
+
+    // =======================================================
+    // 🎨 容器與氣泡專屬 CSS
+    // =======================================================
+    const mascotStyle = document.createElement('style');
+    mascotStyle.innerHTML = `
+        #svg-mermecat-mascot {
+            position: fixed;
+            z-index: 99999; 
+            width: 130px;
+            height: 140px;
+            cursor: pointer;
+            user-select: none;
+            pointer-events: auto;
+            filter: drop-shadow(0 6px 15px rgba(0, 30, 60, 0.25));
+            /* ✨ 水母般的微醺漂浮，平滑過渡 */
+            transition: top 8s ease-in-out, left 8s ease-in-out;
+        }
+
+        .svg-mermecat-wrapper {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            /* 輕微上下浮動 */
+            animation: svg-float 4s infinite alternate ease-in-out;
+        }
+
+        @keyframes svg-float {
+            0% { transform: translateY(0px) rotate(-1deg); }
+            100% { transform: translateY(-8px) rotate(1deg); }
+        }
+
+        /* 💬 對話氣泡 */
+        .cute-dialogue {
+            position: absolute;
+            bottom: calc(100% - 5px); 
+            left: 50%;
+            transform: translateX(-50%) scale(0.8);
+            width: max-content; max-width: 180px;
+            background: #fff;
+            color: #1a4c6d;
+            padding: 10px 16px;
+            border: 3.5px solid #1a4c6d; 
+            border-radius: 18px;
+            font-size: 0.95rem; font-weight: bold;
+            opacity: 0; visibility: hidden; pointer-events: none;
+            transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+            z-index: 10000; 
+            box-shadow: 2px 4px 0px rgba(26, 76, 109, 0.15); 
+        }
+        .cute-dialogue.show-dialogue {
+            opacity: 1; visibility: visible;
+            transform: translateX(-50%) scale(1);
+        }
+    `;
+    document.head.appendChild(mascotStyle);
+
+    // =======================================================
+    // 🌊 樹懶級微醺游動 AI (龜速、平滑、死守外圍)
+    // =======================================================
+    const mascot = document.getElementById('svg-mermecat-mascot');
+    let currentZone = 0; // 0: 上, 1: 右, 2: 下, 3: 左
+
+    function swimLikeLazyMermaid() {
+        const padding = 20; 
+        const borderThickness = 120; // 限制在外圍游動
+        const w = window.innerWidth - 130;
+        const h = window.innerHeight - 140;
+        
+        let targetX, targetY;
+
+        if (currentZone === 0) { // 上方
+            targetX = Math.random() * w;
+            targetY = padding + Math.random() * (borderThickness - 50); 
+        } else if (currentZone === 1) { // 右方
+            targetX = w - padding - Math.random() * (borderThickness - 50);
+            targetY = Math.random() * h;
+        } else if (currentZone === 2) { // 下方
+            targetX = Math.random() * w;
+            targetY = h - padding - Math.random() * (borderThickness - 50);
+        } else { // 左方
+            targetX = padding + Math.random() * (borderThickness - 50);
+            targetY = Math.random() * h;
+        }
+
+        mascot.style.left = targetX + 'px';
+        mascot.style.top = targetY + 'px';
+        
+        if (Math.random() > 0.1) {
+            currentZone = (currentZone + 1) % 4;
+        }
+
+        // 🌟 速度極慢！每次游動耗時 8 到 12 秒
+        const duration = 8000 + Math.random() * 4000;
+        mascot.style.transition = `top ${duration}ms ease-in-out, left ${duration}ms ease-in-out`;
+        
+        setTimeout(swimLikeLazyMermaid, duration);
+        
+        // ✨ 整形成功的小彩蛋對話
+        if (Math.random() > 0.8) showDialogueOnce("🐬 嘿嘿，我的小海豚終於乖乖聽話了喵！");
+    }
+
+    setTimeout(swimLikeLazyMermaid, 100);
+
+    // =======================================================
+    // ✉️ 貼心話匣子
+    // =======================================================
+    const randomPhrases = [
+        "🌊 咕嚕咕嚕... 今天的水溫好舒服喵！",
+        "🤫 有什麼秘密想跟我說嗎？",
+        "✏️ 把不開心的事丟進瓶子裡吧！",
+        "⭐ 點我可以去找 AI 聊天喔！",
+        "🎵 好像有很多有趣的瓶子呢！",
+        "💖 今天過得好嗎？"
+    ];
+
+    const dialogueBox = document.getElementById('mermecat-dialogue');
+    let dialogueTimer;
+
+    function showRandomDialogue() {
+        if (dialogueBox.classList.contains('show-dialogue')) return; 
+        
+        const phrase = randomPhrases[Math.floor(Math.random() * randomPhrases.length)];
+        dialogueBox.innerText = phrase;
+        dialogueBox.classList.add('show-dialogue');
+
+        clearTimeout(dialogueTimer);
+        dialogueTimer = setTimeout(() => {
+            dialogueBox.classList.remove('show-dialogue');
+        }, 4000);
+    }
+    
+    // 顯示一次性對話
+    function showDialogueOnce(phrase) {
+        if (dialogueBox.classList.contains('show-dialogue')) return; 
+        dialogueBox.innerText = phrase;
+        dialogueBox.classList.add('show-dialogue');
+        setTimeout(() => { dialogueBox.classList.remove('show-dialogue'); }, 4000);
+    }
+
+    setTimeout(showRandomDialogue, 2000);
+    setInterval(() => {
+        if (Math.random() > 0.2) showRandomDialogue();
+    }, 8000 + Math.random() * 6000);
+
+    // =======================================================
+    // 🚀 點擊連線：AI 小助理畫面(不能動，放在最後)
+    // =======================================================
+    const AI_ASSISTANT_URL = "http://ai-assistant-demo.example.com"; 
+
+    mascot.onclick = () => {
+        window.location.href = AI_ASSISTANT_URL;
+    };
+});
