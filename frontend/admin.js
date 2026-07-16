@@ -562,6 +562,38 @@ window.deleteBottleAsAdmin = async function(bottleId) {
         alert("伺服器連線失敗，請檢查網路！");
     }
 };
+// ✨ 新增：軟刪除 (下架) 功能，只改狀態不刪資料庫紀錄
+window.banReportedBottle = async function(bottleId) {
+    if (!confirm(`⚠️ 確定要將 #${bottleId} 號文章「強制下架」嗎？\n(文章將從前台消失，但會完整保留在後台資料庫中)`)) return;
+
+    try {
+        const token = localStorage.getItem("authToken");
+        // 改呼叫 review API，而不是 delete API
+        const response = await fetch(`${API_BASE_URL}/admin/bottles/review`, {
+            method: 'PUT',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                "bottle_id": Number(bottleId),
+                "status": 2, // 💡 狀態 2 代表「已拒絕 / 下架」
+                "violation_reason": "遭檢舉違規，管理員強制下架"
+            })
+        });
+
+        if (response.ok) {
+            alert("✅ 文章已成功下架！（資料仍保留於後台）");
+            loadReports(); // 刷新檢舉列表
+            loadBottles(); // 同步刷新文章總表的狀態
+        } else {
+            const err = await response.json();
+            alert(`下架失敗: ${err.message}`);
+        }
+    } catch (e) {
+        alert("伺服器連線失敗");
+    }
+}
 
 // ==========================================
 // 8. UI 輔助控制
@@ -730,7 +762,7 @@ function renderReports(reports) {
             <td data-label="檢舉者 ID">${escapeHTML(String(reporter))}</td>
             <td data-label="檢舉時間" style="color: #64748b;">${date}</td>
             <td data-label="操作">
-                <button class="btn-action btn-danger" onclick="deleteBottleAsAdmin('${bottleId}'); loadReports();">🗑️ 刪除違規文章</button>
+                <button class="btn-action btn-danger" onclick="banReportedBottle('${bottleId}');">🚫 強制下架 (留存紀錄)</button>
             </td>
         </tr>
         `;
