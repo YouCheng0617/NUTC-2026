@@ -142,3 +142,12 @@ Headers要給 x-api-key (跟我拿)
 }
 
 管理員獲取檢舉列表 GET 給Token /admin/bottles/reported
+
+新增留言 POST 給Token /comments/bottles/:bottleId
+(要留言給 ID 84 的瓶子/comments/bottles/84)
+{
+    "content": "這是一則溫暖的回覆。"
+}
+
+獲取特定瓶子的所有留言 GET /comments/bottles/:bottleId
+(要拿 ID 84 瓶子的所有留言，網址為 /comments/bottles/84)

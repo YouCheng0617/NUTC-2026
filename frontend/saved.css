@@ -1,0 +1,74 @@
+/* ==================================================
+   🏠 回到主頁按鈕：寶寶專屬深海發光水滴特效
+   ================================================== */
+.ocean-refresh-btn {
+    position: fixed;
+    right: 40px;
+    bottom: 40px;
+    background: radial-gradient(circle, rgba(77, 166, 255, 0.8), rgba(0, 85, 165, 0.8));
+    color: white;
+    padding: 15px 25px;
+    border-radius: 50px;
+    cursor: pointer;
+    z-index: 100;
+    font-weight: bold;
+    border: 2px solid rgba(255, 255, 255, 0.5);
+    box-shadow: 0 0 20px rgba(77, 166, 255, 0.5);
+    transition: 0.3s;
+}
+.ocean-refresh-btn:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 0 30px rgba(77, 166, 255, 0.9);
+    background: radial-gradient(circle, rgba(102, 179, 255, 0.9), rgba(0, 102, 204, 0.9));
+}
+
+/* ==================================================
+   🫧 個人資訊：深海毛玻璃透光泡泡
+   ================================================== */
+.glass-profile-card {
+    background: rgba(255, 255, 255, 0.85); 
+    backdrop-filter: blur(12px); 
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    border-radius: 24px;
+    width: 400px;
+    padding: 30px;
+    box-shadow: 0 10px 30px rgba(0, 40, 80, 0.15), inset 0 0 15px rgba(255, 255, 255, 0.8);
+    position: relative;
+    margin: 10vh auto;
+    text-align: left;
+    animation: floatUp 0.4s ease-out;
+}
+@keyframes floatUp {
+    from { opacity: 0; transform: translateY(20px) scale(0.95); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+}
+.profile-header { text-align: center; border-bottom: 2px dashed rgba(77, 166, 255, 0.3); padding-bottom: 20px; margin-bottom: 20px; }
+.profile-name { margin: 10px 0 5px; color: #004b87; font-size: 1.5rem; font-weight: 800; }
+.profile-email { margin: 0; color: #66b3ff; font-size: 0.9rem; }
+.info-row { display: flex; margin-bottom: 15px; font-size: 1.05rem; color: #003366; background: rgba(255,255,255, 0.6); padding: 10px 15px; border-radius: 12px; }
+.info-row span:first-child { font-weight: bold; color: #0055a5; margin-right: 10px; width: 80px; }
+.info-bio { background: rgba(255,255,255, 0.6); padding: 15px; border-radius: 12px; margin-bottom: 20px; }
+.info-bio span { font-weight: bold; color: #0055a5; display: block; margin-bottom: 8px; }
+.bio-content { color: #003366; line-height: 1.6; white-space: pre-wrap; font-size: 0.95rem; }
+.btn-ocean { width: 100%; background: linear-gradient(135deg, #4da6ff, #0073e6); color: white; border: none; padding: 12px; border-radius: 12px; font-size: 1.1rem; font-weight: bold; cursor: pointer; transition: 0.3s; box-shadow: 0 4px 15px rgba(0, 115, 230, 0.3); }
+.btn-ocean:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0, 115, 230, 0.4); }
+.btn-group { display: flex; gap: 10px; margin-top: 20px; }
+.btn-cancel { flex: 1; background: #e2e8f0; color: #475569; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; transition: 0.2s; }
+.btn-cancel:hover { background: #cbd5e1; }
+.edit-title { text-align: center; color: #004b87; margin-bottom: 20px; font-size: 1.4rem; }
+.input-group { margin-bottom: 15px; }
+.input-group label { display: block; margin-bottom: 5px; color: #0055a5; font-weight: bold; font-size: 0.9rem; }
+.input-row { display: flex; gap: 15px; }
+.input-row .input-group { flex: 1; }
+.ocean-input { width: 100%; padding: 10px 15px; border: 2px solid #bae6fd; border-radius: 10px; background: rgba(255, 255, 255, 0.9); color: #0f172a; font-size: 1rem; box-sizing: border-box; outline: none; transition: 0.2s; }
+.ocean-input:focus { border-color: #38bdf8; box-shadow: 0 0 10px rgba(56, 189, 248, 0.2); }
+
+/* ==================================================
+   🫧 漂流瓶換頁器 (補齊分頁樣式)
+   ================================================== */
+.ocean-pagination { display: flex; justify-content: center; align-items: center; gap: 8px; margin-top: 50px; margin-bottom: 30px; padding: 10px 20px; background: rgba(255, 255, 255, 0.15); backdrop-filter: blur(8px); border-radius: 50px; border: 1px solid rgba(255, 255, 255, 0.3); box-shadow: 0 4px 15px rgba(0, 40, 80, 0.2); width: fit-content; margin-left: auto; margin-right: auto; }
+.ocean-pagination button, .ocean-pagination span { width: 35px; height: 35px; display: flex; justify-content: center; align-items: center; border-radius: 50%; border: 1px solid rgba(255, 255, 255, 0.4); background: rgba(255, 255, 255, 0.2); color: #0055a5; font-weight: bold; font-size: 0.95rem; cursor: pointer; transition: all 0.3s ease; text-shadow: 0 1px 3px rgba(0, 0, 0, 0.1); }
+.ocean-pagination button:hover:not(:disabled) { background: rgba(255, 255, 255, 0.8); color: #0055a5; transform: translateY(-2px); box-shadow: 0 4px 10px rgba(255, 255, 255, 0.5); text-shadow: none; }
+.ocean-pagination .active { background: #4da6ff; color: white; border: 2px solid #ffffff; box-shadow: 0 0 15px rgba(77, 166, 255, 0.8); transform: scale(1.1); }
+.ocean-pagination button:disabled { opacity: 0.4; cursor: not-allowed; background: transparent; border: 1px solid rgba(255, 255, 255, 0.2); }

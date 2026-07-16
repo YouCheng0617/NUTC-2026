@@ -27,8 +27,32 @@ class AIWorker:
             "x-ai-api-key": API_KEY 
         }
 
-    # ... (如果你有 send_webhook 和 check_content 函數請保留在這裡) ...
+    # 💡 補上缺失的 check_content 函數
+    def check_content(self, content):
+        """
+        呼叫 AI 引擎審核內容
+        回傳必須是三個值: (status_str, reason, category)
+        status_str 必須是 "通過" 或 "違規"
+        """
+        try:
+            # 這裡需要根據你的 LocalStickyNoteAI 實際寫法來改
+            # 假設它有一個審核的方法叫做 analyze 或 review
+            # result = self.ai_engine.review(content) 
+            
+            # --- 以下為範例邏輯，請根據你的 AI 輸出格式調整 ---
+            # 舉例：如果內容包含敏感詞
+            if "測試違規詞" in content:
+                return "違規", "包含不當言論", "違規類別"
+            
+            # 預設通過
+            return "通過", "", ""
+            # ----------------------------------------------
+            
+        except Exception as e:
+            print(f"⚠️ AI 審核過程發生錯誤: {e}")
+            return "違規", "AI 審核出錯", "錯誤"
 
+        
     def run(self):
         """背景監聽 API 迴圈"""
         print(f"🚀 [背景審核工人] 啟動成功！開始輪詢後端 API...")
