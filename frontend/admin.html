@@ -224,7 +224,15 @@
                   max-width: 300px;
                 " oninput="filterReports()" />
           </div>
-          
+          <!-- ✨ 貼在這裡：檢舉案件的專屬分類按鈕 ✨ -->
+    <!-- ✨ 新增的分類按鈕區塊 (已將「全部」移至最前方) -->
+          <div style="padding: 12px 24px; background: #ffffff; border-bottom: 1px solid var(--border-light); display: flex; gap: 10px; flex-wrap: wrap; align-items: center;">
+            <span style="font-size: 0.9rem; font-weight: 600; color: #64748b; margin-right: 5px;">📂 案件狀態：</span>
+            
+            <button id="filter-report-all" class="btn-action" style="background:#f8fafc; color:#64748b; border: 1px solid #e2e8f0; border-radius: 20px; padding: 4px 12px;" onclick="filterReportByStatus('all')">全部</button>
+            <button id="filter-report-pending" class="btn-action" style="background:#3b82f6; color:#fff; border: 1px solid #3b82f6; border-radius: 20px; padding: 4px 12px;" onclick="filterReportByStatus('pending')">⏳ 待審核</button>
+            <button id="filter-report-processed" class="btn-action" style="background:#f8fafc; color:#64748b; border: 1px solid #e2e8f0; border-radius: 20px; padding: 4px 12px;" onclick="filterReportByStatus('processed')">✅ 已審核 (下架)</button>
+          </div>
           <div class="table-responsive">
             <table class="modern-table">
               <thead>
