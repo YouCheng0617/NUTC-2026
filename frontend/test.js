@@ -5,14 +5,14 @@ let posts = [];
 let currentKeyword = '';
 
 // 👇 分頁設定與狀態紀錄
-let currentPage = 1; 
+let currentPage = 1;
 const POSTS_PER_PAGE = 6; // 🌟 從 5 改成 6，讓一頁抓出 6 個瓶子
 
 let currentBoard = sessionStorage.getItem('savedBoard') || '😡 極度憤怒中';
 let savedCatId = sessionStorage.getItem('savedCategoryId');
-let currentCategoryId = savedCatId !== null ? Number(savedCatId) : 1; 
+let currentCategoryId = savedCatId !== null ? Number(savedCatId) : 1;
 
-let currentView = 'all'; 
+let currentView = 'all';
 
 const BOARD_CATEGORY_MAP = {
     '😡 極度憤怒中': 1,
@@ -44,7 +44,7 @@ async function fetchBottles() {
 
     try {
         let endpointUrl = `${API_BASE_URL}/bottles/random`;
-        
+
         if (currentView === 'mine') {
             if (!token) { renderPosts([]); return; }
             endpointUrl = `${API_BASE_URL}/bottles/mybottles`;
@@ -57,7 +57,7 @@ async function fetchBottles() {
 
         let likedBottleIds = [];
         let savedBottleIds = [];
-        
+
         if (token) {
             try {
                 const likedRes = await fetch(`${API_BASE_URL}/bottles/liked`, { method: 'GET', headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' } });
@@ -103,9 +103,9 @@ async function fetchBottles() {
                 postsArray = backendData.data;
             } else if (backendData.data?.result && Array.isArray(backendData.data.result)) {
                 postsArray = backendData.data.result;
-            } else if (backendData.mybottles && Array.isArray(backendData.mybottles)) { 
+            } else if (backendData.mybottles && Array.isArray(backendData.mybottles)) {
                 postsArray = backendData.mybottles;
-            } else if (backendData.result && Array.isArray(backendData.result)) { 
+            } else if (backendData.result && Array.isArray(backendData.result)) {
                 postsArray = backendData.result;
             }
 
@@ -166,16 +166,16 @@ async function fetchBottles() {
                     else if (rawBoard.includes("秘密")) finalBoard = "🤫 沒人懂的秘密";
                     else if (rawBoard.includes("破碎")) finalBoard = "💔 破碎的碎片";
                     else if (rawBoard.includes("厭世") || rawBoard.includes("躺平")) finalBoard = "😑 極度厭世/躺平";
-                    else if (rawBoard.includes("開心")) finalBoard = "😁 開心的事"; 
+                    else if (rawBoard.includes("開心")) finalBoard = "😁 開心的事";
                     else finalBoard = rawBoard;
                 }
                 else if (cId !== undefined && cId !== null) {
-                    const idToBoard = { 
-                        1: "😡 極度憤怒中", 
-                        2: "🤫 沒人懂的秘密", 
-                        3: "💔 破碎的碎片", 
+                    const idToBoard = {
+                        1: "😡 極度憤怒中",
+                        2: "🤫 沒人懂的秘密",
+                        3: "💔 破碎的碎片",
                         4: "😑 極度厭世/躺平",
-                        5: "😁 開心的事" 
+                        5: "😁 開心的事"
                     };
                     if (Array.isArray(cId) && cId.length > 0) {
                         finalBoard = idToBoard[cId[0]] || finalBoard;
@@ -198,19 +198,19 @@ async function fetchBottles() {
             });
 
             applyFilters();
-      } else if (response.status === 404) {
-        console.log(`🌊 該海域 (Category ${currentCategoryId}) 目前還沒有漂流瓶`);
-        posts = []; 
-        applyFilters(); 
-    } else {
-        console.error("獲取文章失敗，狀態碼:", response.status);
-        posts = []; 
-        applyFilters(); 
+        } else if (response.status === 404) {
+            console.log(`🌊 該海域 (Category ${currentCategoryId}) 目前還沒有漂流瓶`);
+            posts = [];
+            applyFilters();
+        } else {
+            console.error("獲取文章失敗，狀態碼:", response.status);
+            posts = [];
+            applyFilters();
+        }
+    } catch (error) {
+        console.error("連線錯誤:", error);
     }
-} catch (error) {     
-    console.error("連線錯誤:", error);
-}                    
-}                    
+}
 function escapeHTML(str) {
     if (typeof str !== 'string') return str;
     return str.replace(/[&<>'"]/g, tag => ({
@@ -235,7 +235,7 @@ function renderPosts(data = posts) {
     const startIndex = (currentPage - 1) * POSTS_PER_PAGE;
     const endIndex = startIndex + POSTS_PER_PAGE;
     const pageData = data.slice(startIndex, endIndex);
-    
+
     container.innerHTML = pageData.map(p => `
         <div class="post-card" onclick="openPostDetail('${escapeHTML(String(p.id))}')">
             <div style="display:flex; justify-content:space-between; align-items:center;">
@@ -275,7 +275,7 @@ function applyFilters() {
             (p.title && p.title.toLowerCase().includes(currentKeyword)) ||
             (p.desc && p.desc.toLowerCase().includes(currentKeyword)) ||
             (p.board && p.board.toLowerCase().includes(currentKeyword)) ||
-            (p.author && p.author.toLowerCase().includes(currentKeyword)) 
+            (p.author && p.author.toLowerCase().includes(currentKeyword))
         );
     }
 
@@ -302,7 +302,7 @@ function renderSearchHistory() {
 
     let history = getSearchHistory();
     const currentText = searchInput.value.trim().toLowerCase();
-    
+
     if (currentText !== '') {
         history = history.filter(item => item.toLowerCase().includes(currentText));
     }
@@ -321,7 +321,7 @@ function renderSearchHistory() {
             </div>
         `;
     });
-    
+
     historyBox.innerHTML = html;
     historyBox.style.display = 'block';
 }
@@ -387,7 +387,7 @@ function renderComments(postId) {
     const comments = getComments(postId);
     const lists = document.querySelectorAll('#detail-comments-list');
     const counts = document.querySelectorAll('#detail-comment-count');
-    
+
     lists.forEach(listContainer => {
         if (!listContainer) return;
         if (comments.length === 0) {
@@ -445,8 +445,8 @@ window.openPostDetail = function (id) {
             saveBtn.classList.remove('active');
         }
         saveBtn.onclick = (e) => {
-            saveBtn.classList.toggle('active'); 
-            toggleAction(id, 'save', e);        
+            saveBtn.classList.toggle('active');
+            toggleAction(id, 'save', e);
         };
     }
 
@@ -458,8 +458,8 @@ window.openPostDetail = function (id) {
     if (feedView && detailView) {
         feedView.style.display = 'none';
         detailView.style.display = 'block';
-        if(sidebar) sidebar.style.setProperty('display', 'none', 'important');
-        if(oceanBtn) oceanBtn.style.setProperty('display', 'none', 'important');
+        if (sidebar) sidebar.style.setProperty('display', 'none', 'important');
+        if (oceanBtn) oceanBtn.style.setProperty('display', 'none', 'important');
         window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 };
@@ -473,14 +473,14 @@ window.closePostDetail = function () {
     if (feedView && detailView) {
         detailView.style.display = 'none';
         feedView.style.display = 'block';
-        if(sidebar) sidebar.style.setProperty('display', 'block', 'important');
-        if(oceanBtn) oceanBtn.style.setProperty('display', 'block', 'important');
+        if (sidebar) sidebar.style.setProperty('display', 'block', 'important');
+        if (oceanBtn) oceanBtn.style.setProperty('display', 'block', 'important');
         window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 };
 
 // 👇 這裡就是寶寶許願的：開起檢舉視窗的魔法！ 👇
-window.openReportModal = function() {
+window.openReportModal = function () {
     const token = localStorage.getItem("authToken");
     if (!token) {
         alert("寶寶，要先登入才能檢舉喔！");
@@ -491,11 +491,11 @@ window.openReportModal = function() {
     document.getElementById('report-modal').style.display = 'block';
 };
 
-window.closeReportModal = function() {
+window.closeReportModal = function () {
     document.getElementById('report-modal').style.display = 'none';
 };
 
-window.submitReport = async function() {
+window.submitReport = async function () {
     const reason = document.getElementById('report-reason').value.trim();
     if (!reason) {
         alert("請告訴我們檢舉的原因唷！");
@@ -533,11 +533,11 @@ window.submitReport = async function() {
 window.submitComment = function () {
     const inputs = document.querySelectorAll('#new-comment-input');
     let targetInput = null;
-    
+
     for (let i = 0; i < inputs.length; i++) {
         if (inputs[i].offsetParent !== null) { targetInput = inputs[i]; break; }
     }
-    
+
     if (!targetInput) return;
     const text = targetInput.value.trim();
 
@@ -553,14 +553,14 @@ window.submitComment = function () {
         likes: 0,
         liked: false
     };
-    
+
     saveComment(currentOpenPostId, newComment);
 
     setTimeout(() => {
         inputs.forEach(inp => inp.value = '');
         if (targetInput) targetInput.value = '';
     }, 50);
-    
+
     renderComments(currentOpenPostId);
 
     const p = posts.find(x => String(x.id) === String(currentOpenPostId));
@@ -579,16 +579,16 @@ window.submitComment = function () {
 window.toggleAction = async function (id, actionType, e) {
     e.stopPropagation();
     const token = localStorage.getItem("authToken");
-    
+
     if (!token) {
         alert("請先登入才能操作喔！");
-        window.location.href = 'login.html'; 
+        window.location.href = 'login.html';
         return;
     }
 
     const p = posts.find(x => String(x.id) === String(id));
     if (!p) return;
-    
+
     if (actionType === 'like') {
         if (p.liked) {
             p.likes = Math.max(0, p.likes - 1);
@@ -598,7 +598,7 @@ window.toggleAction = async function (id, actionType, e) {
             p.liked = true;
         }
     } else if (actionType === 'save') { p.saved = !p.saved; }
-    
+
     applyFilters();
 
     try {
@@ -611,23 +611,23 @@ window.toggleAction = async function (id, actionType, e) {
                 'ngrok-skip-browser-warning': 'true'
             }
         });
-        
+
         if (!response.ok) throw new Error(`後端回傳錯誤碼: ${response.status}`);
     } catch (error) {
         console.error(`${actionType} 動作失敗:`, error);
-        
+
         if (actionType === 'like') {
             if (p.liked) { p.likes = Math.max(0, p.likes - 1); p.liked = false; }
             else { p.likes++; p.liked = true; }
         } else if (actionType === 'save') { p.saved = !p.saved; }
-        
+
         applyFilters();
         alert("伺服器開小差了，操作失敗請稍後再試 😢");
     }
 }
 
 window.deleteMyBottle = async function (id, e) {
-    e.stopPropagation(); 
+    e.stopPropagation();
     if (!confirm("⚠️ 確定要刪除這個漂流瓶嗎？刪除後無法恢復喔！")) return;
 
     const token = localStorage.getItem("authToken");
@@ -668,15 +668,15 @@ function setupAuth() {
         if (user && Object.keys(user).length > 0 && token) {
             if (loginTrigger) loginTrigger.style.display = 'none';
             if (userProfile) userProfile.style.display = 'flex';
-            
+
             const displayName = user.name || (user.email ? user.email.split('@')[0] : '用戶');
             const userNameEl = document.getElementById('user-name');
-            
+
             if (userNameEl) userNameEl.innerText = displayName;
 
             const userAvatarEl = document.getElementById('user-avatar');
             if (user && user.avatar && userAvatarEl) userAvatarEl.src = user.avatar;
-            
+
             if (identitySelect) {
                 identitySelect.options[0].text = `實名 (${displayName})`;
                 identitySelect.options[0].value = displayName;
@@ -691,25 +691,25 @@ function setupAuth() {
                     adminLink.style.fontWeight = 'bold';
                     adminLink.style.borderTop = '1px solid #eee';
                     adminLink.innerHTML = '🛠️ 進入後台';
-                    
+
                     adminLink.onclick = (e) => { e.stopPropagation(); window.location.href = 'admin.html'; };
                     userDropdown.insertBefore(adminLink, userDropdown.lastElementChild);
                 }
                 const btnNewPost = document.getElementById('btn-new-post');
                 if (btnNewPost) btnNewPost.style.display = 'none';
-                
+
                 const savedMenuItem = document.querySelector('.menu-item[onclick*="saved.html"]');
                 const postMenuItem = document.querySelector('.menu-item[onclick*="post.html"]');
-                
+
                 if (savedMenuItem) savedMenuItem.style.display = 'none';
                 if (postMenuItem) postMenuItem.style.display = 'none';
             } else {
                 const btnNewPost = document.getElementById('btn-new-post');
-                if (btnNewPost) btnNewPost.style.display = 'block'; 
-                
+                if (btnNewPost) btnNewPost.style.display = 'block';
+
                 const savedMenuItem = document.querySelector('.menu-item[onclick*="saved.html"]');
                 const postMenuItem = document.querySelector('.menu-item[onclick*="post.html"]');
-                
+
                 if (savedMenuItem) savedMenuItem.style.display = 'block';
                 if (postMenuItem) postMenuItem.style.display = 'block';
             }
@@ -727,7 +727,7 @@ function setupAuth() {
             localStorage.removeItem('currentUser');
             localStorage.removeItem('authToken');
             updateUI();
-            window.location.href = "login.html"; 
+            window.location.href = "login.html";
         };
     }
     updateUI();
@@ -737,21 +737,21 @@ function setupNewPost() {
     const form = document.getElementById('new-post-form');
     const btnNewPost = document.getElementById('btn-new-post');
     const closePostModal = document.getElementById('close-post-modal');
-    
+
     if (btnNewPost) {
         btnNewPost.onclick = () => {
             const token = localStorage.getItem("authToken");
             if (!token) {
                 alert("請先登入才能發文喔！");
-                window.location.href = "login.html"; 
+                window.location.href = "login.html";
                 return;
             }
             document.getElementById('post-modal').style.display = 'block';
         }
     }
-    
+
     if (closePostModal) closePostModal.onclick = () => document.getElementById('post-modal').style.display = 'none';
-    
+
     if (form) {
         form.onsubmit = async (e) => {
             e.preventDefault();
@@ -776,7 +776,7 @@ function setupNewPost() {
                 isAnonymous: isAnonymous,
                 category_id: categoryPayload
             };
-            
+
             try {
                 const response = await fetch(`${API_BASE_URL}/bottles`, {
                     method: 'POST',
@@ -787,7 +787,7 @@ function setupNewPost() {
                     },
                     body: JSON.stringify(postData)
                 });
-                
+
                 if (response.ok) {
                     alert('漂流瓶拋出成功！🎉');
                     form.reset();
@@ -808,23 +808,23 @@ function setupNewPost() {
 document.addEventListener('DOMContentLoaded', () => {
     if (window.location.pathname.includes('saved.html')) {
         currentView = 'saved';
-        currentPage = 1; 
+        currentPage = 1;
     } else if (window.location.pathname.includes('post.html')) {
         currentView = 'mine';
-        currentPage = 1; 
+        currentPage = 1;
     } else {
         currentView = 'all';
     }
 
     document.querySelectorAll('.sidebar li').forEach(li => {
-        li.classList.remove('active'); 
+        li.classList.remove('active');
         const liText = li.innerText.trim();
         if (liText.includes(currentBoard)) { li.classList.add('active'); }
     });
 
     setupAuth();
     setupNewPost();
-    fetchBottles(); 
+    fetchBottles();
 
     const searchInput = document.getElementById('main-search-input');
     const historyBox = document.getElementById('search-history-dropdown');
@@ -832,7 +832,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (searchInput && historyBox) {
         searchInput.oninput = (e) => {
             currentKeyword = e.target.value.toLowerCase().trim();
-            currentPage = 1; 
+            currentPage = 1;
             applyFilters();
             renderSearchHistory();
             historyBox.style.width = searchInput.offsetWidth + 'px';
@@ -859,22 +859,22 @@ document.addEventListener('DOMContentLoaded', () => {
         input.setAttribute('name', 'user_comment_history');
         input.setAttribute('autocomplete', 'off');
         const wrapper = input.parentElement;
-        
+
         if (wrapper && wrapper.tagName.toLowerCase() === 'div' && wrapper.classList.contains('comment-action-bar')) {
             const form = document.createElement('form');
             form.style.cssText = wrapper.style.cssText;
-            
-            form.className = wrapper.className; 
-            
+
+            form.className = wrapper.className;
+
             form.onsubmit = (e) => { e.preventDefault(); submitComment(); };
             while (wrapper.firstChild) { form.appendChild(wrapper.firstChild); }
             wrapper.parentNode.replaceChild(form, wrapper);
-            
+
             const btn = form.querySelector('.send-btn');
             if (btn) { btn.type = 'submit'; btn.removeAttribute('onclick'); }
         }
     });
-    
+
     document.querySelectorAll('.sidebar li').forEach(li => li.onclick = (e) => {
         document.querySelectorAll('.sidebar li').forEach(el => el.classList.remove('active'));
         e.target.classList.add('active');
@@ -883,7 +883,7 @@ document.addEventListener('DOMContentLoaded', () => {
         currentBoard = liText.substring(2).trim();
         currentCategoryId = BOARD_CATEGORY_MAP[liText] || 1;
 
-        currentPage = 1; 
+        currentPage = 1;
 
         sessionStorage.setItem('savedCategoryId', currentCategoryId);
         sessionStorage.setItem('savedBoard', currentBoard);
@@ -891,7 +891,7 @@ document.addEventListener('DOMContentLoaded', () => {
         closePostDetail();
         fetchBottles();
     });
-    
+
     const loginTrigger = document.getElementById('login-trigger');
     if (loginTrigger) loginTrigger.onclick = () => { window.location.href = "login.html"; };
 
@@ -900,10 +900,10 @@ document.addEventListener('DOMContentLoaded', () => {
     if (userMenuBtn && userDropdown) {
         userMenuBtn.onclick = (e) => { e.stopPropagation(); userDropdown.classList.toggle('show-dropdown'); };
     }
-    
+
     window.onclick = (event) => {
         if (userDropdown) userDropdown.classList.remove('show-dropdown');
-        
+
         // 點擊背景關閉檢舉視窗
         const reportModal = document.getElementById('report-modal');
         if (reportModal && event.target == reportModal) reportModal.style.display = 'none';
@@ -928,7 +928,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 document.getElementById('detail-gender').innerText = user.gender || '未填寫';
                 document.getElementById('detail-zodiac').innerText = user.zodiac || user.constellation || '未填寫';
                 document.getElementById('detail-bio').innerText = user.bio || '這瓶子裡目前空空的...';
-                
+
                 document.getElementById('profile-view-mode').style.display = 'block';
                 document.getElementById('profile-edit-mode').style.display = 'none';
 
@@ -940,7 +940,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const btnEditProfile = document.getElementById('btn-edit-profile');
     const btnCancelEdit = document.getElementById('btn-cancel-edit');
     const btnSaveProfile = document.getElementById('btn-save-profile');
-    
+
     const editBirthdayInput = document.getElementById('edit-birthday');
     const editZodiacSelect = document.getElementById('edit-zodiac');
 
@@ -960,7 +960,7 @@ document.addEventListener('DOMContentLoaded', () => {
         btnEditProfile.onclick = () => {
             const user = JSON.parse(localStorage.getItem('currentUser'));
             if (!user) return;
-            
+
             document.getElementById('edit-name').value = user.name || '';
             document.getElementById('edit-email').value = user.email || '';
             document.getElementById('edit-birthday').value = user.birthday ? user.birthday.split('T')[0] : '';
@@ -995,7 +995,7 @@ document.addEventListener('DOMContentLoaded', () => {
             user.birthday = document.getElementById('edit-birthday').value;
             user.gender = document.getElementById('edit-gender').value;
             user.zodiac = document.getElementById('edit-zodiac').value;
-            user.constellation = user.zodiac; 
+            user.constellation = user.zodiac;
             user.bio = document.getElementById('edit-bio').value.trim();
 
             const token = localStorage.getItem("authToken");
@@ -1015,7 +1015,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         bio: user.bio
                     })
                 }).catch(e => console.log('API 更新稍有延遲，優先更新本地顯示', e));
-                
+
                 localStorage.setItem('currentUser', JSON.stringify(user));
 
                 document.getElementById('detail-name').innerText = user.name;
@@ -1023,7 +1023,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 document.getElementById('detail-gender').innerText = user.gender || '未填寫';
                 document.getElementById('detail-zodiac').innerText = user.zodiac || '未填寫';
                 document.getElementById('detail-bio').innerText = user.bio || '這瓶子裡目前空空的...';
-                
+
                 const userNameEl = document.getElementById('user-name');
                 if (userNameEl) userNameEl.innerText = user.name;
 
@@ -1043,10 +1043,10 @@ document.addEventListener('DOMContentLoaded', () => {
     if (closeProfileBtn) closeProfileBtn.onclick = () => profileModal.style.display = 'none';
 });
 
-window.callOceanCurrent = function() {
+window.callOceanCurrent = function () {
     const bottles = document.querySelectorAll('.post-card');
     bottles.forEach((bottle, index) => {
-        setTimeout(() => { bottle.classList.add('swept-away'); }, index * 100); 
+        setTimeout(() => { bottle.classList.add('swept-away'); }, index * 100);
     });
     setTimeout(() => { fetchBottles(); }, 1000);
 }
@@ -1054,9 +1054,9 @@ window.callOceanCurrent = function() {
 function renderPagination(totalPages, dataArray) {
     const pageContainer = document.getElementById('pagination-container');
     if (!pageContainer) return;
-    
-    pageContainer.innerHTML = ''; 
-    if (totalPages <= 1) return;  
+
+    pageContainer.innerHTML = '';
+    if (totalPages <= 1) return;
 
     const prevBtn = document.createElement('button');
     prevBtn.className = 'page-btn';
@@ -1092,3 +1092,259 @@ function renderPagination(totalPages, dataArray) {
     };
     pageContainer.appendChild(nextBtn);
 }
+/* =======================================================
+   🎮 🌊 ✨ 純程式碼生成：SVG 高顏值手繪風貓貓半人魚 
+   (完美降落版：海豚不再強吻！位置精準下移 + 溫馨抱抱姿勢)
+   ======================================================= */
+
+document.addEventListener('DOMContentLoaded', () => {
+    // 建立吉祥物容器
+    const mascotContainer = document.createElement('div');
+    mascotContainer.id = 'svg-mermecat-mascot';
+    mascotContainer.title = '點擊我去找 AI 小助理聊天！';
+
+    // ✨ 終極完美進化：小海豚乖乖降落到胸口，不擋嘴巴啦！
+    mascotContainer.innerHTML = `
+        <div class="svg-mermecat-wrapper">
+            <svg width="130" height="140" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                <style>
+                    /* 統一的深藍色粗邊框，完美還原手繪感 */
+                    .line { stroke: #1a4c6d; stroke-width: 3.5; stroke-linejoin: round; stroke-linecap: round; }
+                    .tail { fill: #7ac2c4; }
+                    .fin { fill: #50b4ba; }
+                    .cat { fill: #fcfdfe; }
+                    .red-line { stroke: #b83e33; stroke-width: 3.5; stroke-linecap: round; fill: none; }
+                    .blush { fill: #ffbaba; }
+                    .bubble { fill: #e0f2f5; stroke: #1a4c6d; stroke-width: 2.5; }
+                    
+                    /* ✨ 胖嘟嘟海豚與貓爪專屬樣式 */
+                    .dolphin-body { fill: #9bcbf1; } /* 完美的柔軟淺藍色 */
+                    .cat-paw { fill: #fcfdfe; }     
+
+                    /* 👋 超萌右手揮手動畫 (繞著肩膀旋轉) */
+                    @keyframes paw-wave {
+                        0% { transform: rotate(0deg); }
+                        20% { transform: rotate(-12deg); }
+                        40% { transform: rotate(8deg); }
+                        60% { transform: rotate(-10deg); }
+                        80% { transform: rotate(6deg); }
+                        100% { transform: rotate(0deg); }
+                    }
+                    .wave-animation {
+                        animation: paw-wave 1.8s infinite ease-in-out;
+                        transform-origin: 75px 48px; /* 以肩膀為圓心旋轉 */
+                    }
+                </style>
+                
+                <circle cx="15" cy="25" r="4.5" class="bubble"><animate attributeName="cy" values="25;20;25" dur="3s" repeatCount="indefinite"/></circle>
+                <circle cx="22" cy="40" r="2.5" class="bubble"><animate attributeName="cy" values="40;36;40" dur="2s" repeatCount="indefinite"/></circle>
+                <circle cx="85" cy="80" r="3.5" class="bubble"><animate attributeName="cy" values="80;75;80" dur="4s" repeatCount="indefinite"/></circle>
+
+                <path d="M 25 75 C 5 70 5 95 18 95 C 15 105 35 100 35 85 Z" class="fin line">
+                     <animateTransform attributeName="transform" type="rotate" values="-3 25 85; 3 25 85; -3 25 85" dur="3s" repeatCount="indefinite"/>
+                </path>
+
+                <path d="M 20 50 C 15 95 85 95 80 50 Z" class="tail line"/>
+
+                <path d="M 32 65 Q 40 72 48 65 M 52 65 Q 60 72 68 65 M 42 75 Q 50 82 58 75" fill="none" stroke="#1a4c6d" stroke-width="2.5" stroke-linecap="round" opacity="0.6"/>
+
+                <path d="M 22 55 C 20 28 25 25 35 25 L 38 12 L 46 22 L 54 22 L 62 12 L 65 25 C 75 25 80 28 78 55 Z" class="cat line"/>
+
+                <circle cx="38" cy="40" r="4.5" fill="#1a4c6d"/>
+                <circle cx="62" cy="40" r="4.5" fill="#1a4c6d"/>
+
+                <ellipse cx="28" cy="44" rx="4.5" ry="3" class="blush"/>
+                <ellipse cx="72" cy="44" rx="4.5" ry="3" class="blush"/>
+
+                <path d="M 46 43 Q 50 47 54 43" class="red-line"/>
+
+                <g id="cute-dolphin" transform="translate(33, 46) scale(1.1)">
+                    <path d="M 28 16 
+                             C 27 12, 25 9, 21 9 
+                             C 17 9, 14 5, 13 3 
+                             C 12 6, 13 8, 10 10 
+                             C 6 12, 3 16, 2 20 
+                             C 1 23, 0 26, 1 26 
+                             C 3 25, 4 23, 5 22 
+                             C 6 24, 8 26, 9 25 
+                             C 8 22, 10 20, 11 19 
+                             C 16 21, 23 20, 28 16 Z" 
+                          class="dolphin-body line"/>
+                             
+                    <path d="M 27.5 16.5 C 22 20, 15 20, 11.5 18.5 C 15 16, 22 15, 27.5 15 Z" fill="#ffffff" stroke="none"/>
+                             
+                    <path d="M 18 18 C 16 23, 14 25, 16 26 C 18 25, 19 22, 20 18 Z" class="dolphin-body line"/>
+
+                    <circle cx="23" cy="14" r="1.3" fill="#1a4c6d" stroke="none" />
+                </g>
+
+                <path d="M 26 63 C 30 67, 36 69, 41 67 C 43 66, 42 62, 39 62 C 35 62, 30 62, 26 62 Z" class="cat-paw line"/>
+                
+                <g class="wave-animation">
+                    <path d="M 76 48 C 82 45, 85 38, 85 32 C 85 27, 78 27, 76 34 C 75 38, 75 42, 76 48 Z" class="cat-paw line"/>
+                    <path d="M 88 28 Q 91 31 89 34" fill="none" stroke="#1a4c6d" stroke-width="2" stroke-linecap="round"/>
+                    <path d="M 91 24 Q 95 28 92 32" fill="none" stroke="#1a4c6d" stroke-width="2" stroke-linecap="round"/>
+                </g>
+            </svg>
+            
+            <div class="cute-dialogue" id="mermecat-dialogue"></div>
+        </div>
+    `;
+
+    document.body.appendChild(mascotContainer);
+
+    // =======================================================
+    // 🎨 容器與氣泡專屬 CSS
+    // =======================================================
+    const mascotStyle = document.createElement('style');
+    mascotStyle.innerHTML = `
+        #svg-mermecat-mascot {
+            position: fixed;
+            z-index: 99999; 
+            width: 130px;
+            height: 140px;
+            cursor: pointer;
+            user-select: none;
+            pointer-events: auto;
+            filter: drop-shadow(0 6px 15px rgba(0, 30, 60, 0.25));
+            /* ✨ 水母般的微醺漂浮，平滑過渡 */
+            transition: top 8s ease-in-out, left 8s ease-in-out;
+        }
+
+        .svg-mermecat-wrapper {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            /* 輕微上下浮動 */
+            animation: svg-float 4s infinite alternate ease-in-out;
+        }
+
+        @keyframes svg-float {
+            0% { transform: translateY(0px) rotate(-1deg); }
+            100% { transform: translateY(-8px) rotate(1deg); }
+        }
+
+        /* 💬 對話氣泡 */
+        .cute-dialogue {
+            position: absolute;
+            bottom: calc(100% - 5px); 
+            left: 50%;
+            transform: translateX(-50%) scale(0.8);
+            width: max-content; max-width: 180px;
+            background: #fff;
+            color: #1a4c6d;
+            padding: 10px 16px;
+            border: 3.5px solid #1a4c6d; 
+            border-radius: 18px;
+            font-size: 0.95rem; font-weight: bold;
+            opacity: 0; visibility: hidden; pointer-events: none;
+            transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+            z-index: 10000; 
+            box-shadow: 2px 4px 0px rgba(26, 76, 109, 0.15); 
+        }
+        .cute-dialogue.show-dialogue {
+            opacity: 1; visibility: visible;
+            transform: translateX(-50%) scale(1);
+        }
+    `;
+    document.head.appendChild(mascotStyle);
+
+    // =======================================================
+    // 🌊 樹懶級微醺游動 AI (龜速、平滑、死守外圍)
+    // =======================================================
+    const mascot = document.getElementById('svg-mermecat-mascot');
+    let currentZone = 0; // 0: 上, 1: 右, 2: 下, 3: 左
+
+    function swimLikeLazyMermaid() {
+        const padding = 20;
+        const borderThickness = 120; // 限制在外圍游動
+        const w = window.innerWidth - 130;
+        const h = window.innerHeight - 140;
+
+        let targetX, targetY;
+
+        if (currentZone === 0) { // 上方
+            targetX = Math.random() * w;
+            targetY = padding + Math.random() * (borderThickness - 50);
+        } else if (currentZone === 1) { // 右方
+            targetX = w - padding - Math.random() * (borderThickness - 50);
+            targetY = Math.random() * h;
+        } else if (currentZone === 2) { // 下方
+            targetX = Math.random() * w;
+            targetY = h - padding - Math.random() * (borderThickness - 50);
+        } else { // 左方
+            targetX = padding + Math.random() * (borderThickness - 50);
+            targetY = Math.random() * h;
+        }
+
+        mascot.style.left = targetX + 'px';
+        mascot.style.top = targetY + 'px';
+
+        if (Math.random() > 0.1) {
+            currentZone = (currentZone + 1) % 4;
+        }
+
+        // 🌟 速度極慢！每次游動耗時 8 到 12 秒
+        const duration = 8000 + Math.random() * 4000;
+        mascot.style.transition = `top ${duration}ms ease-in-out, left ${duration}ms ease-in-out`;
+
+        setTimeout(swimLikeLazyMermaid, duration);
+
+        // ✨ 整形成功的小彩蛋對話
+        if (Math.random() > 0.8) showDialogueOnce("🐬 嘿嘿，我的小海豚終於乖乖聽話了喵！");
+    }
+
+    setTimeout(swimLikeLazyMermaid, 100);
+
+    // =======================================================
+    // ✉️ 貼心話匣子
+    // =======================================================
+    const randomPhrases = [
+        "🌊 咕嚕咕嚕... 今天的水溫好舒服喵！",
+        "🤫 有什麼秘密想跟我說嗎？",
+        "✏️ 把不開心的事丟進瓶子裡吧！",
+        "⭐ 點我可以去找 AI 聊天喔！",
+        "🎵 好像有很多有趣的瓶子呢！",
+        "💖 今天過得好嗎？",
+        "❔開發者團隊們都不知道我是什麼物種呢!",
+        "🤪想看我甚麼時候撞到角落嗎!"
+    ];
+
+    const dialogueBox = document.getElementById('mermecat-dialogue');
+    let dialogueTimer;
+
+    function showRandomDialogue() {
+        if (dialogueBox.classList.contains('show-dialogue')) return;
+
+        const phrase = randomPhrases[Math.floor(Math.random() * randomPhrases.length)];
+        dialogueBox.innerText = phrase;
+        dialogueBox.classList.add('show-dialogue');
+
+        clearTimeout(dialogueTimer);
+        dialogueTimer = setTimeout(() => {
+            dialogueBox.classList.remove('show-dialogue');
+        }, 4000);
+    }
+
+    // 顯示一次性對話
+    function showDialogueOnce(phrase) {
+        if (dialogueBox.classList.contains('show-dialogue')) return;
+        dialogueBox.innerText = phrase;
+        dialogueBox.classList.add('show-dialogue');
+        setTimeout(() => { dialogueBox.classList.remove('show-dialogue'); }, 4000);
+    }
+
+    setTimeout(showRandomDialogue, 2000);
+    setInterval(() => {
+        if (Math.random() > 0.2) showRandomDialogue();
+    }, 8000 + Math.random() * 6000);
+
+    // =======================================================
+    // 🚀 點擊連線：AI 小助理畫面(不能動，放在最後)
+    // =======================================================
+    const AI_ASSISTANT_URL = "http://ai-assistant-demo.example.com";
+
+    mascot.onclick = () => {
+        window.location.href = AI_ASSISTANT_URL;
+    };
+});

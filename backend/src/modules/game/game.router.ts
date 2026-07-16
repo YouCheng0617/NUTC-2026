@@ -5,8 +5,8 @@ const gameControllerInstance = new GameController();
 
 export function gameRouter() {
     const router = Router();
+    router.get("/:gameName/:difficulty/ranking", optionalAuthCheck, gameControllerInstance.getAllGameRecordsController.bind(gameControllerInstance))
     router.post("/:gameName", authCheck, gameControllerInstance.postGameRecord.bind(gameControllerInstance))
     router.get("/:gameName/:difficulty", authCheck, gameControllerInstance.getHighestRecordController.bind(gameControllerInstance))
-    router.get("/:gameName/:difficulty/ranking", optionalAuthCheck, gameControllerInstance.getAllGameRecordsController.bind(gameControllerInstance))
     return router;
 }
