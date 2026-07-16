@@ -40,13 +40,13 @@ model Member {
   locked_time   DateTime? // 鎖定時間，?=null，表示未鎖定
   status        UserStatus @default(ACTIVE) // 帳號狀態
 
-  bottles           Bottle[]
-  BlacklistedToken  BlacklistedToken[]
-  bottleLikes       BottleLike[]
-  bottleSaves       BottleSave[]
-  Comment           Comment[]
-  report            BottleReport[]
-  littleBottleGames LittleBottleGame[]
+  bottles          Bottle[]
+  BlacklistedToken BlacklistedToken[]
+  bottleLikes      BottleLike[]
+  bottleSaves      BottleSave[]
+  Comment          Comment[]
+  report           BottleReport[]
+  gameRecords      GameRecord[]
 }
 
 model BlacklistedToken {
@@ -165,9 +165,10 @@ model BottleReport {
   @@unique([member_id, bottle_id])
 }
 
-model LittleBottleGame {
+model GameRecord {
   id             Int      @id @default(autoincrement())
   member_id      Int
+  game_name      String
   difficulty     String
   high_score     Int      @default(0)
   last_played_at DateTime @default(now()) @updatedAt
@@ -175,5 +176,5 @@ model LittleBottleGame {
   // 關聯定義
   member Member @relation(fields: [member_id], references: [member_id], onDelete: Cascade)
 
-  @@unique([member_id, difficulty])
+  @@unique([member_id, game_name, difficulty])
 }
