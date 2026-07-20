@@ -1,0 +1,417 @@
+<!doctype html>
+<html lang="zh-TW">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    />
+    <title>今日塔羅瓶 - 秘密海域</title>
+
+    <link rel="stylesheet" href="test.css?v=99" />
+
+    <style>
+      body,
+      html {
+        margin: 0;
+        padding: 0;
+        width: 100vw;
+        height: 100vh;
+        overflow: hidden;
+        background-color: #001528;
+        font-family: "PingFang TC", sans-serif;
+        color: white;
+        user-select: none;
+        /* 塔羅牌專屬神祕深海背景 */
+        background: radial-gradient(
+          circle at center,
+          #003366 0%,
+          #001122 80%,
+          #000000 100%
+        );
+      }
+
+      .back-btn {
+        position: absolute;
+        top: 20px;
+        left: 20px;
+        background: rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        color: white;
+        padding: 10px 25px;
+        border-radius: 25px;
+        cursor: pointer;
+        z-index: 50;
+        font-weight: bold;
+        font-size: 1.1rem;
+        transition: 0.3s;
+        backdrop-filter: blur(5px);
+      }
+      .back-btn:hover {
+        background: rgba(255, 255, 255, 0.2);
+        transform: translateY(-2px);
+      }
+
+      .header-title {
+        text-align: center;
+        margin-top: 50px;
+        z-index: 10;
+        position: relative;
+      }
+      .header-title h1 {
+        font-size: 3rem;
+        color: #e6e6fa;
+        text-shadow: 0 0 20px rgba(171, 130, 255, 0.8);
+        margin: 0 0 10px 0;
+        letter-spacing: 3px;
+      }
+      .header-title p {
+        color: #b3b3cc;
+        font-size: 1.2rem;
+        margin: 0;
+      }
+
+      /* 🌟 卡牌與寶石瓶區域 */
+      .tarot-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 30px;
+        height: 50vh;
+        margin-top: 20px;
+        perspective: 1000px;
+      }
+
+      .card-wrapper {
+        width: 180px;
+        height: 280px;
+        position: relative;
+        cursor: pointer;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 15px;
+      }
+
+      .card-label {
+        color: #e6e6fa;
+        font-weight: bold;
+        font-size: 1.2rem;
+        text-shadow: 0 0 10px rgba(171, 130, 255, 0.5);
+        opacity: 0.8;
+        transition: 0.3s;
+      }
+
+      /* 3D 翻轉核心 */
+      .card-inner {
+        width: 100%;
+        height: 100%;
+        position: relative;
+        transition: transform 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        transform-style: preserve-3d;
+      }
+
+      .card-wrapper.flipped .card-inner {
+        transform: rotateY(180deg);
+      }
+      .card-wrapper.flipped .card-label {
+        opacity: 1;
+        color: #ffd700;
+        text-shadow: 0 0 15px rgba(255, 215, 0, 0.8);
+      }
+
+      /* 卡牌正反面共用設定 */
+      .card-front,
+      .card-back {
+        width: 100%;
+        height: 100%;
+        position: absolute;
+        backface-visibility: hidden;
+        border-radius: 15px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.5);
+      }
+
+      /* 卡牌背面 (發光寶石瓶) */
+      .card-back {
+        background: rgba(10, 25, 50, 0.6);
+        border: 2px solid rgba(171, 130, 255, 0.4);
+        backdrop-filter: blur(5px);
+        animation: float 3s infinite ease-in-out alternate;
+      }
+      .bottle-icon {
+        font-size: 4rem;
+        filter: drop-shadow(0 0 15px rgba(171, 130, 255, 0.8));
+      }
+
+      /* 卡牌正面 (塔羅牌面) */
+      .card-front {
+        background: linear-gradient(135deg, #1a2a6c, #112240, #2a0845);
+        border: 2px solid #ffd700;
+        transform: rotateY(180deg);
+        padding: 15px;
+        box-sizing: border-box;
+        text-align: center;
+      }
+      .tarot-img {
+        font-size: 4.5rem;
+        margin-bottom: 15px;
+        filter: drop-shadow(0 0 10px rgba(255, 215, 0, 0.6));
+      }
+      .tarot-name {
+        color: #ffd700;
+        font-weight: bold;
+        font-size: 1.2rem;
+        margin-bottom: 5px;
+      }
+      .tarot-desc {
+        color: #d1e8ff;
+        font-size: 0.9rem;
+        line-height: 1.4;
+      }
+
+      /* 🌟 AI 籤詩解讀區塊 */
+      .ai-reading-panel {
+        position: absolute;
+        bottom: -100%;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 90%;
+        max-width: 700px;
+        background: rgba(10, 20, 40, 0.85);
+        border: 1px solid rgba(171, 130, 255, 0.5);
+        border-radius: 20px;
+        padding: 30px;
+        box-sizing: border-box;
+        backdrop-filter: blur(10px);
+        box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.6);
+        transition: bottom 0.8s cubic-bezier(0.25, 1, 0.5, 1);
+        z-index: 20;
+      }
+      .ai-reading-panel.show {
+        bottom: 30px;
+      }
+
+      .ai-title {
+        color: #e6e6fa;
+        font-size: 1.3rem;
+        margin-bottom: 15px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-weight: bold;
+      }
+      .ai-title span {
+        animation: pulseGlow 2s infinite;
+      }
+
+      .ai-content {
+        color: #e0e0e0;
+        font-size: 1.1rem;
+        line-height: 1.8;
+        letter-spacing: 1px;
+        min-height: 80px;
+        border-left: 3px solid #ffd700;
+        padding-left: 15px;
+      }
+
+      /* 動畫區 */
+      @keyframes float {
+        0% {
+          transform: translateY(0);
+          box-shadow: 0 5px 15px rgba(171, 130, 255, 0.2);
+        }
+        100% {
+          transform: translateY(-15px);
+          box-shadow: 0 20px 30px rgba(171, 130, 255, 0.6);
+        }
+      }
+      @keyframes pulseGlow {
+        0%,
+        100% {
+          text-shadow: 0 0 10px rgba(171, 130, 255, 0.5);
+        }
+        50% {
+          text-shadow: 0 0 20px rgba(171, 130, 255, 1);
+        }
+      }
+
+      @media screen and (max-width: 768px) {
+        .tarot-container {
+          flex-direction: column;
+          height: auto;
+          gap: 15px;
+          margin-top: 30px;
+          padding-bottom: 200px;
+        }
+        .card-wrapper {
+          width: 140px;
+          height: 210px;
+          flex-direction: row;
+          justify-content: flex-start;
+        }
+        .card-label {
+          writing-mode: vertical-lr;
+          font-size: 1rem;
+        }
+        .header-title h1 {
+          font-size: 2.2rem;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <button class="back-btn" onclick="window.location.href = 'games.html'">
+      🔙 返回遊樂場
+    </button>
+
+    <div class="header-title">
+      <h1>🔮 今日塔羅瓶</h1>
+      <p>點擊海面上的發光寶石瓶，揭曉今日專屬的海洋指引</p>
+    </div>
+
+    <div class="tarot-container">
+      <!-- 過去瓶 -->
+      <div class="card-wrapper" onclick="flipCard(this, 'past')">
+        <div class="card-label">【過去】</div>
+        <div class="card-inner">
+          <div class="card-back" style="animation-delay: 0s">
+            <div class="bottle-icon">🏺</div>
+          </div>
+          <div class="card-front" id="card-front-past"></div>
+        </div>
+      </div>
+
+      <!-- 現在瓶 -->
+      <div class="card-wrapper" onclick="flipCard(this, 'present')">
+        <div class="card-label">【現在】</div>
+        <div class="card-inner">
+          <div class="card-back" style="animation-delay: 0.5s">
+            <div class="bottle-icon">🔮</div>
+          </div>
+          <div class="card-front" id="card-front-present"></div>
+        </div>
+      </div>
+
+      <!-- 未來瓶 -->
+      <div class="card-wrapper" onclick="flipCard(this, 'future')">
+        <div class="card-label">【未來】</div>
+        <div class="card-inner">
+          <div class="card-back" style="animation-delay: 1s">
+            <div class="bottle-icon">💎</div>
+          </div>
+          <div class="card-front" id="card-front-future"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- AI 籤詩面板 -->
+    <div class="ai-reading-panel" id="ai-panel">
+      <div class="ai-title"><span>✨</span> 來自深海的 AI 語音解讀...</div>
+      <div class="ai-content" id="ai-text"></div>
+    </div>
+
+    <script>
+      // 🌟 定義專屬的「溫馨海洋風」正位塔羅牌庫
+      const tarotDeck = [
+        {
+          emoji: "☀️",
+          name: "陽光海岸",
+          desc: "對應【太陽】。充滿生命力與喜悅，一切都在向著明亮的方向發展。",
+        },
+        {
+          emoji: "🌟",
+          name: "星空燈塔",
+          desc: "對應【星星】。黑暗中為你指引方向的希望之光，願望即將成真。",
+        },
+        {
+          emoji: "🐚",
+          name: "珍珠貝殼",
+          desc: "對應【聖杯侍者】。情感的孕育與溫柔的陪伴，適合敞開心胸迎接新事物。",
+        },
+        {
+          emoji: "⛵",
+          name: "乘風破浪",
+          desc: "對應【戰車】。勇敢地揚帆起航吧！你擁有克服眼前困難的決心與力量。",
+        },
+        {
+          emoji: "🐬",
+          name: "海豚之舞",
+          desc: "對應【戀人】。和諧、溝通與純粹的快樂。你正處於極佳的人際關係頻率中。",
+        },
+        {
+          emoji: "🌊",
+          name: "潮汐之力",
+          desc: "對應【命運之輪】。順應自然的流動，好運正隨著漲潮慢慢向你靠近。",
+        },
+      ];
+
+      let flippedCount = 0;
+      let drawnCards = [];
+
+      // 隨機抽 3 張不重複的牌
+      function drawCards() {
+        let shuffled = [...tarotDeck].sort(() => 0.5 - Math.random());
+        return shuffled.slice(0, 3);
+      }
+
+      const todayCards = drawCards();
+
+      function flipCard(element, position) {
+        // 防止重複點擊
+        if (element.classList.contains("flipped")) return;
+
+        // 綁定資料
+        let cardData;
+        if (position === "past") cardData = todayCards[0];
+        if (position === "present") cardData = todayCards[1];
+        if (position === "future") cardData = todayCards[2];
+
+        // 渲染正面內容
+        const frontEl = document.getElementById(`card-front-${position}`);
+        frontEl.innerHTML = `
+              <div class="tarot-img">${cardData.emoji}</div>
+              <div class="tarot-name">${cardData.name}</div>
+              <div class="tarot-desc">${cardData.desc}</div>
+          `;
+
+        // 翻牌動畫
+        element.classList.add("flipped");
+        flippedCount++;
+
+        // 如果三張都翻開了，觸發 AI 解牌
+        if (flippedCount === 3) {
+          setTimeout(showAIReading, 1000);
+        }
+      }
+
+      function showAIReading() {
+        const panel = document.getElementById("ai-panel");
+        const textEl = document.getElementById("ai-text");
+        panel.classList.add("show");
+
+        // 模擬 AI 根據抽到的牌與發文情緒生成的籤詩
+        const aiMessage = `
+              今日的海洋能量非常溫和。從過去的『${todayCards[0].name}』走到現在的『${todayCards[1].name}』，可以看出你最近在心情上已經找到了一個安穩的避風港。
+              不用太過擔心接下來的挑戰，未來的『${todayCards[2].name}』暗示著只要你保持現在的步伐，順著海流前進，你期待的好事自然會跟著漲潮一起到來。今天也請給自己一個大大的微笑吧！
+          `;
+
+        // 模擬打字特效
+        let index = 0;
+        textEl.innerHTML = "";
+        function typeWriter() {
+          if (index < aiMessage.length) {
+            textEl.innerHTML += aiMessage.charAt(index);
+            index++;
+            // 控制打字速度，稍微隨機一點更像 AI 生成
+            setTimeout(typeWriter, Math.random() * 30 + 20);
+          }
+        }
+        typeWriter();
+      }
+    </script>
+  </body>
+</html>
