@@ -7,25 +7,35 @@
     <link rel="stylesheet" href="smash.css">
 </head>
 <body>
-
     <div id="game-area"></div>
 
-    <!-- 上方資訊列：新增了 Combo 顯示區 -->
     <div id="ui-layer" style="display: none;">
         <div>⏳ <span id="time-left">30</span>s</div>
         <div>💥 分數: <span id="score">0</span></div>
+        <div style="color: #4da6ff;">🔫 彈藥: <span id="ammo" style="font-weight: 900; color: #fff;">10</span></div> 
         <div id="combo-display" style="display: none; color: #ffeb3b; text-shadow: 0 0 10px #ff9800;">🔥 Combo x<span id="combo">1</span></div>
     </div>
 
     <div id="start-modal" class="game-modal">
         <h1>🎯 極限狙擊戰</h1>
-        <p>狙擊隱藏在深海中的瓶子！<br>⚠️ 警告：擊中深海魚類將會扣分並中斷連擊！<br>連續命中可獲得最高 5 倍分數加成！</p>
+        <p>
+            狙擊隱藏在深海中的瓶子！<br>
+            ⚠️ 射空會中斷連擊，子彈耗盡將提前結束任務！<br>
+            ✨ <strong style="color:#00ffcc;">發光貝殼🐚</strong> 藏有多發彈藥補給，千萬別錯過！
+        </p>
+        
+        <div class="diff-selector">
+            <button id="btn-diff-easy" class="diff-btn" onclick="setDifficulty('easy')">🟢 簡單</button>
+            <button id="btn-diff-normal" class="diff-btn active-diff" onclick="setDifficulty('normal')">🟡 普通</button>
+            <button id="btn-diff-hard" class="diff-btn" onclick="setDifficulty('hard')">🔴 困難</button>
+        </div>
+
         <button class="btn-action" onclick="startGame()">開始任務</button>
         <button class="btn-action btn-secondary" onclick="window.location.href='games.html'">撤退</button>
     </div>
 
     <div id="end-modal" class="game-modal" style="display: none;">
-        <h1>任務結束！</h1>
+        <h1 id="end-title" style="color: #ff4d4d;">任務結束！</h1>
         <p>你的狙擊總得分為 <br><span id="final-score" style="font-size: 3rem; font-weight: 900; color: #ffeb3b;">0</span></p>
         <button class="btn-action" onclick="startGame()">再次挑戰</button>
         <button class="btn-action btn-secondary" onclick="window.location.href='games.html'">返回遊樂場</button>
