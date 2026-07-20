@@ -47,6 +47,7 @@ model Member {
   Comment          Comment[]
   report           BottleReport[]
   gameRecords      GameRecord[]
+  commentLikes     CommentLike[]
 }
 
 model BlacklistedToken {
@@ -147,6 +148,8 @@ model Comment {
   // 關聯：留言是誰留的、留在哪個瓶子上 (一樣加上 Cascade 級聯刪除，保證資料庫乾淨)
   member Member @relation(fields: [member_id], references: [member_id], onDelete: Cascade)
   bottle Bottle @relation(fields: [bottle_id], references: [bottle_id], onDelete: Cascade)
+
+  likes CommentLike[]
 }
 
 model BottleReport {
@@ -163,6 +166,18 @@ model BottleReport {
 
   // 🌟 重要防呆：確保同一個使用者對同一篇貼文，只能發送一次檢舉 (防惡意洗版)
   @@unique([member_id, bottle_id])
+}
+
+model CommentLike {
+  id         Int      @id @default(autoincrement())
+  member_id  Int      @map("member_id")
+  comment_id Int      @map("comment_id")
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  Member  Member?  @relation(fields: [member_id], references: [member_id])
+  Comment Comment? @relation(fields: [comment_id], references: [id])
+
+  @@unique([member_id, comment_id])
 }
 
 model GameRecord {

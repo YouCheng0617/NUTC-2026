@@ -3,7 +3,7 @@ import type { AuthRequest } from "../middleware/auth.middleware.js";
 import { saveGameRecord, getHighScore, getAllGameRecords } from "./game-record/game-record.service.js";
 
 export class GameController {
-
+    /*儲存遊戲紀錄*/
     async postGameRecord(req: AuthRequest, res: Response) {
         try {
             const memberId = req.user?.member_id as number;
@@ -31,6 +31,7 @@ export class GameController {
         }
     }
 
+    /*取得會員的最高遊戲紀錄*/
     async getHighestRecordController(req: AuthRequest, res: Response) {
         try {
             const memberId = req.user?.member_id as number;
@@ -58,6 +59,7 @@ export class GameController {
         }
     }
 
+    /*取得會員的最高遊戲紀錄排行榜*/
     async getAllGameRecordsController(req: AuthRequest, res: Response) {
         try {
             const game_name = req.params.gameName;
