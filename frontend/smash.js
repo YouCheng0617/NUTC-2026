@@ -17,16 +17,11 @@ const startModal = document.getElementById('start-modal');
 const endModal = document.getElementById('end-modal');
 const finalScoreDisplay = document.getElementById('final-score');
 
-// ✨ 1. 難易度與子彈設定 (調整各難度初始彈藥)
+// ✨ 1. 難易度與子彈設定 
 let currentDifficulty = 'normal';
 const diffConfig = {
-    // 簡單：彈藥 20 發
     easy: { spawnRate: 1000, speedMin: 5.0, speedMax: 7.5, fishChance: 0.10, maxAmmo: 20 }, 
-    
-    // 普通：彈藥 15 發
     normal: { spawnRate: 700, speedMin: 3.5, speedMax: 5.5, fishChance: 0.25, maxAmmo: 15 }, 
-    
-    // 困難：彈藥 10 發
     hard: { spawnRate: 500, speedMin: 2.0, speedMax: 4.0, fishChance: 0.40, maxAmmo: 10 }  
 };
 
@@ -70,7 +65,6 @@ function playShatterSound() {
     noise.start();
 }
 
-// ✨ 新增：吃到彈藥補給時的特殊「叮～」音效
 function playAmmoSound() {
     if (!audioCtx) return;
     const osc = audioCtx.createOscillator();
@@ -84,7 +78,6 @@ function playAmmoSound() {
     osc.start(); osc.stop(audioCtx.currentTime + 0.3);
 }
 
-// ✨ 加入 color 參數，讓補給包爆開時噴出綠色粒子
 function createShatterParticles(x, y, color = 'rgba(173, 216, 230, 0.9)') {
     for (let i = 0; i < 12; i++) {
         const p = document.createElement('div');
@@ -140,7 +133,6 @@ function handleShoot(e) {
 
     const target = e.target.closest('.game-target');
 
- // 檢查是否有擊中目標，並且目標還沒被隱藏或逃跑
     if (target && target.style.display !== 'none' && !target.classList.contains('swim-away')) {
         const type = target.dataset.type;
         const targetRect = target.getBoundingClientRect();
@@ -155,7 +147,6 @@ function handleShoot(e) {
             target.classList.add('swim-away');
             
         } else if (type === 'ammo') {
-            // ✨ 擊中彈藥補給貝殼
             const ammoVal = parseInt(target.dataset.val);
             currentAmmo += ammoVal; 
             
@@ -163,11 +154,8 @@ function handleShoot(e) {
             createShatterParticles(targetRect.left + targetRect.width / 2, targetRect.top + targetRect.height / 2, '#00ffcc');
             createFloatingText(mouseX, mouseY, `+${ammoVal} 彈藥`, "#00ffcc");
             
-            // ✨ 讓貝殼瞬間消失，只留下發光粒子
             target.style.display = 'none';
-
         } else {
-            // ✅ 一般瓶子
             playShatterSound(); 
             createShatterParticles(targetRect.left + targetRect.width / 2, targetRect.top + targetRect.height / 2);
 
@@ -178,14 +166,12 @@ function handleShoot(e) {
             
             createFloatingText(mouseX, mouseY, `+${gainedScore} 分`, "#4da6ff");
             
-            // ✨ 讓瓶子瞬間消失，只留下發光粒子
             target.style.display = 'none';
         }
 
         setTimeout(() => { if (gameArea.contains(target)) target.remove(); }, 600); 
 
     } else {
-        // ❌ 射空 (Miss)
         combo = 0; 
         createFloatingText(mouseX, mouseY, "Miss!", "#ff4d4d");
     }
@@ -205,12 +191,11 @@ function spawnTarget() {
     const conf = diffConfig[currentDifficulty];
     const rand = Math.random();
     
-    // ✨ 判定要生成哪種目標 (加入 15% 機率出補給包)
     let type = 'bottle';
     if (rand < conf.fishChance) {
         type = 'fish';
     } else if (rand > 0.85) { 
-        type = 'ammo'; // 15% 出現貝殼
+        type = 'ammo'; 
     }
 
     const targetContainer = document.createElement('div');
@@ -218,11 +203,9 @@ function spawnTarget() {
     targetContainer.dataset.type = type; 
     
     if (type === 'ammo') {
-        // ✨ 生成貝殼與彈藥數量
         const ammoDiv = document.createElement('div');
         ammoDiv.className = 'ammo-shell';
         
-        // 60%給+1, 30%給+3, 10%給+5
         const valRand = Math.random();
         const val = valRand < 0.1 ? 5 : (valRand < 0.4 ? 3 : 1);
         targetContainer.dataset.val = val;
@@ -289,6 +272,9 @@ window.startGame = function() {
     endModal.style.display = 'none';
     uiLayer.style.display = 'flex';
     
+    // ✨ 遊戲開始時，隱藏右上角排行榜按鈕
+    document.getElementById('top-right-leaderboard').style.display = 'none';
+
     gameArea.innerHTML = '';
 
     spawnInterval = setInterval(spawnTarget, conf.spawnRate);
@@ -300,68 +286,111 @@ window.startGame = function() {
     }, 1000);
 }
 
-// ================= 專屬排行榜系統 =================
-const GAME_KEY = 'secret_sea_bottle_shooter_scores'; 
+// ================= 真實後端 API 專屬排行榜系統 =================
+const API_BASE_URL = "https://163.17.135.120"; // 對齊 test.html
+const GAME_NAME = 'bottle_shooter'; // 你們資料庫中這款遊戲的代號
 let previousModal = 'start-modal'; 
 
-function showLeaderboard() {
-    // 動態判斷目前是從哪個畫面點擊的
+async function showLeaderboard() {
     if (document.getElementById('end-modal').style.display === 'block') {
         previousModal = 'end-modal';
     } else {
         previousModal = 'start-modal';
     }
     
-    // 隱藏彈出視窗與右上角按鈕
     startModal.style.display = 'none';
     endModal.style.display = 'none';
     document.getElementById('top-right-leaderboard').style.display = 'none';
     
-    const list = document.getElementById('leaderboard-list');
-    let scores = JSON.parse(localStorage.getItem(GAME_KEY)) || [];
-    
-    list.innerHTML = ''; 
-    if (scores.length === 0) {
-        list.innerHTML = '<li style="justify-content: center; color: #d1e8ff;">目前還沒有紀錄，快來搶頭香！</li>';
-    } else {
-        scores.forEach((s, index) => {
-            let li = document.createElement('li');
-            let rankIcon = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : `${index + 1}.`;
-            li.innerHTML = `<span>${rankIcon} ${s.name}</span> <span style="color: #ffeb3b;">${s.score} 分</span>`;
-            list.appendChild(li);
-        });
-    }
-    
+    const listContainer = document.getElementById('leaderboard-list');
+    listContainer.innerHTML = '<li style="justify-content: center; color: #d1e8ff;">連線抓取中... 🌊</li>';
     document.getElementById('leaderboard-modal').style.display = 'block';
+
+    try {
+        // 💡 加入 token
+        const token = localStorage.getItem("authToken");
+        
+        // 💡 修正 1：網址加上 /game/，難度加上 .toUpperCase()
+        const response = await fetch(`${API_BASE_URL}/game/${GAME_NAME}/${currentDifficulty.toUpperCase()}/ranking?limit=5`, {
+            method: "GET",
+            headers: { "Authorization": `Bearer ${token}` }
+        });
+
+        if (response.ok) {
+            const rawData = await response.json();
+            listContainer.innerHTML = ''; 
+            
+            // 💡 修正 2：對齊 test.html 的自動拆包裝機制，避免讀不到分數
+            let leaderboard = [];
+            if (Array.isArray(rawData)) leaderboard = rawData;
+            else if (rawData.data && Array.isArray(rawData.data)) leaderboard = rawData.data;
+            else if (rawData.ranking && Array.isArray(rawData.ranking)) leaderboard = rawData.ranking;
+
+            if (!leaderboard || leaderboard.length === 0) {
+                listContainer.innerHTML = '<li style="justify-content: center; color: #aaa;">目前這個難度還沒有人挑戰喔，快來搶榜首！</li>';
+            } else {
+                const medals = ["🥇", "🥈", "🥉"];
+                leaderboard.forEach((entry, index) => {
+                    let rankIcon = index < 3 ? medals[index] : `&nbsp;&nbsp;${index + 1}&nbsp;&nbsp;`;
+                    
+                    // 🛡️ 名字與分數盲猜，確保不會漏接
+                    let playerName = entry.name || entry.username || entry.nickname || entry.member_name || (entry.member && entry.member.name) || (entry.user && entry.user.name) || "匿名玩家";
+                    let playerScore = entry.high_score || entry.score || 0;
+                    
+                    let li = document.createElement('li');
+                    li.innerHTML = `<span>${rankIcon} ${playerName}</span> <span style="color: #ffeb3b;">${playerScore} 分</span>`;
+                    listContainer.appendChild(li);
+                });
+            }
+        } else {
+            listContainer.innerHTML = '<li style="justify-content: center; color: #ff4d4d;">連線被拒絕，請確認是否已登入！</li>';
+        }
+    } catch (error) {
+        console.error("讀取排行榜失敗", error);
+        listContainer.innerHTML = '<li style="justify-content: center; color: #ff4d4d;">伺服器無回應，請稍後再試</li>';
+    }
 }
 
 function closeLeaderboard() {
     document.getElementById('leaderboard-modal').style.display = 'none';
-    document.getElementById(previousModal).style.display = 'block'; // 返回原本的畫面
-    document.getElementById('top-right-leaderboard').style.display = 'block'; // 恢復顯示右上角按鈕
+    document.getElementById(previousModal).style.display = 'block'; 
+    document.getElementById('top-right-leaderboard').style.display = 'block'; 
 }
 
-function saveScore(finalScore) {
+async function saveScore(finalScore) {
     if (finalScore <= 0) return; 
-    let scores = JSON.parse(localStorage.getItem(GAME_KEY)) || [];
     
-    // 如果排行榜未滿 5 人，或是分數高於最後一名，就進入排行榜
-    if (scores.length < 5 || finalScore > scores[scores.length - 1].score) {
-        setTimeout(() => {
-            let playerName = prompt(`太神啦！你獲得了 ${finalScore} 分，成功進入排行榜！\n請留下你的代號：`, "神槍手");
-            if (!playerName) playerName = "無名英雄"; 
-            
-            scores.push({ name: playerName, score: finalScore });
-            scores.sort((a, b) => b.score - a.score);
-            scores = scores.slice(0, 5); // 只保留前 5 名
-            
-            localStorage.setItem(GAME_KEY, JSON.stringify(scores));
-        }, 500); // 稍微延遲，讓玩家先看到結束畫面
+    // 💡 加入 token
+    const token = localStorage.getItem("authToken");
+
+    try {
+        // 💡 修正 3：網址加上 /game/
+        const response = await fetch(`${API_BASE_URL}/game/${GAME_NAME}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({
+                difficulty: currentDifficulty.toUpperCase(), // 💡 傳送大寫難度
+                score: finalScore
+            })
+        });
+
+        if (response.status === 401 || response.status === 403) {
+            console.log("玩家未登入，無法儲存分數");
+            return;
+        }
+
+        if (response.ok) {
+            console.log("上傳分數成功！");
+        }
+    } catch (error) {
+        console.error("分數上傳失敗", error);
     }
 }
 
-// ================= 修改現有的 endGame 函式 =================
-// ✨ 請找到你原本的 endGame 函式，並在裡面呼叫 saveScore 
+// ================= endGame 函式 =================
 function endGame(reason = "時間到！") {
     isGameRunning = false;
     clearInterval(spawnInterval);
@@ -376,5 +405,8 @@ function endGame(reason = "時間到！") {
     const remainingTargets = document.querySelectorAll('.game-target');
     remainingTargets.forEach(t => t.style.pointerEvents = 'none');
 
-
+    document.getElementById('top-right-leaderboard').style.display = 'block';
+    
+    // ✨ 結算完成後，嘗試儲存分數
+    saveScore(score);
 }

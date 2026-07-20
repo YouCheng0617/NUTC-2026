@@ -1,6 +1,7 @@
 import type { Response, Request } from "express";
 import type { AuthRequest } from "../middleware/auth.middleware.js";
 import { saveGameRecord, getHighScore, getAllGameRecords } from "./game-record/game-record.service.js";
+import { createDailyNote, getDailyNote } from "./sticky-note/sticky-note.service.js";
 
 export class GameController {
     /*儲存遊戲紀錄*/
@@ -87,4 +88,52 @@ export class GameController {
         }
     }
 
+    async postDailyNote(req: AuthRequest, res: Response) {
+        try {
+            const memberId = req.user?.member_id as number;
+            const { content } = req.body;
+
+            if (!memberId) {
+                return res.status(401).json({ message: "請先登入" });
+            }
+            if (!content || typeof content !== "string" || content.trim() === "") {
+                return res.status(400).json({ message: "請提供內容" });
+            }
+            if (content.trim().length > 50) {
+                return res.status(400).json({ message: "內容過長" });
+            }
+
+            const note = await createDailyNote(memberId, content.trim());
+
+            return res.status(201).json({
+                message: "便利貼發布成功",
+                data: {
+                    id: note.id,
+                    content: note.content,
+                    created_at: note.created_at
+                }
+            });
+
+        } catch (error: any) {
+            if (error.message === "今天已經有寫便利貼了") {
+                return res.status(400).json({ message: "你今天已經發過便利貼囉！明天再來吧！" });
+            }
+            return res.status(500).json({ message: "伺服器內部錯誤" });
+        }
+    }
+
+    async getDailyNote(req: Request, res: Response) {
+        try {
+            const notes = await getDailyNote();
+
+            return res.status(200).json({
+                message: "取得便利貼成功",
+                data: notes
+            });
+
+        } catch (error: any) {
+            console.error("getTodayNotesController 錯誤:", error);
+            return res.status(500).json({ message: "伺服器內部錯誤" });
+        }
+    }
 }
