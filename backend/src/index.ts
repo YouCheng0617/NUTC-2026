@@ -1,5 +1,6 @@
 import express from 'express';
 import cors from 'cors';
+import { initCron } from './lib/cron.js';
 import { authRouter } from './modules/auth/auth.router.js';
 import { bottleRouter } from './modules/bottle/bottle.router.js';
 import { adminRouter } from './modules/admin/admin.router.js';
@@ -10,9 +11,12 @@ import { gameRouter } from './modules/game/game.router.js';
 import { generateCaptcha } from './lib/captchaHelper.js';
 import prisma from './lib/prisma.js';
 import "dotenv/config";
+
 const app = express();
+
 app.use(cors()); /*允許跨域請求(ngrok)*/
 app.use(express.json());
+
 app.use('/auth', authRouter());
 app.use('/bottles', bottleRouter());
 app.use('/admin', adminRouter());
@@ -39,6 +43,7 @@ const PORT = process.env.PORT || 3000;
 
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
+    initCron();
 });
 
 /*0001100*/
