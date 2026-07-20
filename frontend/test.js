@@ -70,6 +70,10 @@ async function fetchBottles() {
         } else if (currentView === 'saved') {
             if (!token) { renderPosts([]); return; }
             endpointUrl = `${API_BASE_URL}/bottles/saved`;
+        } else if (currentKeyword) {
+            // ✨ 魔法 1 修正：既然沒有全站專屬 API，我們就呼叫一定會通的隨機海域！
+            // 但不帶入 categoryId，這樣後端就會把各看板的文章混在一起給你撈囉！
+            endpointUrl = `${API_BASE_URL}/bottles/random`; 
         } else if (currentCategoryId !== null) {
             endpointUrl = `${API_BASE_URL}/bottles/random?categoryId=${currentCategoryId}`;
         }
@@ -291,7 +295,8 @@ function applyFilters() {
     if (currentView === 'saved') {
         res = res.filter(p => p.saved === true);
     } else if (currentView === 'mine') {
-    } else {
+    } else if (!currentKeyword) {
+        // ✨ 魔法 2：只有在「沒有搜尋」的時候，才把文章限制在當前看板
         res = res.filter(p => p.board.includes(currentBoard));
     }
 
@@ -864,7 +869,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 使用 Debounce 讓搜尋更順暢
     const debouncedSearch = debounce(() => {
-        applyFilters();
+        // ✨ 魔法 3：不要只過濾本地資料了，重新派船出海（向後端抓取資料）！
+        fetchBottles();
     }, 300);
 
     if (searchInput && historyBox) {
@@ -903,7 +909,10 @@ document.addEventListener('DOMContentLoaded', () => {
             currentKeyword = '';
             clearBtn.style.display = 'none';
             currentPage = 1;
-            applyFilters();
+            
+            // ✨ 魔法 4：清除關鍵字後，重新載入當前看板的隨機文章
+            fetchBottles(); 
+            
             searchInput.focus(); // 清除後讓游標回到搜尋框
         };
     }
