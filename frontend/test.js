@@ -1291,7 +1291,7 @@ document.addEventListener('DOMContentLoaded', () => {
         setTimeout(swimLikeLazyMermaid, duration);
 
         // ✨ 整形成功的小彩蛋對話
-        if (Math.random() > 0.8) showDialogueOnce("點擊本喵，喵帶你去找AI助理");
+        if (Math.random() > 0.8) showDialogueOnce("點擊本喵\n喵帶你去找AI助理");
     }
 
 setTimeout(swimLikeLazyMermaid, 100); // ⚠️ 這行要保留！讓貓貓開始游泳
