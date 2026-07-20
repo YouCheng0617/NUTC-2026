@@ -478,6 +478,10 @@
     </div>
 
     <script>
+      // 🌟 API 基本設定 (請確認你的後端網址與 Token 儲存名稱)
+      const API_BASE_URL = "https://163.17.135.120"; // ⚠️ 如果你們後端有統一的變數，請替換成你們的
+      const GAME_NAME = "catch-bottle"; // 遊戲名稱標識符
+
       const canvas = document.getElementById("gameCanvas");
       const ctx = canvas.getContext("2d");
 
@@ -552,7 +556,8 @@
         }
       }
 
-      function setDifficulty(level) {
+      // 🌟 【API 串接】切換難度並抓取後端最高分
+      async function setDifficulty(level) {
         currentDifficulty = level;
         const label = diffConfig[level].label;
 
@@ -563,15 +568,40 @@
           .getElementById("btn-diff-" + level)
           .classList.add("active-diff");
 
-        const highScore =
-          localStorage.getItem("catchBottleHighScore_" + level) || 0;
-        document.getElementById("personal-high-score").innerText = highScore;
         document.getElementById("diff-label").innerText = label;
         document.getElementById("gameover-diff-label").innerText = label;
-
         document.querySelectorAll(".btn-show-leaderboard").forEach((btn) => {
           btn.innerText = `🏆 看 [${label}] 排行榜`;
         });
+
+        // 先顯示載入中
+        const scoreDisplay = document.getElementById("personal-high-score");
+        scoreDisplay.innerText = "...";
+
+        try {
+          const token = localStorage.getItem("authToken"); // ⚠️ 確認你們 localStorage 存 token 的 key
+          const response = await fetch(
+            `${API_BASE_URL}/game/${GAME_NAME}/${level.toUpperCase()}`,
+            {
+              method: "GET",
+              headers: { Authorization: `Bearer ${token}` },
+            },
+          );
+
+          if (response.ok) {
+            const data = await response.json();
+            // 假設後端回傳格式為 { score: 150 }，若有不同請自行加 .data
+            scoreDisplay.innerText = data.score || 0;
+          } else {
+            // 如果未登入或後端無資料，降級使用本地暫存
+            scoreDisplay.innerText =
+              localStorage.getItem("catchBottleHighScore_" + level) || 0;
+          }
+        } catch (error) {
+          console.error("無法取得最高分:", error);
+          scoreDisplay.innerText =
+            localStorage.getItem("catchBottleHighScore_" + level) || 0;
+        }
       }
 
       function resizeCanvas() {
@@ -789,65 +819,135 @@
 
         document.getElementById("main-back-btn").innerHTML = "🔙 回難度選擇";
 
-        processScore(score);
+        processScore(score); // 呼叫 API 存檔
       }
 
-      function processScore(finalScore) {
-        let keyHigh = "catchBottleHighScore_" + currentDifficulty;
-        let keyLeader = "catchBottleLeaderboard_" + currentDifficulty;
+      // 🌟 【API 串接】將分數上傳到後端資料庫
+      async function processScore(finalScore) {
+        // 假設你在 Local Storage 看到的名字叫做 'jwt'，就把原本的 'token' 替換掉：
+        const token = localStorage.getItem("authToken");
 
-        let highScore = parseInt(localStorage.getItem(keyHigh) || "0");
-        const newRecordMsg = document.getElementById("new-record-msg");
+        try {
+          const response = await fetch(`${API_BASE_URL}/game/${GAME_NAME}`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify({
+              difficulty: currentDifficulty.toUpperCase(),
+              score: finalScore,
+            }),
+          });
 
-        if (finalScore > highScore) {
-          localStorage.setItem(keyHigh, finalScore);
-          document.getElementById("personal-high-score").innerText = finalScore;
-          newRecordMsg.style.display = "block";
-        } else {
-          newRecordMsg.style.display = "none";
+          if (response.ok) {
+            const data = await response.json();
+            // ✅ 這裡也要改成 high_score
+            scoreDisplay.innerText = data.high_score || 0;
+          }
+        } catch (error) {
+          console.error("分數上傳失敗:", error);
         }
 
-        const user = JSON.parse(localStorage.getItem("currentUser") || "{}");
-        const playerName = user.name || "匿名玩家";
-
-        let leaderboard = JSON.parse(localStorage.getItem(keyLeader) || "[]");
-        leaderboard.push({ name: playerName, score: finalScore });
-        leaderboard.sort((a, b) => b.score - a.score);
-        leaderboard = leaderboard.slice(0, 5);
-        localStorage.setItem(keyLeader, JSON.stringify(leaderboard));
+        // 本地端防呆備份 (避免斷網時紀錄消失)
+        let keyHigh = "catchBottleHighScore_" + currentDifficulty;
+        let highScore = parseInt(localStorage.getItem(keyHigh) || "0");
+        if (finalScore > highScore) {
+          localStorage.setItem(keyHigh, finalScore);
+          document.getElementById("new-record-msg").style.display = "block";
+        } else {
+          document.getElementById("new-record-msg").style.display = "none";
+        }
       }
 
-      function showLeaderboard() {
+      // 🌟 【API 串接】抓取全球即時排行榜 (強化防呆版)
+      async function showLeaderboard() {
         const diffLabel = diffConfig[currentDifficulty].label;
         document.getElementById("leaderboard-title").innerText =
           `🏆 [${diffLabel}] 排行榜`;
 
         const listContainer = document.getElementById("leaderboard-list");
-        let keyLeader = "catchBottleLeaderboard_" + currentDifficulty;
-        let leaderboard = JSON.parse(localStorage.getItem(keyLeader) || "[]");
-
-        if (leaderboard.length === 0) {
-          listContainer.innerHTML =
-            '<div style="color: #aaa; text-align: center; padding: 20px 0;">目前這個難度還沒有人挑戰喔，快來搶榜首！</div>';
-        } else {
-          let html = "";
-          const medals = ["🥇", "🥈", "🥉"];
-          leaderboard.forEach((entry, index) => {
-            let rankClass = index < 3 ? `rank-${index + 1}` : "";
-            let rankIcon =
-              index < 3
-                ? medals[index]
-                : `&nbsp;&nbsp;${index + 1}&nbsp;&nbsp;`;
-            html += `
-                      <div class="leaderboard-item ${rankClass}">
-                          <span>${rankIcon} ${entry.name}</span>
-                          <span>${entry.score} 分</span>
-                      </div>
-                  `;
-          });
-          listContainer.innerHTML = html;
-        }
+        listContainer.innerHTML =
+          '<div style="color: #fff; text-align: center; padding: 20px 0;">連線抓取中... 🌊</div>';
         document.getElementById("leaderboard-screen").style.display = "flex";
+
+        try {
+          // ⚠️ 檢查點 1：確認你們登入時，Token 是存在 localStorage 的哪個名稱？
+          const token = localStorage.getItem("authToken");
+          console.log("👉 目前送出的 Token 是:", token); // 幫你印出來檢查有沒有抓到！
+
+          const response = await fetch(
+            `${API_BASE_URL}/game/${GAME_NAME}/${currentDifficulty.toUpperCase()}/ranking?limit=5`,
+            {
+              method: "GET",
+              headers: { Authorization: `Bearer ${token}` },
+            },
+          );
+
+          if (response.ok) {
+            const rawData = await response.json();
+            console.log("👉 後端回傳的原始資料:", rawData); // 幫你印出後端到底傳了什麼
+
+            // 🛠️ 檢查點 2：自動拆包裝防呆機制
+            let leaderboard = [];
+            if (Array.isArray(rawData)) {
+              leaderboard = rawData; // 如果直接傳陣列
+            } else if (rawData.data && Array.isArray(rawData.data)) {
+              leaderboard = rawData.data; // 如果包在 data 裡面
+            } else if (rawData.ranking && Array.isArray(rawData.ranking)) {
+              leaderboard = rawData.ranking; // 如果包在 ranking 裡面
+            }
+
+            if (!leaderboard || leaderboard.length === 0) {
+              listContainer.innerHTML =
+                '<div style="color: #aaa; text-align: center; padding: 20px 0;">目前這個難度還沒有人挑戰喔，快來搶榜首！</div>';
+            } else {
+              let html = "";
+              const medals = ["🥇", "🥈", "🥉"];
+
+              leaderboard.forEach((entry, index) => {
+                // 💡 幫你把每一筆資料印出來，你看 Console 就知道後端用什麼單字了！
+                if (index === 0)
+                  console.log("👉 排行榜第一名資料長這樣:", entry);
+
+                let rankClass = index < 3 ? `rank-${index + 1}` : "";
+                let rankIcon =
+                  index < 3
+                    ? medals[index]
+                    : `&nbsp;&nbsp;${index + 1}&nbsp;&nbsp;`;
+
+                // 🛡️ 名字欄位 (維持盲猜多種可能，確保不會漏接)
+                let playerName =
+                  entry.name ||
+                  entry.username ||
+                  entry.nickname ||
+                  entry.member_name ||
+                  (entry.member && entry.member.name) ||
+                  (entry.user && entry.user.name) ||
+                  "匿名玩家";
+
+                // ✅ 分數欄位 (真相大白，直接讀取 high_score！)
+                let playerScore = entry.high_score || 0;
+
+                html += `
+                              <div class="leaderboard-item ${rankClass}">
+                                  <span>${rankIcon} ${playerName}</span>
+                                  <span>${playerScore} 分</span>
+                              </div>
+                          `;
+              });
+              listContainer.innerHTML = html;
+            }
+          } else {
+            // 如果後端回傳 403，清楚告訴玩家原因
+            listContainer.innerHTML =
+              '<div style="color: #ff4d4d; text-align: center; padding: 20px 0;">連線被拒絕 (403)，請確認是否已登入！</div>';
+          }
+        } catch (error) {
+          console.error("取得排行榜失敗:", error);
+          listContainer.innerHTML =
+            '<div style="color: #ff4d4d; text-align: center; padding: 20px 0;">伺服器無回應，請稍後再試。</div>';
+        }
       }
 
       function closeLeaderboard() {
