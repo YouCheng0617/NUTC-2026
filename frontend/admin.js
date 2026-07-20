@@ -778,3 +778,47 @@ function renderReports(reports) {
         `;
     }).join('');
 }
+// ==========================================
+// 🌟 修正 1：補上關閉「漂流瓶審核彈窗」的函式
+// 解決：叉叉、返回按鈕無效，以及審核後誤報伺服器錯誤的問題
+// ==========================================
+window.closeAdminModal = function() {
+    const modal = document.getElementById('admin-modal');
+    if (modal) {
+        modal.style.display = 'none';
+    }
+    // 貼心小舉動：關閉時順便清除暫存變數，避免資料殘留
+    window._reviewBottleId = null;
+    window._reviewBottleTitle = null;
+}
+
+// ==========================================
+// 🌟 修正 2：補上「漂流瓶文章專用」的狀態分類按鈕函式
+// 解決：待審核、已通過、沒通過 按鈕點擊沒反應的問題
+// ==========================================
+window.filterByStatus = function(status) {
+    // 1. 更新當前的過濾狀態
+    window._currentStatusFilter = status; 
+    
+    // 2. 按鈕對應的 ID 陣列
+    const btns = ['all', 'pending', 'passed', 'rejected'];
+    
+    // 3. 幫點擊的按鈕換上超亮眼的藍色，其他的變回灰色
+    btns.forEach(id => {
+        const el = document.getElementById('filter-btn-' + id);
+        if (!el) return;
+        
+        if (id === status) {
+            el.style.background = '#3b82f6';
+            el.style.color = '#fff';
+            el.style.borderColor = '#3b82f6';
+        } else {
+            el.style.background = '#f8fafc';
+            el.style.color = '#64748b';
+            el.style.borderColor = '#e2e8f0';
+        }
+    });
+
+    // 4. 呼叫你已經寫好的渲染函式，重新顯示對應的文章
+    filterBottles(); 
+}
