@@ -48,6 +48,7 @@ model Member {
   report           BottleReport[]
   gameRecords      GameRecord[]
   commentLikes     CommentLike[]
+  DaliyNote        DaliyNote[]
 }
 
 model BlacklistedToken {
@@ -192,4 +193,16 @@ model GameRecord {
   member Member @relation(fields: [member_id], references: [member_id], onDelete: Cascade)
 
   @@unique([member_id, game_name, difficulty])
+}
+
+model DaliyNote {
+  id         Int      @id @default(autoincrement())
+  member_id  Int
+  content    String   @db.VarChar(50)
+  date       String
+  created_at DateTime @default(now())
+
+  member Member @relation(fields: [member_id], references: [member_id], onDelete: Cascade)
+
+  @@unique([member_id, date])
 }
