@@ -1346,3 +1346,39 @@ document.addEventListener('DOMContentLoaded', () => {
         window.location.href = AI_ASSISTANT_URL;
     };
 });
+document.addEventListener('dblclick', (e) => {
+    const mascot = document.getElementById('svg-mermecat-mascot');
+    
+    if (mascot) {
+        // 1. 取得滑鼠點擊的原始座標
+        const targetX = e.clientX;
+        const targetY = e.clientY;
+
+        // 🛡️ 2. 設定安全距離 (依照你的對話框寬度來微調，這裡先抓 100px)
+        const safeMargin = 100; 
+
+        // 計算安全座標：
+        // 不能小於 safeMargin (左/上邊界)
+        // 不能大於 螢幕寬/高度減去 safeMargin (右/下邊界)
+        const safeX = Math.max(safeMargin, Math.min(targetX, window.innerWidth - safeMargin));
+        const safeY = Math.max(safeMargin, Math.min(targetY, window.innerHeight - safeMargin));
+
+        const currentRect = mascot.getBoundingClientRect();
+        const currentX = currentRect.left + (currentRect.width / 2);
+
+        // 3. 讓吉祥物跑到「計算後的安全位置」
+        mascot.style.left = `${safeX}px`;
+        mascot.style.top = `${safeY}px`;
+        
+        // 4. 處理轉向 (一樣只轉圖片本體)
+        const mascotImage = mascot.querySelector('img, svg');
+        if (mascotImage) {
+            // 注意這裡改用 safeX 來判斷方向
+            if (safeX < currentX) {
+                mascotImage.style.transform = 'scaleX(-1)'; 
+            } else {
+                mascotImage.style.transform = 'scaleX(1)';
+            }
+        }
+    }
+});

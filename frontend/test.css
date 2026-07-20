@@ -761,3 +761,31 @@ body, html { height: 100vh !important; overflow: hidden !important; background-c
         display: none; 
     }
 }
+/* =========================================
+   🐾 吉祥物外層容器 (只負責位置移動)
+   ========================================= */
+#svg-mermecat-mascot {
+    position: fixed;
+    z-index: 9999;
+    cursor: pointer;
+    
+    /* 將時間從 0.4s 縮短到 0.25s，讓移動更輕快不遲鈍 */
+    transition: top 0.25s ease-in-out, left 0.25s ease-in-out;
+    transform: translate(-50%, -50%); 
+    
+    top: 85%;
+    left: 85%;
+}
+
+/* =========================================
+   🐾 吉祥物本體圖片 (只負責轉身)
+   ========================================= */
+#svg-mermecat-mascot {
+    position: fixed;
+    z-index: 9999;
+    cursor: pointer;
+    
+    /* 0.1s 甚至 0.05s 可以達到「極速衝刺」的感覺 */
+    transition: top 0.1s ease-out, left 0.1s ease-out;
+    transform: translate(-50%, -50%); 
+}
