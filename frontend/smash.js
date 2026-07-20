@@ -300,6 +300,68 @@ window.startGame = function() {
     }, 1000);
 }
 
+// ================= 專屬排行榜系統 =================
+const GAME_KEY = 'secret_sea_bottle_shooter_scores'; 
+let previousModal = 'start-modal'; 
+
+function showLeaderboard() {
+    // 動態判斷目前是從哪個畫面點擊的
+    if (document.getElementById('end-modal').style.display === 'block') {
+        previousModal = 'end-modal';
+    } else {
+        previousModal = 'start-modal';
+    }
+    
+    // 隱藏彈出視窗與右上角按鈕
+    startModal.style.display = 'none';
+    endModal.style.display = 'none';
+    document.getElementById('top-right-leaderboard').style.display = 'none';
+    
+    const list = document.getElementById('leaderboard-list');
+    let scores = JSON.parse(localStorage.getItem(GAME_KEY)) || [];
+    
+    list.innerHTML = ''; 
+    if (scores.length === 0) {
+        list.innerHTML = '<li style="justify-content: center; color: #d1e8ff;">目前還沒有紀錄，快來搶頭香！</li>';
+    } else {
+        scores.forEach((s, index) => {
+            let li = document.createElement('li');
+            let rankIcon = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : `${index + 1}.`;
+            li.innerHTML = `<span>${rankIcon} ${s.name}</span> <span style="color: #ffeb3b;">${s.score} 分</span>`;
+            list.appendChild(li);
+        });
+    }
+    
+    document.getElementById('leaderboard-modal').style.display = 'block';
+}
+
+function closeLeaderboard() {
+    document.getElementById('leaderboard-modal').style.display = 'none';
+    document.getElementById(previousModal).style.display = 'block'; // 返回原本的畫面
+    document.getElementById('top-right-leaderboard').style.display = 'block'; // 恢復顯示右上角按鈕
+}
+
+function saveScore(finalScore) {
+    if (finalScore <= 0) return; 
+    let scores = JSON.parse(localStorage.getItem(GAME_KEY)) || [];
+    
+    // 如果排行榜未滿 5 人，或是分數高於最後一名，就進入排行榜
+    if (scores.length < 5 || finalScore > scores[scores.length - 1].score) {
+        setTimeout(() => {
+            let playerName = prompt(`太神啦！你獲得了 ${finalScore} 分，成功進入排行榜！\n請留下你的代號：`, "神槍手");
+            if (!playerName) playerName = "無名英雄"; 
+            
+            scores.push({ name: playerName, score: finalScore });
+            scores.sort((a, b) => b.score - a.score);
+            scores = scores.slice(0, 5); // 只保留前 5 名
+            
+            localStorage.setItem(GAME_KEY, JSON.stringify(scores));
+        }, 500); // 稍微延遲，讓玩家先看到結束畫面
+    }
+}
+
+// ================= 修改現有的 endGame 函式 =================
+// ✨ 請找到你原本的 endGame 函式，並在裡面呼叫 saveScore 
 function endGame(reason = "時間到！") {
     isGameRunning = false;
     clearInterval(spawnInterval);
@@ -313,4 +375,6 @@ function endGame(reason = "時間到！") {
     
     const remainingTargets = document.querySelectorAll('.game-target');
     remainingTargets.forEach(t => t.style.pointerEvents = 'none');
+
+
 }
