@@ -4,9 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>深海極限狙擊戰 - 秘密海域</title>
-    <link rel="stylesheet" href="smash.css">
+    <link rel="stylesheet" href="smash.css"> <!-- ✅ 確保載入樣式 -->
 </head>
 <body>
+    <!-- ✨ 獨立在右上角的排行榜按鈕 -->
+    <button id="top-right-leaderboard" class="btn-action" onclick="showLeaderboard()">🏆 排行榜</button>
     <div id="game-area"></div>
 
     <div id="ui-layer" style="display: none;">
@@ -16,6 +18,7 @@
         <div id="combo-display" style="display: none; color: #ffeb3b; text-shadow: 0 0 10px #ff9800;">🔥 Combo x<span id="combo">1</span></div>
     </div>
 
+    <!-- 開始畫面 -->
     <div id="start-modal" class="game-modal">
         <h1>🎯 極限狙擊戰</h1>
         <p>
@@ -31,16 +34,26 @@
         </div>
 
         <button class="btn-action" onclick="startGame()">開始任務</button>
+        <!-- 💡 已移除舊的排行榜按鈕 -->
         <button class="btn-action btn-secondary" onclick="window.location.href='games.html'">撤退</button>
     </div>
 
+    <!-- 結束畫面 -->
     <div id="end-modal" class="game-modal" style="display: none;">
         <h1 id="end-title" style="color: #ff4d4d;">任務結束！</h1>
         <p>你的狙擊總得分為 <br><span id="final-score" style="font-size: 3rem; font-weight: 900; color: #ffeb3b;">0</span></p>
         <button class="btn-action" onclick="startGame()">再次挑戰</button>
-        <button class="btn-action btn-secondary" onclick="window.location.href='games.html'">返回遊樂場</button>
+        <!-- 💡 已移除舊的排行榜按鈕 -->
+        <button class="btn-action btn-secondary" onclick="window.location.href='smash.html'">返回遊樂場</button>
     </div>
 
-    <script src="smash.js"></script>
+    <!-- 排行榜專屬視窗 -->
+    <div id="leaderboard-modal" class="game-modal" style="display: none;">
+        <h1 style="color: #4da6ff;">🏆 狙擊排行榜</h1>
+        <ul id="leaderboard-list"></ul>
+        <button class="btn-action btn-secondary" onclick="closeLeaderboard()">返回</button>
+    </div>
+
+    <script src="smash.js"></script> <!-- ✅ 確保載入遊戲邏輯 -->
 </body>
 </html>
