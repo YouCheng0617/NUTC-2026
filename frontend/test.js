@@ -395,22 +395,61 @@ function saveComment(postId, commentObj) {
     } catch (e) { console.error("儲存留言時發生錯誤", e); }
 }
 
-window.toggleCommentLike = function (postId, index) {
-    try {
-        let allComments = JSON.parse(localStorage.getItem('postComments') || '{}');
-        if (!allComments[postId] || !allComments[postId][index]) return;
-        let c = allComments[postId][index];
+window.toggleCommentLike = async function (postId, commentId, index) {
+    const token = localStorage.getItem("authToken");
 
-        if (c.liked) {
-            c.likes = Math.max(0, (c.likes || 1) - 1);
-            c.liked = false;
-        } else {
-            c.likes = (c.likes || 0) + 1;
-            c.liked = true;
+    // 檢查是否登入
+    if (!token) {
+        alert("寶寶，要先登入才能幫留言按讚喔！");
+        window.location.href = 'login.html';
+        return;
+    }
+
+    // 檢查是否缺少真實的留言 ID (避免只有 index 的狀況)
+    if (!commentId || commentId === 'undefined') {
+        alert("找不到這則留言的 ID 😢");
+        return;
+    }
+
+    try {
+        // 🚀 1. 發送 POST 請求給後端 API
+        const response = await fetch(`${API_BASE_URL}/comments/${commentId}/like`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json',
+                'ngrok-skip-browser-warning': 'true'
+            }
+        });
+
+        if (!response.ok) {
+            const err = await response.json();
+            alert(`按讚失敗：${err.message || '伺服器錯誤'}`);
+            return;
         }
-        localStorage.setItem('postComments', JSON.stringify(allComments));
-        renderComments(postId);
-    } catch (error) { console.error("按讚處理失敗", error); }
+
+        // ✨ 2. API 請求成功後，更新本地狀態與畫面
+        let allComments = JSON.parse(localStorage.getItem('postComments') || '{}');
+        if (allComments[postId] && allComments[postId][index]) {
+            let c = allComments[postId][index];
+
+            if (c.liked) {
+                c.likes = Math.max(0, (c.likes || 1) - 1);
+                c.liked = false;
+            } else {
+                c.likes = (c.likes || 0) + 1;
+                c.liked = true;
+            }
+            localStorage.setItem('postComments', JSON.stringify(allComments));
+            
+            // 重新渲染留言區塊
+            renderComments(postId);
+        }
+
+    } catch (error) {
+        console.error("留言按讚處理失敗:", error);
+        alert("伺服器開小差了，按讚失敗請稍後再試 😢");
+    }
 }
 
 function renderComments(postId) {
@@ -442,9 +481,9 @@ function renderComments(postId) {
                     <div style="color: #222; font-size: 1.05rem; line-height: 1.7; padding-left: 48px; white-space: pre-wrap; margin-bottom: 10px;">${escapeHTML(c.text)}</div>
                     
                     <div style="text-align: right; padding-right: 15px;">
-                        <span style="cursor: pointer; color: ${isLiked ? '#e74c3c' : '#999'}; font-size: 0.95rem; user-select: none; transition: 0.2s;" onclick="toggleCommentLike('${postId}', ${index})">
-                            ${isLiked ? '❤️' : '🤍'} ${likesCount}
-                        </span>
+                        <span style="cursor: pointer; color: ${isLiked ? '#e74c3c' : '#999'}; font-size: 0.95rem; user-select: none; transition: 0.2s;" onclick="toggleCommentLike('${postId}', '${c.id}', ${index})">
+    ${isLiked ? '❤️' : '🤍'} ${likesCount}
+</span>
                     </div>
                 </div>
             `;
@@ -576,12 +615,13 @@ window.submitComment = function () {
     if (!user) { alert("請先登入才能留言喔！"); return; }
 
     const newComment = {
-        author: user.name || '用戶',
-        avatar: user.avatar || 'images/fish_logo.png',
-        text: text,
-        likes: 0,
-        liked: false
-    };
+    id: 'local_' + Math.random().toString(36).substr(2, 9), // ✨ 加上這行產生一個暫時的假 ID
+    author: user.name || '用戶',
+    avatar: user.avatar || 'images/fish_logo.png',
+    text: text,
+    likes: 0,
+    liked: false
+};
 
     saveComment(currentOpenPostId, newComment);
 
