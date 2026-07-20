@@ -22,6 +22,25 @@ const BOARD_CATEGORY_MAP = {
     '😁 開心的事': 5,
 };
 
+// =========================================
+// 🚀 新增魔法：防抖與高亮函數
+// =========================================
+function debounce(func, wait) {
+    let timeout;
+    return function(...args) {
+        clearTimeout(timeout);
+        timeout = setTimeout(() => func.apply(this, args), wait);
+    };
+}
+
+function highlightText(text, keyword) {
+    if (!keyword) return text;
+    // 避免特殊字元破壞 Regex
+    const safeKeyword = keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const regex = new RegExp(`(${safeKeyword})`, 'gi');
+    return String(text).replace(regex, '<span class="highlight">$1</span>');
+}
+
 function calculateZodiac(month, day) {
     if ((month == 1 && day >= 20) || (month == 2 && day <= 18)) return "水瓶座";
     if ((month == 2 && day >= 19) || (month == 3 && day <= 20)) return "雙魚座";
@@ -224,7 +243,12 @@ function renderPosts(data = posts) {
     if (!container) return;
 
     if (!data || data.length === 0) {
-        container.innerHTML = `<h3 style="text-align:center; color:#ffffff; text-shadow: 0 0 10px rgba(77, 166, 255, 0.8); margin-top:100px; font-size: 1.4rem;">目前這個海域空空的，快來拋出你的第一個漂流瓶吧！🌊</h3>`;
+        // 🔮 加入專屬的查無此瓶畫面
+        if (currentKeyword) {
+            container.innerHTML = `<h3 style="text-align:center; color:#ffffff; text-shadow: 0 0 10px rgba(77, 166, 255, 0.8); margin-top:100px; font-size: 1.4rem;">喵嗚...翻遍了整片海域，就是找不到包含「${escapeHTML(currentKeyword)}」的瓶子喔！😿</h3>`;
+        } else {
+            container.innerHTML = `<h3 style="text-align:center; color:#ffffff; text-shadow: 0 0 10px rgba(77, 166, 255, 0.8); margin-top:100px; font-size: 1.4rem;">目前這個海域空空的，快來拋出你的第一個漂流瓶吧！🌊</h3>`;
+        }
         if (pageContainer) pageContainer.innerHTML = '';
         return;
     }
@@ -236,14 +260,15 @@ function renderPosts(data = posts) {
     const endIndex = startIndex + POSTS_PER_PAGE;
     const pageData = data.slice(startIndex, endIndex);
 
+    // 🎨 套用高亮功能到標題和內容
     container.innerHTML = pageData.map(p => `
         <div class="post-card" onclick="openPostDetail('${escapeHTML(String(p.id))}')">
             <div style="display:flex; justify-content:space-between; align-items:center;">
-                <div style="font-size:0.85rem; color:#0055a5; font-weight:bold;">${escapeHTML(p.board)}</div>
-                <div style="font-size:0.8rem; color:#888; background:#f0f4f8; padding:3px 10px; border-radius:12px;">${escapeHTML(p.author)}</div>
+                <div style="font-size:0.85rem; color:#0055a5; font-weight:bold;">${highlightText(escapeHTML(p.board), currentKeyword)}</div>
+                <div style="font-size:0.8rem; color:#888; background:#f0f4f8; padding:3px 10px; border-radius:12px;">${highlightText(escapeHTML(p.author), currentKeyword)}</div>
             </div>
-            <h2 style="margin:12px 0; color:#333; font-size: 1.4rem;">${escapeHTML(p.title)}</h2>
-            <p style="color:#666; line-height: 1.5; font-size: 0.95rem;">${escapeHTML(p.desc)}</p>
+            <h2 style="margin:12px 0; color:#333; font-size: 1.4rem;">${highlightText(escapeHTML(p.title), currentKeyword)}</h2>
+            <p style="color:#666; line-height: 1.5; font-size: 0.95rem;">${highlightText(escapeHTML(p.desc), currentKeyword)}</p>
             <div class="action-bar">
                 <span class="action-btn ${p.liked ? 'like-active' : ''}" onclick="toggleAction('${escapeHTML(String(p.id))}', 'like', event)">${p.liked ? '❤️' : '🤍'} ${p.likes}</span>
                 <span class="action-btn">💬 ${p.msgs}</span>
@@ -331,6 +356,11 @@ window.applyHistorySearch = function (e, keyword) {
     const searchInput = document.getElementById('main-search-input');
     if (searchInput) searchInput.value = keyword;
     currentKeyword = keyword.toLowerCase();
+    
+    // 更新清除按鈕顯示狀態
+    const clearBtn = document.getElementById('clear-search-btn');
+    if (clearBtn) clearBtn.style.display = keyword ? 'block' : 'none';
+
     applyFilters();
     document.getElementById('search-history-dropdown').style.display = 'none';
 }
@@ -430,10 +460,11 @@ window.openPostDetail = function (id) {
     if (!p) return;
     currentOpenPostId = id;
 
+    // 開啟詳細頁面時也要套用高亮（如果你希望的話，這邊示範原汁原味呈現）
     document.querySelectorAll('#detail-board-tag').forEach(el => el.innerText = p.board);
     document.querySelectorAll('#detail-author-tag').forEach(el => el.innerText = p.author || '匿名');
-    document.querySelectorAll('#detail-post-title').forEach(el => el.innerText = p.title);
-    document.querySelectorAll('#detail-post-content').forEach(el => el.innerText = p.desc);
+    document.querySelectorAll('#detail-post-title').forEach(el => el.innerHTML = highlightText(escapeHTML(p.title), currentKeyword));
+    document.querySelectorAll('#detail-post-content').forEach(el => el.innerHTML = highlightText(escapeHTML(p.desc), currentKeyword));
 
     renderComments(id);
 
@@ -479,7 +510,6 @@ window.closePostDetail = function () {
     }
 };
 
-// 👇 這裡就是寶寶許願的：開起檢舉視窗的魔法！ 👇
 window.openReportModal = function () {
     const token = localStorage.getItem("authToken");
     if (!token) {
@@ -528,7 +558,6 @@ window.submitReport = async function () {
         alert("伺服器連線失敗，請稍後再試 😢");
     }
 };
-// 👆 檢舉魔法到這邊結束 👆
 
 window.submitComment = function () {
     const inputs = document.querySelectorAll('#new-comment-input');
@@ -805,6 +834,9 @@ function setupNewPost() {
     }
 }
 
+// =========================================
+// 🚀 初始化與事件綁定 (加入了 Debounce)
+// =========================================
 document.addEventListener('DOMContentLoaded', () => {
     if (window.location.pathname.includes('saved.html')) {
         currentView = 'saved';
@@ -828,12 +860,22 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const searchInput = document.getElementById('main-search-input');
     const historyBox = document.getElementById('search-history-dropdown');
+    const clearBtn = document.getElementById('clear-search-btn');
+
+    // 使用 Debounce 讓搜尋更順暢
+    const debouncedSearch = debounce(() => {
+        applyFilters();
+    }, 300);
 
     if (searchInput && historyBox) {
         searchInput.oninput = (e) => {
             currentKeyword = e.target.value.toLowerCase().trim();
             currentPage = 1;
-            applyFilters();
+            
+            // 處理清除按鈕的顯示/隱藏
+            if (clearBtn) clearBtn.style.display = currentKeyword ? 'block' : 'none';
+
+            debouncedSearch(); // 呼叫防抖動搜尋
             renderSearchHistory();
             historyBox.style.width = searchInput.offsetWidth + 'px';
             historyBox.style.left = searchInput.offsetLeft + 'px';
@@ -851,6 +893,18 @@ document.addEventListener('DOMContentLoaded', () => {
                 historyBox.style.display = 'none';
                 searchInput.blur();
             }
+        };
+    }
+
+    // 清除按鈕的點擊事件
+    if (clearBtn && searchInput) {
+        clearBtn.onclick = () => {
+            searchInput.value = '';
+            currentKeyword = '';
+            clearBtn.style.display = 'none';
+            currentPage = 1;
+            applyFilters();
+            searchInput.focus(); // 清除後讓游標回到搜尋框
         };
     }
 
@@ -1092,23 +1146,19 @@ function renderPagination(totalPages, dataArray) {
     };
     pageContainer.appendChild(nextBtn);
 }
+
 /* =======================================================
    🎮 🌊 ✨ 純程式碼生成：SVG 高顏值手繪風貓貓半人魚 
-   (完美降落版：海豚不再強吻！位置精準下移 + 溫馨抱抱姿勢)
    ======================================================= */
-
 document.addEventListener('DOMContentLoaded', () => {
-    // 建立吉祥物容器
     const mascotContainer = document.createElement('div');
     mascotContainer.id = 'svg-mermecat-mascot';
     mascotContainer.title = '點擊我去找 AI 小助理聊天！';
 
-    // ✨ 終極完美進化：小海豚乖乖降落到胸口，不擋嘴巴啦！
     mascotContainer.innerHTML = `
         <div class="svg-mermecat-wrapper">
             <svg width="130" height="140" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
                 <style>
-                    /* 統一的深藍色粗邊框，完美還原手繪感 */
                     .line { stroke: #1a4c6d; stroke-width: 3.5; stroke-linejoin: round; stroke-linecap: round; }
                     .tail { fill: #7ac2c4; }
                     .fin { fill: #50b4ba; }
@@ -1116,12 +1166,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     .red-line { stroke: #b83e33; stroke-width: 3.5; stroke-linecap: round; fill: none; }
                     .blush { fill: #ffbaba; }
                     .bubble { fill: #e0f2f5; stroke: #1a4c6d; stroke-width: 2.5; }
-                    
-                    /* ✨ 胖嘟嘟海豚與貓爪專屬樣式 */
-                    .dolphin-body { fill: #9bcbf1; } /* 完美的柔軟淺藍色 */
+                    .dolphin-body { fill: #9bcbf1; } 
                     .cat-paw { fill: #fcfdfe; }     
-
-                    /* 👋 超萌右手揮手動畫 (繞著肩膀旋轉) */
                     @keyframes paw-wave {
                         0% { transform: rotate(0deg); }
                         20% { transform: rotate(-12deg); }
@@ -1132,297 +1178,119 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                     .wave-animation {
                         animation: paw-wave 1.8s infinite ease-in-out;
-                        transform-origin: 75px 48px; /* 以肩膀為圓心旋轉 */
+                        transform-origin: 75px 48px; 
                     }
                 </style>
-                
                 <circle cx="15" cy="25" r="4.5" class="bubble"><animate attributeName="cy" values="25;20;25" dur="3s" repeatCount="indefinite"/></circle>
                 <circle cx="22" cy="40" r="2.5" class="bubble"><animate attributeName="cy" values="40;36;40" dur="2s" repeatCount="indefinite"/></circle>
                 <circle cx="85" cy="80" r="3.5" class="bubble"><animate attributeName="cy" values="80;75;80" dur="4s" repeatCount="indefinite"/></circle>
-
                 <path d="M 25 75 C 5 70 5 95 18 95 C 15 105 35 100 35 85 Z" class="fin line">
                      <animateTransform attributeName="transform" type="rotate" values="-3 25 85; 3 25 85; -3 25 85" dur="3s" repeatCount="indefinite"/>
                 </path>
-
                 <path d="M 20 50 C 15 95 85 95 80 50 Z" class="tail line"/>
-
                 <path d="M 32 65 Q 40 72 48 65 M 52 65 Q 60 72 68 65 M 42 75 Q 50 82 58 75" fill="none" stroke="#1a4c6d" stroke-width="2.5" stroke-linecap="round" opacity="0.6"/>
-
                 <path d="M 22 55 C 20 28 25 25 35 25 L 38 12 L 46 22 L 54 22 L 62 12 L 65 25 C 75 25 80 28 78 55 Z" class="cat line"/>
-
                 <circle cx="38" cy="40" r="4.5" fill="#1a4c6d"/>
                 <circle cx="62" cy="40" r="4.5" fill="#1a4c6d"/>
-
                 <ellipse cx="28" cy="44" rx="4.5" ry="3" class="blush"/>
                 <ellipse cx="72" cy="44" rx="4.5" ry="3" class="blush"/>
-
                 <path d="M 46 43 Q 50 47 54 43" class="red-line"/>
-
                 <g id="cute-dolphin" transform="translate(33, 46) scale(1.1)">
-                    <path d="M 28 16 
-                             C 27 12, 25 9, 21 9 
-                             C 17 9, 14 5, 13 3 
-                             C 12 6, 13 8, 10 10 
-                             C 6 12, 3 16, 2 20 
-                             C 1 23, 0 26, 1 26 
-                             C 3 25, 4 23, 5 22 
-                             C 6 24, 8 26, 9 25 
-                             C 8 22, 10 20, 11 19 
-                             C 16 21, 23 20, 28 16 Z" 
-                          class="dolphin-body line"/>
-                             
+                    <path d="M 28 16 C 27 12, 25 9, 21 9 C 17 9, 14 5, 13 3 C 12 6, 13 8, 10 10 C 6 12, 3 16, 2 20 C 1 23, 0 26, 1 26 C 3 25, 4 23, 5 22 C 6 24, 8 26, 9 25 C 8 22, 10 20, 11 19 C 16 21, 23 20, 28 16 Z" class="dolphin-body line"/>
                     <path d="M 27.5 16.5 C 22 20, 15 20, 11.5 18.5 C 15 16, 22 15, 27.5 15 Z" fill="#ffffff" stroke="none"/>
-                             
                     <path d="M 18 18 C 16 23, 14 25, 16 26 C 18 25, 19 22, 20 18 Z" class="dolphin-body line"/>
-
                     <circle cx="23" cy="14" r="1.3" fill="#1a4c6d" stroke="none" />
                 </g>
-
                 <path d="M 26 63 C 30 67, 36 69, 41 67 C 43 66, 42 62, 39 62 C 35 62, 30 62, 26 62 Z" class="cat-paw line"/>
-                
                 <g class="wave-animation">
                     <path d="M 76 48 C 82 45, 85 38, 85 32 C 85 27, 78 27, 76 34 C 75 38, 75 42, 76 48 Z" class="cat-paw line"/>
                     <path d="M 88 28 Q 91 31 89 34" fill="none" stroke="#1a4c6d" stroke-width="2" stroke-linecap="round"/>
                     <path d="M 91 24 Q 95 28 92 32" fill="none" stroke="#1a4c6d" stroke-width="2" stroke-linecap="round"/>
                 </g>
             </svg>
-            
             <div class="cute-dialogue" id="mermecat-dialogue"></div>
         </div>
     `;
 
     document.body.appendChild(mascotContainer);
 
-    // =======================================================
-    // 🎨 容器與氣泡專屬 CSS
-    // =======================================================
     const mascotStyle = document.createElement('style');
     mascotStyle.innerHTML = `
         #svg-mermecat-mascot {
-            position: fixed;
-            z-index: 99999; 
-            width: 130px;
-            height: 140px;
-            cursor: pointer;
-            user-select: none;
-            pointer-events: auto;
-            filter: drop-shadow(0 6px 15px rgba(0, 30, 60, 0.25));
-            /* ✨ 水母般的微醺漂浮，平滑過渡 */
-            transition: top 8s ease-in-out, left 8s ease-in-out;
+            position: fixed; z-index: 99999; width: 130px; height: 140px; cursor: pointer; user-select: none; pointer-events: auto;
+            filter: drop-shadow(0 6px 15px rgba(0, 30, 60, 0.25)); transition: top 8s ease-in-out, left 8s ease-in-out;
         }
-
-        .svg-mermecat-wrapper {
-            position: relative;
-            width: 100%;
-            height: 100%;
-            /* 輕微上下浮動 */
-            animation: svg-float 4s infinite alternate ease-in-out;
-        }
-
-        @keyframes svg-float {
-            0% { transform: translateY(0px) rotate(-1deg); }
-            100% { transform: translateY(-8px) rotate(1deg); }
-        }
-
-        /* 💬 對話氣泡 */
+        .svg-mermecat-wrapper { position: relative; width: 100%; height: 100%; animation: svg-float 4s infinite alternate ease-in-out; }
+        @keyframes svg-float { 0% { transform: translateY(0px) rotate(-1deg); } 100% { transform: translateY(-8px) rotate(1deg); } }
         .cute-dialogue {
-            position: absolute;
-            bottom: calc(100% - 5px); 
-            left: 50%;
-            transform: translateX(-50%) scale(0.8);
-            width: max-content; max-width: 180px;
-            background: #fff;
-            color: #1a4c6d;
-            padding: 10px 16px;
-            border: 3.5px solid #1a4c6d; 
-            border-radius: 18px;
-            font-size: 0.95rem; font-weight: bold;
-            opacity: 0; visibility: hidden; pointer-events: none;
-            transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
-            z-index: 10000; 
-            box-shadow: 2px 4px 0px rgba(26, 76, 109, 0.15); 
+            position: absolute; bottom: calc(100% - 5px); left: 50%; transform: translateX(-50%) scale(0.8);
+            width: max-content; max-width: 180px; background: #fff; color: #1a4c6d; padding: 10px 16px;
+            border: 3.5px solid #1a4c6d; border-radius: 18px; font-size: 0.95rem; font-weight: bold;
+            opacity: 0; visibility: hidden; pointer-events: none; transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+            z-index: 10000; box-shadow: 2px 4px 0px rgba(26, 76, 109, 0.15); 
         }
-        .cute-dialogue.show-dialogue {
-            opacity: 1; visibility: visible;
-            transform: translateX(-50%) scale(1);
-        }
+        .cute-dialogue.show-dialogue { opacity: 1; visibility: visible; transform: translateX(-50%) scale(1); }
     `;
     document.head.appendChild(mascotStyle);
 
-    // =======================================================
-    // 🌊 樹懶級微醺游動 AI (龜速、平滑、死守外圍)
-    // =======================================================
     const mascot = document.getElementById('svg-mermecat-mascot');
-    let currentZone = 0; // 0: 上, 1: 右, 2: 下, 3: 左
+    let currentZone = 0; 
 
     function swimLikeLazyMermaid() {
         const padding = 20;
-        const borderThickness = 120; // 限制在外圍游動
+        const borderThickness = 120;
         const w = window.innerWidth - 130;
         const h = window.innerHeight - 140;
 
         let targetX, targetY;
-
-        if (currentZone === 0) { // 上方
-            targetX = Math.random() * w;
-            targetY = padding + Math.random() * (borderThickness - 50);
-        } else if (currentZone === 1) { // 右方
-            targetX = w - padding - Math.random() * (borderThickness - 50);
-            targetY = Math.random() * h;
-        } else if (currentZone === 2) { // 下方
-            targetX = Math.random() * w;
-            targetY = h - padding - Math.random() * (borderThickness - 50);
-        } else { // 左方
-            targetX = padding + Math.random() * (borderThickness - 50);
-            targetY = Math.random() * h;
-        }
+        if (currentZone === 0) { targetX = Math.random() * w; targetY = padding + Math.random() * (borderThickness - 50); }
+        else if (currentZone === 1) { targetX = w - padding - Math.random() * (borderThickness - 50); targetY = Math.random() * h; }
+        else if (currentZone === 2) { targetX = Math.random() * w; targetY = h - padding - Math.random() * (borderThickness - 50); }
+        else { targetX = padding + Math.random() * (borderThickness - 50); targetY = Math.random() * h; }
 
         mascot.style.left = targetX + 'px';
         mascot.style.top = targetY + 'px';
 
-        if (Math.random() > 0.1) {
-            currentZone = (currentZone + 1) % 4;
-        }
+        if (Math.random() > 0.1) currentZone = (currentZone + 1) % 4;
 
-        // 🌟 速度極慢！每次游動耗時 8 到 12 秒
         const duration = 8000 + Math.random() * 4000;
         mascot.style.transition = `top ${duration}ms ease-in-out, left ${duration}ms ease-in-out`;
-
         setTimeout(swimLikeLazyMermaid, duration);
-
-        // ✨ 整形成功的小彩蛋對話
-        if (Math.random() > 0.8) showDialogueOnce("點擊本喵\n喵帶你去找AI助理");
     }
+    setTimeout(swimLikeLazyMermaid, 100); 
 
-setTimeout(swimLikeLazyMermaid, 100); // ⚠️ 這行要保留！讓貓貓開始游泳
-
-    // =======================================================
-    // ✉️ 貼心話匣子 (原本的 8 句 + 全新 50 句，共 58 句超豐富台詞！)
-    // =======================================================
     const randomPhrases = [
-        // 🌟 原本的經典台詞
-        "🌊 咕嚕咕嚕... 今天的水溫好舒服喵！",
-        "🤫 有什麼秘密想跟我說嗎？",
-        "✏️ 把不開心的事丟進瓶子裡吧！",
-        "🎵 好像有很多有趣的瓶子呢！",
-        "💖 今天過得好嗎？",
-        "❔開發者團隊們都不知道我是什麼物種呢!",
-        "今天心情像冒泡泡一樣開心！",
-        "耶！水溫剛剛好，心情也剛剛好！",
-        "看到你就覺得好溫暖喵～",
-        "今天的海流超順，運氣一定很好！",
-        "呼嚕呼嚕...這是我開心的聲音。",
-        "快樂到想在水裡翻三個跟斗！",
-        "陽光曬得尾巴暖暖的，真棒～",
-        "遇到好事了對吧？我都聞到開心的味道了！",
-        "今天也要充滿活力地游來游去！",
-        "搖搖尾巴，把煩惱都甩掉！",
-        "游不動了...想癱在礁石上。",
-        "喵嗚...今天電量只剩 1% 了。",
-        "好想睡覺，連打呼嚕都覺得累。",
-        "可以借你的螢幕靠一下嗎？我好睏...",
-        "今天是廢柴人魚貓模式。",
-        "腦袋像泡在水裡一樣昏沉沉的。",
-        "伸個懶腰...啊，還是不想動。",
-        "游得太快，需要停下來喘口氣。",
-        "讓我安靜地吐個泡泡發呆就好...",
-        "眼睛快閉上了，晚安喵...",
-        "今天心情有點像下雨的海面。",
-        "嗚...尾巴好像抽筋了，要呼呼。",
-        "覺得有點孤單，你可以多點我兩下嗎？",
-        "嘆氣...今天的罐罐好像不夠好吃。",
-        "心情悶悶的，像沉在海底一樣。",
-        "摸摸我的頭好嗎？我今天有點難過。",
-        "稍微有點提不起勁呢...",
-        "討厭壞天氣，也討厭壞心情。",
-        "剛剛好像做噩夢了，怕怕的。",
-        "借我躲一下，今天不想面對世界。",
-        "咦？你在看什麼？我也要看！",
-        "剛剛那個滑過的東西是魚嗎？！",
-        "戳戳你～你現在心情好嗎？",
-        "想跟我玩捉迷藏嗎？我游很快喔！",
-        "盯——（正在觀察你的一舉一動）",
-        "你的滑鼠看起來好像逗貓棒喔！",
-        "海底有好多寶藏，你心裡也有嗎？",
-        "猜猜我今天抓到了什麼？",
-        "嘿！不要偷捏我的尾巴啦！",
-        "隨時準備好突襲你的游標！",
-        "肚子咕嚕嚕叫了，有小魚乾嗎？",
-        "想吃鮪魚口味的特製海鮮餐！",
-        "心情好餓，需要美食來安慰。",
-        "只要有吃的，心情就會立場變好喵！",
-        "夢到了一座用罐罐堆成的山...",
-        "什麼味道？是不是有人在偷吃點心！",
-        "雖然我是人魚，但我還是想吃肉泥。",
-        "餓到連游標都想咬一口看看。",
-        "餵食時間到了嗎？（敲碗）",
-        "吧唧吧唧...想像自己在吃好吃的。"
+        "🌊 咕嚕咕嚕... 今天的水溫好舒服喵！", "🤫 有什麼秘密想跟我說嗎？", "✏️ 把不開心的事丟進瓶子裡吧！", "🎵 好像有很多有趣的瓶子呢！",
+        "💖 今天過得好嗎？", "❔開發者團隊們都不知道我是什麼物種呢!", "今天心情像冒泡泡一樣開心！", "耶！水溫剛剛好，心情也剛剛好！",
+        "看到你就覺得好溫暖喵～", "今天的海流超順，運氣一定很好！", "呼嚕呼嚕...這是我開心的聲音。", "快樂到想在水裡翻三個跟斗！"
     ];
     const dialogueBox = document.getElementById('mermecat-dialogue');
     let dialogueTimer;
 
     function showRandomDialogue() {
         if (dialogueBox.classList.contains('show-dialogue')) return;
-
-        const phrase = randomPhrases[Math.floor(Math.random() * randomPhrases.length)];
-        dialogueBox.innerText = phrase;
+        dialogueBox.innerText = randomPhrases[Math.floor(Math.random() * randomPhrases.length)];
         dialogueBox.classList.add('show-dialogue');
-
         clearTimeout(dialogueTimer);
-        dialogueTimer = setTimeout(() => {
-            dialogueBox.classList.remove('show-dialogue');
-        }, 4000);
+        dialogueTimer = setTimeout(() => { dialogueBox.classList.remove('show-dialogue'); }, 4000);
     }
-
-    // 顯示一次性對話
-    function showDialogueOnce(phrase) {
-        if (dialogueBox.classList.contains('show-dialogue')) return;
-        dialogueBox.innerText = phrase;
-        dialogueBox.classList.add('show-dialogue');
-        setTimeout(() => { dialogueBox.classList.remove('show-dialogue'); }, 4000);
-    }
-
     setTimeout(showRandomDialogue, 2000);
-    setInterval(() => {
-        if (Math.random() > 0.2) showRandomDialogue();
-    }, 8000 + Math.random() * 6000);
+    setInterval(() => { if (Math.random() > 0.2) showRandomDialogue(); }, 8000 + Math.random() * 6000);
 
-    // =======================================================
-    // 🚀 點擊連線：AI 小助理畫面(不能動)
-    // =======================================================
     const AI_ASSISTANT_URL = "../AI/chat_ui/chat.html";
-
-    mascot.onclick = () => {
-        window.location.href = AI_ASSISTANT_URL;
-    };
+    mascot.onclick = () => { window.location.href = AI_ASSISTANT_URL; };
 });
+
 document.addEventListener('dblclick', (e) => {
     const mascot = document.getElementById('svg-mermecat-mascot');
-    
     if (mascot) {
-        // 1. 取得吉祥物當前的矩形大小 (包含對話框的實際渲染範圍)
         const rect = mascot.getBoundingClientRect();
         const halfWidth = rect.width / 2;
         const halfHeight = rect.height / 2;
-
-        // 2. 計算視窗範圍，扣除半徑，確保完整吉祥物都在畫面內
-        // 也就是：如果點擊太邊邊，就把它強行「拉回來」
         const finalX = Math.max(halfWidth, Math.min(e.clientX, window.innerWidth - halfWidth));
         const finalY = Math.max(halfHeight, Math.min(e.clientY, window.innerHeight - halfHeight));
-
-        // 3. 移動吉祥物
-        mascot.style.left = `${finalX}px`;
-        mascot.style.top = `${finalY}px`;
-        
-        // 4. 處理轉向 (一樣只翻轉圖片本體)
+        mascot.style.left = `${finalX}px`; mascot.style.top = `${finalY}px`;
         const mascotImage = mascot.querySelector('img, svg');
-        if (mascotImage) {
-            const currentX = rect.left + halfWidth; // 使用當前中心點判斷
-            if (e.clientX < currentX) {
-                mascotImage.style.transform = 'scaleX(-1)'; 
-            } else {
-                mascotImage.style.transform = 'scaleX(1)';
-            }
-        }
+        if (mascotImage) mascotImage.style.transform = (e.clientX < (rect.left + halfWidth)) ? 'scaleX(-1)' : 'scaleX(1)';
     }
 });

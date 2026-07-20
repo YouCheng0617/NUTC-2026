@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>心情漂流瓶 - 論壇</title>
-    <link rel="stylesheet" href="test.css?v=20" />
+    <link rel="stylesheet" href="test.css?v=21" />
   </head>
 
   <body>
@@ -55,20 +55,24 @@
           </button>
         </div>
 
-        <div class="search-container">
-          <input
-            type="text"
-            class="search-input light-search"
-            placeholder="🔍 搜尋海域、標題、內容..."
-            id="main-search-input"
-            autocomplete="off"
-          />
-          <div
-            id="search-history-dropdown"
-            class="search-history-box"
-            style="display: none"
-          ></div>
-        </div>
+<div class="search-container">
+  <!-- 🌟 新增這層「專屬容器」，把這三兄弟死死綁在一起 -->
+  <div class="search-box-wrapper">
+    <input
+      type="text"
+      class="search-input light-search"
+      placeholder="🔍 搜尋海域、標題、內容..."
+      id="main-search-input"
+      autocomplete="off"
+    />
+    <span id="clear-search-btn" class="clear-search-btn" title="清除搜尋">清除</span>
+    <div
+      id="search-history-dropdown"
+      class="search-history-box"
+      style="display: none"
+    ></div>
+  </div>
+</div>
 
         <div class="nav-actions">
           <button id="login-trigger" class="btn-login">註冊 / 登入</button>
