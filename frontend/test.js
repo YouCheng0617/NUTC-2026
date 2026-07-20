@@ -1352,35 +1352,29 @@ document.addEventListener('dblclick', (e) => {
     const mascot = document.getElementById('svg-mermecat-mascot');
     
     if (mascot) {
-        // 1. 取得滑鼠點擊的原始座標
-        const targetX = e.clientX;
-        const targetY = e.clientY;
+        // 1. 取得吉祥物當前的矩形大小 (包含對話框的實際渲染範圍)
+        const rect = mascot.getBoundingClientRect();
+        const halfWidth = rect.width / 2;
+        const halfHeight = rect.height / 2;
 
-        // 🛡️ 2. 設定安全距離 (依照你的對話框寬度來微調，這裡先抓 100px)
-        const safeMargin = 100; 
+        // 2. 計算視窗範圍，扣除半徑，確保完整吉祥物都在畫面內
+        // 也就是：如果點擊太邊邊，就把它強行「拉回來」
+        const finalX = Math.max(halfWidth, Math.min(e.clientX, window.innerWidth - halfWidth));
+        const finalY = Math.max(halfHeight, Math.min(e.clientY, window.innerHeight - halfHeight));
 
-        // 計算安全座標：
-        // 不能小於 safeMargin (左/上邊界)
-        // 不能大於 螢幕寬/高度減去 safeMargin (右/下邊界)
-        const safeX = Math.max(safeMargin, Math.min(targetX, window.innerWidth - safeMargin));
-        const safeY = Math.max(safeMargin, Math.min(targetY, window.innerHeight - safeMargin));
-
-        const currentRect = mascot.getBoundingClientRect();
-        const currentX = currentRect.left + (currentRect.width / 2);
-
-        // 3. 讓吉祥物跑到「計算後的安全位置」
-        mascot.style.left = `${safeX}px`;
-        mascot.style.top = `${safeY}px`;
+        // 3. 移動吉祥物
+        mascot.style.left = `${finalX}px`;
+        mascot.style.top = `${finalY}px`;
         
-        // 4. 處理轉向 (一樣只轉圖片本體)
+        // 4. 處理轉向 (一樣只翻轉圖片本體)
         const mascotImage = mascot.querySelector('img, svg');
         if (mascotImage) {
-            // 注意這裡改用 safeX 來判斷方向
-            if (safeX < currentX) {
+            const currentX = rect.left + halfWidth; // 使用當前中心點判斷
+            if (e.clientX < currentX) {
                 mascotImage.style.transform = 'scaleX(-1)'; 
             } else {
                 mascotImage.style.transform = 'scaleX(1)';
             }
         }
     }
-}); 
+});
