@@ -48,3 +48,37 @@ export const getCommentsByBottleId = async (bottleId: number) => {
 
     return comments;
 };
+
+export const likeComment = async (commentId: number, memberId: number) => {
+    const commentHad = await prisma.comment.findUnique({
+        where: { id: commentId },
+    });
+
+    if (!commentHad) {
+        throw new Error("留言不存在");
+    }
+
+    const commentLiked = await prisma.commentLike.findUnique({
+        where: {
+            member_id_comment_id: {
+                member_id: memberId,
+                comment_id: commentId
+            }
+        }
+    });
+
+    if (commentLiked) {
+        await prisma.commentLike.delete({
+            where: { id: commentLiked.id }
+        });
+        return { isLiked: false, message: "已取消按讚" }
+    } else {
+        await prisma.commentLike.create({
+            data: {
+                member_id: memberId,
+                comment_id: commentId
+            }
+        });
+        return { isLiked: true, message: "已按讚" }
+    }
+};

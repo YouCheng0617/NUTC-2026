@@ -556,7 +556,7 @@
         }
       }
 
-      // 🌟 【API 串接】切換難度並抓取後端最高分
+      // 🌟 【API 串接】切換難度並抓取後端最高分 (萬能拆包裝版)
       async function setDifficulty(level) {
         currentDifficulty = level;
         const label = diffConfig[level].label;
@@ -579,7 +579,7 @@
         scoreDisplay.innerText = "...";
 
         try {
-          const token = localStorage.getItem("authToken"); // ⚠️ 確認你們 localStorage 存 token 的 key
+          const token = localStorage.getItem("authToken");
           const response = await fetch(
             `${API_BASE_URL}/game/${GAME_NAME}/${level.toUpperCase()}`,
             {
@@ -589,9 +589,23 @@
           );
 
           if (response.ok) {
-            const data = await response.json();
-            // 假設後端回傳格式為 { score: 150 }，若有不同請自行加 .data
-            scoreDisplay.innerText = data.score || 0;
+            const rawData = await response.json();
+            console.log(`👉 [${level}] 個人最高分原始資料:`, rawData); // 💡 幫你印出後端底牌
+
+            // 🛡️ 無敵盲猜機制：自動把包裝拆開找分數
+            let myHighScore = 0;
+
+            if (rawData.high_score !== undefined) {
+              myHighScore = rawData.high_score;
+            } else if (rawData.data && rawData.data.high_score !== undefined) {
+              myHighScore = rawData.data.high_score;
+            } else if (rawData.score !== undefined) {
+              myHighScore = rawData.score;
+            } else if (rawData.data && rawData.data.score !== undefined) {
+              myHighScore = rawData.data.score;
+            }
+
+            scoreDisplay.innerText = myHighScore;
           } else {
             // 如果未登入或後端無資料，降級使用本地暫存
             scoreDisplay.innerText =
@@ -822,9 +836,8 @@
         processScore(score); // 呼叫 API 存檔
       }
 
-      // 🌟 【API 串接】將分數上傳到後端資料庫
+      // 🌟 【API 串接】將分數上傳到後端資料庫 (修復報錯版)
       async function processScore(finalScore) {
-        // 假設你在 Local Storage 看到的名字叫做 'jwt'，就把原本的 'token' 替換掉：
         const token = localStorage.getItem("authToken");
 
         try {
@@ -841,9 +854,9 @@
           });
 
           if (response.ok) {
-            const data = await response.json();
-            // ✅ 這裡也要改成 high_score
-            scoreDisplay.innerText = data.high_score || 0;
+            console.log("上傳分數成功！");
+            // ✅ 正確做法：上傳成功後，直接呼叫 setDifficulty 重新抓取一次最新分數並更新畫面！
+            setDifficulty(currentDifficulty);
           }
         } catch (error) {
           console.error("分數上傳失敗:", error);
