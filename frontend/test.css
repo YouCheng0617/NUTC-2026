@@ -786,6 +786,6 @@ body, html { height: 100vh !important; overflow: hidden !important; background-c
     cursor: pointer;
     
     /* 0.1s 甚至 0.05s 可以達到「極速衝刺」的感覺 */
-    transition: top 0.1s ease-out, left 0.1s ease-out;
+    transition: top 0.5s ease-out, left 0.5s ease-out;
     transform: translate(-50%, -50%); 
 }
