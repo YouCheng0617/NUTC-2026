@@ -1,6 +1,6 @@
 import type { Response, Request } from "express";
 import type { AuthRequest } from "../middleware/auth.middleware.js";
-import { createComment, getCommentsByBottleId } from "./comment.service.js";
+import { createComment, getCommentsByBottleId, likeComment } from "./comment.service.js";
 
 export class CommentController {
 
@@ -55,6 +55,36 @@ export class CommentController {
         } catch (error: any) {
             console.error("getCommentsByBottleIdController 錯誤:", error);
             return res.status(500).json({ message: "伺服器錯誤，無法獲取留言" });
+        }
+    }
+
+    async likeCommentController(req: AuthRequest, res: Response) {
+        try {
+            const memberId = req.user?.member_id as number;
+            const commentId = parseInt(req.params.commentId as string, 10);
+
+            if (!memberId) {
+                return res.status(401).json({ message: "請先登入" });
+            }
+            if (isNaN(commentId)) {
+                return res.status(400).json({ message: "無效的留言 ID" });
+            }
+
+            const result = await likeComment(commentId, memberId);
+            return res.status(200).json({
+                message: result.message,
+                data: {
+                    isLiked: result.isLiked
+                }
+            });
+
+        } catch (error: any) {
+            console.error("likeCommentController 錯誤:", error);
+            if (error.message === "留言不存在") {
+                return res.status(404).json({ message: "留言不存在" });
+            }
+
+            return res.status(500).json({ message: "伺服器內部錯誤" });
         }
     }
 }

@@ -165,3 +165,5 @@ Headers要給 x-api-key (跟我拿)
 獲取特定難度排行榜 GET 給Token /game/:gameName/:difficulty/ranking
 (例如獲取漂流瓶 EASY 排行榜：/game/little-bottle/EASY/ranking)
 Query 參數 (選填)：?limit=20 (預設為 10，如要拿前 20 名可帶此參數)
+
+留言按讚 POST 給Token /comments/:commentId/like
