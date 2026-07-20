@@ -1291,25 +1291,73 @@ document.addEventListener('DOMContentLoaded', () => {
         setTimeout(swimLikeLazyMermaid, duration);
 
         // ✨ 整形成功的小彩蛋對話
-        if (Math.random() > 0.8) showDialogueOnce("🐬 嘿嘿，我的小海豚終於乖乖聽話了喵！");
+        if (Math.random() > 0.8) showDialogueOnce("點擊本喵\n喵帶你去找AI助理");
     }
 
-    setTimeout(swimLikeLazyMermaid, 100);
+setTimeout(swimLikeLazyMermaid, 100); // ⚠️ 這行要保留！讓貓貓開始游泳
 
     // =======================================================
-    // ✉️ 貼心話匣子
+    // ✉️ 貼心話匣子 (原本的 8 句 + 全新 50 句，共 58 句超豐富台詞！)
     // =======================================================
     const randomPhrases = [
+        // 🌟 原本的經典台詞
         "🌊 咕嚕咕嚕... 今天的水溫好舒服喵！",
         "🤫 有什麼秘密想跟我說嗎？",
         "✏️ 把不開心的事丟進瓶子裡吧！",
-        "⭐ 點我可以去找 AI 聊天喔！",
         "🎵 好像有很多有趣的瓶子呢！",
         "💖 今天過得好嗎？",
         "❔開發者團隊們都不知道我是什麼物種呢!",
-        "🤪想看我甚麼時候撞到角落嗎!"
+        "今天心情像冒泡泡一樣開心！",
+        "耶！水溫剛剛好，心情也剛剛好！",
+        "看到你就覺得好溫暖喵～",
+        "今天的海流超順，運氣一定很好！",
+        "呼嚕呼嚕...這是我開心的聲音。",
+        "快樂到想在水裡翻三個跟斗！",
+        "陽光曬得尾巴暖暖的，真棒～",
+        "遇到好事了對吧？我都聞到開心的味道了！",
+        "今天也要充滿活力地游來游去！",
+        "搖搖尾巴，把煩惱都甩掉！",
+        "游不動了...想癱在礁石上。",
+        "喵嗚...今天電量只剩 1% 了。",
+        "好想睡覺，連打呼嚕都覺得累。",
+        "可以借你的螢幕靠一下嗎？我好睏...",
+        "今天是廢柴人魚貓模式。",
+        "腦袋像泡在水裡一樣昏沉沉的。",
+        "伸個懶腰...啊，還是不想動。",
+        "游得太快，需要停下來喘口氣。",
+        "讓我安靜地吐個泡泡發呆就好...",
+        "眼睛快閉上了，晚安喵...",
+        "今天心情有點像下雨的海面。",
+        "嗚...尾巴好像抽筋了，要呼呼。",
+        "覺得有點孤單，你可以多點我兩下嗎？",
+        "嘆氣...今天的罐罐好像不夠好吃。",
+        "心情悶悶的，像沉在海底一樣。",
+        "摸摸我的頭好嗎？我今天有點難過。",
+        "稍微有點提不起勁呢...",
+        "討厭壞天氣，也討厭壞心情。",
+        "剛剛好像做噩夢了，怕怕的。",
+        "借我躲一下，今天不想面對世界。",
+        "咦？你在看什麼？我也要看！",
+        "剛剛那個滑過的東西是魚嗎？！",
+        "戳戳你～你現在心情好嗎？",
+        "想跟我玩捉迷藏嗎？我游很快喔！",
+        "盯——（正在觀察你的一舉一動）",
+        "你的滑鼠看起來好像逗貓棒喔！",
+        "海底有好多寶藏，你心裡也有嗎？",
+        "猜猜我今天抓到了什麼？",
+        "嘿！不要偷捏我的尾巴啦！",
+        "隨時準備好突襲你的游標！",
+        "肚子咕嚕嚕叫了，有小魚乾嗎？",
+        "想吃鮪魚口味的特製海鮮餐！",
+        "心情好餓，需要美食來安慰。",
+        "只要有吃的，心情就會立場變好喵！",
+        "夢到了一座用罐罐堆成的山...",
+        "什麼味道？是不是有人在偷吃點心！",
+        "雖然我是人魚，但我還是想吃肉泥。",
+        "餓到連游標都想咬一口看看。",
+        "餵食時間到了嗎？（敲碗）",
+        "吧唧吧唧...想像自己在吃好吃的。"
     ];
-
     const dialogueBox = document.getElementById('mermecat-dialogue');
     let dialogueTimer;
 
@@ -1340,11 +1388,41 @@ document.addEventListener('DOMContentLoaded', () => {
     }, 8000 + Math.random() * 6000);
 
     // =======================================================
-    // 🚀 點擊連線：AI 小助理畫面(不能動，放在最後)
+    // 🚀 點擊連線：AI 小助理畫面(不能動)
     // =======================================================
-    const AI_ASSISTANT_URL = "http://ai-assistant-demo.example.com";
+    const AI_ASSISTANT_URL = "../AI/chat_ui/chat.html";
 
     mascot.onclick = () => {
         window.location.href = AI_ASSISTANT_URL;
     };
+});
+document.addEventListener('dblclick', (e) => {
+    const mascot = document.getElementById('svg-mermecat-mascot');
+    
+    if (mascot) {
+        // 1. 取得吉祥物當前的矩形大小 (包含對話框的實際渲染範圍)
+        const rect = mascot.getBoundingClientRect();
+        const halfWidth = rect.width / 2;
+        const halfHeight = rect.height / 2;
+
+        // 2. 計算視窗範圍，扣除半徑，確保完整吉祥物都在畫面內
+        // 也就是：如果點擊太邊邊，就把它強行「拉回來」
+        const finalX = Math.max(halfWidth, Math.min(e.clientX, window.innerWidth - halfWidth));
+        const finalY = Math.max(halfHeight, Math.min(e.clientY, window.innerHeight - halfHeight));
+
+        // 3. 移動吉祥物
+        mascot.style.left = `${finalX}px`;
+        mascot.style.top = `${finalY}px`;
+        
+        // 4. 處理轉向 (一樣只翻轉圖片本體)
+        const mascotImage = mascot.querySelector('img, svg');
+        if (mascotImage) {
+            const currentX = rect.left + halfWidth; // 使用當前中心點判斷
+            if (e.clientX < currentX) {
+                mascotImage.style.transform = 'scaleX(-1)'; 
+            } else {
+                mascotImage.style.transform = 'scaleX(1)';
+            }
+        }
+    }
 });

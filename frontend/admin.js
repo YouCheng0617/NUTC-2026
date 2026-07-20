@@ -778,3 +778,65 @@ function renderReports(reports) {
         `;
     }).join('');
 }
+// ==========================================
+// 🌟 修正 1：補上關閉「漂流瓶審核彈窗」的函式
+// 解決：叉叉、返回按鈕無效，以及審核後誤報伺服器錯誤的問題
+// ==========================================
+window.closeAdminModal = function() {
+    const modal = document.getElementById('admin-modal');
+    if (modal) {
+        modal.style.display = 'none';
+    }
+    // 貼心小舉動：關閉時順便清除暫存變數，避免資料殘留
+    window._reviewBottleId = null;
+    window._reviewBottleTitle = null;
+}
+
+// ==========================================
+// 🌟 修正 2：補上「漂流瓶文章專用」的狀態分類按鈕函式
+// 解決：待審核、已通過、沒通過 按鈕點擊沒反應的問題
+// ==========================================
+window.filterByStatus = function(status) {
+    // 1. 更新當前的過濾狀態
+    window._currentStatusFilter = status; 
+    
+    // 2. 按鈕對應的 ID 陣列
+    const btns = ['all', 'pending', 'passed', 'rejected'];
+    
+    // 3. 幫點擊的按鈕換上超亮眼的藍色，其他的變回灰色
+    btns.forEach(id => {
+        const el = document.getElementById('filter-btn-' + id);
+        if (!el) return;
+        
+        if (id === status) {
+            el.style.background = '#3b82f6';
+            el.style.color = '#fff';
+            el.style.borderColor = '#3b82f6';
+        } else {
+            el.style.background = '#f8fafc';
+            el.style.color = '#64748b';
+            el.style.borderColor = '#e2e8f0';
+        }
+    });
+
+    // 4. 呼叫你已經寫好的渲染函式，重新顯示對應的文章
+    filterBottles(); 
+}
+// ==========================================
+// 🌟 修正 3：補上系統登出功能
+// 解決：登出按鈕點擊無效的問題
+// ==========================================
+window.adminLogout = function() {
+    if (confirm("確定要登出後台系統嗎？")) {
+        // 1. 清除保存在瀏覽器裡的登入鑰匙與使用者資料
+        localStorage.removeItem("authToken");
+        localStorage.removeItem("currentUser");
+        
+        // 2. 貼心小舉動：順便清除上次停留的頁面記憶
+        localStorage.removeItem("adminLastTab"); 
+        
+        // 3. 把畫面導向登入頁面 (這裡假設你的登入頁是 login.html)
+        // 如果你的登入頁是別的名字，記得把這裡的檔名改掉喔！
+        window.location.href = "login.html"; 
+    }
+}
