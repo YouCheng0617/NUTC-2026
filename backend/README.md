@@ -167,3 +167,4 @@ Headers要給 x-api-key (跟我拿)
 Query 參數 (選填)：?limit=20 (預設為 10，如要拿前 20 名可帶此參數)
 
 留言按讚 POST 給Token /comments/:commentId/like
+(:後是他的id，例如給id 11留言點讚，/bottles/11/like)

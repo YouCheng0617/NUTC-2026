@@ -174,8 +174,8 @@ model CommentLike {
   comment_id Int      @map("comment_id")
   createdAt  DateTime @default(now()) @map("created_at")
 
-  Member  Member?  @relation(fields: [member_id], references: [member_id])
-  Comment Comment? @relation(fields: [comment_id], references: [id])
+  Member  Member?  @relation(fields: [member_id], references: [member_id], onDelete: Cascade)
+  Comment Comment? @relation(fields: [comment_id], references: [id], onDelete: Cascade)
 
   @@unique([member_id, comment_id])
 }
