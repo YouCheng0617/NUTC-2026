@@ -48,3 +48,7 @@ export const getCommentsByBottleId = async (bottleId: number) => {
 
     return comments;
 };
+
+export const likeComment = async (commentId: number, memberId: number) => {
+
+};
