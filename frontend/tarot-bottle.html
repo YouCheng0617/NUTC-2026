@@ -16,13 +16,13 @@
         margin: 0;
         padding: 0;
         width: 100vw;
-        height: 100vh;
-        overflow: hidden;
+        min-height: 100vh;
+        overflow-x: hidden;
+        overflow-y: auto;
         background-color: #001528;
         font-family: "PingFang TC", sans-serif;
         color: white;
         user-select: none;
-        /* 塔羅牌專屬神祕深海背景 */
         background: radial-gradient(
           circle at center,
           #003366 0%,
@@ -71,14 +71,15 @@
         margin: 0;
       }
 
-      /* 🌟 卡牌與寶石瓶區域 */
+      /* 卡牌區塊 */
       .tarot-container {
         display: flex;
         justify-content: center;
         align-items: center;
         gap: 30px;
-        height: 50vh;
+        min-height: 350px;
         margin-top: 20px;
+        margin-bottom: 40px;
         perspective: 1000px;
       }
 
@@ -92,7 +93,6 @@
         align-items: center;
         gap: 15px;
       }
-
       .card-label {
         color: #e6e6fa;
         font-weight: bold;
@@ -101,8 +101,6 @@
         opacity: 0.8;
         transition: 0.3s;
       }
-
-      /* 3D 翻轉核心 */
       .card-inner {
         width: 100%;
         height: 100%;
@@ -110,7 +108,6 @@
         transition: transform 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         transform-style: preserve-3d;
       }
-
       .card-wrapper.flipped .card-inner {
         transform: rotateY(180deg);
       }
@@ -120,7 +117,6 @@
         text-shadow: 0 0 15px rgba(255, 215, 0, 0.8);
       }
 
-      /* 卡牌正反面共用設定 */
       .card-front,
       .card-back {
         width: 100%;
@@ -134,8 +130,6 @@
         align-items: center;
         box-shadow: 0 10px 20px rgba(0, 0, 0, 0.5);
       }
-
-      /* 卡牌背面 (發光寶石瓶) */
       .card-back {
         background: rgba(10, 25, 50, 0.6);
         border: 2px solid rgba(171, 130, 255, 0.4);
@@ -146,8 +140,6 @@
         font-size: 4rem;
         filter: drop-shadow(0 0 15px rgba(171, 130, 255, 0.8));
       }
-
-      /* 卡牌正面 (塔羅牌面) */
       .card-front {
         background: linear-gradient(135deg, #1a2a6c, #112240, #2a0845);
         border: 2px solid #ffd700;
@@ -158,8 +150,31 @@
       }
       .tarot-img {
         font-size: 4.5rem;
-        margin-bottom: 15px;
+        margin-bottom: 10px;
         filter: drop-shadow(0 0 10px rgba(255, 215, 0, 0.6));
+        transition: transform 0.5s;
+      }
+      .tarot-img.reversed {
+        transform: rotate(180deg);
+        filter: drop-shadow(0 0 10px rgba(255, 100, 100, 0.6));
+      }
+      .tarot-position {
+        font-size: 0.85rem;
+        padding: 2px 8px;
+        border-radius: 10px;
+        margin-bottom: 5px;
+        display: inline-block;
+        font-weight: bold;
+      }
+      .pos-upright {
+        background: rgba(77, 166, 255, 0.3);
+        color: #4da6ff;
+        border: 1px solid rgba(77, 166, 255, 0.5);
+      }
+      .pos-reversed {
+        background: rgba(255, 100, 100, 0.3);
+        color: #ff6666;
+        border: 1px solid rgba(255, 100, 100, 0.5);
       }
       .tarot-name {
         color: #ffd700;
@@ -169,56 +184,222 @@
       }
       .tarot-desc {
         color: #d1e8ff;
-        font-size: 0.9rem;
+        font-size: 0.85rem;
         line-height: 1.4;
       }
 
-      /* 🌟 AI 籤詩解讀區塊 */
-      .ai-reading-panel {
-        position: absolute;
-        bottom: -100%;
-        left: 50%;
-        transform: translateX(-50%);
-        width: 90%;
-        max-width: 700px;
-        background: rgba(10, 20, 40, 0.85);
-        border: 1px solid rgba(171, 130, 255, 0.5);
-        border-radius: 20px;
-        padding: 30px;
-        box-sizing: border-box;
-        backdrop-filter: blur(10px);
-        box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.6);
-        transition: bottom 0.8s cubic-bezier(0.25, 1, 0.5, 1);
-        z-index: 20;
+      /* 🌟 全新升級：遮罩與彈出式 Modal */
+      #modal-backdrop {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background: rgba(0, 5, 15, 0.8);
+        backdrop-filter: blur(5px);
+        z-index: 100;
+        opacity: 0;
+        transition: opacity 0.5s ease;
       }
-      .ai-reading-panel.show {
-        bottom: 30px;
+      #ai-modal {
+        display: none;
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -45%);
+        width: 90%;
+        max-width: 650px;
+        max-height: 85vh;
+        overflow-y: auto;
+        background: #fdfdfd; /* 乾淨白底 */
+        color: #333;
+        border-radius: 24px;
+        padding: 35px 30px;
+        box-sizing: border-box;
+        box-shadow:
+          0 20px 60px rgba(0, 0, 0, 0.6),
+          inset 0 0 0 1px rgba(0, 0, 0, 0.05);
+        z-index: 101;
+        opacity: 0;
+        transition: all 0.5s cubic-bezier(0.25, 1, 0.5, 1);
+      }
+      #ai-modal.show {
+        opacity: 1;
+        transform: translate(-50%, -50%);
       }
 
+      /* Modal 內的關閉按鈕 */
+      .close-btn {
+        position: absolute;
+        top: 15px;
+        right: 20px;
+        font-size: 1.5rem;
+        color: #aaa;
+        background: none;
+        border: none;
+        cursor: pointer;
+        transition: 0.2s;
+      }
+      .close-btn:hover {
+        color: #555;
+      }
+
+      /* Modal 頂部：抽到的牌陣展示區 */
+      .modal-cards-row {
+        display: flex;
+        justify-content: center;
+        gap: 20px;
+        padding-bottom: 25px;
+        margin-bottom: 25px;
+        border-bottom: 1px dashed #ddd;
+      }
+      .modal-mini-card {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        width: 90px;
+        background: #f4f6f8;
+        padding: 15px 10px;
+        border-radius: 12px;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+      }
+      .modal-mini-card .img {
+        font-size: 3rem;
+        margin-bottom: 8px;
+      }
+      .modal-mini-card .img.reversed {
+        transform: rotate(180deg);
+      }
+      .modal-mini-card .name {
+        font-size: 0.95rem;
+        font-weight: bold;
+        color: #222;
+        text-align: center;
+      }
+      .modal-mini-card .pos {
+        font-size: 0.8rem;
+        color: #777;
+        margin-top: 4px;
+      }
+
+      /* Modal 標題與日期 */
+      .modal-header-info {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-end;
+        margin-bottom: 20px;
+      }
       .ai-title {
-        color: #e6e6fa;
-        font-size: 1.3rem;
-        margin-bottom: 15px;
+        font-size: 1.4rem;
+        color: #1a2a6c;
+        font-weight: bold;
         display: flex;
         align-items: center;
-        gap: 10px;
+        gap: 8px;
+        margin: 0;
+      }
+      .modal-date {
+        font-size: 0.9rem;
+        color: #888;
         font-weight: bold;
-      }
-      .ai-title span {
-        animation: pulseGlow 2s infinite;
-      }
-
-      .ai-content {
-        color: #e0e0e0;
-        font-size: 1.1rem;
-        line-height: 1.8;
         letter-spacing: 1px;
-        min-height: 80px;
-        border-left: 3px solid #ffd700;
-        padding-left: 15px;
       }
 
-      /* 動畫區 */
+      /* AI 狀態標籤 (適應淺色背景) */
+      .status-badge {
+        font-size: 0.75rem;
+        padding: 4px 10px;
+        border-radius: 12px;
+        font-weight: bold;
+        margin-left: 10px;
+        letter-spacing: 0.5px;
+      }
+      .status-connecting {
+        background: #fff3cd;
+        color: #856404;
+        border: 1px solid #ffeeba;
+      }
+      .status-connected {
+        background: #d4edda;
+        color: #155724;
+        border: 1px solid #c3e6cb;
+      }
+      .status-disconnected {
+        background: #f8d7da;
+        color: #721c24;
+        border: 1px solid #f5c6cb;
+      }
+
+      /* 內文區塊 */
+      .ai-content {
+        font-size: 1.15rem;
+        line-height: 1.9;
+        color: #444;
+        letter-spacing: 0.5px;
+        min-height: 80px;
+      }
+
+      /* 底部互動區塊 (適應淺色背景) */
+      #ai-actions {
+        margin-top: 30px;
+        border-top: 1px solid #eee;
+        padding-top: 25px;
+      }
+      .action-input-group {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 15px;
+      }
+      #ai-question-input {
+        flex: 1;
+        padding: 12px 15px;
+        border-radius: 20px;
+        border: 1px solid #ccc;
+        background: #fff;
+        color: #333;
+        outline: none;
+        font-size: 1rem;
+        box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.03);
+      }
+      #ai-question-input:focus {
+        border-color: #ab82ff;
+        box-shadow: 0 0 0 3px rgba(171, 130, 255, 0.2);
+      }
+
+      .btn-ask {
+        background: linear-gradient(135deg, #1a2a6c, #2a0845);
+        color: white;
+        border: none;
+        padding: 0 25px;
+        border-radius: 20px;
+        cursor: pointer;
+        font-weight: bold;
+        font-size: 1rem;
+        transition: 0.3s;
+      }
+      .btn-ask:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(26, 42, 108, 0.4);
+      }
+
+      .btn-save {
+        width: 100%;
+        background: #fff8e1;
+        border: 1px solid #ffc107;
+        color: #b78a00;
+        padding: 12px;
+        border-radius: 15px;
+        cursor: pointer;
+        font-weight: bold;
+        font-size: 1.05rem;
+        transition: 0.3s;
+      }
+      .btn-save:hover {
+        background: #ffecb3;
+        color: #8f6b00;
+      }
+
       @keyframes float {
         0% {
           transform: translateY(0);
@@ -229,15 +410,6 @@
           box-shadow: 0 20px 30px rgba(171, 130, 255, 0.6);
         }
       }
-      @keyframes pulseGlow {
-        0%,
-        100% {
-          text-shadow: 0 0 10px rgba(171, 130, 255, 0.5);
-        }
-        50% {
-          text-shadow: 0 0 20px rgba(171, 130, 255, 1);
-        }
-      }
 
       @media screen and (max-width: 768px) {
         .tarot-container {
@@ -245,7 +417,7 @@
           height: auto;
           gap: 15px;
           margin-top: 30px;
-          padding-bottom: 200px;
+          margin-bottom: 30px;
         }
         .card-wrapper {
           width: 140px;
@@ -259,6 +431,31 @@
         }
         .header-title h1 {
           font-size: 2.2rem;
+        }
+
+        #ai-modal {
+          padding: 25px 20px;
+          width: 95%;
+          max-height: 90vh;
+        }
+        .modal-cards-row {
+          gap: 10px;
+        }
+        .modal-mini-card {
+          width: 75px;
+          padding: 10px 5px;
+        }
+        .modal-mini-card .img {
+          font-size: 2.2rem;
+        }
+        .ai-title {
+          font-size: 1.15rem;
+        }
+        .modal-date {
+          font-size: 0.8rem;
+        }
+        .ai-content {
+          font-size: 1.05rem;
         }
       }
     </style>
@@ -274,7 +471,6 @@
     </div>
 
     <div class="tarot-container">
-      <!-- 過去瓶 -->
       <div class="card-wrapper" onclick="flipCard(this, 'past')">
         <div class="card-label">【過去】</div>
         <div class="card-inner">
@@ -284,8 +480,6 @@
           <div class="card-front" id="card-front-past"></div>
         </div>
       </div>
-
-      <!-- 現在瓶 -->
       <div class="card-wrapper" onclick="flipCard(this, 'present')">
         <div class="card-label">【現在】</div>
         <div class="card-inner">
@@ -295,8 +489,6 @@
           <div class="card-front" id="card-front-present"></div>
         </div>
       </div>
-
-      <!-- 未來瓶 -->
       <div class="card-wrapper" onclick="flipCard(this, 'future')">
         <div class="card-label">【未來】</div>
         <div class="card-inner">
@@ -308,109 +500,435 @@
       </div>
     </div>
 
-    <!-- AI 籤詩面板 -->
-    <div class="ai-reading-panel" id="ai-panel">
-      <div class="ai-title"><span>✨</span> 來自深海的 AI 語音解讀...</div>
+    <!-- 🌟 彈出式遮罩與 Modal -->
+    <div id="modal-backdrop" onclick="closeModal()"></div>
+
+    <div id="ai-modal">
+      <button class="close-btn" onclick="closeModal()">✖</button>
+
+      <!-- 動態插入抽到的牌陣 -->
+      <div class="modal-cards-row" id="modal-cards-row"></div>
+
+      <div class="modal-header-info">
+        <h3 class="ai-title">
+          ✨ 來自深海的指引
+          <span
+            id="ai-status-badge"
+            class="status-badge"
+            style="display: none"
+          ></span>
+        </h3>
+        <span class="modal-date" id="modal-date"></span>
+      </div>
+
       <div class="ai-content" id="ai-text"></div>
+
+      <div id="ai-actions" style="display: none">
+        <div
+          style="
+            margin-bottom: 15px;
+            color: #666;
+            font-size: 0.95rem;
+            font-weight: bold;
+          "
+        >
+          想針對這個結果問更深入的問題嗎？
+        </div>
+        <div class="action-input-group">
+          <input
+            type="text"
+            id="ai-question-input"
+            placeholder="例如：那我該如何改善目前的困境？"
+          />
+          <button class="btn-ask" onclick="askAIQuestion()">發問</button>
+        </div>
+        <button class="btn-save" onclick="saveReading()">
+          ⭐ 收藏今日占卜結果
+        </button>
+      </div>
     </div>
 
     <script>
-      // 🌟 定義專屬的「溫馨海洋風」正位塔羅牌庫
+      const API_BASE_URL = "https://163.17.135.120"; // ⚠️ 後端網址
+
       const tarotDeck = [
         {
+          id: 0,
+          emoji: "🃏",
+          name: "愚者",
+          up: "無限可能、大膽冒險、全新的開始",
+          rev: "魯莽行事、過度冒險、逃避責任",
+        },
+        {
+          id: 1,
+          emoji: "🪄",
+          name: "魔術師",
+          up: "創造力、行動力、掌握資源與潛能",
+          rev: "能力不足、缺乏行動、溝通不良",
+        },
+        {
+          id: 2,
+          emoji: "📖",
+          name: "女祭司",
+          up: "直覺、內在智慧、平靜與洞察力",
+          rev: "過度情緒化、隱藏的秘密、忽視直覺",
+        },
+        {
+          id: 3,
+          emoji: "👑",
+          name: "皇后",
+          up: "豐收、溫柔、母性與美好的愛",
+          rev: "過度依賴、浪費奢靡、停滯不前",
+        },
+        {
+          id: 4,
+          emoji: "🛡️",
+          name: "皇帝",
+          up: "權威、穩定、秩序與領導力",
+          rev: "專制、固執己見、缺乏彈性",
+        },
+        {
+          id: 5,
+          emoji: "🏛️",
+          name: "教皇",
+          up: "傳統、心靈指引、教育與貴人",
+          rev: "盲從、打破常規、受困於規範",
+        },
+        {
+          id: 6,
+          emoji: "💞",
+          name: "戀人",
+          up: "重大抉擇、和諧的關係、吸引力",
+          rev: "誘惑、關係破裂、錯誤的決定",
+        },
+        {
+          id: 7,
+          emoji: " रथ",
+          name: "戰車",
+          up: "意志力、克服困難、勝利的決心",
+          rev: "失控、挫折、遭遇強大阻礙",
+        },
+        {
+          id: 8,
+          emoji: "🦁",
+          name: "力量",
+          up: "勇氣、耐心、以柔克剛的內在力量",
+          rev: "軟弱、恐懼、缺乏自信與耐力",
+        },
+        {
+          id: 9,
+          emoji: "🏮",
+          name: "隱者",
+          up: "內省、孤獨、尋求真理與指引",
+          rev: "逃避現實、過度孤立、迷失方向",
+        },
+        {
+          id: 10,
+          emoji: "🎡",
+          name: "命運之輪",
+          up: "轉機、命中註定的契機、好運",
+          rev: "阻礙、運勢低迷、抗拒改變",
+        },
+        {
+          id: 11,
+          emoji: "⚖️",
+          name: "正義",
+          up: "平衡、理智、公平與看清真相",
+          rev: "偏見、不公不義、猶豫不決",
+        },
+        {
+          id: 12,
+          emoji: "🪢",
+          name: "倒吊人",
+          up: "犧牲、換位思考、暫停與沉澱",
+          rev: "無謂的掙扎、徒勞無功、鑽牛角尖",
+        },
+        {
+          id: 13,
+          emoji: "💀",
+          name: "死神",
+          up: "結束、轉化、重生與割捨過去",
+          rev: "停滯不前、抗拒改變、無法放手",
+        },
+        {
+          id: 14,
+          emoji: "🏺",
+          name: "節制",
+          up: "平衡、協調、溝通與自我淨化",
+          rev: "失衡、極端、缺乏節制與耐心",
+        },
+        {
+          id: 15,
+          emoji: "😈",
+          name: "惡魔",
+          up: "慾望、物質束縛、誘惑與沉迷",
+          rev: "擺脫控制、覺醒、看清現實",
+        },
+        {
+          id: 16,
+          emoji: "⚡",
+          name: "高塔",
+          up: "突變、毀滅、陣痛與徹底崩壞",
+          rev: "重建、避免災難、困境中的微光",
+        },
+        {
+          id: 17,
+          emoji: "✨",
+          name: "星星",
+          up: "希望、療癒、平靜與靈感湧現",
+          rev: "絕望、失望、缺乏信心與目標",
+        },
+        {
+          id: 18,
+          emoji: "🌕",
+          name: "月亮",
+          up: "不安、迷惘、潛意識的恐懼",
+          rev: "恐懼消散、看清真相、柳暗花明",
+        },
+        {
+          id: 19,
           emoji: "☀️",
-          name: "陽光海岸",
-          desc: "對應【太陽】。充滿生命力與喜悅，一切都在向著明亮的方向發展。",
+          name: "太陽",
+          up: "成功、喜悅、充滿生命力與光明",
+          rev: "延遲的成功、熱情消退、缺乏方向",
         },
         {
-          emoji: "🌟",
-          name: "星空燈塔",
-          desc: "對應【星星】。黑暗中為你指引方向的希望之光，願望即將成真。",
+          id: 20,
+          emoji: "📯",
+          name: "審判",
+          up: "覺醒、重塑、自我反省與召喚",
+          rev: "懊悔、缺乏決斷、逃避內心的聲音",
         },
         {
-          emoji: "🐚",
-          name: "珍珠貝殼",
-          desc: "對應【聖杯侍者】。情感的孕育與溫柔的陪伴，適合敞開心胸迎接新事物。",
-        },
-        {
-          emoji: "⛵",
-          name: "乘風破浪",
-          desc: "對應【戰車】。勇敢地揚帆起航吧！你擁有克服眼前困難的決心與力量。",
-        },
-        {
-          emoji: "🐬",
-          name: "海豚之舞",
-          desc: "對應【戀人】。和諧、溝通與純粹的快樂。你正處於極佳的人際關係頻率中。",
-        },
-        {
-          emoji: "🌊",
-          name: "潮汐之力",
-          desc: "對應【命運之輪】。順應自然的流動，好運正隨著漲潮慢慢向你靠近。",
+          id: 21,
+          emoji: "🌍",
+          name: "世界",
+          up: "圓滿、達成目標、完美的旅程",
+          rev: "未完成、停滯、缺乏最後一步的動力",
         },
       ];
 
       let flippedCount = 0;
       let drawnCards = [];
 
-      // 隨機抽 3 張不重複的牌
       function drawCards() {
         let shuffled = [...tarotDeck].sort(() => 0.5 - Math.random());
-        return shuffled.slice(0, 3);
+        let selected = shuffled.slice(0, 3);
+
+        return selected.map((card) => {
+          const isReversed = Math.random() > 0.5;
+          return {
+            ...card,
+            isReversed: isReversed,
+            positionText: isReversed ? "逆位" : "正位",
+            meaning: isReversed ? card.rev : card.up,
+            cssClass: isReversed ? "reversed pos-reversed" : "pos-upright",
+          };
+        });
       }
 
       const todayCards = drawCards();
 
       function flipCard(element, position) {
-        // 防止重複點擊
         if (element.classList.contains("flipped")) return;
 
-        // 綁定資料
         let cardData;
         if (position === "past") cardData = todayCards[0];
         if (position === "present") cardData = todayCards[1];
         if (position === "future") cardData = todayCards[2];
 
-        // 渲染正面內容
         const frontEl = document.getElementById(`card-front-${position}`);
         frontEl.innerHTML = `
-              <div class="tarot-img">${cardData.emoji}</div>
+              <div class="tarot-img ${cardData.isReversed ? "reversed" : ""}">${cardData.emoji}</div>
+              <div class="tarot-position ${cardData.cssClass}">${cardData.positionText}</div>
               <div class="tarot-name">${cardData.name}</div>
-              <div class="tarot-desc">${cardData.desc}</div>
+              <div class="tarot-desc">${cardData.meaning}</div>
           `;
 
-        // 翻牌動畫
         element.classList.add("flipped");
         flippedCount++;
 
-        // 如果三張都翻開了，觸發 AI 解牌
         if (flippedCount === 3) {
-          setTimeout(showAIReading, 1000);
+          setTimeout(showAIReadingModal, 1000);
         }
       }
 
-      function showAIReading() {
-        const panel = document.getElementById("ai-panel");
-        const textEl = document.getElementById("ai-text");
-        panel.classList.add("show");
+      // 🌟 開啟/關閉 Modal 邏輯
+      function closeModal() {
+        document.getElementById("modal-backdrop").style.opacity = "0";
+        document.getElementById("ai-modal").classList.remove("show");
+        setTimeout(() => {
+          document.getElementById("modal-backdrop").style.display = "none";
+          document.getElementById("ai-modal").style.display = "none";
+        }, 300); // 等動畫播完
+      }
 
-        // 模擬 AI 根據抽到的牌與發文情緒生成的籤詩
-        const aiMessage = `
-              今日的海洋能量非常溫和。從過去的『${todayCards[0].name}』走到現在的『${todayCards[1].name}』，可以看出你最近在心情上已經找到了一個安穩的避風港。
-              不用太過擔心接下來的挑戰，未來的『${todayCards[2].name}』暗示著只要你保持現在的步伐，順著海流前進，你期待的好事自然會跟著漲潮一起到來。今天也請給自己一個大大的微笑吧！
-          `;
+      // 🌟 將今日日期放入右上角
+      function setTodayDate() {
+        const dateEl = document.getElementById("modal-date");
+        const d = new Date();
+        dateEl.innerText = `${d.getFullYear()} / ${(d.getMonth() + 1).toString().padStart(2, "0")} / ${d.getDate().toString().padStart(2, "0")}`;
+      }
 
-        // 模擬打字特效
+      function renderTypingEffect(message, element, onComplete) {
+        element.innerHTML = "";
         let index = 0;
-        textEl.innerHTML = "";
         function typeWriter() {
-          if (index < aiMessage.length) {
-            textEl.innerHTML += aiMessage.charAt(index);
+          if (index < message.length) {
+            element.innerHTML += message.charAt(index);
             index++;
-            // 控制打字速度，稍微隨機一點更像 AI 生成
-            setTimeout(typeWriter, Math.random() * 30 + 20);
+            setTimeout(typeWriter, Math.random() * 30 + 15);
+          } else {
+            if (onComplete) onComplete();
           }
         }
         typeWriter();
+      }
+
+      function setAiStatus(status) {
+        const badge = document.getElementById("ai-status-badge");
+        badge.style.display = "inline-block";
+        if (status === "connecting") {
+          badge.className = "status-badge status-connecting";
+          badge.innerText = "AI連線中 ⏳";
+        } else if (status === "connected") {
+          badge.className = "status-badge status-connected";
+          badge.innerText = "AI已連接 🟢";
+        } else if (status === "disconnected") {
+          badge.className = "status-badge status-disconnected";
+          badge.innerText = "未連接AI 🔴";
+        }
+      }
+
+      // 🌟 核心：開啟 Modal 並顯示解讀
+      async function showAIReadingModal() {
+        const backdrop = document.getElementById("modal-backdrop");
+        const modal = document.getElementById("ai-modal");
+        const textEl = document.getElementById("ai-text");
+
+        // 填入小圖示卡牌
+        const cardsRow = document.getElementById("modal-cards-row");
+        cardsRow.innerHTML = todayCards
+          .map(
+            (card) => `
+              <div class="modal-mini-card">
+                  <div class="img ${card.isReversed ? "reversed" : ""}">${card.emoji}</div>
+                  <div class="name">${card.name}</div>
+                  <div class="pos">${card.positionText}</div>
+              </div>
+          `,
+          )
+          .join("");
+
+        setTodayDate();
+
+        // 顯示 Modal
+        backdrop.style.display = "block";
+        modal.style.display = "block";
+        setTimeout(() => {
+          backdrop.style.opacity = "1";
+          modal.classList.add("show");
+        }, 10);
+
+        textEl.innerHTML =
+          '<span style="color: #666;">✨ 占卜師正在推演星象中... ⏳</span>';
+        setAiStatus("connecting");
+
+        const [past, present, future] = todayCards;
+
+        try {
+          const token = localStorage.getItem("authToken");
+          const response = await fetch(`${API_BASE_URL}/tarot/reading`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify({
+              past: {
+                name: past.name,
+                position: past.positionText,
+                meaning: past.meaning,
+              },
+              present: {
+                name: present.name,
+                position: present.positionText,
+                meaning: present.meaning,
+              },
+              future: {
+                name: future.name,
+                position: future.positionText,
+                meaning: future.meaning,
+              },
+            }),
+          });
+
+          if (response.ok) {
+            const data = await response.json();
+            setAiStatus("connected");
+            renderTypingEffect(data.ai_response || data.message, textEl, () => {
+              document.getElementById("ai-actions").style.display = "block";
+            });
+          } else {
+            throw new Error("API尚未準備好");
+          }
+        } catch (error) {
+          setAiStatus("disconnected");
+          const fallbackMessage = `海浪將你的命運軌跡推演了出來。回顧【過去】，你抽到了『${past.name} (${past.positionText})』，這象徵著你曾被「${past.meaning}」的能量所圍繞。而在【現在】的十字路口，『${present.name} (${present.positionText})』顯示你當下正處於「${present.meaning}」的狀態。對於你所好奇的【未來】，『${future.name} (${future.positionText})』給出了指引，暗示未來將與「${future.meaning}」息息相關。深呼吸，海洋會包容你的一切選擇。`;
+
+          renderTypingEffect(fallbackMessage, textEl, () => {
+            document.getElementById("ai-actions").style.display = "block";
+            modal.scrollTo({ top: modal.scrollHeight, behavior: "smooth" }); // 自動捲動到最底部的輸入框
+          });
+        }
+      }
+
+      async function askAIQuestion() {
+        const inputEl = document.getElementById("ai-question-input");
+        const textEl = document.getElementById("ai-text");
+        const modal = document.getElementById("ai-modal");
+        const question = inputEl.value.trim();
+
+        if (!question) return alert("請先輸入你想問的問題喔！");
+
+        inputEl.value = "";
+        textEl.innerHTML += `<br><br><strong style="color: #1a2a6c;">你問：</strong>${question}<br><strong id="loading-msg" style="color: #888;">AI 思考中... ⏳</strong>`;
+        modal.scrollTo({ top: modal.scrollHeight, behavior: "smooth" });
+
+        setAiStatus("connecting");
+
+        try {
+          const token = localStorage.getItem("authToken");
+          const response = await fetch(`${API_BASE_URL}/tarot/ask`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify({ question: question }),
+          });
+
+          if (response.ok) {
+            const data = await response.json();
+            setAiStatus("connected");
+            document.getElementById("loading-msg")?.remove();
+            textEl.innerHTML += `<strong style="color: #1a2a6c;">深海回音：</strong> ${data.answer}`;
+            modal.scrollTo({ top: modal.scrollHeight, behavior: "smooth" });
+          } else {
+            throw new Error("API尚未準備好");
+          }
+        } catch (error) {
+          setAiStatus("disconnected");
+          setTimeout(() => {
+            document.getElementById("loading-msg")?.remove();
+            textEl.innerHTML += `<strong style="color: #1a2a6c;">深海回音：</strong> 關於這個問題，海洋給予的指引是，保持內心的平靜，不要急於求成。時間會為你帶來最好的答案。(💡 備用資料)`;
+            modal.scrollTo({ top: modal.scrollHeight, behavior: "smooth" });
+          }, 1500);
+        }
+      }
+
+      function saveReading() {
+        alert("⭐ 已將今日塔羅籤詩與牌面收藏至你的個人背包！");
       }
     </script>
   </body>
