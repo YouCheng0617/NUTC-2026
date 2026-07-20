@@ -196,3 +196,35 @@ body::before {
     from { filter: drop-shadow(0 0 10px #00ffcc) scale(1); }
     to { filter: drop-shadow(0 0 35px #ffffff) scale(1.15); }
 }
+/* ✨ 排行榜列表專屬樣式 */
+#leaderboard-list {
+    list-style: none;
+    padding: 0;
+    margin: 20px 0;
+    text-align: left;
+}
+
+#leaderboard-list li {
+    font-size: 1.2rem;
+    margin: 12px 0;
+    display: flex;
+    justify-content: space-between;
+    border-bottom: 1px dashed rgba(255, 255, 255, 0.3);
+    padding-bottom: 8px;
+    color: #00ffcc;
+}
+
+#leaderboard-list li span:first-child {
+    font-weight: bold;
+    color: #fff;
+}
+/* ✨ 右上角全域排行榜按鈕 */
+#top-right-leaderboard {
+    position: absolute;
+    top: 20px;
+    right: 25px;
+    z-index: 300; /* 確保它在最上層 */
+    padding: 10px 20px;
+    font-size: 1.1rem;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+}
