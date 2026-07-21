@@ -120,7 +120,6 @@
         }
 
         /* ================== 海兔保護區 (開始) ================== */
-        /* 這裡的程式碼完全沒有修改，保護你的海兔！ */
         .slug-container {
             position: relative;
             width: 340px;
@@ -151,7 +150,6 @@
         .anim-earR { animation: earTwitchR 3.5s infinite ease-in-out; transform-origin: 145px 90px; }
         .anim-tail { animation: tailFluff 4s infinite ease-in-out; transform-origin: 240px 120px; }
         /* ================== 海兔保護區 (結束) ================== */
-
 
         /* ------------------ UI 操作面板 ------------------ */
         .ui-panel {
@@ -401,9 +399,6 @@
         <div class="dot-pattern"></div>
         <div class="slug-container" id="slugContainer" onclick="petSlugDirectly(event)">
             
-            <!-- ============================================== -->
-            <!-- 你心愛的手繪風格海兔兔 SVG (完全沒動保證！) -->
-            <!-- ============================================== -->
             <svg class="slug-svg" viewBox="0 0 340 240">
                 <defs>
                     <linearGradient id="earGrad" x1="0%" y1="0%" x2="0%" y2="100%">
@@ -465,7 +460,6 @@
                     </g>
                 </g>
             </svg>
-            <!-- ============================================== -->
             
         </div>
     </div>
@@ -527,6 +521,7 @@
             cooldowns: { feed: 0, clean: 0, pet: 0 }
         };
 
+        // ===== 擴充後的海兔圖鑑 =====
         const speciesData = {
             snow: { name: {zh: '經典雪兔', en: 'Snow Bunny'}, cost: 0, body: '#ffffff', outline: '#3f2a2a', earTop: '#3f2a2a', tail: '#3f2a2a', spot: '#3f2a2a', blush: '#fca5a5' },
             ocean: { name: {zh: '深海藍寶', en: 'Ocean Gem'}, cost: 1200, body: '#e0f2fe', outline: '#1e3a8a', earTop: '#1e3a8a', tail: '#1e3a8a', spot: '#1e3a8a', blush: '#f472b6' },
@@ -537,7 +532,14 @@
             lemon: { name: {zh: '黃金檸檬', en: 'Golden Lemon'}, cost: 2500, body: '#fef08a', outline: '#9a3412', earTop: '#ea580c', tail: '#ea580c', spot: '#ea580c', blush: '#ef4444' },
             sesame: { name: {zh: '黑糖芝麻', en: 'Sesame'}, cost: 2800, body: '#f1f5f9', outline: '#0f172a', earTop: '#0f172a', tail: '#0f172a', spot: '#0f172a', blush: '#f87171' },
             sakura: { name: {zh: '櫻花雪兔', en: 'Sakura Bunny'}, cost: 3000, body: '#ffffff', outline: '#be185d', earTop: '#f472b6', tail: '#f472b6', spot: '#f472b6', blush: '#fb7185' },
-            mint: { name: {zh: '薄荷巧克力', en: 'Mint Choco'}, cost: 3500, body: '#ccfbf1', outline: '#0f766e', earTop: '#3f2a2a', tail: '#3f2a2a', spot: '#3f2a2a', blush: '#f472b6' }
+            mint: { name: {zh: '薄荷巧克力', en: 'Mint Choco'}, cost: 3500, body: '#ccfbf1', outline: '#0f766e', earTop: '#3f2a2a', tail: '#3f2a2a', spot: '#3f2a2a', blush: '#f472b6' },
+            // --- 全新加入的幻獸海兔 ---
+            watermelon: { name: {zh: '清涼西瓜', en: 'Watermelon'}, cost: 3800, body: '#bbf7d0', outline: '#14532d', earTop: '#f87171', tail: '#f87171', spot: '#000000', blush: '#fca5a5' },
+            galaxy: { name: {zh: '星空宇宙', en: 'Galaxy'}, cost: 4500, body: '#1e1b4b', outline: '#c7d2fe', earTop: '#8b5cf6', tail: '#8b5cf6', spot: '#fde047', blush: '#d8b4fe' },
+            sunset: { name: {zh: '日落晚霞', en: 'Sunset'}, cost: 5000, body: '#ffedd5', outline: '#9a3412', earTop: '#f97316', tail: '#f43f5e', spot: '#9a3412', blush: '#fca5a5' },
+            coffee: { name: {zh: '焦糖拿鐵', en: 'Caramel Latte'}, cost: 5500, body: '#ddbea9', outline: '#6b705c', earTop: '#ffe8d6', tail: '#ffe8d6', spot: '#cb997e', blush: '#ffb4a2' },
+            ghost: { name: {zh: '幽靈白兔', en: 'Spooky Ghost'}, cost: 6000, body: '#f8fafc', outline: '#475569', earTop: '#94a3b8', tail: '#94a3b8', spot: '#475569', blush: '#cbd5e1' },
+            gold: { name: {zh: '招財純金', en: 'Pure Gold'}, cost: 8888, body: '#fef08a', outline: '#b45309', earTop: '#f59e0b', tail: '#f59e0b', spot: '#b45309', blush: '#fbbf24' }
         };
 
         const envData = {
