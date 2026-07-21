@@ -3,21 +3,38 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>蛞蝓換家日記 - 夢幻海蛞蝓養成</title>
+    <title>幻獸海兔養成</title>
+    <!-- 引入圓潤可愛的字體 -->
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;800;900&display=swap" rel="stylesheet">
+    
     <style>
         :root {
-            --primary-bg: #1a2f16;
-            --panel-bg: #f4f9f1;
-            --card-bg: #ffffff;
-            --accent-green: #3b6b29;
-            --accent-gold: #f1c40f;
-            --text-dark: #2c3e50;
+            /* 更粉嫩、溫暖的 UI 配色 */
+            --primary-bg: #fff0f5; 
+            --panel-bg: #ffffff;
+            --card-bg: #fff9fa;
+            --accent-color: #ffb6c1;
+            --text-dark: #6b4c4a; /* 暖可可色代替冷灰色 */
+            --text-dim: #b89f9d;
+            --border-color: #ffd1dc;
+            --btn-hover: #ffedf0;
+            --shadow-color: rgba(255, 182, 193, 0.4);
+            
+            /* 預設海兔顏色變數 (經典雪兔) */
+            --c-body: #ffffff;
+            --c-outline: #3f2a2a;
+            --c-ear-top: #3f2a2a;
+            --c-tail: #3f2a2a;
+            --c-spot: #3f2a2a;
+            --c-blush: #fca5a5;
         }
 
         * {
             box-sizing: border-box;
             user-select: none;
             -webkit-user-select: none;
+            /* 套用可愛字體 */
+            font-family: 'Nunito', 'PingFang TC', 'Microsoft JhengHei', sans-serif;
         }
 
         body, html {
@@ -26,779 +43,696 @@
             width: 100vw;
             height: 100vh;
             overflow: hidden;
-            font-family: 'PingFang TC', 'Microsoft JhengHei', 'Segoe UI', sans-serif;
             background-color: var(--primary-bg);
             color: var(--text-dark);
         }
 
-        /* ------------------ 55% 舞台區域 ------------------ */
-        .garden-stage {
+        /* ------------------ 頂部列 ------------------ */
+        .top-bar {
+            position: absolute;
+            top: 0;
+            width: 100%;
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 50;
+        }
+
+        .points-display {
+            background: #ffffff;
+            padding: 8px 24px;
+            border-radius: 30px;
+            border: 3px solid var(--border-color);
+            font-weight: 900;
+            letter-spacing: 1px;
+            color: var(--text-dark);
+            /* Q版立體陰影 */
+            box-shadow: 0 4px 0 var(--border-color);
+            backdrop-filter: blur(4px);
+            font-size: 1.1rem;
+        }
+
+        .lang-btn {
+            background: #ffffff;
+            border: 3px solid var(--border-color);
+            color: var(--text-dark);
+            padding: 8px 18px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: 900;
+            font-size: 0.9rem;
+            transition: 0.1s;
+            box-shadow: 0 4px 0 var(--border-color);
+        }
+        
+        .lang-btn:active {
+            transform: translateY(4px);
+            box-shadow: 0 0 0 transparent;
+        }
+
+        /* ------------------ 舞台區域 ------------------ */
+        .stage {
             position: absolute;
             top: 0;
             left: 0;
             width: 100%;
-            height: 53%;
-            background: linear-gradient(180deg, #162447 0%, #1f4068 35%, #0f4c75 70%, #2b580c 100%);
+            height: 58%; /* 微調高度讓海兔更有空間 */
+            background: #dbeafe; 
             overflow: hidden;
-            border-bottom: 4px solid #1e3f06;
+            transition: background 1s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
-        .stage-title {
-            position: absolute;
-            top: 10px;
-            left: 12px;
-            background: rgba(0,0,0,0.5);
-            color: #fff;
-            padding: 4px 12px;
-            border-radius: 20px;
-            font-size: 0.75rem;
-            letter-spacing: 1px;
-            z-index: 2;
-        }
-
-        /* 自然裝飾背景層 */
-        .decoration-layer {
+        /* 更夢幻的點點背景裝飾 */
+        .dot-pattern {
             position: absolute;
             width: 100%;
             height: 100%;
+            background-image: radial-gradient(rgba(255,255,255,0.7) 3px, transparent 3px);
+            background-size: 35px 35px;
+            opacity: 0.9;
             pointer-events: none;
+            /* 加上一點柔和的內陰影，讓畫面更有包覆感 */
+            box-shadow: inset 0 0 50px rgba(255, 255, 255, 0.5);
         }
 
-        .garden-item {
-            position: absolute;
-            filter: drop-shadow(0 4px 6px rgba(0,0,0,0.3));
-            transition: all 0.3s ease;
-        }
-
-        .clover-bg {
-            position: absolute;
-            font-size: 2.2rem;
-            opacity: 0.5;
-        }
-
-        /* ------------------ 海蛞蝓與角色主體 ------------------ */
+        /* ================== 海兔保護區 (開始) ================== */
+        /* 這裡的程式碼完全沒有修改，保護你的海兔！ */
         .slug-container {
-            position: absolute;
-            bottom: 12%;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 250px;
-            height: 180px;
+            position: relative;
+            width: 340px;
+            height: 240px;
             cursor: pointer;
             z-index: 10;
-            transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            animation: slugBreathing 4s infinite ease-in-out;
+            animation: floatSlug 4s infinite ease-in-out;
+            margin-top: 40px;
         }
 
-        @keyframes slugBreathing {
-            0%, 100% { transform: translateX(-50%) scale(1, 1); }
-            50% { transform: translateX(-50%) scale(1.03, 0.96) translateY(3px); }
+        @keyframes floatSlug {
+            0%, 100% { transform: translateY(0) scale(1); }
+            50% { transform: translateY(-5px) scale(1.02, 0.98); }
         }
 
         .slug-svg {
             width: 100%;
             height: 100%;
             overflow: visible;
+            filter: drop-shadow(0 15px 15px rgba(0,0,0,0.1));
         }
 
-        /* 服飾與家的疊加層位置校正 */
-        .slug-accessory-hat {
-            position: absolute;
-            top: -5px;
-            left: 45px;
-            font-size: 2.8rem;
-            z-index: 15;
-            filter: drop-shadow(0 3px 5px rgba(0,0,0,0.3));
-            pointer-events: none;
-            transition: all 0.3s ease;
-        }
+        @keyframes earTwitchL { 0%, 100% { transform: rotate(0deg); } 50% { transform: rotate(-6deg); } }
+        @keyframes earTwitchR { 0%, 100% { transform: rotate(0deg); } 50% { transform: rotate(6deg); } }
+        @keyframes tailFluff { 0%, 100% { transform: scale(1) rotate(0deg); } 50% { transform: scale(1.05) rotate(3deg); } }
 
-        .slug-accessory-neck {
-            position: absolute;
-            top: 72px;
-            left: 68px;
-            font-size: 2.2rem;
-            z-index: 14;
-            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
-            pointer-events: none;
-            transition: all 0.3s ease;
-        }
+        .anim-earL { animation: earTwitchL 3s infinite ease-in-out; transform-origin: 100px 95px; }
+        .anim-earR { animation: earTwitchR 3.5s infinite ease-in-out; transform-origin: 145px 90px; }
+        .anim-tail { animation: tailFluff 4s infinite ease-in-out; transform-origin: 240px 120px; }
+        /* ================== 海兔保護區 (結束) ================== */
 
-        .slug-home-shell {
-            position: absolute;
-            top: 15px;
-            right: 35px;
-            font-size: 3.8rem;
-            z-index: 12;
-            filter: drop-shadow(0 4px 8px rgba(0,0,0,0.4));
-            transform: rotate(-5deg);
-            pointer-events: none;
-            transition: all 0.3s ease;
-        }
 
-        /* ------------------ 45% UI 操作面板 ------------------ */
+        /* ------------------ UI 操作面板 ------------------ */
         .ui-panel {
             position: absolute;
             bottom: 0;
             left: 0;
             width: 100%;
-            height: 47%;
+            height: 45%;
             background: var(--panel-bg);
-            border-radius: 24px 24px 0 0;
-            box-shadow: 0 -8px 30px rgba(0,0,0,0.4);
+            border-top: 3px solid white;
             display: flex;
             flex-direction: column;
-            padding: 12px 14px 14px 14px;
+            padding: 30px 20px 20px 20px;
             z-index: 20;
-        }
-
-        .header-bar {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding-bottom: 6px;
-            border-bottom: 2px dashed #bcccab;
-        }
-
-        .game-title {
-            font-size: 1.2rem;
-            font-weight: 800;
-            color: #2b580c;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-
-        .points-badge {
-            background: linear-gradient(135deg, #fffde7, #fff9c4);
-            border: 2px solid #f1c40f;
-            color: #d35400;
-            padding: 4px 16px;
-            border-radius: 20px;
-            font-weight: 800;
-            font-size: 1.15rem;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-        }
-
-        /* 互動區域 */
-        .status-card {
-            background: white;
-            border-radius: 16px;
-            padding: 8px 12px;
-            margin: 6px 0;
-            box-shadow: 0 3px 10px rgba(0,0,0,0.05);
-            border: 1px solid #d1e2c4;
+            /* 加大圓角，增加軟陰影 */
+            border-radius: 40px 40px 0 0;
+            box-shadow: 0 -10px 40px var(--shadow-color);
         }
 
         .interaction-group {
             display: flex;
-            gap: 8px;
+            gap: 15px; /* 加大間距 */
+            margin-bottom: 25px;
         }
 
-        .interact-btn {
+        .btn-interact {
             flex: 1;
-            background: linear-gradient(180deg, #ffffff 0%, #f4f9f1 100%);
-            border: 2px solid #bcccab;
-            border-radius: 12px;
-            padding: 6px 4px;
+            background: var(--card-bg);
+            border: 3px solid var(--border-color);
+            border-radius: 22px; /* 圓潤的按鈕 */
+            padding: 16px 0;
+            color: var(--text-dark);
+            cursor: pointer;
             display: flex;
             flex-direction: column;
             align-items: center;
-            cursor: pointer;
-            transition: all 0.2s ease;
+            transition: 0.1s;
+            /* 立體感 */
+            box-shadow: 0 5px 0 var(--border-color);
         }
 
-        .interact-btn:hover:not(:disabled) {
-            transform: translateY(-2px);
-            border-color: #7da169;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        .btn-interact:active:not(:disabled) {
+            transform: translateY(5px);
+            box-shadow: 0 0px 0 transparent;
+            background: var(--btn-hover);
         }
 
-        .interact-btn:disabled {
-            opacity: 0.5;
+        .btn-interact:disabled {
+            opacity: 0.6;
             cursor: not-allowed;
-            background: #e0e0e0;
-            border-color: #ccc;
+            background: #f1f5f9;
+            border-color: #cbd5e1;
+            box-shadow: 0 5px 0 #cbd5e1;
+            color: #94a3b8;
         }
 
-        .interact-icon { font-size: 1.3rem; }
-        .interact-label { font-size: 0.8rem; font-weight: bold; color: #3b6b29; margin: 2px 0; }
-        .cooldown-text { font-size: 0.65rem; color: #7f8c8d; }
+        .btn-title { font-size: 1.05rem; font-weight: 900; margin-bottom: 6px; }
+        .btn-desc { font-size: 0.8rem; color: var(--text-dim); font-weight: 800;}
 
-        /* 商店選單切換 */
-        .shop-tabs {
+        /* ------------------ 頁籤區 ------------------ */
+        .tabs {
             display: flex;
-            gap: 4px;
-            margin: 4px 0;
+            gap: 15px;
+            margin-bottom: 20px;
+            border-bottom: 3px solid var(--border-color);
+            padding-bottom: 10px;
+            padding-left: 5px;
         }
 
-        .tab-btn {
-            flex: 1;
-            padding: 8px 0;
+        .tab {
+            background: transparent;
             border: none;
-            background: #dcdde1;
-            color: #2f3640;
-            border-radius: 10px 10px 0 0;
-            font-weight: bold;
-            font-size: 0.85rem;
+            color: var(--text-dim);
+            font-size: 1.1rem;
+            font-weight: 900;
             cursor: pointer;
+            padding: 8px 16px;
+            border-radius: 15px;
             transition: 0.2s;
         }
-
-        .tab-btn.active {
-            background: #4ab34a;
-            color: white;
-            box-shadow: 0 -2px 6px rgba(0,0,0,0.15);
+        
+        .tab:hover { background: var(--btn-hover); }
+        
+        .tab.active { 
+            color: white; 
+            background: var(--text-dark);
+            box-shadow: 0 3px 10px rgba(107, 76, 74, 0.2);
         }
 
-        /* 商品展示網格 */
+        /* ------------------ 商店網格 ------------------ */
         .shop-grid {
             flex: 1;
             display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 6px;
+            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+            gap: 15px;
             overflow-y: auto;
-            padding-bottom: 5px;
+            padding: 5px 5px 20px 5px;
         }
+        .shop-grid::-webkit-scrollbar { width: 0; }
 
-        .shop-item {
-            background: white;
-            border: 2px solid #e1b12c00;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-            border-radius: 12px;
-            padding: 6px 4px;
+        .item-card {
+            background: var(--card-bg);
+            border: 3px solid var(--border-color);
+            border-radius: 22px;
+            padding: 18px 10px;
             text-align: center;
             cursor: pointer;
-            transition: all 0.2s ease;
+            transition: 0.1s;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            box-shadow: 0 4px 0 var(--border-color);
+        }
+        
+        .item-card:active {
+            transform: translateY(4px);
+            box-shadow: 0 0 0 transparent;
+        }
+        
+        .item-card.equipped { 
+            border-color: var(--text-dark); 
+            background: #ffffff; 
+            box-shadow: 0 4px 0 var(--text-dark);
+        }
+        
+        .item-color-preview {
+            width: 45px;
+            height: 45px;
+            border-radius: 15px;
+            margin: 0 auto 15px auto;
+            border: 3px solid rgba(0,0,0,0.08);
+        }
+        .item-name { font-size: 0.85rem; font-weight: 900; margin-bottom: 10px; color: var(--text-dark); line-height: 1.3;}
+        .item-cost { 
+            font-size: 0.9rem; 
+            font-weight: 900; 
+            color: white; 
+            background: var(--accent-color);
+            padding: 4px 8px;
+            border-radius: 12px;
+            display: inline-block;
+            margin: 0 auto;
+        }
+        .item-cost.owned { 
+            background: #e2e8f0;
+            color: var(--text-dim);
+        }
+        .item-card.equipped .item-cost.owned {
+            background: var(--text-dark);
+            color: white;
+        }
+
+        /* ------------------ 盲盒/首抽 ------------------ */
+        .gacha-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100vw; height: 100vh;
+            background: rgba(255, 240, 245, 0.95);
+            backdrop-filter: blur(5px);
+            z-index: 9999;
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: space-between;
-            position: relative;
-            border: 2px solid #dcdde1;
+            justify-content: center;
+            transition: opacity 0.5s;
         }
 
-        .shop-item:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-        }
-
-        .shop-item.equipped {
-            border-color: #4ab34a;
-            background-color: #ebf7eb;
-        }
-
-        .shop-item.equipped::after {
-            content: "永久擁有";
-            position: absolute;
-            top: 2px;
-            right: 2px;
-            background: #4ab34a;
-            color: white;
-            font-size: 0.5rem;
-            padding: 1px 3px;
-            border-radius: 4px;
-        }
-
-        .item-preview {
-            width: 42px;
-            height: 42px;
+        .gacha-box {
+            width: 160px;
+            height: 160px;
+            background: white;
+            border: 5px dashed var(--accent-color);
+            border-radius: 40px;
             display: flex;
             align-items: center;
             justify-content: center;
+            cursor: pointer;
+            margin-bottom: 40px;
+            transition: 0.2s;
+            color: var(--accent-color);
+            font-size: 1.4rem;
+            font-weight: 900;
+            box-shadow: 0 15px 35px rgba(255, 182, 193, 0.3);
+            animation: breatheBox 2s infinite ease-in-out;
+        }
+        
+        @keyframes breatheBox {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+        
+        .gacha-box:active { transform: scale(0.95); animation: none; }
+
+        .gacha-title {
+            font-size: 2.2rem;
+            margin-bottom: 30px;
+            font-weight: 900;
+            color: var(--text-dark);
+            text-shadow: 0 4px 10px rgba(255,255,255,0.8);
         }
 
-        .item-name {
-            font-size: 0.72rem;
-            font-weight: bold;
-            color: #2f3640;
-            margin: 2px 0;
+        .start-btn {
+            background: var(--text-dark);
+            color: white;
+            border: none;
+            padding: 16px 50px;
+            border-radius: 35px;
+            font-weight: 900;
+            font-size: 1.3rem;
+            cursor: pointer;
+            display: none;
+            box-shadow: 0 6px 0 rgba(0,0,0,0.15);
+            transition: 0.1s;
         }
+        .start-btn:active { transform: translateY(6px); box-shadow: 0 0 0 transparent; }
 
-        .item-price {
-            font-size: 0.7rem;
-            color: #e67e22;
-            font-weight: bold;
-        }
-
-        .item-price.owned {
-            color: #27ae60;
-        }
-
-        /* 動態飄字提示 */
         .float-text {
             position: absolute;
-            color: #f1c40f;
+            color: var(--accent-color);
             font-weight: 900;
-            font-size: 1.4rem;
+            font-size: 2rem;
             pointer-events: none;
+            text-shadow: 2px 2px 0px white, -2px -2px 0px white, 2px -2px 0px white, -2px 2px 0px white;
             animation: floatUp 1s forwards cubic-bezier(0.18, 0.89, 0.32, 1.28);
             z-index: 100;
-            text-shadow: 0 2px 5px rgba(0,0,0,0.5);
         }
-
         @keyframes floatUp {
-            0% { opacity: 1; transform: translate(-50%, 0) scale(0.8); }
-            50% { transform: translate(-50%, -35px) scale(1.2); }
-            100% { opacity: 0; transform: translate(-50%, -70px) scale(1); }
+            0% { opacity: 1; transform: translate(-50%, 0) scale(0.5); }
+            50% { transform: translate(-50%, -50px) scale(1.2); }
+            100% { opacity: 0; transform: translate(-50%, -90px) scale(1); }
         }
     </style>
 </head>
 <body>
 
-    <!-- 舞台區域 -->
-    <div class="garden-stage" id="gardenStage">
-        <div class="stage-title">深海與綠意花園舞台</div>
+    <div class="gacha-overlay" id="gachaScreen">
+        <div class="gacha-title" id="gachaTitle">發現神祕海兔卵</div>
+        <div class="gacha-box" id="gachaBox" onclick="rollGacha()">點擊孵化</div>
+        <button class="start-btn" id="startBtn" onclick="startGame()">開始照顧</button>
+    </div>
 
-        <!-- 裝飾背景層 -->
-        <div class="decoration-layer" id="decorationLayer">
-            <div class="clover-bg" style="left: 6%; bottom: 10%;">🍀</div>
-            <div class="clover-bg" style="right: 8%; bottom: 14%;">🪸</div>
-            <div class="garden-item" style="left: 4%; bottom: 18%; font-size: 2.5rem;">🪵</div>
-            <div class="garden-item" style="right: 12%; bottom: 22%; font-size: 2.2rem;">🐚</div>
-            <div class="garden-item" style="left: 18%; bottom: 8%; font-size: 1.4rem;">🌸</div>
-            <div class="garden-item" style="top: 10%; right: 10%; font-size: 2.5rem; opacity: 0.4;">🫧</div>
-        </div>
+    <div class="top-bar">
+        <div class="points-display"><span id="txtPts">積分</span>: <span id="pointDisplay">0</span></div>
+        <button class="lang-btn" onclick="toggleLang()" id="btnLang">EN</button>
+    </div>
 
-        <!-- 蛞蝓主角區 -->
+    <div class="stage" id="mainStage">
+        <div class="dot-pattern"></div>
         <div class="slug-container" id="slugContainer" onclick="petSlugDirectly(event)">
-            <!-- 裝飾配件層 -->
-            <div class="slug-accessory-hat" id="slugHat">🍄</div>
-            <div class="slug-accessory-neck" id="slugNeck">🎀</div>
-            <div class="slug-home-shell" id="slugHome">🏠</div>
-
-            <!-- 高級 SVG 渲染（包含碎斑與高仿真多觸角、羽狀後鰓） -->
-            <svg class="slug-svg" viewBox="0 0 220 140">
-                <!-- 底部陰影 -->
-                <ellipse cx="110" cy="115" rx="80" ry="12" fill="rgba(0,0,0,0.3)" />
-
-                <!-- 高級花紋與雜訊濾鏡定義 -->
+            
+            <!-- ============================================== -->
+            <!-- 你心愛的手繪風格海兔兔 SVG (完全沒動保證！) -->
+            <!-- ============================================== -->
+            <svg class="slug-svg" viewBox="0 0 340 240">
                 <defs>
-                    <!-- 用於斑點與碎斑紋路的噪點濾鏡 -->
-                    <filter id="slugSpotNoise">
-                        <feTurbulence type="fractalNoise" baseFrequency="0.04" numOctaves="3" result="noise" />
-                        <feColorMatrix type="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 0.4 0" />
-                        <feComposite operator="in" in2="SourceGraphic" />
-                    </filter>
-                    
-                    <!-- 身體主體漸層定義 -->
-                    <linearGradient id="slugGradient" x1="0%" y1="30%" x2="100%" y2="70%">
-                        <stop offset="0%" id="gradStop1" stop-color="#fffde7" />
-                        <stop offset="50%" id="gradStop2" stop-color="#fff176" />
-                        <stop offset="100%" id="gradStop3" stop-color="#fbc02d" />
+                    <linearGradient id="earGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+                        <stop offset="0%" stop-color="var(--c-ear-top)" />
+                        <stop offset="60%" stop-color="var(--c-ear-top)" />
+                        <stop offset="100%" stop-color="var(--c-body)" />
                     </linearGradient>
+                    <filter id="handDrawn" x="-10%" y="-10%" width="120%" height="120%">
+                        <feTurbulence type="fractalNoise" baseFrequency="0.04" numOctaves="3" result="noise" />
+                        <feDisplacementMap in="SourceGraphic" in2="noise" scale="4" xChannelSelector="R" yChannelSelector="G" />
+                    </filter>
                 </defs>
 
-                <!-- 【後鰓羽層 Gills】(圖2、3中尾部像花朵羽毛一樣的呼吸器官) -->
-                <g id="slugGills" transform="translate(145, 45)">
-                    <!-- 由多片羽狀葉片組成的海蛞蝓標誌後鰓 -->
-                    <path d="M 10 40 Q -10 10 5 0 Q 15 15 15 35 Z" fill="#e74c3c" />
-                    <path d="M 15 42 Q 0 -5 20 -5 Q 25 15 20 38 Z" fill="#f1c40f" />
-                    <path d="M 22 42 Q 15 5 35 10 Q 30 25 22 38 Z" fill="#e74c3c" />
-                    <path d="M 5 45 Q -20 25 -10 15 Q 5 25 8 40 Z" fill="#f39c12" />
-                    <!-- 內鰓芯 -->
-                    <circle cx="15" cy="35" r="6" fill="#d35400" />
-                </g>
+                <g filter="url(#handDrawn)">
+                    <ellipse cx="170" cy="205" rx="120" ry="15" fill="rgba(0,0,0,0.12)" />
 
-                <!-- 【蛞蝓身體柔軟主體】 -->
-                <!-- 包含邊緣與尾部微翹的流線型設計 -->
-                <path id="slugBodyPath" d="M 35 90 C 15 90 10 112 45 112 L 175 112 C 205 112 210 92 185 85 C 155 78 125 82 95 78 C 65 74 50 62 35 90 Z" fill="url(#slugGradient)" />
-
-                <!-- 【高級斑點/碎斑疊加層】（對應圖3黑斑碎點與圖2條紋） -->
-                <g id="slugSpotsGroup">
-                    <!-- 大斑點 -->
-                    <circle cx="85" cy="92" r="7" fill="#2c3e50" id="spot1" />
-                    <circle cx="115" cy="96" r="5" fill="#2c3e50" id="spot2" />
-                    <circle cx="145" cy="90" r="8" fill="#2c3e50" id="spot3" />
-                    <circle cx="168" cy="98" r="4" fill="#2c3e50" id="spot4" />
-                    <circle cx="65" cy="98" r="5" fill="#2c3e50" id="spot5" />
-                    <!-- 微小碎斑（使用濾鏡） -->
-                    <path id="slugNoiseOverlay" d="M 45 92 Q 95 82 145 82 Q 185 90 175 105 Q 110 110 45 105 Z" fill="#2c3e50" filter="url(#slugSpotNoise)" opacity="0.4" />
-                </g>
-
-                <!-- 【頭部與觸角群組 Rhinophores】 -->
-                <g id="slugHead">
-                    <!-- 左嗅角 (帶有橫向褶皺紋理的高級觸角) -->
-                    <g transform="translate(48, 65)">
-                        <path id="tentacleL" d="M 0 0 Q -15 -35 -5 -40 Q 5 -35 3 0" fill="#e67e22" />
-                        <!-- 嗅角褶皺 -->
-                        <line x1="-6" y1="-15" x2="2" y2="-13" stroke="rgba(255,255,255,0.4)" stroke-width="2" />
-                        <line x1="-8" y1="-25" x2="0" y2="-23" stroke="rgba(255,255,255,0.4)" stroke-width="2" />
-                        <circle cx="-5" cy="-40" r="3" fill="#e74c3c" />
+                    <g class="anim-tail" stroke="var(--c-outline)" stroke-width="4" stroke-linejoin="round">
+                        <path d="M 250 170 C 270 180, 300 190, 290 140 C 280 100, 250 140, 240 170 Z" fill="var(--c-tail)"/>
+                        <path d="M 260 150 C 290 160, 320 120, 280 80 C 260 60, 230 110, 250 150 Z" fill="var(--c-tail)"/>
+                        <path d="M 240 130 C 260 100, 270 70, 240 50 C 210 30, 200 90, 230 120 Z" fill="var(--c-tail)"/>
                     </g>
 
-                    <!-- 右嗅角 -->
-                    <g transform="translate(66, 62)">
-                        <path id="tentacleR" d="M 0 0 Q -5 -38 5 -42 Q 15 -38 3 0" fill="#e67e22" />
-                        <line x1="-1" y1="-15" x2="8" y2="-13" stroke="rgba(255,255,255,0.4)" stroke-width="2" />
-                        <line x1="-2" y1="-25" x2="7" y2="-23" stroke="rgba(255,255,255,0.4)" stroke-width="2" />
-                        <circle cx="5" cy="-42" r="3" fill="#e74c3c" />
+                    <path d="M 70 190 C 20 180, 30 120, 90 110 C 160 100, 220 105, 260 130 C 290 150, 280 200, 200 210 C 130 220, 90 200, 70 190 Z" fill="var(--c-body)" stroke="var(--c-outline)" stroke-width="5" stroke-linejoin="round"/>
+
+                    <g fill="var(--c-spot)">
+                        <circle cx="90" cy="135" r="4"/>
+                        <circle cx="125" cy="125" r="5"/>
+                        <circle cx="170" cy="130" r="3.5"/>
+                        <circle cx="210" cy="140" r="5.5"/>
+                        <circle cx="245" cy="155" r="4"/>
+                        
+                        <circle cx="75" cy="160" r="4.5"/>
+                        <circle cx="110" cy="165" r="3"/>
+                        <circle cx="145" cy="180" r="5.5"/>
+                        <circle cx="190" cy="185" r="4"/>
+                        <circle cx="230" cy="175" r="4.5"/>
+                        
+                        <circle cx="100" cy="190" r="4"/>
+                        <circle cx="160" cy="200" r="4.5"/>
+                        <circle cx="205" cy="195" r="3.5"/>
                     </g>
 
-                    <!-- Q萌面部表情 -->
-                    <circle cx="45" cy="76" r="3.5" fill="#2c3e50" />
-                    <circle cx="62" cy="74" r="3.5" fill="#2c3e50" />
-                    <!-- 眼神光 -->
-                    <circle cx="46" cy="745" r="1.2" fill="#ffffff" />
-                    <circle cx="63" cy="72.5" r="1.2" fill="#ffffff" />
-                    <!-- 腮紅 -->
-                    <ellipse cx="40" cy="82" rx="5" ry="2.5" fill="#ff7675" opacity="0.7" />
-                    <ellipse cx="67" cy="80" rx="5" ry="2.5" fill="#ff7675" opacity="0.7" />
-                    <!-- 害羞微笑 -->
-                    <path d="M 51 81 Q 53.5 84 56 81" fill="none" stroke="#2c3e50" stroke-width="2" stroke-linecap="round" />
+                    <g stroke="var(--c-outline)" stroke-width="4" stroke-linejoin="round">
+                        <path class="anim-earL" d="M 100 105 C 80 50, 95 20, 110 25 C 125 30, 120 90, 115 105 Z" fill="url(#earGrad)"/>
+                        <path class="anim-earR" d="M 145 100 C 135 45, 160 15, 175 25 C 190 35, 165 85, 160 100 Z" fill="url(#earGrad)"/>
+                    </g>
+
+                    <g transform="translate(130, 150)">
+                        <ellipse cx="-35" cy="12" rx="14" ry="8" fill="var(--c-blush)" opacity="0.85"/>
+                        <ellipse cx="35" cy="12" rx="14" ry="8" fill="var(--c-blush)" opacity="0.85"/>
+                        
+                        <circle cx="-20" cy="0" r="7" fill="#2c3e50" />
+                        <circle cx="20" cy="0" r="7" fill="#2c3e50" />
+                        
+                        <circle cx="-18" cy="-2" r="2.5" fill="#ffffff" />
+                        <circle cx="22" cy="-2" r="2.5" fill="#ffffff" />
+                        
+                        <path d="M -7 5 Q 0 12 7 5" fill="none" stroke="#2c3e50" stroke-width="3.5" stroke-linecap="round"/>
+                    </g>
                 </g>
             </svg>
+            <!-- ============================================== -->
+            
         </div>
     </div>
 
-    <!-- UI 操作面板 -->
     <div class="ui-panel">
-        <div class="header-bar">
-            <div class="game-title">
-                🐌 蛞蝓換家日記 (海兔養成版)
-            </div>
-            <div class="points-badge">
-                🪙 <span id="pointDisplay">0</span>
-            </div>
+        <div class="interaction-group">
+            <button class="btn-interact" id="btnFeed" onclick="interact('feed', 80, 8)">
+                <span class="btn-title" id="txtFeedTitle">餵食海藻</span>
+                <span class="btn-desc" id="txtFeedDesc">冷卻 0s</span>
+            </button>
+            <button class="btn-interact" id="btnClean" onclick="interact('clean', 100, 15)">
+                <span class="btn-title" id="txtCleanTitle">淨化水質</span>
+                <span class="btn-desc" id="txtCleanDesc">冷卻 0s</span>
+            </button>
+            <button class="btn-interact" id="btnPet" onclick="interact('pet', 50, 5)">
+                <span class="btn-title" id="txtPetTitle">溫柔撫摸</span>
+                <span class="btn-desc" id="txtPetDesc">冷卻 0s</span>
+            </button>
         </div>
 
-        <!-- 養成互動區 -->
-        <div class="status-card">
-            <div class="interaction-group">
-                <button class="interact-btn" id="btnFeed" onclick="interact('feed', 60, 8)">
-                    <span class="interact-icon">🥦</span>
-                    <span class="interact-label">餵食褐藻</span>
-                    <span class="cooldown-text" id="cdFeed">可互動 (+60)</span>
-                </button>
-                <button class="interact-btn" id="btnClean" onclick="interact('clean', 80, 15)">
-                    <span class="interact-icon">🫧</span>
-                    <span class="interact-label">更換海水</span>
-                    <span class="cooldown-text" id="cdClean">可互動 (+80)</span>
-                </button>
-                <button class="interact-btn" id="btnPet" onclick="interact('pet', 40, 5)">
-                    <span class="interact-icon">❤️</span>
-                    <span class="interact-label">指尖輕摸</span>
-                    <span class="cooldown-text" id="cdPet">可互動 (+40)</span>
-                </button>
-            </div>
+        <div class="tabs">
+            <button class="tab active" id="tabSpecies" onclick="switchTab('species')">幻獸圖鑑</button>
+            <button class="tab" id="tabEnvironment" onclick="switchTab('env')">環境佈景</button>
         </div>
 
-        <!-- 商店切換標籤 -->
-        <div class="shop-tabs">
-            <button class="tab-btn active" id="tab-species" onclick="switchTab('species')">解鎖品種</button>
-            <button class="tab-btn" id="tab-wardrobe" onclick="switchTab('wardrobe')">蛞蝓衣櫥</button>
-            <button class="tab-btn" id="tab-homes" onclick="switchTab('homes')">入住換家</button>
-            <button class="tab-btn" id="tab-garden" onclick="switchTab('garden')">購買裝飾</button>
-        </div>
-
-        <!-- 商品網格 -->
-        <div class="shop-grid" id="shopGrid">
-            <!-- 透過 JS 動態載入 -->
-        </div>
+        <div class="shop-grid" id="shopGrid"></div>
     </div>
 
     <script>
-        // ---------------- 完整遊戲資料庫 ----------------
+        // ---------------- 語言字典 ----------------
+        const i18n = {
+            zh: {
+                points: "積分", langBtn: "EN", 
+                gachaTitle: "發現神祕海兔卵", gachaBox: "點擊孵化", startBtn: "開始照顧",
+                feed: "餵食海藻", clean: "淨化水質", pet: "溫柔撫摸",
+                cooldown: "冷卻", ready: "可互動",
+                tabSpecies: "圖鑑", tabEnv: "佈景",
+                equip: "培育中", owned: "已解鎖"
+            },
+            en: {
+                points: "Pts", langBtn: "中文", 
+                gachaTitle: "Mystic Egg Found", gachaBox: "Incubate", startBtn: "Start Caring",
+                feed: "Feed Algae", clean: "Purify Water", pet: "Gentle Pet",
+                cooldown: "CD", ready: "Ready",
+                tabSpecies: "Species", tabEnv: "Habitat",
+                equip: "Active", owned: "Unlocked"
+            }
+        };
+        let currLang = 'zh';
+
+        // ---------------- 遊戲資料 ----------------
         let gameState = {
-            points: 800,
-            currentSpecies: 'lemon',
-            currentHat: 'none',
-            currentNeck: 'none',
-            currentHome: 'none',
-            unlockedSpecies: ['lemon'], // 預設解鎖初初始品種
-            unlockedItems: ['none'],
+            hasAdopted: false,
+            points: 2000,
+            currentSpecies: 'snow',
+            currentEnv: 'sky',
+            unlockedSpecies: [], 
+            unlockedItems: ['sky'],
             cooldowns: { feed: 0, clean: 0, pet: 0 }
         };
 
-        // 精緻海蛞蝓品種資料庫 (對應圖2、圖3特徵)
         const speciesData = {
-            lemon: { name: '檸檬海兔(圖2)', price: 0, c1: '#fffde7', c2: '#fff176', c3: '#fbc02d', accent: '#e67e22', spot: '#2c3e50', gill: '#e74c3c', icon: '🍋' },
-            panda: { name: '碎斑黑天鵝(圖3)', price: 600, c1: '#ffffff', c2: '#f5f6fa', c3: '#dcdde1', accent: '#2f3640', spot: '#1e272e', gill: '#2f3640', icon: '🐼' },
-            dragon: { name: '藍海神(圖2)', price: 1200, c1: '#e3f2fd', c2: '#29b6f6', c3: '#0288d1', accent: '#01579b', spot: '#00e5ff', gill: '#0288d1', icon: '🐉' },
-            berry: { name: '紅點瑰麗(圖3)', price: 1800, c1: '#fff5f5', c2: '#ff8787', c3: '#fa5252', accent: '#c92a2a', spot: '#e03131', gill: '#cc5de8', icon: '🍓' },
-            sheep: { name: '葉羊海蛞蝓', price: 2500, c1: '#f1f8e9', c2: '#a3cb38', c3: '#009432', accent: '#006266', spot: '#ea2027', gill: '#1289a7', icon: '🥬' }
+            snow: { name: {zh: '經典雪兔', en: 'Snow Bunny'}, cost: 0, body: '#ffffff', outline: '#3f2a2a', earTop: '#3f2a2a', tail: '#3f2a2a', spot: '#3f2a2a', blush: '#fca5a5' },
+            ocean: { name: {zh: '深海藍寶', en: 'Ocean Gem'}, cost: 1200, body: '#e0f2fe', outline: '#1e3a8a', earTop: '#1e3a8a', tail: '#1e3a8a', spot: '#1e3a8a', blush: '#f472b6' },
+            matcha: { name: {zh: '抹茶麻糬', en: 'Matcha Mochi'}, cost: 1500, body: '#ecfccb', outline: '#14532d', earTop: '#14532d', tail: '#14532d', spot: '#14532d', blush: '#f87171' },
+            berry: { name: {zh: '草莓牛奶', en: 'Strawberry Milk'}, cost: 1800, body: '#fce7f3', outline: '#831843', earTop: '#831843', tail: '#831843', spot: '#831843', blush: '#fb7185' },
+            choco: { name: {zh: '焦糖布丁', en: 'Caramel Pudding'}, cost: 2000, body: '#fef3c7', outline: '#713f12', earTop: '#713f12', tail: '#713f12', spot: '#713f12', blush: '#f87171' },
+            grape: { name: {zh: '薰衣草', en: 'Lavender'}, cost: 2200, body: '#f3e8ff', outline: '#4c1d95', earTop: '#4c1d95', tail: '#4c1d95', spot: '#4c1d95', blush: '#f472b6' },
+            lemon: { name: {zh: '黃金檸檬', en: 'Golden Lemon'}, cost: 2500, body: '#fef08a', outline: '#9a3412', earTop: '#ea580c', tail: '#ea580c', spot: '#ea580c', blush: '#ef4444' },
+            sesame: { name: {zh: '黑糖芝麻', en: 'Sesame'}, cost: 2800, body: '#f1f5f9', outline: '#0f172a', earTop: '#0f172a', tail: '#0f172a', spot: '#0f172a', blush: '#f87171' },
+            sakura: { name: {zh: '櫻花雪兔', en: 'Sakura Bunny'}, cost: 3000, body: '#ffffff', outline: '#be185d', earTop: '#f472b6', tail: '#f472b6', spot: '#f472b6', blush: '#fb7185' },
+            mint: { name: {zh: '薄荷巧克力', en: 'Mint Choco'}, cost: 3500, body: '#ccfbf1', outline: '#0f766e', earTop: '#3f2a2a', tail: '#3f2a2a', spot: '#3f2a2a', blush: '#f472b6' }
         };
 
-        const wardrobeData = {
-            none: { name: '脫下衣服', price: 0, icon: '❌', type: 'hat' },
-            mushroom: { name: '紅點蘑菇帽', price: 150, icon: '🍄', type: 'hat' },
-            crown: { name: '人魚皇冠', price: 600, icon: '👑', type: 'hat' },
-            flower: { name: '頭頂小紅花', price: 200, icon: '🌺', type: 'hat' },
-            bow: { name: '精緻領結', price: 180, icon: '🎀', type: 'neck' },
-            scarf: { name: '保暖領巾', price: 220, icon: '🧣', type: 'neck' }
-        };
-
-        const homesData = {
-            none: { name: '回歸大自然', price: 0, icon: '' },
-            box: { name: '快遞紙箱', price: 200, icon: '📦' },
-            house: { name: '溫馨小城堡', price: 800, icon: '🏠' },
-            conch: { name: '夢幻黃金螺', price: 1500, icon: '🐚' }
-        };
-
-        const gardenData = {
-            flower: { name: '海底珊瑚', price: 150, icon: '🪸' },
-            star: { name: '幸運海星', price: 250, icon: '⭐' },
-            bubble: { name: '大氧氣泡', price: 100, icon: '🫧' }
+        const envData = {
+            sky: { name: {zh: '晴空藍', en: 'Sky Blue'}, cost: 0, bg: '#dbeafe' },
+            peach: { name: {zh: '蜜桃粉', en: 'Peach Pink'}, cost: 800, bg: '#fce7f3' },
+            mintBg: { name: {zh: '薄荷綠', en: 'Mint Green'}, cost: 1000, bg: '#d1fae5' },
+            lavender: { name: {zh: '薰衣草紫', en: 'Lavender'}, cost: 1200, bg: '#f3e8ff' }
         };
 
         let currentTab = 'species';
 
         window.onload = function() {
             loadGame();
-            switchTab('species');
+            updateLangUI();
+            checkFirstTime();
+            renderShop();
             startCooldownTimer();
         };
 
+        function toggleLang() {
+            currLang = currLang === 'zh' ? 'en' : 'zh';
+            updateLangUI();
+            renderShop();
+            updateUI();
+        }
+
+        function updateLangUI() {
+            const t = i18n[currLang];
+            document.getElementById('btnLang').innerText = t.langBtn;
+            document.getElementById('txtPts').innerText = t.points;
+            document.getElementById('gachaTitle').innerText = t.gachaTitle;
+            if(document.getElementById('gachaBox').innerText !== '' && !document.getElementById('gachaBox').innerHTML.includes('div')) {
+                document.getElementById('gachaBox').innerText = t.gachaBox;
+            }
+            document.getElementById('startBtn').innerText = t.startBtn;
+            
+            document.getElementById('txtFeedTitle').innerText = t.feed;
+            document.getElementById('txtCleanTitle').innerText = t.clean;
+            document.getElementById('txtPetTitle').innerText = t.pet;
+            
+            document.getElementById('tabSpecies').innerText = t.tabSpecies;
+            document.getElementById('tabEnvironment').innerText = t.tabEnv;
+        }
+
+        function checkFirstTime() {
+            if (!gameState.hasAdopted) {
+                document.getElementById('gachaScreen').style.display = 'flex';
+            } else {
+                document.getElementById('gachaScreen').style.display = 'none';
+                applySlugStyles();
+                applyEnv();
+                updateUI();
+            }
+        }
+
+        function rollGacha() {
+            const box = document.getElementById('gachaBox');
+            box.style.border = '5px solid transparent';
+            box.style.animation = 'none';
+            box.innerText = '...';
+            
+            setTimeout(() => {
+                const keys = Object.keys(speciesData);
+                const randomKey = keys[Math.floor(Math.random() * keys.length)];
+                
+                gameState.unlockedSpecies = [randomKey];
+                gameState.currentSpecies = randomKey;
+                gameState.hasAdopted = true;
+                
+                document.getElementById('gachaTitle').innerText = speciesData[randomKey].name[currLang];
+                box.style.border = 'none';
+                box.style.boxShadow = 'none';
+                box.innerHTML = `<div style="width:80px;height:80px;border-radius:25px;background:${speciesData[randomKey].body};border:4px solid ${speciesData[randomKey].outline}; box-shadow: 0 10px 20px rgba(0,0,0,0.1)"></div>`;
+                
+                document.getElementById('startBtn').style.display = 'block';
+            }, 1000);
+        }
+
+        function startGame() {
+            document.getElementById('gachaScreen').style.opacity = 0;
+            setTimeout(() => {
+                document.getElementById('gachaScreen').style.display = 'none';
+                saveGame();
+                applySlugStyles();
+                renderShop();
+                updateUI();
+            }, 500);
+        }
+
         function switchTab(tab) {
             currentTab = tab;
-            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-            document.getElementById(`tab-${tab}`).classList.add('active');
+            document.getElementById('tabSpecies').className = tab === 'species' ? 'tab active' : 'tab';
+            document.getElementById('tabEnvironment').className = tab === 'env' ? 'tab active' : 'tab';
             renderShop();
         }
 
-        // ---------------- 渲染商店邏輯 ----------------
         function renderShop() {
             const grid = document.getElementById('shopGrid');
             grid.innerHTML = '';
+            const t = i18n[currLang];
 
-            if (currentTab === 'species') {
-                Object.keys(speciesData).forEach(key => {
-                    const item = speciesData[key];
-                    const isUnlocked = gameState.unlockedSpecies.includes(key);
-                    const isEquipped = gameState.currentSpecies === key;
+            let dataObj = currentTab === 'species' ? speciesData : envData;
 
-                    const card = document.createElement('div');
-                    card.className = `shop-item ${isEquipped ? 'equipped' : ''}`;
-                    card.onclick = (e) => selectSpecies(key, e);
-                    card.innerHTML = `
-                        <div class="item-preview" style="font-size:2rem;">${item.icon}</div>
-                        <div class="item-name">${item.name}</div>
-                        <div class="item-price ${isUnlocked ? 'owned' : ''}">
-                            ${isUnlocked ? (isEquipped ? '攜帶中' : '更換品種') : '🪙 ' + item.price}
-                        </div>
-                    `;
-                    grid.appendChild(card);
-                });
-            } else if (currentTab === 'wardrobe') {
-                Object.keys(wardrobeData).forEach(key => {
-                    const item = wardrobeData[key];
-                    const isUnlocked = gameState.unlockedItems.includes(key) || item.price === 0;
-                    const isEquipped = (item.type === 'hat' && gameState.currentHat === key) ||
-                                       (item.type === 'neck' && gameState.currentNeck === key);
+            Object.keys(dataObj).forEach(key => {
+                const item = dataObj[key];
+                let isUnlocked = (currentTab === 'species') ? gameState.unlockedSpecies.includes(key) : gameState.unlockedItems.includes(key);
+                let isEquipped = (currentTab === 'species') ? gameState.currentSpecies === key : gameState.currentEnv === key;
 
-                    const card = document.createElement('div');
-                    card.className = `shop-item ${isEquipped ? 'equipped' : ''}`;
-                    card.onclick = (e) => selectWardrobe(key, e);
-                    card.innerHTML = `
-                        <div class="item-preview" style="font-size:1.8rem;">${item.icon}</div>
-                        <div class="item-name">${item.name}</div>
-                        <div class="item-price ${isUnlocked ? 'owned' : ''}">
-                            ${isUnlocked ? (isEquipped ? '穿戴中' : '穿上') : '🪙 ' + item.price}
-                        </div>
-                    `;
-                    grid.appendChild(card);
-                });
-            } else if (currentTab === 'homes') {
-                Object.keys(homesData).forEach(key => {
-                    const item = homesData[key];
-                    const isUnlocked = gameState.unlockedItems.includes(key) || item.price === 0;
-                    const isEquipped = gameState.currentHome === key;
-
-                    const card = document.createElement('div');
-                    card.className = `shop-item ${isEquipped ? 'equipped' : ''}`;
-                    card.onclick = (e) => selectHome(key, e);
-                    card.innerHTML = `
-                        <div class="item-preview" style="font-size:2rem;">${item.icon || '🚫'}</div>
-                        <div class="item-name">${item.name}</div>
-                        <div class="item-price ${isUnlocked ? 'owned' : ''}">
-                            ${isUnlocked ? (isEquipped ? '入住中' : '換這個家') : '🪙 ' + item.price}
-                        </div>
-                    `;
-                    grid.appendChild(card);
-                });
-            } else if (currentTab === 'garden') {
-                Object.keys(gardenData).forEach(key => {
-                    const item = gardenData[key];
-                    const card = document.createElement('div');
-                    card.className = 'shop-item';
-                    card.onclick = (e) => buyGardenDeco(key, e);
-                    card.innerHTML = `
-                        <div class="item-preview" style="font-size:1.8rem;">${item.icon}</div>
-                        <div class="item-name">${item.name}</div>
-                        <div class="item-price">🪙 ${item.price}</div>
-                    `;
-                    grid.appendChild(card);
-                });
-            }
-        }
-
-        // ---------------- 購買/永久換裝核心機制 ----------------
-        function selectSpecies(key, event) {
-            const item = speciesData[key];
-            if (!gameState.unlockedSpecies.includes(key)) {
-                if (gameState.points >= item.price) {
-                    gameState.points -= item.price;
-                    gameState.unlockedSpecies.push(key);
-                    gameState.currentSpecies = key;
-                    showFloatText(event.clientX, event.clientY, `-🪙${item.price}`);
-                } else {
-                    alert('積分不夠解鎖這個永久品種喔！快去與海蛞蝓互動吧！');
-                    return;
-                }
-            } else {
-                gameState.currentSpecies = key;
-            }
-            updateSlugAppearance();
-            saveGame();
-            updateUI();
-            renderShop();
-        }
-
-        function selectWardrobe(key, event) {
-            const item = wardrobeData[key];
-            if (!gameState.unlockedItems.includes(key) && item.price > 0) {
-                if (gameState.points >= item.price) {
-                    gameState.points -= item.price;
-                    gameState.unlockedItems.push(key);
-                    showFloatText(event.clientX, event.clientY, `-🪙${item.price}`);
-                } else {
-                    alert('積分不夠購買這件衣服！');
-                    return;
-                }
-            }
-            
-            if (item.type === 'hat') {
-                gameState.currentHat = key;
-            } else {
-                gameState.currentNeck = key;
-            }
-
-            updateSlugAppearance();
-            saveGame();
-            updateUI();
-            renderShop();
-        }
-
-        function selectHome(key, event) {
-            const item = homesData[key];
-            if (!gameState.unlockedItems.includes(key) && item.price > 0) {
-                if (gameState.points >= item.price) {
-                    gameState.points -= item.price;
-                    gameState.unlockedItems.push(key);
-                    showFloatText(event.clientX, event.clientY, `-🪙${item.price}`);
-                } else {
-                    alert('積分不足，買不起這個家！');
-                    return;
-                }
-            }
-            
-            gameState.currentHome = key;
-            updateSlugAppearance();
-            saveGame();
-            updateUI();
-            renderShop();
-        }
-
-        function buyGardenDeco(key, event) {
-            const item = gardenData[key];
-            if (gameState.points >= item.price) {
-                gameState.points -= item.price;
-                showFloatText(event.clientX, event.clientY, `-🪙${item.price}`);
+                const card = document.createElement('div');
+                card.className = `item-card ${isEquipped ? 'equipped' : ''}`;
+                card.onclick = () => handlePurchase(key, item, currentTab);
                 
-                // 動態在舞台生成永久擺飾
-                const layer = document.getElementById('decorationLayer');
-                const deco = document.createElement('div');
-                deco.className = 'garden-item';
-                deco.innerText = item.icon;
-                deco.style.left = (Math.random() * 75 + 10) + '%';
-                deco.style.bottom = (Math.random() * 20 + 5) + '%';
-                deco.style.fontSize = '2rem';
-                layer.appendChild(deco);
+                let btnText = isUnlocked ? (isEquipped ? t.equip : t.owned) : item.cost;
+                let previewStyle = currentTab === 'species' 
+                    ? `background:${item.body}; border: 3px solid ${item.outline}`
+                    : `background: ${item.bg}; border: 3px solid #cbd5e1`;
 
-                saveGame();
-                updateUI();
-            } else {
-                alert('積分不足以購買裝飾品！');
-            }
+                card.innerHTML = `
+                    <div class="item-color-preview" style="${previewStyle}"></div>
+                    <div class="item-name">${item.name[currLang]}</div>
+                    <div class="item-cost ${isUnlocked ? 'owned' : ''}">${btnText}</div>
+                `;
+                grid.appendChild(card);
+            });
         }
 
-        // ---------------- 動態重繪海蛞蝓顏色與斑點 ----------------
-        function updateSlugAppearance() {
+        function handlePurchase(key, item, type) {
+            let isUnlocked = (type === 'species') ? gameState.unlockedSpecies.includes(key) : gameState.unlockedItems.includes(key);
+
+            if (!isUnlocked) {
+                if (gameState.points >= item.cost) {
+                    gameState.points -= item.cost;
+                    if (type === 'species') gameState.unlockedSpecies.push(key);
+                    else gameState.unlockedItems.push(key);
+                } else { return; }
+            }
+
+            if (type === 'species') gameState.currentSpecies = key;
+            else gameState.currentEnv = key;
+
+            applySlugStyles();
+            applyEnv();
+            saveGame();
+            renderShop();
+            updateUI();
+        }
+
+        function applySlugStyles() {
             const spec = speciesData[gameState.currentSpecies];
             if(!spec) return;
 
-            // 變更漸層主色
-            document.getElementById('gradStop1').setAttribute('stop-color', spec.c1);
-            document.getElementById('gradStop2').setAttribute('stop-color', spec.c2);
-            document.getElementById('gradStop3').setAttribute('stop-color', spec.c3);
-            
-            // 變更觸角與斑點色
-            document.getElementById('tentacleL').setAttribute('fill', spec.accent);
-            document.getElementById('tentacleR').setAttribute('fill', spec.accent);
-            
-            // 重繪身上的花紋色
-            ['spot1', 'spot2', 'spot3', 'spot4', 'spot5'].forEach(id => {
-                document.getElementById(id).setAttribute('fill', spec.spot);
-            });
-            document.getElementById('slugNoiseOverlay').setAttribute('fill', spec.spot);
-
-            // 重繪後鰓羽顏色
-            const gillGroup = document.getElementById('slugGills');
-            const paths = gillGroup.getElementsByTagName('path');
-            if(paths.length >= 3) {
-                paths[0].setAttribute('fill', spec.gill);
-                paths[1].setAttribute('fill', spec.accent);
-                paths[2].setAttribute('fill', spec.spot);
-            }
-
-            // 服飾與換家外觀更新
-            const hatItem = wardrobeData[gameState.currentHat];
-            document.getElementById('slugHat').innerText = (hatItem && hatItem.icon !== '❌') ? hatItem.icon : '';
-
-            const neckItem = wardrobeData[gameState.currentNeck];
-            document.getElementById('slugNeck').innerText = (neckItem && neckItem.icon !== '❌') ? neckItem.icon : '';
-
-            const homeItem = homesData[gameState.currentHome];
-            document.getElementById('slugHome').innerText = homeItem ? homeItem.icon : '';
+            const root = document.documentElement;
+            root.style.setProperty('--c-body', spec.body);
+            root.style.setProperty('--c-outline', spec.outline);
+            root.style.setProperty('--c-ear-top', spec.earTop);
+            root.style.setProperty('--c-tail', spec.tail);
+            root.style.setProperty('--c-spot', spec.spot);
+            root.style.setProperty('--c-blush', spec.blush);
         }
 
-        // ---------------- 養成與每日互動冷卻 ----------------
+        function applyEnv() {
+            const env = envData[gameState.currentEnv];
+            if(env) {
+                document.getElementById('mainStage').style.background = env.bg;
+            }
+        }
+
         function interact(type, reward, cdSeconds) {
             if (gameState.cooldowns[type] > 0) return;
 
             gameState.points += reward;
             gameState.cooldowns[type] = cdSeconds;
 
-            // 觸發海蛞蝓柔軟的彈跳與收縮動畫
             const slug = document.getElementById('slugContainer');
-            slug.style.transform = 'translateX(-50%) scale(1.1, 0.85) translateY(-10px)';
+            slug.style.transform = 'translateY(15px) scale(1.1, 0.8)';
             setTimeout(() => {
-                slug.style.transform = 'translateX(-50%) scale(1, 1)';
-            }, 250);
+                slug.style.transform = 'translateY(-10px) scale(0.95, 1.05)';
+                setTimeout(() => { slug.style.transform = 'translateY(0) scale(1, 1)'; }, 250);
+            }, 200);
 
-            // 提示獲得積分
-            const btn = document.getElementById(`btn${type.charAt(0).toUpperCase() + type.slice(1)}`);
-            const rect = btn.getBoundingClientRect();
-            showFloatText(rect.left + rect.width / 2, rect.top, `+🪙${reward}`);
-
+            showFloatText(`+${reward}`);
             saveGame();
             updateUI();
         }
 
         function petSlugDirectly(e) {
-            interact('pet', 40, 5);
-            showFloatText(e.clientX, e.clientY, '💖 幸福感 +40');
+            if (gameState.cooldowns['pet'] === 0) interact('pet', 50, 5);
         }
 
-        function showFloatText(x, y, text) {
+        function showFloatText(text) {
             const el = document.createElement('div');
             el.className = 'float-text';
             el.innerText = text;
-            el.style.left = x + 'px';
-            el.style.top = y + 'px';
+            el.style.left = '50%';
+            el.style.top = '30%';
             document.body.appendChild(el);
             setTimeout(() => el.remove(), 1000);
         }
@@ -818,34 +752,27 @@
 
         function updateUI() {
             document.getElementById('pointDisplay').innerText = gameState.points;
-
+            const t = i18n[currLang];
             const cds = gameState.cooldowns;
             
-            // 按鈕與冷卻提示文字更新
-            document.getElementById('btnFeed').disabled = cds.feed > 0;
-            document.getElementById('cdFeed').innerText = cds.feed > 0 ? `冷卻中 (${cds.feed}s)` : '可互動 (+60)';
-
-            document.getElementById('btnClean').disabled = cds.clean > 0;
-            document.getElementById('cdClean').innerText = cds.clean > 0 ? `冷卻中 (${cds.clean}s)` : '可互動 (+80)';
-
-            document.getElementById('btnPet').disabled = cds.pet > 0;
-            document.getElementById('cdPet').innerText = cds.pet > 0 ? `冷卻中 (${cds.pet}s)` : '可互動 (+40)';
+            ['feed', 'clean', 'pet'].forEach(type => {
+                const btn = document.getElementById(`btn${type.charAt(0).toUpperCase() + type.slice(1)}`);
+                const desc = document.getElementById(`txt${type.charAt(0).toUpperCase() + type.slice(1)}Desc`);
+                
+                if(cds[type] > 0) {
+                    btn.disabled = true;
+                    desc.innerText = `${t.cooldown} ${cds[type]}s`;
+                } else {
+                    btn.disabled = false;
+                    desc.innerText = t.ready;
+                }
+            });
         }
 
-        // 存檔與讀檔
-        function saveGame() {
-            localStorage.setItem('sea_slug_game_save', JSON.stringify(gameState));
-        }
-
+        function saveGame() { localStorage.setItem('nudi_v7_save', JSON.stringify(gameState)); }
         function loadGame() {
-            const saved = localStorage.getItem('sea_slug_game_save');
-            if (saved) {
-                try {
-                    gameState = { ...gameState, ...JSON.parse(saved) };
-                } catch(e) {}
-            }
-            updateSlugAppearance();
-            updateUI();
+            const saved = localStorage.getItem('nudi_v7_save');
+            if (saved) { try { gameState = { ...gameState, ...JSON.parse(saved) }; } catch(e) {} }
         }
     </script>
 </body>
