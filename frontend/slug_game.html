@@ -3,24 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>幻獸海兔養成</title>
-    <!-- 引入圓潤可愛的字體 -->
+    <title>海兔養成記</title>
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;800;900&display=swap" rel="stylesheet">
     
     <style>
         :root {
-            /* 更粉嫩、溫暖的 UI 配色 */
             --primary-bg: #fff0f5; 
             --panel-bg: #ffffff;
             --card-bg: #fff9fa;
             --accent-color: #ffb6c1;
-            --text-dark: #6b4c4a; /* 暖可可色代替冷灰色 */
+            --text-dark: #6b4c4a;
             --text-dim: #b89f9d;
             --border-color: #ffd1dc;
             --btn-hover: #ffedf0;
             --shadow-color: rgba(255, 182, 193, 0.4);
             
-            /* 預設海兔顏色變數 (經典雪兔) */
             --c-body: #ffffff;
             --c-outline: #3f2a2a;
             --c-ear-top: #3f2a2a;
@@ -33,7 +30,6 @@
             box-sizing: border-box;
             user-select: none;
             -webkit-user-select: none;
-            /* 套用可愛字體 */
             font-family: 'Nunito', 'PingFang TC', 'Microsoft JhengHei', sans-serif;
         }
 
@@ -47,7 +43,6 @@
             color: var(--text-dark);
         }
 
-        /* ------------------ 頂部列 ------------------ */
         .top-bar {
             position: absolute;
             top: 0;
@@ -67,7 +62,6 @@
             font-weight: 900;
             letter-spacing: 1px;
             color: var(--text-dark);
-            /* Q版立體陰影 */
             box-shadow: 0 4px 0 var(--border-color);
             backdrop-filter: blur(4px);
             font-size: 1.1rem;
@@ -91,13 +85,12 @@
             box-shadow: 0 0 0 transparent;
         }
 
-        /* ------------------ 舞台區域 ------------------ */
         .stage {
             position: absolute;
             top: 0;
             left: 0;
             width: 100%;
-            height: 58%; /* 微調高度讓海兔更有空間 */
+            height: 58%;
             background: #dbeafe; 
             overflow: hidden;
             transition: background 1s ease;
@@ -106,7 +99,7 @@
             justify-content: center;
         }
 
-        /* 更夢幻的點點背景裝飾 */
+        /* 僅在基礎款背景顯示的點點圖案 */
         .dot-pattern {
             position: absolute;
             width: 100%;
@@ -115,31 +108,59 @@
             background-size: 35px 35px;
             opacity: 0.9;
             pointer-events: none;
-            /* 加上一點柔和的內陰影，讓畫面更有包覆感 */
             box-shadow: inset 0 0 50px rgba(255, 255, 255, 0.5);
+            z-index: 2;
+            transition: opacity 0.5s;
         }
 
-        /* ================== 海兔保護區 (開始) ================== */
+        /* 特效層設計 */
+        .effect-layer {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            pointer-events: none;
+            z-index: 5;
+            overflow: hidden;
+        }
+
+        /* 雨滴特效 */
+        .rain-drop {
+            position: absolute;
+            width: 2px;
+            height: 20px;
+            background: rgba(255, 255, 255, 0.7);
+            top: -20px;
+            animation: rainFall linear infinite;
+        }
+        @keyframes rainFall { to { transform: translateY(60vh); } }
+
+        /* 泡泡特效 */
+        .bubble {
+            position: absolute;
+            border-radius: 50%;
+            border: 1.5px solid rgba(255, 255, 255, 0.7);
+            background: rgba(255, 255, 255, 0.2);
+            bottom: -20px;
+            animation: bubbleRise ease-in infinite;
+        }
+        @keyframes bubbleRise { to { transform: translateY(-60vh) scale(1.5); opacity: 0; } }
+
         .slug-container {
             position: relative;
             width: 340px;
             height: 240px;
             cursor: pointer;
             z-index: 10;
-            animation: floatSlug 4s infinite ease-in-out;
             margin-top: 40px;
-        }
-
-        @keyframes floatSlug {
-            0%, 100% { transform: translateY(0) scale(1); }
-            50% { transform: translateY(-5px) scale(1.02, 0.98); }
         }
 
         .slug-svg {
             width: 100%;
             height: 100%;
             overflow: visible;
-            filter: drop-shadow(0 15px 15px rgba(0,0,0,0.1));
+            filter: drop-shadow(0 15px 15px rgba(0,0,0,0.15));
         }
 
         @keyframes earTwitchL { 0%, 100% { transform: rotate(0deg); } 50% { transform: rotate(-6deg); } }
@@ -149,9 +170,7 @@
         .anim-earL { animation: earTwitchL 3s infinite ease-in-out; transform-origin: 100px 95px; }
         .anim-earR { animation: earTwitchR 3.5s infinite ease-in-out; transform-origin: 145px 90px; }
         .anim-tail { animation: tailFluff 4s infinite ease-in-out; transform-origin: 240px 120px; }
-        /* ================== 海兔保護區 (結束) ================== */
 
-        /* ------------------ UI 操作面板 ------------------ */
         .ui-panel {
             position: absolute;
             bottom: 0;
@@ -164,14 +183,13 @@
             flex-direction: column;
             padding: 30px 20px 20px 20px;
             z-index: 20;
-            /* 加大圓角，增加軟陰影 */
             border-radius: 40px 40px 0 0;
             box-shadow: 0 -10px 40px var(--shadow-color);
         }
 
         .interaction-group {
             display: flex;
-            gap: 15px; /* 加大間距 */
+            gap: 15px;
             margin-bottom: 25px;
         }
 
@@ -179,7 +197,7 @@
             flex: 1;
             background: var(--card-bg);
             border: 3px solid var(--border-color);
-            border-radius: 22px; /* 圓潤的按鈕 */
+            border-radius: 22px;
             padding: 16px 0;
             color: var(--text-dark);
             cursor: pointer;
@@ -187,7 +205,6 @@
             flex-direction: column;
             align-items: center;
             transition: 0.1s;
-            /* 立體感 */
             box-shadow: 0 5px 0 var(--border-color);
         }
 
@@ -209,7 +226,6 @@
         .btn-title { font-size: 1.05rem; font-weight: 900; margin-bottom: 6px; }
         .btn-desc { font-size: 0.8rem; color: var(--text-dim); font-weight: 800;}
 
-        /* ------------------ 頁籤區 ------------------ */
         .tabs {
             display: flex;
             gap: 15px;
@@ -239,7 +255,6 @@
             box-shadow: 0 3px 10px rgba(107, 76, 74, 0.2);
         }
 
-        /* ------------------ 商店網格 ------------------ */
         .shop-grid {
             flex: 1;
             display: grid;
@@ -302,7 +317,6 @@
             color: white;
         }
 
-        /* ------------------ 盲盒/首抽 ------------------ */
         .gacha-overlay {
             position: fixed;
             top: 0; left: 0; width: 100vw; height: 100vh;
@@ -396,7 +410,8 @@
     </div>
 
     <div class="stage" id="mainStage">
-        <div class="dot-pattern"></div>
+        <div class="dot-pattern" id="dotPattern"></div>
+        <div id="effectLayer" class="effect-layer"></div>
         <div class="slug-container" id="slugContainer" onclick="petSlugDirectly(event)">
             
             <svg class="slug-svg" viewBox="0 0 340 240">
@@ -482,46 +497,47 @@
 
         <div class="tabs">
             <button class="tab active" id="tabSpecies" onclick="switchTab('species')">幻獸圖鑑</button>
-            <button class="tab" id="tabEnvironment" onclick="switchTab('env')">環境佈景</button>
+            <button class="tab" id="tabBg" onclick="switchTab('bg')">背景</button>
+            <button class="tab" id="tabEffect" onclick="switchTab('effect')">特效</button>
         </div>
 
         <div class="shop-grid" id="shopGrid"></div>
     </div>
 
     <script>
-        // ---------------- 語言字典 ----------------
         const i18n = {
             zh: {
                 points: "積分", langBtn: "EN", 
                 gachaTitle: "發現神祕海兔卵", gachaBox: "點擊孵化", startBtn: "開始照顧",
                 feed: "餵食海藻", clean: "淨化水質", pet: "溫柔撫摸",
                 cooldown: "冷卻", ready: "可互動",
-                tabSpecies: "圖鑑", tabEnv: "佈景",
-                equip: "培育中", owned: "已解鎖"
+                tabSpecies: "圖鑑", tabBg: "背景", tabEffect: "特效",
+                equip: "使用中", owned: "已解鎖"
             },
             en: {
                 points: "Pts", langBtn: "中文", 
                 gachaTitle: "Mystic Egg Found", gachaBox: "Incubate", startBtn: "Start Caring",
                 feed: "Feed Algae", clean: "Purify Water", pet: "Gentle Pet",
                 cooldown: "CD", ready: "Ready",
-                tabSpecies: "Species", tabEnv: "Habitat",
+                tabSpecies: "Species", tabBg: "Background", tabEffect: "Effects",
                 equip: "Active", owned: "Unlocked"
             }
         };
         let currLang = 'zh';
 
-        // ---------------- 遊戲資料 ----------------
         let gameState = {
             hasAdopted: false,
             points: 2000,
             currentSpecies: 'snow',
-            currentEnv: 'sky',
+            currentBg: 'sky',
+            currentEffect: 'none',
             unlockedSpecies: [], 
-            unlockedItems: ['sky'],
+            unlockedBgs: ['sky'],
+            unlockedEffects: ['none'],
             cooldowns: { feed: 0, clean: 0, pet: 0 }
         };
 
-        // ===== 擴充後的海兔圖鑑 =====
+        // 海兔圖鑑 (完全保留原設定)
         const speciesData = {
             snow: { name: {zh: '經典雪兔', en: 'Snow Bunny'}, cost: 0, body: '#ffffff', outline: '#3f2a2a', earTop: '#3f2a2a', tail: '#3f2a2a', spot: '#3f2a2a', blush: '#fca5a5' },
             ocean: { name: {zh: '深海藍寶', en: 'Ocean Gem'}, cost: 1200, body: '#e0f2fe', outline: '#1e3a8a', earTop: '#1e3a8a', tail: '#1e3a8a', spot: '#1e3a8a', blush: '#f472b6' },
@@ -533,22 +549,185 @@
             sesame: { name: {zh: '黑糖芝麻', en: 'Sesame'}, cost: 2800, body: '#f1f5f9', outline: '#0f172a', earTop: '#0f172a', tail: '#0f172a', spot: '#0f172a', blush: '#f87171' },
             sakura: { name: {zh: '櫻花雪兔', en: 'Sakura Bunny'}, cost: 3000, body: '#ffffff', outline: '#be185d', earTop: '#f472b6', tail: '#f472b6', spot: '#f472b6', blush: '#fb7185' },
             mint: { name: {zh: '薄荷巧克力', en: 'Mint Choco'}, cost: 3500, body: '#ccfbf1', outline: '#0f766e', earTop: '#3f2a2a', tail: '#3f2a2a', spot: '#3f2a2a', blush: '#f472b6' },
-            // --- 全新加入的幻獸海兔 ---
             watermelon: { name: {zh: '清涼西瓜', en: 'Watermelon'}, cost: 3800, body: '#bbf7d0', outline: '#14532d', earTop: '#f87171', tail: '#f87171', spot: '#000000', blush: '#fca5a5' },
             galaxy: { name: {zh: '星空宇宙', en: 'Galaxy'}, cost: 4500, body: '#1e1b4b', outline: '#c7d2fe', earTop: '#8b5cf6', tail: '#8b5cf6', spot: '#fde047', blush: '#d8b4fe' },
             sunset: { name: {zh: '日落晚霞', en: 'Sunset'}, cost: 5000, body: '#ffedd5', outline: '#9a3412', earTop: '#f97316', tail: '#f43f5e', spot: '#9a3412', blush: '#fca5a5' },
             coffee: { name: {zh: '焦糖拿鐵', en: 'Caramel Latte'}, cost: 5500, body: '#ddbea9', outline: '#6b705c', earTop: '#ffe8d6', tail: '#ffe8d6', spot: '#cb997e', blush: '#ffb4a2' },
             ghost: { name: {zh: '幽靈白兔', en: 'Spooky Ghost'}, cost: 6000, body: '#f8fafc', outline: '#475569', earTop: '#94a3b8', tail: '#94a3b8', spot: '#475569', blush: '#cbd5e1' },
-            gold: { name: {zh: '招財純金', en: 'Pure Gold'}, cost: 8888, body: '#fef08a', outline: '#b45309', earTop: '#f59e0b', tail: '#f59e0b', spot: '#b45309', blush: '#fbbf24' }
+            gold: { name: {zh: '招財純金', en: 'Pure Gold'}, cost: 8888, body: '#fef08a', outline: '#b45309', earTop: '#f59e0b', tail: '#f59e0b', spot: '#b45309', blush: '#fbbf24' },
+            ruby: { name: {zh: '璀璨紅寶石', en: 'Ruby Glow'}, cost: 4200, body: '#ffe4e6', outline: '#881337', earTop: '#e11d48', tail: '#e11d48', spot: '#9f1239', blush: '#fb7185' },
+            sapphire: { name: {zh: '皇家藍寶石', en: 'Royal Sapphire'}, cost: 4200, body: '#e0f2fe', outline: '#172554', earTop: '#2563eb', tail: '#2563eb', spot: '#1d4ed8', blush: '#93c5fd' },
+            emeraldSlug: { name: {zh: '微光祖母綠', en: 'Glow Emerald'}, cost: 4200, body: '#ecfdf5', outline: '#022c22', earTop: '#059669', tail: '#059669', spot: '#047857', blush: '#6ee7b7' },
+            amethyst: { name: {zh: '夢幻紫水晶', en: 'Amethyst Dream'}, cost: 4200, body: '#f5f3ff', outline: '#3b0764', earTop: '#7c3aed', tail: '#7c3aed', spot: '#6d28d9', blush: '#c084fc' },
+            topaz: { name: {zh: '耀眼托帕石', en: 'Solar Topaz'}, cost: 4200, body: '#fffbeb', outline: '#78350f', earTop: '#d97706', tail: '#d97706', spot: '#b45309', blush: '#fcd34d' },
+            jade: { name: {zh: '溫潤白玉', en: 'Soft Jade'}, cost: 4500, body: '#f0fdf4', outline: '#134e4a', earTop: '#2dd4bf', tail: '#2dd4bf', spot: '#0f766e', blush: '#99f6e4' },
+            obsidian: { name: {zh: '神祕黑曜石', en: 'Dark Obsidian'}, cost: 4800, body: '#18181b', outline: '#71717a', earTop: '#27272a', tail: '#27272a', spot: '#52525b', blush: '#a1a1aa' },
+            pearl: { name: {zh: '極光珍珠', en: 'Aurora Pearl'}, cost: 5000, body: '#fafafa', outline: '#475569', earTop: '#e2e8f0', tail: '#e2e8f0', spot: '#cbd5e1', blush: '#fbcfe8' },
+            amber: { name: {zh: '千年琥珀', en: 'Ancient Amber'}, cost: 5200, body: '#fef3c7', outline: '#451a03', earTop: '#b45309', tail: '#b45309', spot: '#92400e', blush: '#f87171' },
+            coralSlug: { name: {zh: '海底珊瑚', en: 'Deep Coral'}, cost: 5500, body: '#ffe4e6', outline: '#4c0519', earTop: '#fb7185', tail: '#fb7185', spot: '#f43f5e', blush: '#fda4af' },
+            peachSlug: { name: {zh: '甜心水蜜桃', en: 'Sweet Peach'}, cost: 3200, body: '#fff1f2', outline: '#881337', earTop: '#fb7185', tail: '#fda4af', spot: '#f43f5e', blush: '#f43f5e' },
+            banana: { name: {zh: '香蕉牛奶', en: 'Banana Milk'}, cost: 3200, body: '#fefce8', outline: '#713f12', earTop: '#facc15', tail: '#fde047', spot: '#ca8a04', blush: '#fca5a5' },
+            blueberry: { name: {zh: '藍莓起司', en: 'Blueberry Pie'}, cost: 3400, body: '#e0e7ff', outline: '#1e1b4b', earTop: '#6366f1', tail: '#818cf8', spot: '#4f46e5', blush: '#c7d2fe' },
+            avocado: { name: {zh: '酪梨優格', en: 'Avocado Yogurt'}, cost: 3400, body: '#f7fee7', outline: '#365314', earTop: '#84cc16', tail: '#a3e635', spot: '#65a30d', blush: '#fca5a5' },
+            taro: { name: {zh: '香芋布丁', en: 'Taro Pudding'}, cost: 3600, body: '#f3e8ff', outline: '#581c87', earTop: '#a855f7', tail: '#c084fc', spot: '#9333ea', blush: '#fbcfe8' },
+            papaya: { name: {zh: '木瓜牛奶', en: 'Papaya Milk'}, cost: 3600, body: '#ffedd5', outline: '#7c2d12', earTop: '#fb923c', tail: '#fdba74', spot: '#f97316', blush: '#fca5a5' },
+            kiwi: { name: {zh: '奇異果派', en: 'Kiwi Tart'}, cost: 3800, body: '#f7fee7', outline: '#1a2e05', earTop: '#65a30d', tail: '#84cc16', spot: '#4d7c0f', blush: '#fca5a5' },
+            dragonfruit: { name: {zh: '火龍果精靈', en: 'Dragon Fruit'}, cost: 4000, body: '#fdf2f8', outline: '#500724', earTop: '#ec4899', tail: '#f472b6', spot: '#db2777', blush: '#fbcfe8' },
+            mango: { name: {zh: '夏日芒果', en: 'Summer Mango'}, cost: 4000, body: '#fff7ed', outline: '#7c2d12', earTop: '#f97316', tail: '#fb923c', spot: '#ea580c', blush: '#fca5a5' },
+            coconut: { name: {zh: '椰香白巧', en: 'Coconut White'}, cost: 4200, body: '#ffffff', outline: '#292524', earTop: '#d7d3d0', tail: '#d7d3d0', spot: '#a8a29e', blush: '#fbcfe8' },
+            unicorn: { name: {zh: '獨角獸之夢', en: 'Unicorn Dream'}, cost: 6500, body: '#fdf4ff', outline: '#701a75', earTop: '#e879f9', tail: '#f472b6', spot: '#c084fc', blush: '#fbcfe8' },
+            phoenix: { name: {zh: '不死鳥之羽', en: 'Phoenix Feather'}, cost: 7000, body: '#fff1f2', outline: '#450a0a', earTop: '#f43f5e', tail: '#fb7185', spot: '#e11d48', blush: '#fca5a5' },
+            dragonSlug: { name: {zh: '烈焰小龍', en: 'Flame Dragon'}, cost: 7500, body: '#fff7ed', outline: '#431407', earTop: '#ea580c', tail: '#f97316', spot: '#c2410c', blush: '#fca5a5' },
+            frost: { name: {zh: '永凍冰晶', en: 'Eternal Frost'}, cost: 6500, body: '#f0f9ff', outline: '#0c4a6e', earTop: '#38bdf8', tail: '#7dd3fc', spot: '#0284c7', blush: '#bae6fd' },
+            storm: { name: {zh: '雷鳴風暴', en: 'Thunder Storm'}, cost: 6800, body: '#f8fafc', outline: '#0f172a', earTop: '#facc15', tail: '#fde047', spot: '#334155', blush: '#fca5a5' },
+            magma: { name: {zh: '熔岩之心', en: 'Magma Core'}, cost: 7200, body: '#450a0a', outline: '#fef08a', earTop: '#ef4444', tail: '#f97316', spot: '#dc2626', blush: '#f87171' },
+            nebula: { name: {zh: '璀璨星雲', en: 'Cosmic Nebula'}, cost: 8000, body: '#2e1065', outline: '#fbcfe8', earTop: '#c084fc', tail: '#e879f9', spot: '#818cf8', blush: '#f472b6' },
+            eclipse: { name: {zh: '日蝕幻影', en: 'Solar Eclipse'}, cost: 8500, body: '#0f172a', outline: '#fbbf24', earTop: '#334155', tail: '#f59e0b', spot: '#1e293b', blush: '#f87171' },
+            starlight: { name: {zh: '流星微光', en: 'Starlight Dust'}, cost: 7800, body: '#020617', outline: '#38bdf8', earTop: '#fef08a', tail: '#7dd3fc', spot: '#fde047', blush: '#bae6fd' },
+            abyssSlug: { name: {zh: '深淵使者', en: 'Abyss Herald'}, cost: 9000, body: '#030712', outline: '#14b8a6', earTop: '#0d9488', tail: '#0f766e', spot: '#115e59', blush: '#2dd4bf' },
+            springBlossom: { name: {zh: '春日櫻笛', en: 'Spring Blossom'}, cost: 3500, body: '#fff1f2', outline: '#831843', earTop: '#fb7185', tail: '#f43f5e', spot: '#fda4af', blush: '#f43f5e' },
+            summerBreeze: { name: {zh: '夏日微風', en: 'Summer Breeze'}, cost: 3500, body: '#ecfeff', outline: '#164e63', earTop: '#22d3ee', tail: '#67e8f9', spot: '#0891b2', blush: '#99f6e4' },
+            autumnMaple: { name: {zh: '秋意楓紅', en: 'Autumn Maple'}, cost: 3500, body: '#fff7ed', outline: '#7c2d12', earTop: '#f97316', tail: '#ea580c', spot: '#c2410c', blush: '#fca5a5' },
+            winterSnow: { name: {zh: '冬夜初雪', en: 'Winter Snow'}, cost: 3500, body: '#f8fafc', outline: '#334155', earTop: '#94a3b8', tail: '#cbd5e1', spot: '#64748b', blush: '#e2e8f0' },
+            halloweenBat: { name: {zh: '萬聖小蝙蝠', en: 'Spooky Bat'}, cost: 5000, body: '#18181b', outline: '#f97316', earTop: '#a855f7', tail: '#7e22ce', spot: '#f97316', blush: '#c084fc' },
+            christmasTree: { name: {zh: '耶誕小樹', en: 'Xmas Tree'}, cost: 5000, body: '#064e3b', outline: '#fef08a', earTop: '#ef4444', tail: '#10b981', spot: '#f59e0b', blush: '#f87171' },
+            valentineRose: { name: {zh: '情人玫瑰', en: 'Valentine Rose'}, cost: 5000, body: '#fff1f2', outline: '#9f1239', earTop: '#e11d48', tail: '#be123c', spot: '#fb7185', blush: '#f43f5e' },
+            newYearTiger: { name: {zh: '迎春小福虎', en: 'Lunar Tiger'}, cost: 5000, body: '#fffbeb', outline: '#78350f', earTop: '#f59e0b', tail: '#d97706', spot: '#1c1917', blush: '#f87171' },
+            macaron: { name: {zh: '法式馬卡龍', en: 'French Macaron'}, cost: 4500, body: '#fbcfe8', outline: '#831843', earTop: '#fed7aa', tail: '#a7f3d0', spot: '#f472b6', blush: '#f472b6' },
+            cottonCandy: { name: {zh: '夢幻棉花糖', en: 'Cotton Candy'}, cost: 4500, body: '#e0e7ff', outline: '#3730a3', earTop: '#fbcfe8', tail: '#c7d2fe', spot: '#818cf8', blush: '#f472b6' },
+            puddingCaramel: { name: {zh: '焦糖布丁燒', en: 'Caramel Flan'}, cost: 4500, body: '#fef3c7', outline: '#78350f', earTop: '#b45309', tail: '#d97706', spot: '#92400e', blush: '#f87171' },
+            matchaLatte: { name: {zh: '特濃抹茶拿鐵', en: 'Matcha Latte'}, cost: 4500, body: '#dcfce7', outline: '#14532d', earTop: '#15803d', tail: '#22c55e', spot: '#166534', blush: '#fca5a5' }
         };
 
-        const envData = {
-            sky: { name: {zh: '晴空藍', en: 'Sky Blue'}, cost: 0, bg: '#dbeafe' },
-            peach: { name: {zh: '蜜桃粉', en: 'Peach Pink'}, cost: 800, bg: '#fce7f3' },
-            mintBg: { name: {zh: '薄荷綠', en: 'Mint Green'}, cost: 1000, bg: '#d1fae5' },
-            lavender: { name: {zh: '薰衣草紫', en: 'Lavender'}, cost: 1200, bg: '#f3e8ff' }
+        // 升級：真實質感的背景資料（無波點干擾）
+        // 升級：50種真實質感的背景資料
+        const bgData = {
+            // --- 基礎與自然系列 ---
+            sky: { name: {zh: '基礎藍', en: 'Sky Blue'}, cost: 0, preview: '#dbeafe', style: '#dbeafe', hasDots: true },
+            ocean: { name: {zh: '神祕海洋', en: 'Deep Ocean'}, cost: 1000, preview: '#0284c7', style: 'radial-gradient(circle at 50% 0%, #38bdf8 0%, #0284c7 45%, #092b5a 100%)', hasDots: false },
+            beach: { name: {zh: '陽光沙灘', en: 'Sunny Beach'}, cost: 1200, preview: '#fde047', style: 'linear-gradient(to bottom, #7dd3fc 0%, #bae6fd 40%, #38bdf8 45%, #fde047 60%, #fef08a 100%)', hasDots: false },
+            sunset: { name: {zh: '唯美落日', en: 'Sunset'}, cost: 1500, preview: '#fb923c', style: 'radial-gradient(circle at 50% 30%, #fef08a 0%, #f97316 40%, #be123c 80%, #4c1d95 100%)', hasDots: false },
+            midnight: { name: {zh: '靜謐星空', en: 'Midnight'}, cost: 1500, preview: '#1e293b', style: 'radial-gradient(circle at 80% 20%, #312e81 0%, #0f172a 60%, #020617 100%)', hasDots: false },
+            aurora: { name: {zh: '極光祕境', en: 'Aurora'}, cost: 2000, preview: '#10b981', style: 'linear-gradient(135deg, #020617 0%, #064e3b 40%, #10b981 70%, #0284c7 100%)', hasDots: false },
+            forest: { name: {zh: '精靈森林', en: 'Elf Forest'}, cost: 1800, preview: '#22c55e', style: 'radial-gradient(circle at 50% 100%, #14532d 0%, #16a34a 40%, #86efac 100%)', hasDots: false },
+            volcano: { name: {zh: '烈焰火山', en: 'Volcano'}, cost: 2200, preview: '#ef4444', style: 'linear-gradient(to top, #450a0a 0%, #991b1b 40%, #ef4444 80%, #f97316 100%)', hasDots: false },
+            desert: { name: {zh: '無垠沙海', en: 'Desert'}, cost: 1600, preview: '#d97706', style: 'linear-gradient(to bottom, #fdba74 0%, #f59e0b 50%, #b45309 100%)', hasDots: false },
+            snowfield: { name: {zh: '極地雪原', en: 'Snowfield'}, cost: 1800, preview: '#e0f2fe', style: 'linear-gradient(to bottom, #bae6fd 0%, #e0f2fe 50%, #ffffff 100%)', hasDots: true },
+            cherryBlossom: { name: {zh: '櫻花小徑', en: 'Sakura Path'}, cost: 2500, preview: '#fbcfe8', style: 'linear-gradient(120deg, #fdf2f8 0%, #fbcfe8 50%, #f472b6 100%)', hasDots: true },
+            autumnLeaves: { name: {zh: '楓葉深秋', en: 'Autumn'}, cost: 2400, preview: '#ea580c', style: 'radial-gradient(circle at 20% 20%, #ffedd5 0%, #fb923c 40%, #c2410c 100%)', hasDots: false },
+            lavender: { name: {zh: '薰衣草田', en: 'Lavender'}, cost: 2100, preview: '#c084fc', style: 'linear-gradient(to top, #4c1d95 0%, #7c3aed 40%, #c084fc 80%, #f3e8ff 100%)', hasDots: false },
+            coralReef: { name: {zh: '七彩珊瑚', en: 'Coral Reef'}, cost: 2300, preview: '#fb7185', style: 'radial-gradient(circle at 50% 80%, #164e63 0%, #0891b2 40%, #fb7185 80%, #fda4af 100%)', hasDots: false },
+            abyss: { name: {zh: '無底深淵', en: 'The Abyss'}, cost: 3000, preview: '#000000', style: 'radial-gradient(circle at 50% 50%, #1e1b4b 0%, #000000 100%)', hasDots: false },
+            
+            // --- 甜點與食物系列 ---
+            strawberryMilk: { name: {zh: '草莓牛奶', en: 'Strawberry Milk'}, cost: 1500, preview: '#ffe4e6', style: 'linear-gradient(to right, #fff1f2, #ffe4e6, #fecdd3)', hasDots: true },
+            matchaLatte: { name: {zh: '宇治抹茶', en: 'Matcha Latte'}, cost: 1600, preview: '#dcfce7', style: 'linear-gradient(45deg, #f0fdf4 0%, #dcfce7 50%, #bbf7d0 100%)', hasDots: true },
+            pudding: { name: {zh: '焦糖布丁', en: 'Pudding Pool'}, cost: 1700, preview: '#fef3c7', style: 'linear-gradient(to bottom, #fffbeb 0%, #fef3c7 60%, #b45309 100%)', hasDots: false },
+            mintChoco: { name: {zh: '薄荷巧克', en: 'Mint Choco'}, cost: 1900, preview: '#ccfbf1', style: 'radial-gradient(circle at 30% 30%, #f0fdfa 0%, #ccfbf1 60%, #3f2a2a 100%)', hasDots: true },
+            blueberryJam: { name: {zh: '藍莓果醬', en: 'Blueberry'}, cost: 1800, preview: '#c7d2fe', style: 'linear-gradient(to top right, #e0e7ff 0%, #c7d2fe 50%, #4f46e5 100%)', hasDots: false },
+            coffeeShop: { name: {zh: '午後拿鐵', en: 'Cafe Latte'}, cost: 2000, preview: '#ffedd5', style: 'linear-gradient(to bottom, #fff7ed 0%, #ffedd5 40%, #9a3412 100%)', hasDots: false },
+            tomatoGarden: { name: {zh: '番茄樂園', en: 'Tomato Garden'}, cost: 2200, preview: '#fca5a5', style: 'radial-gradient(circle at 70% 30%, #fef2f2 0%, #fca5a5 50%, #b91c1c 100%)', hasDots: true },
+            taroPaste: { name: {zh: '香芋泥泥', en: 'Taro Paste'}, cost: 1800, preview: '#e9d5ff', style: 'linear-gradient(135deg, #faf5ff 0%, #e9d5ff 50%, #a855f7 100%)', hasDots: true },
+            peachOrchard: { name: {zh: '水蜜桃季', en: 'Peach Season'}, cost: 2400, preview: '#fbcfe8', style: 'radial-gradient(circle at 50% 50%, #fff1f2 0%, #fbcfe8 60%, #f43f5e 100%)', hasDots: false },
+            honeyPot: { name: {zh: '小熊蜜罐', en: 'Honey Pot'}, cost: 2100, preview: '#fde047', style: 'linear-gradient(to bottom, #fef08a 0%, #fde047 50%, #ca8a04 100%)', hasDots: false },
+
+            // --- 魔幻與宇宙系列 ---
+            galaxy: { name: {zh: '銀河星系', en: 'Galaxy'}, cost: 3500, preview: '#312e81', style: 'radial-gradient(circle at 20% 80%, #4c1d95 0%, #312e81 40%, #000000 100%)', hasDots: false },
+            nebula: { name: {zh: '粉紅星雲', en: 'Pink Nebula'}, cost: 3800, preview: '#d8b4fe', style: 'radial-gradient(circle at 80% 20%, #fbcfe8 0%, #d8b4fe 40%, #2e1065 100%)', hasDots: false },
+            blackHole: { name: {zh: '黑洞視界', en: 'Black Hole'}, cost: 5000, preview: '#020617', style: 'radial-gradient(circle at 50% 50%, #000000 0%, #000000 60%, #eab308 90%, #ef4444 100%)', hasDots: false },
+            supernova: { name: {zh: '超新星爆發', en: 'Supernova'}, cost: 4500, preview: '#fde047', style: 'radial-gradient(circle at 50% 50%, #ffffff 0%, #fde047 20%, #ea580c 60%, #4c1d95 100%)', hasDots: false },
+            lunarBase: { name: {zh: '月球基地', en: 'Lunar Base'}, cost: 3200, preview: '#94a3b8', style: 'linear-gradient(to bottom, #020617 0%, #1e293b 50%, #cbd5e1 100%)', hasDots: false },
+            crystalCave: { name: {zh: '水晶石洞', en: 'Crystal Cave'}, cost: 4000, preview: '#67e8f9', style: 'linear-gradient(135deg, #083344 0%, #06b6d4 50%, #cffafe 100%)', hasDots: false },
+            dragonNest: { name: {zh: '巨龍巢穴', en: 'Dragon Nest'}, cost: 4200, preview: '#7f1d1d', style: 'radial-gradient(circle at 50% 100%, #f59e0b 0%, #b91c1c 50%, #450a0a 100%)', hasDots: false },
+            candyLand: { name: {zh: '魔法糖果屋', en: 'Candy Land'}, cost: 3600, preview: '#f472b6', style: 'linear-gradient(45deg, #fbcfe8 0%, #a78bfa 50%, #67e8f9 100%)', hasDots: true },
+            cloudCastle: { name: {zh: '雲端城堡', en: 'Cloud Castle'}, cost: 3800, preview: '#f0f9ff', style: 'linear-gradient(to top, #bae6fd 0%, #f0f9ff 60%, #ffffff 100%)', hasDots: true },
+            hauntedHouse: { name: {zh: '幽靈洋館', en: 'Haunted House'}, cost: 3300, preview: '#475569', style: 'linear-gradient(to bottom, #020617 0%, #334155 70%, #94a3b8 100%)', hasDots: false },
+            
+            // --- 抽象、特別與幽默系列 ---
+            noCodeParadise: { name: {zh: '拒絕寫Code天堂', en: 'No Code Heaven'}, cost: 8888, preview: '#fed7aa', style: 'linear-gradient(120deg, #fff7ed 0%, #ffedd5 30%, #fed7aa 70%, #fdba74 100%)', hasDots: true },
+            artistCanvas: { name: {zh: '畫布上的塗鴉', en: 'Artist Canvas'}, cost: 4500, preview: '#f8fafc', style: 'linear-gradient(45deg, #f8fafc 0%, #e2e8f0 20%, #f8fafc 40%, #e2e8f0 60%, #f8fafc 80%, #e2e8f0 100%)', hasDots: true },
+            cyberpunk: { name: {zh: '賽博龐克', en: 'Cyberpunk'}, cost: 5500, preview: '#ec4899', style: 'linear-gradient(135deg, #0f172a 0%, #4c1d95 40%, #db2777 80%, #22d3ee 100%)', hasDots: false },
+            matrix: { name: {zh: '母體數據流', en: 'The Matrix'}, cost: 6000, preview: '#15803d', style: 'linear-gradient(to bottom, #000000 0%, #14532d 50%, #22c55e 100%)', hasDots: false },
+            vaporwave: { name: {zh: '蒸氣波迷夢', en: 'Vaporwave'}, cost: 4800, preview: '#d8b4fe', style: 'linear-gradient(180deg, #f472b6 0%, #c084fc 40%, #2dd4bf 100%)', hasDots: false },
+            goldenMine: { name: {zh: '暴富金礦', en: 'Golden Mine'}, cost: 9999, preview: '#f59e0b', style: 'radial-gradient(circle at 50% 50%, #fef08a 0%, #f59e0b 50%, #78350f 100%)', hasDots: false },
+            toxicSwamp: { name: {zh: '史萊姆毒沼', en: 'Toxic Swamp'}, cost: 2500, preview: '#84cc16', style: 'radial-gradient(circle at 20% 80%, #3f6212 0%, #65a30d 50%, #14532d 100%)', hasDots: false },
+            bloodMoon: { name: {zh: '猩紅之月', en: 'Blood Moon'}, cost: 4400, preview: '#991b1b', style: 'radial-gradient(circle at 80% 20%, #f87171 0%, #991b1b 40%, #000000 100%)', hasDots: false },
+            neonCity: { name: {zh: '霓虹不夜城', en: 'Neon City'}, cost: 5200, preview: '#8b5cf6', style: 'linear-gradient(to right, #1e1b4b 0%, #5b21b6 30%, #be185d 70%, #0f172a 100%)', hasDots: false },
+            rainbowBridge: { name: {zh: '彩虹樂園', en: 'Rainbow Bridge'}, cost: 7777, preview: '#38bdf8', style: 'linear-gradient(90deg, #f87171 0%, #fb923c 20%, #facc15 40%, #4ade80 60%, #38bdf8 80%, #a855f7 100%)', hasDots: true },
+            tvStatic: { name: {zh: '阿嬤的舊電視', en: 'Old TV'}, cost: 1000, preview: '#94a3b8', style: 'repeating-linear-gradient(0deg, #334155, #334155 2px, #cbd5e1 2px, #cbd5e1 4px)', hasDots: false },
+            heartbeat: { name: {zh: '心動小鎮', en: 'Heartbeat Town'}, cost: 6666, preview: '#f43f5e', style: 'radial-gradient(circle at 50% 50%, #ffe4e6 0%, #fda4af 40%, #e11d48 100%)', hasDots: false },
+            movieTheater: { name: {zh: '午夜電影院', en: 'Midnight Cinema'}, cost: 3000, preview: '#1e293b', style: 'linear-gradient(to top, #0f172a 0%, #1e293b 80%, #3b82f6 100%)', hasDots: false },
+            catCafe: { name: {zh: '貓咪咖啡廳', en: 'Cat Cafe'}, cost: 2800, preview: '#d6d3d1', style: 'linear-gradient(135deg, #fafaf9 0%, #e7e5e4 50%, #a8a29e 100%)', hasDots: true },
+            bathhouse: { name: {zh: '溫泉澡堂', en: 'Bathhouse'}, cost: 3400, preview: '#7dd3fc', style: 'linear-gradient(to bottom, #e0f2fe 0%, #7dd3fc 60%, #1d4ed8 100%)', hasDots: false }
         };
 
+        // 特效資料
+        // 升級：50種超有梗特效資料庫（內建萬用粒子參數）
+        const effectData = {
+            // --- 基礎款 ---
+            none: { name: {zh: '無特效', en: 'None'}, cost: 0, preview: '#ffffff' },
+            rain: { name: {zh: '綿綿細雨', en: 'Raindrops'}, cost: 800, preview: '#93c5fd' },
+            bubble: { name: {zh: '夢幻泡泡', en: 'Bubbles'}, cost: 1200, preview: '#67e8f9' },
+            
+            // --- 特別專屬與幽默款 ---
+            tomato: { name: {zh: '飛天小番茄', en: 'Flying Tomato'}, cost: 1500, preview: '#fca5a5', emoji: ['🍅', '✨'], dir: 'down', count: 12 },
+            bugFree: { name: {zh: 'Bug退散', en: 'No More Bugs'}, cost: 8888, preview: '#4ade80', emoji: ['🐛', '❌', '💻'], dir: 'up', count: 15 },
+            disco: { name: {zh: '迪斯可舞池', en: 'Disco Party'}, cost: 2500, preview: '#c084fc', emoji: ['🪩', '💃', '✨'], dir: 'up', count: 10 },
+            paint: { name: {zh: '揮灑顏料', en: 'Paint Splash'}, cost: 2000, preview: '#f472b6', emoji: ['🎨', '🖌️', '💧'], dir: 'down', count: 15 },
+            heartbeat: { name: {zh: '心動滿滿', en: 'Heartbeat'}, cost: 1800, preview: '#f43f5e', emoji: ['💖', '🏡', '💕'], dir: 'up', count: 18 },
+            noClass: { name: {zh: '不想上課', en: 'Skip Class'}, cost: 1600, preview: '#94a3b8', emoji: ['📚', '💨', '🛌'], dir: 'down', count: 12 },
+            money: { name: {zh: '財富自由', en: 'Money Rain'}, cost: 9999, preview: '#facc15', emoji: ['💸', '💰', '💎'], dir: 'down', count: 20 },
+            zzz: { name: {zh: '強烈睡意', en: 'Sleepy'}, cost: 1000, preview: '#cbd5e1', emoji: ['💤'], dir: 'up', count: 8 },
+            sweat: { name: {zh: '尷尬流汗', en: 'Sweating'}, cost: 1000, preview: '#7dd3fc', emoji: ['💦', '💧'], dir: 'down', count: 15 },
+            math: { name: {zh: '數學當機', en: 'Math Error'}, cost: 1200, preview: '#0f172a', emoji: ['➕', '➖', '✖️', '➗', '❓'], dir: 'down', count: 20 },
+            poop: { name: {zh: '黃金天降', en: 'Holy Poop'}, cost: 500, preview: '#78350f', emoji: ['💩', '✨'], dir: 'down', count: 10 },
+            
+            // --- 大自然與天氣 ---
+            snow: { name: {zh: '初雪飄落', en: 'Snowfall'}, cost: 1500, preview: '#e0f2fe', emoji: ['❄️', '❅', '❆'], dir: 'down', count: 25 },
+            sakura: { name: {zh: '櫻花飛舞', en: 'Sakura'}, cost: 2200, preview: '#fbcfe8', emoji: ['🌸', '💮'], dir: 'down', count: 20 },
+            star: { name: {zh: '繁星閃爍', en: 'Starry'}, cost: 1800, preview: '#fef08a', emoji: ['⭐', '✨', '🌟'], dir: 'down', count: 20 },
+            firefly: { name: {zh: '螢火蟲', en: 'Fireflies'}, cost: 2000, preview: '#84cc16', emoji: ['🟡', '✨'], dir: 'up', count: 15 },
+            leaf: { name: {zh: '落葉紛飛', en: 'Falling Leaves'}, cost: 1400, preview: '#ea580c', emoji: ['🍂', '🍁'], dir: 'down', count: 15 },
+            meteor: { name: {zh: '流星雨', en: 'Meteor Shower'}, cost: 3000, preview: '#818cf8', emoji: ['🌠'], dir: 'down', count: 8 },
+            sun: { name: {zh: '陽光普照', en: 'Sunny'}, cost: 1500, preview: '#fb923c', emoji: ['☀️', '🌻'], dir: 'up', count: 10 },
+            moon: { name: {zh: '月光灑落', en: 'Moonlight'}, cost: 1500, preview: '#1e293b', emoji: ['🌙', '☁️'], dir: 'down', count: 8 },
+            lightning: { name: {zh: '閃電交加', en: 'Lightning'}, cost: 2400, preview: '#fde047', emoji: ['⚡', '🌩️'], dir: 'down', count: 12 },
+            rainbowStars: { name: {zh: '彩虹星塵', en: 'Rainbow Dust'}, cost: 2800, preview: '#a855f7', emoji: ['🌈', '✨'], dir: 'up', count: 12 },
+            
+            // --- 動物與奇幻生物 ---
+            butterfly: { name: {zh: '蝴蝶翩翩', en: 'Butterflies'}, cost: 2100, preview: '#c084fc', emoji: ['🦋'], dir: 'up', count: 10 },
+            bat: { name: {zh: '吸血蝙蝠', en: 'Vampire Bats'}, cost: 2300, preview: '#334155', emoji: ['🦇'], dir: 'down', count: 12 },
+            ghost: { name: {zh: '小幽靈', en: 'Little Ghosts'}, cost: 2500, preview: '#f8fafc', emoji: ['👻', '💨'], dir: 'up', count: 10 },
+            duck: { name: {zh: '黃色小鴨', en: 'Rubber Ducks'}, cost: 1800, preview: '#fde047', emoji: ['🦆', '🐤'], dir: 'down', count: 15 },
+            fish: { name: {zh: '深海魚群', en: 'School of Fish'}, cost: 1900, preview: '#0284c7', emoji: ['🐟', '🐠', '🐡'], dir: 'up', count: 18 },
+            sheep: { name: {zh: '數羊羊', en: 'Counting Sheep'}, cost: 1600, preview: '#e2e8f0', emoji: ['🐑', '☁️'], dir: 'up', count: 8 },
+            feather: { name: {zh: '天使羽毛', en: 'Angel Feathers'}, cost: 2400, preview: '#ffffff', emoji: ['🪶', '🕊️'], dir: 'down', count: 15 },
+            
+            // --- 美食派對 ---
+            boba: { name: {zh: '珍奶珍珠', en: 'Boba Pearls'}, cost: 1700, preview: '#78350f', emoji: ['🧋', '⚫'], dir: 'down', count: 20 },
+            sushi: { name: {zh: '迴轉壽司', en: 'Sushi Roll'}, cost: 2200, preview: '#f87171', emoji: ['🍣', '🍤', '🍙'], dir: 'down', count: 12 },
+            pizza: { name: {zh: '披薩派對', en: 'Pizza Party'}, cost: 2000, preview: '#ea580c', emoji: ['🍕'], dir: 'down', count: 10 },
+            fries: { name: {zh: '薯條雨', en: 'French Fries'}, cost: 1900, preview: '#facc15', emoji: ['🍟'], dir: 'down', count: 15 },
+            cake: { name: {zh: '甜點時間', en: 'Dessert Time'}, cost: 2100, preview: '#fbcfe8', emoji: ['🍰', '🧁', '🍩'], dir: 'down', count: 12 },
+            coffee: { name: {zh: '咖啡續命', en: 'Coffee Refill'}, cost: 1800, preview: '#451a03', emoji: ['☕', '🤎'], dir: 'up', count: 10 },
+            cookie: { name: {zh: '餅干碎屑', en: 'Cookies'}, cost: 1600, preview: '#b45309', emoji: ['🍪'], dir: 'down', count: 12 },
+            
+            // --- 魔法、節慶與科幻 ---
+            confetti: { name: {zh: '派對拉炮', en: 'Confetti'}, cost: 2500, preview: '#f472b6', emoji: ['🎉', '🎊', '✨'], dir: 'down', count: 20 },
+            balloon: { name: {zh: '彩色氣球', en: 'Balloons'}, cost: 2000, preview: '#ef4444', emoji: ['🎈'], dir: 'up', count: 10 },
+            magic: { name: {zh: '魔法詠唱', en: 'Magic Spell'}, cost: 3500, preview: '#a855f7', emoji: ['🪄', '✨', '🔮'], dir: 'up', count: 15 },
+            potion: { name: {zh: '煉金藥水', en: 'Alchemy Potions'}, cost: 3200, preview: '#22c55e', emoji: ['🧪', '⚗️'], dir: 'up', count: 12 },
+            sword: { name: {zh: '勇者之劍', en: 'Hero Swords'}, cost: 3800, preview: '#94a3b8', emoji: ['⚔️', '🛡️'], dir: 'down', count: 8 },
+            ufo: { name: {zh: '外星綁架', en: 'UFO Abduction'}, cost: 4000, preview: '#4ade80', emoji: ['🛸', '👽'], dir: 'up', count: 6 },
+            planet: { name: {zh: '行星軌道', en: 'Planets'}, cost: 4200, preview: '#312e81', emoji: ['🪐', '🌍', '🌕'], dir: 'up', count: 8 },
+            clock: { name: {zh: '時光倒流', en: 'Time Reversal'}, cost: 3600, preview: '#d4d4d8', emoji: ['⏳', '🕰️'], dir: 'up', count: 10 },
+            gift: { name: {zh: '驚喜禮物', en: 'Surprise Gifts'}, cost: 2800, preview: '#f43f5e', emoji: ['🎁', '🎀'], dir: 'down', count: 12 },
+            sparkle: { name: {zh: 'Bling閃光', en: 'Sparkles'}, cost: 2000, preview: '#fef08a', emoji: ['✨', '💫'], dir: 'up', count: 25 },
+            crown: { name: {zh: '加冕皇冠', en: 'Royal Crown'}, cost: 5000, preview: '#eab308', emoji: ['👑', '✨'], dir: 'down', count: 8 },
+            card: { name: {zh: '魔術撲克', en: 'Magic Cards'}, cost: 2700, preview: '#ef4444', emoji: ['🃏', '♠️', '♥️', '♦️', '♣️'], dir: 'down', count: 18 },
+            gear: { name: {zh: '齒輪運轉', en: 'Gears Turning'}, cost: 2600, preview: '#64748b', emoji: ['⚙️'], dir: 'down', count: 12 },
+            music: { name: {zh: '跳動音符', en: 'Musical Notes'}, cost: 2200, preview: '#3b82f6', emoji: ['🎵', '🎶'], dir: 'up', count: 15 }
+        };
         let currentTab = 'species';
 
         window.onload = function() {
@@ -581,7 +760,8 @@
             document.getElementById('txtPetTitle').innerText = t.pet;
             
             document.getElementById('tabSpecies').innerText = t.tabSpecies;
-            document.getElementById('tabEnvironment').innerText = t.tabEnv;
+            document.getElementById('tabBg').innerText = t.tabBg;
+            document.getElementById('tabEffect').innerText = t.tabEffect;
         }
 
         function checkFirstTime() {
@@ -590,7 +770,8 @@
             } else {
                 document.getElementById('gachaScreen').style.display = 'none';
                 applySlugStyles();
-                applyEnv();
+                applyBg();
+                applyEffect();
                 updateUI();
             }
         }
@@ -632,7 +813,8 @@
         function switchTab(tab) {
             currentTab = tab;
             document.getElementById('tabSpecies').className = tab === 'species' ? 'tab active' : 'tab';
-            document.getElementById('tabEnvironment').className = tab === 'env' ? 'tab active' : 'tab';
+            document.getElementById('tabBg').className = tab === 'bg' ? 'tab active' : 'tab';
+            document.getElementById('tabEffect').className = tab === 'effect' ? 'tab active' : 'tab';
             renderShop();
         }
 
@@ -641,21 +823,25 @@
             grid.innerHTML = '';
             const t = i18n[currLang];
 
-            let dataObj = currentTab === 'species' ? speciesData : envData;
+            let dataObj, unlockedArr, currentActive;
+            if (currentTab === 'species') { dataObj = speciesData; unlockedArr = gameState.unlockedSpecies; currentActive = gameState.currentSpecies; }
+            else if (currentTab === 'bg') { dataObj = bgData; unlockedArr = gameState.unlockedBgs; currentActive = gameState.currentBg; }
+            else { dataObj = effectData; unlockedArr = gameState.unlockedEffects; currentActive = gameState.currentEffect; }
 
             Object.keys(dataObj).forEach(key => {
                 const item = dataObj[key];
-                let isUnlocked = (currentTab === 'species') ? gameState.unlockedSpecies.includes(key) : gameState.unlockedItems.includes(key);
-                let isEquipped = (currentTab === 'species') ? gameState.currentSpecies === key : gameState.currentEnv === key;
+                let isUnlocked = unlockedArr.includes(key);
+                let isEquipped = currentActive === key;
 
                 const card = document.createElement('div');
                 card.className = `item-card ${isEquipped ? 'equipped' : ''}`;
                 card.onclick = () => handlePurchase(key, item, currentTab);
                 
                 let btnText = isUnlocked ? (isEquipped ? t.equip : t.owned) : item.cost;
+                
                 let previewStyle = currentTab === 'species' 
                     ? `background:${item.body}; border: 3px solid ${item.outline}`
-                    : `background: ${item.bg}; border: 3px solid #cbd5e1`;
+                    : `background: ${item.preview}; border: 3px solid #cbd5e1`;
 
                 card.innerHTML = `
                     <div class="item-color-preview" style="${previewStyle}"></div>
@@ -667,21 +853,23 @@
         }
 
         function handlePurchase(key, item, type) {
-            let isUnlocked = (type === 'species') ? gameState.unlockedSpecies.includes(key) : gameState.unlockedItems.includes(key);
+            let unlockedArr = (type === 'species') ? gameState.unlockedSpecies : (type === 'bg' ? gameState.unlockedBgs : gameState.unlockedEffects);
+            let isUnlocked = unlockedArr.includes(key);
 
             if (!isUnlocked) {
                 if (gameState.points >= item.cost) {
                     gameState.points -= item.cost;
-                    if (type === 'species') gameState.unlockedSpecies.push(key);
-                    else gameState.unlockedItems.push(key);
+                    unlockedArr.push(key);
                 } else { return; }
             }
 
             if (type === 'species') gameState.currentSpecies = key;
-            else gameState.currentEnv = key;
+            else if (type === 'bg') gameState.currentBg = key;
+            else gameState.currentEffect = key;
 
             applySlugStyles();
-            applyEnv();
+            applyBg();
+            applyEffect();
             saveGame();
             renderShop();
             updateUI();
@@ -700,10 +888,71 @@
             root.style.setProperty('--c-blush', spec.blush);
         }
 
-        function applyEnv() {
-            const env = envData[gameState.currentEnv];
-            if(env) {
-                document.getElementById('mainStage').style.background = env.bg;
+        function applyBg() {
+            const bg = bgData[gameState.currentBg];
+            if(bg) {
+                document.getElementById('mainStage').style.background = bg.style;
+                // 只有基礎款顯示波點，其餘隱藏
+                document.getElementById('dotPattern').style.opacity = bg.hasDots ? '0.9' : '0';
+            }
+        }
+
+        function applyEffect() {
+            const layer = document.getElementById('effectLayer');
+            layer.innerHTML = ''; 
+            const effectKey = gameState.currentEffect;
+            const effect = effectData[effectKey];
+            
+            if (!effect || effectKey === 'none') return;
+
+            // 保留原本的純 CSS 特效
+            if (effectKey === 'rain') {
+                for (let i = 0; i < 30; i++) {
+                    let drop = document.createElement('div');
+                    drop.className = 'rain-drop';
+                    drop.style.left = Math.random() * 100 + '%';
+                    drop.style.animationDuration = (Math.random() * 0.5 + 0.5) + 's';
+                    drop.style.animationDelay = Math.random() * 2 + 's';
+                    layer.appendChild(drop);
+                }
+            } else if (effectKey === 'bubble') {
+                for (let i = 0; i < 15; i++) {
+                    let b = document.createElement('div');
+                    b.className = 'bubble';
+                    b.style.left = Math.random() * 100 + '%';
+                    b.style.width = b.style.height = (Math.random() * 12 + 6) + 'px';
+                    b.style.animationDuration = (Math.random() * 3 + 3) + 's';
+                    b.style.animationDelay = Math.random() * 2 + 's';
+                    layer.appendChild(b);
+                }
+            } 
+            // 全新萬用 Emoji 粒子系統
+            else if (effect.emoji) {
+                let count = effect.count || 15;
+                for (let i = 0; i < count; i++) {
+                    let el = document.createElement('div');
+                    // 隨機抽取設定好的表情符號
+                    el.innerText = effect.emoji[Math.floor(Math.random() * effect.emoji.length)];
+                    el.style.position = 'absolute';
+                    el.style.fontSize = (Math.random() * 15 + 15) + 'px'; // 隨機大小
+                    el.style.left = Math.random() * 100 + '%';
+                    el.style.opacity = Math.random() * 0.5 + 0.5;
+                    
+                    let duration = Math.random() * 3 + 3; // 動畫長度 3~6秒
+                    let delay = Math.random() * 2;        // 隨機延遲
+                    
+                    // 判斷往下掉還是往上飄（共用原本寫好的 CSS 動畫）
+                    if (effect.dir === 'up') {
+                        el.style.bottom = '-40px';
+                        el.style.animation = `bubbleRise ${duration}s ease-in infinite`;
+                    } else {
+                        el.style.top = '-40px';
+                        el.style.animation = `rainFall ${duration}s linear infinite`;
+                    }
+                    
+                    el.style.animationDelay = delay + 's';
+                    layer.appendChild(el);
+                }
             }
         }
 
@@ -712,13 +961,6 @@
 
             gameState.points += reward;
             gameState.cooldowns[type] = cdSeconds;
-
-            const slug = document.getElementById('slugContainer');
-            slug.style.transform = 'translateY(15px) scale(1.1, 0.8)';
-            setTimeout(() => {
-                slug.style.transform = 'translateY(-10px) scale(0.95, 1.05)';
-                setTimeout(() => { slug.style.transform = 'translateY(0) scale(1, 1)'; }, 250);
-            }, 200);
 
             showFloatText(`+${reward}`);
             saveGame();
@@ -752,30 +994,46 @@
             }, 1000);
         }
 
-        function updateUI() {
-            document.getElementById('pointDisplay').innerText = gameState.points;
-            const t = i18n[currLang];
-            const cds = gameState.cooldowns;
-            
-            ['feed', 'clean', 'pet'].forEach(type => {
-                const btn = document.getElementById(`btn${type.charAt(0).toUpperCase() + type.slice(1)}`);
-                const desc = document.getElementById(`txt${type.charAt(0).toUpperCase() + type.slice(1)}Desc`);
-                
-                if(cds[type] > 0) {
-                    btn.disabled = true;
-                    desc.innerText = `${t.cooldown} ${cds[type]}s`;
-                } else {
-                    btn.disabled = false;
-                    desc.innerText = t.ready;
-                }
-            });
-        }
-
-        function saveGame() { localStorage.setItem('nudi_v7_save', JSON.stringify(gameState)); }
+        function saveGame() { localStorage.setItem('nudi_v9_save', JSON.stringify(gameState)); }
+        
         function loadGame() {
-            const saved = localStorage.getItem('nudi_v7_save');
-            if (saved) { try { gameState = { ...gameState, ...JSON.parse(saved) }; } catch(e) {} }
+            const saved = localStorage.getItem('nudi_v9_save');
+            if (saved) { 
+                try { 
+                    let parsed = JSON.parse(saved);
+                    if(parsed.currentEnv) {
+                        parsed.currentBg = 'sky';
+                        parsed.currentEffect = 'none';
+                        parsed.unlockedBgs = ['sky'];
+                        parsed.unlockedEffects = ['none'];
+                        delete parsed.currentEnv;
+                        delete parsed.unlockedItems;
+                    }
+                    gameState = { ...gameState, ...parsed }; 
+                } catch(e) {} 
+            }
         }
+        function updateUI() {
+    const t = i18n[currLang];
+    // 1. 更新畫面的積分顯示
+    document.getElementById('pointDisplay').innerText = gameState.points;
+    
+    // 2. 更新三個互動按鈕的狀態與冷卻時間
+    ['feed', 'clean', 'pet'].forEach(type => {
+        // 將 'feed' 轉成 'btnFeed' 和 'txtFeedDesc' 等對應的 ID
+        const capitalizedType = type.charAt(0).toUpperCase() + type.slice(1);
+        const btn = document.getElementById('btn' + capitalizedType);
+        const desc = document.getElementById('txt' + capitalizedType + 'Desc');
+        
+        if (gameState.cooldowns[type] > 0) {
+            btn.disabled = true; // 冷卻中禁用按鈕
+            desc.innerText = `${t.cooldown} ${gameState.cooldowns[type]}s`;
+        } else {
+            btn.disabled = false; // 可互動
+            desc.innerText = t.ready;
+        }
+    });
+}
     </script>
 </body>
 </html>
