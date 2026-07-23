@@ -23,7 +23,7 @@ const BOARD_CATEGORY_MAP = {
 };
 
 // =========================================
-// 🚀 新增魔法：防抖與高亮函數
+// 🚀 魔法：防抖與高亮函數
 // =========================================
 function debounce(func, wait) {
     let timeout;
@@ -57,7 +57,7 @@ function calculateZodiac(month, day) {
     return "未填寫";
 }
 
-// 🌊 向後端抓取文章 API (🟢 訪客友善版)
+// 🌊 向後端抓取文章 API
 async function fetchBottles() {
     const token = localStorage.getItem("authToken");
 
@@ -71,8 +71,6 @@ async function fetchBottles() {
             if (!token) { renderPosts([]); return; }
             endpointUrl = `${API_BASE_URL}/bottles/saved`;
         } else if (currentKeyword) {
-            // ✨ 魔法 1 修正：既然沒有全站專屬 API，我們就呼叫一定會通的隨機海域！
-            // 但不帶入 categoryId，這樣後端就會把各看板的文章混在一起給你撈囉！
             endpointUrl = `${API_BASE_URL}/bottles/random`; 
         } else if (currentCategoryId !== null) {
             endpointUrl = `${API_BASE_URL}/bottles/random?categoryId=${currentCategoryId}`;
@@ -214,9 +212,10 @@ async function fetchBottles() {
                     title: item.title || rawItem.title,
                     desc: item.content || rawItem.content,
                     likes: totalLikes,
-                    msgs: getComments(safeId).length,
+                    msgs: item.comment_count || item.comments?.length || 0, // 這裡可以看後端有沒有直接給總數，先給 0 也可以
                     liked: isActuallyLiked,
-                    saved: isActuallySaved
+                    saved: isActuallySaved,
+                    createdAt: item.created_at || rawItem.created_at
                 };
             });
 
@@ -234,6 +233,7 @@ async function fetchBottles() {
         console.error("連線錯誤:", error);
     }
 }
+
 function escapeHTML(str) {
     if (typeof str !== 'string') return str;
     return str.replace(/[&<>'"]/g, tag => ({
@@ -247,7 +247,6 @@ function renderPosts(data = posts) {
     if (!container) return;
 
     if (!data || data.length === 0) {
-        // 🔮 加入專屬的查無此瓶畫面
         if (currentKeyword) {
             container.innerHTML = `<h3 style="text-align:center; color:#ffffff; text-shadow: 0 0 10px rgba(77, 166, 255, 0.8); margin-top:100px; font-size: 1.4rem;">喵嗚...翻遍了整片海域，就是找不到包含「${escapeHTML(currentKeyword)}」的瓶子喔！😿</h3>`;
         } else {
@@ -264,7 +263,6 @@ function renderPosts(data = posts) {
     const endIndex = startIndex + POSTS_PER_PAGE;
     const pageData = data.slice(startIndex, endIndex);
 
-    // 🎨 套用高亮功能到標題和內容
     container.innerHTML = pageData.map(p => `
         <div class="post-card" onclick="openPostDetail('${escapeHTML(String(p.id))}')">
             <div style="display:flex; justify-content:space-between; align-items:center;">
@@ -296,7 +294,6 @@ function applyFilters() {
         res = res.filter(p => p.saved === true);
     } else if (currentView === 'mine') {
     } else if (!currentKeyword) {
-        // ✨ 魔法 2：只有在「沒有搜尋」的時候，才把文章限制在當前看板
         res = res.filter(p => p.board.includes(currentBoard));
     }
 
@@ -362,7 +359,6 @@ window.applyHistorySearch = function (e, keyword) {
     if (searchInput) searchInput.value = keyword;
     currentKeyword = keyword.toLowerCase();
     
-    // 更新清除按鈕顯示狀態
     const clearBtn = document.getElementById('clear-search-btn');
     if (clearBtn) clearBtn.style.display = keyword ? 'block' : 'none';
 
@@ -380,44 +376,175 @@ window.removeSingleHistory = function (e, keyword) {
 
 let currentOpenPostId = null;
 
-function getComments(postId) {
-    if (!postId) return [];
+// =========================================
+// 🚀 留言功能完美接軌後端 API 區
+// =========================================
+
+window.renderComments = async function (postId) {
+    const lists = document.querySelectorAll('#detail-comments-list');
+    const counts = document.querySelectorAll('#detail-comment-count');
+
+    lists.forEach(listContainer => {
+        if(listContainer) listContainer.innerHTML = '<div style="text-align:center; color:#888; padding: 30px 0;">潛入海底撈取留言中...🌊</div>';
+    });
+
     try {
-        let allComments = JSON.parse(localStorage.getItem('postComments') || '{}');
-        if (typeof allComments !== 'object' || Array.isArray(allComments)) allComments = {};
-        return allComments[postId] || [];
-    } catch (e) { return []; }
+        const token = localStorage.getItem("authToken");
+        const headers = { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' };
+        if (token) headers['Authorization'] = `Bearer ${token}`;
+
+        const response = await fetch(`${API_BASE_URL}/comments/bottles/${postId}`, { 
+            method: 'GET', 
+            headers: headers 
+        });
+
+        let comments = [];
+        if (response.ok) {
+            const data = await response.json();
+            comments = data.comments || data.data || data || [];
+        }
+
+        lists.forEach(listContainer => {
+            if (!listContainer) return;
+            if (comments.length === 0) {
+                listContainer.innerHTML = '<div style="text-align:center; color:#888; padding: 30px 0;">目前還沒有留言喔，來搶頭香吧！🐟</div>';
+                return;
+            }
+
+            let html = '';
+            comments.forEach((c, index) => {
+                const authorName = c.member?.name || c.author_name || c.author?.name || c.user?.name || c.username || c.author || '匿名';
+                const likesCount = c.likeCount || c.like_count || c.likes || 0;
+                const commentId = c.id || c.comment_id || c.commentId || c._id;
+                const content = c.content || c.text || '';
+                const avatar = c.avatar || 'images/fish_logo.png';
+                const isLiked = c.isLiked || c.is_liked || c.liked || false;
+
+                html += `
+                    <div style="background: #fff; padding: 24px 0; border-bottom: 1px solid #f0f0f0;">
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 12px; align-items: center;">
+                            <span style="font-size: 1rem; font-weight: bold; color: #333; display: flex; align-items: center; gap: 12px;">
+                                <img src="${avatar}" style="width: 36px; height: 36px; border-radius: 50%; object-fit: cover; box-shadow: 0 1px 3px rgba(0,0,0,0.08);">
+                                ${escapeHTML(authorName)}
+                            </span>
+                            <span style="font-size: 0.85rem; color: #aaa; font-weight: bold;">B${index + 1}</span>
+                        </div>
+                        <div style="color: #222; font-size: 1.05rem; line-height: 1.7; padding-left: 48px; white-space: pre-wrap; margin-bottom: 10px;">${escapeHTML(content)}</div>
+                        
+                        <div style="text-align: right; padding-right: 15px;">
+                            <!-- ✨ 這裡加上了 ID，讓前端可以精準找到這顆愛心並瞬間變色 -->
+                            <span id="comment-like-btn-${commentId}" style="cursor: pointer; color: ${isLiked ? '#e74c3c' : '#999'}; font-size: 0.95rem; user-select: none; transition: 0.2s;" onclick="toggleCommentLike('${postId}', '${commentId}')">
+                                ${isLiked ? '❤️' : '🤍'} ${likesCount}
+                            </span>
+                        </div>
+                    </div>
+                `;
+            });
+            listContainer.innerHTML = html;
+        });
+
+        counts.forEach(countSpan => { if (countSpan) countSpan.innerText = comments.length; });
+        
+        const p = posts.find(x => String(x.id) === String(postId));
+        if (p) {
+            p.msgs = comments.length; 
+            applyFilters();
+        }
+
+    } catch (error) {
+        console.error("無法獲取留言:", error);
+        lists.forEach(listContainer => {
+            listContainer.innerHTML = '<div style="text-align:center; color:#ef4444; padding: 30px 0;">哎呀，讀取留言失敗了，請稍後再試！😿</div>';
+        });
+    }
 }
 
-function saveComment(postId, commentObj) {
-    if (!postId) return;
-    try {
-        let allComments = JSON.parse(localStorage.getItem('postComments') || '{}');
-        if (typeof allComments !== 'object' || Array.isArray(allComments)) allComments = {};
-        if (!allComments[postId]) allComments[postId] = [];
-        allComments[postId].push(commentObj);
-        localStorage.setItem('postComments', JSON.stringify(allComments));
-    } catch (e) { console.error("儲存留言時發生錯誤", e); }
-}
+window.submitComment = async function () {
+    const inputs = document.querySelectorAll('#new-comment-input');
+    let targetInput = null;
 
-window.toggleCommentLike = async function (postId, commentId, index) {
+    for (let i = 0; i < inputs.length; i++) {
+        if (inputs[i].offsetParent !== null) { targetInput = inputs[i]; break; }
+    }
+
+    if (!targetInput) return;
+    const text = targetInput.value.trim();
+
+    if (!text) { alert("請輸入溫暖的留言內容喔！"); return; }
+
+    const token = localStorage.getItem("authToken");
+    if (!token) { alert("寶寶，要先登入才能留言喔！"); return; }
+
+    try {
+        // 🚀 POST 新增留言給特定瓶子
+        const response = await fetch(`${API_BASE_URL}/comments/bottles/${currentOpenPostId}`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json',
+                'ngrok-skip-browser-warning': 'true'
+            },
+            body: JSON.stringify({ content: text })
+        });
+
+        if (response.ok) {
+            targetInput.value = ''; // 清空輸入框
+            
+            // 重新讀取最新的留言列表
+            await renderComments(currentOpenPostId);
+            
+            // 讓視窗乖乖滾到最底下
+            const detailView = document.getElementById('detail-view');
+            if (detailView && detailView.offsetParent !== null) {
+                window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+            }
+        } else {
+            const err = await response.json();
+            alert(`留言失敗：${err.message || '伺服器錯誤'}`);
+        }
+    } catch (error) {
+        console.error("發送留言失敗:", error);
+        alert("伺服器連線失敗，請稍後再試 😢");
+    }
+};
+
+window.toggleCommentLike = async function (postId, commentId) {
     const token = localStorage.getItem("authToken");
 
-    // 檢查是否登入
     if (!token) {
         alert("寶寶，要先登入才能幫留言按讚喔！");
         window.location.href = 'login.html';
         return;
     }
 
-    // 檢查是否缺少真實的留言 ID (避免只有 index 的狀況)
-    if (!commentId || commentId === 'undefined') {
-        alert("找不到這則留言的 ID 😢");
+    if (!commentId || commentId === 'undefined' || commentId === 'null') {
+        alert("找不到這則留言的 ID，可能是後端沒有回傳正確的欄位名稱唷 😢");
+        console.log("出錯的 commentId 是:", commentId);
         return;
     }
 
+    // ✨ 先在前端「秒換」愛心顏色，使用者體驗滿分！
+    const likeBtn = document.getElementById(`comment-like-btn-${commentId}`);
+    let currentLikes = 0;
+    let isCurrentlyLiked = false;
+
+    if (likeBtn) {
+        const text = likeBtn.innerText;
+        isCurrentlyLiked = text.includes('❤️');
+        // 抓出數字
+        currentLikes = parseInt(text.replace(/[^0-9]/g, '')) || 0;
+        
+        if (isCurrentlyLiked) {
+            likeBtn.innerHTML = `🤍 ${Math.max(0, currentLikes - 1)}`;
+            likeBtn.style.color = '#999';
+        } else {
+            likeBtn.innerHTML = `❤️ ${currentLikes + 1}`;
+            likeBtn.style.color = '#e74c3c';
+        }
+    }
+
     try {
-        // 🚀 1. 發送 POST 請求給後端 API
+        // 🚀 POST 留言按讚
         const response = await fetch(`${API_BASE_URL}/comments/${commentId}/like`, {
             method: 'POST',
             headers: {
@@ -430,86 +557,56 @@ window.toggleCommentLike = async function (postId, commentId, index) {
         if (!response.ok) {
             const err = await response.json();
             alert(`按讚失敗：${err.message || '伺服器錯誤'}`);
+            
+            // 🚨 如果後端報錯，把愛心乖乖退回原本的狀態
+            if (likeBtn) {
+                likeBtn.innerHTML = isCurrentlyLiked ? `❤️ ${currentLikes}` : `🤍 ${currentLikes}`;
+                likeBtn.style.color = isCurrentlyLiked ? '#e74c3c' : '#999';
+            }
             return;
         }
 
-        // ✨ 2. API 請求成功後，更新本地狀態與畫面
-        let allComments = JSON.parse(localStorage.getItem('postComments') || '{}');
-        if (allComments[postId] && allComments[postId][index]) {
-            let c = allComments[postId][index];
-
-            if (c.liked) {
-                c.likes = Math.max(0, (c.likes || 1) - 1);
-                c.liked = false;
-            } else {
-                c.likes = (c.likes || 0) + 1;
-                c.liked = true;
-            }
-            localStorage.setItem('postComments', JSON.stringify(allComments));
-            
-            // 重新渲染留言區塊
-            renderComments(postId);
-        }
+        // 🌟 這裡我們「不呼叫」 await renderComments(postId) 囉！
+        // 因為畫面已經變紅愛心了，重新撈資料如果後端沒給 is_liked，反而會變回白愛心。
 
     } catch (error) {
         console.error("留言按讚處理失敗:", error);
         alert("伺服器開小差了，按讚失敗請稍後再試 😢");
+        
+        // 🚨 網路斷線等問題，一樣把愛心退回去
+        if (likeBtn) {
+            likeBtn.innerHTML = isCurrentlyLiked ? `❤️ ${currentLikes}` : `🤍 ${currentLikes}`;
+            likeBtn.style.color = isCurrentlyLiked ? '#e74c3c' : '#999';
+        }
     }
 }
-
-function renderComments(postId) {
-    const comments = getComments(postId);
-    const lists = document.querySelectorAll('#detail-comments-list');
-    const counts = document.querySelectorAll('#detail-comment-count');
-
-    lists.forEach(listContainer => {
-        if (!listContainer) return;
-        if (comments.length === 0) {
-            listContainer.innerHTML = '<div style="text-align:center; color:#888; padding: 30px 0;">目前還沒有留言喔，來搶頭香吧！🐟</div>';
-            return;
-        }
-
-        let html = '';
-        comments.forEach((c, index) => {
-            const likesCount = c.likes || 0;
-            const isLiked = c.liked || false;
-
-            html += `
-                <div style="background: #fff; padding: 24px 0; border-bottom: 1px solid #f0f0f0;">
-                    <div style="display: flex; justify-content: space-between; margin-bottom: 12px; align-items: center;">
-                        <span style="font-size: 1rem; font-weight: bold; color: #333; display: flex; align-items: center; gap: 12px;">
-                            <img src="${c.avatar}" style="width: 36px; height: 36px; border-radius: 50%; object-fit: cover; box-shadow: 0 1px 3px rgba(0,0,0,0.08);">
-                            ${escapeHTML(c.author)}
-                        </span>
-                        <span style="font-size: 0.85rem; color: #aaa; font-weight: bold;">B${index + 1}</span>
-                    </div>
-                    <div style="color: #222; font-size: 1.05rem; line-height: 1.7; padding-left: 48px; white-space: pre-wrap; margin-bottom: 10px;">${escapeHTML(c.text)}</div>
-                    
-                    <div style="text-align: right; padding-right: 15px;">
-                        <span style="cursor: pointer; color: ${isLiked ? '#e74c3c' : '#999'}; font-size: 0.95rem; user-select: none; transition: 0.2s;" onclick="toggleCommentLike('${postId}', '${c.id}', ${index})">
-    ${isLiked ? '❤️' : '🤍'} ${likesCount}
-</span>
-                    </div>
-                </div>
-            `;
-        });
-        listContainer.innerHTML = html;
-    });
-
-    counts.forEach(countSpan => { if (countSpan) countSpan.innerText = comments.length; });
-}
+// =========================================
 
 window.openPostDetail = function (id) {
     const p = posts.find(x => String(x.id) === String(id));
     if (!p) return;
     currentOpenPostId = id;
 
-    // 開啟詳細頁面時也要套用高亮（如果你希望的話，這邊示範原汁原味呈現）
     document.querySelectorAll('#detail-board-tag').forEach(el => el.innerText = p.board);
     document.querySelectorAll('#detail-author-tag').forEach(el => el.innerText = p.author || '匿名');
     document.querySelectorAll('#detail-post-title').forEach(el => el.innerHTML = highlightText(escapeHTML(p.title), currentKeyword));
     document.querySelectorAll('#detail-post-content').forEach(el => el.innerHTML = highlightText(escapeHTML(p.desc), currentKeyword));
-
+document.querySelectorAll('.detail-post-time').forEach(el => {
+        if (p.createdAt) {
+            const date = new Date(p.createdAt);
+            // 轉換成在地化的時間格式，例如：2026/7/1 15:21
+            el.innerText = date.toLocaleString('zh-TW', { 
+                year: 'numeric', 
+                month: '2-digit', 
+                day: '2-digit', 
+                hour: '2-digit', 
+                minute: '2-digit' 
+            });
+        } else {
+            el.innerText = "剛剛發布"; // 防呆機制，如果沒抓到時間就顯示這個
+        }
+    });
+    // 這裡會觸發我們熱騰騰寫好的 API 抓取留言函式
     renderComments(id);
 
     const saveBtn = document.getElementById('save-bottle-btn');
@@ -600,53 +697,6 @@ window.submitReport = async function () {
     } catch (error) {
         console.error("檢舉發生錯誤", error);
         alert("伺服器連線失敗，請稍後再試 😢");
-    }
-};
-
-window.submitComment = function () {
-    const inputs = document.querySelectorAll('#new-comment-input');
-    let targetInput = null;
-
-    for (let i = 0; i < inputs.length; i++) {
-        if (inputs[i].offsetParent !== null) { targetInput = inputs[i]; break; }
-    }
-
-    if (!targetInput) return;
-    const text = targetInput.value.trim();
-
-    if (!text) { alert("請輸入留言內容！"); return; }
-
-    const user = JSON.parse(localStorage.getItem('currentUser'));
-    if (!user) { alert("請先登入才能留言喔！"); return; }
-
-    const newComment = {
-    id: 'local_' + Math.random().toString(36).substr(2, 9), // ✨ 加上這行產生一個暫時的假 ID
-    author: user.name || '用戶',
-    avatar: user.avatar || 'images/fish_logo.png',
-    text: text,
-    likes: 0,
-    liked: false
-};
-
-    saveComment(currentOpenPostId, newComment);
-
-    setTimeout(() => {
-        inputs.forEach(inp => inp.value = '');
-        if (targetInput) targetInput.value = '';
-    }, 50);
-
-    renderComments(currentOpenPostId);
-
-    const p = posts.find(x => String(x.id) === String(currentOpenPostId));
-    if (p) { p.msgs = getComments(currentOpenPostId).length; applyFilters(); }
-
-    const detailView = document.getElementById('detail-view');
-    if (detailView && detailView.offsetParent !== null) {
-        window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
-    } else {
-        document.querySelectorAll('#post-detail-modal .modal-content').forEach(modal => {
-            if (modal.offsetParent !== null) modal.scrollTo({ top: modal.scrollHeight, behavior: 'smooth' });
-        });
     }
 };
 
@@ -879,9 +929,6 @@ function setupNewPost() {
     }
 }
 
-// =========================================
-// 🚀 初始化與事件綁定 (加入了 Debounce)
-// =========================================
 document.addEventListener('DOMContentLoaded', () => {
     if (window.location.pathname.includes('saved.html')) {
         currentView = 'saved';
@@ -907,9 +954,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const historyBox = document.getElementById('search-history-dropdown');
     const clearBtn = document.getElementById('clear-search-btn');
 
-    // 使用 Debounce 讓搜尋更順暢
     const debouncedSearch = debounce(() => {
-        // ✨ 魔法 3：不要只過濾本地資料了，重新派船出海（向後端抓取資料）！
         fetchBottles();
     }, 300);
 
@@ -918,10 +963,9 @@ document.addEventListener('DOMContentLoaded', () => {
             currentKeyword = e.target.value.toLowerCase().trim();
             currentPage = 1;
             
-            // 處理清除按鈕的顯示/隱藏
             if (clearBtn) clearBtn.style.display = currentKeyword ? 'block' : 'none';
 
-            debouncedSearch(); // 呼叫防抖動搜尋
+            debouncedSearch(); 
             renderSearchHistory();
             historyBox.style.width = searchInput.offsetWidth + 'px';
             historyBox.style.left = searchInput.offsetLeft + 'px';
@@ -942,18 +986,14 @@ document.addEventListener('DOMContentLoaded', () => {
         };
     }
 
-    // 清除按鈕的點擊事件
     if (clearBtn && searchInput) {
         clearBtn.onclick = () => {
             searchInput.value = '';
             currentKeyword = '';
             clearBtn.style.display = 'none';
             currentPage = 1;
-            
-            // ✨ 魔法 4：清除關鍵字後，重新載入當前看板的隨機文章
             fetchBottles(); 
-            
-            searchInput.focus(); // 清除後讓游標回到搜尋框
+            searchInput.focus();
         };
     }
 
@@ -966,9 +1006,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (wrapper && wrapper.tagName.toLowerCase() === 'div' && wrapper.classList.contains('comment-action-bar')) {
             const form = document.createElement('form');
             form.style.cssText = wrapper.style.cssText;
-
             form.className = wrapper.className;
-
             form.onsubmit = (e) => { e.preventDefault(); submitComment(); };
             while (wrapper.firstChild) { form.appendChild(wrapper.firstChild); }
             wrapper.parentNode.replaceChild(form, wrapper);
@@ -1006,11 +1044,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     window.onclick = (event) => {
         if (userDropdown) userDropdown.classList.remove('show-dropdown');
-
-        // 點擊背景關閉檢舉視窗
         const reportModal = document.getElementById('report-modal');
         if (reportModal && event.target == reportModal) reportModal.style.display = 'none';
-
         const postModal = document.getElementById('post-modal');
         const profileModal = document.getElementById('profile-modal');
         if (profileModal && event.target == profileModal) profileModal.style.display = 'none';
@@ -1031,10 +1066,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 document.getElementById('detail-gender').innerText = user.gender || '未填寫';
                 document.getElementById('detail-zodiac').innerText = user.zodiac || user.constellation || '未填寫';
                 document.getElementById('detail-bio').innerText = user.bio || '這瓶子裡目前空空的...';
-
                 document.getElementById('profile-view-mode').style.display = 'block';
                 document.getElementById('profile-edit-mode').style.display = 'none';
-
                 profileModal.style.display = 'block';
             } else { alert('請先登入！'); }
         };
@@ -1063,14 +1096,12 @@ document.addEventListener('DOMContentLoaded', () => {
         btnEditProfile.onclick = () => {
             const user = JSON.parse(localStorage.getItem('currentUser'));
             if (!user) return;
-
             document.getElementById('edit-name').value = user.name || '';
             document.getElementById('edit-email').value = user.email || '';
             document.getElementById('edit-birthday').value = user.birthday ? user.birthday.split('T')[0] : '';
             document.getElementById('edit-gender').value = user.gender || '未填寫';
             document.getElementById('edit-zodiac').value = user.zodiac || user.constellation || '未填寫';
             document.getElementById('edit-bio').value = user.bio || '';
-
             document.getElementById('profile-view-mode').style.display = 'none';
             document.getElementById('profile-edit-mode').style.display = 'block';
         };
@@ -1196,9 +1227,6 @@ function renderPagination(totalPages, dataArray) {
     pageContainer.appendChild(nextBtn);
 }
 
-/* =======================================================
-   🎮 🌊 ✨ 純程式碼生成：SVG 高顏值手繪風貓貓半人魚 
-   ======================================================= */
 document.addEventListener('DOMContentLoaded', () => {
     const mascotContainer = document.createElement('div');
     mascotContainer.id = 'svg-mermecat-mascot';
