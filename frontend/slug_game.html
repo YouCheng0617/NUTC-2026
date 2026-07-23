@@ -94,12 +94,8 @@
             background: #dbeafe; 
             overflow: hidden;
             transition: background 1s ease;
-            display: flex;
-            align-items: center;
-            justify-content: center;
         }
 
-        /* 僅在基礎款背景顯示的點點圖案 */
         .dot-pattern {
             position: absolute;
             width: 100%;
@@ -113,7 +109,6 @@
             transition: opacity 0.5s;
         }
 
-        /* 特效層設計 */
         .effect-layer {
             position: absolute;
             width: 100%;
@@ -125,7 +120,6 @@
             overflow: hidden;
         }
 
-        /* 雨滴特效 */
         .rain-drop {
             position: absolute;
             width: 2px;
@@ -136,7 +130,6 @@
         }
         @keyframes rainFall { to { transform: translateY(60vh); } }
 
-        /* 泡泡特效 */
         .bubble {
             position: absolute;
             border-radius: 50%;
@@ -147,13 +140,33 @@
         }
         @keyframes bubbleRise { to { transform: translateY(-60vh) scale(1.5); opacity: 0; } }
 
+        /* 寶寶專屬：乾淨正常的抓抓手 + 封印瀏覽器預設行為 */
         .slug-container {
-            position: relative;
-            width: 340px;
-            height: 240px;
-            cursor: pointer;
-            z-index: 10;
-            margin-top: 40px;
+            position: absolute !important;
+            width: 340px !important;
+            height: 240px !important;
+            cursor: grab !important;
+            z-index: 10 !important;
+            touch-action: none !important;
+            left: calc(50% - 170px);
+            top: calc(50% - 120px);
+            /* ✨ 封印原生的文字選取與圖片拖曳，防止滑太快壞掉 */
+            user-select: none !important;
+            -webkit-user-select: none !important;
+            -webkit-user-drag: none !important;
+        }
+
+        /* 終極鎖定狀態：拖曳時，整個網頁都不准反白、不准變游標 */
+        body.is-dragging-global, body.is-dragging-global * {
+            cursor: grabbing !important;
+            user-select: none !important;
+            -webkit-user-select: none !important;
+        }
+
+        /* 被撫摸時的開心擠壓動畫 */
+        .slug-container.is-petting .slug-svg {
+            transform: scale(1.06, 0.92) translateY(12px);
+            filter: drop-shadow(0 5px 8px rgba(0,0,0,0.25));
         }
 
         .slug-svg {
@@ -161,6 +174,9 @@
             height: 100%;
             overflow: visible;
             filter: drop-shadow(0 15px 15px rgba(0,0,0,0.15));
+            transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1.2), filter 0.3s ease;
+            /* ✨ 讓游標忽略裡面的圖案，專心抓外框，這是防斷線的關鍵！ */
+            pointer-events: none !important;
         }
 
         @keyframes earTwitchL { 0%, 100% { transform: rotate(0deg); } 50% { transform: rotate(-6deg); } }
@@ -412,7 +428,9 @@
     <div class="stage" id="mainStage">
         <div class="dot-pattern" id="dotPattern"></div>
         <div id="effectLayer" class="effect-layer"></div>
-        <div class="slug-container" id="slugContainer" onclick="petSlugDirectly(event)">
+        
+        <!-- 移除原本的 onclick，改由 JS 全權控制拖拽與點擊 -->
+        <div class="slug-container" id="slugContainer">
             
             <svg class="slug-svg" viewBox="0 0 340 240">
                 <defs>
@@ -537,7 +555,6 @@
             cooldowns: { feed: 0, clean: 0, pet: 0 }
         };
 
-        // 海兔圖鑑 (完全保留原設定)
         const speciesData = {
             snow: { name: {zh: '經典雪兔', en: 'Snow Bunny'}, cost: 0, body: '#ffffff', outline: '#3f2a2a', earTop: '#3f2a2a', tail: '#3f2a2a', spot: '#3f2a2a', blush: '#fca5a5' },
             ocean: { name: {zh: '深海藍寶', en: 'Ocean Gem'}, cost: 1200, body: '#e0f2fe', outline: '#1e3a8a', earTop: '#1e3a8a', tail: '#1e3a8a', spot: '#1e3a8a', blush: '#f472b6' },
@@ -599,10 +616,7 @@
             matchaLatte: { name: {zh: '特濃抹茶拿鐵', en: 'Matcha Latte'}, cost: 4500, body: '#dcfce7', outline: '#14532d', earTop: '#15803d', tail: '#22c55e', spot: '#166534', blush: '#fca5a5' }
         };
 
-        // 升級：真實質感的背景資料（無波點干擾）
-        // 升級：50種真實質感的背景資料
         const bgData = {
-            // --- 基礎與自然系列 ---
             sky: { name: {zh: '基礎藍', en: 'Sky Blue'}, cost: 0, preview: '#dbeafe', style: '#dbeafe', hasDots: true },
             ocean: { name: {zh: '神祕海洋', en: 'Deep Ocean'}, cost: 1000, preview: '#0284c7', style: 'radial-gradient(circle at 50% 0%, #38bdf8 0%, #0284c7 45%, #092b5a 100%)', hasDots: false },
             beach: { name: {zh: '陽光沙灘', en: 'Sunny Beach'}, cost: 1200, preview: '#fde047', style: 'linear-gradient(to bottom, #7dd3fc 0%, #bae6fd 40%, #38bdf8 45%, #fde047 60%, #fef08a 100%)', hasDots: false },
@@ -618,8 +632,6 @@
             lavender: { name: {zh: '薰衣草田', en: 'Lavender'}, cost: 2100, preview: '#c084fc', style: 'linear-gradient(to top, #4c1d95 0%, #7c3aed 40%, #c084fc 80%, #f3e8ff 100%)', hasDots: false },
             coralReef: { name: {zh: '七彩珊瑚', en: 'Coral Reef'}, cost: 2300, preview: '#fb7185', style: 'radial-gradient(circle at 50% 80%, #164e63 0%, #0891b2 40%, #fb7185 80%, #fda4af 100%)', hasDots: false },
             abyss: { name: {zh: '無底深淵', en: 'The Abyss'}, cost: 3000, preview: '#000000', style: 'radial-gradient(circle at 50% 50%, #1e1b4b 0%, #000000 100%)', hasDots: false },
-            
-            // --- 甜點與食物系列 ---
             strawberryMilk: { name: {zh: '草莓牛奶', en: 'Strawberry Milk'}, cost: 1500, preview: '#ffe4e6', style: 'linear-gradient(to right, #fff1f2, #ffe4e6, #fecdd3)', hasDots: true },
             matchaLatte: { name: {zh: '宇治抹茶', en: 'Matcha Latte'}, cost: 1600, preview: '#dcfce7', style: 'linear-gradient(45deg, #f0fdf4 0%, #dcfce7 50%, #bbf7d0 100%)', hasDots: true },
             pudding: { name: {zh: '焦糖布丁', en: 'Pudding Pool'}, cost: 1700, preview: '#fef3c7', style: 'linear-gradient(to bottom, #fffbeb 0%, #fef3c7 60%, #b45309 100%)', hasDots: false },
@@ -630,8 +642,6 @@
             taroPaste: { name: {zh: '香芋泥泥', en: 'Taro Paste'}, cost: 1800, preview: '#e9d5ff', style: 'linear-gradient(135deg, #faf5ff 0%, #e9d5ff 50%, #a855f7 100%)', hasDots: true },
             peachOrchard: { name: {zh: '水蜜桃季', en: 'Peach Season'}, cost: 2400, preview: '#fbcfe8', style: 'radial-gradient(circle at 50% 50%, #fff1f2 0%, #fbcfe8 60%, #f43f5e 100%)', hasDots: false },
             honeyPot: { name: {zh: '小熊蜜罐', en: 'Honey Pot'}, cost: 2100, preview: '#fde047', style: 'linear-gradient(to bottom, #fef08a 0%, #fde047 50%, #ca8a04 100%)', hasDots: false },
-
-            // --- 魔幻與宇宙系列 ---
             galaxy: { name: {zh: '銀河星系', en: 'Galaxy'}, cost: 3500, preview: '#312e81', style: 'radial-gradient(circle at 20% 80%, #4c1d95 0%, #312e81 40%, #000000 100%)', hasDots: false },
             nebula: { name: {zh: '粉紅星雲', en: 'Pink Nebula'}, cost: 3800, preview: '#d8b4fe', style: 'radial-gradient(circle at 80% 20%, #fbcfe8 0%, #d8b4fe 40%, #2e1065 100%)', hasDots: false },
             blackHole: { name: {zh: '黑洞視界', en: 'Black Hole'}, cost: 5000, preview: '#020617', style: 'radial-gradient(circle at 50% 50%, #000000 0%, #000000 60%, #eab308 90%, #ef4444 100%)', hasDots: false },
@@ -642,8 +652,6 @@
             candyLand: { name: {zh: '魔法糖果屋', en: 'Candy Land'}, cost: 3600, preview: '#f472b6', style: 'linear-gradient(45deg, #fbcfe8 0%, #a78bfa 50%, #67e8f9 100%)', hasDots: true },
             cloudCastle: { name: {zh: '雲端城堡', en: 'Cloud Castle'}, cost: 3800, preview: '#f0f9ff', style: 'linear-gradient(to top, #bae6fd 0%, #f0f9ff 60%, #ffffff 100%)', hasDots: true },
             hauntedHouse: { name: {zh: '幽靈洋館', en: 'Haunted House'}, cost: 3300, preview: '#475569', style: 'linear-gradient(to bottom, #020617 0%, #334155 70%, #94a3b8 100%)', hasDots: false },
-            
-            // --- 抽象、特別與幽默系列 ---
             noCodeParadise: { name: {zh: '拒絕寫Code天堂', en: 'No Code Heaven'}, cost: 8888, preview: '#fed7aa', style: 'linear-gradient(120deg, #fff7ed 0%, #ffedd5 30%, #fed7aa 70%, #fdba74 100%)', hasDots: true },
             artistCanvas: { name: {zh: '畫布上的塗鴉', en: 'Artist Canvas'}, cost: 4500, preview: '#f8fafc', style: 'linear-gradient(45deg, #f8fafc 0%, #e2e8f0 20%, #f8fafc 40%, #e2e8f0 60%, #f8fafc 80%, #e2e8f0 100%)', hasDots: true },
             cyberpunk: { name: {zh: '賽博龐克', en: 'Cyberpunk'}, cost: 5500, preview: '#ec4899', style: 'linear-gradient(135deg, #0f172a 0%, #4c1d95 40%, #db2777 80%, #22d3ee 100%)', hasDots: false },
@@ -661,15 +669,10 @@
             bathhouse: { name: {zh: '溫泉澡堂', en: 'Bathhouse'}, cost: 3400, preview: '#7dd3fc', style: 'linear-gradient(to bottom, #e0f2fe 0%, #7dd3fc 60%, #1d4ed8 100%)', hasDots: false }
         };
 
-        // 特效資料
-        // 升級：50種超有梗特效資料庫（內建萬用粒子參數）
         const effectData = {
-            // --- 基礎款 ---
             none: { name: {zh: '無特效', en: 'None'}, cost: 0, preview: '#ffffff' },
             rain: { name: {zh: '綿綿細雨', en: 'Raindrops'}, cost: 800, preview: '#93c5fd' },
             bubble: { name: {zh: '夢幻泡泡', en: 'Bubbles'}, cost: 1200, preview: '#67e8f9' },
-            
-            // --- 特別專屬與幽默款 ---
             tomato: { name: {zh: '飛天小番茄', en: 'Flying Tomato'}, cost: 1500, preview: '#fca5a5', emoji: ['🍅', '✨'], dir: 'down', count: 12 },
             bugFree: { name: {zh: 'Bug退散', en: 'No More Bugs'}, cost: 8888, preview: '#4ade80', emoji: ['🐛', '❌', '💻'], dir: 'up', count: 15 },
             disco: { name: {zh: '迪斯可舞池', en: 'Disco Party'}, cost: 2500, preview: '#c084fc', emoji: ['🪩', '💃', '✨'], dir: 'up', count: 10 },
@@ -681,8 +684,6 @@
             sweat: { name: {zh: '尷尬流汗', en: 'Sweating'}, cost: 1000, preview: '#7dd3fc', emoji: ['💦', '💧'], dir: 'down', count: 15 },
             math: { name: {zh: '數學當機', en: 'Math Error'}, cost: 1200, preview: '#0f172a', emoji: ['➕', '➖', '✖️', '➗', '❓'], dir: 'down', count: 20 },
             poop: { name: {zh: '黃金天降', en: 'Holy Poop'}, cost: 500, preview: '#78350f', emoji: ['💩', '✨'], dir: 'down', count: 10 },
-            
-            // --- 大自然與天氣 ---
             snow: { name: {zh: '初雪飄落', en: 'Snowfall'}, cost: 1500, preview: '#e0f2fe', emoji: ['❄️', '❅', '❆'], dir: 'down', count: 25 },
             sakura: { name: {zh: '櫻花飛舞', en: 'Sakura'}, cost: 2200, preview: '#fbcfe8', emoji: ['🌸', '💮'], dir: 'down', count: 20 },
             star: { name: {zh: '繁星閃爍', en: 'Starry'}, cost: 1800, preview: '#fef08a', emoji: ['⭐', '✨', '🌟'], dir: 'down', count: 20 },
@@ -693,8 +694,6 @@
             moon: { name: {zh: '月光灑落', en: 'Moonlight'}, cost: 1500, preview: '#1e293b', emoji: ['🌙', '☁️'], dir: 'down', count: 8 },
             lightning: { name: {zh: '閃電交加', en: 'Lightning'}, cost: 2400, preview: '#fde047', emoji: ['⚡', '🌩️'], dir: 'down', count: 12 },
             rainbowStars: { name: {zh: '彩虹星塵', en: 'Rainbow Dust'}, cost: 2800, preview: '#a855f7', emoji: ['🌈', '✨'], dir: 'up', count: 12 },
-            
-            // --- 動物與奇幻生物 ---
             butterfly: { name: {zh: '蝴蝶翩翩', en: 'Butterflies'}, cost: 2100, preview: '#c084fc', emoji: ['🦋'], dir: 'up', count: 10 },
             bat: { name: {zh: '吸血蝙蝠', en: 'Vampire Bats'}, cost: 2300, preview: '#334155', emoji: ['🦇'], dir: 'down', count: 12 },
             ghost: { name: {zh: '小幽靈', en: 'Little Ghosts'}, cost: 2500, preview: '#f8fafc', emoji: ['👻', '💨'], dir: 'up', count: 10 },
@@ -702,8 +701,6 @@
             fish: { name: {zh: '深海魚群', en: 'School of Fish'}, cost: 1900, preview: '#0284c7', emoji: ['🐟', '🐠', '🐡'], dir: 'up', count: 18 },
             sheep: { name: {zh: '數羊羊', en: 'Counting Sheep'}, cost: 1600, preview: '#e2e8f0', emoji: ['🐑', '☁️'], dir: 'up', count: 8 },
             feather: { name: {zh: '天使羽毛', en: 'Angel Feathers'}, cost: 2400, preview: '#ffffff', emoji: ['🪶', '🕊️'], dir: 'down', count: 15 },
-            
-            // --- 美食派對 ---
             boba: { name: {zh: '珍奶珍珠', en: 'Boba Pearls'}, cost: 1700, preview: '#78350f', emoji: ['🧋', '⚫'], dir: 'down', count: 20 },
             sushi: { name: {zh: '迴轉壽司', en: 'Sushi Roll'}, cost: 2200, preview: '#f87171', emoji: ['🍣', '🍤', '🍙'], dir: 'down', count: 12 },
             pizza: { name: {zh: '披薩派對', en: 'Pizza Party'}, cost: 2000, preview: '#ea580c', emoji: ['🍕'], dir: 'down', count: 10 },
@@ -711,8 +708,6 @@
             cake: { name: {zh: '甜點時間', en: 'Dessert Time'}, cost: 2100, preview: '#fbcfe8', emoji: ['🍰', '🧁', '🍩'], dir: 'down', count: 12 },
             coffee: { name: {zh: '咖啡續命', en: 'Coffee Refill'}, cost: 1800, preview: '#451a03', emoji: ['☕', '🤎'], dir: 'up', count: 10 },
             cookie: { name: {zh: '餅干碎屑', en: 'Cookies'}, cost: 1600, preview: '#b45309', emoji: ['🍪'], dir: 'down', count: 12 },
-            
-            // --- 魔法、節慶與科幻 ---
             confetti: { name: {zh: '派對拉炮', en: 'Confetti'}, cost: 2500, preview: '#f472b6', emoji: ['🎉', '🎊', '✨'], dir: 'down', count: 20 },
             balloon: { name: {zh: '彩色氣球', en: 'Balloons'}, cost: 2000, preview: '#ef4444', emoji: ['🎈'], dir: 'up', count: 10 },
             magic: { name: {zh: '魔法詠唱', en: 'Magic Spell'}, cost: 3500, preview: '#a855f7', emoji: ['🪄', '✨', '🔮'], dir: 'up', count: 15 },
@@ -728,6 +723,7 @@
             gear: { name: {zh: '齒輪運轉', en: 'Gears Turning'}, cost: 2600, preview: '#64748b', emoji: ['⚙️'], dir: 'down', count: 12 },
             music: { name: {zh: '跳動音符', en: 'Musical Notes'}, cost: 2200, preview: '#3b82f6', emoji: ['🎵', '🎶'], dir: 'up', count: 15 }
         };
+        
         let currentTab = 'species';
 
         window.onload = function() {
@@ -736,6 +732,7 @@
             checkFirstTime();
             renderShop();
             startCooldownTimer();
+            initDragAndPetSystem(); // 啟動互動系統
         };
 
         function toggleLang() {
@@ -892,7 +889,6 @@
             const bg = bgData[gameState.currentBg];
             if(bg) {
                 document.getElementById('mainStage').style.background = bg.style;
-                // 只有基礎款顯示波點，其餘隱藏
                 document.getElementById('dotPattern').style.opacity = bg.hasDots ? '0.9' : '0';
             }
         }
@@ -905,7 +901,6 @@
             
             if (!effect || effectKey === 'none') return;
 
-            // 保留原本的純 CSS 特效
             if (effectKey === 'rain') {
                 for (let i = 0; i < 30; i++) {
                     let drop = document.createElement('div');
@@ -926,22 +921,19 @@
                     layer.appendChild(b);
                 }
             } 
-            // 全新萬用 Emoji 粒子系統
             else if (effect.emoji) {
                 let count = effect.count || 15;
                 for (let i = 0; i < count; i++) {
                     let el = document.createElement('div');
-                    // 隨機抽取設定好的表情符號
                     el.innerText = effect.emoji[Math.floor(Math.random() * effect.emoji.length)];
                     el.style.position = 'absolute';
-                    el.style.fontSize = (Math.random() * 15 + 15) + 'px'; // 隨機大小
+                    el.style.fontSize = (Math.random() * 15 + 15) + 'px'; 
                     el.style.left = Math.random() * 100 + '%';
                     el.style.opacity = Math.random() * 0.5 + 0.5;
                     
-                    let duration = Math.random() * 3 + 3; // 動畫長度 3~6秒
-                    let delay = Math.random() * 2;        // 隨機延遲
+                    let duration = Math.random() * 3 + 3; 
+                    let delay = Math.random() * 2;        
                     
-                    // 判斷往下掉還是往上飄（共用原本寫好的 CSS 動畫）
                     if (effect.dir === 'up') {
                         el.style.bottom = '-40px';
                         el.style.animation = `bubbleRise ${duration}s ease-in infinite`;
@@ -965,10 +957,6 @@
             showFloatText(`+${reward}`);
             saveGame();
             updateUI();
-        }
-
-        function petSlugDirectly(e) {
-            if (gameState.cooldowns['pet'] === 0) interact('pet', 50, 5);
         }
 
         function showFloatText(text) {
@@ -1013,27 +1001,127 @@
                 } catch(e) {} 
             }
         }
-        function updateUI() {
-    const t = i18n[currLang];
-    // 1. 更新畫面的積分顯示
-    document.getElementById('pointDisplay').innerText = gameState.points;
-    
-    // 2. 更新三個互動按鈕的狀態與冷卻時間
-    ['feed', 'clean', 'pet'].forEach(type => {
-        // 將 'feed' 轉成 'btnFeed' 和 'txtFeedDesc' 等對應的 ID
-        const capitalizedType = type.charAt(0).toUpperCase() + type.slice(1);
-        const btn = document.getElementById('btn' + capitalizedType);
-        const desc = document.getElementById('txt' + capitalizedType + 'Desc');
         
-        if (gameState.cooldowns[type] > 0) {
-            btn.disabled = true; // 冷卻中禁用按鈕
-            desc.innerText = `${t.cooldown} ${gameState.cooldowns[type]}s`;
-        } else {
-            btn.disabled = false; // 可互動
-            desc.innerText = t.ready;
+        function updateUI() {
+            const t = i18n[currLang];
+            document.getElementById('pointDisplay').innerText = gameState.points;
+            
+            ['feed', 'clean', 'pet'].forEach(type => {
+                const capitalizedType = type.charAt(0).toUpperCase() + type.slice(1);
+                const btn = document.getElementById('btn' + capitalizedType);
+                const desc = document.getElementById('txt' + capitalizedType + 'Desc');
+                
+                if (gameState.cooldowns[type] > 0) {
+                    btn.disabled = true; 
+                    desc.innerText = `${t.cooldown} ${gameState.cooldowns[type]}s`;
+                } else {
+                    btn.disabled = false; 
+                    desc.innerText = t.ready;
+                }
+            });
         }
-    });
-}
+
+        // --- 全新：拖拽與撫摸互動系統 (究極 Pointer 防斷線版) ---
+        function initDragAndPetSystem() {
+            const slugEl = document.getElementById('slugContainer');
+            const stageEl = document.getElementById('mainStage');
+            
+            let isDragging = false;
+            let moved = false;
+            let dragStartX = 0;
+            let dragStartY = 0;
+            let slugStartLeft = 0;
+            let slugStartTop = 0;
+            let petTimer = null;
+
+            // 完全封印瀏覽器的右鍵選單與原生拖曳
+            slugEl.oncontextmenu = (e) => { e.preventDefault(); return false; };
+            slugEl.ondragstart = (e) => { e.preventDefault(); return false; };
+
+            // 游標按下去的瞬間 (同時支援滑鼠與觸控)
+            slugEl.addEventListener('pointerdown', function(e) {
+                if (e.pointerType === 'mouse' && e.button !== 0) return; // 排除滑鼠右鍵
+                
+                isDragging = true;
+                moved = false;
+
+                // ✨ 核心魔法：把游標死死綁定在海兔上！
+                slugEl.setPointerCapture(e.pointerId);
+                document.body.classList.add('is-dragging-global');
+
+                dragStartX = e.clientX;
+                dragStartY = e.clientY;
+
+                const style = window.getComputedStyle(slugEl);
+                slugStartLeft = parseFloat(style.left) || (stageEl.clientWidth / 2 - 170);
+                slugStartTop = parseFloat(style.top) || (stageEl.clientHeight / 2 - 120);
+                
+                slugEl.classList.remove('is-petting');
+            });
+
+            // 游標移動
+            slugEl.addEventListener('pointermove', function(e) {
+                // ----- 撫摸邏輯 (沒在拖曳的時候) -----
+                if (!isDragging) {
+                    slugEl.classList.add('is-petting');
+                    if (Math.random() < 0.1) spawnMiniHeart(e.clientX, e.clientY);
+                    
+                    clearTimeout(petTimer);
+                    petTimer = setTimeout(() => slugEl.classList.remove('is-petting'), 300);
+                    return;
+                }
+
+                // ----- 拖曳邏輯 -----
+                const dx = e.clientX - dragStartX;
+                const dy = e.clientY - dragStartY;
+
+                if (Math.abs(dx) > 5 || Math.abs(dy) > 5) {
+                    moved = true;
+                }
+
+                let newLeft = slugStartLeft + dx;
+                let newTop = slugStartTop + dy;
+
+                const stageRect = stageEl.getBoundingClientRect();
+                const slugRect = slugEl.getBoundingClientRect();
+
+                newLeft = Math.max(0, Math.min(newLeft, stageRect.width - slugRect.width));
+                newTop = Math.max(0, Math.min(newTop, stageRect.height - slugRect.height));
+
+                slugEl.style.left = newLeft + 'px';
+                slugEl.style.top = newTop + 'px';
+            });
+
+            // 游標放開或意外中斷
+            function endDrag(e) {
+                if (!isDragging) return;
+                isDragging = false;
+                
+                // 解除綁定與樣式
+                slugEl.releasePointerCapture(e.pointerId);
+                document.body.classList.remove('is-dragging-global');
+
+                if (!moved && gameState.cooldowns['pet'] === 0) {
+                    interact('pet', 50, 5);
+                }
+            }
+
+            slugEl.addEventListener('pointerup', endDrag);
+            slugEl.addEventListener('pointercancel', endDrag); // 防呆機制，滑到系統外面也能正常斷開
+
+            function spawnMiniHeart(x, y) {
+                const el = document.createElement('div');
+                el.innerText = '💖';
+                el.style.position = 'fixed';
+                el.style.left = (x - 10 + Math.random() * 20) + 'px';
+                el.style.top = (y - 20) + 'px';
+                el.style.pointerEvents = 'none';
+                el.style.animation = 'floatUp 1s ease-out forwards';
+                el.style.zIndex = '1000';
+                document.body.appendChild(el);
+                setTimeout(() => el.remove(), 1000);
+            }
+        }
     </script>
 </body>
 </html>
