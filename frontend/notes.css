@@ -40,7 +40,13 @@ body::before {
 }
 .note-creator textarea::placeholder { color: rgba(255, 255, 255, 0.6); }
 
-.creator-actions { display: flex; justify-content: space-between; align-items: center; margin-top: 15px; }
+/* 修改這行 */
+.creator-actions { 
+    display: flex; 
+    justify-content: flex-end; /* 把原本的 space-between 改成 flex-end */
+    align-items: center; 
+    margin-top: 15px; 
+}
 
 .color-picker { display: flex; gap: 10px; }
 .color-btn {
@@ -81,3 +87,54 @@ body::before {
 .delete-btn:hover { transform: scale(1.1); }
 
 @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+/* ====================
+   吐司提示框 (Toast) 樣式
+   ==================== */
+#toast-container {
+    position: fixed;
+    top: 30px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    pointer-events: none; /* 避免提示框擋住後面的按鈕點擊 */
+}
+
+.toast {
+    /* 配合你原本的毛玻璃海底風格 */
+    background: rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    color: #fff;
+    padding: 12px 28px;
+    border-radius: 50px; /* 現代感的圓角藥丸形狀 */
+    font-size: 15px;
+    letter-spacing: 1px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    
+    /* 進場動畫設定 */
+    opacity: 0;
+    transform: translateY(-20px);
+    animation: slideIn 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards;
+}
+
+/* 用左邊界顏色來區分不同狀態 */
+.toast.success { border-left: 4px solid #a8e6cf; }
+.toast.warning { border-left: 4px solid #ff8b94; }
+.toast.error   { border-left: 4px solid #ff5252; }
+
+/* 退場動畫設定 */
+.toast.fade-out {
+    animation: fadeOut 0.3s forwards;
+}
+
+@keyframes slideIn {
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeOut {
+    to { opacity: 0; transform: translateY(-20px); }
+}
