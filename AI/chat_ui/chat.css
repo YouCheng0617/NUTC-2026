@@ -66,9 +66,13 @@ html {
     font-size: var(--base-font-size);
 }
 
+/* ✨ 把原本只有 body，改成連同按鈕、輸入框一起強制套用字體！ */
+body, button, input, textarea {
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "PingFang TC", "微軟正黑體", "Microsoft JhengHei", "PingFang SC", "Microsoft YaHei", "Meiryo", sans-serif;
+}
+
 body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    
+      
     /* ✨ 2. 背景圖片與智慧日夜濾鏡 (請在這裡修改妳的圖片檔名！) */
     background-image: linear-gradient(var(--bg-overlay), var(--bg-overlay)), url('../../frontend/images/background.png');
     background-size: cover;
