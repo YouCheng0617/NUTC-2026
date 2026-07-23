@@ -29,7 +29,10 @@ export const createComment = async (bottleId: number, memberId: number, content:
         }
     });
 
-    return newComment;
+    return {
+        ...newComment,
+        likeCount: 0
+    }
 };
 
 /*取得留言*/
@@ -42,11 +45,18 @@ export const getCommentsByBottleId = async (bottleId: number) => {
                 select: {
                     name: true
                 }
+            },
+            _count: {
+                select: { likes: true }
             }
         }
     });
 
-    return comments;
+    return comments.map(comments => ({
+        ...comments,
+        likeCount: comments._count.likes,
+        _count: undefined
+    }))
 };
 
 export const likeComment = async (commentId: number, memberId: number) => {

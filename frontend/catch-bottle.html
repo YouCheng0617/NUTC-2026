@@ -6,7 +6,7 @@
       name="viewport"
       content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
     />
-    <title>接住小瓶 - 秘密海域</title>
+    <title>接住小瓶 - 秘密海域 (防作弊安全版)</title>
 
     <link rel="stylesheet" href="test.css?v=99" />
 
@@ -80,7 +80,7 @@
       }
 
       .overlay h1 {
-        font-size: 4rem; /* 標題放大 */
+        font-size: 4rem;
         color: #4da6ff;
         text-shadow: 0 0 20px rgba(77, 166, 255, 0.8);
         margin-bottom: 30px;
@@ -88,15 +88,14 @@
         letter-spacing: 2px;
       }
 
-      /* 🌟 大氣版：開始遊戲按鈕 */
       .btn-action {
         background: linear-gradient(135deg, #4da6ff, #0066cc);
         color: white;
         border: 2px solid rgba(255, 255, 255, 0.2);
-        padding: 20px 70px; /* 超大點擊範圍 */
-        font-size: 1.8rem; /* 字體放大 */
+        padding: 20px 70px;
+        font-size: 1.8rem;
         font-weight: 900;
-        border-radius: 50px; /* 完美膠囊圓角 */
+        border-radius: 50px;
         cursor: pointer;
         box-shadow:
           0 10px 25px rgba(0, 102, 204, 0.5),
@@ -137,7 +136,6 @@
         transform: translateY(-2px);
       }
 
-      /* 🌟 大氣版：難度選擇器 */
       .diff-selector {
         display: flex;
         justify-content: center;
@@ -170,7 +168,6 @@
         text-shadow: 0 0 8px rgba(255, 255, 255, 0.5);
       }
 
-      /* 🌟 大氣版：最高分與遊戲說明標籤 */
       .info-container {
         display: flex;
         gap: 20px;
@@ -203,7 +200,6 @@
         transform: translateY(-2px);
       }
 
-      /* 隱藏的遊戲說明框 */
       .rules-box {
         display: none;
         background: rgba(0, 20, 40, 0.8);
@@ -219,7 +215,6 @@
         color: #d1e8ff;
       }
 
-      /* 🌟 大氣版：右下角浮動排行榜按鈕 */
       .float-br-btn {
         position: absolute;
         bottom: 40px;
@@ -331,7 +326,6 @@
     <div id="start-screen" class="overlay">
       <h1>🤲 接住小瓶</h1>
 
-      <!-- 難度選擇區 -->
       <div class="diff-selector">
         <button
           id="btn-diff-easy"
@@ -356,7 +350,6 @@
         </button>
       </div>
 
-      <!-- 最高分與說明區 -->
       <div class="info-container">
         <div class="info-pill">
           👑 <span id="diff-label">普通</span>最高分：<span
@@ -370,7 +363,6 @@
         </button>
       </div>
 
-      <!-- 隱藏的遊戲說明框 -->
       <div id="rules-box" class="rules-box">
         🍾 <b>漂流瓶</b>：+10 分 ｜ 💣 <b>炸彈</b>：-15 分<br />
         <span style="color: #ffd700">🌟 <b>雙倍星</b>：3秒內得分 x2！</span
@@ -380,10 +372,8 @@
         >
       </div>
 
-      <!-- 主按鈕 -->
       <button class="btn-action" onclick="startGame()">開始遊戲</button>
 
-      <!-- 右下角浮動排行榜 -->
       <button
         class="float-br-btn btn-show-leaderboard"
         onclick="showLeaderboard()"
@@ -478,14 +468,42 @@
     </div>
 
     <script>
-      // 🌟 API 基本設定 (請確認你的後端網址與 Token 儲存名稱)
-      const API_BASE_URL = "https://163.17.135.120"; // ⚠️ 如果你們後端有統一的變數，請替換成你們的
-      const GAME_NAME = "catch-bottle"; // 遊戲名稱標識符
+      const API_BASE_URL = "https://163.17.135.120";
+      const GAME_NAME = "catch-bottle";
+
+      // 🛡️ 招式一：防外掛專用「計時與分數私有管理員」
+      const ScoreManager = (() => {
+        let _score = 0;
+        let _lastAdd = 0;
+
+        return {
+          add: (pts) => {
+            const now = Date.now();
+            if (now - _lastAdd < 50 && pts > 50) {
+              console.warn("🚨 系統偵測到異常外掛操作，已自動歸零積分！");
+              _score = 0;
+            } else {
+              _score += pts;
+            }
+            _lastAdd = now;
+            document.getElementById("score").innerText = _score;
+          },
+          sub: (pts) => {
+            _score -= pts;
+            document.getElementById("score").innerText = _score;
+          },
+          get: () => _score,
+          reset: () => {
+            _score = 0;
+            _lastAdd = Date.now();
+            document.getElementById("score").innerText = _score;
+          },
+        };
+      })();
 
       const canvas = document.getElementById("gameCanvas");
       const ctx = canvas.getContext("2d");
 
-      let score = 0;
       let timeLeft = 30;
       let gameInterval, dropInterval, timerInterval;
       let isPlaying = false;
@@ -556,7 +574,6 @@
         }
       }
 
-      // 🌟 【API 串接】切換難度並抓取後端最高分 (萬能拆包裝版)
       async function setDifficulty(level) {
         currentDifficulty = level;
         const label = diffConfig[level].label;
@@ -574,7 +591,6 @@
           btn.innerText = `🏆 看 [${label}] 排行榜`;
         });
 
-        // 先顯示載入中
         const scoreDisplay = document.getElementById("personal-high-score");
         scoreDisplay.innerText = "...";
 
@@ -590,9 +606,6 @@
 
           if (response.ok) {
             const rawData = await response.json();
-            console.log(`👉 [${level}] 個人最高分原始資料:`, rawData); // 💡 幫你印出後端底牌
-
-            // 🛡️ 無敵盲猜機制：自動把包裝拆開找分數
             let myHighScore = 0;
 
             if (rawData.high_score !== undefined) {
@@ -607,7 +620,6 @@
 
             scoreDisplay.innerText = myHighScore;
           } else {
-            // 如果未登入或後端無資料，降級使用本地暫存
             scoreDisplay.innerText =
               localStorage.getItem("catchBottleHighScore_" + level) || 0;
           }
@@ -739,12 +751,12 @@
                 isShielded = false;
                 clearTimeout(shieldTimer);
               } else {
-                score -= 15;
+                ScoreManager.sub(15);
                 showFloatingText("-15", item.x, item.y, "#ff4d4d");
               }
             } else if (item.type === "bottle") {
               let pts = isDoubleScore ? 20 : 10;
-              score += pts;
+              ScoreManager.add(pts);
               showFloatingText(
                 `+${pts}`,
                 item.x,
@@ -755,7 +767,6 @@
 
             items.splice(i, 1);
             i--;
-            document.getElementById("score").innerText = score;
             continue;
           }
           if (item.y > canvas.height) {
@@ -795,7 +806,7 @@
 
         document.getElementById("main-back-btn").innerHTML = "🔙 放棄遊戲";
 
-        score = 0;
+        ScoreManager.reset();
         timeLeft = 30;
         items = [];
         isPlaying = true;
@@ -804,7 +815,6 @@
         clearTimeout(doubleTimer);
         clearTimeout(shieldTimer);
 
-        document.getElementById("score").innerText = score;
         document.getElementById("time").innerText = timeLeft;
 
         let spawnRate = diffConfig[currentDifficulty].spawnRate;
@@ -827,16 +837,17 @@
         clearTimeout(doubleTimer);
         clearTimeout(shieldTimer);
 
+        const finalScore = ScoreManager.get();
+
         document.getElementById("game-ui").style.display = "none";
         document.getElementById("game-over-screen").style.display = "flex";
-        document.getElementById("final-score").innerText = score;
+        document.getElementById("final-score").innerText = finalScore;
 
         document.getElementById("main-back-btn").innerHTML = "🔙 回難度選擇";
 
-        processScore(score); // 呼叫 API 存檔
+        processScore(finalScore);
       }
 
-      // 🌟 【API 串接】將分數上傳到後端資料庫 (修復報錯版)
       async function processScore(finalScore) {
         const token = localStorage.getItem("authToken");
 
@@ -855,14 +866,12 @@
 
           if (response.ok) {
             console.log("上傳分數成功！");
-            // ✅ 正確做法：上傳成功後，直接呼叫 setDifficulty 重新抓取一次最新分數並更新畫面！
             setDifficulty(currentDifficulty);
           }
         } catch (error) {
           console.error("分數上傳失敗:", error);
         }
 
-        // 本地端防呆備份 (避免斷網時紀錄消失)
         let keyHigh = "catchBottleHighScore_" + currentDifficulty;
         let highScore = parseInt(localStorage.getItem(keyHigh) || "0");
         if (finalScore > highScore) {
@@ -873,7 +882,6 @@
         }
       }
 
-      // 🌟 【API 串接】抓取全球即時排行榜 (強化防呆版)
       async function showLeaderboard() {
         const diffLabel = diffConfig[currentDifficulty].label;
         document.getElementById("leaderboard-title").innerText =
@@ -885,10 +893,7 @@
         document.getElementById("leaderboard-screen").style.display = "flex";
 
         try {
-          // ⚠️ 檢查點 1：確認你們登入時，Token 是存在 localStorage 的哪個名稱？
           const token = localStorage.getItem("authToken");
-          console.log("👉 目前送出的 Token 是:", token); // 幫你印出來檢查有沒有抓到！
-
           const response = await fetch(
             `${API_BASE_URL}/game/${GAME_NAME}/${currentDifficulty.toUpperCase()}/ranking?limit=5`,
             {
@@ -899,16 +904,13 @@
 
           if (response.ok) {
             const rawData = await response.json();
-            console.log("👉 後端回傳的原始資料:", rawData); // 幫你印出後端到底傳了什麼
-
-            // 🛠️ 檢查點 2：自動拆包裝防呆機制
             let leaderboard = [];
             if (Array.isArray(rawData)) {
-              leaderboard = rawData; // 如果直接傳陣列
+              leaderboard = rawData;
             } else if (rawData.data && Array.isArray(rawData.data)) {
-              leaderboard = rawData.data; // 如果包在 data 裡面
+              leaderboard = rawData.data;
             } else if (rawData.ranking && Array.isArray(rawData.ranking)) {
-              leaderboard = rawData.ranking; // 如果包在 ranking 裡面
+              leaderboard = rawData.ranking;
             }
 
             if (!leaderboard || leaderboard.length === 0) {
@@ -919,17 +921,12 @@
               const medals = ["🥇", "🥈", "🥉"];
 
               leaderboard.forEach((entry, index) => {
-                // 💡 幫你把每一筆資料印出來，你看 Console 就知道後端用什麼單字了！
-                if (index === 0)
-                  console.log("👉 排行榜第一名資料長這樣:", entry);
-
                 let rankClass = index < 3 ? `rank-${index + 1}` : "";
                 let rankIcon =
                   index < 3
                     ? medals[index]
                     : `&nbsp;&nbsp;${index + 1}&nbsp;&nbsp;`;
 
-                // 🛡️ 名字欄位 (維持盲猜多種可能，確保不會漏接)
                 let playerName =
                   entry.name ||
                   entry.username ||
@@ -939,7 +936,6 @@
                   (entry.user && entry.user.name) ||
                   "匿名玩家";
 
-                // ✅ 分數欄位 (真相大白，直接讀取 high_score！)
                 let playerScore = entry.high_score || 0;
 
                 html += `
@@ -952,7 +948,6 @@
               listContainer.innerHTML = html;
             }
           } else {
-            // 如果後端回傳 403，清楚告訴玩家原因
             listContainer.innerHTML =
               '<div style="color: #ff4d4d; text-align: center; padding: 20px 0;">連線被拒絕 (403)，請確認是否已登入！</div>';
           }
