@@ -36,7 +36,7 @@ export const createComment = async (bottleId: number, memberId: number, content:
 };
 
 /*取得留言*/
-export const getCommentsByBottleId = async (bottleId: number) => {
+export const getCommentsByBottleId = async (bottleId: number, memberId: number) => {
     const comments = await prisma.comment.findMany({
         where: { bottle_id: bottleId },
         orderBy: { createdAt: 'asc' },
@@ -46,6 +46,11 @@ export const getCommentsByBottleId = async (bottleId: number) => {
                     name: true
                 }
             },
+            likes: memberId ? {
+                where: {
+                    member_id: memberId
+                }
+            } : false,
             _count: {
                 select: { likes: true }
             }
@@ -55,7 +60,9 @@ export const getCommentsByBottleId = async (bottleId: number) => {
     return comments.map(comments => ({
         ...comments,
         likeCount: comments._count.likes,
-        _count: undefined
+        isLiked: comments.likes ? comments.likes.length > 0 : false,
+        _count: undefined,
+        likes: undefined
     }))
 };
 
