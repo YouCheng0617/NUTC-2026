@@ -334,3 +334,53 @@ export const reportBottle = async (bottleId: number, memberId: number, reason: s
         throw error;
     }
 };
+
+export const searchBottle = async (keyword: string) => {
+    const searchTerm = keyword.trim();
+
+    if (!searchTerm) {
+        return [];
+    }
+
+    const searchResults = await prisma.bottle.findMany({
+        where: {
+            // 💡 重要：只搜尋 AI 審核「通過」的文章 (狀態為 2)
+            status: 2,
+            // 只要 title 或 content 其中一個包含關鍵字就抓出來
+            OR: [
+                { title: { contains: searchTerm } },
+                { content: { contains: searchTerm } }
+            ]
+        },
+        orderBy: {
+            created_at: "desc", // 搜尋結果依照最新時間排序
+        },
+        include: {
+            author: {
+                select: {
+                    name: true,
+                }
+            },
+            categories: {
+                include: {
+                    category: true,
+                }
+            },
+            _count: {
+                select: { likes: true, saves: true }
+            }
+        }
+    });
+
+    return searchResults.map(bottle => {
+        const { _count, categories, author, ...bottleData } = bottle;
+        return {
+            ...bottleData,
+            like_count: _count.likes,
+            save_count: _count.saves,
+            // 💡 重要：處理匿名邏輯，保護發文者
+            member_name: bottleData.is_anonymous ? "匿名使用者" : (author?.name || "未知使用者"),
+            category_list: categories.map(c => c.category?.name || "未知類別")
+        };
+    });
+};

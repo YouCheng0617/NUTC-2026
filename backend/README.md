@@ -175,3 +175,7 @@ Query 參數 (選填)：?limit=20 (預設為 10，如要拿前 20 名可帶此�
 }
 
 取得今日所有便利貼 GET 給Token /game/daily-note
+
+搜尋漂流瓶 GET 給Token (或不給也可) /bottles/search
+(例如搜尋標題或內容有「開心」的文章：/bottles/search?keyword=開心)
+Query 參數 (必填)：?keyword=你要找的字

@@ -11,6 +11,7 @@ export function bottleRouter() {
     bottleRouter.get("/mybottles", authCheck, bottleController.getMyBottles);
     bottleRouter.get("/liked", authCheck, bottleController.getMyLikedBottlesList);
     bottleRouter.get("/saved", authCheck, bottleController.getMySavedBottlesList);
+    bottleRouter.get("/search", optionalAuthCheck, bottleController.searchBottlesController);
     bottleRouter.post("/:bottleId/like", authCheck, bottleController.likeBottle);
     bottleRouter.post("/:bottleId/save", authCheck, bottleController.saveBottle);
     bottleRouter.delete("/:bottleId/delete", authCheck, bottleController.deleteMyBottle);

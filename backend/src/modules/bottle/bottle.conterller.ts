@@ -2,7 +2,7 @@ import { Router } from "express";
 import type { Request, Response } from "express";
 import prisma from "../../lib/prisma.js";
 import dotenv from "dotenv";
-import { getMybottles, likeBottles, saveBottles, getMyLikedBottles, getMySavedBottles, deleteMyBottle as deleteMyBottleService, getTodayBottle, reportBottle } from "./bottle.service.js";
+import { getMybottles, likeBottles, saveBottles, getMyLikedBottles, getMySavedBottles, deleteMyBottle as deleteMyBottleService, getTodayBottle, reportBottle, searchBottle } from "./bottle.service.js";
 export interface TokenPayload {
     member_id: number;
     email: string;
@@ -365,4 +365,28 @@ export const bottleController = {
             return res.status(500).json({ message: "伺服器發生錯誤，請稍後再試" });
         }
     },
+
+    async searchBottlesController(req: AuthRequest, res: Response) {
+        try {
+            // 從 URL 的 Query String 獲取關鍵字 (例如: /api/bottles/search?keyword=開心)
+            const keyword = req.query.keyword as string;
+
+            // 基本驗證
+            if (!keyword || keyword.trim() === "") {
+                return res.status(400).json({ message: "請提供搜尋關鍵字" });
+            }
+
+            // 呼叫 Service
+            const searchResults = await searchBottle(keyword);
+
+            return res.status(200).json({
+                message: `搜尋成功，共找到 ${searchResults.length} 筆結果`,
+                data: searchResults
+            });
+
+        } catch (error) {
+            console.error("❌ 搜尋瓶子發生錯誤:", error);
+            return res.status(500).json({ message: "內部伺服器錯誤" });
+        }
+    }
 }
