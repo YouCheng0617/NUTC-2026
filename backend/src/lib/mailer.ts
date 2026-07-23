@@ -7,7 +7,7 @@ export const sendEmailResetPassword = async (toEmail: string, token: string) => 
         const resetUrl = `${process.env.FRONTEND_URL}/reset-password.html?token=${token}`;
 
         const { data, error } = await resend.emails.send({
-            from: 'Dev Team <onboarding@resend.dev>',
+            from: 'Drift Bottle <service@drift-bottles.xyz>',
             to: toEmail,
             subject: '🔑 【Drift Bottle】密碼重設申請',
             html: `
