@@ -140,7 +140,7 @@
         }
         @keyframes bubbleRise { to { transform: translateY(-60vh) scale(1.5); opacity: 0; } }
 
-        /* 寶寶專屬：乾淨正常的抓抓手 + 封印瀏覽器預設行為 */
+        /* 寶寶專屬：封印瀏覽器預設行為 */
         .slug-container {
             position: absolute !important;
             width: 340px !important;
@@ -150,13 +150,12 @@
             touch-action: none !important;
             left: calc(50% - 170px);
             top: calc(50% - 120px);
-            /* ✨ 封印原生的文字選取與圖片拖曳，防止滑太快壞掉 */
             user-select: none !important;
             -webkit-user-select: none !important;
             -webkit-user-drag: none !important;
         }
 
-        /* 終極鎖定狀態：拖曳時，整個網頁都不准反白、不准變游標 */
+        /* 終極鎖定狀態 */
         body.is-dragging-global, body.is-dragging-global * {
             cursor: grabbing !important;
             user-select: none !important;
@@ -175,8 +174,7 @@
             overflow: visible;
             filter: drop-shadow(0 15px 15px rgba(0,0,0,0.15));
             transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1.2), filter 0.3s ease;
-            /* ✨ 讓游標忽略裡面的圖案，專心抓外框，這是防斷線的關鍵！ */
-            pointer-events: none !important;
+            pointer-events: none !important; /* 讓事件穿透到後面的防護罩 */
         }
 
         @keyframes earTwitchL { 0%, 100% { transform: rotate(0deg); } 50% { transform: rotate(-6deg); } }
@@ -420,7 +418,7 @@
         <button class="start-btn" id="startBtn" onclick="startGame()">開始照顧</button>
     </div>
 
-    <!-- 🌟 修改過的頂部導覽列，加入了返回按鈕 🌟 -->
+    <!-- 導覽列 -->
     <div class="top-bar">
         <button class="lang-btn" onclick="location.href='games.html'" id="btnBack">🏠 返回</button>
         <div class="points-display"><span id="txtPts">積分</span>: <span id="pointDisplay">0</span></div>
@@ -431,10 +429,11 @@
         <div class="dot-pattern" id="dotPattern"></div>
         <div id="effectLayer" class="effect-layer"></div>
         
-        <!-- 移除原本的 onclick，改由 JS 全權控制拖拽與點擊 -->
         <div class="slug-container" id="slugContainer">
+            <!-- 🌟 終極防護罩：這是一塊 100% 覆蓋的隱形壓克力板，保證不管用什麼設備點，都一定能摸到海兔！ -->
+            <div style="position: absolute; width: 100%; height: 100%; top: 0; left: 0; z-index: 10; cursor: inherit; background: rgba(0,0,0,0);"></div>
             
-            <svg class="slug-svg" viewBox="0 0 340 240">
+            <svg class="slug-svg" viewBox="0 0 340 240" style="position: relative; z-index: 1;">
                 <defs>
                     <linearGradient id="earGrad" x1="0%" y1="0%" x2="0%" y2="100%">
                         <stop offset="0%" stop-color="var(--c-ear-top)" />
@@ -525,7 +524,6 @@
     </div>
 
     <script>
-        // 🌟 修改過的語言字典，加入了 backBtn 🌟
         const i18n = {
             zh: {
                 backBtn: "🏠 返回",
@@ -737,7 +735,7 @@
             checkFirstTime();
             renderShop();
             startCooldownTimer();
-            initDragAndPetSystem(); // 啟動互動系統
+            initDragAndPetSystem(); 
         };
 
         function toggleLang() {
@@ -747,7 +745,6 @@
             updateUI();
         }
 
-        // 🌟 這裡也更新了，切換語言會順便改變返回按鈕的文字 🌟
         function updateLangUI() {
             const t = i18n[currLang];
             document.getElementById('btnBack').innerText = t.backBtn;
@@ -1028,63 +1025,58 @@
             });
         }
 
-        // --- 全新：拖拽與撫摸互動系統 (究極 Pointer 防斷線版) ---
+        // --- 🌟 究極防彈版：Mouse + Touch 雙核驅動系統，再也不當機 🌟 ---
         function initDragAndPetSystem() {
             const slugEl = document.getElementById('slugContainer');
             const stageEl = document.getElementById('mainStage');
             
             let isDragging = false;
             let moved = false;
-            let dragStartX = 0;
-            let dragStartY = 0;
-            let slugStartLeft = 0;
-            let slugStartTop = 0;
+            let startX = 0, startY = 0;
+            let slugStartLeft = 0, slugStartTop = 0;
             let petTimer = null;
 
-            // 完全封印瀏覽器的右鍵選單與原生拖曳
+            // 封印原生的選單與拖曳
             slugEl.oncontextmenu = (e) => { e.preventDefault(); return false; };
             slugEl.ondragstart = (e) => { e.preventDefault(); return false; };
 
-            // 游標按下去的瞬間 (同時支援滑鼠與觸控)
-            slugEl.addEventListener('pointerdown', function(e) {
-                if (e.pointerType === 'mouse' && e.button !== 0) return; // 排除滑鼠右鍵
+            function getPos(e) {
+                if (e.touches && e.touches.length > 0) return { x: e.touches[0].clientX, y: e.touches[0].clientY };
+                if (e.changedTouches && e.changedTouches.length > 0) return { x: e.changedTouches[0].clientX, y: e.changedTouches[0].clientY };
+                return { x: e.clientX, y: e.clientY };
+            }
+
+            function onStart(e) {
+                if (e.type === 'mousedown' && e.button !== 0) return;
                 
                 isDragging = true;
                 moved = false;
-
-                // ✨ 核心魔法：把游標死死綁定在海兔上！
-                slugEl.setPointerCapture(e.pointerId);
                 document.body.classList.add('is-dragging-global');
 
-                dragStartX = e.clientX;
-                dragStartY = e.clientY;
+                const pos = getPos(e);
+                startX = pos.x;
+                startY = pos.y;
 
                 const style = window.getComputedStyle(slugEl);
                 slugStartLeft = parseFloat(style.left) || (stageEl.clientWidth / 2 - 170);
                 slugStartTop = parseFloat(style.top) || (stageEl.clientHeight / 2 - 120);
                 
-                slugEl.classList.remove('is-petting');
-            });
+                slugEl.classList.add('is-petting');
+                spawnMiniHeart(pos.x, pos.y);
+            }
 
-            // 游標移動
-            slugEl.addEventListener('pointermove', function(e) {
-                // ----- 撫摸邏輯 (沒在拖曳的時候) -----
-                if (!isDragging) {
-                    slugEl.classList.add('is-petting');
-                    if (Math.random() < 0.1) spawnMiniHeart(e.clientX, e.clientY);
-                    
-                    clearTimeout(petTimer);
-                    petTimer = setTimeout(() => slugEl.classList.remove('is-petting'), 300);
-                    return;
-                }
+            function onMove(e) {
+                if (!isDragging) return; 
 
-                // ----- 拖曳邏輯 -----
-                const dx = e.clientX - dragStartX;
-                const dy = e.clientY - dragStartY;
+                if (e.cancelable) e.preventDefault(); // 絕對防止手機畫面跟著亂滾
 
-                if (Math.abs(dx) > 5 || Math.abs(dy) > 5) {
-                    moved = true;
-                }
+                const pos = getPos(e);
+                const dx = pos.x - startX;
+                const dy = pos.y - startY;
+
+                if (Math.abs(dx) > 5 || Math.abs(dy) > 5) moved = true;
+
+                if (moved && Math.random() < 0.08) spawnMiniHeart(pos.x, pos.y);
 
                 let newLeft = slugStartLeft + dx;
                 let newTop = slugStartTop + dy;
@@ -1097,25 +1089,40 @@
 
                 slugEl.style.left = newLeft + 'px';
                 slugEl.style.top = newTop + 'px';
-            });
+            }
 
-            // 游標放開或意外中斷
-            function endDrag(e) {
+            function onEnd(e) {
                 if (!isDragging) return;
                 isDragging = false;
-                
-                // 解除綁定與樣式
-                slugEl.releasePointerCapture(e.pointerId);
                 document.body.classList.remove('is-dragging-global');
+                slugEl.classList.remove('is-petting');
 
                 if (!moved && gameState.cooldowns['pet'] === 0) {
                     interact('pet', 50, 5);
                 }
             }
 
-            slugEl.addEventListener('pointerup', endDrag);
-            slugEl.addEventListener('pointercancel', endDrag); // 防呆機制，滑到系統外面也能正常斷開
+            // 單純懸浮時的專屬互動 (只在海兔身上有效)
+            function onHover(e) {
+                if (!isDragging && e.type === 'mousemove') {
+                    slugEl.classList.add('is-petting');
+                    if (Math.random() < 0.05) spawnMiniHeart(e.clientX, e.clientY);
+                    clearTimeout(petTimer);
+                    petTimer = setTimeout(() => slugEl.classList.remove('is-petting'), 300);
+                }
+            }
 
+            // 把所有的互動事件通通綁好綁滿
+            slugEl.addEventListener('mousedown', onStart, { passive: false });
+            slugEl.addEventListener('touchstart', onStart, { passive: false });
+            slugEl.addEventListener('mousemove', onHover);
+
+            document.addEventListener('mousemove', onMove, { passive: false });
+            document.addEventListener('touchmove', onMove, { passive: false });
+            document.addEventListener('mouseup', onEnd);
+            document.addEventListener('touchend', onEnd);
+            document.addEventListener('touchcancel', onEnd);
+            
             function spawnMiniHeart(x, y) {
                 const el = document.createElement('div');
                 el.innerText = '💖';
