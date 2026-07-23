@@ -212,10 +212,11 @@ async function fetchBottles() {
                     title: item.title || rawItem.title,
                     desc: item.content || rawItem.content,
                     likes: totalLikes,
-                    msgs: item.comment_count || item.comments?.length || 0, // 這裡可以看後端有沒有直接給總數，先給 0 也可以
+                    msgs: item.comment_count || item.comments?.length || 0,
                     liked: isActuallyLiked,
                     saved: isActuallySaved,
-                    createdAt: item.created_at || rawItem.created_at
+                    // ✨ 貼心防呆：把所有可能的日期欄位名稱都考量進去！
+                    createdAt: item.createdAt || item.created_at || rawItem.createdAt || rawItem.created_at
                 };
             });
 
@@ -414,11 +415,14 @@ window.renderComments = async function (postId) {
             let html = '';
             comments.forEach((c, index) => {
                 const authorName = c.member?.name || c.author_name || c.author?.name || c.user?.name || c.username || c.author || '匿名';
+                
+                // ✨ 完美接軌後端的改動：前端抓取 likeCount 和 isLiked 變數超通順！
                 const likesCount = c.likeCount || c.like_count || c.likes || 0;
+                const isLiked = c.isLiked || c.is_liked || c.liked || false;
+                
                 const commentId = c.id || c.comment_id || c.commentId || c._id;
                 const content = c.content || c.text || '';
                 const avatar = c.avatar || 'images/fish_logo.png';
-                const isLiked = c.isLiked || c.is_liked || c.liked || false;
 
                 html += `
                     <div style="background: #fff; padding: 24px 0; border-bottom: 1px solid #f0f0f0;">
@@ -432,7 +436,6 @@ window.renderComments = async function (postId) {
                         <div style="color: #222; font-size: 1.05rem; line-height: 1.7; padding-left: 48px; white-space: pre-wrap; margin-bottom: 10px;">${escapeHTML(content)}</div>
                         
                         <div style="text-align: right; padding-right: 15px;">
-                            <!-- ✨ 這裡加上了 ID，讓前端可以精準找到這顆愛心並瞬間變色 -->
                             <span id="comment-like-btn-${commentId}" style="cursor: pointer; color: ${isLiked ? '#e74c3c' : '#999'}; font-size: 0.95rem; user-select: none; transition: 0.2s;" onclick="toggleCommentLike('${postId}', '${commentId}')">
                                 ${isLiked ? '❤️' : '🤍'} ${likesCount}
                             </span>
@@ -476,7 +479,6 @@ window.submitComment = async function () {
     if (!token) { alert("寶寶，要先登入才能留言喔！"); return; }
 
     try {
-        // 🚀 POST 新增留言給特定瓶子
         const response = await fetch(`${API_BASE_URL}/comments/bottles/${currentOpenPostId}`, {
             method: 'POST',
             headers: {
@@ -488,12 +490,10 @@ window.submitComment = async function () {
         });
 
         if (response.ok) {
-            targetInput.value = ''; // 清空輸入框
+            targetInput.value = ''; 
             
-            // 重新讀取最新的留言列表
             await renderComments(currentOpenPostId);
             
-            // 讓視窗乖乖滾到最底下
             const detailView = document.getElementById('detail-view');
             if (detailView && detailView.offsetParent !== null) {
                 window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
@@ -523,7 +523,6 @@ window.toggleCommentLike = async function (postId, commentId) {
         return;
     }
 
-    // ✨ 先在前端「秒換」愛心顏色，使用者體驗滿分！
     const likeBtn = document.getElementById(`comment-like-btn-${commentId}`);
     let currentLikes = 0;
     let isCurrentlyLiked = false;
@@ -531,7 +530,6 @@ window.toggleCommentLike = async function (postId, commentId) {
     if (likeBtn) {
         const text = likeBtn.innerText;
         isCurrentlyLiked = text.includes('❤️');
-        // 抓出數字
         currentLikes = parseInt(text.replace(/[^0-9]/g, '')) || 0;
         
         if (isCurrentlyLiked) {
@@ -544,7 +542,6 @@ window.toggleCommentLike = async function (postId, commentId) {
     }
 
     try {
-        // 🚀 POST 留言按讚
         const response = await fetch(`${API_BASE_URL}/comments/${commentId}/like`, {
             method: 'POST',
             headers: {
@@ -558,7 +555,6 @@ window.toggleCommentLike = async function (postId, commentId) {
             const err = await response.json();
             alert(`按讚失敗：${err.message || '伺服器錯誤'}`);
             
-            // 🚨 如果後端報錯，把愛心乖乖退回原本的狀態
             if (likeBtn) {
                 likeBtn.innerHTML = isCurrentlyLiked ? `❤️ ${currentLikes}` : `🤍 ${currentLikes}`;
                 likeBtn.style.color = isCurrentlyLiked ? '#e74c3c' : '#999';
@@ -566,14 +562,10 @@ window.toggleCommentLike = async function (postId, commentId) {
             return;
         }
 
-        // 🌟 這裡我們「不呼叫」 await renderComments(postId) 囉！
-        // 因為畫面已經變紅愛心了，重新撈資料如果後端沒給 is_liked，反而會變回白愛心。
-
     } catch (error) {
         console.error("留言按讚處理失敗:", error);
         alert("伺服器開小差了，按讚失敗請稍後再試 😢");
         
-        // 🚨 網路斷線等問題，一樣把愛心退回去
         if (likeBtn) {
             likeBtn.innerHTML = isCurrentlyLiked ? `❤️ ${currentLikes}` : `🤍 ${currentLikes}`;
             likeBtn.style.color = isCurrentlyLiked ? '#e74c3c' : '#999';
@@ -591,10 +583,10 @@ window.openPostDetail = function (id) {
     document.querySelectorAll('#detail-author-tag').forEach(el => el.innerText = p.author || '匿名');
     document.querySelectorAll('#detail-post-title').forEach(el => el.innerHTML = highlightText(escapeHTML(p.title), currentKeyword));
     document.querySelectorAll('#detail-post-content').forEach(el => el.innerHTML = highlightText(escapeHTML(p.desc), currentKeyword));
-document.querySelectorAll('.detail-post-time').forEach(el => {
+    
+    document.querySelectorAll('.detail-post-time').forEach(el => {
         if (p.createdAt) {
             const date = new Date(p.createdAt);
-            // 轉換成在地化的時間格式，例如：2026/7/1 15:21
             el.innerText = date.toLocaleString('zh-TW', { 
                 year: 'numeric', 
                 month: '2-digit', 
@@ -603,10 +595,10 @@ document.querySelectorAll('.detail-post-time').forEach(el => {
                 minute: '2-digit' 
             });
         } else {
-            el.innerText = "剛剛發布"; // 防呆機制，如果沒抓到時間就顯示這個
+            el.innerText = "剛剛發布"; 
         }
     });
-    // 這裡會觸發我們熱騰騰寫好的 API 抓取留言函式
+    
     renderComments(id);
 
     const saveBtn = document.getElementById('save-bottle-btn');
