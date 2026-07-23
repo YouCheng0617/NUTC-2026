@@ -38,15 +38,15 @@ export class CommentController {
         }
     }
 
-    async getCommentsByBottleIdController(req: Request, res: Response) {
+    async getCommentsByBottleIdController(req: AuthRequest, res: Response) {
         try {
             const bottleId = Number(req.params.bottleId);
-
+            const memberId = req.user?.member_id as number;
             if (isNaN(bottleId)) {
                 return res.status(400).json({ message: "無效的瓶子 ID" });
             }
 
-            const comments = await getCommentsByBottleId(bottleId);
+            const comments = await getCommentsByBottleId(bottleId, memberId);
             return res.status(200).json({
                 message: "成功獲取留言列表",
                 data: comments
