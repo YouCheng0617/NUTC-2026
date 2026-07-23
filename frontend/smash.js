@@ -1,4 +1,33 @@
-let score = 0;
+// ✨ 1. 新增：防作弊分數管理器 (取代原本的 let score = 0)
+const ScoreManager = (() => {
+    let _score = 0;
+    let _shadow = btoa("0_secret_ocean_salt"); // 影子變數
+
+    const _check = () => {
+        if (_shadow !== btoa(_score + "_secret_ocean_salt")) {
+            console.warn("⚠️ 系統偵測到異常修改，分數已強制重置！");
+            _score = 0;
+            _shadow = btoa("0_secret_ocean_salt");
+        }
+    };
+
+    return {
+        add: (points) => {
+            _check();
+            _score = Math.max(0, _score + points); // 確保分數不會扣到負數
+            _shadow = btoa(_score + "_secret_ocean_salt");
+        },
+        get: () => {
+            _check();
+            return _score;
+        },
+        reset: () => {
+            _score = 0;
+            _shadow = btoa("0_secret_ocean_salt");
+        }
+    };
+})();
+
 let timeLeft = 30;
 let combo = 0;
 let currentAmmo = 10; 
@@ -17,20 +46,30 @@ const startModal = document.getElementById('start-modal');
 const endModal = document.getElementById('end-modal');
 const finalScoreDisplay = document.getElementById('final-score');
 
-// ✨ 1. 難易度與子彈設定 
+// ✨ 2. 難易度設定 (補上 label 標籤以供排行榜顯示)
 let currentDifficulty = 'normal';
 const diffConfig = {
-    easy: { spawnRate: 1000, speedMin: 5.0, speedMax: 7.5, fishChance: 0.10, maxAmmo: 20 }, 
-    normal: { spawnRate: 700, speedMin: 3.5, speedMax: 5.5, fishChance: 0.25, maxAmmo: 15 }, 
-    hard: { spawnRate: 500, speedMin: 2.0, speedMax: 4.0, fishChance: 0.40, maxAmmo: 10 }  
+    easy: { label: '簡單', spawnRate: 1000, speedMin: 5.0, speedMax: 7.5, fishChance: 0.10, maxAmmo: 20 }, 
+    normal: { label: '普通', spawnRate: 700, speedMin: 3.5, speedMax: 5.5, fishChance: 0.25, maxAmmo: 15 }, 
+    hard: { label: '困難', spawnRate: 500, speedMin: 2.0, speedMax: 4.0, fishChance: 0.40, maxAmmo: 10 }  
 };
 
 window.setDifficulty = function(level) {
     currentDifficulty = level;
+    
+    // 切換按鈕的發光狀態
     document.querySelectorAll(".diff-btn").forEach(btn => btn.classList.remove("active-diff"));
     document.getElementById("btn-diff-" + level).classList.add("active-diff");
+
+    // ✨ 動態更新右上角排行榜按鈕的文字
+    const diffLabel = diffConfig[level].label;
+    const lbButton = document.getElementById("top-right-leaderboard");
+    if (lbButton) {
+        lbButton.innerText = `🏆 看 [${diffLabel}] 排行榜`;
+    }
 }
 
+// 🌟 這裡就是不小心被刪除的音效初始化程式碼，已經補回來了！
 let audioCtx = null;
 function initAudio() {
     if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -138,7 +177,7 @@ function handleShoot(e) {
         const targetRect = target.getBoundingClientRect();
         
         if (type === 'fish') {
-            score = Math.max(0, score - 20); 
+            ScoreManager.add(-20);
             combo = 0; 
             createFloatingText(mouseX, mouseY, "-20分", "#ff4d4d");
 
@@ -162,7 +201,8 @@ function handleShoot(e) {
             combo++; 
             let multiplier = Math.min(combo, 5); 
             let gainedScore = 10 * multiplier;
-            score += gainedScore;
+            
+            ScoreManager.add(gainedScore);
             
             createFloatingText(mouseX, mouseY, `+${gainedScore} 分`, "#4da6ff");
             
@@ -175,7 +215,8 @@ function handleShoot(e) {
         combo = 0; 
         createFloatingText(mouseX, mouseY, "Miss!", "#ff4d4d");
     }
-    scoreDisplay.innerText = score;
+    
+    scoreDisplay.innerText = ScoreManager.get();
     ammoDisplay.innerText = currentAmmo;
     updateComboUI();
 
@@ -257,13 +298,14 @@ window.startGame = function() {
 
     const conf = diffConfig[currentDifficulty];
 
-    score = 0;
+    // ✨ 遊戲開始時重置安全分數
+    ScoreManager.reset();
     combo = 0;
     timeLeft = 30;
     currentAmmo = conf.maxAmmo; 
     isGameRunning = true;
     
-    scoreDisplay.innerText = score;
+    scoreDisplay.innerText = ScoreManager.get();
     timeDisplay.innerText = timeLeft;
     ammoDisplay.innerText = currentAmmo;
     updateComboUI();
@@ -272,7 +314,6 @@ window.startGame = function() {
     endModal.style.display = 'none';
     uiLayer.style.display = 'flex';
     
-    // ✨ 遊戲開始時，隱藏右上角排行榜按鈕
     document.getElementById('top-right-leaderboard').style.display = 'none';
 
     gameArea.innerHTML = '';
@@ -287,8 +328,8 @@ window.startGame = function() {
 }
 
 // ================= 真實後端 API 專屬排行榜系統 =================
-const API_BASE_URL = "https://163.17.135.120"; // 對齊 test.html
-const GAME_NAME = 'bottle_shooter'; // 你們資料庫中這款遊戲的代號
+const API_BASE_URL = "https://163.17.135.120"; 
+const GAME_NAME = 'bottle_shooter'; 
 let previousModal = 'start-modal'; 
 
 async function showLeaderboard() {
@@ -302,15 +343,20 @@ async function showLeaderboard() {
     endModal.style.display = 'none';
     document.getElementById('top-right-leaderboard').style.display = 'none';
     
+    // ✨ 3. 動態更新排行榜的標題難度
+    const diffLabel = diffConfig[currentDifficulty].label;
+    const titleEl = document.getElementById('leaderboard-title');
+    if (titleEl) {
+        titleEl.innerText = `🏆 [${diffLabel}] 狙擊排行榜`;
+    }
+
     const listContainer = document.getElementById('leaderboard-list');
     listContainer.innerHTML = '<li style="justify-content: center; color: #d1e8ff;">連線抓取中... 🌊</li>';
     document.getElementById('leaderboard-modal').style.display = 'block';
 
     try {
-        // 💡 加入 token
         const token = localStorage.getItem("authToken");
         
-        // 💡 修正 1：網址加上 /game/，難度加上 .toUpperCase()
         const response = await fetch(`${API_BASE_URL}/game/${GAME_NAME}/${currentDifficulty.toUpperCase()}/ranking?limit=5`, {
             method: "GET",
             headers: { "Authorization": `Bearer ${token}` }
@@ -320,7 +366,6 @@ async function showLeaderboard() {
             const rawData = await response.json();
             listContainer.innerHTML = ''; 
             
-            // 💡 修正 2：對齊 test.html 的自動拆包裝機制，避免讀不到分數
             let leaderboard = [];
             if (Array.isArray(rawData)) leaderboard = rawData;
             else if (rawData.data && Array.isArray(rawData.data)) leaderboard = rawData.data;
@@ -333,7 +378,6 @@ async function showLeaderboard() {
                 leaderboard.forEach((entry, index) => {
                     let rankIcon = index < 3 ? medals[index] : `&nbsp;&nbsp;${index + 1}&nbsp;&nbsp;`;
                     
-                    // 🛡️ 名字與分數盲猜，確保不會漏接
                     let playerName = entry.name || entry.username || entry.nickname || entry.member_name || (entry.member && entry.member.name) || (entry.user && entry.user.name) || "匿名玩家";
                     let playerScore = entry.high_score || entry.score || 0;
                     
@@ -360,11 +404,9 @@ function closeLeaderboard() {
 async function saveScore(finalScore) {
     if (finalScore <= 0) return; 
     
-    // 💡 加入 token
     const token = localStorage.getItem("authToken");
 
     try {
-        // 💡 修正 3：網址加上 /game/
         const response = await fetch(`${API_BASE_URL}/game/${GAME_NAME}`, {
             method: 'POST',
             headers: {
@@ -372,7 +414,7 @@ async function saveScore(finalScore) {
                 'Authorization': `Bearer ${token}`
             },
             body: JSON.stringify({
-                difficulty: currentDifficulty.toUpperCase(), // 💡 傳送大寫難度
+                difficulty: currentDifficulty.toUpperCase(), 
                 score: finalScore
             })
         });
@@ -400,13 +442,16 @@ function endGame(reason = "時間到！") {
     endModal.style.display = 'block';
     
     document.getElementById('end-title').innerText = reason; 
-    finalScoreDisplay.innerText = score;
+    
+    // ✨ 遊戲結束時，從安全管理器獲取分數
+    const finalScore = ScoreManager.get();
+    finalScoreDisplay.innerText = finalScore;
     
     const remainingTargets = document.querySelectorAll('.game-target');
     remainingTargets.forEach(t => t.style.pointerEvents = 'none');
 
     document.getElementById('top-right-leaderboard').style.display = 'block';
     
-    // ✨ 結算完成後，嘗試儲存分數
-    saveScore(score);
+    // ✨ 使用安全分數進行存檔
+    saveScore(finalScore);
 }
