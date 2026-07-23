@@ -42,6 +42,9 @@ export const getCommentsByBottleId = async (bottleId: number) => {
                 select: {
                     name: true
                 }
+            },
+            _count: {
+                select: { likes: true }
             }
         }
     });
