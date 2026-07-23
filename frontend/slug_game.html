@@ -420,7 +420,9 @@
         <button class="start-btn" id="startBtn" onclick="startGame()">開始照顧</button>
     </div>
 
+    <!-- 🌟 修改過的頂部導覽列，加入了返回按鈕 🌟 -->
     <div class="top-bar">
+        <button class="lang-btn" onclick="location.href='games.html'" id="btnBack">🏠 返回</button>
         <div class="points-display"><span id="txtPts">積分</span>: <span id="pointDisplay">0</span></div>
         <button class="lang-btn" onclick="toggleLang()" id="btnLang">EN</button>
     </div>
@@ -523,8 +525,10 @@
     </div>
 
     <script>
+        // 🌟 修改過的語言字典，加入了 backBtn 🌟
         const i18n = {
             zh: {
+                backBtn: "🏠 返回",
                 points: "積分", langBtn: "EN", 
                 gachaTitle: "發現神祕海兔卵", gachaBox: "點擊孵化", startBtn: "開始照顧",
                 feed: "餵食海藻", clean: "淨化水質", pet: "溫柔撫摸",
@@ -533,6 +537,7 @@
                 equip: "使用中", owned: "已解鎖"
             },
             en: {
+                backBtn: "🏠 Home",
                 points: "Pts", langBtn: "中文", 
                 gachaTitle: "Mystic Egg Found", gachaBox: "Incubate", startBtn: "Start Caring",
                 feed: "Feed Algae", clean: "Purify Water", pet: "Gentle Pet",
@@ -742,8 +747,10 @@
             updateUI();
         }
 
+        // 🌟 這裡也更新了，切換語言會順便改變返回按鈕的文字 🌟
         function updateLangUI() {
             const t = i18n[currLang];
+            document.getElementById('btnBack').innerText = t.backBtn;
             document.getElementById('btnLang').innerText = t.langBtn;
             document.getElementById('txtPts').innerText = t.points;
             document.getElementById('gachaTitle').innerText = t.gachaTitle;
