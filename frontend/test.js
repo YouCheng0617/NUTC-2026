@@ -1350,7 +1350,7 @@ document.addEventListener('DOMContentLoaded', () => {
     mascot.onclick = () => { window.location.href = AI_ASSISTANT_URL; };
 });
 
-<<<<<<< HEAD
+ HEAD
     const startDrag = (clientX, clientY) => {
         isDragging = true;
         hasMoved = false;
@@ -1431,7 +1431,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         window.location.href = AI_ASSISTANT_URL;
     });
-});
 // =========================================
 // 🫂 追蹤功能專屬邏輯 (寶寶特製版)
 // =========================================
@@ -1522,7 +1521,6 @@ window.onclick = function(event) {
         followingModal.style.display = 'none';
     }
 };
-=======
 document.addEventListener('dblclick', (e) => {
     const mascot = document.getElementById('svg-mermecat-mascot');
     if (mascot) {
@@ -1536,4 +1534,4 @@ document.addEventListener('dblclick', (e) => {
         if (mascotImage) mascotImage.style.transform = (e.clientX < (rect.left + halfWidth)) ? 'scaleX(-1)' : 'scaleX(1)';
     }
 });
->>>>>>> edc3187fa26cd1ebbe41cedca8cabb607f097942
+
