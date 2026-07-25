@@ -937,3 +937,110 @@ body, html { height: 100vh !important; overflow: hidden !important; background-c
 .following-info { display: flex; align-items: center; gap: 12px; }
 .following-avatar { width: 45px; height: 45px; border-radius: 50%; object-fit: cover; border: 2px solid #e0e6ed; }
 .following-name { font-weight: bold; color: #333; font-size: 1.05rem;}
+/* =========================================
+   📜 懸浮深海公約 (Website Rules) - 霸氣放大版
+   ========================================= */
+.ocean-rules-board {
+    position: fixed;
+    right: 40px; /* 稍微往左移一點點，讓大看板有呼吸空間 */
+    top: 50%;
+    transform: translateY(-50%); 
+    width: 320px; /* 🌟 寬度從 260px 加大到 320px */
+    
+    /* 深海毛玻璃質感 */
+    background: linear-gradient(135deg, rgba(10, 35, 65, 0.6), rgba(0, 85, 165, 0.4));
+    backdrop-filter: blur(15px);
+    border: 1px solid rgba(77, 166, 255, 0.4);
+    border-radius: 24px; /* 圓角稍微加大，看起來更圓潤 */
+    padding: 30px 25px; /* 🌟 內部的留白也跟著加大 */
+    z-index: 90; 
+    
+    /* 預設淡淡的發光與陰影 */
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3), 
+                inset 0 0 15px rgba(77, 166, 255, 0.2);
+    
+    /* 像瓶子一樣溫柔的上下漂浮 */
+    animation: float-board 6s infinite ease-in-out;
+    transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+/* 滑鼠移過去時的醒目特效！ */
+.ocean-rules-board:hover {
+    transform: translateY(-50%) scale(1.03); /* 因為本身變大了，縮放比例微微調小才不會太浮誇 */
+    background: linear-gradient(135deg, rgba(10, 35, 65, 0.8), rgba(0, 85, 165, 0.6));
+    border-color: rgba(77, 166, 255, 0.9);
+    box-shadow: 0 15px 40px rgba(0, 30, 70, 0.5), 
+                0 0 20px rgba(77, 166, 255, 0.6), 
+                inset 0 0 20px rgba(255, 255, 255, 0.2);
+}
+
+/* 標題設計 */
+.rules-header {
+    font-size: 1.6rem; /* 🌟 標題字體加大 */
+    font-weight: 900;
+    color: #4da6ff;
+    text-align: center;
+    margin-bottom: 20px;
+    border-bottom: 2px dashed rgba(77, 166, 255, 0.3);
+    padding-bottom: 15px;
+    text-shadow: 0 2px 5px rgba(0, 0, 0, 0.5);
+}
+
+.rules-icon {
+    font-size: 1.8rem; /* 🌟 卷軸圖示加大 */
+    vertical-align: middle;
+}
+
+/* 列表設計 */
+.rules-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    color: #d1e8ff;
+    font-size: 1.05rem; /* 🌟 內文字體加大 */
+    line-height: 1.7; /* 🌟 行距稍微拉開，閱讀更舒服 */
+}
+
+.rules-list li {
+    margin-bottom: 18px; /* 🌟 每個項目的間距拉大 */
+    padding-left: 20px;
+    position: relative;
+}
+
+.rules-list li::before {
+    content: "🫧"; /* 小氣泡當作項目符號 */
+    position: absolute;
+    left: -5px;
+    top: 3px;
+    font-size: 1rem; /* 🌟 氣泡圖示加大 */
+}
+
+.rules-list li strong {
+    color: #ffffff;
+    font-size: 1.15rem; /* 🌟 重點標題字體加大 */
+    display: inline-block;
+    margin-bottom: 4px; /* 讓粗體跟下面的說明文字有一點點小距離 */
+}
+
+/* 底部暖心小語 */
+.rules-footer {
+    margin-top: 25px;
+    text-align: center;
+    font-size: 0.95rem; /* 🌟 底部小語字體加大 */
+    color: #88bbff;
+    font-weight: bold;
+    font-style: italic;
+}
+
+/* 漂浮動畫 (維持不變) */
+@keyframes float-board {
+    0%, 100% { top: 50%; }
+    50% { top: calc(50% - 10px); }
+}
+
+/* 📱 手機版防撞牆設定：螢幕太小時隱藏或縮小 */
+@media screen and (max-width: 1200px) {
+    .ocean-rules-board {
+        display: none; /* 螢幕不夠寬時自動隱藏，避免擋住中間的瓶子 */
+    }
+}
