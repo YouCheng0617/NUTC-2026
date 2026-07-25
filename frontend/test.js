@@ -941,7 +941,18 @@ document.addEventListener('DOMContentLoaded', () => {
     setupAuth();
     setupNewPost();
     fetchBottles();
-
+// 👇 深海自動洋流系統 (定時刷新)
+    setInterval(() => {
+        const detailView = document.getElementById('detail-view');
+        // 貼心小設定：只有在主畫面 (沒有打開文章詳細頁) 的時候才刷新，才不會打斷閱讀喔！
+        if (detailView && detailView.style.display !== 'block') {
+            console.log("🌊 海浪悄悄地帶來了新的瓶子...");
+            // 如果你想要有被海浪沖走的動畫，可以改成呼叫 callOceanCurrent(); 
+            // 但如果只想安靜地更新資料不眼花，直接呼叫 fetchBottles() 最棒了！
+            callOceanCurrent(); 
+        }
+    }, 60000); // 這裡的 60000 代表 60 秒 (1分鐘) 刷新一次，寶寶可以隨心所欲修改數字喔！
+    // 👆 新增結束
     const searchInput = document.getElementById('main-search-input');
     const historyBox = document.getElementById('search-history-dropdown');
     const clearBtn = document.getElementById('clear-search-btn');
