@@ -878,3 +878,62 @@ body, html { height: 100vh !important; overflow: hidden !important; background-c
     transition: top 0.5s ease-out, left 0.5s ease-out;
     transform: translate(-50%, -50%); 
 }
+/* =========================================
+   🫂 專屬追蹤功能樣式區
+   ========================================= */
+
+/* 文章頁面的追蹤按鈕 */
+.follow-btn {
+    margin-left: auto; /* 聰明地把按鈕推到最右邊 */
+    padding: 6px 18px;
+    border-radius: 20px;
+    font-size: 0.9rem;
+    font-weight: bold;
+    cursor: pointer;
+    border: 2px solid #4da6ff;
+    background: transparent;
+    color: #4da6ff;
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+.follow-btn:hover {
+    background: rgba(77, 166, 255, 0.1);
+    transform: scale(1.05) translateY(-2px);
+    box-shadow: 0 4px 10px rgba(77, 166, 255, 0.2);
+}
+
+/* 已追蹤的狀態 */
+.follow-btn.following {
+    background: #4da6ff;
+    color: #fff;
+    border-color: #4da6ff;
+    box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
+}
+
+/* 滑鼠移過去顯示取消 */
+.follow-btn.following:hover {
+    background: #ff4d4d;
+    border-color: #ff4d4d;
+    color: #fff;
+}
+.follow-btn.following:hover::before {
+    content: "取消";
+}
+.follow-btn.following:hover span {
+    display: none;
+}
+
+/* 追蹤列表內的卡片樣式 */
+.following-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 15px;
+    border-bottom: 1px solid #f0f4f8;
+    transition: background 0.2s;
+    border-radius: 12px;
+}
+.following-item:hover { background: #f4f7fa; }
+.following-info { display: flex; align-items: center; gap: 12px; }
+.following-avatar { width: 45px; height: 45px; border-radius: 50%; object-fit: cover; border: 2px solid #e0e6ed; }
+.following-name { font-weight: bold; color: #333; font-size: 1.05rem;}

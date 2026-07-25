@@ -1478,3 +1478,93 @@ document.addEventListener('DOMContentLoaded', () => {
         window.location.href = AI_ASSISTANT_URL;
     });
 });
+// =========================================
+// 🫂 追蹤功能專屬邏輯 (寶寶特製版)
+// =========================================
+
+let isFollowingCurrentAuthor = false; // 暫存目前的追蹤狀態
+
+// 1. 切換追蹤狀態的魔法
+window.toggleFollow = function() {
+    const btn = document.getElementById('follow-author-btn');
+    const authorName = document.getElementById('detail-author-tag').innerText;
+    
+    // 如果作者是匿名，阻止追蹤
+    if (authorName === '匿名') {
+        alert("寶寶，這個人使用了隱身斗篷，沒辦法追蹤喔！👻");
+        return;
+    }
+    
+    if (isFollowingCurrentAuthor) {
+        // 執行取消追蹤
+        isFollowingCurrentAuthor = false;
+        btn.classList.remove('following');
+        btn.innerHTML = '<span>已追蹤</span>'; // 恢復原本的字
+        btn.innerText = '+ 追蹤';
+        alert(`已悄悄取消追蹤 ${authorName} 💔`);
+        
+        // 🚀 未來這裡可以加上發送 DELETE 請求給後端的程式碼
+    } else {
+        // 執行追蹤
+        isFollowingCurrentAuthor = true;
+        btn.classList.add('following');
+        btn.innerHTML = '<span>已追蹤</span>';
+        alert(`成功把 ${authorName} 加入追蹤名單啦！🎉`);
+        
+        // 🚀 未來這裡可以加上發送 POST 請求給後端的程式碼
+    }
+};
+
+// 2. 打開追蹤列表彈窗
+window.openFollowingModal = function() {
+    // 先把右上角的下拉選單收起來
+    const dropdown = document.getElementById('user-dropdown');
+    if(dropdown) dropdown.classList.remove('show-dropdown');
+    
+    // 顯示彈窗
+    const modal = document.getElementById('following-modal');
+    modal.style.display = 'block';
+    
+    const container = document.getElementById('following-list-container');
+    
+    // 🌟 這裡是用來展示的假資料，之後可以換成 fetch() 呼叫後端 API
+    const mockFollowingList = [
+        { name: '海神波賽頓', avatar: 'images/fish_logo.png', id: '1' },
+        { name: '迷路的小海龜', avatar: 'images/fish_logo.png', id: '2' },
+        { name: '快樂海豹', avatar: 'images/fish_logo.png', id: '3' }
+    ];
+    
+    if (mockFollowingList.length === 0) {
+        container.innerHTML = '<div style="text-align: center; color: #888; padding: 30px 0;">你還沒有追蹤任何人喔，快去海域逛逛吧！🐟</div>';
+        return;
+    }
+    
+    // 渲染名單
+    container.innerHTML = mockFollowingList.map(user => `
+        <div class="following-item" id="follow-item-${user.id}">
+            <div class="following-info">
+                <img src="${user.avatar}" class="following-avatar">
+                <span class="following-name">${user.name}</span>
+            </div>
+            <button class="follow-btn following" onclick="alert('之後可以在這裡實作直接取消追蹤的功能喔！')">
+                <span>已追蹤</span>
+            </button>
+        </div>
+    `).join('');
+};
+
+// 3. 關閉追蹤列表彈窗
+window.closeFollowingModal = function() {
+    document.getElementById('following-modal').style.display = 'none';
+};
+
+// 4. 點擊彈窗外部自動關閉 (整合進你原本的 window.onclick)
+const originalOnClick = window.onclick;
+window.onclick = function(event) {
+    if (originalOnClick) originalOnClick(event); // 保留原本的點擊關閉功能
+    
+    const followingModal = document.getElementById('following-modal');
+    if (event.target == followingModal) {
+        followingModal.style.display = 'none';
+    }
+};
