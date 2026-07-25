@@ -6,7 +6,7 @@ let currentKeyword = '';
 
 // 👇 分頁設定與狀態紀錄
 let currentPage = 1;
-const POSTS_PER_PAGE = 6; 
+const POSTS_PER_PAGE = 6; // 🌟 從 5 改成 6，讓一頁抓出 6 個瓶子
 
 let currentBoard = sessionStorage.getItem('savedBoard') || '😡 極度憤怒中';
 let savedCatId = sessionStorage.getItem('savedCategoryId');
@@ -27,7 +27,7 @@ const BOARD_CATEGORY_MAP = {
 // =========================================
 function debounce(func, wait) {
     let timeout;
-    return function(...args) {
+    return function (...args) {
         clearTimeout(timeout);
         timeout = setTimeout(() => func.apply(this, args), wait);
     };
@@ -35,6 +35,7 @@ function debounce(func, wait) {
 
 function highlightText(text, keyword) {
     if (!keyword) return text;
+    // 避免特殊字元破壞 Regex
     const safeKeyword = keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     const regex = new RegExp(`(${safeKeyword})`, 'gi');
     return String(text).replace(regex, '<span class="highlight">$1</span>');
@@ -56,96 +57,62 @@ function calculateZodiac(month, day) {
     return "未填寫";
 }
 
-// 🌊 向後端抓取文章 API (地毯式搜索版)
+// 🌊 向後端抓取文章 API
 async function fetchBottles() {
     const token = localStorage.getItem("authToken");
-    
-    // 預設的 headers
-    const headers = {
-        'Content-Type': 'application/json',
-        'ngrok-skip-browser-warning': 'true'
-    };
-    if (token) {
-        headers['Authorization'] = `Bearer ${token}`;
-    }
 
     try {
+        let endpointUrl = `${API_BASE_URL}/bottles/random`;
+
+        if (currentView === 'mine') {
+            if (!token) { renderPosts([]); return; }
+            endpointUrl = `${API_BASE_URL}/bottles/mybottles`;
+        } else if (currentView === 'saved') {
+            if (!token) { renderPosts([]); return; }
+            endpointUrl = `${API_BASE_URL}/bottles/saved`;
+        } else if (currentKeyword) {
+            endpointUrl = `${API_BASE_URL}/bottles/random`;
+        } else if (currentCategoryId !== null) {
+            endpointUrl = `${API_BASE_URL}/bottles/random?categoryId=${currentCategoryId}`;
+        }
+
         let likedBottleIds = [];
         let savedBottleIds = [];
 
-        // 偷抓按讚與收藏紀錄
         if (token) {
             try {
-                const likedRes = await fetch(`${API_BASE_URL}/bottles/liked`, { method: 'GET', headers });
+                const likedRes = await fetch(`${API_BASE_URL}/bottles/liked`, { method: 'GET', headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' } });
                 if (likedRes.ok) {
                     const likedData = await likedRes.json();
                     let arr = likedData.bottles || likedData.data || likedData;
                     if (Array.isArray(arr)) likedBottleIds = arr.map(i => String(i.bottle_id || i.id || i.bottleId));
                 }
-            } catch (e) { }
+            } catch (e) { console.log('偷偷抓取按讚清單失敗'); }
 
             try {
-                const savedRes = await fetch(`${API_BASE_URL}/bottles/saved`, { method: 'GET', headers });
+                const savedRes = await fetch(`${API_BASE_URL}/bottles/saved`, { method: 'GET', headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' } });
                 if (savedRes.ok) {
                     const savedData = await savedRes.json();
                     let arr = savedData.bottles || savedData.data || savedData;
                     if (Array.isArray(arr)) savedBottleIds = arr.map(i => String(i.bottle_id || i.id || i.bottleId));
                 }
-            } catch (e) { }
+            } catch (e) { console.log('偷偷抓取收藏清單失敗'); }
         }
 
-        let response = null;
-        let fetchSuccess = false;
-
-        // 🌟 寶寶專屬：超級特務多重搜索機制
-        if (currentKeyword && currentView !== 'mine' && currentView !== 'saved') {
-            console.log(`🌊 啟動地毯式搜索，目標關鍵字：[${currentKeyword}]`);
-            
-            // 窮舉所有後端最常寫的搜尋 API 格式
-            const possibleEndpoints = [
-                `${API_BASE_URL}/bottles/search?keyword=${encodeURIComponent(currentKeyword)}`,
-                `${API_BASE_URL}/bottles?search=${encodeURIComponent(currentKeyword)}`,
-                `${API_BASE_URL}/bottles/all`,
-                `${API_BASE_URL}/bottles`
-            ];
-
-            for (let url of possibleEndpoints) {
-                console.log(`🔍 正在悄悄敲門測試：${url}`);
-                try {
-                    let testRes = await fetch(url, { method: 'GET', headers });
-                    if (testRes.ok) {
-                        console.log(`🎉 抓到了！後端的門開在這裡：${url}`);
-                        response = testRes;
-                        fetchSuccess = true;
-                        break; 
-                    }
-                } catch (e) {
-                    console.log(`❌ 這裡不通 (${url})，我們換下一扇門...`);
-                }
-            }
-
-            // 如果全部失敗，只好硬著頭皮跟原本一樣要一大把隨機資料來本地搜尋
-            if (!fetchSuccess) {
-                console.warn("🥺 糟糕！後端似乎沒有開放任何搜尋的通道，我只能盡力撈取隨機的瓶子來找找看囉！");
-                response = await fetch(`${API_BASE_URL}/bottles/random?limit=100`, { method: 'GET', headers });
-            }
-            
-        } else {
-            // 一般的瀏覽模式 (沒有在搜尋)
-            let endpointUrl = `${API_BASE_URL}/bottles/random`;
-            if (currentView === 'mine') {
-                if (!token) { renderPosts([]); return; }
-                endpointUrl = `${API_BASE_URL}/bottles/mybottles`;
-            } else if (currentView === 'saved') {
-                if (!token) { renderPosts([]); return; }
-                endpointUrl = `${API_BASE_URL}/bottles/saved`;
-            } else if (currentCategoryId !== null) {
-                endpointUrl = `${API_BASE_URL}/bottles/random?categoryId=${currentCategoryId}`;
-            }
-            response = await fetch(endpointUrl, { method: 'GET', headers });
+        const headers = {
+            'Content-Type': 'application/json',
+            'ngrok-skip-browser-warning': 'true'
+        };
+        if (token) {
+            headers['Authorization'] = `Bearer ${token}`;
         }
 
-        if (response && response.ok) {
+        const response = await fetch(endpointUrl, {
+            method: 'GET',
+            headers: headers
+        });
+
+        if (response.ok) {
             const backendData = await response.json();
 
             let postsArray = [];
@@ -248,16 +215,18 @@ async function fetchBottles() {
                     msgs: item.comment_count || item.comments?.length || 0,
                     liked: isActuallyLiked,
                     saved: isActuallySaved,
+                    // ✨ 貼心防呆：把所有可能的日期欄位名稱都考量進去！
                     createdAt: item.createdAt || item.created_at || rawItem.createdAt || rawItem.created_at
                 };
             });
 
             applyFilters();
-        } else if (response && response.status === 404) {
-            console.log(`🌊 該海域目前還沒有漂流瓶`);
+        } else if (response.status === 404) {
+            console.log(`🌊 該海域 (Category ${currentCategoryId}) 目前還沒有漂流瓶`);
             posts = [];
             applyFilters();
         } else {
+            console.error("獲取文章失敗，狀態碼:", response.status);
             posts = [];
             applyFilters();
         }
@@ -390,7 +359,7 @@ window.applyHistorySearch = function (e, keyword) {
     const searchInput = document.getElementById('main-search-input');
     if (searchInput) searchInput.value = keyword;
     currentKeyword = keyword.toLowerCase();
-    
+
     const clearBtn = document.getElementById('clear-search-btn');
     if (clearBtn) clearBtn.style.display = keyword ? 'block' : 'none';
 
@@ -417,7 +386,7 @@ window.renderComments = async function (postId) {
     const counts = document.querySelectorAll('#detail-comment-count');
 
     lists.forEach(listContainer => {
-        if(listContainer) listContainer.innerHTML = '<div style="text-align:center; color:#888; padding: 30px 0;">潛入海底撈取留言中...🌊</div>';
+        if (listContainer) listContainer.innerHTML = '<div style="text-align:center; color:#888; padding: 30px 0;">潛入海底撈取留言中...🌊</div>';
     });
 
     try {
@@ -425,9 +394,9 @@ window.renderComments = async function (postId) {
         const headers = { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' };
         if (token) headers['Authorization'] = `Bearer ${token}`;
 
-        const response = await fetch(`${API_BASE_URL}/comments/bottles/${postId}`, { 
-            method: 'GET', 
-            headers: headers 
+        const response = await fetch(`${API_BASE_URL}/comments/bottles/${postId}`, {
+            method: 'GET',
+            headers: headers
         });
 
         let comments = [];
@@ -446,10 +415,11 @@ window.renderComments = async function (postId) {
             let html = '';
             comments.forEach((c, index) => {
                 const authorName = c.member?.name || c.author_name || c.author?.name || c.user?.name || c.username || c.author || '匿名';
-                
+
+                // ✨ 完美接軌後端的改動：前端抓取 likeCount 和 isLiked 變數超通順！
                 const likesCount = c.likeCount || c.like_count || c.likes || 0;
                 const isLiked = c.isLiked || c.is_liked || c.liked || false;
-                
+
                 const commentId = c.id || c.comment_id || c.commentId || c._id;
                 const content = c.content || c.text || '';
                 const avatar = c.avatar || 'images/fish_logo.png';
@@ -477,10 +447,10 @@ window.renderComments = async function (postId) {
         });
 
         counts.forEach(countSpan => { if (countSpan) countSpan.innerText = comments.length; });
-        
+
         const p = posts.find(x => String(x.id) === String(postId));
         if (p) {
-            p.msgs = comments.length; 
+            p.msgs = comments.length;
             applyFilters();
         }
 
@@ -520,10 +490,10 @@ window.submitComment = async function () {
         });
 
         if (response.ok) {
-            targetInput.value = ''; 
-            
+            targetInput.value = '';
+
             await renderComments(currentOpenPostId);
-            
+
             const detailView = document.getElementById('detail-view');
             if (detailView && detailView.offsetParent !== null) {
                 window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
@@ -561,7 +531,7 @@ window.toggleCommentLike = async function (postId, commentId) {
         const text = likeBtn.innerText;
         isCurrentlyLiked = text.includes('❤️');
         currentLikes = parseInt(text.replace(/[^0-9]/g, '')) || 0;
-        
+
         if (isCurrentlyLiked) {
             likeBtn.innerHTML = `🤍 ${Math.max(0, currentLikes - 1)}`;
             likeBtn.style.color = '#999';
@@ -584,7 +554,7 @@ window.toggleCommentLike = async function (postId, commentId) {
         if (!response.ok) {
             const err = await response.json();
             alert(`按讚失敗：${err.message || '伺服器錯誤'}`);
-            
+
             if (likeBtn) {
                 likeBtn.innerHTML = isCurrentlyLiked ? `❤️ ${currentLikes}` : `🤍 ${currentLikes}`;
                 likeBtn.style.color = isCurrentlyLiked ? '#e74c3c' : '#999';
@@ -595,7 +565,7 @@ window.toggleCommentLike = async function (postId, commentId) {
     } catch (error) {
         console.error("留言按讚處理失敗:", error);
         alert("伺服器開小差了，按讚失敗請稍後再試 😢");
-        
+
         if (likeBtn) {
             likeBtn.innerHTML = isCurrentlyLiked ? `❤️ ${currentLikes}` : `🤍 ${currentLikes}`;
             likeBtn.style.color = isCurrentlyLiked ? '#e74c3c' : '#999';
@@ -613,22 +583,22 @@ window.openPostDetail = function (id) {
     document.querySelectorAll('#detail-author-tag').forEach(el => el.innerText = p.author || '匿名');
     document.querySelectorAll('#detail-post-title').forEach(el => el.innerHTML = highlightText(escapeHTML(p.title), currentKeyword));
     document.querySelectorAll('#detail-post-content').forEach(el => el.innerHTML = highlightText(escapeHTML(p.desc), currentKeyword));
-    
+
     document.querySelectorAll('.detail-post-time').forEach(el => {
         if (p.createdAt) {
             const date = new Date(p.createdAt);
-            el.innerText = date.toLocaleString('zh-TW', { 
-                year: 'numeric', 
-                month: '2-digit', 
-                day: '2-digit', 
-                hour: '2-digit', 
-                minute: '2-digit' 
+            el.innerText = date.toLocaleString('zh-TW', {
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit'
             });
         } else {
-            el.innerText = "剛剛發布"; 
+            el.innerText = "剛剛發布";
         }
     });
-    
+
     renderComments(id);
 
     const saveBtn = document.getElementById('save-bottle-btn');
@@ -984,10 +954,10 @@ document.addEventListener('DOMContentLoaded', () => {
         searchInput.oninput = (e) => {
             currentKeyword = e.target.value.toLowerCase().trim();
             currentPage = 1;
-            
+
             if (clearBtn) clearBtn.style.display = currentKeyword ? 'block' : 'none';
 
-            debouncedSearch(); 
+            debouncedSearch();
             renderSearchHistory();
             historyBox.style.width = searchInput.offsetWidth + 'px';
             historyBox.style.left = searchInput.offsetLeft + 'px';
@@ -1014,7 +984,7 @@ document.addEventListener('DOMContentLoaded', () => {
             currentKeyword = '';
             clearBtn.style.display = 'none';
             currentPage = 1;
-            fetchBottles(); 
+            fetchBottles();
             searchInput.focus();
         };
     }
@@ -1252,7 +1222,7 @@ function renderPagination(totalPages, dataArray) {
 document.addEventListener('DOMContentLoaded', () => {
     const mascotContainer = document.createElement('div');
     mascotContainer.id = 'svg-mermecat-mascot';
-    mascotContainer.title = '點擊我去找 AI 小助理聊天！或是把我抓起來玩～';
+    mascotContainer.title = '點擊我去找 AI 小助理聊天！';
 
     mascotContainer.innerHTML = `
         <div class="svg-mermecat-wrapper">
@@ -1316,10 +1286,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const mascotStyle = document.createElement('style');
     mascotStyle.innerHTML = `
         #svg-mermecat-mascot {
-            position: fixed; z-index: 99999; width: 130px; height: 140px; cursor: grab; user-select: none; pointer-events: auto;
+            position: fixed; z-index: 99999; width: 130px; height: 140px; cursor: pointer; user-select: none; pointer-events: auto;
             filter: drop-shadow(0 6px 15px rgba(0, 30, 60, 0.25)); transition: top 8s ease-in-out, left 8s ease-in-out;
         }
-        #svg-mermecat-mascot:active { cursor: grabbing; }
         .svg-mermecat-wrapper { position: relative; width: 100%; height: 100%; animation: svg-float 4s infinite alternate ease-in-out; }
         @keyframes svg-float { 0% { transform: translateY(0px) rotate(-1deg); } 100% { transform: translateY(-8px) rotate(1deg); } }
         .cute-dialogue {
@@ -1334,45 +1303,31 @@ document.addEventListener('DOMContentLoaded', () => {
     document.head.appendChild(mascotStyle);
 
     const mascot = document.getElementById('svg-mermecat-mascot');
-    let currentZone = 0; 
-    let isDragging = false; 
-    let swimTimer; 
+    let currentZone = 0;
 
-    // 🏊 讓吉祥物自己悠哉游泳的邏輯
     function swimLikeLazyMermaid() {
-        if (!isDragging) {
-            const padding = 20;
-            const borderThickness = 120;
-            const w = window.innerWidth - 130;
-            const h = window.innerHeight - 140;
+        const padding = 20;
+        const borderThickness = 120;
+        const w = window.innerWidth - 130;
+        const h = window.innerHeight - 140;
 
-            let targetX, targetY;
-            if (currentZone === 0) { targetX = Math.random() * w; targetY = padding + Math.random() * (borderThickness - 50); }
-            else if (currentZone === 1) { targetX = w - padding - Math.random() * (borderThickness - 50); targetY = Math.random() * h; }
-            else if (currentZone === 2) { targetX = Math.random() * w; targetY = h - padding - Math.random() * (borderThickness - 50); }
-            else { targetX = padding + Math.random() * (borderThickness - 50); targetY = Math.random() * h; }
+        let targetX, targetY;
+        if (currentZone === 0) { targetX = Math.random() * w; targetY = padding + Math.random() * (borderThickness - 50); }
+        else if (currentZone === 1) { targetX = w - padding - Math.random() * (borderThickness - 50); targetY = Math.random() * h; }
+        else if (currentZone === 2) { targetX = Math.random() * w; targetY = h - padding - Math.random() * (borderThickness - 50); }
+        else { targetX = padding + Math.random() * (borderThickness - 50); targetY = Math.random() * h; }
 
-            mascot.style.left = targetX + 'px';
-            mascot.style.top = targetY + 'px';
+        mascot.style.left = targetX + 'px';
+        mascot.style.top = targetY + 'px';
 
-            // 游泳時看著前進的方向
-            const mascotImage = mascot.querySelector('svg');
-            const currentX = parseFloat(window.getComputedStyle(mascot).left) || 0;
-            if (mascotImage) mascotImage.style.transform = (targetX < currentX) ? 'scaleX(-1)' : 'scaleX(1)';
+        if (Math.random() > 0.1) currentZone = (currentZone + 1) % 4;
 
-            if (Math.random() > 0.1) currentZone = (currentZone + 1) % 4;
-            
-            const duration = 8000 + Math.random() * 4000;
-            mascot.style.transition = `top ${duration}ms ease-in-out, left ${duration}ms ease-in-out`;
-            
-            clearTimeout(swimTimer);
-            swimTimer = setTimeout(swimLikeLazyMermaid, duration);
-        }
+        const duration = 8000 + Math.random() * 4000;
+        mascot.style.transition = `top ${duration}ms ease-in-out, left ${duration}ms ease-in-out`;
+        setTimeout(swimLikeLazyMermaid, duration);
     }
-    // 初次啟動游泳
-    swimTimer = setTimeout(swimLikeLazyMermaid, 100); 
+    setTimeout(swimLikeLazyMermaid, 100);
 
-    // 💬 對話泡泡邏輯
     const randomPhrases = [
         "🌊 咕嚕咕嚕... 今天的水溫好舒服喵！", "🤫 有什麼秘密想跟我說嗎？", "✏️ 把不開心的事丟進瓶子裡吧！", "🎵 好像有很多有趣的瓶子呢！",
         "💖 今天過得好嗎？", "❔開發者團隊們都不知道我是什麼物種呢!", "今天心情像冒泡泡一樣開心！", "耶！水溫剛剛好，心情也剛剛好！",
@@ -1381,22 +1336,21 @@ document.addEventListener('DOMContentLoaded', () => {
     const dialogueBox = document.getElementById('mermecat-dialogue');
     let dialogueTimer;
 
-    function showRandomDialogue(text) {
-        if (dialogueBox.classList.contains('show-dialogue') && !text) return;
-        dialogueBox.innerText = text || randomPhrases[Math.floor(Math.random() * randomPhrases.length)];
+    function showRandomDialogue() {
+        if (dialogueBox.classList.contains('show-dialogue')) return;
+        dialogueBox.innerText = randomPhrases[Math.floor(Math.random() * randomPhrases.length)];
         dialogueBox.classList.add('show-dialogue');
         clearTimeout(dialogueTimer);
         dialogueTimer = setTimeout(() => { dialogueBox.classList.remove('show-dialogue'); }, 4000);
     }
     setTimeout(showRandomDialogue, 2000);
-    setInterval(() => { if (Math.random() > 0.2 && !isDragging) showRandomDialogue(); }, 8000 + Math.random() * 6000);
+    setInterval(() => { if (Math.random() > 0.2) showRandomDialogue(); }, 8000 + Math.random() * 6000);
 
-    // ==========================================
-    // 🐾 貼心的抓取魔法區 (Drag & Drop)
-    // ==========================================
-    let startX, startY, initialLeft, initialTop;
-    let hasMoved = false;
+    const AI_ASSISTANT_URL = "./chat_ui/chat.html";
+    mascot.onclick = () => { window.location.href = AI_ASSISTANT_URL; };
+});
 
+<<<<<<< HEAD
     const startDrag = (clientX, clientY) => {
         isDragging = true;
         hasMoved = false;
@@ -1568,3 +1522,18 @@ window.onclick = function(event) {
         followingModal.style.display = 'none';
     }
 };
+=======
+document.addEventListener('dblclick', (e) => {
+    const mascot = document.getElementById('svg-mermecat-mascot');
+    if (mascot) {
+        const rect = mascot.getBoundingClientRect();
+        const halfWidth = rect.width / 2;
+        const halfHeight = rect.height / 2;
+        const finalX = Math.max(halfWidth, Math.min(e.clientX, window.innerWidth - halfWidth));
+        const finalY = Math.max(halfHeight, Math.min(e.clientY, window.innerHeight - halfHeight));
+        mascot.style.left = `${finalX}px`; mascot.style.top = `${finalY}px`;
+        const mascotImage = mascot.querySelector('img, svg');
+        if (mascotImage) mascotImage.style.transform = (e.clientX < (rect.left + halfWidth)) ? 'scaleX(-1)' : 'scaleX(1)';
+    }
+});
+>>>>>>> edc3187fa26cd1ebbe41cedca8cabb607f097942
