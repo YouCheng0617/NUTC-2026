@@ -155,7 +155,7 @@ async function generateReading() {
     const prompt = `你現在是一位溫柔、充滿智慧的星空魔法塔羅占卜師。玩家想問的問題是關於【${selectedTopic}】。玩家抽到了一個三牌陣，請務必依照「由左至右」的順序（過去、現在、未來）進行解讀：\n${cardsInfo}\n請根據牌面與正逆位，針對玩家詢問的「${selectedTopic}」給出一份語氣溫柔、帶有魔法與星空隱喻且具有啟發性的解牌報告。請不要給出絕對的預言，而是給予引導。排版要清晰，字數請控制在 300 字以內。`;
 
     // ⚠️ 記得替換成你的真實 API Key
-    const API_KEY = 'AQ.Ab8RN6KT4fvwBmue564cdyG0fYa4xbQ2vHWE30sbzEXXCQdFaA'; 
+    const API_KEY = '請填寫你的_API_KEY';
     const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${API_KEY}`;
 
     try {
