@@ -149,11 +149,15 @@ model Comment {
   bottle_id Int      @map("bottle_id")
   createdAt DateTime @default(now()) @map("created_at")
 
+  parent_id Int?   @map("parent_id")
   // 關聯：留言是誰留的、留在哪個瓶子上 (一樣加上 Cascade 級聯刪除，保證資料庫乾淨)
-  member Member @relation(fields: [member_id], references: [member_id], onDelete: Cascade)
-  bottle Bottle @relation(fields: [bottle_id], references: [bottle_id], onDelete: Cascade)
+  member    Member @relation(fields: [member_id], references: [member_id], onDelete: Cascade)
+  bottle    Bottle @relation(fields: [bottle_id], references: [bottle_id], onDelete: Cascade)
 
   likes CommentLike[]
+
+  parent  Comment?  @relation("CommentReplies", fields: [parent_id], references: [id], onDelete: Cascade)
+  replies Comment[] @relation("CommentReplies")
 }
 
 model BottleReport {
