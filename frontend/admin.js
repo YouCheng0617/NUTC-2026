@@ -2,6 +2,7 @@
 // 1. 設定基礎參數與共用工具
 // ==========================================
 const API_BASE_URL = "https://api.drift-bottles.xyz";
+const PAGE_SIZE = 10; // 🌟 每一頁顯示的資料筆數
 
 function escapeHTML(str) {
     if (typeof str !== 'string') str = String(str);
@@ -10,8 +11,27 @@ function escapeHTML(str) {
     }[tag]));
 }
 
+// 🌟 共用分頁渲染產生器
+function renderPagination(totalItems, currentPage, containerId, changePageFuncName) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+
+    if (totalItems === 0) {
+        container.innerHTML = '';
+        return;
+    }
+
+    const totalPages = Math.ceil(totalItems / PAGE_SIZE) || 1;
+    
+    container.innerHTML = `
+        <button class="pagination-btn" ${currentPage === 1 ? 'disabled' : ''} onclick="${changePageFuncName}(${currentPage - 1})">⬅️ 上一頁</button>
+        <span class="pagination-info">第 ${currentPage} / ${totalPages} 頁 (共 ${totalItems} 筆)</span>
+        <button class="pagination-btn" ${currentPage === totalPages ? 'disabled' : ''} onclick="${changePageFuncName}(${currentPage + 1})">下一頁 ➡️</button>
+    `;
+}
+
 // ==========================================
-// 2. 頁面初始化 (正式安全版)
+// 2. 頁面初始化
 // ==========================================
 document.addEventListener('DOMContentLoaded', () => {
     const token = localStorage.getItem("authToken");
@@ -54,13 +74,12 @@ window.switchAdminTab = function (tabName) {
 }
 
 // ==========================================
-// 4. 總覽數據與 Chart.js 圖表 (加上「開心」分類)
+// 4. 總覽數據與圖表
 // ==========================================
 let myDoughnutChart = null;
 
 async function loadDashboardData() {
     const token = localStorage.getItem("authToken");
-
     try {
         const [usersRes, bottlesRes] = await Promise.all([
             fetch(`${API_BASE_URL}/admin/members`, { headers: { 'Authorization': `Bearer ${token}`, 'ngrok-skip-browser-warning': 'true' } }),
@@ -76,9 +95,7 @@ async function loadDashboardData() {
         document.getElementById('stat-users').innerText = users.length;
         document.getElementById('stat-bottles').innerText = bottles.length;
 
-        // ✨ 加上 happy 變數
         let angry = 0, secret = 0, broken = 0, apathy = 0, happy = 0;
-
         bottles.forEach(b => {
             let rawCat = b.category_name || null;
             if (!rawCat && b.categories && b.categories.length > 0) {
@@ -95,7 +112,6 @@ async function loadDashboardData() {
         });
 
         drawDoughnutChart([angry, secret, broken, apathy, happy]);
-
     } catch (error) {
         console.error("載入總覽數據失敗", error);
     }
@@ -104,10 +120,7 @@ async function loadDashboardData() {
 function drawDoughnutChart(dataArray) {
     const ctx = document.getElementById('categoryChart');
     if (!ctx) return;
-
-    if (myDoughnutChart) {
-        myDoughnutChart.destroy();
-    }
+    if (myDoughnutChart) myDoughnutChart.destroy();
 
     myDoughnutChart = new Chart(ctx, {
         type: 'doughnut',
@@ -124,21 +137,18 @@ function drawDoughnutChart(dataArray) {
         options: {
             responsive: true,
             maintainAspectRatio: false,
-            plugins: {
-                legend: {
-                    position: 'right',
-                    labels: { font: { size: 14 } }
-                }
-            }
+            plugins: { legend: { position: 'right', labels: { font: { size: 14 } } } }
         }
     });
 }
 
 // ==========================================
-// 5. API 串接：管理使用者 (新增分類與刪除)
+// 5. 管理使用者
 // ==========================================
 window._allUsers = [];
-window._currentUserStatusFilter = 'all'; // 新增：記住使用者的過濾狀態
+window._filteredUsersCache = [];
+window._currentUserStatusFilter = 'all';
+window._currentUserPage = 1;
 
 async function loadUsers() {
     const tbody = document.getElementById('admin-users-body');
@@ -153,18 +163,14 @@ async function loadUsers() {
 
         const result = await response.json();
         window._allUsers = result.data || result || [];
-        filterUsers(); // 改為載入後立刻執行過濾
-
+        filterUsers();
     } catch (e) {
         tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:red;">無法載入，請確認是否有管理員權限</td></tr>`;
     }
 }
 
-// 👇 新增：使用者一鍵分類按鈕的點擊事件
 window.filterUserByStatus = function (status) {
     window._currentUserStatusFilter = status;
-
-    // 按鈕對應的 ID
     const statusMap = { 'all': 'all', 'ACTIVE': 'active', 'INACTIVE': 'inactive', 'BANNED': 'banned' };
     const btns = ['all', 'active', 'inactive', 'banned'];
 
@@ -172,40 +178,42 @@ window.filterUserByStatus = function (status) {
         const el = document.getElementById('filter-user-' + id);
         if (!el) return;
         if (id === statusMap[status]) {
-            el.style.background = '#3b82f6';
-            el.style.color = '#fff';
-            el.style.borderColor = '#3b82f6';
+            el.style.background = '#3b82f6'; el.style.color = '#fff'; el.style.borderColor = '#3b82f6';
         } else {
-            el.style.background = '#f8fafc';
-            el.style.color = '#64748b';
-            el.style.borderColor = '#e2e8f0';
+            el.style.background = '#f8fafc'; el.style.color = '#64748b'; el.style.borderColor = '#e2e8f0';
         }
     });
-
     filterUsers();
 }
 
-// 👇 更新：同時處理關鍵字搜尋與狀態分類
 window.filterUsers = function () {
     const keyword = document.getElementById('search-users').value.toLowerCase();
-
-    const filtered = window._allUsers.filter(u => {
-        // 1. 檢查關鍵字
-        const matchKeyword = String(u.member_id || '').includes(keyword) ||
-            String(u.name || '').toLowerCase().includes(keyword) ||
-            String(u.email || '').toLowerCase().includes(keyword);
-
-        // 2. 檢查狀態分類
+    window._filteredUsersCache = window._allUsers.filter(u => {
+        const matchKeyword = String(u.member_id || '').includes(keyword) || String(u.name || '').toLowerCase().includes(keyword) || String(u.email || '').toLowerCase().includes(keyword);
         let matchStatus = true;
         if (window._currentUserStatusFilter !== 'all') {
-            const currentStatus = u.status || 'ACTIVE'; // 預設視為正常
+            const currentStatus = u.status || 'ACTIVE';
             matchStatus = (currentStatus === window._currentUserStatusFilter);
         }
-
         return matchKeyword && matchStatus;
     });
 
-    renderUsers(filtered);
+    window._currentUserPage = 1; 
+    applyUserPagination();
+}
+
+window.changeUserPage = function (newPage) {
+    window._currentUserPage = newPage;
+    applyUserPagination();
+}
+
+function applyUserPagination() {
+    const startIndex = (window._currentUserPage - 1) * PAGE_SIZE;
+    const endIndex = startIndex + PAGE_SIZE;
+    const pagedData = window._filteredUsersCache.slice(startIndex, endIndex);
+    
+    renderUsers(pagedData);
+    renderPagination(window._filteredUsersCache.length, window._currentUserPage, 'users-pagination', 'changeUserPage');
 }
 
 function renderUsers(users) {
@@ -218,17 +226,10 @@ function renderUsers(users) {
 
     tbody.innerHTML = users.map(u => {
         let currentStatus = u.status || 'ACTIVE';
-        let statusBadge = '';
+        let statusBadge = currentStatus === 'BANNED' ? `<span class="badge" style="background:#fff1f0; color:#cf1322; border:1px solid #ffa39e;">🔴 ${currentStatus}</span>` :
+                          currentStatus === 'INACTIVE' ? `<span class="badge" style="background:#fff7e6; color:#d46b08; border:1px solid #ffd591;">🟡 ${currentStatus}</span>` :
+                          `<span class="badge" style="background:#e6f7ff; color:#0066cc; border:1px solid #91d5ff;">🟢 ${currentStatus}</span>`;
 
-        if (currentStatus === 'BANNED') {
-            statusBadge = `<span class="badge" style="background:#fff1f0; color:#cf1322; border:1px solid #ffa39e;">🔴 ${currentStatus}</span>`;
-        } else if (currentStatus === 'INACTIVE') {
-            statusBadge = `<span class="badge" style="background:#fff7e6; color:#d46b08; border:1px solid #ffd591;">🟡 ${currentStatus}</span>`;
-        } else {
-            statusBadge = `<span class="badge" style="background:#e6f7ff; color:#0066cc; border:1px solid #91d5ff;">🟢 ${currentStatus}</span>`;
-        }
-
-        // 👇 更新：加入「刪除」按鈕
         return `
         <tr>
             <td data-label="會員 ID">${escapeHTML(String(u.member_id || u.id || '未知'))}</td>
@@ -246,69 +247,53 @@ function renderUsers(users) {
 }
 
 let currentEditingUserId = null;
-
 window.changeUserStatus = function (userId, userName) {
     currentEditingUserId = userId;
     document.getElementById('status-modal-user-name').innerText = `正在修改帳號：${userName}`;
     document.getElementById('status-modal').style.display = 'flex';
 }
-
-window.closeStatusModal = function () {
-    document.getElementById('status-modal').style.display = 'none';
-    currentEditingUserId = null;
-}
-
+window.closeStatusModal = function () { document.getElementById('status-modal').style.display = 'none'; currentEditingUserId = null; }
 window.confirmChangeStatus = async function (newStatus) {
     if (!currentEditingUserId) return;
-
     const token = localStorage.getItem("authToken");
     try {
         const response = await fetch(`${API_BASE_URL}/admin/members/${currentEditingUserId}/status`, {
-            method: 'PUT',
-            headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
-            body: JSON.stringify({ newStatus: newStatus })
+            method: 'PUT', headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ newStatus: newStatus })
         });
-
-        if (response.ok) {
-            alert('✅ 狀態已成功更新！');
-            closeStatusModal();
-            loadUsers();
-        } else {
-            alert('更新失敗，請確認權限或網路狀態');
-        }
-    } catch (e) {
-        alert('伺服器連線失敗');
-    }
+        if (response.ok) { alert('✅ 狀態已成功更新！'); closeStatusModal(); loadUsers(); } else { alert('更新失敗，請確認權限或網路狀態'); }
+    } catch (e) { alert('伺服器連線失敗'); }
 }
-
-// 👇 新增：超強力管理員刪除使用者功能
 window.deleteUserAsAdmin = async function (userId, userName) {
     if (!confirm(`⚠️ 確定要強制刪除使用者「${userName} (ID: ${userId})」嗎？\n刪除後將無法復原，請三思！`)) return;
-
     const token = localStorage.getItem("authToken");
     try {
-        const response = await fetch(`${API_BASE_URL}/admin/members/${userId}/delete`, {
-            method: 'DELETE',
-            headers: { 'Authorization': `Bearer ${token}`, 'ngrok-skip-browser-warning': 'true' }
-        });
-
-        if (response.ok) {
-            alert(`🗑️ 成功將使用者「${userName}」從資料庫抹除！`);
-            loadUsers(); // 重新載入列表
-        } else {
-            const err = await response.json();
-            alert("刪除失敗：" + (err.message || "權限不足或伺服器錯誤"));
-        }
-    } catch (error) {
-        alert("伺服器連線失敗，請檢查網路狀態！");
-    }
+        const response = await fetch(`${API_BASE_URL}/admin/members/${userId}/delete`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}`, 'ngrok-skip-browser-warning': 'true' } });
+        if (response.ok) { alert(`🗑️ 成功將使用者「${userName}」從資料庫抹除！`); loadUsers(); } else { const err = await response.json(); alert("刪除失敗：" + (err.message || "權限不足或伺服器錯誤")); }
+    } catch (error) { alert("伺服器連線失敗，請檢查網路狀態！"); }
 };
 
 // ==========================================
-// 6. API 串接：漂流瓶審核 (加上開心分類與一鍵篩選)
+// 6. 漂流瓶文章審核 (包含情緒分類下拉與操作按鈕)
 // ==========================================
 window._allBottles = [];
+window._filteredBottlesCache = [];
 window._currentStatusFilter = 'all';
+window._currentCategoryFilter = 'all'; // 🌟 新增：記憶下拉選單的選擇
+window._currentBottlePage = 1;
+
+// 🌟 新增：情緒分類判斷小工具 (跟你的前台保持一致)
+function getBottleCategoryType(b) {
+    let rawCat = b.category_name || null;
+    if (!rawCat && b.categories && b.categories.length > 0) rawCat = (typeof b.categories[0] === 'string') ? b.categories[0] : b.categories[0].category?.name;
+    if (!rawCat && b.category_list && b.category_list.length > 0) rawCat = b.category_list[0];
+    if (!rawCat) rawCat = '綜合閒聊';
+
+    if (rawCat.includes("開心") || rawCat.includes("快樂") || rawCat.includes("喜悅")) return 'happy';
+    if (rawCat.includes("憤怒") || rawCat.includes("閒聊")) return 'angry';
+    if (rawCat.includes("秘密") || rawCat.includes("程式")) return 'secret';
+    if (rawCat.includes("破碎") || rawCat.includes("碎片")) return 'broken';
+    return 'apathy'; // 預設歸類到極度厭世
+}
 
 async function loadBottles() {
     const tbody = document.getElementById('admin-bottles-body');
@@ -322,18 +307,78 @@ async function loadBottles() {
         if (!response.ok) throw new Error();
 
         const data = await response.json();
-        window._allBottles = data.data || data.bottles || data || [];
+        // 確保最新的文章排在最前面
+        window._allBottles = (data.data || data.bottles || data || []).reverse(); 
         filterBottles();
-
     } catch (e) {
         tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:red;">無法載入，請確認權限或後端是否啟動</td></tr>`;
     }
 }
 
+window.filterByStatus = function (status) {
+    window._currentStatusFilter = status;
+    const btns = ['all', 'pending', 'passed', 'rejected'];
+    btns.forEach(id => {
+        const el = document.getElementById('filter-btn-' + id);
+        if (!el) return;
+        if (id === status) { el.style.background = '#3b82f6'; el.style.color = '#fff'; el.style.borderColor = '#3b82f6'; } 
+        else { el.style.background = '#f8fafc'; el.style.color = '#64748b'; el.style.borderColor = '#e2e8f0'; }
+    });
+    filterBottles();
+}
+
+// 🌟 新增：下拉選單切換分類的觸發事件
+window.filterByCategory = function (category) {
+    window._currentCategoryFilter = category;
+    filterBottles();
+}
+
+window.filterBottles = function () {
+    const keyword = document.getElementById('search-bottles').value.toLowerCase();
+    
+    window._filteredBottlesCache = window._allBottles.filter(b => {
+        // 1. 搜尋關鍵字
+        const matchKeyword = String(b.bottle_id || '').includes(keyword) || String(b.title || '').toLowerCase().includes(keyword) || String(b.member_name || b.author?.name || '').toLowerCase().includes(keyword);
+        
+        // 2. 審核狀態
+        let matchStatus = true;
+        const currentStatus = Number(b.status);
+        if (window._currentStatusFilter === 'pending') matchStatus = (currentStatus !== 1 && currentStatus !== 2);
+        else if (window._currentStatusFilter === 'passed') matchStatus = (currentStatus === 1);
+        else if (window._currentStatusFilter === 'rejected') matchStatus = (currentStatus === 2);
+        
+        // 3. 🌟 情緒分類
+        let matchCategory = true;
+        if (window._currentCategoryFilter !== 'all') {
+            const catType = getBottleCategoryType(b);
+            matchCategory = (catType === window._currentCategoryFilter);
+        }
+
+        // 必須同時符合三個條件才會顯示
+        return matchKeyword && matchStatus && matchCategory;
+    });
+
+    window._currentBottlePage = 1;
+    applyBottlePagination();
+}
+
+window.changeBottlePage = function (newPage) {
+    window._currentBottlePage = newPage;
+    applyBottlePagination();
+}
+
+function applyBottlePagination() {
+    const startIndex = (window._currentBottlePage - 1) * PAGE_SIZE;
+    const endIndex = startIndex + PAGE_SIZE;
+    const pagedData = window._filteredBottlesCache.slice(startIndex, endIndex);
+    
+    renderBottles(pagedData);
+    renderPagination(window._filteredBottlesCache.length, window._currentBottlePage, 'bottles-pagination', 'changeBottlePage');
+}
+
 function renderBottles(bottles) {
     const tbody = document.getElementById('admin-bottles-body');
     if (!tbody) return;
-
     if (bottles.length === 0) {
         tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;">目前沒有符合條件的文章唷 🏖️</td></tr>`;
         return;
@@ -341,311 +386,99 @@ function renderBottles(bottles) {
 
     tbody.innerHTML = bottles.map(b => {
         let rawCat = b.category_name || null;
-        if (!rawCat && b.categories && b.categories.length > 0) {
-            rawCat = (typeof b.categories[0] === 'string') ? b.categories[0] : b.categories[0].category?.name;
-        }
+        if (!rawCat && b.categories && b.categories.length > 0) rawCat = (typeof b.categories[0] === 'string') ? b.categories[0] : b.categories[0].category?.name;
         if (!rawCat && b.category_list && b.category_list.length > 0) rawCat = b.category_list[0];
         if (!rawCat) rawCat = '綜合閒聊';
 
-        let catHtml = '';
-        if (rawCat.includes("開心") || rawCat.includes("喜悅") || rawCat.includes("快樂")) {
-            catHtml = `<span class="badge" style="background:#e6f7ff; color:#0050b3; border:1px solid #91d5ff;">😁 開心的事</span>`;
-        } else if (rawCat.includes("憤怒") || rawCat.includes("閒聊")) {
-            catHtml = `<span class="badge" style="background:#fff1f0; color:#cf1322; border:1px solid #ffa39e;">😡 極度憤怒中</span>`;
-        } else if (rawCat.includes("秘密") || rawCat.includes("程式")) {
-            catHtml = `<span class="badge" style="background:#f9f0ff; color:#531dab; border:1px solid #d3adf7;">🤫 沒人懂的秘密</span>`;
-        } else if (rawCat.includes("破碎") || rawCat.includes("碎片") || rawCat.includes("美食")) {
-            catHtml = `<span class="badge" style="background:#fff7e6; color:#d46b08; border:1px solid #ffd591;">💔 破碎的碎片</span>`;
-        } else {
-            catHtml = `<span class="badge" style="background:#f6ffed; color:#389e0d; border:1px solid #b7eb8f;">😑 極度厭世/躺平</span>`;
-        }
+        let catHtml = rawCat.includes("開心") || rawCat.includes("快樂") ? `<span class="badge" style="background:#e6f7ff; color:#0050b3; border:1px solid #91d5ff;">😁 開心的事</span>` :
+                      rawCat.includes("憤怒") || rawCat.includes("閒聊") ? `<span class="badge" style="background:#fff1f0; color:#cf1322; border:1px solid #ffa39e;">😡 極度憤怒中</span>` :
+                      rawCat.includes("秘密") || rawCat.includes("程式") ? `<span class="badge" style="background:#f9f0ff; color:#531dab; border:1px solid #d3adf7;">🤫 沒人懂的秘密</span>` :
+                      rawCat.includes("破碎") || rawCat.includes("碎片") ? `<span class="badge" style="background:#fff7e6; color:#d46b08; border:1px solid #ffd591;">💔 破碎的碎片</span>` :
+                      `<span class="badge" style="background:#f6ffed; color:#389e0d; border:1px solid #b7eb8f;">😑 極度厭世/躺平</span>`;
 
-        let statusBadge = '';
-        let rowStyle = '';
-        let btnText = '審核';
-
-        // ✨ 這裡也要強制轉成數字
         const currentStatus = Number(b.status);
+        let statusBadge = currentStatus === 1 ? `<span class="badge" style="background:#dcfce7; color:#16a34a; border:1px solid #bbf7d0;">✅ 已通過</span>` :
+                          currentStatus === 2 ? `<span class="badge" style="background:#fee2e2; color:#dc2626; border:1px solid #fecaca;">❌ 已下架 / 拒絕</span>` :
+                          `<span class="badge" style="background:#e0f2fe; color:#0284c7; border:1px solid #bae6fd;">⏳ 待審核</span>`;
+        let rowStyle = currentStatus === 1 || currentStatus === 2 ? `opacity: 0.8; background: #f8fafc;` : `opacity: 1; background: #ffffff; box-shadow: 0 2px 8px rgba(0,0,0,0.04);`;
 
-        if (currentStatus === 1) {
-            statusBadge = `<span class="badge" style="background:#dcfce7; color:#16a34a; border:1px solid #bbf7d0;">✅ 已通過</span>`;
-            rowStyle = `opacity: 0.8; background: #f8fafc;`;
-            btnText = '查看';
-        } else if (currentStatus === 2) {
-            // ✨ 順便把文字改成「已下架 / 拒絕」看起來更清楚
-            statusBadge = `<span class="badge" style="background:#fee2e2; color:#dc2626; border:1px solid #fecaca;">❌ 已下架 / 拒絕</span>`;
-            rowStyle = `opacity: 0.8; background: #f8fafc;`;
-            btnText = '查看';
-        } else {
-            statusBadge = `<span class="badge" style="background:#e0f2fe; color:#0284c7; border:1px solid #bae6fd;">⏳ 待審核</span>`;
-            rowStyle = `opacity: 1; background: #ffffff; box-shadow: 0 2px 8px rgba(0,0,0,0.04);`;
-            btnText = '審核';
-        }
-
+        // 🌟 這裡換成漂亮的下拉式操作選單
         return `
         <tr style="${rowStyle} transition: 0.3s;">
             <td data-label="文章 ID" style="color: #64748b; font-weight: 600;">#${escapeHTML(String(b.bottle_id || b.id))}</td>
             <td data-label="發文者">${escapeHTML(String(b.member_name || b.author_name || '匿名'))}</td>
-            
-            <td data-label="標題">
-                <div style="display: flex; align-items: center; gap: 12px;">
-                    <span style="font-weight: 600; color: #1e293b; font-size: 1.05rem;">${escapeHTML(String(b.title))}</span>
-                    ${statusBadge}
-                </div>
-            </td>
-            
+            <td data-label="標題"><div style="display: flex; align-items: center; gap: 12px;"><span style="font-weight: 600; color: #1e293b; font-size: 1.05rem;">${escapeHTML(String(b.title))}</span>${statusBadge}</div></td>
             <td data-label="看板分類">${catHtml}</td>
             <td data-label="發布時間" style="color: #64748b;">${b.created_at ? new Date(b.created_at).toLocaleDateString() : '未知'}</td>
             <td data-label="項目操作">
-                <button class="btn-action btn-primary" onclick="openBottleModalFromCache('${b.bottle_id || b.id}')">${btnText}</button>
-                <button class="btn-action btn-danger" style="margin-left: 5px;" onclick="deleteBottleAsAdmin('${b.bottle_id || b.id}')">刪除</button>
+                <div class="action-dropdown">
+                    <button class="btn-dropdown-trigger" onclick="toggleDropdown(this)">⚙️ 操作 ▼</button>
+                    <div class="action-dropdown-menu">
+                        <button class="dropdown-item btn-primary" onclick="openBottleModalFromCache('${b.bottle_id || b.id}')">
+                            ${currentStatus !== 0 ? '👁️ 查看' : '📝 審核'}
+                        </button>
+                        <button class="dropdown-item btn-danger" onclick="deleteBottleAsAdmin('${b.bottle_id || b.id}')">
+                            🗑️ 刪除
+                        </button>
+                    </div>
+                </div>
             </td>
         </tr>
         `;
     }).join('');
 }
 
-window.filterBottles = function () {
-    const keyword = document.getElementById('search-bottles').value.toLowerCase();
-
-    const filtered = window._allBottles.filter(b => {
-        const matchKeyword = String(b.bottle_id || '').includes(keyword) ||
-            String(b.title || '').toLowerCase().includes(keyword) ||
-            String(b.content || '').toLowerCase().includes(keyword) ||
-            String(b.member_name || b.author?.name || '').toLowerCase().includes(keyword);
-
-        let matchStatus = true;
-        // ✨ 強制轉成數字
-        const currentStatus = Number(b.status);
-
-        // 為了 debug，我們把這篇文章的狀態印出來看看
-        if (b.bottle_id == '205' || b.id == '205') {
-            console.log("正在過濾文章 205，它的狀態是:", currentStatus);
-        }
-
-        if (window._currentStatusFilter === 'pending') {
-            matchStatus = (currentStatus !== 1 && currentStatus !== 2);
-        } else if (window._currentStatusFilter === 'passed') {
-            matchStatus = (currentStatus === 1);
-        } else if (window._currentStatusFilter === 'rejected') {
-            matchStatus = (currentStatus === 2);
-        }
-
-        return matchKeyword && matchStatus;
-    });
-
-    renderBottles(filtered);
-}
-
-// ==========================================
-// 7. 審核動作 
-// ==========================================
 window.openBottleModalFromCache = function (bottleId) {
     const b = window._allBottles.find(item => String(item.bottle_id || item.id) === String(bottleId));
     if (!b) return;
-
-    let rawCat = b.category_name || null;
-    if (!rawCat && b.categories && b.categories.length > 0) {
-        rawCat = (typeof b.categories[0] === 'string') ? b.categories[0] : b.categories[0].category?.name;
-    }
-    if (!rawCat && b.category_list && b.category_list.length > 0) rawCat = b.category_list[0];
-    if (!rawCat) rawCat = '綜合閒聊';
-
-    let catHtml = '';
-    if (rawCat.includes("開心") || rawCat.includes("喜悅") || rawCat.includes("快樂")) {
-        catHtml = `<span class="badge" style="background:#e6f7ff; color:#0050b3; border:1px solid #91d5ff;">😁 開心的事</span>`;
-    } else if (rawCat.includes("憤怒") || rawCat.includes("閒聊")) {
-        catHtml = `<span class="badge" style="background:#fff1f0; color:#cf1322; border:1px solid #ffa39e;">😡 極度憤怒中</span>`;
-    } else if (rawCat.includes("秘密") || rawCat.includes("程式")) {
-        catHtml = `<span class="badge" style="background:#f9f0ff; color:#531dab; border:1px solid #d3adf7;">🤫 沒人懂的秘密</span>`;
-    } else if (rawCat.includes("破碎") || rawCat.includes("碎片") || rawCat.includes("美食")) {
-        catHtml = `<span class="badge" style="background:#fff7e6; color:#d46b08; border:1px solid #ffd591;">💔 破碎的碎片</span>`;
-    } else {
-        catHtml = `<span class="badge" style="background:#f6ffed; color:#389e0d; border:1px solid #b7eb8f;">😑 極度厭世/躺平</span>`;
-    }
-
-    document.getElementById('modal-title').innerHTML = `
-        <div style="display: flex; align-items: center; gap: 10px; font-size: 1.4rem; color: #1e293b; border-bottom: 2px solid #e2e8f0; padding-bottom: 12px; margin-bottom: 0;">
-            <span style="font-size: 1.6rem;">📝</span> 
-            ${escapeHTML(b.title)}
-        </div>
-    `;
-
+    document.getElementById('modal-title').innerHTML = `<div style="display: flex; align-items: center; gap: 10px; font-size: 1.4rem; color: #1e293b; border-bottom: 2px solid #e2e8f0; padding-bottom: 12px; margin-bottom: 0;"><span style="font-size: 1.6rem;">📝</span> ${escapeHTML(b.title)}</div>`;
     document.getElementById('modal-body').innerHTML = `
         <div style="margin: 15px 0; display: flex; gap: 10px; flex-wrap: wrap; align-items: center;">
             <span class="badge" style="background:#f1f5f9; color:#475569; border:1px solid #cbd5e1;">👤 作者：${escapeHTML(b.member_name || b.author_name || '匿名')}</span>
             <span class="badge" style="background:#f1f5f9; color:#475569; border:1px solid #cbd5e1;">📅 ${b.created_at ? new Date(b.created_at).toLocaleDateString() : '未知'}</span>
-            ${catHtml}
         </div>
-        
-        <div style="background: #ffffff; border-left: 5px solid #3b82f6; padding: 24px; border-radius: 0 12px 12px 0; font-size: 1.05rem; color: #334155; white-space: pre-wrap; line-height: 1.8; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); margin-top: 20px;">
-            ${escapeHTML(b.content)}
-        </div>
-    `;
-
-    window._reviewBottleId = b.bottle_id || b.id;
-    window._reviewBottleTitle = b.title;
-
+        <div style="background: #ffffff; border-left: 5px solid #3b82f6; padding: 24px; border-radius: 0 12px 12px 0; font-size: 1.05rem; color: #334155; white-space: pre-wrap; line-height: 1.8; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); margin-top: 20px;">${escapeHTML(b.content)}</div>`;
+    window._reviewBottleId = b.bottle_id || b.id; window._reviewBottleTitle = b.title;
     document.getElementById('modal-actions').innerHTML = `
         <button class="btn-action btn-secondary" onclick="closeAdminModal()">返回</button>
         <div style="margin-left: auto; display: flex; gap: 12px;">
             <button class="btn-action btn-danger" onclick="reviewBottle(window._reviewBottleId, 2, window._reviewBottleTitle);">❌ 拒絕 (違規)</button>
             <button class="btn-action btn-primary" onclick="reviewBottle(window._reviewBottleId, 1, window._reviewBottleTitle);">✅ 審核通過</button>
-        </div>
-    `;
-
+        </div>`;
     document.getElementById('admin-modal').style.display = 'flex';
 }
-
-window.reviewBottle = function (bottleId, status, title) {
-    window._pendingReviewId = bottleId;
-    window._pendingReviewTitle = title;
-
-    if (status === 2) {
-        document.getElementById('reject-reason-input').value = '內容不當';
-        document.getElementById('reject-modal').style.display = 'flex';
-    } else {
-        if (!confirm(`✅ 確定要通過「${title}」，讓它流入海中嗎？`)) return;
-        executeReviewAction(bottleId, 1, "");
-    }
-}
-
-window.closeRejectModal = function () {
-    document.getElementById('reject-modal').style.display = 'none';
-}
-
-window.confirmRejectAction = function () {
-    const reason = document.getElementById('reject-reason-input').value.trim();
-    if (!reason) {
-        alert("必須填寫拒絕原因唷！");
-        return;
-    }
-    executeReviewAction(window._pendingReviewId, 2, reason);
-    closeRejectModal();
-}
-
+window.reviewBottle = function (bottleId, status, title) { window._pendingReviewId = bottleId; window._pendingReviewTitle = title; if (status === 2) { document.getElementById('reject-reason-input').value = '內容不當'; document.getElementById('reject-modal').style.display = 'flex'; } else { if (!confirm(`✅ 確定要通過「${title}」嗎？`)) return; executeReviewAction(bottleId, 1, ""); } }
+window.closeRejectModal = function () { document.getElementById('reject-modal').style.display = 'none'; }
+window.confirmRejectAction = function () { const reason = document.getElementById('reject-reason-input').value.trim(); if (!reason) { alert("必須填寫原因！"); return; } executeReviewAction(window._pendingReviewId, 2, reason); closeRejectModal(); }
 window.executeReviewAction = async function (bottleId, status, reason) {
     try {
         const token = localStorage.getItem("authToken");
-        const response = await fetch(`${API_BASE_URL}/admin/bottles/review`, {
-            method: 'PUT',
-            headers: {
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                "bottle_id": Number(bottleId),
-                "status": status,
-                "violation_reason": reason
-            })
-        });
-
-        if (response.ok) {
-            alert(`🎉 審核完成！`);
-            closeAdminModal();
-            loadBottles();
-        } else {
-            const err = await response.json();
-            alert(`審核失敗: ${err.message}`);
-        }
-    } catch (e) {
-        alert("伺服器連線失敗");
-    }
+        const response = await fetch(`${API_BASE_URL}/admin/bottles/review`, { method: 'PUT', headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ "bottle_id": Number(bottleId), "status": status, "violation_reason": reason }) });
+        if (response.ok) { alert(`🎉 審核完成！`); closeAdminModal(); loadBottles(); } else { const err = await response.json(); alert(`審核失敗: ${err.message}`); }
+    } catch (e) { alert("伺服器連線失敗"); }
 }
-
 window.deleteBottleAsAdmin = async function (bottleId) {
-    if (!confirm(`⚠️ 確定要以管理員身分強制刪除 #${bottleId} 號漂流瓶嗎？刪除後將無法復原！`)) return;
-
+    if (!confirm(`⚠️ 確定刪除 #${bottleId} 嗎？無法復原！`)) return;
     const token = localStorage.getItem("authToken");
     try {
-        const response = await fetch(`${API_BASE_URL}/admin/bottles/${bottleId}/delete`, {
-            method: 'DELETE',
-            headers: { 'Authorization': `Bearer ${token}`, 'ngrok-skip-browser-warning': 'true' }
-        });
-
-        if (response.ok) {
-            alert("🗑️ 漂流瓶已成功強制刪除！");
-
-            // ✨ 解法在這裡：手動把被刪除的文章從前端的記憶體中移除
-            window._allBottles = window._allBottles.filter(b => String(b.bottle_id || b.id) !== String(bottleId));
-
-            // 然後重新執行過濾跟重繪表格
-            filterBottles();
-
-            // (選擇性) 如果檢舉列表也有這篇文章，順便把它清掉
-            if (window._allReports && window._allReports.length > 0) {
-                window._allReports = window._allReports.filter(r => String(r.bottle_id || r.id) !== String(bottleId));
-                if (typeof filterReports === 'function') filterReports();
-            }
-
-        } else {
-            const err = await response.json();
-            alert("刪除失敗：" + (err.message || "權限不足或伺服器錯誤"));
-        }
-    } catch (error) {
-        alert("伺服器連線失敗，請檢查網路！");
-    }
+        const response = await fetch(`${API_BASE_URL}/admin/bottles/${bottleId}/delete`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}`, 'ngrok-skip-browser-warning': 'true' } });
+        if (response.ok) { alert("🗑️ 成功刪除！"); window._allBottles = window._allBottles.filter(b => String(b.bottle_id || b.id) !== String(bottleId)); filterBottles(); } else { const err = await response.json(); alert("刪除失敗：" + err.message); }
+    } catch (error) { alert("伺服器連線失敗！"); }
 };
-// ==========================================
-// ✨ 軟刪除 (下架) 功能，只改狀態不刪資料庫紀錄
-// ==========================================
-window.banReportedBottle = async function (bottleId) {
-    if (!confirm(`⚠️ 確定要將 #${bottleId} 號文章「強制下架」嗎？\n(文章將從前台消失，但會完整保留在後台資料庫中)`)) return;
-
-    try {
-        const token = localStorage.getItem("authToken");
-        const response = await fetch(`${API_BASE_URL}/admin/bottles/review`, {
-            method: 'PUT',
-            headers: {
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                "bottle_id": Number(bottleId),
-                "status": 2, // 💡 狀態 2 代表「已拒絕 / 下架」
-                "violation_reason": "遭檢舉違規，管理員強制下架"
-            })
-        });
-
-        if (response.ok) {
-            alert("✅ 文章已成功下架！（資料仍保留於後台）");
-
-            // ✨ 把這篇文章的狀態改成 2 (已審核)，不再刪除它
-            if (window._allReports) {
-                window._allReports.forEach(r => {
-                    if (String(r.bottle_id || r.id) === String(bottleId)) {
-                        if (r.bottle) r.bottle.status = 2;
-                        r.status = 2; // 確保外層也修改到
-                    }
-                });
-            }
-
-            filterReports(); // 畫面重整後，它就會自動跳到「已審核」分類了！
-            loadBottles();   // 同步刷新文章總表
-            updateDashboardReportCount(); // 更新首頁儀表板的「待處理檢舉」數量
-        } else {
-            const err = await response.json();
-            alert(`下架失敗: ${err.message}`);
-        }
-    } catch (e) {
-        alert("伺服器連線失敗");
-    }
-}
+window.closeAdminModal = function () { const modal = document.getElementById('admin-modal'); if (modal) modal.style.display = 'none'; window._reviewBottleId = null; window._reviewBottleTitle = null; }
+window.adminLogout = function () { if (confirm("確定要登出嗎？")) { localStorage.removeItem("authToken"); localStorage.removeItem("currentUser"); localStorage.removeItem("adminLastTab"); window.location.href = "login.html"; } }
 
 // ==========================================
-// 11. API 串接：檢舉列表管理 (已升級分類功能)
+// 7. 檢舉處理 
 // ==========================================
 window._allReports = [];
-window._currentReportStatusFilter = 'pending'; // 預設顯示待審核
+window._filteredReportsCache = [];
+window._currentReportStatusFilter = 'pending';
+window._currentReportPage = 1;
 
-// ✨ 新增：更新總覽儀表板的數字
 window.updateDashboardReportCount = function () {
     if (!window._allReports) return;
-    const pendingCount = window._allReports.filter(r => {
-        const bottleStatus = Number(r.bottle?.status || r.status || 0);
-        return bottleStatus !== 2;
-    }).length;
-
+    const pendingCount = window._allReports.filter(r => Number(r.bottle?.status || r.status || 0) !== 2).length;
     const statReports = document.getElementById('stat-reports');
     if (statReports) statReports.innerText = pendingCount;
 }
@@ -654,90 +487,69 @@ async function loadReports() {
     const tbody = document.getElementById('admin-reports-body');
     const token = localStorage.getItem("authToken");
     if (!tbody) return;
-
     tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;">讀取中...</td></tr>`;
 
     try {
-        const response = await fetch(`${API_BASE_URL}/admin/bottles/reported`, {
-            headers: {
-                'Authorization': `Bearer ${token}`,
-                'ngrok-skip-browser-warning': 'true'
-            }
-        });
-
+        const response = await fetch(`${API_BASE_URL}/admin/bottles/reported`, { headers: { 'Authorization': `Bearer ${token}`, 'ngrok-skip-browser-warning': 'true' } });
         if (!response.ok) throw new Error();
-
         const data = await response.json();
-        window._allReports = data.data || data || [];
-
-        updateDashboardReportCount(); // 更新數字
-        filterReports(); // 執行過濾與渲染
-
+        // 將最新檢舉排前面
+        window._allReports = (data.data || data || []).reverse();
+        updateDashboardReportCount();
+        filterReports();
     } catch (e) {
-        tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:red;">無法載入，請確認權限或後端是否啟動</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:red;">無法載入</td></tr>`;
     }
 }
 
-// ✨ 新增：切換分類按鈕狀態
 window.filterReportByStatus = function (status) {
     window._currentReportStatusFilter = status;
-
     const btns = ['all', 'pending', 'processed'];
     btns.forEach(id => {
         const el = document.getElementById('filter-report-' + id);
         if (!el) return;
-        if (id === status) {
-            el.style.background = '#3b82f6';
-            el.style.color = '#fff';
-            el.style.borderColor = '#3b82f6';
-        } else {
-            el.style.background = '#f8fafc';
-            el.style.color = '#64748b';
-            el.style.borderColor = '#e2e8f0';
-        }
+        if (id === status) { el.style.background = '#3b82f6'; el.style.color = '#fff'; el.style.borderColor = '#3b82f6'; } 
+        else { el.style.background = '#f8fafc'; el.style.color = '#64748b'; el.style.borderColor = '#e2e8f0'; }
     });
     filterReports();
 }
 
 window.filterReports = function () {
     const keyword = document.getElementById('search-reports')?.value.toLowerCase() || '';
-
-    const filtered = window._allReports.filter(r => {
+    window._filteredReportsCache = window._allReports.filter(r => {
         const bottleId = String(r.bottle_id || r.id || '');
         const reason = String(r.reason || r.report_reason || r.content || '').toLowerCase();
         const matchKeyword = bottleId.includes(keyword) || reason.includes(keyword);
-
-        // 判斷這篇是否已審核 (狀態 2 代表已下架)
-        const bottleStatus = Number(r.bottle?.status || r.status || 0);
-        const isProcessed = (bottleStatus === 2);
-
+        const isProcessed = (Number(r.bottle?.status || r.status || 0) === 2);
         let matchStatus = true;
-        if (window._currentReportStatusFilter === 'pending') {
-            matchStatus = !isProcessed;
-        } else if (window._currentReportStatusFilter === 'processed') {
-            matchStatus = isProcessed;
-        }
-
+        if (window._currentReportStatusFilter === 'pending') matchStatus = !isProcessed;
+        else if (window._currentReportStatusFilter === 'processed') matchStatus = isProcessed;
         return matchKeyword && matchStatus;
     });
 
-    renderReports(filtered);
+    window._currentReportPage = 1;
+    applyReportPagination();
+}
+
+window.changeReportPage = function (newPage) {
+    window._currentReportPage = newPage;
+    applyReportPagination();
+}
+
+function applyReportPagination() {
+    const startIndex = (window._currentReportPage - 1) * PAGE_SIZE;
+    const endIndex = startIndex + PAGE_SIZE;
+    const pagedData = window._filteredReportsCache.slice(startIndex, endIndex);
+    
+    renderReports(pagedData);
+    renderPagination(window._filteredReportsCache.length, window._currentReportPage, 'reports-pagination', 'changeReportPage');
 }
 
 function renderReports(reports) {
     const tbody = document.getElementById('admin-reports-body');
     if (!tbody) return;
-
     if (reports.length === 0) {
-        tbody.innerHTML = `
-        <tr>
-            <td colspan="6">
-                <div class="empty-state">
-                    <span class="empty-icon">☕</span>
-                    <p>目前這個分類沒有資料唷！喝杯咖啡休息一下吧！</p>
-                </div>
-            </td>
-        </tr>`;
+        tbody.innerHTML = `<tr><td colspan="6"><div class="empty-state"><span class="empty-icon">☕</span><p>目前這個分類沒有資料唷！</p></div></td></tr>`;
         return;
     }
 
@@ -747,30 +559,18 @@ function renderReports(reports) {
         const reporter = r.reporter_id || r.member_id || r.reporter_name || '匿名';
         const date = r.created_at ? new Date(r.created_at).toLocaleDateString() : '未知';
         const bottleContent = r.bottle_content || r.bottle?.content || r.content || '（無法取得文章內容）';
+        const isProcessed = (Number(r.bottle?.status || r.status || 0) === 2);
 
-        // 判斷是否已經處理過
-        const bottleStatus = Number(r.bottle?.status || r.status || 0);
-        const isProcessed = (bottleStatus === 2);
-
-        // 根據狀態顯示不同的按鈕與背景顏色
-        let actionHtml = isProcessed
-            ? `<span class="badge" style="background:#f1f5f9; color:#64748b; border:1px solid #cbd5e1; padding: 6px 12px;">✅ 已下架</span>`
-            : `<button class="btn-action btn-danger" onclick="banReportedBottle('${bottleId}');">🚫 強制下架 (留存紀錄)</button>`;
-
+        let actionHtml = isProcessed ? `<span class="badge" style="background:#f1f5f9; color:#64748b; border:1px solid #cbd5e1; padding: 6px 12px;">✅ 已下架</span>`
+                                     : `<button class="btn-action btn-danger" onclick="banReportedBottle('${bottleId}');">🚫 強制下架 (留存紀錄)</button>`;
         const rowBg = isProcessed ? '#f8fafc' : '#fffafa';
         const rowOpacity = isProcessed ? '0.7' : '1';
 
         return `
         <tr style="background: ${rowBg}; opacity: ${rowOpacity}; transition: 0.3s;">
             <td data-label="文章 ID" style="color: #64748b; font-weight: 600;">#${bottleId}</td>
-            <td data-label="被檢舉內容" style="min-width: 220px; max-width: 350px;">
-                <div style="display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; white-space: normal; color: #334155; line-height: 1.5; font-size: 0.95rem;">
-                    ${escapeHTML(String(bottleContent))}
-                </div>
-            </td>
-            <td data-label="檢舉原因" style="color: #ef4444; font-weight: bold; white-space: normal; min-width: 150px;">
-                ${escapeHTML(String(reason))}
-            </td>
+            <td data-label="被檢舉內容" style="min-width: 220px; max-width: 350px;"><div style="display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; white-space: normal; color: #334155; line-height: 1.5; font-size: 0.95rem;">${escapeHTML(String(bottleContent))}</div></td>
+            <td data-label="檢舉原因" style="color: #ef4444; font-weight: bold; white-space: normal; min-width: 150px;">${escapeHTML(String(reason))}</td>
             <td data-label="檢舉者 ID">${escapeHTML(String(reporter))}</td>
             <td data-label="檢舉時間" style="color: #64748b;">${date}</td>
             <td data-label="操作">${actionHtml}</td>
@@ -778,65 +578,39 @@ function renderReports(reports) {
         `;
     }).join('');
 }
-// ==========================================
-// 🌟 修正 1：補上關閉「漂流瓶審核彈窗」的函式
-// 解決：叉叉、返回按鈕無效，以及審核後誤報伺服器錯誤的問題
-// ==========================================
-window.closeAdminModal = function () {
-    const modal = document.getElementById('admin-modal');
-    if (modal) {
-        modal.style.display = 'none';
-    }
-    // 貼心小舉動：關閉時順便清除暫存變數，避免資料殘留
-    window._reviewBottleId = null;
-    window._reviewBottleTitle = null;
+
+window.banReportedBottle = async function (bottleId) {
+    if (!confirm(`⚠️ 確定要將 #${bottleId} 號文章「強制下架」嗎？\n(保留在資料庫)`)) return;
+    try {
+        const token = localStorage.getItem("authToken");
+        const response = await fetch(`${API_BASE_URL}/admin/bottles/review`, { method: 'PUT', headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ "bottle_id": Number(bottleId), "status": 2, "violation_reason": "遭檢舉違規，管理員強制下架" }) });
+        if (response.ok) {
+            alert("✅ 文章已成功下架！");
+            if (window._allReports) window._allReports.forEach(r => { if (String(r.bottle_id || r.id) === String(bottleId)) { if (r.bottle) r.bottle.status = 2; r.status = 2; } });
+            filterReports(); loadBottles(); updateDashboardReportCount();
+        } else { const err = await response.json(); alert(`下架失敗: ${err.message}`); }
+    } catch (e) { alert("伺服器連線失敗"); }
 }
 
 // ==========================================
-// 🌟 修正 2：補上「漂流瓶文章專用」的狀態分類按鈕函式
-// 解決：待審核、已通過、沒通過 按鈕點擊沒反應的問題
+// 8. 🌟 操作選單 (下拉式 Action Dropdown) 的開關邏輯
 // ==========================================
-window.filterByStatus = function (status) {
-    // 1. 更新當前的過濾狀態
-    window._currentStatusFilter = status;
-
-    // 2. 按鈕對應的 ID 陣列
-    const btns = ['all', 'pending', 'passed', 'rejected'];
-
-    // 3. 幫點擊的按鈕換上超亮眼的藍色，其他的變回灰色
-    btns.forEach(id => {
-        const el = document.getElementById('filter-btn-' + id);
-        if (!el) return;
-
-        if (id === status) {
-            el.style.background = '#3b82f6';
-            el.style.color = '#fff';
-            el.style.borderColor = '#3b82f6';
-        } else {
-            el.style.background = '#f8fafc';
-            el.style.color = '#64748b';
-            el.style.borderColor = '#e2e8f0';
+window.toggleDropdown = function(btn) {
+    // 1. 先關閉畫面中其他已展開的選單，避免重疊
+    document.querySelectorAll('.action-dropdown-menu').forEach(menu => {
+        if (menu !== btn.nextElementSibling) {
+            menu.classList.remove('show-menu');
         }
     });
+    // 2. 切換當前點擊的選單顯示狀態
+    btn.nextElementSibling.classList.toggle('show-menu');
+};
 
-    // 4. 呼叫你已經寫好的渲染函式，重新顯示對應的文章
-    filterBottles();
-}
-// ==========================================
-// 🌟 修正 3：補上系統登出功能
-// 解決：登出按鈕點擊無效的問題
-// ==========================================
-window.adminLogout = function () {
-    if (confirm("確定要登出後台系統嗎？")) {
-        // 1. 清除保存在瀏覽器裡的登入鑰匙與使用者資料
-        localStorage.removeItem("authToken");
-        localStorage.removeItem("currentUser");
-
-        // 2. 貼心小舉動：順便清除上次停留的頁面記憶
-        localStorage.removeItem("adminLastTab");
-
-        // 3. 把畫面導向登入頁面 (這裡假設你的登入頁是 login.html)
-        // 如果你的登入頁是別的名字，記得把這裡的檔名改掉喔！
-        window.location.href = "login.html";
+// 點擊畫面空白處時，自動收起操作選單
+document.addEventListener('click', function(e) {
+    if (!e.target.matches('.btn-dropdown-trigger')) {
+        document.querySelectorAll('.action-dropdown-menu').forEach(menu => {
+            menu.classList.remove('show-menu');
+        });
     }
-}
+});
