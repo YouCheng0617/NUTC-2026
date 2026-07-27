@@ -1044,3 +1044,93 @@ body, html { height: 100vh !important; overflow: hidden !important; background-c
         display: none; /* 螢幕不夠寬時自動隱藏，避免擋住中間的瓶子 */
     }
 }
+/* =========================================
+   📜 懸浮深海公約 (終極無尾巴乾淨版)
+   ========================================= */
+.ocean-rules-board {
+  position: fixed;
+  right: 25px;
+  top: 42%;
+  transform: translateY(-50%);
+  width: 300px;
+  z-index: 95;
+  transition: right 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+}
+
+/* 🌟 主體內容區 */
+.rules-content-wrapper {
+  background: linear-gradient(135deg, rgba(10, 35, 65, 0.92), rgba(0, 85, 165, 0.85));
+  backdrop-filter: blur(15px);
+  border: 1px solid rgba(77, 166, 255, 0.5);
+  border-radius: 20px;
+  padding: 22px 20px;
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4), inset 0 0 15px rgba(77, 166, 255, 0.2);
+  max-height: calc(100vh - 220px);
+  overflow-y: auto;
+  scrollbar-width: thin;
+  transition: opacity 0.3s ease, border-color 0.3s ease;
+}
+.rules-content-wrapper::-webkit-scrollbar { width: 4px; }
+.rules-content-wrapper::-webkit-scrollbar-thumb { background: rgba(77, 166, 255, 0.5); border-radius: 10px; }
+
+/* 🌟 抽屜把手 (設定寬度 42px，往左外推 42px) */
+.rules-drawer-handle {
+  position: absolute;
+  left: -42px !important; 
+  top: 50%;
+  transform: translateY(-50%);
+  width: 42px !important; 
+  padding: 14px 6px;
+  background: linear-gradient(135deg, #0a2341, #0055a5);
+  border: 2px solid #4da6ff;
+  border-right: none;
+  border-radius: 14px 0 0 14px;
+  color: #fff;
+  font-weight: 900;
+  font-size: 0.95rem;
+  cursor: pointer;
+  box-shadow: -4px 0 12px rgba(0, 0, 0, 0.4);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.3s ease;
+  user-select: none;
+}
+.rules-drawer-handle span { writing-mode: vertical-lr; letter-spacing: 3px; }
+.rules-drawer-handle:hover { background: #0073e6; color: #ffd700; padding-left: 10px; }
+.rules-drawer-handle i { font-style: normal; font-size: 0.8rem; color: #ffd700; transition: transform 0.3s ease; }
+
+/* =========================================
+   🔒 收起狀態：精準推往 -300px！
+   ========================================= */
+.ocean-rules-board.collapsed {
+  right: -300px !important; /* 🌟 剛好把 300px 的本體藏住，讓 42px 的小把手 100% 完整露在畫面上！ */
+}
+
+/* 🌟 核心魔法：收起時，把大看板的邊框與陰影直接消滅，絕對不留長尾巴！ */
+.ocean-rules-board.collapsed .rules-content-wrapper {
+  opacity: 0 !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
+  pointer-events: none;
+}
+
+.ocean-rules-board.collapsed #rules-arrow {
+  transform: rotate(180deg) !important;
+}
+
+/* 內文樣式 */
+.rules-header { font-size: 1.4rem; font-weight: 900; color: #4da6ff; text-align: center; margin-bottom: 15px; border-bottom: 2px dashed rgba(77, 166, 255, 0.3); padding-bottom: 10px; }
+.rules-icon { font-size: 1.5rem; vertical-align: middle; }
+.rules-list { list-style: none; padding: 0; margin: 0; color: #d1e8ff; font-size: 0.95rem; line-height: 1.6; }
+.rules-list li { margin-bottom: 14px; padding-left: 18px; position: relative; }
+.rules-list li::before { content: "🫧"; position: absolute; left: -5px; top: 2px; font-size: 0.9rem; }
+.rules-list li strong { color: #ffffff; font-size: 1.05rem; display: inline-block; margin-bottom: 2px; }
+.rules-footer { margin-top: 18px; text-align: center; font-size: 0.85rem; color: #88bbff; font-weight: bold; font-style: italic; }
+
+@media screen and (max-width: 1100px) { .ocean-rules-board { display: none !important; } }

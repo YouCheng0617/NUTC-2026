@@ -1546,3 +1546,49 @@ document.addEventListener('dblclick', (e) => {
     }
 });
 
+// =========================================
+// 📜 深海公約「右側側滑抽屜」控制器
+// =========================================
+window.toggleRulesBoard = function () {
+  const board = document.getElementById("ocean-rules-board");
+  if (!board) return;
+
+  board.classList.toggle("collapsed");
+  const isCollapsed = board.classList.contains("collapsed");
+  localStorage.setItem("rulesBoardCollapsed", isCollapsed);
+};
+
+document.addEventListener("DOMContentLoaded", () => {
+  const board = document.getElementById("ocean-rules-board");
+  const isCollapsed = localStorage.getItem("rulesBoardCollapsed") === "true";
+  if (board && isCollapsed) {
+    board.classList.add("collapsed");
+  }
+});
+// =========================================
+// 📜 深海公約「右側側滑抽屜」控制器
+// =========================================
+window.toggleRulesBoard = function () {
+  const board = document.getElementById("ocean-rules-board");
+  if (!board) {
+    console.error("找不到公約看板元素！");
+    return;
+  }
+
+  // 加上或移除 collapsed 狀態
+  board.classList.toggle("collapsed");
+
+  // 記憶用戶的選擇
+  const isCollapsed = board.classList.contains("collapsed");
+  localStorage.setItem("rulesBoardCollapsed", isCollapsed);
+  console.log(isCollapsed ? "📜 成功收進右側抽屜！" : "📜 成功展開！");
+};
+
+// 保持用戶上次瀏覽的收合記憶
+document.addEventListener("DOMContentLoaded", () => {
+  const board = document.getElementById("ocean-rules-board");
+  const isCollapsed = localStorage.getItem("rulesBoardCollapsed") === "true";
+  if (board && isCollapsed) {
+    board.classList.add("collapsed");
+  }
+});

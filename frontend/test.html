@@ -55,24 +55,29 @@
           </button>
         </div>
 
-<div class="search-container">
-  <!-- 🌟 新增這層「專屬容器」，把這三兄弟死死綁在一起 -->
-  <div class="search-box-wrapper">
-    <input
-      type="text"
-      class="search-input light-search"
-      placeholder="🔍 搜尋海域、標題、內容..."
-      id="main-search-input"
-      autocomplete="off"
-    />
-    <span id="clear-search-btn" class="clear-search-btn" title="清除搜尋">清除</span>
-    <div
-      id="search-history-dropdown"
-      class="search-history-box"
-      style="display: none"
-    ></div>
-  </div>
-</div>
+        <div class="search-container">
+          <!-- 🌟 新增這層「專屬容器」，把這三兄弟死死綁在一起 -->
+          <div class="search-box-wrapper">
+            <input
+              type="text"
+              class="search-input light-search"
+              placeholder="🔍 搜尋海域、標題、內容..."
+              id="main-search-input"
+              autocomplete="off"
+            />
+            <span
+              id="clear-search-btn"
+              class="clear-search-btn"
+              title="清除搜尋"
+              >清除</span
+            >
+            <div
+              id="search-history-dropdown"
+              class="search-history-box"
+              style="display: none"
+            ></div>
+          </div>
+        </div>
 
         <div class="nav-actions">
           <button id="login-trigger" class="btn-login">註冊 / 登入</button>
@@ -93,17 +98,31 @@
               <span class="menu-arrow">▼</span>
             </div>
 
-<div class="user-dropdown-menu" id="user-dropdown">
-    <div class="menu-item" id="open-profile">👤 個人資料</div>
-    
-    <!-- 🌟 這裡是你新增的追蹤列表入口 -->
-    <div class="menu-item" onclick="openFollowingModal()">🫂 我的追蹤</div>
-    
-    <div class="menu-item" onclick="window.location.href = 'saved.html'">⭐ 收藏瓶子</div>
-    <div class="menu-item" onclick="window.location.href = 'post.html'">📝 我的瓶子</div>
-    <div class="menu-divider"></div>
-    <div class="menu-item logout-item" id="logout-btn">🚪 退出登入</div>
-</div>
+            <div class="user-dropdown-menu" id="user-dropdown">
+              <div class="menu-item" id="open-profile">👤 個人資料</div>
+
+              <!-- 🌟 這裡是你新增的追蹤列表入口 -->
+              <div class="menu-item" onclick="openFollowingModal()">
+                🫂 我的追蹤
+              </div>
+
+              <div
+                class="menu-item"
+                onclick="window.location.href = 'saved.html'"
+              >
+                ⭐ 收藏瓶子
+              </div>
+              <div
+                class="menu-item"
+                onclick="window.location.href = 'post.html'"
+              >
+                📝 我的瓶子
+              </div>
+              <div class="menu-divider"></div>
+              <div class="menu-item logout-item" id="logout-btn">
+                🚪 退出登入
+              </div>
+            </div>
 
             <button
               id="btn-new-post"
@@ -169,7 +188,13 @@
             <div class="detail-author-text">
               <div id="detail-author-tag" class="detail-author-name"></div>
               <div class="detail-post-time">今天發布</div>
-              <button id="follow-author-btn" class="follow-btn" onclick="toggleFollow()">+ 追蹤</button>
+              <button
+                id="follow-author-btn"
+                class="follow-btn"
+                onclick="toggleFollow()"
+              >
+                + 追蹤
+              </button>
             </div>
           </div>
 
@@ -469,31 +494,87 @@
     </div>
     <!--  追蹤列表在這裡！-->
     <div id="following-modal" class="modal">
-    <div class="modal-content light-modal" style="width: 380px; max-height: 80vh; overflow-y: auto; padding: 25px;">
+      <div
+        class="modal-content light-modal"
+        style="width: 380px; max-height: 80vh; overflow-y: auto; padding: 25px"
+      >
         <span class="close-btn" onclick="closeFollowingModal()">&times;</span>
-        <h2 style="color: #0055a5; font-weight: 900; text-align: center; margin-bottom: 20px; margin-top: 10px;">🫂 我的追蹤</h2>
-        
+        <h2
+          style="
+            color: #0055a5;
+            font-weight: 900;
+            text-align: center;
+            margin-bottom: 20px;
+            margin-top: 10px;
+          "
+        >
+          🫂 我的追蹤
+        </h2>
+
         <div id="following-list-container">
-            <div style="text-align: center; color: #888; padding: 30px 0;">正在潛入深海尋找你追蹤的用戶...🌊</div>
+          <div style="text-align: center; color: #888; padding: 30px 0">
+            正在潛入深海尋找你追蹤的用戶...🌊
+          </div>
         </div>
+      </div>
     </div>
-</div>
-    <!-- 👇👇👇 公約在這裡！ 👇👇👇 -->
-    <!-- 🌊 懸浮深海公約 -->
-    <div class="ocean-rules-board">
+    <!-- 🌊 懸浮深海公約 (完美精準外露版) -->
+    <div
+      class="ocean-rules-board"
+      id="ocean-rules-board"
+      style="transition: right 0.4s cubic-bezier(0.25, 0.8, 0.25, 1)"
+    >
+      <div
+        class="rules-drawer-handle"
+        onclick="
+          const board = document.getElementById('ocean-rules-board');
+          const arrow = document.getElementById('rules-arrow');
+          if (board.style.right === '-300px') {
+            board.style.right = '25px';
+            arrow.style.transform = 'rotate(0deg)';
+          } else {
+            board.style.right = '-300px';
+            arrow.style.transform = 'rotate(180deg)';
+          }
+        "
+        title="點擊收起/展開殿規"
+        style="cursor: pointer; user-select: none"
+      >
+        <span>📜 殿規</span>
+        <i
+          id="rules-arrow"
+          style="transition: transform 0.3s ease; font-style: normal"
+          >▶</i
+        >
+      </div>
+
+      <!-- 主體內容區 -->
+      <div class="rules-content-wrapper">
         <div class="rules-header">
-            <span class="rules-icon">📜</span> 
-            海神殿規
+          <span class="rules-icon">📜</span> 海神殿規
         </div>
         <ul class="rules-list">
-            <li><strong>🚫 拒絕海洋垃圾：</strong><br>請勿隨意拋棄廣告、謾罵或惡意連結，海龜會噎到！</li>
-            <li><strong>💖 溫柔對待瓶子：</strong><br>每個瓶子都裝著一顆脆弱的心，留言請保持友善與溫暖。</li>
-            <li><strong>🚨 遇到海怪請通報：</strong><br>若發現違規內容，請勇敢點擊「檢舉」，呼叫海神護衛隊。</li>
-            <li><strong>🤿 適度換氣：</strong><br>潛水太久會缺氧，記得偶爾浮出水面，看看現實的風景唷！</li>
+          <li>
+            <strong>🚫 拒絕海洋垃圾：</strong
+            ><br />請勿隨意拋棄廣告或謾罵，海龜會噎到！
+          </li>
+          <li>
+            <strong>💖 溫柔對待瓶子：</strong
+            ><br />每個瓶子都裝著一顆脆弱的心，請保持友善與溫暖。
+          </li>
+          <li>
+            <strong>🚨 遇到海怪請通報：</strong
+            ><br />若發現違規內容，請勇敢點擊「檢舉」呼叫海神衛隊。
+          </li>
+          <li>
+            <strong>🤿 適度換氣：</strong
+            ><br />潛水太久會缺氧，記得偶爾浮出水面看看現實的風景！
+          </li>
         </ul>
         <div class="rules-footer">✨ 願這片海域，能接住你所有的情緒</div>
+      </div>
     </div>
-<script type="module" src="test.js?v=18"></script>
+    <script type="module" src="test.js?v=18"></script>
     <div class="ocean-refresh-btn" onclick="callOceanCurrent()">
       🌊 呼喚海流
     </div>
@@ -522,6 +603,5 @@
         });
       });
     </script>
-    
   </body>
 </html>
