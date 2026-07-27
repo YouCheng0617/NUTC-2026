@@ -242,3 +242,90 @@ export const updateMember = async (memberId: number, updateData: Partial<MemberD
         throw error;
     }
 };
+
+export const followMember = async (followerId: number, followedId: number) => {
+
+    if (followerId === followedId) {
+        throw new Error("CANNOT_FOLLOW_SELF");
+    }
+
+    const targetMember = await prisma.member.findUnique({
+        where: { member_id: followerId },
+    })
+
+    if (!targetMember) {
+        throw new Error("TARGET_NOT_FOUND");
+    }
+
+    const existingFollow = await prisma.follow.findFirst({
+        where: {
+            follower_id: followerId,
+            following_id: followedId
+        }
+    });
+
+    if (existingFollow) {
+        await prisma.follow.deleteMany({
+            where: {
+                follower_id: followerId,
+                following_id: followedId
+            }
+        });
+        return { isFollowing: false, message: "已取消追蹤" }
+
+    } else {
+        await prisma.follow.create({
+            data: {
+                follower_id: followerId,
+                following_id: followedId
+            }
+        });
+        return { isFollowing: true, message: "追蹤成功" };
+    }
+
+};
+
+/*抓取已追蹤名單*/
+export const getFollowedMembers = async (memberId: number) => {
+    const followingList = await prisma.follow.findMany({
+        where: {
+            follower_id: memberId
+        },
+        include: {
+            following: {
+                select: {
+                    member_id: true,
+                    name: true,
+                    bio: true,
+                }
+            }
+        },
+        orderBy: { created_at: 'desc' }
+    });
+
+    return followingList.map(item => ({
+        follow_time: item.created_at,
+        ...item.following
+    }));
+};
+/*抓取追蹤者名單*/
+export const getFollowerList = async (memberId: number) => {
+    const followerList = await prisma.follow.findMany({
+        where: { following_id: memberId },
+        include: {
+            follower: { // 關聯出追蹤者的資料
+                select: {
+                    member_id: true,
+                    name: true,
+                    bio: true,
+                }
+            }
+        },
+        orderBy: { created_at: 'desc' }
+    });
+
+    return followerList.map(item => ({
+        follow_time: item.created_at,
+        ...item.follower
+    }));
+}

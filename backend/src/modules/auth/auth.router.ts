@@ -11,7 +11,9 @@ export function authRouter() {
     router.post("/forgot-password", authController.forgotPassword);
     router.post("/reset-password", authController.resetPassword);
     router.patch("/update-data", authCheck, authController.updateMemberData);
-
+    router.post("/follow", authCheck, authController.followMembers);
+    router.get("/followers", authCheck, authController.getFollowerListData);
+    router.get("/following", authCheck, authController.getFollowingList);
     /*測試用*/
     router.get('/profile', authCheck, (req, res) => {
         const authReq = req as AuthRequest;

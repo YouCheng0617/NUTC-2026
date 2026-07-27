@@ -1,5 +1,6 @@
 import type { Request, Response } from "express";
-import { createMember, loginMember, forgotPassword, resetPassword, updateMember } from "./auth.service.js";
+import { type AuthRequest } from "../middleware/auth.middleware.js";
+import { createMember, loginMember, forgotPassword, resetPassword, updateMember, followMember, getFollowedMembers, getFollowerList } from "./auth.service.js";
 import { countHelper } from "../../lib/countHelper.js";
 import { verifyCaptcha } from "../../lib/captchaHelper.js";
 import prisma from "../../lib/prisma.js";
@@ -130,6 +131,65 @@ export class AuthController {
 
             console.error('updateMemberData Controller 錯誤:', error);
             return res.status(500).json({ message: '伺服器發生錯誤，請稍後再試', data: String(error) });
+        }
+    }
+    async followMembers(req: AuthRequest, res: Response) {
+        try {
+            const followerId = req.user?.member_id;
+            const followedId = Number(req.body.followedId);
+
+            if (!followerId || isNaN(followedId)) {
+                return res.status(400).json({ message: "請提供有效的會員 ID" });
+            }
+
+            const result = await followMember(followerId, followedId);
+            res.status(200).json({
+                message: result.message,
+                data: {
+                    isFollowing: result.isFollowing
+                }
+            });
+
+        } catch (error: any) {
+            if (error.message === "CANNOT_FOLLOW_SELF") {
+                return res.status(400).json({ message: "不能追蹤自己喔！" });
+            }
+            if (error.message === "TARGET_NOT_FOUND") {
+                return res.status(404).json({ message: "找不到該名會員" });
+            }
+
+            console.error("追蹤會員發生錯誤:", error);
+            return res.status(500).json({ message: "伺服器內部錯誤" });
+        }
+    }
+    async getFollowerListData(req: AuthRequest, res: Response) {
+        try {
+            const memberId = req.user?.member_id!;
+            const followers = await getFollowerList(memberId);
+
+            return res.status(200).json({
+                message: "成功獲取粉絲列表",
+                data: followers
+            });
+
+        } catch (error: any) {
+            console.error("獲取粉絲列表錯誤:", error);
+            return res.status(500).json({ message: "伺服器內部錯誤" });
+        }
+    }
+    async getFollowingList(req: AuthRequest, res: Response) {
+        try {
+            const memberId = req.user?.member_id;
+            const following = await getFollowedMembers(memberId!);
+
+            return res.status(200).json({
+                message: "成功獲取追蹤中列表",
+                data: following
+            });
+
+        } catch (error: any) {
+            console.error("獲取追蹤中列表錯誤:", error);
+            return res.status(500).json({ message: "伺服器內部錯誤" });
         }
     }
 }

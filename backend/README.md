@@ -179,3 +179,12 @@ Query 參數 (選填)：?limit=20 (預設為 10，如要拿前 20 名可帶此�
 搜尋漂流瓶 GET 給Token (或不給也可) /bottles/search
 (例如搜尋標題或內容有「開心」的文章：/bottles/search?keyword=開心)
 Query 參數 (必填)：?keyword=你要找的字
+
+追蹤 POST 給Token /auth/follow
+{
+  "followedId": 2
+}
+
+取得我的粉絲列表 GET 給Token /auth/followers
+
+取得我追蹤的人列表 GET 給Token /auth/following
