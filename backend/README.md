@@ -190,3 +190,6 @@ Query 參數 (必填)：?keyword=你要找的字
 取得我追蹤的人列表 GET 給Token /auth/following
 
 獲取熱門文章 GET /bottles/popular
+
+新增回覆-子留言 POST 給Token /comments/bottles/:bottleId/comments/:parentId/reply 
+(:bottleId: 漂流瓶的 ID ; :parentId: 要回覆的主留言 ID)
