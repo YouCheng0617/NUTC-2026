@@ -1,7 +1,7 @@
 // ==========================================
 // 1. 設定基礎參數與共用工具
 // ==========================================
-const API_BASE_URL = "https://163.17.135.120";
+const API_BASE_URL = "https://api.drift-bottles.xyz/";
 
 function escapeHTML(str) {
     if (typeof str !== 'string') str = String(str);

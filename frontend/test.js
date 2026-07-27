@@ -1,5 +1,5 @@
 // ✨ 統一設定後端網址
-const API_BASE_URL = "https://163.17.135.120";
+const API_BASE_URL = "https://api.drift-bottles.xyz/";
 
 let posts = [];
 let currentKeyword = '';

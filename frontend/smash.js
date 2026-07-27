@@ -333,7 +333,7 @@
     }
 
     // ================= 真實後端 API 排行榜與儲存系統 =================
-    const API_BASE_URL = "https://163.17.135.120"; 
+    const API_BASE_URL = "https://api.drift-bottles.xyz/";
     const GAME_NAME = 'bottle_shooter'; 
     let previousModal = 'start-modal'; 
 
