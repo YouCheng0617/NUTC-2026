@@ -1147,3 +1147,181 @@ body, html { height: 100vh !important; overflow: hidden !important; background-c
 .rules-footer { margin-top: 18px; text-align: center; font-size: 0.85rem; color: #88bbff; font-weight: bold; font-style: italic; }
 
 @media screen and (max-width: 1100px) { .ocean-rules-board { display: none !important; } }
+/* =========================================
+   🔥 左側懸浮熱門貼文抽屜 (終極開關必勝版)
+   ========================================= */
+.ocean-popular-board {
+  position: fixed;
+  top: 42%;
+  transform: translateY(-50%);
+  width: 300px;
+  z-index: 95;
+  transition: left 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+}
+
+/* 🌟 核心魔法：沒有 collapsed 時（展開），強制推回螢幕內 25px！ */
+.ocean-popular-board:not(.collapsed) {
+  left: 25px !important;
+}
+
+/* 🔒 有 collapsed 時（收起），強制退往 -300px 幕後！ */
+.ocean-popular-board.collapsed {
+  left: -300px !important;
+}
+
+.popular-content-wrapper {
+  background: linear-gradient(135deg, rgba(30, 15, 60, 0.92), rgba(0, 50, 120, 0.85));
+  backdrop-filter: blur(15px);
+  border: 1px solid rgba(255, 200, 77, 0.5);
+  border-radius: 20px;
+  padding: 22px 20px;
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4), inset 0 0 15px rgba(255, 200, 77, 0.15);
+  max-height: calc(100vh - 220px);
+  overflow-y: auto;
+  scrollbar-width: thin;
+  transition: opacity 0.3s ease, border-color 0.3s ease;
+}
+.popular-content-wrapper::-webkit-scrollbar { width: 4px; }
+.popular-content-wrapper::-webkit-scrollbar-thumb { background: rgba(255, 200, 77, 0.5); border-radius: 10px; }
+
+/* 🌟 右外掛把手 */
+.popular-drawer-handle {
+  position: absolute;
+  right: -42px !important;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 42px !important;
+  padding: 14px 6px;
+  background: linear-gradient(135deg, #201040, #0055a5);
+  border: 2px solid #ffcc00;
+  border-left: none;
+  border-radius: 0 14px 14px 0;
+  color: #fff;
+  font-weight: 900;
+  font-size: 0.95rem;
+  cursor: pointer;
+  box-shadow: 4px 0 12px rgba(0, 0, 0, 0.4);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.3s ease;
+  user-select: none;
+}
+.popular-drawer-handle span { writing-mode: vertical-lr; letter-spacing: 3px; color: #ffcc00; }
+.popular-drawer-handle:hover { background: #0073e6; padding-right: 10px; }
+.popular-drawer-handle i { font-style: normal; font-size: 0.8rem; color: #ffcc00; transition: transform 0.3s ease; }
+
+.ocean-popular-board.collapsed .popular-content-wrapper {
+  opacity: 0 !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
+  pointer-events: none;
+}
+.ocean-popular-board.collapsed #popular-arrow { transform: rotate(0deg) !important; }
+.ocean-popular-board:not(.collapsed) #popular-arrow { transform: rotate(180deg) !important; }
+
+/* 熱門卡片細節 */
+.popular-list-container { display: flex; flex-direction: column; gap: 12px; margin-top: 10px; }
+.popular-item-card { background: rgba(255, 255, 255, 0.12); border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 14px; padding: 12px 14px; cursor: pointer; transition: all 0.25s ease; }
+.popular-item-card:hover { background: rgba(255, 255, 255, 0.25); transform: translateX(5px) scale(1.02); border-color: #ffcc00; }
+.popular-item-title { color: #fff; font-weight: bold; font-size: 0.95rem; margin-bottom: 6px; display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden; }
+.popular-item-meta { display: flex; justify-content: space-between; font-size: 0.8rem; color: #ffcc00; font-weight: bold; }
+.popular-header { font-size: 1.4rem; font-weight: 900; color: #ffcc00; text-align: center; margin-bottom: 15px; border-bottom: 2px dashed rgba(255, 204, 0, 0.3); padding-bottom: 10px; }
+.popular-icon { font-size: 1.5rem; vertical-align: middle; }
+.popular-footer { margin-top: 18px; text-align: center; font-size: 0.85rem; color: #ffea88; font-weight: bold; font-style: italic; }
+
+
+/* =========================================
+   📜 右側懸浮深海公約 (終極開關必勝版)
+   ========================================= */
+.ocean-rules-board {
+  position: fixed;
+  top: 42%;
+  transform: translateY(-50%);
+  width: 300px;
+  z-index: 95;
+  transition: right 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+}
+
+/* 🌟 核心魔法：沒有 collapsed 時（展開），強制推回螢幕內 25px！ */
+.ocean-rules-board:not(.collapsed) {
+  right: 25px !important;
+}
+
+/* 🔒 有 collapsed 時（收起），強制退往 -300px 幕後！ */
+.ocean-rules-board.collapsed {
+  right: -300px !important;
+}
+
+.rules-content-wrapper {
+  background: linear-gradient(135deg, rgba(10, 35, 65, 0.92), rgba(0, 85, 165, 0.85));
+  backdrop-filter: blur(15px);
+  border: 1px solid rgba(77, 166, 255, 0.5);
+  border-radius: 20px;
+  padding: 22px 20px;
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4), inset 0 0 15px rgba(77, 166, 255, 0.2);
+  max-height: calc(100vh - 220px);
+  overflow-y: auto;
+  scrollbar-width: thin;
+  transition: opacity 0.3s ease, border-color 0.3s ease;
+}
+.rules-content-wrapper::-webkit-scrollbar { width: 4px; }
+.rules-content-wrapper::-webkit-scrollbar-thumb { background: rgba(77, 166, 255, 0.5); border-radius: 10px; }
+
+/* 🌟 左外掛把手 */
+.rules-drawer-handle {
+  position: absolute;
+  left: -42px !important;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 42px !important;
+  padding: 14px 6px;
+  background: linear-gradient(135deg, #0a2341, #0055a5);
+  border: 2px solid #4da6ff;
+  border-right: none;
+  border-radius: 14px 0 0 14px;
+  color: #fff;
+  font-weight: 900;
+  font-size: 0.95rem;
+  cursor: pointer;
+  box-shadow: -4px 0 12px rgba(0, 0, 0, 0.4);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.3s ease;
+  user-select: none;
+}
+.rules-drawer-handle span { writing-mode: vertical-lr; letter-spacing: 3px; }
+.rules-drawer-handle:hover { background: #0073e6; color: #ffd700; padding-left: 10px; }
+.rules-drawer-handle i { font-style: normal; font-size: 0.8rem; color: #ffd700; transition: transform 0.3s ease; }
+
+.ocean-rules-board.collapsed .rules-content-wrapper {
+  opacity: 0 !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
+  pointer-events: none;
+}
+.ocean-rules-board.collapsed #rules-arrow { transform: rotate(180deg) !important; }
+.ocean-rules-board:not(.collapsed) #rules-arrow { transform: rotate(0deg) !important; }
+
+.rules-header { font-size: 1.4rem; font-weight: 900; color: #4da6ff; text-align: center; margin-bottom: 15px; border-bottom: 2px dashed rgba(77, 166, 255, 0.3); padding-bottom: 10px; }
+.rules-icon { font-size: 1.5rem; vertical-align: middle; }
+.rules-list { list-style: none; padding: 0; margin: 0; color: #d1e8ff; font-size: 0.95rem; line-height: 1.6; }
+.rules-list li { margin-bottom: 14px; padding-left: 18px; position: relative; }
+.rules-list li::before { content: "🫧"; position: absolute; left: -5px; top: 2px; font-size: 0.9rem; }
+.rules-list li strong { color: #ffffff; font-size: 1.05rem; display: inline-block; margin-bottom: 2px; }
+.rules-footer { margin-top: 18px; text-align: center; font-size: 0.85rem; color: #88bbff; font-weight: bold; font-style: italic; }
+
+@media screen and (max-width: 1100px) {
+  .ocean-popular-board, .ocean-rules-board { display: none !important; }
+}

@@ -1592,3 +1592,83 @@ document.addEventListener("DOMContentLoaded", () => {
     board.classList.add("collapsed");
   }
 });
+
+// =========================================
+// 🔥 左側熱門貼文海域 (串接後端 /bottles/popular)
+// =========================================
+async function fetchPopularBottles() {
+  const listContainer = document.getElementById("popular-posts-list");
+  if (!listContainer) return;
+
+  try {
+    const token = localStorage.getItem("authToken");
+    const headers = {
+      "Content-Type": "application/json",
+      "ngrok-skip-browser-warning": "true",
+    };
+    if (token) headers["Authorization"] = `Bearer ${token}`;
+
+    // 🌟 精準打中第二張圖裡的後端路由！
+    const response = await fetch(`${API_BASE_URL}/bottles/popular`, {
+      method: "GET",
+      headers: headers,
+    });
+
+    if (response.ok) {
+      const data = await response.json();
+      // 相容後端各種可能的回傳格式
+      let popularArray = Array.isArray(data)
+        ? data
+        : data.bottles || data.data || data.result || [];
+
+      if (popularArray.length === 0) {
+        listContainer.innerHTML =
+          '<div style="text-align: center; color: #ccc; padding: 20px 0;">目前海面上還沒有熱門貼文喔！🌊</div>';
+        return;
+      }
+
+      // 取出讚數前 6 名的貼文進行渲染
+      listContainer.innerHTML = popularArray
+        .slice(0, 6)
+        .map((rawItem, index) => {
+          const item = rawItem.bottle || rawItem.Bottle || rawItem;
+          const safeId = String(
+            item.bottle_id || item.id || item.bottleId || rawItem.id,
+          );
+          const title = item.title || rawItem.title || "無標題貼文";
+          const author =
+            item.is_anonymous || item.isAnonymous
+              ? "匿名"
+              : item.author?.name || item.author_name || item.author || "用戶";
+          const likes = parseInt(
+            item.like_count || item.likeCount || item.likes || 0,
+            10,
+          );
+
+          // 🌟 點擊卡片直接呼叫 openPostDetail(id) 打開文章詳細頁！
+          return `
+          <div class="popular-item-card" onclick="openPostDetail('${safeId}')">
+            <div class="popular-item-title">👑 TOP ${index + 1}: ${escapeHTML(title)}</div>
+            <div class="popular-item-meta">
+              <span>👤 ${escapeHTML(author)}</span>
+              <span>❤️ ${likes}</span>
+            </div>
+          </div>
+        `;
+        })
+        .join("");
+    } else {
+      listContainer.innerHTML =
+        '<div style="text-align: center; color: #ff6b6b; padding: 20px 0;">打撈失敗，海象不佳 😢</div>';
+    }
+  } catch (error) {
+    console.error("獲取熱門文章失敗:", error);
+    listContainer.innerHTML =
+      '<div style="text-align: center; color: #ff6b6b; padding: 20px 0;">伺服器連線失敗 😢</div>';
+  }
+}
+
+// 🌟 當網頁載入完成時，自動去後端打撈熱門貼文
+document.addEventListener("DOMContentLoaded", () => {
+  fetchPopularBottles();
+});
