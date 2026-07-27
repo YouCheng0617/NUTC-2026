@@ -4,7 +4,7 @@
     // 1. 防作弊分數管理器 (安全版)
     const ScoreManager = (() => {
         let _score = 0;
-        let _shadow = btoa("0_secret_ocean_salt"); 
+        let _shadow = btoa("0_secret_ocean_salt");
 
         const _check = () => {
             if (_shadow !== btoa(_score + "_secret_ocean_salt")) {
@@ -17,7 +17,7 @@
         return {
             add: (points) => {
                 _check();
-                _score = Math.max(0, _score + points); 
+                _score = Math.max(0, _score + points);
                 _shadow = btoa(_score + "_secret_ocean_salt");
             },
             get: () => {
@@ -34,7 +34,7 @@
     // 🚨 這些變數現在都在結界內，你在 F12 輸入 combo = 999 會直接報錯 "combo is not defined"
     let timeLeft = 30;
     let combo = 0;
-    let currentAmmo = 10; 
+    let currentAmmo = 10;
     let gameInterval;
     let spawnInterval;
     let isGameRunning = false;
@@ -42,7 +42,7 @@
     const gameArea = document.getElementById('game-area');
     const scoreDisplay = document.getElementById('score');
     const timeDisplay = document.getElementById('time-left');
-    const ammoDisplay = document.getElementById('ammo'); 
+    const ammoDisplay = document.getElementById('ammo');
     const uiLayer = document.getElementById('ui-layer');
     const comboDisplay = document.getElementById('combo-display');
     const comboText = document.getElementById('combo');
@@ -53,15 +53,15 @@
     // 2. 難易度設定
     let currentDifficulty = 'normal';
     const diffConfig = {
-        easy: { label: '簡單', spawnRate: 1000, speedMin: 5.0, speedMax: 7.5, fishChance: 0.10, maxAmmo: 20 }, 
-        normal: { label: '普通', spawnRate: 700, speedMin: 3.5, speedMax: 5.5, fishChance: 0.25, maxAmmo: 15 }, 
-        hard: { label: '困難', spawnRate: 500, speedMin: 2.0, speedMax: 4.0, fishChance: 0.40, maxAmmo: 10 }  
+        easy: { label: '簡單', spawnRate: 1000, speedMin: 5.0, speedMax: 7.5, fishChance: 0.10, maxAmmo: 20 },
+        normal: { label: '普通', spawnRate: 700, speedMin: 3.5, speedMax: 5.5, fishChance: 0.25, maxAmmo: 15 },
+        hard: { label: '困難', spawnRate: 500, speedMin: 2.0, speedMax: 4.0, fishChance: 0.40, maxAmmo: 10 }
     };
 
     // 🌟 將 HTML 按鈕需要的函數掛載到 window，這樣 HTML 才能呼叫它，但結界依然安全
-    window.setDifficulty = function(level) {
+    window.setDifficulty = function (level) {
         currentDifficulty = level;
-        
+
         document.querySelectorAll(".diff-btn").forEach(btn => btn.classList.remove("active-diff"));
         document.getElementById("btn-diff-" + level).classList.add("active-diff");
 
@@ -126,13 +126,13 @@
             const p = document.createElement('div');
             p.style.position = 'absolute'; p.style.left = `${x}px`; p.style.top = `${y}px`;
             p.style.width = `${Math.random() * 6 + 4}px`; p.style.height = p.style.width;
-            p.style.background = color; 
+            p.style.background = color;
             p.style.boxShadow = `0 0 8px ${color}`;
             p.style.pointerEvents = 'none'; p.style.borderRadius = '50%'; p.style.zIndex = '150';
             gameArea.appendChild(p);
 
-            const vx = (Math.random() - 0.5) * 150; 
-            const vy = (Math.random() - 0.5) * 150 - 50; 
+            const vx = (Math.random() - 0.5) * 150;
+            const vy = (Math.random() - 0.5) * 150 - 50;
 
             p.animate([
                 { transform: `translate(0, 0) scale(1)`, opacity: 1 },
@@ -161,13 +161,13 @@
     // ================= 射擊邏輯 =================
     function handleShoot(e) {
         if (!isGameRunning) return;
-        e.preventDefault(); 
+        e.preventDefault();
 
-        if (currentAmmo <= 0) return; 
+        if (currentAmmo <= 0) return;
 
         initAudio();
         playShootSound();
-        currentAmmo--; 
+        currentAmmo--;
 
         const rect = gameArea.getBoundingClientRect();
         const clientX = e.type.includes("touch") ? e.touches[0].clientX : e.clientX;
@@ -180,47 +180,47 @@
         if (target && target.style.display !== 'none' && !target.classList.contains('swim-away')) {
             const type = target.dataset.type;
             const targetRect = target.getBoundingClientRect();
-            
+
             if (type === 'fish') {
                 ScoreManager.add(-20);
-                combo = 0; 
+                combo = 0;
                 createFloatingText(mouseX, mouseY, "-20分", "#ff4d4d");
 
                 document.body.classList.add('penalty-flash');
                 setTimeout(() => document.body.classList.remove('penalty-flash'), 300);
                 target.classList.add('swim-away');
-                
+
             } else if (type === 'ammo') {
                 const ammoVal = parseInt(target.dataset.val);
-                currentAmmo += (ammoVal + 1); 
-                
-                playAmmoSound(); 
+                currentAmmo += (ammoVal + 1);
+
+                playAmmoSound();
                 createShatterParticles(targetRect.left + targetRect.width / 2, targetRect.top + targetRect.height / 2, '#00ffcc');
                 createFloatingText(mouseX, mouseY, `+${ammoVal} 彈藥`, "#00ffcc");
-                
+
                 target.style.display = 'none';
             } else {
-                playShatterSound(); 
+                playShatterSound();
                 createShatterParticles(targetRect.left + targetRect.width / 2, targetRect.top + targetRect.height / 2);
 
-                combo++; 
-                let multiplier = Math.min(combo, 5); 
+                combo++;
+                let multiplier = Math.min(combo, 5);
                 let gainedScore = 10 * multiplier;
-                
+
                 ScoreManager.add(gainedScore);
-                
+
                 createFloatingText(mouseX, mouseY, `+${gainedScore} 分`, "#4da6ff");
-                
+
                 target.style.display = 'none';
             }
 
-            setTimeout(() => { if (gameArea.contains(target)) target.remove(); }, 600); 
+            setTimeout(() => { if (gameArea.contains(target)) target.remove(); }, 600);
 
         } else {
-            combo = 0; 
+            combo = 0;
             createFloatingText(mouseX, mouseY, "Miss!", "#ff4d4d");
         }
-        
+
         scoreDisplay.innerText = ScoreManager.get();
         ammoDisplay.innerText = currentAmmo;
         updateComboUI();
@@ -236,30 +236,30 @@
 
         const conf = diffConfig[currentDifficulty];
         const rand = Math.random();
-        
+
         let type = 'bottle';
         if (rand < conf.fishChance) {
             type = 'fish';
-        } else if (rand > 0.85) { 
-            type = 'ammo'; 
+        } else if (rand > 0.85) {
+            type = 'ammo';
         }
 
         const targetContainer = document.createElement('div');
         targetContainer.className = 'game-target';
-        targetContainer.dataset.type = type; 
-        
+        targetContainer.dataset.type = type;
+
         if (type === 'ammo') {
             const ammoDiv = document.createElement('div');
             ammoDiv.className = 'ammo-shell';
-            
+
             const valRand = Math.random();
             const val = valRand < 0.1 ? 5 : (valRand < 0.4 ? 3 : 1);
             targetContainer.dataset.val = val;
-            
-            ammoDiv.innerText = '🐚'; 
+
+            ammoDiv.innerText = '🐚';
             ammoDiv.dataset.text = `+${val}`;
             targetContainer.appendChild(ammoDiv);
-            
+
         } else {
             const normalImg = document.createElement('img');
             normalImg.className = 'normal-img';
@@ -276,14 +276,14 @@
             targetContainer.appendChild(normalImg);
             if (type === 'bottle') targetContainer.appendChild(brokenImg);
         }
-        
-        const randomX = Math.random() * 80 + 10; 
+
+        const randomX = Math.random() * 80 + 10;
         const randomSpeed = Math.random() * (conf.speedMax - conf.speedMin) + conf.speedMin;
-        
+
         targetContainer.style.left = `${randomX}vw`;
         targetContainer.style.animationDuration = `${randomSpeed}s`;
 
-        setTimeout(() => { if(gameArea.contains(targetContainer)) targetContainer.remove(); }, randomSpeed * 1000);
+        setTimeout(() => { if (gameArea.contains(targetContainer)) targetContainer.remove(); }, randomSpeed * 1000);
         gameArea.appendChild(targetContainer);
     }
 
@@ -299,7 +299,7 @@
     }
 
     // 🌟 將 startGame 掛載到 window
-    window.startGame = function() {
+    window.startGame = function () {
         initAudio();
 
         const conf = diffConfig[currentDifficulty];
@@ -307,24 +307,24 @@
         ScoreManager.reset();
         combo = 0;
         timeLeft = 30;
-        currentAmmo = conf.maxAmmo; 
+        currentAmmo = conf.maxAmmo;
         isGameRunning = true;
-        
+
         scoreDisplay.innerText = ScoreManager.get();
         timeDisplay.innerText = timeLeft;
         ammoDisplay.innerText = currentAmmo;
         updateComboUI();
-        
+
         startModal.style.display = 'none';
         endModal.style.display = 'none';
         uiLayer.style.display = 'flex';
-        
+
         document.getElementById('top-right-leaderboard').style.display = 'none';
 
         gameArea.innerHTML = '';
 
         spawnInterval = setInterval(spawnTarget, conf.spawnRate);
-        
+
         gameInterval = setInterval(() => {
             timeLeft--;
             timeDisplay.innerText = timeLeft;
@@ -333,22 +333,22 @@
     }
 
     // ================= 真實後端 API 排行榜與儲存系統 =================
-    const API_BASE_URL = "https://api.drift-bottles.xyz/";
-    const GAME_NAME = 'bottle_shooter'; 
-    let previousModal = 'start-modal'; 
+    const API_BASE_URL = "https://api.drift-bottles.xyz";
+    const GAME_NAME = 'bottle_shooter';
+    let previousModal = 'start-modal';
 
     // 🌟 將 showLeaderboard 掛載到 window
-    window.showLeaderboard = async function() {
+    window.showLeaderboard = async function () {
         if (document.getElementById('end-modal').style.display === 'block') {
             previousModal = 'end-modal';
         } else {
             previousModal = 'start-modal';
         }
-        
+
         startModal.style.display = 'none';
         endModal.style.display = 'none';
         document.getElementById('top-right-leaderboard').style.display = 'none';
-        
+
         const diffLabel = diffConfig[currentDifficulty].label;
         const titleEl = document.getElementById('leaderboard-title');
         if (titleEl) {
@@ -361,7 +361,7 @@
 
         try {
             const token = localStorage.getItem("authToken");
-            
+
             const response = await fetch(`${API_BASE_URL}/game/${GAME_NAME}/${currentDifficulty.toUpperCase()}/ranking?limit=5`, {
                 method: "GET",
                 headers: { "Authorization": `Bearer ${token}` }
@@ -369,8 +369,8 @@
 
             if (response.ok) {
                 const rawData = await response.json();
-                listContainer.innerHTML = ''; 
-                
+                listContainer.innerHTML = '';
+
                 let leaderboard = [];
                 if (Array.isArray(rawData)) leaderboard = rawData;
                 else if (rawData.data && Array.isArray(rawData.data)) leaderboard = rawData.data;
@@ -382,10 +382,10 @@
                     const medals = ["🥇", "🥈", "🥉"];
                     leaderboard.forEach((entry, index) => {
                         let rankIcon = index < 3 ? medals[index] : `&nbsp;&nbsp;${index + 1}&nbsp;&nbsp;`;
-                        
+
                         let playerName = entry.name || entry.username || entry.nickname || entry.member_name || (entry.member && entry.member.name) || (entry.user && entry.user.name) || "匿名玩家";
                         let playerScore = entry.high_score || entry.score || 0;
-                        
+
                         let li = document.createElement('li');
                         li.innerHTML = `<span>${rankIcon} ${playerName}</span> <span style="color: #ffeb3b;">${playerScore} 分</span>`;
                         listContainer.appendChild(li);
@@ -401,15 +401,15 @@
     }
 
     // 🌟 將 closeLeaderboard 掛載到 window
-    window.closeLeaderboard = function() {
+    window.closeLeaderboard = function () {
         document.getElementById('leaderboard-modal').style.display = 'none';
-        document.getElementById(previousModal).style.display = 'block'; 
-        document.getElementById('top-right-leaderboard').style.display = 'block'; 
+        document.getElementById(previousModal).style.display = 'block';
+        document.getElementById('top-right-leaderboard').style.display = 'block';
     }
 
     async function saveScore(finalScore) {
-        if (finalScore <= 0) return true; 
-        
+        if (finalScore <= 0) return true;
+
         const token = localStorage.getItem("authToken");
 
         try {
@@ -420,7 +420,7 @@
                     'Authorization': `Bearer ${token}`
                 },
                 body: JSON.stringify({
-                    difficulty: currentDifficulty.toUpperCase(), 
+                    difficulty: currentDifficulty.toUpperCase(),
                     score: finalScore
                 })
             });
@@ -446,29 +446,29 @@
         isGameRunning = false;
         clearInterval(spawnInterval);
         clearInterval(gameInterval);
-        
+
         uiLayer.style.display = 'none';
         endModal.style.display = 'block';
-        
-        document.getElementById('end-title').innerText = reason; 
-        
+
+        document.getElementById('end-title').innerText = reason;
+
         const finalScore = ScoreManager.get();
         finalScoreDisplay.innerText = finalScore;
-        
+
         const remainingTargets = document.querySelectorAll('.game-target');
         remainingTargets.forEach(t => t.style.pointerEvents = 'none');
 
         const lbButton = document.getElementById('top-right-leaderboard');
         lbButton.style.display = 'none';
-        
+
         const savingHint = document.createElement('div');
         savingHint.id = 'saving-hint';
         savingHint.innerText = '⏳ 成績上傳中...';
         savingHint.style.cssText = 'position: absolute; top: 20px; right: 25px; color: #ffeb3b; font-weight: bold; font-size: 1.1rem; z-index: 300;';
         document.body.appendChild(savingHint);
-        
+
         await saveScore(finalScore);
-        
+
         const hint = document.getElementById('saving-hint');
         if (hint) hint.remove();
         lbButton.style.display = 'block';

@@ -1,7 +1,7 @@
 // ==========================================
 // 1. 設定基礎參數與共用工具
 // ==========================================
-const API_BASE_URL = "https://api.drift-bottles.xyz/";
+const API_BASE_URL = "https://api.drift-bottles.xyz";
 
 function escapeHTML(str) {
     if (typeof str !== 'string') str = String(str);
@@ -44,19 +44,19 @@ window.switchAdminTab = function (tabName) {
     document.getElementById('section-' + tabName).style.display = 'block';
 
     const titleEl = document.getElementById("admin-page-title");
-    if (tabName === 'dashboard') { 
-        titleEl.innerText = "總覽數據"; 
-        loadDashboardData(); 
+    if (tabName === 'dashboard') {
+        titleEl.innerText = "總覽數據";
+        loadDashboardData();
     }
     else if (tabName === 'users') { titleEl.innerText = "管理使用者"; loadUsers(); }
     else if (tabName === 'bottles') { titleEl.innerText = "漂流瓶審核"; loadBottles(); }
-    else if (tabName === 'reports') { titleEl.innerText = "檢舉處理"; loadReports();}
+    else if (tabName === 'reports') { titleEl.innerText = "檢舉處理"; loadReports(); }
 }
 
 // ==========================================
 // 4. 總覽數據與 Chart.js 圖表 (加上「開心」分類)
 // ==========================================
-let myDoughnutChart = null; 
+let myDoughnutChart = null;
 
 async function loadDashboardData() {
     const token = localStorage.getItem("authToken");
@@ -110,7 +110,7 @@ function drawDoughnutChart(dataArray) {
     }
 
     myDoughnutChart = new Chart(ctx, {
-        type: 'doughnut', 
+        type: 'doughnut',
         data: {
             labels: ['😡 憤怒', '🤫 秘密', '💔 破碎', '😑 厭世', '😁 開心'],
             datasets: [{
@@ -118,7 +118,7 @@ function drawDoughnutChart(dataArray) {
                 backgroundColor: ['#fff1f0', '#f9f0ff', '#fff7e6', '#f6ffed', '#e6f7ff'],
                 borderColor: ['#ffa39e', '#d3adf7', '#ffd591', '#b7eb8f', '#91d5ff'],
                 borderWidth: 2,
-                hoverOffset: 10 
+                hoverOffset: 10
             }]
         },
         options: {
@@ -126,7 +126,7 @@ function drawDoughnutChart(dataArray) {
             maintainAspectRatio: false,
             plugins: {
                 legend: {
-                    position: 'right', 
+                    position: 'right',
                     labels: { font: { size: 14 } }
                 }
             }
@@ -161,13 +161,13 @@ async function loadUsers() {
 }
 
 // 👇 新增：使用者一鍵分類按鈕的點擊事件
-window.filterUserByStatus = function(status) {
-    window._currentUserStatusFilter = status; 
-    
+window.filterUserByStatus = function (status) {
+    window._currentUserStatusFilter = status;
+
     // 按鈕對應的 ID
     const statusMap = { 'all': 'all', 'ACTIVE': 'active', 'INACTIVE': 'inactive', 'BANNED': 'banned' };
     const btns = ['all', 'active', 'inactive', 'banned'];
-    
+
     btns.forEach(id => {
         const el = document.getElementById('filter-user-' + id);
         if (!el) return;
@@ -182,13 +182,13 @@ window.filterUserByStatus = function(status) {
         }
     });
 
-    filterUsers(); 
+    filterUsers();
 }
 
 // 👇 更新：同時處理關鍵字搜尋與狀態分類
 window.filterUsers = function () {
     const keyword = document.getElementById('search-users').value.toLowerCase();
-    
+
     const filtered = window._allUsers.filter(u => {
         // 1. 檢查關鍵字
         const matchKeyword = String(u.member_id || '').includes(keyword) ||
@@ -204,7 +204,7 @@ window.filterUsers = function () {
 
         return matchKeyword && matchStatus;
     });
-    
+
     renderUsers(filtered);
 }
 
@@ -215,7 +215,7 @@ function renderUsers(users) {
         tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;">目前沒有符合條件的使用者</td></tr>`;
         return;
     }
-    
+
     tbody.innerHTML = users.map(u => {
         let currentStatus = u.status || 'ACTIVE';
         let statusBadge = '';
@@ -260,7 +260,7 @@ window.closeStatusModal = function () {
 
 window.confirmChangeStatus = async function (newStatus) {
     if (!currentEditingUserId) return;
-    
+
     const token = localStorage.getItem("authToken");
     try {
         const response = await fetch(`${API_BASE_URL}/admin/members/${currentEditingUserId}/status`, {
@@ -268,21 +268,21 @@ window.confirmChangeStatus = async function (newStatus) {
             headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
             body: JSON.stringify({ newStatus: newStatus })
         });
-        
+
         if (response.ok) {
             alert('✅ 狀態已成功更新！');
-            closeStatusModal(); 
-            loadUsers();        
+            closeStatusModal();
+            loadUsers();
         } else {
             alert('更新失敗，請確認權限或網路狀態');
         }
-    } catch (e) { 
-        alert('伺服器連線失敗'); 
+    } catch (e) {
+        alert('伺服器連線失敗');
     }
 }
 
 // 👇 新增：超強力管理員刪除使用者功能
-window.deleteUserAsAdmin = async function(userId, userName) {
+window.deleteUserAsAdmin = async function (userId, userName) {
     if (!confirm(`⚠️ 確定要強制刪除使用者「${userName} (ID: ${userId})」嗎？\n刪除後將無法復原，請三思！`)) return;
 
     const token = localStorage.getItem("authToken");
@@ -308,7 +308,7 @@ window.deleteUserAsAdmin = async function(userId, userName) {
 // 6. API 串接：漂流瓶審核 (加上開心分類與一鍵篩選)
 // ==========================================
 window._allBottles = [];
-window._currentStatusFilter = 'all'; 
+window._currentStatusFilter = 'all';
 
 async function loadBottles() {
     const tbody = document.getElementById('admin-bottles-body');
@@ -323,7 +323,7 @@ async function loadBottles() {
 
         const data = await response.json();
         window._allBottles = data.data || data.bottles || data || [];
-        filterBottles(); 
+        filterBottles();
 
     } catch (e) {
         tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:red;">無法載入，請確認權限或後端是否啟動</td></tr>`;
@@ -333,7 +333,7 @@ async function loadBottles() {
 function renderBottles(bottles) {
     const tbody = document.getElementById('admin-bottles-body');
     if (!tbody) return;
-    
+
     if (bottles.length === 0) {
         tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;">目前沒有符合條件的文章唷 🏖️</td></tr>`;
         return;
@@ -362,20 +362,20 @@ function renderBottles(bottles) {
 
         let statusBadge = '';
         let rowStyle = '';
-        let btnText = '審核'; 
+        let btnText = '審核';
 
         // ✨ 這裡也要強制轉成數字
         const currentStatus = Number(b.status);
 
         if (currentStatus === 1) {
             statusBadge = `<span class="badge" style="background:#dcfce7; color:#16a34a; border:1px solid #bbf7d0;">✅ 已通過</span>`;
-            rowStyle = `opacity: 0.8; background: #f8fafc;`; 
-            btnText = '查看'; 
+            rowStyle = `opacity: 0.8; background: #f8fafc;`;
+            btnText = '查看';
         } else if (currentStatus === 2) {
             // ✨ 順便把文字改成「已下架 / 拒絕」看起來更清楚
             statusBadge = `<span class="badge" style="background:#fee2e2; color:#dc2626; border:1px solid #fecaca;">❌ 已下架 / 拒絕</span>`;
-            rowStyle = `opacity: 0.8; background: #f8fafc;`; 
-            btnText = '查看'; 
+            rowStyle = `opacity: 0.8; background: #f8fafc;`;
+            btnText = '查看';
         } else {
             statusBadge = `<span class="badge" style="background:#e0f2fe; color:#0284c7; border:1px solid #bae6fd;">⏳ 待審核</span>`;
             rowStyle = `opacity: 1; background: #ffffff; box-shadow: 0 2px 8px rgba(0,0,0,0.04);`;
@@ -407,7 +407,7 @@ function renderBottles(bottles) {
 
 window.filterBottles = function () {
     const keyword = document.getElementById('search-bottles').value.toLowerCase();
-    
+
     const filtered = window._allBottles.filter(b => {
         const matchKeyword = String(b.bottle_id || '').includes(keyword) ||
             String(b.title || '').toLowerCase().includes(keyword) ||
@@ -416,24 +416,24 @@ window.filterBottles = function () {
 
         let matchStatus = true;
         // ✨ 強制轉成數字
-        const currentStatus = Number(b.status); 
-        
+        const currentStatus = Number(b.status);
+
         // 為了 debug，我們把這篇文章的狀態印出來看看
-        if(b.bottle_id == '205' || b.id == '205'){
+        if (b.bottle_id == '205' || b.id == '205') {
             console.log("正在過濾文章 205，它的狀態是:", currentStatus);
         }
 
         if (window._currentStatusFilter === 'pending') {
-            matchStatus = (currentStatus !== 1 && currentStatus !== 2); 
+            matchStatus = (currentStatus !== 1 && currentStatus !== 2);
         } else if (window._currentStatusFilter === 'passed') {
-            matchStatus = (currentStatus === 1); 
+            matchStatus = (currentStatus === 1);
         } else if (window._currentStatusFilter === 'rejected') {
-            matchStatus = (currentStatus === 2); 
+            matchStatus = (currentStatus === 2);
         }
 
         return matchKeyword && matchStatus;
     });
-    
+
     renderBottles(filtered);
 }
 
@@ -493,7 +493,7 @@ window.openBottleModalFromCache = function (bottleId) {
             <button class="btn-action btn-primary" onclick="reviewBottle(window._reviewBottleId, 1, window._reviewBottleTitle);">✅ 審核通過</button>
         </div>
     `;
-    
+
     document.getElementById('admin-modal').style.display = 'flex';
 }
 
@@ -502,29 +502,29 @@ window.reviewBottle = function (bottleId, status, title) {
     window._pendingReviewTitle = title;
 
     if (status === 2) {
-        document.getElementById('reject-reason-input').value = '內容不當'; 
+        document.getElementById('reject-reason-input').value = '內容不當';
         document.getElementById('reject-modal').style.display = 'flex';
     } else {
         if (!confirm(`✅ 確定要通過「${title}」，讓它流入海中嗎？`)) return;
-        executeReviewAction(bottleId, 1, ""); 
+        executeReviewAction(bottleId, 1, "");
     }
 }
 
-window.closeRejectModal = function() {
+window.closeRejectModal = function () {
     document.getElementById('reject-modal').style.display = 'none';
 }
 
-window.confirmRejectAction = function() {
+window.confirmRejectAction = function () {
     const reason = document.getElementById('reject-reason-input').value.trim();
     if (!reason) {
         alert("必須填寫拒絕原因唷！");
         return;
     }
     executeReviewAction(window._pendingReviewId, 2, reason);
-    closeRejectModal(); 
+    closeRejectModal();
 }
 
-window.executeReviewAction = async function(bottleId, status, reason) {
+window.executeReviewAction = async function (bottleId, status, reason) {
     try {
         const token = localStorage.getItem("authToken");
         const response = await fetch(`${API_BASE_URL}/admin/bottles/review`, {
@@ -542,18 +542,18 @@ window.executeReviewAction = async function(bottleId, status, reason) {
 
         if (response.ok) {
             alert(`🎉 審核完成！`);
-            closeAdminModal(); 
-            loadBottles();     
+            closeAdminModal();
+            loadBottles();
         } else {
             const err = await response.json();
             alert(`審核失敗: ${err.message}`);
         }
-    } catch (e) { 
-        alert("伺服器連線失敗"); 
+    } catch (e) {
+        alert("伺服器連線失敗");
     }
 }
 
-window.deleteBottleAsAdmin = async function(bottleId) {
+window.deleteBottleAsAdmin = async function (bottleId) {
     if (!confirm(`⚠️ 確定要以管理員身分強制刪除 #${bottleId} 號漂流瓶嗎？刪除後將無法復原！`)) return;
 
     const token = localStorage.getItem("authToken");
@@ -565,17 +565,17 @@ window.deleteBottleAsAdmin = async function(bottleId) {
 
         if (response.ok) {
             alert("🗑️ 漂流瓶已成功強制刪除！");
-            
+
             // ✨ 解法在這裡：手動把被刪除的文章從前端的記憶體中移除
             window._allBottles = window._allBottles.filter(b => String(b.bottle_id || b.id) !== String(bottleId));
-            
+
             // 然後重新執行過濾跟重繪表格
-            filterBottles(); 
-            
+            filterBottles();
+
             // (選擇性) 如果檢舉列表也有這篇文章，順便把它清掉
             if (window._allReports && window._allReports.length > 0) {
-                 window._allReports = window._allReports.filter(r => String(r.bottle_id || r.id) !== String(bottleId));
-                 if (typeof filterReports === 'function') filterReports();
+                window._allReports = window._allReports.filter(r => String(r.bottle_id || r.id) !== String(bottleId));
+                if (typeof filterReports === 'function') filterReports();
             }
 
         } else {
@@ -589,7 +589,7 @@ window.deleteBottleAsAdmin = async function(bottleId) {
 // ==========================================
 // ✨ 軟刪除 (下架) 功能，只改狀態不刪資料庫紀錄
 // ==========================================
-window.banReportedBottle = async function(bottleId) {
+window.banReportedBottle = async function (bottleId) {
     if (!confirm(`⚠️ 確定要將 #${bottleId} 號文章「強制下架」嗎？\n(文章將從前台消失，但會完整保留在後台資料庫中)`)) return;
 
     try {
@@ -609,7 +609,7 @@ window.banReportedBottle = async function(bottleId) {
 
         if (response.ok) {
             alert("✅ 文章已成功下架！（資料仍保留於後台）");
-            
+
             // ✨ 把這篇文章的狀態改成 2 (已審核)，不再刪除它
             if (window._allReports) {
                 window._allReports.forEach(r => {
@@ -619,7 +619,7 @@ window.banReportedBottle = async function(bottleId) {
                     }
                 });
             }
-            
+
             filterReports(); // 畫面重整後，它就會自動跳到「已審核」分類了！
             loadBottles();   // 同步刷新文章總表
             updateDashboardReportCount(); // 更新首頁儀表板的「待處理檢舉」數量
@@ -630,7 +630,7 @@ window.banReportedBottle = async function(bottleId) {
     } catch (e) {
         alert("伺服器連線失敗");
     }
-}   
+}
 
 // ==========================================
 // 11. API 串接：檢舉列表管理 (已升級分類功能)
@@ -639,13 +639,13 @@ window._allReports = [];
 window._currentReportStatusFilter = 'pending'; // 預設顯示待審核
 
 // ✨ 新增：更新總覽儀表板的數字
-window.updateDashboardReportCount = function() {
+window.updateDashboardReportCount = function () {
     if (!window._allReports) return;
     const pendingCount = window._allReports.filter(r => {
         const bottleStatus = Number(r.bottle?.status || r.status || 0);
         return bottleStatus !== 2;
     }).length;
-    
+
     const statReports = document.getElementById('stat-reports');
     if (statReports) statReports.innerText = pendingCount;
 }
@@ -654,22 +654,22 @@ async function loadReports() {
     const tbody = document.getElementById('admin-reports-body');
     const token = localStorage.getItem("authToken");
     if (!tbody) return;
-    
+
     tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;">讀取中...</td></tr>`;
 
     try {
         const response = await fetch(`${API_BASE_URL}/admin/bottles/reported`, {
-            headers: { 
-                'Authorization': `Bearer ${token}`, 
-                'ngrok-skip-browser-warning': 'true' 
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'ngrok-skip-browser-warning': 'true'
             }
         });
-        
+
         if (!response.ok) throw new Error();
 
         const data = await response.json();
         window._allReports = data.data || data || [];
-        
+
         updateDashboardReportCount(); // 更新數字
         filterReports(); // 執行過濾與渲染
 
@@ -679,7 +679,7 @@ async function loadReports() {
 }
 
 // ✨ 新增：切換分類按鈕狀態
-window.filterReportByStatus = function(status) {
+window.filterReportByStatus = function (status) {
     window._currentReportStatusFilter = status;
 
     const btns = ['all', 'pending', 'processed'];
@@ -701,7 +701,7 @@ window.filterReportByStatus = function(status) {
 
 window.filterReports = function () {
     const keyword = document.getElementById('search-reports')?.value.toLowerCase() || '';
-    
+
     const filtered = window._allReports.filter(r => {
         const bottleId = String(r.bottle_id || r.id || '');
         const reason = String(r.reason || r.report_reason || r.content || '').toLowerCase();
@@ -720,14 +720,14 @@ window.filterReports = function () {
 
         return matchKeyword && matchStatus;
     });
-    
+
     renderReports(filtered);
 }
 
 function renderReports(reports) {
     const tbody = document.getElementById('admin-reports-body');
     if (!tbody) return;
-    
+
     if (reports.length === 0) {
         tbody.innerHTML = `
         <tr>
@@ -782,7 +782,7 @@ function renderReports(reports) {
 // 🌟 修正 1：補上關閉「漂流瓶審核彈窗」的函式
 // 解決：叉叉、返回按鈕無效，以及審核後誤報伺服器錯誤的問題
 // ==========================================
-window.closeAdminModal = function() {
+window.closeAdminModal = function () {
     const modal = document.getElementById('admin-modal');
     if (modal) {
         modal.style.display = 'none';
@@ -796,18 +796,18 @@ window.closeAdminModal = function() {
 // 🌟 修正 2：補上「漂流瓶文章專用」的狀態分類按鈕函式
 // 解決：待審核、已通過、沒通過 按鈕點擊沒反應的問題
 // ==========================================
-window.filterByStatus = function(status) {
+window.filterByStatus = function (status) {
     // 1. 更新當前的過濾狀態
-    window._currentStatusFilter = status; 
-    
+    window._currentStatusFilter = status;
+
     // 2. 按鈕對應的 ID 陣列
     const btns = ['all', 'pending', 'passed', 'rejected'];
-    
+
     // 3. 幫點擊的按鈕換上超亮眼的藍色，其他的變回灰色
     btns.forEach(id => {
         const el = document.getElementById('filter-btn-' + id);
         if (!el) return;
-        
+
         if (id === status) {
             el.style.background = '#3b82f6';
             el.style.color = '#fff';
@@ -820,23 +820,23 @@ window.filterByStatus = function(status) {
     });
 
     // 4. 呼叫你已經寫好的渲染函式，重新顯示對應的文章
-    filterBottles(); 
+    filterBottles();
 }
 // ==========================================
 // 🌟 修正 3：補上系統登出功能
 // 解決：登出按鈕點擊無效的問題
 // ==========================================
-window.adminLogout = function() {
+window.adminLogout = function () {
     if (confirm("確定要登出後台系統嗎？")) {
         // 1. 清除保存在瀏覽器裡的登入鑰匙與使用者資料
         localStorage.removeItem("authToken");
         localStorage.removeItem("currentUser");
-        
+
         // 2. 貼心小舉動：順便清除上次停留的頁面記憶
-        localStorage.removeItem("adminLastTab"); 
-        
+        localStorage.removeItem("adminLastTab");
+
         // 3. 把畫面導向登入頁面 (這裡假設你的登入頁是 login.html)
         // 如果你的登入頁是別的名字，記得把這裡的檔名改掉喔！
-        window.location.href = "login.html"; 
+        window.location.href = "login.html";
     }
 }

@@ -1,5 +1,5 @@
 // ✨ 統一設定後端網址
-const API_BASE_URL = "https://api.drift-bottles.xyz/";
+const API_BASE_URL = "https://api.drift-bottles.xyz";
 
 let posts = [];
 let currentKeyword = '';
@@ -941,7 +941,7 @@ document.addEventListener('DOMContentLoaded', () => {
     setupAuth();
     setupNewPost();
     fetchBottles();
-// 👇 深海自動洋流系統 (定時刷新)
+    // 👇 深海自動洋流系統 (定時刷新)
     setInterval(() => {
         const detailView = document.getElementById('detail-view');
         // 貼心小設定：只有在主畫面 (沒有打開文章詳細頁) 的時候才刷新，才不會打斷閱讀喔！
@@ -949,7 +949,7 @@ document.addEventListener('DOMContentLoaded', () => {
             console.log("🌊 海浪悄悄地帶來了新的瓶子...");
             // 如果你想要有被海浪沖走的動畫，可以改成呼叫 callOceanCurrent(); 
             // 但如果只想安靜地更新資料不眼花，直接呼叫 fetchBottles() 最棒了！
-            callOceanCurrent(); 
+            callOceanCurrent();
         }
     }, 60000); // 這裡的 60000 代表 60 秒 (1分鐘) 刷新一次，寶寶可以隨心所欲修改數字喔！
     // 👆 新增結束
@@ -1361,87 +1361,87 @@ document.addEventListener('DOMContentLoaded', () => {
     mascot.onclick = () => { window.location.href = AI_ASSISTANT_URL; };
 });
 
- HEAD
-    const startDrag = (clientX, clientY) => {
-        isDragging = true;
-        hasMoved = false;
-        
-        // 🌟 抓起來的瞬間切斷 CSS 動畫，並暫停游泳計時器
-        mascot.style.transition = 'none';
-        clearTimeout(swimTimer); 
-        
-        startX = clientX;
-        startY = clientY;
-        
-        // 🌟 直接讀取畫面中絕對精準的中心座標，完美免疫 transform 的干擾！
-        const computedStyle = window.getComputedStyle(mascot);
-        initialLeft = parseFloat(computedStyle.left) || 0;
-        initialTop = parseFloat(computedStyle.top) || 0;
-    };
 
-    const onDrag = (clientX, clientY) => {
-        if (!isDragging) return;
-        hasMoved = true;
-        
-        const dx = clientX - startX;
-        const dy = clientY - startY;
-        
-        let newLeft = initialLeft + dx;
-        let newTop = initialTop + dy;
-        
-        // 防撞牆：由於現在座標精準對齊中心，邊界要留一半的寬高（寬 65px，高 70px）
-        newLeft = Math.max(65, Math.min(newLeft, window.innerWidth - 65));
-        newTop = Math.max(70, Math.min(newTop, window.innerHeight - 70));
-        
-        mascot.style.left = `${newLeft}px`;
-        mascot.style.top = `${newTop}px`;
-        
-        // 拖曳時根據左右移動來翻轉臉的方向
-        const mascotImage = mascot.querySelector('svg');
-        if (mascotImage && dx !== 0) {
-            mascotImage.style.transform = dx < 0 ? 'scaleX(-1)' : 'scaleX(1)';
-        }
-    };
+const startDrag = (clientX, clientY) => {
+    isDragging = true;
+    hasMoved = false;
 
-    const stopDrag = () => {
-        if (isDragging) {
-            isDragging = false;
-            // 🌟 鬆手後立刻呼叫游泳函數，讓牠立刻開始往新方向游！
-            swimLikeLazyMermaid(); 
-        }
-    };
+    // 🌟 抓起來的瞬間切斷 CSS 動畫，並暫停游泳計時器
+    mascot.style.transition = 'none';
+    clearTimeout(swimTimer);
 
-    // 🖱️ 滑鼠事件
-    mascot.addEventListener('mousedown', (e) => {
-        e.preventDefault(); 
-        startDrag(e.clientX, e.clientY);
-    });
-    document.addEventListener('mousemove', (e) => onDrag(e.clientX, e.clientY));
-    document.addEventListener('mouseup', stopDrag);
+    startX = clientX;
+    startY = clientY;
 
-    // 📱 手機觸控事件
-    mascot.addEventListener('touchstart', (e) => {
-        if (e.touches.length > 0) {
-            startDrag(e.touches[0].clientX, e.touches[0].clientY);
-        }
-    }, { passive: false });
-    document.addEventListener('touchmove', (e) => {
-        if (isDragging && e.touches.length > 0) {
-            e.preventDefault(); // 防止滾動整個網頁
-            onDrag(e.touches[0].clientX, e.touches[0].clientY);
-        }
-    }, { passive: false });
-    document.addEventListener('touchend', stopDrag);
+    // 🌟 直接讀取畫面中絕對精準的中心座標，完美免疫 transform 的干擾！
+    const computedStyle = window.getComputedStyle(mascot);
+    initialLeft = parseFloat(computedStyle.left) || 0;
+    initialTop = parseFloat(computedStyle.top) || 0;
+};
 
-    // 🚀 防止拖曳完不小心觸發跳轉，只有真的「單純點擊」才會去 AI 助手頁面
-    const AI_ASSISTANT_URL = "../AI/chat_ui/chat.html";
-    mascot.addEventListener('click', (e) => {
-        if (hasMoved) {
-            e.preventDefault();
-            return;
-        }
-        window.location.href = AI_ASSISTANT_URL;
-    });
+const onDrag = (clientX, clientY) => {
+    if (!isDragging) return;
+    hasMoved = true;
+
+    const dx = clientX - startX;
+    const dy = clientY - startY;
+
+    let newLeft = initialLeft + dx;
+    let newTop = initialTop + dy;
+
+    // 防撞牆：由於現在座標精準對齊中心，邊界要留一半的寬高（寬 65px，高 70px）
+    newLeft = Math.max(65, Math.min(newLeft, window.innerWidth - 65));
+    newTop = Math.max(70, Math.min(newTop, window.innerHeight - 70));
+
+    mascot.style.left = `${newLeft}px`;
+    mascot.style.top = `${newTop}px`;
+
+    // 拖曳時根據左右移動來翻轉臉的方向
+    const mascotImage = mascot.querySelector('svg');
+    if (mascotImage && dx !== 0) {
+        mascotImage.style.transform = dx < 0 ? 'scaleX(-1)' : 'scaleX(1)';
+    }
+};
+
+const stopDrag = () => {
+    if (isDragging) {
+        isDragging = false;
+        // 🌟 鬆手後立刻呼叫游泳函數，讓牠立刻開始往新方向游！
+        swimLikeLazyMermaid();
+    }
+};
+
+// 🖱️ 滑鼠事件
+mascot.addEventListener('mousedown', (e) => {
+    e.preventDefault();
+    startDrag(e.clientX, e.clientY);
+});
+document.addEventListener('mousemove', (e) => onDrag(e.clientX, e.clientY));
+document.addEventListener('mouseup', stopDrag);
+
+// 📱 手機觸控事件
+mascot.addEventListener('touchstart', (e) => {
+    if (e.touches.length > 0) {
+        startDrag(e.touches[0].clientX, e.touches[0].clientY);
+    }
+}, { passive: false });
+document.addEventListener('touchmove', (e) => {
+    if (isDragging && e.touches.length > 0) {
+        e.preventDefault(); // 防止滾動整個網頁
+        onDrag(e.touches[0].clientX, e.touches[0].clientY);
+    }
+}, { passive: false });
+document.addEventListener('touchend', stopDrag);
+
+// 🚀 防止拖曳完不小心觸發跳轉，只有真的「單純點擊」才會去 AI 助手頁面
+const AI_ASSISTANT_URL = "../AI/chat_ui/chat.html";
+mascot.addEventListener('click', (e) => {
+    if (hasMoved) {
+        e.preventDefault();
+        return;
+    }
+    window.location.href = AI_ASSISTANT_URL;
+});
 // =========================================
 // 🫂 追蹤功能專屬邏輯 (寶寶特製版)
 // =========================================
@@ -1449,16 +1449,16 @@ document.addEventListener('DOMContentLoaded', () => {
 let isFollowingCurrentAuthor = false; // 暫存目前的追蹤狀態
 
 // 1. 切換追蹤狀態的魔法
-window.toggleFollow = function() {
+window.toggleFollow = function () {
     const btn = document.getElementById('follow-author-btn');
     const authorName = document.getElementById('detail-author-tag').innerText;
-    
+
     // 如果作者是匿名，阻止追蹤
     if (authorName === '匿名') {
         alert("寶寶，這個人使用了隱身斗篷，沒辦法追蹤喔！👻");
         return;
     }
-    
+
     if (isFollowingCurrentAuthor) {
         // 執行取消追蹤
         isFollowingCurrentAuthor = false;
@@ -1466,7 +1466,7 @@ window.toggleFollow = function() {
         btn.innerHTML = '<span>已追蹤</span>'; // 恢復原本的字
         btn.innerText = '+ 追蹤';
         alert(`已悄悄取消追蹤 ${authorName} 💔`);
-        
+
         // 🚀 未來這裡可以加上發送 DELETE 請求給後端的程式碼
     } else {
         // 執行追蹤
@@ -1474,35 +1474,35 @@ window.toggleFollow = function() {
         btn.classList.add('following');
         btn.innerHTML = '<span>已追蹤</span>';
         alert(`成功把 ${authorName} 加入追蹤名單啦！🎉`);
-        
+
         // 🚀 未來這裡可以加上發送 POST 請求給後端的程式碼
     }
 };
 
 // 2. 打開追蹤列表彈窗
-window.openFollowingModal = function() {
+window.openFollowingModal = function () {
     // 先把右上角的下拉選單收起來
     const dropdown = document.getElementById('user-dropdown');
-    if(dropdown) dropdown.classList.remove('show-dropdown');
-    
+    if (dropdown) dropdown.classList.remove('show-dropdown');
+
     // 顯示彈窗
     const modal = document.getElementById('following-modal');
     modal.style.display = 'block';
-    
+
     const container = document.getElementById('following-list-container');
-    
+
     // 🌟 這裡是用來展示的假資料，之後可以換成 fetch() 呼叫後端 API
     const mockFollowingList = [
         { name: '海神波賽頓', avatar: 'images/fish_logo.png', id: '1' },
         { name: '迷路的小海龜', avatar: 'images/fish_logo.png', id: '2' },
         { name: '快樂海豹', avatar: 'images/fish_logo.png', id: '3' }
     ];
-    
+
     if (mockFollowingList.length === 0) {
         container.innerHTML = '<div style="text-align: center; color: #888; padding: 30px 0;">你還沒有追蹤任何人喔，快去海域逛逛吧！🐟</div>';
         return;
     }
-    
+
     // 渲染名單
     container.innerHTML = mockFollowingList.map(user => `
         <div class="following-item" id="follow-item-${user.id}">
@@ -1518,15 +1518,15 @@ window.openFollowingModal = function() {
 };
 
 // 3. 關閉追蹤列表彈窗
-window.closeFollowingModal = function() {
+window.closeFollowingModal = function () {
     document.getElementById('following-modal').style.display = 'none';
 };
 
 // 4. 點擊彈窗外部自動關閉 (整合進你原本的 window.onclick)
 const originalOnClick = window.onclick;
-window.onclick = function(event) {
+window.onclick = function (event) {
     if (originalOnClick) originalOnClick(event); // 保留原本的點擊關閉功能
-    
+
     const followingModal = document.getElementById('following-modal');
     if (event.target == followingModal) {
         followingModal.style.display = 'none';
