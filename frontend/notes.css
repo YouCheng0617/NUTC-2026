@@ -1,8 +1,11 @@
+/* =========================================
+   全站基礎設定
+========================================= */
 * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'PingFang TC', 'Microsoft JhengHei', sans-serif; }
 
 body, html {
     width: 100vw; min-height: 100vh;
-    background: url('images/background.png') no-repeat center center fixed; /* 確保你有這張深海背景圖 */
+    background: url('images/background.png') no-repeat center center fixed;
     background-size: cover; background-color: #0d4b75;
     color: white; overflow-x: hidden;
 }
@@ -12,129 +15,200 @@ body::before {
     background: rgba(0, 30, 60, 0.4); z-index: -1;
 }
 
+/* =========================================
+   頂部導覽列
+========================================= */
 .top-bar {
     display: flex; justify-content: space-between; align-items: center;
-    padding: 20px 50px; background: rgba(0, 0, 0, 0.2);
-    backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+    padding: 15px 40px; 
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    position: sticky; top: 0; z-index: 100;
+}
+
+.top-bar h1 {
+    font-size: 1.6rem;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
 }
 
 .btn-back {
-    background: rgba(255, 255, 255, 0.2); color: white; border: 1px solid rgba(255,255,255,0.4);
-    padding: 8px 15px; border-radius: 20px; cursor: pointer; transition: 0.3s;
+    background: rgba(255, 255, 255, 0.15); color: white; border: 1px solid rgba(255,255,255,0.4);
+    padding: 8px 20px; border-radius: 20px; cursor: pointer; transition: 0.3s;
+    font-weight: bold; font-size: 0.95rem;
 }
-.btn-back:hover { background: rgba(255, 255, 255, 0.4); }
+.btn-back:hover { 
+    background: rgba(255, 255, 255, 0.3); 
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(255, 255, 255, 0.2);
+}
 
-.container { max-width: 1000px; margin: 30px auto; padding: 0 20px; }
+.container { max-width: 1200px; margin: 30px auto; padding: 0 20px; }
 
-/* 玻璃面板共用設定 */
+/* =========================================
+   ✨ 升級版：發光輸入區
+========================================= */
 .glass-panel {
     background: rgba(255, 255, 255, 0.15); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px);
-    border: 1px solid rgba(255, 255, 255, 0.3); border-radius: 20px;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.4); border-radius: 25px; /* 圓角加大 */
+    box-shadow: 0 10px 40px rgba(0, 30, 60, 0.3), inset 0 0 15px rgba(255, 255, 255, 0.1);
 }
 
-.note-creator { padding: 20px; margin-bottom: 30px; }
+.note-creator { 
+    padding: 30px; 
+    margin-bottom: 50px; 
+    max-width: 800px; /* 限制最大寬度，不會顯得太笨重 */
+    margin-left: auto;
+    margin-right: auto;
+}
+
 .note-creator textarea {
-    width: 100%; background: rgba(0, 0, 0, 0.2); border: none; border-radius: 10px;
-    padding: 15px; color: white; font-size: 1.1rem; resize: none; outline: none;
+    width: 100%; 
+    background: rgba(255, 255, 255, 0.1); /* 改為透亮的白底 */
+    border: 2px solid rgba(255, 255, 255, 0.2); 
+    border-radius: 15px;
+    padding: 20px; color: white; font-size: 1.15rem; resize: none; outline: none;
+    transition: all 0.3s ease;
+    line-height: 1.6;
 }
-.note-creator textarea::placeholder { color: rgba(255, 255, 255, 0.6); }
+.note-creator textarea:focus {
+    background: rgba(255, 255, 255, 0.2);
+    border-color: #4da6ff;
+    box-shadow: 0 0 15px rgba(77, 166, 255, 0.4);
+}
+.note-creator textarea::placeholder { color: rgba(255, 255, 255, 0.7); }
 
-/* 修改這行 */
 .creator-actions { 
     display: flex; 
-    justify-content: flex-end; /* 把原本的 space-between 改成 flex-end */
+    justify-content: flex-end; 
     align-items: center; 
-    margin-top: 15px; 
+    margin-top: 20px; 
 }
-
-.color-picker { display: flex; gap: 10px; }
-.color-btn {
-    width: 30px; height: 30px; border-radius: 50%; border: 2px solid transparent;
-    cursor: pointer; transition: 0.2s;
-}
-.color-btn.active { border-color: white; transform: scale(1.2); box-shadow: 0 0 10px rgba(255,255,255,0.8); }
 
 .btn-action {
     background: linear-gradient(135deg, #4da6ff, #0073e6); color: white; border: none;
-    padding: 10px 25px; border-radius: 30px; font-weight: bold; cursor: pointer; transition: 0.3s;
+    padding: 12px 30px; border-radius: 30px; font-weight: bold; font-size: 1.05rem; cursor: pointer; transition: 0.3s;
+    box-shadow: 0 4px 15px rgba(0, 115, 230, 0.3);
 }
-.btn-action:hover { box-shadow: 0 0 15px #4da6ff; }
+.btn-action:hover { 
+    transform: translateY(-2px) scale(1.05);
+    box-shadow: 0 6px 20px rgba(77, 166, 255, 0.6); 
+    background: linear-gradient(135deg, #66b3ff, #005bb5);
+}
 
-/* 便利貼網格排版 */
+/* =========================================
+   📌 擬真便利貼網格排版
+========================================= */
 .notes-grid {
-    display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px;
+    display: grid; 
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); 
+    gap: 40px 30px; /* 增加上下間距，容納懸浮效果 */
+    padding-bottom: 50px;
 }
 
-/* 獨立便利貼卡片 */
+/* =========================================
+   📌 獨立便利貼卡片 (加入紙張質感與微傾斜)
+========================================= */
 .note-card {
-    padding: 20px; border-radius: 15px; color: #333; position: relative;
-    box-shadow: 0 5px 15px rgba(0,0,0,0.3); transition: transform 0.3s ease;
-    display: flex; flex-direction: column; justify-content: space-between; min-height: 150px;
-    animation: fadeIn 0.4s ease-out;
+    padding: 30px 25px 20px 25px; 
+    /* 讓四個圓角有一點點不對稱，看起來更像紙張 */
+    border-radius: 4px 20px 4px 20px; 
+    color: #1e3a8a; /* 深藍色文字，在淺色背景上更清晰 */
+    position: relative;
+    box-shadow: 3px 8px 20px rgba(0,0,0,0.15), inset 0 0 15px rgba(255,255,255,0.4); 
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+    display: flex; flex-direction: column; justify-content: space-between; min-height: 180px;
+    animation: fadeIn 0.5s ease-out backwards;
 }
-.note-card:hover { transform: translateY(-5px); }
 
-.note-text { font-size: 1.1rem; line-height: 1.5; white-space: pre-wrap; word-break: break-word; flex-grow: 1;}
+/* ✨ 偽元素：頂部的半透明膠帶 */
+.note-card::before {
+    content: '';
+    position: absolute;
+    top: -12px;
+    left: 50%;
+    transform: translateX(-50%) rotate(-3deg);
+    width: 80px;
+    height: 25px;
+    background: rgba(255, 255, 255, 0.35);
+    backdrop-filter: blur(2px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    z-index: 2;
+}
+
+/* 讓便利貼隨機左右微傾斜 */
+.note-card:nth-child(even) { transform: rotate(2deg); }
+.note-card:nth-child(odd) { transform: rotate(-2deg); }
+.note-card:nth-child(3n) { transform: rotate(1deg); }
+
+/* 滑鼠移過去時擺正並浮起 */
+.note-card:hover { 
+    transform: translateY(-8px) rotate(0deg) scale(1.03); 
+    z-index: 10;
+    box-shadow: 5px 15px 25px rgba(0,0,0,0.2), inset 0 0 15px rgba(255,255,255,0.6);
+}
+
+.note-text { 
+    font-size: 1.15rem; 
+    line-height: 1.6; 
+    white-space: pre-wrap; 
+    word-break: break-word; 
+    flex-grow: 1;
+    font-weight: bold; /* 加粗文字讓它在彩色背景上更顯眼 */
+    z-index: 1;
+}
+
 .note-footer {
     display: flex; justify-content: space-between; align-items: center;
-    margin-top: 15px; font-size: 0.8rem; color: rgba(0,0,0,0.6); border-top: 1px solid rgba(0,0,0,0.1); padding-top: 10px;
+    margin-top: 20px; font-size: 0.85rem; color: rgba(0,0,0,0.5); 
+    border-top: 1px dashed rgba(0,0,0,0.15); 
+    padding-top: 12px;
+    font-weight: bold;
 }
-.delete-btn {
-    background: transparent; border: none; color: #ff4d4d; font-weight: bold;
-    cursor: pointer; font-size: 1rem;
-}
-.delete-btn:hover { transform: scale(1.1); }
 
-@keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes fadeIn { 
+    from { opacity: 0; transform: translateY(30px) rotate(5deg); } 
+    to { opacity: 1; } 
+}
+
 /* ====================
    吐司提示框 (Toast) 樣式
-   ==================== */
+==================== */
 #toast-container {
     position: fixed;
-    top: 30px;
+    top: 80px; /* 往下移一點避開頂部導覽列 */
     left: 50%;
     transform: translateX(-50%);
     z-index: 9999;
     display: flex;
     flex-direction: column;
     gap: 10px;
-    pointer-events: none; /* 避免提示框擋住後面的按鈕點擊 */
+    pointer-events: none; 
 }
 
 .toast {
-    /* 配合你原本的毛玻璃海底風格 */
-    background: rgba(255, 255, 255, 0.15);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.3);
+    background: rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.4);
     color: #fff;
-    padding: 12px 28px;
-    border-radius: 50px; /* 現代感的圓角藥丸形狀 */
-    font-size: 15px;
+    padding: 14px 30px;
+    border-radius: 50px; 
+    font-size: 1rem;
+    font-weight: bold;
     letter-spacing: 1px;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-    
-    /* 進場動畫設定 */
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
     opacity: 0;
     transform: translateY(-20px);
-    animation: slideIn 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards;
+    animation: slideIn 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards;
 }
 
-/* 用左邊界顏色來區分不同狀態 */
-.toast.success { border-left: 4px solid #a8e6cf; }
-.toast.warning { border-left: 4px solid #ff8b94; }
-.toast.error   { border-left: 4px solid #ff5252; }
+.toast.success { border-left: 5px solid #4ade80; }
+.toast.warning { border-left: 5px solid #facc15; }
+.toast.error   { border-left: 5px solid #ef4444; }
+.toast.fade-out { animation: fadeOut 0.3s forwards; }
 
-/* 退場動畫設定 */
-.toast.fade-out {
-    animation: fadeOut 0.3s forwards;
-}
-
-@keyframes slideIn {
-    to { opacity: 1; transform: translateY(0); }
-}
-
-@keyframes fadeOut {
-    to { opacity: 0; transform: translateY(-20px); }
-}
+@keyframes slideIn { to { opacity: 1; transform: translateY(0); } }
+@keyframes fadeOut { to { opacity: 0; transform: translateY(-20px); } }

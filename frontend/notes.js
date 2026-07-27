@@ -3,29 +3,28 @@
     const addBtn = document.getElementById('add-note-btn');
     const notesBoard = document.getElementById('notes-board');
 
-    // 設定伺服器 IP 與正確的 API 路由 (請將 /game/sticky-note 替換為後端真實路徑)
-    const API_BASE = 'https://163.17.135.120'; 
-    const API_URL = `${API_BASE}/game/daily-note`;
+    // ✨ 已經幫你把變數名稱對齊，並把結尾的斜線拿掉了！
+    const API_BASE_URL = "https://api.drift-bottles.xyz";
+    const API_URL = `${API_BASE_URL}/game/daily-note`;
 
     // 用來產生隨機深海配色的陣列
     const themeColors = ['#ff9a9e', '#fecfef', '#a1c4fd', '#c2e9fb', '#e0c3fc'];
 
-   // 抓取當日所有便利貼 (GET)
-const fetchNotes = async () => {
-    try {
-        const res = await fetch(API_URL);
-        const rawData = await res.json();
-        
-        // 🚨 這裡進行拆包裝：真正的陣列放在 rawData.data 裡面
-        // 加上 || [] 是防呆機制，萬一後端沒傳 data 過來，就當作空陣列處理
-        const notes = rawData.data || []; 
-        
-        renderNotes(notes);
-    } catch (error) {
-        console.error("連線錯誤，無法讀取便利貼：", error);
-        notesBoard.innerHTML = '<p style="text-align:center; color:#ff4d4d;">無法連接到秘密海域伺服器 🌊</p>';
-    }
-};
+    // 抓取當日所有便利貼 (GET)
+    const fetchNotes = async () => {
+        try {
+            const res = await fetch(API_URL);
+            const rawData = await res.json();
+            
+            // 🚨 這裡進行拆包裝：真正的陣列放在 rawData.data 裡面
+            const notes = rawData.data || []; 
+            
+            renderNotes(notes);
+        } catch (error) {
+            console.error("連線錯誤，無法讀取便利貼：", error);
+            notesBoard.innerHTML = '<p style="text-align:center; color:#ff4d4d;">無法連接到秘密海域伺服器 🌊</p>';
+        }
+    };
 
     // 渲染便利貼畫面
     const renderNotes = (notes) => {
@@ -46,7 +45,7 @@ const fetchNotes = async () => {
 
             const card = document.createElement('div');
             card.className = 'note-card';
-            card.style.background = randomColor; // 套用隨機顏色
+            card.style.background = randomColor; 
             
             card.innerHTML = `
                 <div class="note-text">${escapeHTML(note.content)}</div>
@@ -58,9 +57,8 @@ const fetchNotes = async () => {
         });
     };
 
-// 🚀 這是你遺失的發佈功能函式
+    // 🚀 發佈功能函式
     const addNote = async () => {
-        // 取得輸入框的文字內容
         const content = textInput.value; 
 
         if (content.trim() === '') {
@@ -68,10 +66,9 @@ const fetchNotes = async () => {
             return;
         }
 
-        // 統一改為使用 'authToken'，確保能順利抓到登入憑證
         const token = localStorage.getItem('authToken'); 
         if (!token) {
-            showToast("請先登入才能發佈便利貼！", "warning"); // 升級成吐司
+            showToast("請先登入才能發佈便利貼！", "warning"); 
             return;
         }
 
@@ -82,25 +79,30 @@ const fetchNotes = async () => {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${token}` 
                 },
-                body: JSON.stringify({ content: content }) // 統一變數名稱為 content
+                body: JSON.stringify({ content: content }) 
             });
 
-            const result = await res.json();
-
+            // 先確認後端有沒有點頭答應
             if (!res.ok) {
-                // 如果失敗，顯示紅色的錯誤吐司
-                showToast(result.message || result.error || "今天已經有寫便利貼了，明天再來吧！", "error");
+                let errorMessage = "今天已經有寫便利貼了，明天再來吧！"; 
+                try {
+                    const errData = await res.json();
+                    errorMessage = errData.message || errData.error || errorMessage;
+                } catch (e) {
+                    // 解析錯誤就用預設提示
+                }
+                showToast(errorMessage, "error");
                 return; 
             }
 
             // 成功發佈後
             textInput.value = ''; 
-            showToast('發佈成功！', 'success'); // 升級成綠色的成功吐司
+            showToast('發佈成功！', 'success'); 
             fetchNotes();         
             
         } catch (error) {
             console.error("發佈失敗：", error);
-            showToast("發送失敗，請檢查網路連線！", "error"); // 升級成紅色的錯誤吐司
+            showToast("發送失敗，請檢查網路連線！", "error"); 
         }
     };
 
@@ -115,18 +117,18 @@ const fetchNotes = async () => {
     addBtn.addEventListener('click', addNote);
 
     textInput.addEventListener('keydown', (e) => {
-        // 如果按下的是 Enter 鍵，且「沒有」同時按住 Shift 鍵
         if (e.key === 'Enter' && !e.shiftKey) {
-            e.preventDefault(); // 阻止瀏覽器預設的換行行為
-            addNote();          // 呼叫發佈功能
+            e.preventDefault(); 
+            addNote();          
         }
     });
+
     // 進入網頁時立刻向伺服器要資料
     fetchNotes();
 })();
+
 // 顯示吐司提示框的函式
 const showToast = (message, type = 'normal') => {
-    // 檢查畫面上有沒有容器，沒有的話就動態建一個
     let container = document.getElementById('toast-container');
     if (!container) {
         container = document.createElement('div');
@@ -134,15 +136,12 @@ const showToast = (message, type = 'normal') => {
         document.body.appendChild(container);
     }
 
-    // 建立提示小卡
     const toast = document.createElement('div');
     toast.className = `toast ${type}`;
     toast.textContent = message;
 
-    // 把小卡塞進容器裡
     container.appendChild(toast);
 
-    // 設定 3 秒後自動加上 fade-out 類別，並在動畫結束後把自己刪掉
     setTimeout(() => {
         toast.classList.add('fade-out');
         toast.addEventListener('animationend', () => {
