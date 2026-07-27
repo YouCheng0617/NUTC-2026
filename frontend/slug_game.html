@@ -174,7 +174,7 @@
             overflow: visible;
             filter: drop-shadow(0 15px 15px rgba(0,0,0,0.15));
             transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1.2), filter 0.3s ease;
-            pointer-events: none !important; /* 讓事件穿透到後面的防護罩 */
+            pointer-events: none !important;
         }
 
         @keyframes earTwitchL { 0%, 100% { transform: rotate(0deg); } 50% { transform: rotate(-6deg); } }
@@ -408,10 +408,137 @@
             50% { transform: translate(-50%, -50px) scale(1.2); }
             100% { opacity: 0; transform: translate(-50%, -90px) scale(1); }
         }
+
+        /* 寵物名字標籤（極簡純文字版 - 清晰立體優化） */
+        .pet-name-tag {
+            position: absolute;
+            top: -45px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: transparent;
+            border: none;
+            padding: 0;
+            font-weight: 900;
+            color: var(--text-dark); /* 保持原本可愛的深咖啡色 */
+            font-size: 1.35rem; /* 字體稍微放大一點點，更清楚 */
+            letter-spacing: 2px;
+            
+            /* 捨棄會吃掉字體顏色的描邊，改用 8 個方向的實心白邊，加上底下淡淡的黑影，絕對清晰！ */
+            text-shadow: 
+                2px 2px 0 #fff, -2px -2px 0 #fff, 2px -2px 0 #fff, -2px 2px 0 #fff,
+                0px 2px 0 #fff,  0px -2px 0 #fff, 2px  0px 0 #fff, -2px 0px 0 #fff,
+                0px 5px 10px rgba(0,0,0,0.2);
+            
+            white-space: nowrap;
+            pointer-events: auto; 
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: 0.3s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+            z-index: 20;
+        }
+
+        /* 命名後的鎖定狀態 */
+        .pet-name-tag.named {
+            cursor: default;
+            pointer-events: none;
+        }
+
+        /* 還沒命名時的 Hover 動畫 */
+        .pet-name-tag:hover:not(.named) {
+            transform: translateX(-50%) scale(1.1);
+            text-shadow: 
+                2px 2px 0 #fff, -2px -2px 0 #fff, 2px -2px 0 #fff, -2px 2px 0 #fff,
+                0px 2px 0 #fff,  0px -2px 0 #fff, 2px  0px 0 #fff, -2px 0px 0 #fff,
+                0px 6px 15px rgba(255, 182, 193, 0.8);
+        }
+        .pet-name-tag:active:not(.named) {
+            transform: translateX(-50%) scale(0.95);
+        }
+
+        /* 超可愛命名彈窗 */
+        .name-modal-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100vw; height: 100vh;
+            background: rgba(255, 240, 245, 0.8);
+            backdrop-filter: blur(8px);
+            z-index: 10000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
+        .name-modal {
+            background: #fff;
+            width: 85%;
+            max-width: 340px;
+            border-radius: 35px;
+            border: 4px solid var(--border-color);
+            padding: 30px 25px;
+            text-align: center;
+            box-shadow: 0 20px 50px rgba(255, 182, 193, 0.4);
+            animation: popIn 0.4s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+        }
+        @keyframes popIn {
+            0% { transform: scale(0.8) translateY(20px); opacity: 0; }
+            100% { transform: scale(1) translateY(0); opacity: 1; }
+        }
+        .name-input {
+            width: 100%;
+            padding: 14px 15px;
+            border: 3px solid var(--border-color);
+            border-radius: 20px;
+            font-size: 1.1rem;
+            font-weight: 900;
+            color: var(--text-dark);
+            margin: 15px 0 20px 0;
+            text-align: center;
+            outline: none;
+            transition: 0.2s;
+            background: var(--card-bg);
+        }
+        .name-input:focus {
+            border-color: var(--accent-color);
+            background: #fff;
+        }
+        .modal-btns { display: flex; gap: 12px; justify-content: center; }
+        .modal-btn {
+            flex: 1;
+            padding: 12px 0;
+            border: none;
+            border-radius: 20px;
+            font-weight: 900;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: 0.1s;
+        }
+        .btn-cancel { background: #f1f5f9; color: var(--text-dim); }
+        .btn-confirm { background: var(--text-dark); color: white; box-shadow: 0 5px 0 rgba(0,0,0,0.15); }
+        .btn-confirm:active { transform: translateY(5px); box-shadow: 0 0 0 transparent; }
+        .btn-random {
+            background: var(--accent-color);
+            color: white;
+            margin-bottom: 5px;
+            width: 100%;
+            box-shadow: 0 5px 0 rgba(255, 182, 193, 0.8);
+        }
+        .btn-random:active { transform: translateY(5px); box-shadow: 0 0 0 transparent; }
     </style>
 </head>
 <body>
-
+    <!-- 命名彈窗 -->
+    <div class="name-modal-overlay" id="nameModalOverlay">
+        <div class="name-modal">
+            <h2 style="margin-top:0; margin-bottom: 10px; font-weight:900; font-size:1.5rem; color: var(--text-dark);" id="txtModalTitle">為寶寶取個名字</h2>
+            <button class="modal-btn btn-random" onclick="generateRandomName()" id="btnRandomName">🎲 幫我隨機想一個</button>
+            <input type="text" class="name-input" id="petNameInput" maxlength="12" placeholder="輸入可愛的名字...">
+            <div class="modal-btns">
+                <button class="modal-btn btn-cancel" onclick="closeNameModal()" id="btnCancelName">取消</button>
+                <button class="modal-btn btn-confirm" onclick="confirmName()" id="btnConfirmName">確定</button>
+            </div>
+        </div>
+    </div>
+    
     <div class="gacha-overlay" id="gachaScreen">
         <div class="gacha-title" id="gachaTitle">發現神祕海兔卵</div>
         <div class="gacha-box" id="gachaBox" onclick="rollGacha()">點擊孵化</div>
@@ -430,7 +557,10 @@
         <div id="effectLayer" class="effect-layer"></div>
         
         <div class="slug-container" id="slugContainer">
-            <!-- 🌟 終極防護罩：這是一塊 100% 覆蓋的隱形壓克力板，保證不管用什麼設備點，都一定能摸到海兔！ -->
+            <div class="pet-name-tag" id="petNameTag" onclick="openNameModal()">
+                <span id="displayPetName">神祕海兔</span> <span id="pencilIcon">✏️</span>
+            </div>
+            <!-- 🌟 終極防護罩 -->
             <div style="position: absolute; width: 100%; height: 100%; top: 0; left: 0; z-index: 10; cursor: inherit; background: rgba(0,0,0,0);"></div>
             
             <svg class="slug-svg" viewBox="0 0 340 240" style="position: relative; z-index: 1;">
@@ -549,6 +679,7 @@
         let gameState = {
             hasAdopted: false,
             points: 2000,
+            petName: '', // 新增這行來儲存名字
             currentSpecies: 'snow',
             currentBg: 'sky',
             currentEffect: 'none',
@@ -736,6 +867,7 @@
             renderShop();
             startCooldownTimer();
             initDragAndPetSystem(); 
+            updateNameUI();
         };
 
         function toggleLang() {
@@ -743,6 +875,7 @@
             updateLangUI();
             renderShop();
             updateUI();
+            updateNameUI();
         }
 
         function updateLangUI() {
@@ -809,6 +942,75 @@
                 renderShop();
                 updateUI();
             }, 500);
+        }
+
+        // --- 專屬寵物命名系統 ---
+
+        // 幽默隨機名字庫 (為專題增添趣味亮點)
+        const randomNames = {
+            zh: ["不願意透露姓名的海兔", "代碼寫不完", "軟爛小麻糬", "霸道總裁的兔兔", "深海大鳳梨", "絕世好兔", "世界第一可愛", "拒絕 Debug", "寶寶的乖海兔", "不要吃我"],
+            en: ["Bug Maker", "Mr. Squishy", "Not A Snail", "Sleepy Sluuuug", "Ocean Potato", "Error 404", "Sir Slime-a-lot", "Baby's Cutie"]
+        };
+
+        // 更新畫面上的名字與鎖定狀態
+        function updateNameUI() {
+            const nameDisplay = document.getElementById('displayPetName');
+            const nameTag = document.getElementById('petNameTag');
+            const pencil = document.getElementById('pencilIcon');
+            
+            if (gameState.petName) {
+                // 【已經命名】顯示單純的名字
+                nameDisplay.innerText = gameState.petName;
+                nameTag.classList.add('named'); 
+                if (pencil) pencil.style.display = 'none'; 
+            } else {
+                // 【還沒命名】保持原本狀態
+                nameDisplay.innerText = currLang === 'zh' ? '神祕海兔' : 'Mystic Slug';
+                nameTag.classList.remove('named');
+                if (pencil) pencil.style.display = 'inline';
+            }
+        }
+
+        // 打開彈窗（雙重防護版）
+        function openNameModal() {
+            if (gameState.petName) return; // 雙重防護：如果已經有名字，直接擋掉彈窗
+            
+            const modal = document.getElementById('nameModalOverlay');
+            const input = document.getElementById('petNameInput');
+            
+            // 支援雙語切換
+            document.getElementById('txtModalTitle').innerText = currLang === 'zh' ? '給海兔寶寶取名' : 'Name Your Baby';
+            document.getElementById('btnRandomName').innerText = currLang === 'zh' ? '🎲 幫我隨機想一個' : '🎲 Random Name';
+            document.getElementById('btnCancelName').innerText = currLang === 'zh' ? '取消' : 'Cancel';
+            document.getElementById('btnConfirmName').innerText = currLang === 'zh' ? '確定' : 'Confirm';
+            input.placeholder = currLang === 'zh' ? '輸入可愛的名字...' : 'Max 12 chars...';
+
+            input.value = gameState.petName; 
+            modal.style.display = 'flex';
+        }
+
+        // 關閉彈窗
+        function closeNameModal() {
+            document.getElementById('nameModalOverlay').style.display = 'none';
+        }
+
+        // 確定儲存名字
+        function confirmName() {
+            const newName = document.getElementById('petNameInput').value.trim();
+            if (newName) {
+                gameState.petName = newName;
+                updateNameUI();
+                saveGame();
+                showFloatText('✨ 命名成功 ✨');
+            }
+            closeNameModal();
+        }
+
+        // 隨機產生搞笑名字
+        function generateRandomName() {
+            const pool = randomNames[currLang];
+            const randomStr = pool[Math.floor(Math.random() * pool.length)];
+            document.getElementById('petNameInput').value = randomStr;
         }
 
         function switchTab(tab) {
