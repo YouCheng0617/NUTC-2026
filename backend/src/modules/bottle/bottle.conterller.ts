@@ -2,7 +2,7 @@ import { Router } from "express";
 import type { Request, Response } from "express";
 import prisma from "../../lib/prisma.js";
 import dotenv from "dotenv";
-import { getMybottles, likeBottles, saveBottles, getMyLikedBottles, getMySavedBottles, deleteMyBottle as deleteMyBottleService, getTodayBottle, reportBottle, searchBottle } from "./bottle.service.js";
+import { getMybottles, likeBottles, saveBottles, getMyLikedBottles, getMySavedBottles, deleteMyBottle as deleteMyBottleService, getTodayBottle, reportBottle, searchBottle, getPopularBottles } from "./bottle.service.js";
 export interface TokenPayload {
     member_id: number;
     email: string;
@@ -386,6 +386,26 @@ export const bottleController = {
 
         } catch (error) {
             console.error("❌ 搜尋瓶子發生錯誤:", error);
+            return res.status(500).json({ message: "內部伺服器錯誤" });
+        }
+    },
+
+    /* 獲取熱門瓶子 (依收藏數排序) */
+    async getPopularBottlesController(req: AuthRequest, res: Response) {
+        try {
+            // 可以從 Query 讀取想要回傳的數量，沒傳預設 10
+            const limitParam = req.query.limit as string;
+            const parsedLimit = parseInt(limitParam);
+            const limit = (!isNaN(parsedLimit) && parsedLimit > 0) ? parsedLimit : 10;
+
+            const popularBottles = await getPopularBottles(limit);
+
+            return res.status(200).json({
+                message: `成功獲取 ${popularBottles.length} 篇熱門文章`,
+                data: popularBottles
+            });
+        } catch (error) {
+            console.error("❌ 獲取熱門瓶子發生錯誤:", error);
             return res.status(500).json({ message: "內部伺服器錯誤" });
         }
     }

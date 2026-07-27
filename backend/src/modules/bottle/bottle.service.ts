@@ -384,3 +384,44 @@ export const searchBottle = async (keyword: string) => {
         };
     });
 };
+
+/*獲取熱門瓶子 (依收藏數排序)*/
+export const getPopularBottles = async (limit: number = 10) => {
+    const popularBottles = await prisma.bottle.findMany({
+        where: {
+            status: 1, // 只抓取審核通過的文章
+        },
+        orderBy: {
+            saves: {
+                _count: "desc", // 依照收藏數(saves)由高到低排序
+            },
+        },
+        take: limit, // 限制回傳筆數
+        include: {
+            author: {
+                select: {
+                    name: true,
+                }
+            },
+            categories: {
+                include: {
+                    category: true,
+                }
+            },
+            _count: {
+                select: { likes: true, saves: true }
+            }
+        }
+    });
+
+    return popularBottles.map(bottle => {
+        const { _count, categories, author, ...bottleData } = bottle;
+        return {
+            ...bottleData,
+            like_count: _count.likes,
+            save_count: _count.saves,
+            member_name: bottleData.is_anonymous ? "匿名使用者" : (author?.name || "未知使用者"),
+            category_list: categories.map(c => c.category?.name || "未知類別")
+        };
+    });
+};
