@@ -1101,10 +1101,23 @@ body, html { height: 100vh !important; overflow: hidden !important; background-c
   transition: all 0.3s ease;
   user-select: none;
 }
-.rules-drawer-handle span { writing-mode: vertical-lr; letter-spacing: 3px; }
-.rules-drawer-handle:hover { background: #0073e6; color: #ffd700; padding-left: 10px; }
-.rules-drawer-handle i { font-style: normal; font-size: 0.8rem; color: #ffd700; transition: transform 0.3s ease; }
+.rules-drawer-handle span {
+  writing-mode: vertical-lr;
+  letter-spacing: 3px;
+}
 
+.rules-drawer-handle:hover {
+  background: #0073e6;
+  color: #ffd700;
+  padding-left: 10px;
+}
+
+.rules-drawer-handle i {
+  font-style: normal;
+  font-size: 0.8rem;
+  color: #ffd700;
+  transition: transform 0.3s ease;
+}
 /* =========================================
    🔒 收起狀態：精準推往 -300px！
    ========================================= */
