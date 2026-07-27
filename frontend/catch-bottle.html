@@ -468,7 +468,7 @@
     </div>
 
     <script>
-      const API_BASE_URL = "https://163.17.135.120";
+      const API_BASE_URL = "https://api.drift-bottles.xyz/";
       const GAME_NAME = "catch-bottle";
 
       // 🛡️ 招式一：防外掛專用「計時與分數私有管理員」
@@ -686,6 +686,15 @@
       function gameLoop() {
         if (!isPlaying) return;
 
+        // 🌟 加入這三行：如果遊戲暫停中，保持迴圈待命，但不算碰撞、不畫物體！
+        if (isPaused) {
+          requestAnimationFrame(gameLoop);
+          return;
+        }
+
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        // ...底下你原本的代碼完全不用動...
+
         ctx.clearRect(0, 0, canvas.width, canvas.height);
 
         if (isShielded) {
@@ -810,6 +819,9 @@
         timeLeft = 30;
         items = [];
         isPlaying = true;
+        isPaused = false; // 🌟 這一行最重要！按開始遊戲時，強制解除凍結！
+        let overlay = document.getElementById("pause-overlay");
+        if (overlay) overlay.remove(); // 清除殘留的暫停畫面
         isDoubleScore = false;
         isShielded = false;
         clearTimeout(doubleTimer);
@@ -819,13 +831,16 @@
 
         let spawnRate = diffConfig[currentDifficulty].spawnRate;
         dropInterval = setInterval(() => {
-          items.push(new Item());
+          if (!isPaused) items.push(new Item()); // 🌟 只要沒暫停，才會掉新瓶子
         }, spawnRate);
 
         timerInterval = setInterval(() => {
-          timeLeft--;
-          document.getElementById("time").innerText = timeLeft;
-          if (timeLeft <= 0) endGame();
+          if (!isPaused) {
+            // 🌟 只要沒暫停，倒數時間才會往下扣
+            timeLeft--;
+            document.getElementById("time").innerText = timeLeft;
+            if (timeLeft <= 0) endGame();
+          }
         }, 1000);
         gameLoop();
       }
@@ -964,6 +979,47 @@
       function resetGame() {
         startGame();
       }
+      // ==========================================
+      // 🛡️ 升級版：分頁切換暫停 + 手動點擊「繼續遊戲」
+      // ==========================================
+
+      function triggerPause() {
+        // 🌟 核心防護：如果不是在遊戲中，或者是已經在暫停，絕對不要觸發！
+        if (!isPlaying || isPaused) return;
+
+        isPaused = true; // 凍結遊戲
+
+        // 如果畫面已經有暫停遮罩，就不重複產生
+        if (document.getElementById("pause-overlay")) return;
+
+        let pauseOverlay = document.createElement("div");
+        pauseOverlay.id = "pause-overlay";
+        pauseOverlay.style.cssText =
+          "position:absolute;top:0;left:0;width:100%;height:100%;background:rgba(0,20,40,0.85);backdrop-filter:blur(5px);display:flex;flex-direction:column;justify-content:center;align-items:center;z-index:100;";
+
+        pauseOverlay.innerHTML = `
+    <h1 style="font-size:3.5rem;color:#ffd700;text-shadow:0 0 20px rgba(255,215,0,0.8);margin-bottom:20px;margin-top:0;">⏸️ 遊戲已暫停</h1>
+    <p style="font-size:1.4rem;color:#d1e8ff;margin-bottom:30px;">你剛剛切換了分頁，遊戲已自動為你凍結！</p>
+    <button class="btn-action" onclick="resumeFromPause()">▶️ 繼續遊戲</button>
+  `;
+
+        document.body.appendChild(pauseOverlay);
+        console.log("⏸️ 離開視窗，已凍結遊戲！");
+      }
+
+      function resumeFromPause() {
+        isPaused = false; // 🌟 解除凍結，讓瓶子跟時間繼續動！
+        let overlay = document.getElementById("pause-overlay");
+        if (overlay) overlay.remove();
+        console.log("▶️ 遊戲繼續！");
+      }
+
+      // 🌟 監聽切換分頁：只有當玩家「離開分頁」時才凍結
+      document.addEventListener("visibilitychange", () => {
+        if (document.hidden) {
+          triggerPause();
+        }
+      });
     </script>
   </body>
 </html>
