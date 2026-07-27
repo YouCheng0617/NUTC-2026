@@ -188,3 +188,5 @@ Query 參數 (必填)：?keyword=你要找的字
 取得我的粉絲列表 GET 給Token /auth/followers
 
 取得我追蹤的人列表 GET 給Token /auth/following
+
+獲取熱門文章 GET /bottles/popular
