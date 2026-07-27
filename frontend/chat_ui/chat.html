@@ -1,22 +1,24 @@
 <!DOCTYPE html>
 <html lang="zh-TW" data-theme="light">
+
 <head>
     <meta charset="UTF-8">
     <!-- 確保在手機上比例正確，並且使用互動式視窗高度防止鍵盤遮擋 -->
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, interactive-widget=resizes-content">
+    <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, interactive-widget=resizes-content">
     <title>AI 特助聊天室</title>
-    <link rel="stylesheet" href="chat.css">
+    <link rel="stylesheet" href="./chat.css">
     <!-- 引入 FontAwesome 圖示 -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
+
 <body>
     <div class="chat-wrapper">
         <!-- 頂部設定列 -->
         <header class="chat-header">
             <div class="title">✨ AI 特助</div>
             <div class="settings">
-                <!-- ✨ 修正路徑：往上退兩層 (../../) 然後進入 frontend 找到 test.html -->
-                <button id="home-btn" title="回首頁" onclick="window.location.href='../../frontend/test.html'">
+                <button id="home-btn" title="回首頁" onclick="window.location.href='../test.html'">
                     <i class="fa-solid fa-house"></i>
                 </button>
                 <button id="theme-toggle" title="切換深淺色"><i class="fa-solid fa-moon"></i></button>
@@ -24,10 +26,10 @@
                 <div class="dropdown-container">
                     <button id="lang-toggle" title="切換語言"><i class="fa-solid fa-globe"></i></button>
                     <ul class="dropdown-menu" id="lang-menu">
-                    <li data-lang="zh-TW">繁體中文</li>
-                    <li data-lang="zh-CN">简体中文</li>
-                    <li data-lang="en">English</li>
-                    <li data-lang="ja">日本語</li>
+                        <li data-lang="zh-TW">繁體中文</li>
+                        <li data-lang="zh-CN">简体中文</li>
+                        <li data-lang="en">English</li>
+                        <li data-lang="ja">日本語</li>
                     </ul>
                 </div>
             </div>
@@ -62,6 +64,7 @@
         </footer>
     </div>
 
-    <script src="chat.js"></script>
+    <script src="./chat.js"></script>
 </body>
+
 </html>

@@ -5,53 +5,55 @@
 /* ✨ 1. 調整日間模式：加上提亮的濾鏡與溫和的藍色調 */
 :root {
     --base-font-size: 16px;
-    
-    --bg-overlay: rgba(255, 255, 255, 0.1); /* 白天：微微提亮的清澈濾鏡 */
-    
-    --ocean-bg-1: #0060a0; 
+
+    --bg-overlay: rgba(255, 255, 255, 0.1);
+    /* 白天：微微提亮的清澈濾鏡 */
+
+    --ocean-bg-1: #0060a0;
     --ocean-bg-2: #0088cc;
-    --ocean-bg-3: #29b6f6; 
-    --ocean-bg-4: #81d4fa; 
-    
+    --ocean-bg-3: #29b6f6;
+    --ocean-bg-4: #81d4fa;
+
     --glass-bg: rgba(255, 255, 255, 0.25);
     --glass-border: rgba(255, 255, 255, 0.6);
     --glass-shadow: rgba(0, 90, 150, 0.2);
-    
-    --text-main: #003d5b; 
+
+    --text-main: #003d5b;
     --text-muted: #0077b6;
-    
+
     --user-bubble: linear-gradient(135deg, #0088cc, #29b6f6);
     --user-text: #ffffff;
-    
+
     --ai-bubble: rgba(255, 255, 255, 0.75);
     --ai-text: #003d5b;
-    
+
     --input-bg: rgba(255, 255, 255, 0.5);
     --btn-bg: linear-gradient(135deg, #0088cc, #29b6f6);
 }
 
 [data-theme="dark"] {
     /* 🌙 夜間模式：加上神祕的深海暗色濾鏡 */
-    --bg-overlay: rgba(3, 31, 62, 0.7); /* 夜晚：壓暗的深海濾鏡 */
-    
+    --bg-overlay: rgba(3, 31, 62, 0.7);
+    /* 夜晚：壓暗的深海濾鏡 */
+
     --ocean-bg-1: #0a4f8b;
     --ocean-bg-2: #031f3e;
-    --ocean-bg-3: #0f2027; 
+    --ocean-bg-3: #0f2027;
     --ocean-bg-4: #203a43;
-    
+
     --glass-bg: rgba(16, 42, 77, 0.55);
     --glass-border: rgba(255, 255, 255, 0.15);
     --glass-shadow: rgba(0, 0, 0, 0.5);
-    
-    --text-main: #e0f2fe; 
+
+    --text-main: #e0f2fe;
     --text-muted: #7dd3fc;
-    
+
     --user-bubble: linear-gradient(135deg, #0ea5e9, #0284c7);
     --user-text: #ffffff;
-    
+
     --ai-bubble: rgba(255, 255, 255, 0.15);
     --ai-text: #ffffff;
-    
+
     --input-bg: rgba(0, 0, 0, 0.3);
     --btn-bg: linear-gradient(135deg, #38bdf8, #0284c7);
 }
@@ -67,39 +69,42 @@ html {
 }
 
 /* ✨ 把原本只有 body，改成連同按鈕、輸入框一起強制套用字體！ */
-body, button, input, textarea {
+body,
+button,
+input,
+textarea {
     font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "PingFang TC", "微軟正黑體", "Microsoft JhengHei", "PingFang SC", "Microsoft YaHei", "Meiryo", sans-serif;
 }
 
 body {
-      
+
     /* ✨ 2. 背景圖片與智慧日夜濾鏡 (請在這裡修改妳的圖片檔名！) */
-    background-image: linear-gradient(var(--bg-overlay), var(--bg-overlay)), url('../../frontend/images/background.png');
+    background-image: linear-gradient(var(--bg-overlay), var(--bg-overlay)), url('../images/background.png');
     background-size: cover;
     background-position: center;
     background-attachment: fixed;
-    
-    color: var(--text-main); 
-    height: 100dvh; 
+
+    color: var(--text-main);
+    height: 100dvh;
     display: flex;
     justify-content: center;
-    align-items: center; 
+    align-items: center;
     padding: 20px;
-    transition: background-image 0.6s ease, color 0.6s ease; 
+    transition: background-image 0.6s ease, color 0.6s ease;
 }
 
 /* 核心：圓潤氣泡膠囊 */
 .chat-wrapper {
     width: 100%;
     max-width: 800px;
-    height: 95%; 
+    height: 95%;
     display: flex;
     flex-direction: column;
     background: var(--glass-bg);
     backdrop-filter: blur(15px);
     -webkit-backdrop-filter: blur(15px);
     border: 2px solid var(--glass-border);
-    border-radius: 40px; 
+    border-radius: 40px;
     box-shadow: 0 20px 50px var(--glass-shadow), inset 0 0 20px rgba(255, 255, 255, 0.1);
     transition: all 0.6s ease;
 }
@@ -143,8 +148,13 @@ body {
 
 /* ✨ 3. 氣泡上浮動畫設定 */
 @keyframes floatUp {
-    0% { background-position: 0 0, 40px 60px, 80px 20px; }
-    100% { background-position: 0 -120px, 40px -120px, 80px -70px; }
+    0% {
+        background-position: 0 0, 40px 60px, 80px 20px;
+    }
+
+    100% {
+        background-position: 0 -120px, 40px -120px, 80px -70px;
+    }
 }
 
 /* 中間聊天區 */
@@ -154,13 +164,14 @@ body {
     padding: 20px 30px;
     scroll-behavior: smooth;
     /* 加上動態上浮氣泡背景 */
-    background-image: 
-        radial-gradient(circle, rgba(255,255,255,0.15) 0%, transparent 4%),
-        radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 6%),
-        radial-gradient(circle, rgba(255,255,255,0.2) 0%, transparent 3%);
+    background-image:
+        radial-gradient(circle, rgba(255, 255, 255, 0.15) 0%, transparent 4%),
+        radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 6%),
+        radial-gradient(circle, rgba(255, 255, 255, 0.2) 0%, transparent 3%);
     background-size: 120px 120px, 180px 180px, 90px 90px;
     background-position: 0 0, 40px 60px, 80px 20px;
-    animation: floatUp 15s linear infinite; /* 啟動上浮動畫 */
+    animation: floatUp 15s linear infinite;
+    /* 啟動上浮動畫 */
 }
 
 /* 歡迎破冰畫面 */
@@ -181,7 +192,7 @@ body {
 }
 
 #welcome-screen p {
-    color: var(--text-muted); 
+    color: var(--text-muted);
 }
 
 .suggestion-chips {
@@ -215,13 +226,18 @@ body {
     width: 100%;
 }
 
-.user-row { justify-content: flex-end; }
-.ai-row { justify-content: flex-start; }
+.user-row {
+    justify-content: flex-end;
+}
+
+.ai-row {
+    justify-content: flex-start;
+}
 
 .bubble {
     max-width: 75%;
     padding: 14px 20px;
-    border-radius: 24px; 
+    border-radius: 24px;
     line-height: 1.6;
     word-wrap: break-word;
     position: relative;
@@ -290,18 +306,31 @@ body {
     animation: bounce 1.4s infinite ease-in-out both;
 }
 
-.typing-indicator span:nth-child(1) { animation-delay: -0.32s; }
-.typing-indicator span:nth-child(2) { animation-delay: -0.16s; }
+.typing-indicator span:nth-child(1) {
+    animation-delay: -0.32s;
+}
+
+.typing-indicator span:nth-child(2) {
+    animation-delay: -0.16s;
+}
 
 @keyframes bounce {
-    0%, 80%, 100% { transform: scale(0); }
-    40% { transform: scale(1); }
+
+    0%,
+    80%,
+    100% {
+        transform: scale(0);
+    }
+
+    40% {
+        transform: scale(1);
+    }
 }
 
 /* 底部輸入區 */
 .input-container {
     padding: 20px 30px 25px 30px;
-    background: transparent; 
+    background: transparent;
     /* 配合外框補下下方圓角 */
     border-bottom-left-radius: 38px;
     border-bottom-right-radius: 38px;
@@ -310,9 +339,9 @@ body {
 .input-box {
     display: flex;
     align-items: flex-end;
-    background: var(--input-bg); 
+    background: var(--input-bg);
     border: 1px solid var(--glass-border);
-    border-radius: 30px; 
+    border-radius: 30px;
     padding: 10px 15px 10px 25px;
     backdrop-filter: blur(5px);
 }
@@ -324,18 +353,20 @@ textarea {
     color: var(--text-main);
     font-family: inherit;
     font-size: 1.05rem;
-    resize: none; 
+    resize: none;
     max-height: 120px;
     padding: 8px 0;
     outline: none;
-    overflow-y: auto; 
+    overflow-y: auto;
 }
 
 textarea::placeholder {
     color: var(--text-muted);
 }
 
-textarea::-webkit-scrollbar { display: none; }
+textarea::-webkit-scrollbar {
+    display: none;
+}
 
 .action-btn {
     background: var(--btn-bg);
@@ -378,11 +409,11 @@ textarea::-webkit-scrollbar { display: none; }
 }
 
 .dropdown-menu {
-    display: none; 
+    display: none;
     position: absolute;
-    top: 120%; 
-    right: 0; 
-    background-color: var(--glass-bg); 
+    top: 120%;
+    right: 0;
+    background-color: var(--glass-bg);
     backdrop-filter: blur(15px);
     min-width: 130px;
     box-shadow: 0px 10px 20px var(--glass-shadow);
@@ -393,7 +424,10 @@ textarea::-webkit-scrollbar { display: none; }
     z-index: 9999;
 }
 
-.dropdown-menu.show { display: block; animation: fadeInDown 0.2s ease-out; }
+.dropdown-menu.show {
+    display: block;
+    animation: fadeInDown 0.2s ease-out;
+}
 
 .dropdown-menu li {
     padding: 12px 20px;
@@ -401,10 +435,12 @@ textarea::-webkit-scrollbar { display: none; }
     color: var(--text-main);
     font-size: 0.95rem;
     transition: all 0.2s;
-    text-align: center; 
+    text-align: center;
 }
 
-.dropdown-menu li:hover { background-color: var(--glass-border); }
+.dropdown-menu li:hover {
+    background-color: var(--glass-border);
+}
 
 /* Toast 提示框 */
 .toast {
@@ -428,11 +464,21 @@ textarea::-webkit-scrollbar { display: none; }
     transition: opacity 0.3s, bottom 0.3s, visibility 0.3s;
 }
 
-.toast.show { visibility: visible; opacity: 1; bottom: 110px; }
+.toast.show {
+    visibility: visible;
+    opacity: 1;
+    bottom: 110px;
+}
 
 /* 聊天區的隱形捲軸 */
-.chat-area::-webkit-scrollbar { width: 6px; }
-.chat-area::-webkit-scrollbar-track { background: transparent; }
+.chat-area::-webkit-scrollbar {
+    width: 6px;
+}
+
+.chat-area::-webkit-scrollbar-track {
+    background: transparent;
+}
+
 .chat-area::-webkit-scrollbar-thumb {
     background-color: var(--glass-border);
     border-radius: 10px;

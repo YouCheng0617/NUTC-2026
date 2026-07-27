@@ -5,7 +5,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const sendIcon = actionBtn.querySelector('.send-icon');
     const stopIcon = actionBtn.querySelector('.stop-icon');
     const welcomeScreen = document.getElementById('welcome-screen');
-    
+
     // 設定按鈕
     const themeToggle = document.getElementById('theme-toggle');
     const fontToggle = document.getElementById('font-toggle');
@@ -15,16 +15,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let isGenerating = false;
     let typingInterval = null;
-    let currentLastPrompt = ""; 
+    let currentLastPrompt = "";
     let lastTopic = ""; // ✨ 當作 AI 的短期記憶，記住現在聊到的話題
-    
+
     // --- UI 互動邏輯 ---
 
     // 1. 自動調整 Textarea 高度 & 監聽輸入狀態
-    messageInput.addEventListener('input', function() {
+    messageInput.addEventListener('input', function () {
         this.style.height = 'auto';
         this.style.height = (this.scrollHeight) + 'px';
-        
+
         if (this.value.trim().length > 0 && !isGenerating) {
             actionBtn.disabled = false;
         } else if (!isGenerating) {
@@ -33,9 +33,9 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // 2. 監聽 Enter 鍵發送 (Shift + Enter 換行)
-    messageInput.addEventListener('keydown', function(e) {
+    messageInput.addEventListener('keydown', function (e) {
         if (e.key === 'Enter' && !e.shiftKey) {
-            e.preventDefault(); 
+            e.preventDefault();
             if (!actionBtn.disabled && !isGenerating) {
                 handleSend();
             }
@@ -68,12 +68,12 @@ document.addEventListener('DOMContentLoaded', () => {
         if (welcomeScreen) welcomeScreen.style.display = 'none';
 
         currentLastPrompt = text;
-        
+
         if (!forcePrompt) {
             messageInput.value = '';
             messageInput.style.height = 'auto';
         }
-        
+
         appendUserMessage(text);
         setButtonState('stop');
         simulateAIResponse(text);
@@ -92,7 +92,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const row = document.createElement('div');
         row.className = 'message-row ai-row';
-        
+
         row.innerHTML = `
             <div class="ai-avatar-small">🤖</div>
             <div class="bubble ai-bubble">
@@ -111,16 +111,16 @@ document.addEventListener('DOMContentLoaded', () => {
         const contentDiv = row.querySelector('.content');
         const toolbar = row.querySelector('.ai-toolbar');
 
-       // 模擬網路延遲 1.5 秒後開始打字
+        // 模擬網路延遲 1.5 秒後開始打字
         setTimeout(() => {
-            if (!isGenerating) return; 
+            if (!isGenerating) return;
 
-            contentDiv.innerHTML = ''; 
-            
+            contentDiv.innerHTML = '';
+
             // ✨ 國際化大腦：支援多國語言的關鍵字判斷與髒話過濾
             let fakeResponse = "";
-            const textLower = userText.toLowerCase(); 
-            
+            const textLower = userText.toLowerCase();
+
             // 1. 國際髒話過濾庫
             const badWords = ['幹', '靠杯', '靠北', '媽的', '白痴', '智障', '去死', '靠夭', '賤', 'fuck', 'shit', 'bitch', 'バカ', '死ね', 'クソ'];
             const hasBadWord = badWords.some(word => textLower.includes(word));
@@ -143,7 +143,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 } else {
                     fakeResponse = "深呼吸～海浪會帶走所有的不愉快，但我們在這裡要保持溫和喔！試著用平靜的文字跟我說說怎麼了吧？💙";
                 }
-            } 
+            }
             // ✨ 跨語言攔截器：如果在「中文模式」輸入「純英文」
             else if ((currentLang === "zh-TW" || currentLang === "zh-CN") && isEnglish) {
                 lastTopic = "";
@@ -164,13 +164,13 @@ document.addEventListener('DOMContentLoaded', () => {
             // ==========================================
             else if (currentLang === "zh-TW") {
                 if (userText.includes('請假信') || userText.includes('请假信') || userText.includes('請假') || userText.includes('请假')) {
-                    lastTopic = ""; 
+                    lastTopic = "";
                     fakeResponse = "沒問題！這是一封簡單的請假信範本：\n\n「主管您好，我因個人身體不適，需要請假一天休息，懇請批准。造成不便敬請見諒。」\n\n好好休息，健康最重要喔！";
                 } else if (userText.includes('白噪音')) {
                     lastTopic = "";
                     fakeResponse = "我非常推薦「深海潛水」或是「雨天微風」的白噪音，閉上眼睛聽，可以讓思緒像海浪一樣平靜下來喔。🌊";
                 } else if (userText.includes('笑話') || userText.includes('笑话') || (lastTopic === "joke" && (userText.includes('還有') || userText.includes('还有') || userText.includes('別的') || userText.includes('别的') || userText.includes('再來') || userText.includes('再来')))) {
-                    lastTopic = "joke"; 
+                    lastTopic = "joke";
                     const jokeList = [
                         "有一天，小明去海邊玩。他對著大海喊：「大海啊！你裡面到底有什麼？」\n結果海浪拍打著礁石說：「有...有...有點鹹...」🌊😂",
                         "為什麼海不能當律師？\n因為海「無邊無際」，沒辦法結案！🌊😎",
@@ -216,7 +216,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     ];
                     fakeResponse = greetingResponses[Math.floor(Math.random() * greetingResponses.length)];
                 } else if (userText.includes('放假') || userText.includes('出去玩') || userText.includes('旅遊') || userText.includes('旅游') || userText.includes('逛逛') || userText.includes('休假')) {
-                    lastTopic = "travel"; 
+                    lastTopic = "travel";
                     const playResponses = [
                         "太棒了！放假就是要好好放鬆呀～如果還沒決定去哪，有滿多不錯的景點可以去走走喔！需要我幫你找找地圖嗎？🗺️",
                         "放假出遊！聽起來就很開心～要把這份期待裝進漂流瓶裡喔！有想好要去哪裡玩了嗎？✨",
@@ -225,23 +225,23 @@ document.addEventListener('DOMContentLoaded', () => {
                     ];
                     fakeResponse = playResponses[Math.floor(Math.random() * playResponses.length)];
                 } else if (lastTopic === "travel" && (userText.includes('還沒') || userText.includes('还没') || userText.includes('沒有') || userText.includes('没有') || userText.includes('不知道') || userText.includes('沒想法') || userText.includes('没想法'))) {
-                    lastTopic = ""; 
+                    lastTopic = "";
                     fakeResponse = "既然還沒想好，不如來看看我們的校園生活地圖，我來幫你導覽附近有什麼好玩好吃的！📍";
                 } else if (userText.includes('算命') || userText.includes('塔羅') || userText.includes('塔罗') || userText.includes('占卜') || userText.includes('算一下')) {
-                    lastTopic = ""; 
+                    lastTopic = "";
                     const tarotResponses = [
                         "我沒有辦法幫你占卜喔！不過你可以去玩『秘密海域遊樂場』裡的命運海之卜：今日塔羅瓶，說不定能給你一些指引喔！🔮✨",
                         "占卜這部分我幫不上忙啦～但我記得遊樂場裡有今日塔羅瓶可以玩，快去試試看能不能解開你的心事吧！💙"
                     ];
                     fakeResponse = tarotResponses[Math.floor(Math.random() * tarotResponses.length)];
                 } else if (userText.includes('無聊') || userText.includes('无聊') || userText.includes('推薦') || userText.includes('推荐') || userText.includes('打發時間') || userText.includes('打发时间') || userText.includes('追劇') || userText.includes('追剧') || userText.includes('遊戲') || userText.includes('游戏')) {
-                    lastTopic = "entertainment"; 
+                    lastTopic = "entertainment";
                     fakeResponse = "無聊的話，要不要我推薦一些好玩的給你？你比較想看甜甜的電視劇，還是想玩精緻的換裝手遊呢？✨";
                 } else if (lastTopic === "entertainment" && (userText.includes('甜') || userText.includes('戀愛') || userText.includes('恋爱') || userText.includes('劇') || userText.includes('剧') || userText.includes('電視') || userText.includes('电视'))) {
-                    lastTopic = ""; 
+                    lastTopic = "";
                     fakeResponse = "那太好了！我強烈推薦你可以重溫像《微微一笑很傾城》這種結合專業領域又甜甜的經典，看了心情一定會像海浪一樣輕快喔！💻💙";
                 } else if (lastTopic === "entertainment" && (userText.includes('遊戲') || userText.includes('游戏') || userText.includes('換裝') || userText.includes('换装') || userText.includes('手遊') || userText.includes('手游'))) {
-                    lastTopic = ""; 
+                    lastTopic = "";
                     fakeResponse = "說到這個，像《以閃亮之名》這種精緻的換裝遊戲就很紓壓喔！隨心所欲搭配漂亮的衣服，保證能把無聊一掃而空！👗✨";
                 } else if (userText.includes('謝謝') || userText.includes('谢谢') || userText.includes('感謝') || userText.includes('感谢') || userText.includes('好，') || userText === '好' || userText === '好的' || userText.includes('知道')) {
                     lastTopic = "";
@@ -252,7 +252,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         "沒問題！深海特助隨時為你待命！🫡"
                     ];
                     fakeResponse = thanksResponses[Math.floor(Math.random() * thanksResponses.length)];
-                } 
+                }
                 // ✨ 傻眼/無語情緒：跟著一起吐槽
                 else if (userText.includes('笑死') || userText.includes('無語') || userText.includes('傻眼') || userText.includes('太扯') || userText.includes('誇張') || userText.includes('有事嗎')) {
                     lastTopic = "";
@@ -271,7 +271,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         "被你發現我剛剛腦袋打結了！再給我一點時間進化，下次一定會給出更好的回答啦～🌊"
                     ];
                     fakeResponse = teasingResponses[Math.floor(Math.random() * teasingResponses.length)];
-                } 
+                }
                 // ✨ 日常對話：拒絕或不要
                 else if (userText.includes('不要') || userText.includes('不想') || userText.includes('才不')) {
                     lastTopic = "";
@@ -297,13 +297,13 @@ document.addEventListener('DOMContentLoaded', () => {
             // ==========================================
             else if (currentLang === "zh-CN") {
                 if (userText.includes('请假信') || userText.includes('請假信') || userText.includes('请假') || userText.includes('請假')) {
-                    lastTopic = ""; 
+                    lastTopic = "";
                     fakeResponse = "没问题！这是一封简单的请假信范本：\n\n「主管您好，我因个人身体不适，需要请假一天休息，恳请批准。造成不便敬请见谅。」\n\n好好休息，健康最重要喔！";
                 } else if (userText.includes('白噪音')) {
                     lastTopic = "";
                     fakeResponse = "我非常推荐「深海潜水」或是「雨天微风」的白噪音，闭上眼睛听，可以让思绪像海浪一样平静下来喔。🌊";
                 } else if (userText.includes('笑话') || userText.includes('笑話') || (lastTopic === "joke" && (userText.includes('还有') || userText.includes('還有') || userText.includes('别的') || userText.includes('別的') || userText.includes('再来') || userText.includes('再來')))) {
-                    lastTopic = "joke"; 
+                    lastTopic = "joke";
                     const jokeList = [
                         "有一天，小明去海边玩。他对著大海喊：「大海啊！你里面到底有什么？」\n结果海浪拍打著礁石说：「有...有...有点咸...」🌊😂",
                         "为什么海不能当律师？\n因为海「无边无际」，没办法结案！🌊😎",
@@ -349,7 +349,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     ];
                     fakeResponse = greetingResponses[Math.floor(Math.random() * greetingResponses.length)];
                 } else if (userText.includes('放假') || userText.includes('出去玩') || userText.includes('旅游') || userText.includes('旅遊') || userText.includes('逛逛') || userText.includes('休假')) {
-                    lastTopic = "travel"; 
+                    lastTopic = "travel";
                     const playResponses = [
                         "太棒了！放假就是要好好放松呀～如果还没决定去哪，有满多不错的景点可以去走走喔！需要我帮你找找地图吗？🗺️",
                         "放假出游！听起来就很开心～要把这份期待装进漂流瓶里喔！有想好要去哪里玩了吗？✨",
@@ -358,23 +358,23 @@ document.addEventListener('DOMContentLoaded', () => {
                     ];
                     fakeResponse = playResponses[Math.floor(Math.random() * playResponses.length)];
                 } else if (lastTopic === "travel" && (userText.includes('还没') || userText.includes('還沒') || userText.includes('没有') || userText.includes('沒有') || userText.includes('不知道') || userText.includes('没想法') || userText.includes('沒想法'))) {
-                    lastTopic = ""; 
+                    lastTopic = "";
                     fakeResponse = "既然还没想好，不如来看看我们的校园生活地图，我来帮你导览附近有什么好玩好吃的！📍";
                 } else if (userText.includes('算命') || userText.includes('塔罗') || userText.includes('塔羅') || userText.includes('占卜') || userText.includes('算一下')) {
-                    lastTopic = ""; 
+                    lastTopic = "";
                     const tarotResponses = [
                         "我没有办法帮你占卜喔！不过你可以去玩『秘密海域游乐场』里的命运海之卜：今日塔罗瓶，说不定能给你一些指引喔！🔮✨",
                         "占卜这部分我帮不上忙啦～但我记得游乐场里有今日塔罗瓶可以玩，快去试试看能不能解开你的心事吧！💙"
                     ];
                     fakeResponse = tarotResponses[Math.floor(Math.random() * tarotResponses.length)];
                 } else if (userText.includes('无聊') || userText.includes('無聊') || userText.includes('推荐') || userText.includes('推薦') || userText.includes('打发时间') || userText.includes('打發時間') || userText.includes('追剧') || userText.includes('追劇') || userText.includes('游戏') || userText.includes('遊戲')) {
-                    lastTopic = "entertainment"; 
+                    lastTopic = "entertainment";
                     fakeResponse = "无聊的话，要不要我推荐一些好玩的给你？你比较想看甜甜的电视剧，还是想玩精致的换装手游呢？✨";
                 } else if (lastTopic === "entertainment" && (userText.includes('甜') || userText.includes('恋爱') || userText.includes('戀愛') || userText.includes('剧') || userText.includes('劇') || userText.includes('电视') || userText.includes('電視'))) {
-                    lastTopic = ""; 
+                    lastTopic = "";
                     fakeResponse = "那太好了！我强烈推荐你可以重温像《微微一笑很倾城》这种结合专业领域又甜甜的经典，看了心情一定会像海浪一样轻快喔！💻💙";
                 } else if (lastTopic === "entertainment" && (userText.includes('游戏') || userText.includes('遊戲') || userText.includes('换装') || userText.includes('換裝') || userText.includes('手游') || userText.includes('手遊'))) {
-                    lastTopic = ""; 
+                    lastTopic = "";
                     fakeResponse = "说到这个，像《以闪亮之名》这种精致的换装游戏就很纾压喔！随心所欲搭配漂亮的衣服，保证能把无聊一扫而空！👗✨";
                 } else if (userText.includes('谢谢') || userText.includes('謝謝') || userText.includes('感谢') || userText.includes('感謝') || userText.includes('好，') || userText === '好' || userText === '好的' || userText.includes('知道')) {
                     lastTopic = "";
@@ -404,7 +404,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         "被你发现我刚刚脑袋打结了！再给我一点时间进化，下次一定会给出更好的回答啦～🌊"
                     ];
                     fakeResponse = teasingResponses[Math.floor(Math.random() * teasingResponses.length)];
-                } 
+                }
                 // ✨ 日常对话：拒绝或不要
                 else if (userText.includes('不要') || userText.includes('不想') || userText.includes('才不')) {
                     lastTopic = "";
@@ -430,13 +430,13 @@ document.addEventListener('DOMContentLoaded', () => {
             // ==========================================
             else if (currentLang === "en") {
                 if (textLower.includes('leave letter') || textLower.includes('sick leave')) {
-                    lastTopic = ""; 
+                    lastTopic = "";
                     fakeResponse = "No problem! Here's a simple leave letter template:\n\n'Dear Manager, I am writing to request a day off due to illness. I hope to rest and recover soon. Thank you for understanding.'\n\nTake care of yourself!";
                 } else if (textLower.includes('white noise') || textLower.includes('music')) {
                     lastTopic = "";
                     fakeResponse = "I highly recommend 'Deep Sea Diving' or 'Rainy Breeze' white noise. Close your eyes and let your mind calm down like the ocean waves. 🌊";
                 } else if (textLower.includes('joke') || (lastTopic === "joke" && (textLower.includes('more') || textLower.includes('another') || textLower.includes('again')))) {
-                    lastTopic = "joke"; 
+                    lastTopic = "joke";
                     const jokeList = [
                         "One day, Xiaoming went to the beach. He shouted, 'Ocean! What's inside you?' The waves hit the rocks and replied, 'A... a... a bit salty...' 🌊😂",
                         "Why can't the ocean be a lawyer? Because it's 'boundless' and can't close a case! 🌊😎",
@@ -482,7 +482,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     ];
                     fakeResponse = greetingResponses[Math.floor(Math.random() * greetingResponses.length)];
                 } else if (textLower.includes('holiday') || textLower.includes('vacation') || textLower.includes('travel') || textLower.includes('trip') || textLower.includes('hang out')) {
-                    lastTopic = "travel"; 
+                    lastTopic = "travel";
                     const playResponses = [
                         "That's great! Holidays are meant for relaxing~ If you haven't decided where to go, there are many nice spots around. Need me to check the map for you? 🗺️",
                         "A holiday trip! Sounds so happy~ Put this anticipation into a drift bottle! Have you figured out where to go? ✨",
@@ -491,23 +491,23 @@ document.addEventListener('DOMContentLoaded', () => {
                     ];
                     fakeResponse = playResponses[Math.floor(Math.random() * playResponses.length)];
                 } else if (lastTopic === "travel" && (textLower.includes('no') || textLower.includes('not yet') || textLower.includes('don\'t know') || textLower.includes('no idea'))) {
-                    lastTopic = ""; 
+                    lastTopic = "";
                     fakeResponse = "Since you haven't decided, why not check out our campus life map? I can guide you to some fun and tasty spots nearby! 📍";
                 } else if (textLower.includes('tarot') || textLower.includes('fortune') || textLower.includes('divination')) {
-                    lastTopic = ""; 
+                    lastTopic = "";
                     const tarotResponses = [
                         "I can't read tarot cards for you! But you can play the 'Destiny Sea Divination: Today's Tarot Bottle' in the Secret Ocean Playground, it might give you some guidance! 🔮✨",
                         "I can't help with fortune-telling~ But I remember there's a Today's Tarot Bottle in the playground, go try it and see if it can untangle your thoughts! 💙"
                     ];
                     fakeResponse = tarotResponses[Math.floor(Math.random() * tarotResponses.length)];
                 } else if (textLower.includes('bored') || textLower.includes('recommend') || textLower.includes('drama') || textLower.includes('game') || textLower.includes('time')) {
-                    lastTopic = "entertainment"; 
+                    lastTopic = "entertainment";
                     fakeResponse = "Bored? Should I recommend something fun? Do you prefer a sweet TV drama or an exquisite dress-up mobile game? ✨";
                 } else if (lastTopic === "entertainment" && (textLower.includes('drama') || textLower.includes('tv') || textLower.includes('romance') || textLower.includes('sweet'))) {
-                    lastTopic = ""; 
+                    lastTopic = "";
                     fakeResponse = "That's great! I highly recommend rewatching a sweet classic that combines professional fields like 'Love O2O'. It will definitely make your mood as light as the ocean waves! 💻💙";
                 } else if (lastTopic === "entertainment" && (textLower.includes('game') || textLower.includes('dress up') || textLower.includes('mobile game'))) {
-                    lastTopic = ""; 
+                    lastTopic = "";
                     fakeResponse = "Speaking of which, an exquisite dress-up game like 'Life Makeover' is super stress-relieving! Mix and match beautiful clothes as you like, guaranteed to sweep the boredom away! 👗✨";
                 } else if (textLower.includes('thanks') || textLower.includes('okay') || textLower.includes('sure') || textLower.includes('got it')) {
                     lastTopic = "";
@@ -528,7 +528,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     ];
                     fakeResponse = defaultResponses[Math.floor(Math.random() * defaultResponses.length)];
                 }
-            } 
+            }
             // ==========================================
             // 🇯🇵 日文大腦 (日本語)
             // ==========================================
@@ -633,7 +633,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     fakeResponse = defaultResponses[Math.floor(Math.random() * defaultResponses.length)];
                 }
             }
-            
+
             let index = 0;
             typingInterval = setInterval(() => {
                 contentDiv.innerHTML += fakeResponse.charAt(index);
@@ -643,21 +643,21 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (index >= fakeResponse.length) {
                     finishGeneration(toolbar);
                 }
-            }, 50); 
+            }, 50);
 
         }, 1500);
 
         toolbar.querySelector('.copy-btn').addEventListener('click', () => copyToClipboard(contentDiv.innerText));
         toolbar.querySelector('.regen-btn').addEventListener('click', () => {
-            row.remove(); 
-            handleSend(currentLastPrompt); 
+            row.remove();
+            handleSend(currentLastPrompt);
         });
     }
 
     function stopGeneration() {
         isGenerating = false;
         clearInterval(typingInterval);
-        
+
         const toolbars = document.querySelectorAll('.ai-toolbar');
         if (toolbars.length > 0) {
             toolbars[toolbars.length - 1].style.display = 'flex';
@@ -668,7 +668,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function finishGeneration(toolbar) {
         isGenerating = false;
         clearInterval(typingInterval);
-        toolbar.style.display = 'flex'; 
+        toolbar.style.display = 'flex';
         setButtonState('send');
     }
 
@@ -708,17 +708,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function showToast(message) {
         let toast = document.getElementById("custom-toast");
-        
+
         if (!toast) {
             toast = document.createElement("div");
             toast.id = "custom-toast";
             toast.className = "toast";
             document.body.appendChild(toast);
         }
-        
+
         toast.innerText = message;
         toast.classList.add("show");
-        
+
         setTimeout(() => {
             toast.classList.remove("show");
         }, 2500);
@@ -739,7 +739,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // --- 語言選單邏輯 ---
-    
+
     const uiTranslations = {
         "zh-TW": {
             appTitle: "✨ AI 特助",
@@ -787,7 +787,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-    let currentLang = "zh-TW"; 
+    let currentLang = "zh-TW";
 
     langToggle.addEventListener('click', (e) => {
         e.stopPropagation();
@@ -803,21 +803,21 @@ document.addEventListener('DOMContentLoaded', () => {
     langOptions.forEach(option => {
         option.addEventListener('click', () => {
             const langName = option.innerText;
-            const langCode = option.getAttribute('data-lang'); 
-            
+            const langCode = option.getAttribute('data-lang');
+
             currentLang = langCode;
             const t = uiTranslations[langCode];
 
             document.querySelector('.chat-header .title').innerHTML = t.appTitle;
-            
+
             const welcomeH2 = document.querySelector('#welcome-screen h2');
-            if(welcomeH2) welcomeH2.innerText = t.welcomeH2;
-            
+            if (welcomeH2) welcomeH2.innerText = t.welcomeH2;
+
             const welcomeP = document.querySelector('#welcome-screen p');
-            if(welcomeP) welcomeP.innerText = t.welcomeP;
+            if (welcomeP) welcomeP.innerText = t.welcomeP;
 
             const chips = document.querySelectorAll('.suggestion-chips .chip');
-            if(chips.length === 3) {
+            if (chips.length === 3) {
                 chips[0].innerText = t.chip1;
                 chips[1].innerText = t.chip2;
                 chips[2].innerText = t.chip3;
@@ -826,8 +826,8 @@ document.addEventListener('DOMContentLoaded', () => {
             document.getElementById('message-input').placeholder = t.placeholder;
             document.querySelector('.input-footer-text').innerText = t.footer;
 
-            showToast(`${t.toastPrefix}${langName}`); 
-            
+            showToast(`${t.toastPrefix}${langName}`);
+
             langMenu.classList.remove('show');
         });
     });
