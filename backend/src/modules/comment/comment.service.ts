@@ -38,7 +38,10 @@ export const createComment = async (bottleId: number, memberId: number, content:
 /*取得留言*/
 export const getCommentsByBottleId = async (bottleId: number, memberId: number) => {
     const comments = await prisma.comment.findMany({
-        where: { bottle_id: bottleId },
+        where: {
+            bottle_id: bottleId,
+            parent_id: null
+        },
         orderBy: { createdAt: 'asc' },
         include: {
             member: {
@@ -53,6 +56,14 @@ export const getCommentsByBottleId = async (bottleId: number, memberId: number) 
             } : false,
             _count: {
                 select: { likes: true }
+            },
+            replies: {
+                orderBy: { createdAt: 'asc' },
+                include: {
+                    member: { select: { name: true } },
+                    _count: { select: { likes: true } },
+                    likes: memberId ? { where: { member_id: memberId } } : false,
+                }
             }
         }
     });
@@ -62,7 +73,15 @@ export const getCommentsByBottleId = async (bottleId: number, memberId: number) 
         likeCount: comments._count.likes,
         isLiked: comments.likes ? comments.likes.length > 0 : false,
         _count: undefined,
-        likes: undefined
+        likes: undefined,
+
+        replies: comments.replies.map(reply => ({
+            ...reply,
+            likeCount: reply._count.likes,
+            isLiked: reply.likes ? reply.likes.length > 0 : false,
+            _count: undefined,
+            likes: undefined,
+        }))
     }))
 };
 
@@ -98,4 +117,39 @@ export const likeComment = async (commentId: number, memberId: number) => {
         });
         return { isLiked: true, message: "已按讚" }
     }
+};
+
+export const createReply = async (bottleId: number, memberId: number, content: string, parentId: number) => {
+    // 🛡️ 防呆 1：確認主留言是否存在
+    const parentComment = await prisma.comment.findUnique({
+        where: { id: parentId }
+    });
+
+    if (!parentComment) {
+        throw new Error("要回覆的留言不存在");
+    }
+
+    // 🛡️ 防呆 2：確認該留言確實屬於這個漂流瓶
+    if (parentComment.bottle_id !== bottleId) {
+        throw new Error("該留言不屬於此漂流瓶，無法回覆");
+    }
+
+    // 🛡️ 防呆 3：防止無限巢狀，限制只能回覆「主留言」
+    if (parentComment.parent_id !== null) {
+        throw new Error("只能回覆主留言，無法針對子留言進行回覆");
+    }
+
+    const newReply = await prisma.comment.create({
+        data: {
+            bottle_id: bottleId,
+            member_id: memberId,
+            content: content,
+            parent_id: parentId
+        },
+        include: {
+            member: { select: { name: true } }
+        }
+    });
+
+    return newReply;
 };

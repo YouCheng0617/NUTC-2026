@@ -10,6 +10,7 @@ export function commentRouter() {
     router.post("/bottles/:bottleId", authCheck, (req, res) => commentController.createCommentController(req, res));
     router.get("/bottles/:bottleId", optionalAuthCheck, (req, res) => commentController.getCommentsByBottleIdController(req, res));
     router.post("/:commentId/like", authCheck, (req, res) => commentController.likeCommentController(req, res));
+    router.post("/bottles/:bottleId/comments/:parentId/reply", authCheck, (req, res) => commentController.createReplyController(req, res));
     return router;
 }
 
