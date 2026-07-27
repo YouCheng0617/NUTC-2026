@@ -273,15 +273,14 @@ window.deleteUserAsAdmin = async function (userId, userName) {
 };
 
 // ==========================================
-// 6. 漂流瓶文章審核 (包含情緒分類下拉與操作按鈕)
+// 6. 漂流瓶文章審核
 // ==========================================
 window._allBottles = [];
 window._filteredBottlesCache = [];
 window._currentStatusFilter = 'all';
-window._currentCategoryFilter = 'all'; // 🌟 新增：記憶下拉選單的選擇
+window._currentCategoryFilter = 'all'; 
 window._currentBottlePage = 1;
 
-// 🌟 新增：情緒分類判斷小工具 (跟你的前台保持一致)
 function getBottleCategoryType(b) {
     let rawCat = b.category_name || null;
     if (!rawCat && b.categories && b.categories.length > 0) rawCat = (typeof b.categories[0] === 'string') ? b.categories[0] : b.categories[0].category?.name;
@@ -292,7 +291,7 @@ function getBottleCategoryType(b) {
     if (rawCat.includes("憤怒") || rawCat.includes("閒聊")) return 'angry';
     if (rawCat.includes("秘密") || rawCat.includes("程式")) return 'secret';
     if (rawCat.includes("破碎") || rawCat.includes("碎片")) return 'broken';
-    return 'apathy'; // 預設歸類到極度厭世
+    return 'apathy'; 
 }
 
 async function loadBottles() {
@@ -307,7 +306,6 @@ async function loadBottles() {
         if (!response.ok) throw new Error();
 
         const data = await response.json();
-        // 確保最新的文章排在最前面
         window._allBottles = (data.data || data.bottles || data || []).reverse(); 
         filterBottles();
     } catch (e) {
@@ -327,7 +325,6 @@ window.filterByStatus = function (status) {
     filterBottles();
 }
 
-// 🌟 新增：下拉選單切換分類的觸發事件
 window.filterByCategory = function (category) {
     window._currentCategoryFilter = category;
     filterBottles();
@@ -337,24 +334,20 @@ window.filterBottles = function () {
     const keyword = document.getElementById('search-bottles').value.toLowerCase();
     
     window._filteredBottlesCache = window._allBottles.filter(b => {
-        // 1. 搜尋關鍵字
         const matchKeyword = String(b.bottle_id || '').includes(keyword) || String(b.title || '').toLowerCase().includes(keyword) || String(b.member_name || b.author?.name || '').toLowerCase().includes(keyword);
         
-        // 2. 審核狀態
         let matchStatus = true;
         const currentStatus = Number(b.status);
         if (window._currentStatusFilter === 'pending') matchStatus = (currentStatus !== 1 && currentStatus !== 2);
         else if (window._currentStatusFilter === 'passed') matchStatus = (currentStatus === 1);
         else if (window._currentStatusFilter === 'rejected') matchStatus = (currentStatus === 2);
         
-        // 3. 🌟 情緒分類
         let matchCategory = true;
         if (window._currentCategoryFilter !== 'all') {
             const catType = getBottleCategoryType(b);
             matchCategory = (catType === window._currentCategoryFilter);
         }
 
-        // 必須同時符合三個條件才會顯示
         return matchKeyword && matchStatus && matchCategory;
     });
 
@@ -402,7 +395,7 @@ function renderBottles(bottles) {
                           `<span class="badge" style="background:#e0f2fe; color:#0284c7; border:1px solid #bae6fd;">⏳ 待審核</span>`;
         let rowStyle = currentStatus === 1 || currentStatus === 2 ? `opacity: 0.8; background: #f8fafc;` : `opacity: 1; background: #ffffff; box-shadow: 0 2px 8px rgba(0,0,0,0.04);`;
 
-        // 🌟 這裡換成漂亮的下拉式操作選單
+        // 🌟 這裡已幫您還原回最直覺的並排按鈕！
         return `
         <tr style="${rowStyle} transition: 0.3s;">
             <td data-label="文章 ID" style="color: #64748b; font-weight: 600;">#${escapeHTML(String(b.bottle_id || b.id))}</td>
@@ -411,17 +404,8 @@ function renderBottles(bottles) {
             <td data-label="看板分類">${catHtml}</td>
             <td data-label="發布時間" style="color: #64748b;">${b.created_at ? new Date(b.created_at).toLocaleDateString() : '未知'}</td>
             <td data-label="項目操作">
-                <div class="action-dropdown">
-                    <button class="btn-dropdown-trigger" onclick="toggleDropdown(this)">⚙️ 操作 ▼</button>
-                    <div class="action-dropdown-menu">
-                        <button class="dropdown-item btn-primary" onclick="openBottleModalFromCache('${b.bottle_id || b.id}')">
-                            ${currentStatus !== 0 ? '👁️ 查看' : '📝 審核'}
-                        </button>
-                        <button class="dropdown-item btn-danger" onclick="deleteBottleAsAdmin('${b.bottle_id || b.id}')">
-                            🗑️ 刪除
-                        </button>
-                    </div>
-                </div>
+                <button class="btn-action btn-primary" onclick="openBottleModalFromCache('${b.bottle_id || b.id}')">${currentStatus !== 0 ? '查看' : '審核'}</button>
+                <button class="btn-action btn-danger" style="margin-left: 5px;" onclick="deleteBottleAsAdmin('${b.bottle_id || b.id}')">刪除</button>
             </td>
         </tr>
         `;
@@ -591,26 +575,3 @@ window.banReportedBottle = async function (bottleId) {
         } else { const err = await response.json(); alert(`下架失敗: ${err.message}`); }
     } catch (e) { alert("伺服器連線失敗"); }
 }
-
-// ==========================================
-// 8. 🌟 操作選單 (下拉式 Action Dropdown) 的開關邏輯
-// ==========================================
-window.toggleDropdown = function(btn) {
-    // 1. 先關閉畫面中其他已展開的選單，避免重疊
-    document.querySelectorAll('.action-dropdown-menu').forEach(menu => {
-        if (menu !== btn.nextElementSibling) {
-            menu.classList.remove('show-menu');
-        }
-    });
-    // 2. 切換當前點擊的選單顯示狀態
-    btn.nextElementSibling.classList.toggle('show-menu');
-};
-
-// 點擊畫面空白處時，自動收起操作選單
-document.addEventListener('click', function(e) {
-    if (!e.target.matches('.btn-dropdown-trigger')) {
-        document.querySelectorAll('.action-dropdown-menu').forEach(menu => {
-            menu.classList.remove('show-menu');
-        });
-    }
-});
