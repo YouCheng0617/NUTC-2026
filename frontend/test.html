@@ -515,93 +515,11 @@
       </div>
     </div>
 
-    <!-- 🔥 左側懸浮：熱門漂流瓶抽屜 (無紅字防呆版) -->
-    <div
-      class="ocean-popular-board"
-      id="ocean-popular-board"
-      style="
-        left: -300px;
-        transition: left 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
-      "
-    >
-      <div
-        class="popular-drawer-handle"
-        onclick="
-          const board = document.getElementById('ocean-popular-board');
-          const arrow = document.getElementById('popular-arrow');
-          if (!board || !arrow) return;
-          if (board.style.left === '-300px') {
-            board.style.left = '25px';
-            arrow.style.transform = 'rotate(180deg)';
-          } else {
-            board.style.left = '-300px';
-            arrow.style.transform = 'rotate(0deg)';
-          }
-        "
-        title="點擊收起/展開熱門貼文"
-        style="cursor: pointer; user-select: none"
-      >
-        <span>🔥 熱門</span>
-        <i
-          id="popular-arrow"
-          style="transition: transform 0.3s ease; font-style: normal"
-          >▶</i
-        >
-      </div>
-
-      <!-- 主體內容區 -->
-      <div class="popular-content-wrapper">
-        <div class="popular-header">
-          <span class="popular-icon">🔥</span> 熱門海域
-        </div>
-        <div id="popular-posts-list" class="popular-list-container">
-          <div style="text-align: center; color: #88bbff; padding: 25px 0">
-            正在打撈熱門瓶子...🌊
-          </div>
-        </div>
-        <div class="popular-footer">✨ 大家都在討論的心事</div>
-      </div>
-    </div>
-
-    <!-- 🔥 左側懸浮：熱門漂流瓶抽屜 (單一把手乾淨版) -->
-    <div class="ocean-popular-board collapsed" id="ocean-popular-board">
-      <!-- 🌟 只有這「唯一一個」掛在右邊的把手！絕對不要有第二個！ -->
-      <div
-        class="popular-drawer-handle"
-        onclick="
-          document
-            .getElementById('ocean-popular-board')
-            .classList.toggle('collapsed')
-        "
-        title="點擊收起/展開熱門貼文"
-      >
-        <span>🔥 熱門</span>
-        <i id="popular-arrow">▶</i>
-      </div>
-
-      <!-- 主體內容區 -->
-      <div class="popular-content-wrapper">
-        <div class="popular-header">
-          <span class="popular-icon">🔥</span> 熱門海域
-        </div>
-        <div id="popular-posts-list" class="popular-list-container">
-          <div style="text-align: center; color: #88bbff; padding: 25px 0">
-            正在打撈熱門瓶子...🌊
-          </div>
-        </div>
-        <div class="popular-footer">✨ 大家都在討論的心事</div>
-      </div>
-    </div>
-
-    <!-- 🔥 左側懸浮：熱門漂流瓶抽屜 (終極乾淨單把手版) -->
+    <!-- 🔥 左側懸浮：熱門漂流瓶抽屜 (唯一正牌單把手版) -->
     <div class="ocean-popular-board collapsed" id="ocean-popular-board">
       <div
         class="popular-drawer-handle"
-        onclick="
-          document
-            .getElementById('ocean-popular-board')
-            .classList.toggle('collapsed')
-        "
+        onclick="document.getElementById('ocean-popular-board').classList.toggle('collapsed')"
         title="點擊收起/展開熱門貼文"
       >
         <span>🔥 熱門</span>
@@ -620,7 +538,6 @@
         <div class="popular-footer">✨ 大家都在討論的心事</div>
       </div>
     </div>
-
     <!-- 🌊 右側懸浮：深海公約抽屜 (終極乾淨單把手版) -->
     <div class="ocean-rules-board collapsed" id="ocean-rules-board">
       <div
@@ -662,7 +579,7 @@
       </div>
     </div>
 
-    <script type="module" src="test.js?v=18"></script>
+    <script type="module" src="test.js?v=19"></script>
     <div class="ocean-refresh-btn" onclick="callOceanCurrent()">
       🌊 呼喚海流
     </div>
