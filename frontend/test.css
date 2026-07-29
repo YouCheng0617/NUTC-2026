@@ -1152,7 +1152,7 @@ body, html { height: 100vh !important; overflow: hidden !important; background-c
    ========================================= */
 .ocean-popular-board {
   position: fixed;
-  top: 42%;
+  top: 50%;
   transform: translateY(-50%);
   width: 300px;
   z-index: 95;

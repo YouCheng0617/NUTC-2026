@@ -1533,6 +1533,30 @@ async function fetchPopularBottles() {
     const headers = { "Content-Type": "application/json", "ngrok-skip-browser-warning": "true" };
     if (token) headers["Authorization"] = `Bearer ${token}`;
 
+    // 🌟 神奇魔法陣：在撈熱門文章前，先偷偷翻一下寶寶的包包，看看收藏過、按讚過哪些瓶子！
+    let likedBottleIds = [];
+    let savedBottleIds = [];
+
+    if (token) {
+        try {
+            const likedRes = await fetch(`${API_BASE_URL}/bottles/liked`, { method: 'GET', headers });
+            if (likedRes.ok) {
+                const likedData = await likedRes.json();
+                let arr = likedData.bottles || likedData.data || likedData;
+                if (Array.isArray(arr)) likedBottleIds = arr.map(i => String(i.bottle_id || i.id || i.bottleId));
+            }
+        } catch (e) {}
+
+        try {
+            const savedRes = await fetch(`${API_BASE_URL}/bottles/saved`, { method: 'GET', headers });
+            if (savedRes.ok) {
+                const savedData = await savedRes.json();
+                let arr = savedData.bottles || savedData.data || savedData;
+                if (Array.isArray(arr)) savedBottleIds = arr.map(i => String(i.bottle_id || i.id || i.bottleId));
+            }
+        } catch (e) {}
+    }
+
     const response = await fetch(`${API_BASE_URL}/bottles/popular`, { method: "GET", headers: headers });
 
     if (response.ok) {
@@ -1547,46 +1571,109 @@ async function fetchPopularBottles() {
         listContainer.innerHTML = '<div style="text-align: center; color: #ccc; padding: 20px 0;">目前海面上還沒有熱門貼文喔！🌊</div>';
         return;
       }
-      // 🌟 新增這裡：把熱門文章同步塞進全域的 posts 陣列中
-      popularArray.forEach(rawItem => {
-          const item = rawItem.bottle || rawItem.Bottle || rawItem;
-          const safeId = String(item.bottle_id || item.id || item.bottleId || rawItem.id || rawItem.bottle_id || "temp");
-          
-          // 如果這篇文章不在 posts 陣列中，就將它加入
-          if (!posts.some(p => String(p.id) === safeId)) {
-              let authorName = (item.is_anonymous || item.isAnonymous) ? "匿名" : (item.author?.name || item.author_name || item.author || "用戶");
-              let boardName = item.category_name || item.board || "綜合閒聊"; // 給予預設海域
-              
-              posts.push({
-                  id: safeId,
-                  board: boardName,
-                  author: authorName,
-                  authorId: item.author_id || item.user_id || item.member_id || null,
-                  title: item.title || rawItem.title || "無標題",
-                  desc: item.content || rawItem.content || "",
-                  likes: parseInt(item.like_count || item.likeCount || item.likes || 0, 10),
-                  msgs: item.comment_count || item.comments?.length || 0,
-                  liked: Boolean(item.is_liked || item.isLiked),
-                  saved: Boolean(item.is_saved || item.isSaved),
-                  createdAt: item.createdAt || item.created_at || rawItem.createdAt || rawItem.created_at
-              });
-          }
-      });
+
+      // 🌟 魔法防護罩：建立熱門快取，防止被主海域的資料覆蓋導致點不到！
+      if (!window.popularCache) window.popularCache = [];
+
+      // 🌟 動態修復 openPostDetail，讓它可以去快取找文章
+      if (!window.hasPatchedOpenDetail) {
+          const originalOpen = window.openPostDetail;
+          window.openPostDetail = function(id) {
+              if (!posts.some(p => String(p.id) === String(id))) {
+                  const cachedPost = window.popularCache.find(p => String(p.id) === String(id));
+                  if (cachedPost) posts.push(cachedPost); 
+              }
+              originalOpen(id);
+          };
+          window.hasPatchedOpenDetail = true;
+      }
+
       listContainer.innerHTML = popularArray.slice(0, 6).map((rawItem, index) => {
           const item = rawItem.bottle || rawItem.Bottle || rawItem;
           const safeId = String(item.bottle_id || item.id || item.bottleId || rawItem.id || rawItem.bottle_id || "temp");
           const title = item.title || rawItem.title || "無標題貼文";
-          const author = item.is_anonymous || item.isAnonymous ? "匿名" : item.author?.name || item.author_name || item.author || "用戶";
-          const likes = parseInt(item.like_count || item.likeCount || item.likes || 0, 10);
+          
+          let author = "用戶";
+          if (item.is_anonymous || item.isAnonymous) {
+              author = "匿名";
+          } else {
+              if (typeof item.author === 'string') author = item.author;
+              else if (item.author?.name) author = item.author.name;
+              else if (item.author_name) author = item.author_name;
+              else if (item.user?.name) author = item.user.name;
+              else if (item.username) author = item.username;
+              else if (item.User?.name) author = item.User.name;
+              else if (typeof rawItem.author === 'string') author = rawItem.author;
+              else if (rawItem.author?.name) author = rawItem.author.name;
+              else if (rawItem.user?.name) author = rawItem.user.name;
+              else if (rawItem.User?.name) author = rawItem.User.name;
+              else if (rawItem.member?.name) author = rawItem.member.name;
+              else if (item.member?.name) author = item.member.name;
+              else if (item.member_name) author = item.member_name;
+              else if (rawItem.member_name) author = rawItem.member_name;
+          }
+
+          let rawBoard = item.category_name || item.board || null;
+          if (!rawBoard && item.category_list && Array.isArray(item.category_list) && item.category_list.length > 0) {
+              rawBoard = item.category_list[0];
+          }
+          if (!rawBoard && item.categories && item.categories.length > 0) {
+              rawBoard = item.categories[0].category?.name;
+          } else if (!rawBoard && rawItem.categories && rawItem.categories.length > 0) {
+              rawBoard = rawItem.categories[0].category?.name;
+          }
+
+          let boardName = "😑 極度厭世/躺平"; 
+          let cId = item.category_id || rawItem.category_id || item.categoryId;
+          if (!rawBoard && item.categories && item.categories.length > 0) cId = item.categories[0].category_id;
+
+          const idToBoard = { 1: "😡 極度憤怒中", 2: "🤫 沒人懂的秘密", 3: "💔 破碎的碎片", 4: "😑 極度厭世/躺平", 5: "😁 開心的事" };
+
+          if (rawBoard) {
+              if (rawBoard.includes("憤怒")) boardName = "😡 極度憤怒中";
+              else if (rawBoard.includes("秘密")) boardName = "🤫 沒人懂的秘密";
+              else if (rawBoard.includes("破碎")) boardName = "💔 破碎的碎片";
+              else if (rawBoard.includes("厭世") || rawBoard.includes("躺平")) boardName = "😑 極度厭世/躺平";
+              else if (rawBoard.includes("開心")) boardName = "😁 開心的事";
+              else boardName = rawBoard;
+          } else if (cId !== undefined && cId !== null) {
+              if (Array.isArray(cId) && cId.length > 0) boardName = idToBoard[cId[0]] || boardName;
+              else if (!Array.isArray(cId)) boardName = idToBoard[cId] || boardName;
+          }
+
+          const savesCount = parseInt(item.save_count || item.saveCount || item.saves || 0, 10);
+
+          // 🌟 終極記憶恢復：核對這篇文章有沒有在寶寶的清單裡！
+          let isActuallyLiked = likedBottleIds.includes(safeId) || Boolean(item.is_liked || item.isLiked);
+          let isActuallySaved = savedBottleIds.includes(safeId) || Boolean(item.is_saved || item.isSaved);
+
+          const postObj = {
+              id: safeId,
+              board: boardName,
+              author: author,
+              authorId: item.author_id || item.user_id || item.member_id || null,
+              title: title,
+              desc: item.content || rawItem.content || "",
+              likes: parseInt(item.like_count || item.likeCount || item.likes || 0, 10),
+              msgs: item.comment_count || item.comments?.length || 0,
+              liked: isActuallyLiked, // 寫入真實按讚狀態
+              saved: isActuallySaved, // 寫入真實收藏狀態
+              createdAt: item.createdAt || item.created_at || rawItem.createdAt || rawItem.created_at
+          };
+          
+          if (!window.popularCache.some(p => String(p.id) === safeId)) window.popularCache.push(postObj);
+          if (!posts.some(p => String(p.id) === safeId)) posts.push(postObj);
+
           return `
           <div class="popular-item-card" onclick="openPostDetail('${safeId}')">
             <div class="popular-item-title">👑 TOP ${index + 1}: ${escapeHTML(title)}</div>
-            <div class="popular-item-meta">
-              <span>👤 ${escapeHTML(author)}</span>
-              <span>❤️ ${likes}</span>
+            <div class="popular-item-meta" style="display: flex; gap: 8px; flex-wrap: wrap; margin-top: 4px;">
+              <span style="color: #4da6ff; flex-shrink: 0;">[${escapeHTML(boardName)}]</span>
+              <span style="flex-grow: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">👤 ${escapeHTML(author)}</span>
+              <span style="flex-shrink: 0; margin-left: auto;">⭐ ${savesCount}</span>
             </div>
           </div>
-        `;
+          `;
         }).join("");
     } else {
       listContainer.innerHTML = '<div style="text-align: center; color: #ff6b6b; padding: 20px 0;">打撈失敗，海象不佳 😢</div>';
@@ -1595,7 +1682,6 @@ async function fetchPopularBottles() {
     listContainer.innerHTML = '<div style="text-align: center; color: #ff6b6b; padding: 20px 0;">伺服器連線失敗 😢</div>';
   }
 }
-
 // =========================================
 // 🫂 追蹤與我的追蹤功能邏輯 (完美乾淨版)
 // =========================================
