@@ -1421,6 +1421,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const AI_ASSISTANT_URL = "./chat_ui/chat.html";
     mascot.onclick = () => { window.location.href = AI_ASSISTANT_URL; };
+    fetchPopularBottles();
 });
 
 
