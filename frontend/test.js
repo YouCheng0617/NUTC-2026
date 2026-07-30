@@ -1299,7 +1299,7 @@ document.addEventListener('DOMContentLoaded', () => {
     mascotContainer.id = 'svg-mermecat-mascot';
     mascotContainer.title = '點擊我去找 AI 小助理聊天！';
 
-   mascotContainer.innerHTML = `
+    mascotContainer.innerHTML = `
         <div class="svg-mermecat-wrapper">
             <!-- 🌟 1. 醒著游泳的吉祥物 -->
             <svg id="awake-mascot" width="130" height="140" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
@@ -1512,61 +1512,10 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-<<<<<<< HEAD
-const stopDrag = () => {
-    if (isDragging) {
-        isDragging = false;
-
-        try {
-            const mascotHome = document.getElementById('mascot-home');
-            if (mascotHome && !window.isMascotSleeping) {
-                const homeRect = mascotHome.getBoundingClientRect();
-                const mascotRect = mascot.getBoundingClientRect();
-                
-                const mascotCenterX = mascotRect.left + mascotRect.width / 2;
-                const mascotCenterY = mascotRect.top + mascotRect.height / 2;
-
-                // 碰撞范围判定
-                if (
-                    mascotCenterX > homeRect.left &&
-                    mascotCenterX < homeRect.right &&
-                    mascotCenterY > homeRect.top &&
-                    mascotCenterY < homeRect.bottom
-                ) {
-                    window.isMascotSleeping = true;
-                    mascot.classList.add('mascot-sleeping');
-                    clearTimeout(swimTimer); // 停下
-
-                    // 🌟 圖片切換魔法
-                    const awakeMascot = document.getElementById('awake-mascot');
-                    const sleepingMascot = document.getElementById('sleeping-mascot');
-                    if (awakeMascot) awakeMascot.style.display = 'none';
-                    if (sleepingMascot) sleepingMascot.style.display = 'block';
-
-                    // 🌟 完美置中與大小魔法 (不會再偏到右下角了！)
-                    mascot.style.transition = 'all 0.5s ease-out';
-                    mascot.style.transform = `scale(0.65)`; // ✨ 尺寸調整為剛好的大小
-                    
-                    // 扣掉吉祥物本身一半的寬度跟高度，才會真的置中！
-                    const exactX = homeRect.left + (homeRect.width / 2) - (mascot.offsetWidth / 2);
-                    const exactY = homeRect.top + (homeRect.height / 2) - (mascot.offsetHeight / 2) + 15; // +15 讓牠稍微沉在水底
-
-                    mascot.style.left = `${exactX}px`;
-                    mascot.style.top = `${exactY}px`;
-
-                    const dialogueBox = document.getElementById('mermecat-dialogue');
-                    if (dialogueBox) {
-                        dialogueBox.innerText = "呼嚕呼嚕... 進來休息喵 ✨🐚";
-                        dialogueBox.classList.add('show-dialogue');
-                        setTimeout(() => { dialogueBox.classList.remove('show-dialogue'); }, 3000);
-                    }
-                    return; 
-=======
     const stopDrag = () => {
         if (isDragging) {
             isDragging = false;
 
-            // 🏠 --- 新增的小窩判定魔法 (包在 try-catch 裡絕對安全) ---
             try {
                 const mascotHome = document.getElementById('mascot-home');
                 if (mascotHome && !window.isMascotSleeping) {
@@ -1576,98 +1525,77 @@ const stopDrag = () => {
                     const mascotCenterX = mascotRect.left + mascotRect.width / 2;
                     const mascotCenterY = mascotRect.top + mascotRect.height / 2;
 
+                    // 碰撞范围判定
                     if (
-                        mascotCenterX > homeRect.left - 20 &&
-                        mascotCenterX < homeRect.right + 20 &&
-                        mascotCenterY > homeRect.top - 20 &&
-                        mascotCenterY < homeRect.bottom + 20
+                        mascotCenterX > homeRect.left &&
+                        mascotCenterX < homeRect.right &&
+                        mascotCenterY > homeRect.top &&
+                        mascotCenterY < homeRect.bottom
                     ) {
                         window.isMascotSleeping = true;
                         mascot.classList.add('mascot-sleeping');
-                        clearTimeout(swimTimer); // 讓牠乖乖停下來睡覺
+                        clearTimeout(swimTimer); // 停下
+
+                        // 🌟 圖片切換魔法
+                        const awakeMascot = document.getElementById('awake-mascot');
+                        const sleepingMascot = document.getElementById('sleeping-mascot');
+                        if (awakeMascot) awakeMascot.style.display = 'none';
+                        if (sleepingMascot) sleepingMascot.style.display = 'block';
+
+                        // 🌟 完美置中與大小魔法 (不會再偏到右下角了！)
+                        mascot.style.transition = 'all 0.5s ease-out';
+                        mascot.style.transform = `scale(0.65)`; // ✨ 尺寸調整為剛好的大小
+
+                        // 扣掉吉祥物本身一半的寬度跟高度，才會真的置中！
+                        const exactX = homeRect.left + (homeRect.width / 2) - (mascot.offsetWidth / 2);
+                        const exactY = homeRect.top + (homeRect.height / 2) - (mascot.offsetHeight / 2) + 15; // +15 讓牠稍微沉在水底
+
+                        mascot.style.left = `${exactX}px`;
+                        mascot.style.top = `${exactY}px`;
 
                         const dialogueBox = document.getElementById('mermecat-dialogue');
                         if (dialogueBox) {
-                            dialogueBox.innerText = "呼嚕呼嚕... 寶寶晚安喵 💤";
+                            dialogueBox.innerText = "呼嚕呼嚕... 進來休息喵 ✨🐚";
                             dialogueBox.classList.add('show-dialogue');
                             setTimeout(() => { dialogueBox.classList.remove('show-dialogue'); }, 3000);
                         }
-                        return; // 🛑 成功回小窩就中斷，不執行下面的游泳
+                        return;
                     }
->>>>>>> 88612e17d5b93316947626f085d5520079e1c152
                 }
             } catch (e) {
                 console.log('小窩魔法打結了:', e);
             }
-<<<<<<< HEAD
-        } catch(e) {
-            console.log('小窩魔法打結了:', e);
-        }
 
-        if (!window.isMascotSleeping) {
-            swimLikeLazyMermaid();
-        }
-    }
-};
-
-// 🏠 --- 蓋房子與起床的程式碼 ---
-let mascotHome = document.getElementById('mascot-home');
-if (!mascotHome) {
-    mascotHome = document.createElement('div');
-=======
-            // 🏠 --- 小窩判定結束 ---
-
-            // 🌟 這是寶寶原本的程式碼，原封不動！
-            // 鬆手後立刻呼叫游泳函數，讓牠立刻開始往新方向游！
             if (!window.isMascotSleeping) {
                 swimLikeLazyMermaid();
             }
         }
     };
-    // 🏠 建立小窩與點擊喚醒功能
-    const mascotHome = document.createElement('div');
->>>>>>> 88612e17d5b93316947626f085d5520079e1c152
-    mascotHome.id = 'mascot-home';
-    mascotHome.title = '把小助理拖進來休息，點擊再叫牠起床喔！';
-    document.body.appendChild(mascotHome);
-}
 
-<<<<<<< HEAD
-mascotHome.addEventListener('click', () => {
-    if (window.isMascotSleeping) {
-        window.isMascotSleeping = false;
-        mascot.classList.remove('mascot-sleeping');
-        
-        // 🌟 切換回醒著的圖片
-        const awakeMascot = document.getElementById('awake-mascot');
-        const sleepingMascot = document.getElementById('sleeping-mascot');
-        if (awakeMascot) awakeMascot.style.display = 'block';
-        if (sleepingMascot) sleepingMascot.style.display = 'none';
-        
-        // 恢復大小跟位置
-        const homeRect = mascotHome.getBoundingClientRect();
-        mascot.style.transition = 'none'; 
-        mascot.style.transform = `scale(1)`; 
-        mascot.style.left = (homeRect.right + 15) + 'px';
-        mascot.style.top = (homeRect.top - 30) + 'px';
-        mascot.offsetHeight; // 強制瀏覽器重繪
-        
-        mascot.style.transition = 'top 8s ease-in-out, left 8s ease-in-out';
-        
-        const dialogueBox = document.getElementById('mermecat-dialogue');
-        if (dialogueBox) {
-            dialogueBox.innerText = "喵嗚！謝謝寶寶叫我起床✨🐬";
-            dialogueBox.classList.add('show-dialogue');
-            setTimeout(() => { dialogueBox.classList.remove('show-dialogue'); }, 3500);
-=======
+    // 🏠 --- 蓋房子與起床的程式碼 ---
+    let mascotHome = document.getElementById('mascot-home');
+    if (!mascotHome) {
+        mascotHome = document.createElement('div');
+        mascotHome.id = 'mascot-home';
+        mascotHome.title = '把小助理拖進來休息，點擊再叫牠起床喔！';
+        document.body.appendChild(mascotHome);
+    }
+
     mascotHome.addEventListener('click', () => {
         if (window.isMascotSleeping) {
             window.isMascotSleeping = false;
             mascot.classList.remove('mascot-sleeping');
 
-            // 精準放在小窩旁邊
+            // 🌟 切換回醒著的圖片
+            const awakeMascot = document.getElementById('awake-mascot');
+            const sleepingMascot = document.getElementById('sleeping-mascot');
+            if (awakeMascot) awakeMascot.style.display = 'block';
+            if (sleepingMascot) sleepingMascot.style.display = 'none';
+
+            // 恢復大小跟位置
             const homeRect = mascotHome.getBoundingClientRect();
             mascot.style.transition = 'none';
+            mascot.style.transform = `scale(1)`;
             mascot.style.left = (homeRect.right + 15) + 'px';
             mascot.style.top = (homeRect.top - 30) + 'px';
             mascot.offsetHeight; // 強制瀏覽器重繪
@@ -1676,12 +1604,11 @@ mascotHome.addEventListener('click', () => {
 
             const dialogueBox = document.getElementById('mermecat-dialogue');
             if (dialogueBox) {
-                dialogueBox.innerText = "喵嗚！我睡飽了！謝謝寶寶叫我起床✨";
+                dialogueBox.innerText = "喵嗚！謝謝寶寶叫我起床✨🐬";
                 dialogueBox.classList.add('show-dialogue');
                 setTimeout(() => { dialogueBox.classList.remove('show-dialogue'); }, 3500);
             }
 
-            // 起床後繼續漫遊
             swimLikeLazyMermaid();
         } else {
             const dialogueBox = document.getElementById('mermecat-dialogue');
@@ -1690,19 +1617,8 @@ mascotHome.addEventListener('click', () => {
                 dialogueBox.classList.add('show-dialogue');
                 setTimeout(() => { dialogueBox.classList.remove('show-dialogue'); }, 2500);
             }
->>>>>>> 88612e17d5b93316947626f085d5520079e1c152
         }
-        
-        swimLikeLazyMermaid();
-    } else {
-        const dialogueBox = document.getElementById('mermecat-dialogue');
-        if (dialogueBox) {
-            dialogueBox.innerText = "我還不想睡啦！把我拖過去我才要睡！😝";
-            dialogueBox.classList.add('show-dialogue');
-            setTimeout(() => { dialogueBox.classList.remove('show-dialogue'); }, 2500);
-        }
-    }
-});
+    });
     // 🖱️ 滑鼠事件
     mascot.addEventListener('mousedown', (e) => {
         e.preventDefault();
