@@ -115,7 +115,10 @@ export const bottleController = {
                 },
                 include: {
                     author: {
-                        select: { name: true }
+                        select: {
+                            member_id: true,
+                            name: true
+                        }
                     },
                     _count: {
                         select: { likes: true, saves: true }
