@@ -106,6 +106,7 @@ export const bottleController = {
     },
 
     /* 獲取瓶子 */
+    /* 獲取瓶子 */
     async getBottles(req: AuthRequest, res: Response) {
         try {
             const memberId = req.user?.member_id; // 💡 訪客會是 undefined
@@ -144,7 +145,7 @@ export const bottleController = {
             const suffledBottles = availableBottles.sort(() => 0.5 - Math.random());
             const seletBottles = suffledBottles.slice(0, limit).map(bottle => bottle.bottle_id);
 
-            // 🌟 3. 動態建立 include 物件，避開 false 導致 Prisma 崩潰的問題
+            // 🌟 3. 動態建立 include 物件，注意要完美對應 Schema 的大寫 PollOption / PollVote
             const includeCondition: any = {
                 author: {
                     select: {
@@ -161,7 +162,7 @@ export const bottleController = {
                         category: true
                     }
                 },
-                pollOptions: {
+                PollOption: { // 👈 配合 Schema 大寫 P
                     select: {
                         id: true,
                         text: true,
@@ -172,9 +173,9 @@ export const bottleController = {
                 }
             };
 
-            // 💡 只有當 memberId 存在時，才將 pollVotes 加入 include
+            // 💡 只有當 memberId 存在時，才將 PollVote 加入 include
             if (memberId) {
-                includeCondition.pollVotes = {
+                includeCondition.PollVote = { // 👈 配合 Schema 大寫 P
                     where: { member_id: memberId },
                     select: { option_id: true }
                 };
@@ -188,7 +189,7 @@ export const bottleController = {
                 include: includeCondition
             });
 
-            // 🌟 4. 整理回傳格式
+            // 🌟 4. 整理回傳格式 (回傳給前端依然維持漂亮的小寫風格 `poll_options`)
             const responseBottles = randomBottles.map((bottle: any) => ({
                 bottle_id: bottle.bottle_id,
                 title: bottle.title,
@@ -202,14 +203,16 @@ export const bottleController = {
                 view_count: bottle.view_count,
                 category_list: bottle.categories?.map((c: any) => c.category?.name || "未知類別") || [],
 
-                poll_options: bottle.pollOptions?.map((opt: any) => ({
+                // 抓取剛剛大寫 PollOption 撈出來的資料
+                poll_options: bottle.PollOption?.map((opt: any) => ({
                     option_id: opt.id,
                     text: opt.text,
                     vote_count: opt._count?.votes ?? 0
                 })) || [],
 
-                user_voted_option_id: bottle.pollVotes && bottle.pollVotes.length > 0
-                    ? bottle.pollVotes[0].option_id
+                // 抓取剛剛大寫 PollVote 撈出來的資料
+                user_voted_option_id: bottle.PollVote && bottle.PollVote.length > 0
+                    ? bottle.PollVote[0].option_id
                     : null
             }));
 
