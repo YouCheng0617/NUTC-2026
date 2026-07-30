@@ -51,6 +51,7 @@ postman 測試用語
   "password": "",
   "name": "",
   "birthday": "1995-01-01T00:00:00.000Z",
+  "gender": "",
   "bio": "",
   "blood_type": "",
   "constellation": "" /*可填可不填因為有函式自動判別*/
