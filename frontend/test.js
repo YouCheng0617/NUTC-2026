@@ -7,7 +7,7 @@ let currentAuthorId = null; // 🌟 新增：用來記住目前正在看哪位�
 
 // 👇 分頁設定與狀態紀錄
 let currentPage = 1;
-const POSTS_PER_PAGE = 6; 
+const POSTS_PER_PAGE = 6;
 
 // 🌟 一進來就看到全海域！
 let currentBoard = sessionStorage.getItem('savedBoard') || '全海域';
@@ -67,7 +67,7 @@ async function fetchBottles() {
     try {
         let endpointUrl = `${API_BASE_URL}/bottles/random`;
 
-       if (currentView === 'mine') {
+        if (currentView === 'mine') {
             if (!token) { renderPosts([]); return; }
             endpointUrl = `${API_BASE_URL}/bottles/mybottles`;
         } else if (currentView === 'saved') {
@@ -89,7 +89,7 @@ async function fetchBottles() {
                     let arr = likedData.bottles || likedData.data || likedData;
                     if (Array.isArray(arr)) likedBottleIds = arr.map(i => String(i.bottle_id || i.id || i.bottleId));
                 }
-            } catch (e) {}
+            } catch (e) { }
 
             try {
                 const savedRes = await fetch(`${API_BASE_URL}/bottles/saved`, { method: 'GET', headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' } });
@@ -98,7 +98,7 @@ async function fetchBottles() {
                     let arr = savedData.bottles || savedData.data || savedData;
                     if (Array.isArray(arr)) savedBottleIds = arr.map(i => String(i.bottle_id || i.id || i.bottleId));
                 }
-            } catch (e) {}
+            } catch (e) { }
         }
 
         const headers = {
@@ -209,7 +209,7 @@ async function fetchBottles() {
 
                 // 🌟 加強版：把後端所有可能藏 ID 的地方都翻一遍！
                 let realAuthorId = item.author_id || item.user_id || item.member_id || rawItem.author_id || rawItem.user_id;
-                
+
                 if (!realAuthorId && item.author?.id) realAuthorId = item.author.id;
                 if (!realAuthorId && item.user?.id) realAuthorId = item.user.id;
                 if (!realAuthorId && item.User?.id) realAuthorId = item.User.id;
@@ -303,7 +303,7 @@ function applyFilters() {
     if (currentView === 'saved') {
         res = res.filter(p => p.saved === true);
     } else if (currentView === 'mine') {
-    } 
+    }
     // ✨ 魔法在這裡：如果是全海域，我們就直接放行所有瓶子！
     else if (!currentKeyword && currentBoard !== '全海域') {
         res = res.filter(p => p.board.includes(currentBoard));
@@ -416,33 +416,33 @@ window.renderComments = async function (postId) {
             comments = data.comments || data.data || data || [];
         }
 
-lists.forEach(listContainer => {
-                    if (!listContainer) return;
-                    if (comments.length === 0) {
-                        listContainer.innerHTML = '<div style="text-align:center; color:#888; padding: 30px 0;">目前還沒有留言喔，來搶頭香吧！🐟</div>';
-                        return;
-                    }
+        lists.forEach(listContainer => {
+            if (!listContainer) return;
+            if (comments.length === 0) {
+                listContainer.innerHTML = '<div style="text-align:center; color:#888; padding: 30px 0;">目前還沒有留言喔，來搶頭香吧！🐟</div>';
+                return;
+            }
 
-                    let html = '';
-                    comments.forEach((c, index) => {
-                        const authorName = c.isAnonymous ? "匿名" : (c.member?.name || c.author_name || c.author?.name || c.user?.name || c.username || c.author || '匿名');
-                        const likesCount = c.likeCount || c.like_count || c.likes || 0;
-                        const isLiked = c.isLiked || c.is_liked || c.liked || false;
-                        const commentId = c.id || c.comment_id || c.commentId || c._id;
-                        const content = c.content || c.text || '';
-                        const avatar = c.avatar || 'images/fish_logo.png';
+            let html = '';
+            comments.forEach((c, index) => {
+                const authorName = c.member_name || '未知使用者';
+                const likesCount = c.likeCount || c.like_count || c.likes || 0;
+                const isLiked = c.isLiked || c.is_liked || c.liked || false;
+                const commentId = c.id || c.comment_id || c.commentId || c._id;
+                const content = c.content || c.text || '';
+                const avatar = c.avatar || 'images/fish_logo.png';
 
-                        // 🌟 魔法：打撈子留言！
-                        const replies = c.replies || c.children || c.subComments || [];
-                        let repliesHtml = '';
-                        
-                        if (replies.length > 0) {
-                            replies.forEach(reply => {
-                                const rAuthor = reply.isAnonymous ? "匿名" : (reply.member?.name || reply.author_name || reply.author?.name || '匿名');
-                                const rContent = reply.content || reply.text || '';
-                                const rAvatar = reply.avatar || 'images/fish_logo.png';
-                                
-                                repliesHtml += `
+                // 🌟 魔法：打撈子留言！
+                const replies = c.replies || c.children || c.subComments || [];
+                let repliesHtml = '';
+
+                if (replies.length > 0) {
+                    replies.forEach(reply => {
+                        const rAuthor = reply.member_name || '未知使用者';
+                        const rContent = reply.content || reply.text || '';
+                        const rAvatar = reply.avatar || 'images/fish_logo.png';
+
+                        repliesHtml += `
                                     <div class="ocean-reply-item">
                                         <div class="reply-header">
                                             <img src="${rAvatar}" class="reply-avatar">
@@ -451,10 +451,10 @@ lists.forEach(listContainer => {
                                         <div class="reply-body">${escapeHTML(rContent)}</div>
                                     </div>
                                 `;
-                            });
-                        }
+                    });
+                }
 
-                        html += `
+                html += `
                             <div class="ocean-comment-card">
                                 <div class="comment-header">
                                     <span class="comment-author">
@@ -492,9 +492,9 @@ lists.forEach(listContainer => {
                                 </div>
                             </div>
                         `;
-                    });
-                    listContainer.innerHTML = html;
-                });
+            });
+            listContainer.innerHTML = html;
+        });
 
         counts.forEach(countSpan => { if (countSpan) countSpan.innerText = comments.length; });
 
@@ -561,7 +561,7 @@ window.toggleReplyBox = function (commentId) {
     if (box) {
         // 如果原本是隱藏就顯示，如果是顯示就藏起來，就是這麼調皮
         box.style.display = box.style.display === 'none' ? 'block' : 'none';
-        
+
         // 如果打開了，順便貼心地幫寶寶把游標對焦到輸入框
         if (box.style.display === 'block') {
             const input = document.getElementById(`reply-input-${commentId}`);
@@ -574,19 +574,19 @@ window.toggleReplyBox = function (commentId) {
 window.submitReply = async function (bottleId, parentId) {
     const replyInput = document.getElementById(`reply-input-${parentId}`);
     if (!replyInput) return;
-    
+
     const text = replyInput.value.trim();
-    if (!text) { 
-        alert("寶寶，要先打點字才能回覆別人喔！📝"); 
-        return; 
+    if (!text) {
+        alert("寶寶，要先打點字才能回覆別人喔！📝");
+        return;
     }
-// 🌟 抓取「專屬這則回覆」的匿名選項有沒有被打勾
-const isAnon = document.getElementById(`reply-anon-${parentId}`)?.checked || false;
+    // 🌟 抓取「專屬這則回覆」的匿名選項有沒有被打勾
+    const isAnon = document.getElementById(`reply-anon-${parentId}`)?.checked || false;
     const token = localStorage.getItem("authToken");
-    if (!token) { 
-        alert("哎呀！要先登入才能回覆喔！"); 
+    if (!token) {
+        alert("哎呀！要先登入才能回覆喔！");
         window.location.href = 'login.html';
-        return; 
+        return;
     }
 
     try {
@@ -605,7 +605,7 @@ const isAnon = document.getElementById(`reply-anon-${parentId}`)?.checked || fal
             replyInput.value = ''; // 乖乖清空輸入框
             alert(isAnon ? "✨ 匿名回覆已悄悄送出！" : "✨ 回覆成功傳達囉！");
             // 重新讀取留言列表，讓最新回覆浮出水面
-            await renderComments(bottleId); 
+            await renderComments(bottleId);
         } else {
             const err = await response.json();
             alert(`回覆失敗：${err.message || '深海電波干擾中，請稍後再試'}`);
@@ -680,7 +680,7 @@ window.toggleCommentLike = async function (postId, commentId) {
 window.openPostDetail = function (id) {
     const p = posts.find(x => String(x.id) === String(id));
     if (!p) return;
-    
+
     currentOpenPostId = id;
     currentAuthorId = p.authorId; // 🌟 魔法在此：打開文章時，把這位作者的 ID 存下來給追蹤功能用！
 
@@ -878,7 +878,7 @@ function setupAuth() {
         if (user && Object.keys(user).length > 0 && token) {
             if (loginTrigger) loginTrigger.style.display = 'none';
             if (userProfile) userProfile.style.display = 'flex';
-fetchNotificationCount(); // 🔔 登入後去跟後端要通知數量
+            fetchNotificationCount(); // 🔔 登入後去跟後端要通知數量
             const displayName = user.name || (user.email ? user.email.split('@')[0] : '用戶');
             const userNameEl = document.getElementById('user-name');
             if (userNameEl) userNameEl.innerText = displayName;
@@ -1013,13 +1013,13 @@ function setupNewPost() {
 
 document.addEventListener('DOMContentLoaded', () => {
     // 🏠 創建吉祥物的家
-const mascotHome = document.createElement('div');
-mascotHome.id = 'mascot-home';
-mascotHome.title = '把小助理拖進來休息，點擊再叫牠起床喔！';
-document.body.appendChild(mascotHome);
+    const mascotHome = document.createElement('div');
+    mascotHome.id = 'mascot-home';
+    mascotHome.title = '把小助理拖進來休息，點擊再叫牠起床喔！';
+    document.body.appendChild(mascotHome);
 
-// 幫寶寶記錄小助理是不是在睡覺
-let isSleeping = false;
+    // 幫寶寶記錄小助理是不是在睡覺
+    let isSleeping = false;
     if (window.location.pathname.includes('saved.html')) {
         currentView = 'saved';
         currentPage = 1;
@@ -1039,14 +1039,14 @@ let isSleeping = false;
     setupAuth();
     setupNewPost();
     fetchBottles();
-    
+
     setInterval(() => {
         const detailView = document.getElementById('detail-view');
         if (detailView && detailView.style.display !== 'block') {
             callOceanCurrent();
         }
-    }, 60000); 
-    
+    }, 60000);
+
     const searchInput = document.getElementById('main-search-input');
     const historyBox = document.getElementById('search-history-dropdown');
     const clearBtn = document.getElementById('clear-search-btn');
@@ -1111,13 +1111,13 @@ let isSleeping = false;
         }
     });
 
-document.querySelectorAll('.sidebar li').forEach(li => li.onclick = (e) => {
+    document.querySelectorAll('.sidebar li').forEach(li => li.onclick = (e) => {
         document.querySelectorAll('.sidebar li').forEach(el => el.classList.remove('active'));
         e.target.classList.add('active');
 
         const liText = e.target.innerText.trim();
         currentBoard = liText.substring(2).trim(); // 這樣「🌊 全海域」切出來就會剛好是「全海域」
-        
+
         // ✨ 精準抓取 Map 裡的值，如果是全海域就會乖乖變成 null，不會報錯！
         currentCategoryId = BOARD_CATEGORY_MAP[liText] !== undefined ? BOARD_CATEGORY_MAP[liText] : 1;
         currentPage = 1;
@@ -1471,52 +1471,52 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-   const stopDrag = () => {
-    if (isDragging) {
-        isDragging = false;
+    const stopDrag = () => {
+        if (isDragging) {
+            isDragging = false;
 
-        // 🏠 --- 新增的小窩判定魔法 (包在 try-catch 裡絕對安全) ---
-        try {
-            const mascotHome = document.getElementById('mascot-home');
-            if (mascotHome && !window.isMascotSleeping) {
-                const homeRect = mascotHome.getBoundingClientRect();
-                const mascotRect = mascot.getBoundingClientRect();
-                
-                const mascotCenterX = mascotRect.left + mascotRect.width / 2;
-                const mascotCenterY = mascotRect.top + mascotRect.height / 2;
+            // 🏠 --- 新增的小窩判定魔法 (包在 try-catch 裡絕對安全) ---
+            try {
+                const mascotHome = document.getElementById('mascot-home');
+                if (mascotHome && !window.isMascotSleeping) {
+                    const homeRect = mascotHome.getBoundingClientRect();
+                    const mascotRect = mascot.getBoundingClientRect();
 
-                if (
-                    mascotCenterX > homeRect.left - 20 &&
-                    mascotCenterX < homeRect.right + 20 &&
-                    mascotCenterY > homeRect.top - 20 &&
-                    mascotCenterY < homeRect.bottom + 20
-                ) {
-                    window.isMascotSleeping = true;
-                    mascot.classList.add('mascot-sleeping');
-                    clearTimeout(swimTimer); // 讓牠乖乖停下來睡覺
-                    
-                    const dialogueBox = document.getElementById('mermecat-dialogue');
-                    if (dialogueBox) {
-                        dialogueBox.innerText = "呼嚕呼嚕... 寶寶晚安喵 💤";
-                        dialogueBox.classList.add('show-dialogue');
-                        setTimeout(() => { dialogueBox.classList.remove('show-dialogue'); }, 3000);
+                    const mascotCenterX = mascotRect.left + mascotRect.width / 2;
+                    const mascotCenterY = mascotRect.top + mascotRect.height / 2;
+
+                    if (
+                        mascotCenterX > homeRect.left - 20 &&
+                        mascotCenterX < homeRect.right + 20 &&
+                        mascotCenterY > homeRect.top - 20 &&
+                        mascotCenterY < homeRect.bottom + 20
+                    ) {
+                        window.isMascotSleeping = true;
+                        mascot.classList.add('mascot-sleeping');
+                        clearTimeout(swimTimer); // 讓牠乖乖停下來睡覺
+
+                        const dialogueBox = document.getElementById('mermecat-dialogue');
+                        if (dialogueBox) {
+                            dialogueBox.innerText = "呼嚕呼嚕... 寶寶晚安喵 💤";
+                            dialogueBox.classList.add('show-dialogue');
+                            setTimeout(() => { dialogueBox.classList.remove('show-dialogue'); }, 3000);
+                        }
+                        return; // 🛑 成功回小窩就中斷，不執行下面的游泳
                     }
-                    return; // 🛑 成功回小窩就中斷，不執行下面的游泳
                 }
+            } catch (e) {
+                console.log('小窩魔法打結了:', e);
             }
-        } catch(e) {
-            console.log('小窩魔法打結了:', e);
-        }
-        // 🏠 --- 小窩判定結束 ---
+            // 🏠 --- 小窩判定結束 ---
 
-        // 🌟 這是寶寶原本的程式碼，原封不動！
-        // 鬆手後立刻呼叫游泳函數，讓牠立刻開始往新方向游！
-        if (!window.isMascotSleeping) {
-            swimLikeLazyMermaid();
+            // 🌟 這是寶寶原本的程式碼，原封不動！
+            // 鬆手後立刻呼叫游泳函數，讓牠立刻開始往新方向游！
+            if (!window.isMascotSleeping) {
+                swimLikeLazyMermaid();
+            }
         }
-    }
-};
-// 🏠 建立小窩與點擊喚醒功能
+    };
+    // 🏠 建立小窩與點擊喚醒功能
     const mascotHome = document.createElement('div');
     mascotHome.id = 'mascot-home';
     mascotHome.title = '把小助理拖進來休息，點擊再叫牠起床喔！';
@@ -1526,23 +1526,23 @@ document.addEventListener('DOMContentLoaded', () => {
         if (window.isMascotSleeping) {
             window.isMascotSleeping = false;
             mascot.classList.remove('mascot-sleeping');
-            
+
             // 精準放在小窩旁邊
             const homeRect = mascotHome.getBoundingClientRect();
-            mascot.style.transition = 'none'; 
+            mascot.style.transition = 'none';
             mascot.style.left = (homeRect.right + 15) + 'px';
             mascot.style.top = (homeRect.top - 30) + 'px';
             mascot.offsetHeight; // 強制瀏覽器重繪
-            
+
             mascot.style.transition = 'top 8s ease-in-out, left 8s ease-in-out';
-            
+
             const dialogueBox = document.getElementById('mermecat-dialogue');
             if (dialogueBox) {
                 dialogueBox.innerText = "喵嗚！我睡飽了！謝謝寶寶叫我起床✨";
                 dialogueBox.classList.add('show-dialogue');
                 setTimeout(() => { dialogueBox.classList.remove('show-dialogue'); }, 3500);
             }
-            
+
             // 起床後繼續漫遊
             swimLikeLazyMermaid();
         } else {
@@ -1620,161 +1620,161 @@ document.addEventListener('DOMContentLoaded', () => {
 // 📜 深海公約與熱門看板控制器
 // =========================================
 window.toggleRulesBoard = function () {
-  const board = document.getElementById("ocean-rules-board");
-  if (!board) return;
-  board.classList.toggle("collapsed");
-  const isCollapsed = board.classList.contains("collapsed");
-  localStorage.setItem("rulesBoardCollapsed", isCollapsed);
+    const board = document.getElementById("ocean-rules-board");
+    if (!board) return;
+    board.classList.toggle("collapsed");
+    const isCollapsed = board.classList.contains("collapsed");
+    localStorage.setItem("rulesBoardCollapsed", isCollapsed);
 };
 
 document.addEventListener("DOMContentLoaded", () => {
-  const board = document.getElementById("ocean-rules-board");
-  const isCollapsed = localStorage.getItem("rulesBoardCollapsed") === "true";
-  if (board && isCollapsed) {
-    board.classList.add("collapsed");
-  }
+    const board = document.getElementById("ocean-rules-board");
+    const isCollapsed = localStorage.getItem("rulesBoardCollapsed") === "true";
+    if (board && isCollapsed) {
+        board.classList.add("collapsed");
+    }
 });
 
 async function fetchPopularBottles() {
-  const listContainer = document.getElementById("popular-posts-list");
-  if (!listContainer) return;
-  try {
-    const token = localStorage.getItem("authToken");
-    const headers = { "Content-Type": "application/json", "ngrok-skip-browser-warning": "true" };
-    if (token) headers["Authorization"] = `Bearer ${token}`;
+    const listContainer = document.getElementById("popular-posts-list");
+    if (!listContainer) return;
+    try {
+        const token = localStorage.getItem("authToken");
+        const headers = { "Content-Type": "application/json", "ngrok-skip-browser-warning": "true" };
+        if (token) headers["Authorization"] = `Bearer ${token}`;
 
-    // 🌟 神奇魔法陣：在撈熱門文章前，先偷偷翻一下寶寶的包包，看看收藏過、按讚過哪些瓶子！
-    let likedBottleIds = [];
-    let savedBottleIds = [];
+        // 🌟 神奇魔法陣：在撈熱門文章前，先偷偷翻一下寶寶的包包，看看收藏過、按讚過哪些瓶子！
+        let likedBottleIds = [];
+        let savedBottleIds = [];
 
-    if (token) {
-        try {
-            const likedRes = await fetch(`${API_BASE_URL}/bottles/liked`, { method: 'GET', headers });
-            if (likedRes.ok) {
-                const likedData = await likedRes.json();
-                let arr = likedData.bottles || likedData.data || likedData;
-                if (Array.isArray(arr)) likedBottleIds = arr.map(i => String(i.bottle_id || i.id || i.bottleId));
+        if (token) {
+            try {
+                const likedRes = await fetch(`${API_BASE_URL}/bottles/liked`, { method: 'GET', headers });
+                if (likedRes.ok) {
+                    const likedData = await likedRes.json();
+                    let arr = likedData.bottles || likedData.data || likedData;
+                    if (Array.isArray(arr)) likedBottleIds = arr.map(i => String(i.bottle_id || i.id || i.bottleId));
+                }
+            } catch (e) { }
+
+            try {
+                const savedRes = await fetch(`${API_BASE_URL}/bottles/saved`, { method: 'GET', headers });
+                if (savedRes.ok) {
+                    const savedData = await savedRes.json();
+                    let arr = savedData.bottles || savedData.data || savedData;
+                    if (Array.isArray(arr)) savedBottleIds = arr.map(i => String(i.bottle_id || i.id || i.bottleId));
+                }
+            } catch (e) { }
+        }
+
+        const response = await fetch(`${API_BASE_URL}/bottles/popular`, { method: "GET", headers: headers });
+
+        if (response.ok) {
+            const data = await response.json();
+            let popularArray = [];
+            if (Array.isArray(data)) popularArray = data;
+            else if (data && Array.isArray(data.bottles)) popularArray = data.bottles;
+            else if (data && Array.isArray(data.data)) popularArray = data.data;
+            else if (data && Array.isArray(data.result)) popularArray = data.result;
+
+            if (!popularArray || popularArray.length === 0) {
+                listContainer.innerHTML = '<div style="text-align: center; color: #ccc; padding: 20px 0;">目前海面上還沒有熱門貼文喔！🌊</div>';
+                return;
             }
-        } catch (e) {}
 
-        try {
-            const savedRes = await fetch(`${API_BASE_URL}/bottles/saved`, { method: 'GET', headers });
-            if (savedRes.ok) {
-                const savedData = await savedRes.json();
-                let arr = savedData.bottles || savedData.data || savedData;
-                if (Array.isArray(arr)) savedBottleIds = arr.map(i => String(i.bottle_id || i.id || i.bottleId));
+            // 🌟 魔法防護罩：建立熱門快取，防止被主海域的資料覆蓋導致點不到！
+            if (!window.popularCache) window.popularCache = [];
+
+            // 🌟 動態修復 openPostDetail，讓它可以去快取找文章
+            if (!window.hasPatchedOpenDetail) {
+                const originalOpen = window.openPostDetail;
+                window.openPostDetail = function (id) {
+                    if (!posts.some(p => String(p.id) === String(id))) {
+                        const cachedPost = window.popularCache.find(p => String(p.id) === String(id));
+                        if (cachedPost) posts.push(cachedPost);
+                    }
+                    originalOpen(id);
+                };
+                window.hasPatchedOpenDetail = true;
             }
-        } catch (e) {}
-    }
 
-    const response = await fetch(`${API_BASE_URL}/bottles/popular`, { method: "GET", headers: headers });
+            listContainer.innerHTML = popularArray.slice(0, 6).map((rawItem, index) => {
+                const item = rawItem.bottle || rawItem.Bottle || rawItem;
+                const safeId = String(item.bottle_id || item.id || item.bottleId || rawItem.id || rawItem.bottle_id || "temp");
+                const title = item.title || rawItem.title || "無標題貼文";
 
-    if (response.ok) {
-      const data = await response.json();
-      let popularArray = [];
-      if (Array.isArray(data)) popularArray = data;
-      else if (data && Array.isArray(data.bottles)) popularArray = data.bottles;
-      else if (data && Array.isArray(data.data)) popularArray = data.data;
-      else if (data && Array.isArray(data.result)) popularArray = data.result;
+                let author = "用戶";
+                if (item.is_anonymous || item.isAnonymous) {
+                    author = "匿名";
+                } else {
+                    if (typeof item.author === 'string') author = item.author;
+                    else if (item.author?.name) author = item.author.name;
+                    else if (item.author_name) author = item.author_name;
+                    else if (item.user?.name) author = item.user.name;
+                    else if (item.username) author = item.username;
+                    else if (item.User?.name) author = item.User.name;
+                    else if (typeof rawItem.author === 'string') author = rawItem.author;
+                    else if (rawItem.author?.name) author = rawItem.author.name;
+                    else if (rawItem.user?.name) author = rawItem.user.name;
+                    else if (rawItem.User?.name) author = rawItem.User.name;
+                    else if (rawItem.member?.name) author = rawItem.member.name;
+                    else if (item.member?.name) author = item.member.name;
+                    else if (item.member_name) author = item.member_name;
+                    else if (rawItem.member_name) author = rawItem.member_name;
+                }
 
-      if (!popularArray || popularArray.length === 0) {
-        listContainer.innerHTML = '<div style="text-align: center; color: #ccc; padding: 20px 0;">目前海面上還沒有熱門貼文喔！🌊</div>';
-        return;
-      }
+                let rawBoard = item.category_name || item.board || null;
+                if (!rawBoard && item.category_list && Array.isArray(item.category_list) && item.category_list.length > 0) {
+                    rawBoard = item.category_list[0];
+                }
+                if (!rawBoard && item.categories && item.categories.length > 0) {
+                    rawBoard = item.categories[0].category?.name;
+                } else if (!rawBoard && rawItem.categories && rawItem.categories.length > 0) {
+                    rawBoard = rawItem.categories[0].category?.name;
+                }
 
-      // 🌟 魔法防護罩：建立熱門快取，防止被主海域的資料覆蓋導致點不到！
-      if (!window.popularCache) window.popularCache = [];
+                let boardName = "😑 極度厭世/躺平";
+                let cId = item.category_id || rawItem.category_id || item.categoryId;
+                if (!rawBoard && item.categories && item.categories.length > 0) cId = item.categories[0].category_id;
 
-      // 🌟 動態修復 openPostDetail，讓它可以去快取找文章
-      if (!window.hasPatchedOpenDetail) {
-          const originalOpen = window.openPostDetail;
-          window.openPostDetail = function(id) {
-              if (!posts.some(p => String(p.id) === String(id))) {
-                  const cachedPost = window.popularCache.find(p => String(p.id) === String(id));
-                  if (cachedPost) posts.push(cachedPost); 
-              }
-              originalOpen(id);
-          };
-          window.hasPatchedOpenDetail = true;
-      }
+                const idToBoard = { 1: "😡 極度憤怒中", 2: "🤫 沒人懂的秘密", 3: "💔 破碎的碎片", 4: "😑 極度厭世/躺平", 5: "😁 開心的事" };
 
-      listContainer.innerHTML = popularArray.slice(0, 6).map((rawItem, index) => {
-          const item = rawItem.bottle || rawItem.Bottle || rawItem;
-          const safeId = String(item.bottle_id || item.id || item.bottleId || rawItem.id || rawItem.bottle_id || "temp");
-          const title = item.title || rawItem.title || "無標題貼文";
-          
-          let author = "用戶";
-          if (item.is_anonymous || item.isAnonymous) {
-              author = "匿名";
-          } else {
-              if (typeof item.author === 'string') author = item.author;
-              else if (item.author?.name) author = item.author.name;
-              else if (item.author_name) author = item.author_name;
-              else if (item.user?.name) author = item.user.name;
-              else if (item.username) author = item.username;
-              else if (item.User?.name) author = item.User.name;
-              else if (typeof rawItem.author === 'string') author = rawItem.author;
-              else if (rawItem.author?.name) author = rawItem.author.name;
-              else if (rawItem.user?.name) author = rawItem.user.name;
-              else if (rawItem.User?.name) author = rawItem.User.name;
-              else if (rawItem.member?.name) author = rawItem.member.name;
-              else if (item.member?.name) author = item.member.name;
-              else if (item.member_name) author = item.member_name;
-              else if (rawItem.member_name) author = rawItem.member_name;
-          }
+                if (rawBoard) {
+                    if (rawBoard.includes("憤怒")) boardName = "😡 極度憤怒中";
+                    else if (rawBoard.includes("秘密")) boardName = "🤫 沒人懂的秘密";
+                    else if (rawBoard.includes("破碎")) boardName = "💔 破碎的碎片";
+                    else if (rawBoard.includes("厭世") || rawBoard.includes("躺平")) boardName = "😑 極度厭世/躺平";
+                    else if (rawBoard.includes("開心")) boardName = "😁 開心的事";
+                    else boardName = rawBoard;
+                } else if (cId !== undefined && cId !== null) {
+                    if (Array.isArray(cId) && cId.length > 0) boardName = idToBoard[cId[0]] || boardName;
+                    else if (!Array.isArray(cId)) boardName = idToBoard[cId] || boardName;
+                }
 
-          let rawBoard = item.category_name || item.board || null;
-          if (!rawBoard && item.category_list && Array.isArray(item.category_list) && item.category_list.length > 0) {
-              rawBoard = item.category_list[0];
-          }
-          if (!rawBoard && item.categories && item.categories.length > 0) {
-              rawBoard = item.categories[0].category?.name;
-          } else if (!rawBoard && rawItem.categories && rawItem.categories.length > 0) {
-              rawBoard = rawItem.categories[0].category?.name;
-          }
+                const savesCount = parseInt(item.save_count || item.saveCount || item.saves || 0, 10);
 
-          let boardName = "😑 極度厭世/躺平"; 
-          let cId = item.category_id || rawItem.category_id || item.categoryId;
-          if (!rawBoard && item.categories && item.categories.length > 0) cId = item.categories[0].category_id;
+                // 🌟 終極記憶恢復：核對這篇文章有沒有在寶寶的清單裡！
+                let isActuallyLiked = likedBottleIds.includes(safeId) || Boolean(item.is_liked || item.isLiked);
+                let isActuallySaved = savedBottleIds.includes(safeId) || Boolean(item.is_saved || item.isSaved);
 
-          const idToBoard = { 1: "😡 極度憤怒中", 2: "🤫 沒人懂的秘密", 3: "💔 破碎的碎片", 4: "😑 極度厭世/躺平", 5: "😁 開心的事" };
+                const postObj = {
+                    id: safeId,
+                    board: boardName,
+                    author: author,
+                    authorId: item.author_id || item.user_id || item.member_id || null,
+                    title: title,
+                    desc: item.content || rawItem.content || "",
+                    likes: parseInt(item.like_count || item.likeCount || item.likes || 0, 10),
+                    msgs: item.comment_count || item.comments?.length || 0,
+                    liked: isActuallyLiked, // 寫入真實按讚狀態
+                    saved: isActuallySaved, // 寫入真實收藏狀態
+                    createdAt: item.createdAt || item.created_at || rawItem.createdAt || rawItem.created_at
+                };
 
-          if (rawBoard) {
-              if (rawBoard.includes("憤怒")) boardName = "😡 極度憤怒中";
-              else if (rawBoard.includes("秘密")) boardName = "🤫 沒人懂的秘密";
-              else if (rawBoard.includes("破碎")) boardName = "💔 破碎的碎片";
-              else if (rawBoard.includes("厭世") || rawBoard.includes("躺平")) boardName = "😑 極度厭世/躺平";
-              else if (rawBoard.includes("開心")) boardName = "😁 開心的事";
-              else boardName = rawBoard;
-          } else if (cId !== undefined && cId !== null) {
-              if (Array.isArray(cId) && cId.length > 0) boardName = idToBoard[cId[0]] || boardName;
-              else if (!Array.isArray(cId)) boardName = idToBoard[cId] || boardName;
-          }
+                if (!window.popularCache.some(p => String(p.id) === safeId)) window.popularCache.push(postObj);
+                if (!posts.some(p => String(p.id) === safeId)) posts.push(postObj);
 
-          const savesCount = parseInt(item.save_count || item.saveCount || item.saves || 0, 10);
-
-          // 🌟 終極記憶恢復：核對這篇文章有沒有在寶寶的清單裡！
-          let isActuallyLiked = likedBottleIds.includes(safeId) || Boolean(item.is_liked || item.isLiked);
-          let isActuallySaved = savedBottleIds.includes(safeId) || Boolean(item.is_saved || item.isSaved);
-
-          const postObj = {
-              id: safeId,
-              board: boardName,
-              author: author,
-              authorId: item.author_id || item.user_id || item.member_id || null,
-              title: title,
-              desc: item.content || rawItem.content || "",
-              likes: parseInt(item.like_count || item.likeCount || item.likes || 0, 10),
-              msgs: item.comment_count || item.comments?.length || 0,
-              liked: isActuallyLiked, // 寫入真實按讚狀態
-              saved: isActuallySaved, // 寫入真實收藏狀態
-              createdAt: item.createdAt || item.created_at || rawItem.createdAt || rawItem.created_at
-          };
-          
-          if (!window.popularCache.some(p => String(p.id) === safeId)) window.popularCache.push(postObj);
-          if (!posts.some(p => String(p.id) === safeId)) posts.push(postObj);
-
-          return `
+                return `
           <div class="popular-item-card" onclick="openPostDetail('${safeId}')">
             <div class="popular-item-title">👑 TOP ${index + 1}: ${escapeHTML(title)}</div>
             <div class="popular-item-meta" style="display: flex; gap: 8px; flex-wrap: wrap; margin-top: 4px;">
@@ -1784,13 +1784,13 @@ async function fetchPopularBottles() {
             </div>
           </div>
           `;
-        }).join("");
-    } else {
-      listContainer.innerHTML = '<div style="text-align: center; color: #ff6b6b; padding: 20px 0;">打撈失敗，海象不佳 😢</div>';
+            }).join("");
+        } else {
+            listContainer.innerHTML = '<div style="text-align: center; color: #ff6b6b; padding: 20px 0;">打撈失敗，海象不佳 😢</div>';
+        }
+    } catch (error) {
+        listContainer.innerHTML = '<div style="text-align: center; color: #ff6b6b; padding: 20px 0;">伺服器連線失敗 😢</div>';
     }
-  } catch (error) {
-    listContainer.innerHTML = '<div style="text-align: center; color: #ff6b6b; padding: 20px 0;">伺服器連線失敗 😢</div>';
-  }
 }
 // =========================================
 // 🫂 追蹤與我的追蹤功能邏輯 (完美乾淨版)
@@ -1849,7 +1849,7 @@ window.openFollowingModal = async function () {
 
     const modal = document.getElementById('following-modal');
     const container = document.getElementById('following-list-container');
-    
+
     modal.style.display = 'block';
     container.innerHTML = '<div style="text-align: center; color: #888; padding: 30px 0;">潛入海底撈取你的追蹤名單中...🌊</div>';
 
@@ -1870,7 +1870,7 @@ window.openFollowingModal = async function () {
 
         if (response.ok) {
             const backendData = await response.json();
-            const followingList = backendData.data || backendData; 
+            const followingList = backendData.data || backendData;
 
             if (!followingList || followingList.length === 0) {
                 container.innerHTML = '<div style="text-align: center; color: #888; padding: 30px 0;">目前還沒有追蹤任何人喔，快去海域逛逛吧！🐟</div>';
@@ -1909,18 +1909,18 @@ async function fetchNotificationCount() {
     try {
         const response = await fetch(`${API_BASE_URL}/notifications/unread`, {
             method: 'GET',
-            headers: { 
+            headers: {
                 'Authorization': `Bearer ${token}`,
-                'ngrok-skip-browser-warning': 'true' 
+                'ngrok-skip-browser-warning': 'true'
             }
         });
 
         if (response.ok) {
             const data = await response.json();
             // 如果後端回傳屬性不是 count，記得稍微修改這裡喔
-            const unreadCount = data.count || 0; 
+            const unreadCount = data.count || 0;
             const badge = document.getElementById('notification-badge');
-            
+
             if (badge) {
                 if (unreadCount > 0) {
                     badge.innerText = unreadCount > 99 ? '99+' : unreadCount;
