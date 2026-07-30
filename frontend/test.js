@@ -1299,7 +1299,7 @@ document.addEventListener('DOMContentLoaded', () => {
     mascotContainer.id = 'svg-mermecat-mascot';
     mascotContainer.title = '點擊我去找 AI 小助理聊天！';
 
-   mascotContainer.innerHTML = `
+    mascotContainer.innerHTML = `
         <div class="svg-mermecat-wrapper">
             <!-- 🌟 1. 醒著游泳的吉祥物 -->
             <svg id="awake-mascot" width="130" height="140" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
@@ -1607,15 +1607,6 @@ mascotHome.addEventListener('click', () => {
             dialogueBox.innerText = "喵嗚！謝謝寶寶叫我起床✨🐬";
             dialogueBox.classList.add('show-dialogue');
             setTimeout(() => { dialogueBox.classList.remove('show-dialogue'); }, 3500);
-        }
-        
-        swimLikeLazyMermaid();
-    } else {
-        const dialogueBox = document.getElementById('mermecat-dialogue');
-        if (dialogueBox) {
-            dialogueBox.innerText = "我還不想睡啦！把我拖過去我才要睡！😝";
-            dialogueBox.classList.add('show-dialogue');
-            setTimeout(() => { dialogueBox.classList.remove('show-dialogue'); }, 2500);
         }
     }
 });
