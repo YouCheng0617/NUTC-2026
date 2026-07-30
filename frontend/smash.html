@@ -7,21 +7,25 @@
     <link rel="stylesheet" href="smash.css"> 
 </head>
 <body>
-    <!-- ✨ 1. 修改右上角的按鈕，加上預設的 [普通] 文字 -->
-    <button id="top-right-leaderboard" class="btn-action" onclick="showLeaderboard()">🏆 看 [普通] 排行榜</button>
+    <!-- ✨ 把語言切換按鈕和排行榜按鈕包裝在一起，放在右上角並排 -->
+    <div id="top-right-controls" style="position: absolute; top: 20px; right: 25px; z-index: 300; display: flex; gap: 12px; align-items: center;">
+        <button id="btn-lang" class="diff-btn" onclick="toggleLang()" style="margin: 0; padding: 10px 20px; font-size: 1.1rem; border-radius: 40px; background: rgba(255, 255, 255, 0.2);">EN</button>
+        <button id="top-right-leaderboard" class="btn-action" onclick="showLeaderboard()" style="position: static; margin: 0; top: auto; right: auto;">🏆 看 [普通] 排行榜</button>
+    </div>
+    
     <div id="game-area"></div>
 
     <div id="ui-layer" style="display: none;">
-        <div>⏳ <span id="time-left">30</span>s</div>
-        <div>💥 分數: <span id="score">0</span></div>
-        <div style="color: #4da6ff;">🔫 彈藥: <span id="ammo" style="font-weight: 900; color: #fff;">10</span></div> 
+        <div>⏳ <span id="ui-time">時間</span>: <span id="time-left">30</span>s</div>
+        <div>💥 <span id="ui-score">分數</span>: <span id="score">0</span></div>
+        <div style="color: #4da6ff;">🔫 <span id="ui-ammo">彈藥</span>: <span id="ammo" style="font-weight: 900; color: #fff;">10</span></div> 
         <div id="combo-display" style="display: none; color: #ffeb3b; text-shadow: 0 0 10px #ff9800;">🔥 Combo x<span id="combo">1</span></div>
     </div>
 
     <!-- 開始畫面 -->
     <div id="start-modal" class="game-modal">
-        <h1>🎯 極限狙擊戰</h1>
-        <p>
+        <h1 id="start-title">🎯 極限狙擊戰</h1>
+        <p id="start-desc">
             狙擊隱藏在深海中的瓶子！<br>
             ⚠️ 射空會中斷連擊，子彈耗盡將提前結束任務！<br>
             ✨ <strong style="color:#00ffcc;">發光貝殼🐚</strong> 藏有多發彈藥補給，千萬別錯過！
@@ -33,24 +37,23 @@
             <button id="btn-diff-hard" class="diff-btn" onclick="setDifficulty('hard')">🔴 困難</button>
         </div>
 
-        <button class="btn-action" onclick="startGame()">開始任務</button>
-        <button class="btn-action btn-secondary" onclick="window.location.href='games.html'">回到大廳</button>
+        <button id="btn-start" class="btn-action" onclick="startGame()">開始任務</button>
+        <button id="btn-home" class="btn-action btn-secondary" onclick="window.location.href='games.html'">回到大廳</button>
     </div>
 
     <!-- 結束畫面 -->
     <div id="end-modal" class="game-modal" style="display: none;">
         <h1 id="end-title" style="color: #ff4d4d;">任務結束！</h1>
-        <p>你的狙擊總得分為 <br><span id="final-score" style="font-size: 3rem; font-weight: 900; color: #ffeb3b;">0</span></p>
-        <button class="btn-action" onclick="startGame()">再次挑戰</button>
-        <button class="btn-action btn-secondary" onclick="window.location.href='smash.html'">返回遊樂場</button>
+        <p><span id="end-desc">你的狙擊總得分為</span> <br><span id="final-score" style="font-size: 3rem; font-weight: 900; color: #ffeb3b;">0</span></p>
+        <button id="btn-restart" class="btn-action" onclick="startGame()">再次挑戰</button>
+        <button id="btn-back-home" class="btn-action btn-secondary" onclick="window.location.href='games.html'">返回遊樂場</button>
     </div>
 
     <!-- 排行榜專屬視窗 -->
     <div id="leaderboard-modal" class="game-modal" style="display: none;">
-        <!-- ✨ 2. 加上 id="leaderboard-title" 讓 JS 可以精準抓到它並替換文字 -->
         <h1 id="leaderboard-title" style="color: #4da6ff;">🏆 [普通] 狙擊排行榜</h1>
         <ul id="leaderboard-list"></ul>
-        <button class="btn-action btn-secondary" onclick="closeLeaderboard()">返回</button>
+        <button id="btn-lb-back" class="btn-action btn-secondary" onclick="closeLeaderboard()">返回</button>
     </div>
 
     <script src="smash.js"></script>

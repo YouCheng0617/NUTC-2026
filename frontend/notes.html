@@ -7,11 +7,14 @@
     <link rel="stylesheet" href="notes.css">
 </head>
 <body>
-    <!-- 頂部導航 -->
-    <header class="top-bar">
-        <h1>📝 每日便利貼</h1>
-        <button class="btn-back" onclick="window.location.href='games.html'">回到大廳</button>
-    </header>
+<!-- 頂部導航 -->
+<header class="top-bar">
+    <h1 id="page-title">📝 每日便利貼</h1>
+    <div style="display: flex; gap: 10px;">
+        <button class="btn-back" id="btn-lang" onclick="toggleLang()">EN</button>
+        <button class="btn-back" id="btn-back" onclick="window.location.href='games.html'">回到大廳</button>
+    </div>
+</header>
 
     <div class="container">
         <!-- 新增便利貼的控制台 -->
