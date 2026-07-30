@@ -1012,6 +1012,14 @@ function setupNewPost() {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
+    // 🏠 創建吉祥物的家
+const mascotHome = document.createElement('div');
+mascotHome.id = 'mascot-home';
+mascotHome.title = '把小助理拖進來休息，點擊再叫牠起床喔！';
+document.body.appendChild(mascotHome);
+
+// 幫寶寶記錄小助理是不是在睡覺
+let isSleeping = false;
     if (window.location.pathname.includes('saved.html')) {
         currentView = 'saved';
         currentPage = 1;
@@ -1463,14 +1471,89 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-    const stopDrag = () => {
-        if (isDragging) {
-            isDragging = false;
-            // 🌟 鬆手後立刻呼叫游泳函數，讓牠立刻開始往新方向游！
+   const stopDrag = () => {
+    if (isDragging) {
+        isDragging = false;
+
+        // 🏠 --- 新增的小窩判定魔法 (包在 try-catch 裡絕對安全) ---
+        try {
+            const mascotHome = document.getElementById('mascot-home');
+            if (mascotHome && !window.isMascotSleeping) {
+                const homeRect = mascotHome.getBoundingClientRect();
+                const mascotRect = mascot.getBoundingClientRect();
+                
+                const mascotCenterX = mascotRect.left + mascotRect.width / 2;
+                const mascotCenterY = mascotRect.top + mascotRect.height / 2;
+
+                if (
+                    mascotCenterX > homeRect.left - 20 &&
+                    mascotCenterX < homeRect.right + 20 &&
+                    mascotCenterY > homeRect.top - 20 &&
+                    mascotCenterY < homeRect.bottom + 20
+                ) {
+                    window.isMascotSleeping = true;
+                    mascot.classList.add('mascot-sleeping');
+                    clearTimeout(swimTimer); // 讓牠乖乖停下來睡覺
+                    
+                    const dialogueBox = document.getElementById('mermecat-dialogue');
+                    if (dialogueBox) {
+                        dialogueBox.innerText = "呼嚕呼嚕... 寶寶晚安喵 💤";
+                        dialogueBox.classList.add('show-dialogue');
+                        setTimeout(() => { dialogueBox.classList.remove('show-dialogue'); }, 3000);
+                    }
+                    return; // 🛑 成功回小窩就中斷，不執行下面的游泳
+                }
+            }
+        } catch(e) {
+            console.log('小窩魔法打結了:', e);
+        }
+        // 🏠 --- 小窩判定結束 ---
+
+        // 🌟 這是寶寶原本的程式碼，原封不動！
+        // 鬆手後立刻呼叫游泳函數，讓牠立刻開始往新方向游！
+        if (!window.isMascotSleeping) {
             swimLikeLazyMermaid();
         }
-    };
+    }
+};
+// 🏠 建立小窩與點擊喚醒功能
+    const mascotHome = document.createElement('div');
+    mascotHome.id = 'mascot-home';
+    mascotHome.title = '把小助理拖進來休息，點擊再叫牠起床喔！';
+    document.body.appendChild(mascotHome);
 
+    mascotHome.addEventListener('click', () => {
+        if (window.isMascotSleeping) {
+            window.isMascotSleeping = false;
+            mascot.classList.remove('mascot-sleeping');
+            
+            // 精準放在小窩旁邊
+            const homeRect = mascotHome.getBoundingClientRect();
+            mascot.style.transition = 'none'; 
+            mascot.style.left = (homeRect.right + 15) + 'px';
+            mascot.style.top = (homeRect.top - 30) + 'px';
+            mascot.offsetHeight; // 強制瀏覽器重繪
+            
+            mascot.style.transition = 'top 8s ease-in-out, left 8s ease-in-out';
+            
+            const dialogueBox = document.getElementById('mermecat-dialogue');
+            if (dialogueBox) {
+                dialogueBox.innerText = "喵嗚！我睡飽了！謝謝寶寶叫我起床✨";
+                dialogueBox.classList.add('show-dialogue');
+                setTimeout(() => { dialogueBox.classList.remove('show-dialogue'); }, 3500);
+            }
+            
+            // 起床後繼續漫遊
+            swimLikeLazyMermaid();
+        } else {
+            const dialogueBox = document.getElementById('mermecat-dialogue');
+            if (dialogueBox) {
+                dialogueBox.innerText = "我還不想睡啦！把我拖過去我才要睡！😝";
+                dialogueBox.classList.add('show-dialogue');
+                setTimeout(() => { dialogueBox.classList.remove('show-dialogue'); }, 2500);
+            }
+        }
+    });
     // 🖱️ 滑鼠事件
     mascot.addEventListener('mousedown', (e) => {
         e.preventDefault();
