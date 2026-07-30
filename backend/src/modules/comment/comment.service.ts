@@ -36,53 +36,59 @@ export const createComment = async (bottleId: number, memberId: number, content:
 };
 
 /*取得留言*/
-export const getCommentsByBottleId = async (bottleId: number, memberId: number) => {
+export const getCommentsByBottleId = async (bottleId: number, memberId: number | undefined) => {
+    // 🌟 1. 動態組裝子回覆 (replies) 的 include 物件
+    const replyInclude: any = {
+        member: { select: { name: true } },
+        _count: { select: { likes: true } }
+    };
+    if (memberId) {
+        replyInclude.likes = { where: { member_id: memberId } };
+    }
+
+    // 🌟 2. 動態組裝主留言 (comments) 的 include 物件
+    const commentInclude: any = {
+        member: { select: { name: true } },
+        _count: { select: { likes: true } },
+        replies: {
+            orderBy: { createdAt: 'asc' },
+            include: replyInclude
+        }
+    };
+    if (memberId) {
+        commentInclude.likes = { where: { member_id: memberId } };
+    }
+
+    // 🌟 3. 執行查詢
     const comments = await prisma.comment.findMany({
         where: {
             bottle_id: bottleId,
             parent_id: null
         },
         orderBy: { createdAt: 'asc' },
-        include: {
-            member: {
-                select: {
-                    name: true
-                }
-            },
-            likes: memberId ? {
-                where: {
-                    member_id: memberId
-                }
-            } : false,
-            _count: {
-                select: { likes: true }
-            },
-            replies: {
-                orderBy: { createdAt: 'asc' },
-                include: {
-                    member: { select: { name: true } },
-                    _count: { select: { likes: true } },
-                    likes: memberId ? { where: { member_id: memberId } } : false,
-                }
-            }
-        }
+        include: commentInclude
     });
 
-    return comments.map(comments => ({
-        ...comments,
-        likeCount: comments._count.likes,
-        isLiked: comments.likes ? comments.likes.length > 0 : false,
+    // 🌟 4. 整理回傳格式
+    return comments.map((comment: any) => ({
+        ...comment,
+        member_name: comment.is_anonymous ? "匿名使用者" : comment.member?.name,
+        likeCount: comment._count?.likes ?? 0,
+        isLiked: comment.likes ? comment.likes.length > 0 : false,
         _count: undefined,
         likes: undefined,
+        member: undefined,
 
-        replies: comments.replies.map(reply => ({
+        replies: comment.replies?.map((reply: any) => ({
             ...reply,
-            likeCount: reply._count.likes,
+            member_name: reply.is_anonymous ? "匿名使用者" : reply.member?.name,
+            likeCount: reply._count?.likes ?? 0,
             isLiked: reply.likes ? reply.likes.length > 0 : false,
             _count: undefined,
             likes: undefined,
-        }))
-    }))
+            member: undefined,
+        })) || []
+    }));
 };
 
 export const likeComment = async (commentId: number, memberId: number) => {
