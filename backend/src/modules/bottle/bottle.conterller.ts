@@ -117,7 +117,8 @@ export const bottleController = {
                     author: {
                         select: {
                             member_id: true,
-                            name: true
+                            name: true,
+                            gender: true,
                         }
                     },
                     _count: {
@@ -138,6 +139,7 @@ export const bottleController = {
                 content: bottle.content,
                 author_id: bottle.is_anonymous ? null : bottle.author.member_id,
                 author_name: bottle.is_anonymous ? "匿名使用者" : bottle.author.name,
+                author_gender: bottle.is_anonymous ? null : bottle.author.gender,
                 created_at: bottle.created_at,
                 like_count: bottle._count.likes,
                 save_count: bottle._count.saves,
