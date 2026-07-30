@@ -2,7 +2,20 @@ import { Router } from "express";
 import type { Request, Response } from "express";
 import prisma from "../../lib/prisma.js";
 import dotenv from "dotenv";
-import { getMybottles, likeBottles, saveBottles, getMyLikedBottles, getMySavedBottles, deleteMyBottle as deleteMyBottleService, getTodayBottle, reportBottle, searchBottle, getPopularBottles } from "./bottle.service.js";
+import {
+    getMybottles,
+    likeBottles,
+    saveBottles,
+    getMyLikedBottles,
+    getMySavedBottles,
+    deleteMyBottle as deleteMyBottleService,
+    getTodayBottle,
+    reportBottle,
+    searchBottle,
+    getPopularBottles,
+    votePoll
+} from "./bottle.service.js";
+
 export interface TokenPayload {
     member_id: number;
     email: string;
@@ -17,9 +30,10 @@ export const bottleController = {
     /* 丟出瓶子 */
     async throwBottle(req: AuthRequest, res: Response) {
         try {
-            const { title, content, isAnonymous, category_id } = req.body;
+            // 👇 1. 解構出 pollOptions
+            const { title, content, isAnonymous, category_id, pollOptions } = req.body;
             const memberId = req.user?.member_id;
-            const role = req.user?.role; // 🌟 取得剛才從 Middleware 傳過來的權限
+            const role = req.user?.role;
 
             // 1. 基本身分防呆
             if (!memberId) {
@@ -41,27 +55,49 @@ export const bottleController = {
                 return res.status(400).json({ message: "請至少選擇一個分類" });
             }
 
-            // 4. 寫入資料庫
+            // 👇 4. 投票選項防呆 (如果有傳的話)
+            if (pollOptions !== undefined) {
+                if (!Array.isArray(pollOptions)) {
+                    return res.status(400).json({ message: "投票選項格式錯誤，必須為陣列" });
+                }
+                if (pollOptions.length > 5) {
+                    return res.status(400).json({ message: "投票選項最多只能設定 5 個" });
+                }
+                // 確保裡面的選項不能是空的，順便清掉前後空白
+                if (pollOptions.some(opt => typeof opt !== "string" || opt.trim() === "")) {
+                    return res.status(400).json({ message: "投票選項不能包含空白內容" });
+                }
+            }
+
+            // 5. 寫入資料庫
             const newBottle = await prisma.bottle.create({
                 data: {
                     title,
                     content,
                     is_anonymous: isAnonymous || false,
-                    member_id: memberId, // 這裡已經確定有 memberId，可以直接放
+                    member_id: memberId,
                     categories: {
                         create: category_id.map((id: number) => ({
                             category_id: id
                         }))
-                    }
+                    },
+                    pollOptions: pollOptions && pollOptions.length > 0 ? {
+                        create: pollOptions.map((text: string) => ({
+                            text: text.trim()
+                        }))
+                    } : undefined
                 },
                 include: {
                     categories: {
                         include: {
                             category: true
                         }
-                    }
+                    },
+                    // 👇 7. 讓新建好的瓶子順便回傳投票選項給前端
+                    pollOptions: true
                 }
             });
+
             res.status(201).json({ message: "瓶子丟出成功", bottle: newBottle });
         } catch (error) {
             console.error("Error creating bottle:", error);
@@ -96,7 +132,7 @@ export const bottleController = {
 
             // 🌟 2. 第一次查詢：撈出符合條件的瓶子 ID
             const availableBottles = await prisma.bottle.findMany({
-                where: whereCondition, // 👈 換成我們剛剛動態組裝的條件
+                where: whereCondition,
                 select: { bottle_id: true }
             });
 
@@ -128,7 +164,22 @@ export const bottleController = {
                         include: {
                             category: true
                         }
-                    }
+                    },
+                    // 👇 新增這段：抓取投票選項與個別票數
+                    pollOptions: {
+                        select: {
+                            id: true,
+                            text: true,
+                            _count: {
+                                select: { votes: true } // 讓 Prisma 自動計算這個選項有幾票
+                            }
+                        }
+                    },
+                    // 👇 新增這段：如果是會員登入，一併查詢他對這個瓶子投了哪一票
+                    pollVotes: memberId ? {
+                        where: { member_id: memberId },
+                        select: { option_id: true }
+                    } : false
                 }
             });
 
@@ -144,11 +195,22 @@ export const bottleController = {
                 like_count: bottle._count.likes,
                 save_count: bottle._count.saves,
                 view_count: bottle.view_count,
-                category_list: bottle.categories.map(c => c.category?.name || "未知類別")
+                category_list: bottle.categories.map(c => c.category?.name || "未知類別"),
+
+                // 👇 強制宣告為 any[]，破解 'never' 報錯
+                poll_options: (bottle.pollOptions as any[])?.map((opt: any) => ({
+                    option_id: opt.id,
+                    text: opt.text,
+                    vote_count: opt._count.votes
+                })) || [],
+
+                // 👇 這裡也一併加上 as any[] 保護，避免 pollVotes 也跳一樣的錯
+                user_voted_option_id: (bottle.pollVotes as any[]) && (bottle.pollVotes as any[]).length > 0
+                    ? (bottle.pollVotes as any[])[0].option_id
+                    : null
             }));
 
             res.status(200).json({
-                // 💡 可以在這裡明確回傳是否為訪客，方便前端判斷
                 is_guest: !memberId,
                 message: !memberId
                     ? `訪客模式：海水退去，你成功撈取了 ${responseBottles.length} 個瓶子`
@@ -161,6 +223,7 @@ export const bottleController = {
             res.status(500).json({ message: "內部伺服器錯誤" });
         }
     },
+
     /* AI審核瓶子 */
     async reviewBottle(req: AuthRequest, res: Response) {
         try {
@@ -413,6 +476,39 @@ export const bottleController = {
         } catch (error) {
             console.error("❌ 獲取熱門瓶子發生錯誤:", error);
             return res.status(500).json({ message: "內部伺服器錯誤" });
+        }
+    },
+
+    async votePollController(req: AuthRequest, res: Response) {
+        try {
+            const memberId = req.user?.member_id as number;
+            const bottleId = Number(req.params.bottleId);
+            const { optionId } = req.body;
+
+            if (!memberId || isNaN(memberId)) {
+                return res.status(401).json({ message: "請先登入才能投票" });
+            }
+            if (isNaN(bottleId)) {
+                return res.status(400).json({ message: "無效的漂流瓶 ID" });
+            }
+            if (!optionId || isNaN(Number(optionId))) {
+                return res.status(400).json({ message: "無效的選項 ID" });
+            }
+
+            const voteResult = await votePoll(bottleId, memberId, Number(optionId));
+
+            return res.status(200).json({
+                message: "投票成功！",
+                data: voteResult
+            });
+
+        } catch (error: any) {
+            console.error("votePollController 錯誤:", error);
+
+            if (error.message === "無效的選項或該選項不屬於此漂流瓶") {
+                return res.status(400).json({ message: error.message });
+            }
+            return res.status(500).json({ message: "伺服器內部錯誤，投票失敗" });
         }
     }
 }

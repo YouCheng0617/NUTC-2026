@@ -344,16 +344,16 @@ export const searchBottle = async (keyword: string) => {
 
     const searchResults = await prisma.bottle.findMany({
         where: {
-            // 💡 重要：只搜尋 AI 審核「通過」的文章 (狀態為 2)
-            status: 2,
-            // 只要 title 或 content 其中一個包含關鍵字就抓出來
+
+            status: 1,
+
             OR: [
                 { title: { contains: searchTerm } },
                 { content: { contains: searchTerm } }
             ]
         },
         orderBy: {
-            created_at: "desc", // 搜尋結果依照最新時間排序
+            created_at: "desc",
         },
         include: {
             author: {
@@ -426,7 +426,7 @@ export const getPopularBottles = async (limit: number = 10) => {
     });
 };
 
-/*
+
 export const votePoll = async (bottleId: number, memberId: number, optionId: number) => {
     const option = await prisma.pollOption.findUnique({
         where: { id: optionId },
@@ -436,19 +436,29 @@ export const votePoll = async (bottleId: number, memberId: number, optionId: num
         throw new Error("無效的選項或該選項不屬於此漂流瓶");
     }
 
-    const voteRecord = await prisma.pollVote.findFirst({
+    const existingVote = await prisma.pollVote.findFirst({
         where: {
             bottle_id: bottleId,
             member_id: memberId,
-        },
-        update: {
-            option_id: optionId,
-        },
-        create: {
-            member_id: memberId,
-            bottle_id: bottleId,
-            option_id: optionId // 沒投過票 ➔ 新增投票
         }
     });
+
+    let voteRecord;
+
+    if (existingVote) {
+        voteRecord = await prisma.pollVote.update({
+            where: { id: existingVote.id }, // 用剛剛找到的現有紀錄 ID 來更新
+            data: { option_id: optionId }
+        });
+    } else {
+        voteRecord = await prisma.pollVote.create({
+            data: {
+                member_id: memberId,
+                bottle_id: bottleId,
+                option_id: optionId
+            }
+        });
+    }
+
+    return voteRecord;
 }
-    */
