@@ -154,6 +154,8 @@ model Comment {
   bottle_id Int      @map("bottle_id")
   createdAt DateTime @default(now()) @map("created_at")
 
+  is_anonymous Boolean @default(false)
+
   parent_id Int?   @map("parent_id")
   // 關聯：留言是誰留的、留在哪個瓶子上 (一樣加上 Cascade 級聯刪除，保證資料庫乾淨)
   member    Member @relation(fields: [member_id], references: [member_id], onDelete: Cascade)
