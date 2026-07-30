@@ -417,90 +417,85 @@ window.renderComments = async function (postId) {
             comments = data.comments || data.data || data || [];
         }
 
-        lists.forEach(listContainer => {
-            if (!listContainer) return;
-            if (comments.length === 0) {
-                listContainer.innerHTML = '<div style="text-align:center; color:#888; padding: 30px 0;">目前還沒有留言喔，來搶頭香吧！🐟</div>';
-                return;
-            }
+lists.forEach(listContainer => {
+                    if (!listContainer) return;
+                    if (comments.length === 0) {
+                        listContainer.innerHTML = '<div style="text-align:center; color:#888; padding: 30px 0;">目前還沒有留言喔，來搶頭香吧！🐟</div>';
+                        return;
+                    }
 
-            let html = '';
-            comments.forEach((c, index) => {
-                const authorName = c.isAnonymous ? "匿名" : (c.member?.name || c.author_name || c.author?.name || c.user?.name || c.username || c.author || '匿名');
-                const likesCount = c.likeCount || c.like_count || c.likes || 0;
-                const isLiked = c.isLiked || c.is_liked || c.liked || false;
-                const commentId = c.id || c.comment_id || c.commentId || c._id;
-                const content = c.content || c.text || '';
-                const avatar = c.avatar || 'images/fish_logo.png';
+                    let html = '';
+                    comments.forEach((c, index) => {
+                        const authorName = c.isAnonymous ? "匿名" : (c.member?.name || c.author_name || c.author?.name || c.user?.name || c.username || c.author || '匿名');
+                        const likesCount = c.likeCount || c.like_count || c.likes || 0;
+                        const isLiked = c.isLiked || c.is_liked || c.liked || false;
+                        const commentId = c.id || c.comment_id || c.commentId || c._id;
+                        const content = c.content || c.text || '';
+                        const avatar = c.avatar || 'images/fish_logo.png';
 
-                // 🌟 魔法：打撈子留言！檢查後端有沒有傳回 replies 或 children
-                const replies = c.replies || c.children || c.subComments || [];
-                let repliesHtml = '';
-                
-                if (replies.length > 0) {
-                    // 用一條淺淺的左邊框把子留言包起來，看起來更有蓋樓的感覺
-                    repliesHtml += '<div style="margin-top: 15px; border-left: 3px solid #e0e6ed; padding-left: 15px; display: flex; flex-direction: column; gap: 10px;">';
-                    
-                    replies.forEach(reply => {
-                        const rAuthor = reply.isAnonymous ? "匿名" : (reply.member?.name || reply.author_name || reply.author?.name || '匿名');
-                        const rContent = reply.content || reply.text || '';
-                        const rAvatar = reply.avatar || 'images/fish_logo.png';
+                        // 🌟 魔法：打撈子留言！
+                        const replies = c.replies || c.children || c.subComments || [];
+                        let repliesHtml = '';
                         
-                        repliesHtml += `
-                            <div style="background: #f4f7fa; padding: 12px 16px; border-radius: 16px;">
-                                <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">
-                                    <img src="${rAvatar}" style="width: 24px; height: 24px; border-radius: 50%; object-fit: cover;">
-                                    <span style="font-size: 0.9rem; font-weight: bold; color: #4da6ff;">${escapeHTML(rAuthor)}</span>
+                        if (replies.length > 0) {
+                            replies.forEach(reply => {
+                                const rAuthor = reply.isAnonymous ? "匿名" : (reply.member?.name || reply.author_name || reply.author?.name || '匿名');
+                                const rContent = reply.content || reply.text || '';
+                                const rAvatar = reply.avatar || 'images/fish_logo.png';
+                                
+                                repliesHtml += `
+                                    <div class="ocean-reply-item">
+                                        <div class="reply-header">
+                                            <img src="${rAvatar}" class="reply-avatar">
+                                            <span class="reply-author">${escapeHTML(rAuthor)}</span>
+                                        </div>
+                                        <div class="reply-body">${escapeHTML(rContent)}</div>
+                                    </div>
+                                `;
+                            });
+                        }
+
+                        html += `
+                            <div class="ocean-comment-card">
+                                <div class="comment-header">
+                                    <span class="comment-author">
+                                        <img src="${avatar}" class="comment-avatar">
+                                        ${escapeHTML(authorName)}
+                                    </span>
+                                    <span class="comment-floor">B${index + 1}</span>
                                 </div>
-                                <div style="font-size: 0.95rem; color: #333; line-height: 1.5; white-space: pre-wrap;">${escapeHTML(rContent)}</div>
+                                <div class="comment-body">${escapeHTML(content)}</div>
+                                
+                                <!-- 🌟 這裡是蓋好的子留言展示區塊 -->
+                                <div class="reply-container" style="${repliesHtml ? '' : 'display: none;'}">
+                                    ${repliesHtml}
+                                </div>
+                                
+                                <!-- 動作區塊加上回覆按鈕 -->
+                                <div class="comment-actions">
+                                    <span class="action-btn reply-trigger" onclick="toggleReplyBox('${commentId}')">
+                                        💬 回覆
+                                    </span>
+                                    <span id="comment-like-btn-${commentId}" class="action-btn like-trigger" style="color: ${isLiked ? '#e74c3c' : '#999'};" onclick="toggleCommentLike('${postId}', '${commentId}')">
+                                        ${isLiked ? '❤️' : '🤍'} ${likesCount}
+                                    </span>
+                                </div>
+
+                                <!-- 專屬子留言輸入框 -->
+                                <div id="reply-box-${commentId}" class="reply-input-box" style="display: none;">
+                                    <div class="reply-input-wrapper">
+                                        <input type="text" id="reply-input-${commentId}" placeholder="偷偷回覆他一點溫暖..." class="custom-reply-input" autocomplete="off">
+                                        <label class="anon-label">
+                                            <input type="checkbox" id="reply-anon-${commentId}"> 🎭 匿名
+                                        </label>
+                                        <button onclick="submitReply('${postId}', '${commentId}')" class="send-btn mini-send-btn">送出</button>
+                                    </div>
+                                </div>
                             </div>
                         `;
                     });
-                    
-                    repliesHtml += '</div>';
-                }
-
-                html += `
-                    <div style="background: #fff; padding: 24px 0; border-bottom: 1px solid #f0f0f0;">
-                        <div style="display: flex; justify-content: space-between; margin-bottom: 12px; align-items: center;">
-                            <span style="font-size: 1rem; font-weight: bold; color: #333; display: flex; align-items: center; gap: 12px;">
-                                <img src="${avatar}" style="width: 36px; height: 36px; border-radius: 50%; object-fit: cover; box-shadow: 0 1px 3px rgba(0,0,0,0.08);">
-                                ${escapeHTML(authorName)}
-                            </span>
-                            <span style="font-size: 0.85rem; color: #aaa; font-weight: bold;">B${index + 1}</span>
-                        </div>
-                        <div style="color: #222; font-size: 1.05rem; line-height: 1.7; padding-left: 48px; white-space: pre-wrap; margin-bottom: 10px;">${escapeHTML(content)}</div>
-                        
-                        <!-- 🌟 這裡是剛剛蓋好的子留言展示區塊 -->
-                        <div style="padding-left: 48px;">
-                            ${repliesHtml}
-                        </div>
-                        
-                        <!-- 動作區塊加上回覆按鈕 -->
-                        <div style="text-align: right; padding-right: 15px; display: flex; justify-content: flex-end; gap: 15px; align-items: center; margin-top: 10px;">
-                            <span style="cursor: pointer; color: #4da6ff; font-size: 0.95rem; user-select: none; transition: 0.2s; font-weight: bold;" onclick="toggleReplyBox('${commentId}')">
-                                💬 回覆
-                            </span>
-                            <span id="comment-like-btn-${commentId}" style="cursor: pointer; color: ${isLiked ? '#e74c3c' : '#999'}; font-size: 0.95rem; user-select: none; transition: 0.2s;" onclick="toggleCommentLike('${postId}', '${commentId}')">
-                                ${isLiked ? '❤️' : '🤍'} ${likesCount}
-                            </span>
-                        </div>
-
-                        <!-- 專屬子留言輸入框 -->
-                        <div id="reply-box-${commentId}" style="display: none; margin-top: 15px; padding-left: 48px;">
-                            <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
-                                <input type="text" id="reply-input-${commentId}" placeholder="偷偷回覆他一點溫暖..." class="comment-input" style="flex: 1; min-width: 150px; height: 40px; font-size: 0.95rem; border-radius: 20px; padding: 0 15px; border: 1px solid #dce4ec;" autocomplete="off">
-                                <label style="font-size: 0.9rem; color: #6688aa; display: flex; align-items: center; gap: 4px; cursor: pointer; user-select: none; white-space: nowrap;">
-                                    <input type="checkbox" id="reply-anon-${commentId}"> 🎭 匿名
-                                </label>
-                                <button onclick="submitReply('${postId}', '${commentId}')" class="send-btn" style="height: 40px; padding: 0 18px; font-size: 0.95rem; border-radius: 20px;">送出</button>
-                            </div>
-                        </div>
-                    </div>
-                `;
-            });
-            listContainer.innerHTML = html;
-        });
+                    listContainer.innerHTML = html;
+                });
 
         counts.forEach(countSpan => { if (countSpan) countSpan.innerText = comments.length; });
 
@@ -586,8 +581,8 @@ window.submitReply = async function (bottleId, parentId) {
         alert("寶寶，要先打點字才能回覆別人喔！📝"); 
         return; 
     }
-// 🌟 抓取匿名選項有沒有被打勾
-   const isAnon = document.getElementById('main-comment-anon')?.checked || false;
+// 🌟 抓取「專屬這則回覆」的匿名選項有沒有被打勾
+const isAnon = document.getElementById(`reply-anon-${parentId}`)?.checked || false;
     const token = localStorage.getItem("authToken");
     if (!token) { 
         alert("哎呀！要先登入才能回覆喔！"); 
