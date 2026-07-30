@@ -428,6 +428,27 @@ export const getPopularBottles = async (limit: number = 10) => {
 
 /*
 export const votePoll = async (bottleId: number, memberId: number, optionId: number) => {
-    const option = await prisma.PollOption.findUnique({
-    })
-}*/
+    const option = await prisma.pollOption.findUnique({
+        where: { id: optionId },
+    });
+
+    if (!option || option.bottle_id !== bottleId) {
+        throw new Error("無效的選項或該選項不屬於此漂流瓶");
+    }
+
+    const voteRecord = await prisma.pollVote.findFirst({
+        where: {
+            bottle_id: bottleId,
+            member_id: memberId,
+        },
+        update: {
+            option_id: optionId,
+        },
+        create: {
+            member_id: memberId,
+            bottle_id: bottleId,
+            option_id: optionId // 沒投過票 ➔ 新增投票
+        }
+    });
+}
+    */

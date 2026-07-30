@@ -10,6 +10,7 @@ interface MemberData {
     password: string;
     name: string;
     birthday?: string;
+    gender?: string;
     blood_type?: string;
     constellation?: string;
     bio?: string;
@@ -49,13 +50,16 @@ export const createMember = async (memberData: MemberData) => {
             password: memberData.password, /*已定義為加密過的*/
             name: memberData.name,
             birthday: memberData.birthday ? new Date(memberData.birthday) : null,
+            gender: memberData.gender ?? "",
             blood_type: memberData.blood_type ?? "",
             constellation: memberData.constellation ?? "",
             bio: memberData.bio ?? "",
         }, select: {
             member_id: true,
             email: true,
-            name: true, birthday: true,
+            name: true,
+            birthday: true,
+            gender: true,
             blood_type: true,
             constellation: true,
             bio: true,
@@ -203,6 +207,9 @@ export const updateMember = async (memberId: number, updateData: Partial<MemberD
     if (updateData.blood_type !== undefined) {
         dataToUpdate.blood_type = updateData.blood_type;
     }
+    if (updateData.gender !== undefined) {
+        dataToUpdate.gender = updateData.gender || null;
+    }
     if (updateData.bio !== undefined) {
         dataToUpdate.bio = updateData.bio;
     }
@@ -229,6 +236,7 @@ export const updateMember = async (memberId: number, updateData: Partial<MemberD
                 email: true,
                 name: true,
                 birthday: true,
+                gender: true,
                 blood_type: true,
                 constellation: true,
                 bio: true,
