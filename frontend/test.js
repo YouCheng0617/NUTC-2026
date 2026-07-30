@@ -1355,6 +1355,7 @@ document.addEventListener('DOMContentLoaded', () => {
     mascotStyle.innerHTML = `
         #svg-mermecat-mascot {
             position: fixed; z-index: 99999; width: 130px; height: 140px; cursor: pointer; user-select: none; pointer-events: auto;
+            transform: none;
             filter: drop-shadow(0 6px 15px rgba(0, 30, 60, 0.25)); transition: top 8s ease-in-out, left 8s ease-in-out;
         }
         .svg-mermecat-wrapper { position: relative; width: 100%; height: 100%; animation: svg-float 4s infinite alternate ease-in-out; }
@@ -1371,7 +1372,15 @@ document.addEventListener('DOMContentLoaded', () => {
     document.head.appendChild(mascotStyle);
 
     const mascot = document.getElementById('svg-mermecat-mascot');
+    const AI_ASSISTANT_URL = "./chat_ui/chat.html";
     let currentZone = 0;
+    let swimTimer;
+    let isDragging = false;
+    let hasMoved = false;
+    let startX = 0;
+    let startY = 0;
+    let initialLeft = 0;
+    let initialTop = 0;
 
     function swimLikeLazyMermaid() {
         const padding = 20;
@@ -1392,9 +1401,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const duration = 8000 + Math.random() * 4000;
         mascot.style.transition = `top ${duration}ms ease-in-out, left ${duration}ms ease-in-out`;
-        setTimeout(swimLikeLazyMermaid, duration);
+        swimTimer = setTimeout(swimLikeLazyMermaid, duration);
     }
-    setTimeout(swimLikeLazyMermaid, 100);
+    swimTimer = setTimeout(swimLikeLazyMermaid, 100);
 
     const randomPhrases = [
         "🌊 咕嚕咕嚕... 今天的水溫好舒服喵！", "🤫 有什麼秘密想跟我說嗎？", "✏️ 把不開心的事丟進瓶子裡吧！", "🎵 好像有很多有趣的瓶子呢！",
@@ -1414,91 +1423,115 @@ document.addEventListener('DOMContentLoaded', () => {
     setTimeout(showRandomDialogue, 2000);
     setInterval(() => { if (Math.random() > 0.2) showRandomDialogue(); }, 8000 + Math.random() * 6000);
 
-    const AI_ASSISTANT_URL = "./chat_ui/chat.html";
-    mascot.onclick = () => { window.location.href = AI_ASSISTANT_URL; };
-    fetchPopularBottles();
-});
+    const startDrag = (clientX, clientY) => {
+        isDragging = true;
+        hasMoved = false;
 
+        // 先保留畫面上的即時位置，再切斷游泳動畫，避免抓取瞬間跳到動畫終點。
+        const currentPosition = mascot.getBoundingClientRect();
+        clearTimeout(swimTimer);
+        mascot.style.transition = 'none';
+        mascot.style.left = `${currentPosition.left}px`;
+        mascot.style.top = `${currentPosition.top}px`;
 
-const startDrag = (clientX, clientY) => {
-    isDragging = true;
-    hasMoved = false;
+        startX = clientX;
+        startY = clientY;
+        initialLeft = currentPosition.left;
+        initialTop = currentPosition.top;
+    };
 
-    // 🌟 抓起來的瞬間切斷 CSS 動畫，並暫停游泳計時器
-    mascot.style.transition = 'none';
-    clearTimeout(swimTimer);
+    const onDrag = (clientX, clientY) => {
+        if (!isDragging) return;
+        hasMoved = true;
 
-    startX = clientX;
-    startY = clientY;
+        const dx = clientX - startX;
+        const dy = clientY - startY;
 
-    // 🌟 直接讀取畫面中絕對精準的中心座標，完美免疫 transform 的干擾！
-    const computedStyle = window.getComputedStyle(mascot);
-    initialLeft = parseFloat(computedStyle.left) || 0;
-    initialTop = parseFloat(computedStyle.top) || 0;
-};
+        let newLeft = initialLeft + dx;
+        let newTop = initialTop + dy;
 
-const onDrag = (clientX, clientY) => {
-    if (!isDragging) return;
-    hasMoved = true;
+        // 防撞牆：left/top 是吉祥物左上角座標，限制整隻吉祥物留在視窗內。
+        newLeft = Math.max(0, Math.min(newLeft, window.innerWidth - mascot.offsetWidth));
+        newTop = Math.max(0, Math.min(newTop, window.innerHeight - mascot.offsetHeight));
 
-    const dx = clientX - startX;
-    const dy = clientY - startY;
+        mascot.style.left = `${newLeft}px`;
+        mascot.style.top = `${newTop}px`;
 
-    let newLeft = initialLeft + dx;
-    let newTop = initialTop + dy;
+        // 拖曳時根據左右移動來翻轉臉的方向
+        const mascotImage = mascot.querySelector('svg');
+        if (mascotImage && dx !== 0) {
+            mascotImage.style.transform = dx < 0 ? 'scaleX(-1)' : 'scaleX(1)';
+        }
+    };
 
-    // 防撞牆：由於現在座標精準對齊中心，邊界要留一半的寬高（寬 65px，高 70px）
-    newLeft = Math.max(65, Math.min(newLeft, window.innerWidth - 65));
-    newTop = Math.max(70, Math.min(newTop, window.innerHeight - 70));
+    const stopDrag = () => {
+        if (isDragging) {
+            isDragging = false;
+            // 🌟 鬆手後立刻呼叫游泳函數，讓牠立刻開始往新方向游！
+            swimLikeLazyMermaid();
+        }
+    };
 
-    mascot.style.left = `${newLeft}px`;
-    mascot.style.top = `${newTop}px`;
-
-    // 拖曳時根據左右移動來翻轉臉的方向
-    const mascotImage = mascot.querySelector('svg');
-    if (mascotImage && dx !== 0) {
-        mascotImage.style.transform = dx < 0 ? 'scaleX(-1)' : 'scaleX(1)';
-    }
-};
-
-const stopDrag = () => {
-    if (isDragging) {
-        isDragging = false;
-        // 🌟 鬆手後立刻呼叫游泳函數，讓牠立刻開始往新方向游！
-        swimLikeLazyMermaid();
-    }
-};
-
-// 🖱️ 滑鼠事件
-mascot.addEventListener('mousedown', (e) => {
-    e.preventDefault();
-    startDrag(e.clientX, e.clientY);
-});
-document.addEventListener('mousemove', (e) => onDrag(e.clientX, e.clientY));
-document.addEventListener('mouseup', stopDrag);
-
-// 📱 手機觸控事件
-mascot.addEventListener('touchstart', (e) => {
-    if (e.touches.length > 0) {
-        startDrag(e.touches[0].clientX, e.touches[0].clientY);
-    }
-}, { passive: false });
-document.addEventListener('touchmove', (e) => {
-    if (isDragging && e.touches.length > 0) {
-        e.preventDefault(); // 防止滾動整個網頁
-        onDrag(e.touches[0].clientX, e.touches[0].clientY);
-    }
-}, { passive: false });
-document.addEventListener('touchend', stopDrag);
-
-// 🚀 防止拖曳完不小心觸發跳轉，只有真的「單純點擊」才會去 AI 助手頁面
-const AI_ASSISTANT_URL = "../AI/chat_ui/chat.html";
-mascot.addEventListener('click', (e) => {
-    if (hasMoved) {
+    // 🖱️ 滑鼠事件
+    mascot.addEventListener('mousedown', (e) => {
         e.preventDefault();
-        return;
-    }
-    window.location.href = AI_ASSISTANT_URL;
+        startDrag(e.clientX, e.clientY);
+    });
+    document.addEventListener('mousemove', (e) => onDrag(e.clientX, e.clientY));
+    document.addEventListener('mouseup', stopDrag);
+
+    // 📱 手機觸控事件
+    mascot.addEventListener('touchstart', (e) => {
+        if (e.touches.length > 0) {
+            startDrag(e.touches[0].clientX, e.touches[0].clientY);
+        }
+    }, { passive: false });
+    document.addEventListener('touchmove', (e) => {
+        if (isDragging && e.touches.length > 0) {
+            e.preventDefault(); // 防止滾動整個網頁
+            onDrag(e.touches[0].clientX, e.touches[0].clientY);
+        }
+    }, { passive: false });
+    document.addEventListener('touchend', stopDrag);
+
+    // 🫧 雙擊頁面空白處，讓吉祥物游到使用者指定的位置。
+    document.addEventListener('dblclick', (e) => {
+        const target = e.target;
+        if (target instanceof Element && target.closest(
+            'a, button, input, textarea, select, label, [role="button"], #svg-mermecat-mascot'
+        )) {
+            return;
+        }
+
+        clearTimeout(swimTimer);
+
+        const targetLeft = Math.max(
+            0,
+            Math.min(e.clientX - mascot.offsetWidth / 2, window.innerWidth - mascot.offsetWidth)
+        );
+        const targetTop = Math.max(
+            0,
+            Math.min(e.clientY - mascot.offsetHeight / 2, window.innerHeight - mascot.offsetHeight)
+        );
+
+        mascot.style.transition = 'top 1.2s ease-out, left 1.2s ease-out';
+        mascot.style.left = `${targetLeft}px`;
+        mascot.style.top = `${targetTop}px`;
+
+        // 抵達後停留一下，再恢復原本的自動漫遊。
+        swimTimer = setTimeout(swimLikeLazyMermaid, 3000);
+    });
+
+    // 🚀 防止拖曳完不小心觸發跳轉，只有真的「單純點擊」才會去 AI 助手頁面
+    mascot.addEventListener('click', (e) => {
+        if (hasMoved) {
+            e.preventDefault();
+            return;
+        }
+        window.location.href = AI_ASSISTANT_URL;
+    });
+
+    fetchPopularBottles();
 });
 
 // =========================================
