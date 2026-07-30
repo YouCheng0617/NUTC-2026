@@ -6,6 +6,8 @@ export const getAllMembers = async () => {
             member_id: true,
             email: true,
             name: true,
+            gender: true,
+            constellation: true,
             role: true,
             status: true,
             created_at: true,
