@@ -879,7 +879,7 @@ function setupAuth() {
         if (user && Object.keys(user).length > 0 && token) {
             if (loginTrigger) loginTrigger.style.display = 'none';
             if (userProfile) userProfile.style.display = 'flex';
-
+fetchNotificationCount(); // 🔔 登入後去跟後端要通知數量
             const displayName = user.name || (user.email ? user.email.split('@')[0] : '用戶');
             const userNameEl = document.getElementById('user-name');
             if (userNameEl) userNameEl.innerText = displayName;
@@ -1784,3 +1784,38 @@ window.closeFollowingModal = function () {
     const modal = document.getElementById('following-modal');
     if (modal) modal.style.display = 'none';
 };
+// =========================================
+// 🔔 抓取未讀通知數量的功能
+// =========================================
+async function fetchNotificationCount() {
+    const token = localStorage.getItem("authToken");
+    if (!token) return;
+
+    try {
+        const response = await fetch(`${API_BASE_URL}/notifications/unread`, {
+            method: 'GET',
+            headers: { 
+                'Authorization': `Bearer ${token}`,
+                'ngrok-skip-browser-warning': 'true' 
+            }
+        });
+
+        if (response.ok) {
+            const data = await response.json();
+            // 如果後端回傳屬性不是 count，記得稍微修改這裡喔
+            const unreadCount = data.count || 0; 
+            const badge = document.getElementById('notification-badge');
+            
+            if (badge) {
+                if (unreadCount > 0) {
+                    badge.innerText = unreadCount > 99 ? '99+' : unreadCount;
+                    badge.style.display = 'block';
+                } else {
+                    badge.style.display = 'none';
+                }
+            }
+        }
+    } catch (error) {
+        console.error("撈取通知數量失敗:", error);
+    }
+}

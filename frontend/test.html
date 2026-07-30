@@ -84,8 +84,15 @@
           <div
             id="user-profile"
             class="user-menu-wrapper"
-            style="display: none"
+            style="display: none; align-items: center; gap: 15px;"
           >
+            <!-- 🔔 鈴鐺區塊 (記得要有 </div> 關閉它！) -->
+            <div class="notification-bell" onclick="window.location.href='notifications.html'" title="查看最新通知">
+              🔔
+              <span id="notification-badge" class="badge" style="display: none;">0</span>
+            </div>
+
+            <!-- 👤 這是原本的使用者大頭貼與名字區塊 -->
             <div class="user-info-trigger" id="user-menu-btn">
               <img
                 id="user-avatar"
