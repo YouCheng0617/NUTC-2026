@@ -190,6 +190,11 @@
       }
       .info-btn {
         background: rgba(255, 255, 255, 0.1);
+        padding: 12px 25px;
+        border-radius: 30px;
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        color: white;
+        font-size: 1.15rem;
         cursor: pointer;
         transition: all 0.3s;
         font-weight: bold;
@@ -272,6 +277,31 @@
         font-weight: bold;
       }
 
+      /* 🌐 語言切換按鈕樣式 */
+      .lang-toggle-btn {
+        position: fixed;
+        top: 25px;
+        right: 25px;
+        background: rgba(0, 85, 165, 0.6);
+        backdrop-filter: blur(8px);
+        border: 1px solid #4da6ff;
+        color: #fff;
+        padding: 8px 16px;
+        border-radius: 20px;
+        cursor: pointer;
+        font-weight: bold;
+        font-size: 0.95rem;
+        z-index: 100;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+        transition: all 0.3s ease;
+      }
+      .lang-toggle-btn:hover {
+        background: #0073e6;
+        color: #ffcc00;
+        transform: scale(1.05);
+        box-shadow: 0 6px 20px rgba(0, 115, 230, 0.5);
+      }
+
       @media screen and (max-width: 768px) {
         .float-br-btn {
           bottom: 20px;
@@ -312,7 +342,21 @@
     </style>
   </head>
   <body>
-    <button id="main-back-btn" class="back-btn" onclick="handleLeave()">
+    <!-- 🌐 右上角中英切換按鈕 -->
+    <button
+      id="lang-toggle-btn"
+      class="lang-toggle-btn"
+      onclick="toggleLanguage()"
+    >
+      🌐 EN
+    </button>
+
+    <button
+      id="main-back-btn"
+      class="back-btn"
+      onclick="handleLeave()"
+      data-i18n="back-to-lobby"
+    >
       🔙 回到大廳
     </button>
 
@@ -324,13 +368,14 @@
     <canvas id="gameCanvas"></canvas>
 
     <div id="start-screen" class="overlay">
-      <h1>🤲 接住小瓶</h1>
+      <h1 data-i18n="game-title">🤲 接住小瓶</h1>
 
       <div class="diff-selector">
         <button
           id="btn-diff-easy"
           class="diff-btn"
           onclick="setDifficulty('easy')"
+          data-i18n="diff-easy"
         >
           🟢 簡單
         </button>
@@ -338,6 +383,7 @@
           id="btn-diff-normal"
           class="diff-btn active-diff"
           onclick="setDifficulty('normal')"
+          data-i18n="diff-normal"
         >
           🟡 普通
         </button>
@@ -345,6 +391,7 @@
           id="btn-diff-hard"
           class="diff-btn"
           onclick="setDifficulty('hard')"
+          data-i18n="diff-hard"
         >
           🔴 困難
         </button>
@@ -352,13 +399,15 @@
 
       <div class="info-container">
         <div class="info-pill">
-          👑 <span id="diff-label">普通</span>最高分：<span
+          👑 <span id="diff-label">普通</span
+          ><span data-i18n="high-score"> 最高分：</span
+          ><span
             id="personal-high-score"
             style="color: #ffd700; font-weight: 900; font-size: 1.5rem"
             >0</span
           >
         </div>
-        <button class="info-pill info-btn" onclick="toggleRules()">
+        <button class="info-btn" onclick="toggleRules()" data-i18n="game-rules">
           📖 遊戲說明
         </button>
       </div>
@@ -372,7 +421,9 @@
         >
       </div>
 
-      <button class="btn-action" onclick="startGame()">開始遊戲</button>
+      <button class="btn-action" onclick="startGame()" data-i18n="start-game">
+        開始遊戲
+      </button>
 
       <button
         class="float-br-btn btn-show-leaderboard"
@@ -384,6 +435,7 @@
 
     <div id="game-over-screen" class="overlay" style="display: none">
       <h1
+        data-i18n="game-over"
         style="
           font-size: 4rem;
           color: #ffeb3b;
@@ -393,7 +445,9 @@
         時間到！
       </h1>
       <p style="font-size: 1.4rem; color: #d1e8ff; margin-bottom: 25px">
-        你的 <span id="gameover-diff-label">普通</span> 總得分是：<br /><span
+        <span data-i18n="score-text-1">你的 </span
+        ><span id="gameover-diff-label">普通</span
+        ><span data-i18n="score-text-2"> 總得分是：</span><br /><span
           id="final-score"
           style="
             font-size: 4.5rem;
@@ -420,7 +474,9 @@
         🎉 恭喜破紀錄啦！🎉
       </div>
 
-      <button class="btn-action" onclick="resetGame()">再玩一次</button>
+      <button class="btn-action" onclick="resetGame()" data-i18n="play-again">
+        再玩一次
+      </button>
 
       <button
         class="float-br-btn btn-show-leaderboard"
@@ -461,6 +517,7 @@
             letter-spacing: 2px;
           "
           onclick="closeLeaderboard()"
+          data-i18n="close-btn"
         >
           關閉
         </button>
@@ -470,6 +527,87 @@
     <script>
       const API_BASE_URL = "https://api.drift-bottles.xyz";
       const GAME_NAME = "catch-bottle";
+
+      // =========================================
+      // 🌐 多國語言 (i18n) 字典與切換邏輯
+      // =========================================
+      const translations = {
+        zh: {
+          "toggle-btn": "🌐 EN",
+          "back-to-lobby": "🔙 回到大廳",
+          "quit-game": "🔙 放棄遊戲",
+          "back-to-diff": "🔙 回難度選擇",
+          "game-title": "🤲 接住小瓶",
+          "diff-easy": "🟢 簡單",
+          "diff-normal": "🟡 普通",
+          "diff-hard": "🔴 困難",
+          "game-rules": "📖 遊戲說明",
+          "start-game": "開始遊戲",
+          "game-over": "時間到！",
+          "play-again": "再玩一次",
+          "close-btn": "關閉",
+          // 👇 新增的動態翻譯詞彙
+          "high-score": " 最高分：",
+          "leaderboard-btn": "🏆 看 [{diff}] 排行榜",
+          "leaderboard-title": "🏆 [{diff}] 排行榜",
+          "diff-easy-label": "簡單",
+          "diff-normal-label": "普通",
+          "diff-hard-label": "困難",
+          "score-text-1": "你的 ",
+          "score-text-2": " 總得分是：",
+        },
+        en: {
+          "toggle-btn": "🌐 中文",
+          "back-to-lobby": "🔙 Lobby",
+          "quit-game": "🔙 Quit",
+          "back-to-diff": "🔙 Back",
+          "game-title": "🤲 Catch Bottle",
+          "diff-easy": "🟢 Easy",
+          "diff-normal": "🟡 Normal",
+          "diff-hard": "🔴 Hard",
+          "game-rules": "📖 Rules",
+          "start-game": "Start Game",
+          "game-over": "Time's Up!",
+          "play-again": "Play Again",
+          "close-btn": "Close",
+          // 👇 新增的動態翻譯詞彙
+          "high-score": " High Score: ",
+          "leaderboard-btn": "🏆 [{diff}] Leaderboard",
+          "leaderboard-title": "🏆 [{diff}] Leaderboard",
+          "diff-easy-label": "Easy",
+          "diff-normal-label": "Normal",
+          "diff-hard-label": "Hard",
+          "score-text-1": "Your ",
+          "score-text-2": " total score is:",
+        },
+      };
+
+      let currentLang = localStorage.getItem("game_lang") || "zh";
+
+      function applyTranslations() {
+        document.querySelectorAll("[data-i18n]").forEach((el) => {
+          const key = el.getAttribute("data-i18n");
+          if (translations[currentLang][key]) {
+            el.innerHTML = translations[currentLang][key];
+          }
+        });
+
+        const toggleBtn = document.getElementById("lang-toggle-btn");
+        if (toggleBtn) {
+          toggleBtn.innerText = translations[currentLang]["toggle-btn"];
+        }
+
+        // 🌟 切換語言時，強制更新一次動態的排行榜與難度文字
+        setDifficulty(currentDifficulty);
+      }
+
+      window.toggleLanguage = function () {
+        currentLang = currentLang === "zh" ? "en" : "zh";
+        localStorage.setItem("game_lang", currentLang);
+        applyTranslations();
+      };
+
+      document.addEventListener("DOMContentLoaded", applyTranslations);
 
       // 🛡️ 招式一：防外掛專用「計時與分數私有管理員」
       const ScoreManager = (() => {
@@ -513,6 +651,7 @@
       let isShielded = false;
       let doubleTimer = null;
       let shieldTimer = null;
+      let isPaused = false;
 
       let currentDifficulty = "normal";
 
@@ -568,7 +707,10 @@
           document.getElementById("rules-box").style.display = "none";
 
           startScreen.style.display = "flex";
-          document.getElementById("main-back-btn").innerHTML = "🔙 回到大廳";
+
+          // 🌐 動態翻譯
+          document.getElementById("main-back-btn").innerHTML =
+            translations[currentLang]["back-to-lobby"];
         } else {
           window.location.href = "games.html";
         }
@@ -576,7 +718,9 @@
 
       async function setDifficulty(level) {
         currentDifficulty = level;
-        const label = diffConfig[level].label;
+        // 🌟 從字典抓出當前語言的難度名稱 (例如: "普通" 或 "Normal")
+        const translatedLabel =
+          translations[currentLang][`diff-${level}-label`];
 
         document
           .querySelectorAll(".diff-btn")
@@ -585,10 +729,15 @@
           .getElementById("btn-diff-" + level)
           .classList.add("active-diff");
 
-        document.getElementById("diff-label").innerText = label;
-        document.getElementById("gameover-diff-label").innerText = label;
+        // 更新畫面上的難度標籤
+        document.getElementById("diff-label").innerText = translatedLabel;
+        document.getElementById("gameover-diff-label").innerText =
+          translatedLabel;
+
+        // 🌟 更新所有排行榜按鈕，把 {diff} 替換成真正的難度名稱
+        const btnTemplate = translations[currentLang]["leaderboard-btn"];
         document.querySelectorAll(".btn-show-leaderboard").forEach((btn) => {
-          btn.innerText = `🏆 看 [${label}] 排行榜`;
+          btn.innerText = btnTemplate.replace("{diff}", translatedLabel);
         });
 
         const scoreDisplay = document.getElementById("personal-high-score");
@@ -607,17 +756,13 @@
           if (response.ok) {
             const rawData = await response.json();
             let myHighScore = 0;
-
-            if (rawData.high_score !== undefined) {
+            if (rawData.high_score !== undefined)
               myHighScore = rawData.high_score;
-            } else if (rawData.data && rawData.data.high_score !== undefined) {
+            else if (rawData.data && rawData.data.high_score !== undefined)
               myHighScore = rawData.data.high_score;
-            } else if (rawData.score !== undefined) {
-              myHighScore = rawData.score;
-            } else if (rawData.data && rawData.data.score !== undefined) {
+            else if (rawData.score !== undefined) myHighScore = rawData.score;
+            else if (rawData.data && rawData.data.score !== undefined)
               myHighScore = rawData.data.score;
-            }
-
             scoreDisplay.innerText = myHighScore;
           } else {
             scoreDisplay.innerText =
@@ -686,14 +831,10 @@
       function gameLoop() {
         if (!isPlaying) return;
 
-        // 🌟 加入這三行：如果遊戲暫停中，保持迴圈待命，但不算碰撞、不畫物體！
         if (isPaused) {
           requestAnimationFrame(gameLoop);
           return;
         }
-
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        // ...底下你原本的代碼完全不用動...
 
         ctx.clearRect(0, 0, canvas.width, canvas.height);
 
@@ -813,15 +954,17 @@
         document.getElementById("game-ui").style.display = "flex";
         document.getElementById("rules-box").style.display = "none";
 
-        document.getElementById("main-back-btn").innerHTML = "🔙 放棄遊戲";
+        // 🌐 動態翻譯
+        document.getElementById("main-back-btn").innerHTML =
+          translations[currentLang]["quit-game"];
 
         ScoreManager.reset();
         timeLeft = 30;
         items = [];
         isPlaying = true;
-        isPaused = false; // 🌟 這一行最重要！按開始遊戲時，強制解除凍結！
+        isPaused = false;
         let overlay = document.getElementById("pause-overlay");
-        if (overlay) overlay.remove(); // 清除殘留的暫停畫面
+        if (overlay) overlay.remove();
         isDoubleScore = false;
         isShielded = false;
         clearTimeout(doubleTimer);
@@ -831,12 +974,11 @@
 
         let spawnRate = diffConfig[currentDifficulty].spawnRate;
         dropInterval = setInterval(() => {
-          if (!isPaused) items.push(new Item()); // 🌟 只要沒暫停，才會掉新瓶子
+          if (!isPaused) items.push(new Item());
         }, spawnRate);
 
         timerInterval = setInterval(() => {
           if (!isPaused) {
-            // 🌟 只要沒暫停，倒數時間才會往下扣
             timeLeft--;
             document.getElementById("time").innerText = timeLeft;
             if (timeLeft <= 0) endGame();
@@ -858,7 +1000,9 @@
         document.getElementById("game-over-screen").style.display = "flex";
         document.getElementById("final-score").innerText = finalScore;
 
-        document.getElementById("main-back-btn").innerHTML = "🔙 回難度選擇";
+        // 🌐 動態翻譯
+        document.getElementById("main-back-btn").innerHTML =
+          translations[currentLang]["back-to-diff"];
 
         processScore(finalScore);
       }
@@ -898,9 +1042,12 @@
       }
 
       async function showLeaderboard() {
-        const diffLabel = diffConfig[currentDifficulty].label;
+        // 🌟 讓排行榜標題也支援多國語言
+        const translatedLabel =
+          translations[currentLang][`diff-${currentDifficulty}-label`];
+        const titleTemplate = translations[currentLang]["leaderboard-title"];
         document.getElementById("leaderboard-title").innerText =
-          `🏆 [${diffLabel}] 排行榜`;
+          titleTemplate.replace("{diff}", translatedLabel);
 
         const listContainer = document.getElementById("leaderboard-list");
         listContainer.innerHTML =
@@ -920,13 +1067,11 @@
           if (response.ok) {
             const rawData = await response.json();
             let leaderboard = [];
-            if (Array.isArray(rawData)) {
-              leaderboard = rawData;
-            } else if (rawData.data && Array.isArray(rawData.data)) {
+            if (Array.isArray(rawData)) leaderboard = rawData;
+            else if (rawData.data && Array.isArray(rawData.data))
               leaderboard = rawData.data;
-            } else if (rawData.ranking && Array.isArray(rawData.ranking)) {
+            else if (rawData.ranking && Array.isArray(rawData.ranking))
               leaderboard = rawData.ranking;
-            }
 
             if (!leaderboard || leaderboard.length === 0) {
               listContainer.innerHTML =
@@ -934,14 +1079,12 @@
             } else {
               let html = "";
               const medals = ["🥇", "🥈", "🥉"];
-
               leaderboard.forEach((entry, index) => {
                 let rankClass = index < 3 ? `rank-${index + 1}` : "";
                 let rankIcon =
                   index < 3
                     ? medals[index]
                     : `&nbsp;&nbsp;${index + 1}&nbsp;&nbsp;`;
-
                 let playerName =
                   entry.name ||
                   entry.username ||
@@ -950,15 +1093,13 @@
                   (entry.member && entry.member.name) ||
                   (entry.user && entry.user.name) ||
                   "匿名玩家";
-
                 let playerScore = entry.high_score || 0;
-
                 html += `
-                              <div class="leaderboard-item ${rankClass}">
-                                  <span>${rankIcon} ${playerName}</span>
-                                  <span>${playerScore} 分</span>
-                              </div>
-                          `;
+                  <div class="leaderboard-item ${rankClass}">
+                      <span>${rankIcon} ${playerName}</span>
+                      <span>${playerScore} 分</span>
+                  </div>
+                `;
               });
               listContainer.innerHTML = html;
             }
@@ -979,17 +1120,12 @@
       function resetGame() {
         startGame();
       }
-      // ==========================================
-      // 🛡️ 升級版：分頁切換暫停 + 手動點擊「繼續遊戲」
-      // ==========================================
 
       function triggerPause() {
-        // 🌟 核心防護：如果不是在遊戲中，或者是已經在暫停，絕對不要觸發！
         if (!isPlaying || isPaused) return;
 
-        isPaused = true; // 凍結遊戲
+        isPaused = true;
 
-        // 如果畫面已經有暫停遮罩，就不重複產生
         if (document.getElementById("pause-overlay")) return;
 
         let pauseOverlay = document.createElement("div");
@@ -997,6 +1133,7 @@
         pauseOverlay.style.cssText =
           "position:absolute;top:0;left:0;width:100%;height:100%;background:rgba(0,20,40,0.85);backdrop-filter:blur(5px);display:flex;flex-direction:column;justify-content:center;align-items:center;z-index:100;";
 
+        // 這裡的文字也可以接翻譯，但為求簡單先維持中文
         pauseOverlay.innerHTML = `
     <h1 style="font-size:3.5rem;color:#ffd700;text-shadow:0 0 20px rgba(255,215,0,0.8);margin-bottom:20px;margin-top:0;">⏸️ 遊戲已暫停</h1>
     <p style="font-size:1.4rem;color:#d1e8ff;margin-bottom:30px;">你剛剛切換了分頁，遊戲已自動為你凍結！</p>
@@ -1008,13 +1145,12 @@
       }
 
       function resumeFromPause() {
-        isPaused = false; // 🌟 解除凍結，讓瓶子跟時間繼續動！
+        isPaused = false;
         let overlay = document.getElementById("pause-overlay");
         if (overlay) overlay.remove();
         console.log("▶️ 遊戲繼續！");
       }
 
-      // 🌟 監聽切換分頁：只有當玩家「離開分頁」時才凍結
       document.addEventListener("visibilitychange", () => {
         if (document.hidden) {
           triggerPause();
