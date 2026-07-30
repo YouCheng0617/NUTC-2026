@@ -7,6 +7,9 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
+    <!-- 左上角語言切換按鈕 -->
+    <button id="lang-toggle-btn" onclick="toggleLanguage()">🌐 English</button>
+    <!-- 右上角收藏按鈕 -->
     <button id="view-fav-btn" onclick="showFavorites()">📖 魔法收藏本</button>
 
     <div class="container">
@@ -15,12 +18,12 @@
         <div id="topic-selection">
             <p class="subtitle">請靜下心來，選擇你今日想探索的塔羅指引...</p>
             <div class="topic-grid">
-                <button onclick="startGame('感情 (Relationship)')"><span class="icon">💕</span> 感情<br><small>Relationship</small></button>
-                <button onclick="startGame('事業 (Career)')"><span class="icon">💼</span> 事業<br><small>Career</small></button>
-                <button onclick="startGame('學業 (Education)')"><span class="icon">🎓</span> 學業<br><small>Education</small></button>
-                <button onclick="startGame('成長 (Growth)')"><span class="icon">🌱</span> 成長<br><small>Growth</small></button>
-                <button onclick="startGame('財運 (Wealth)')"><span class="icon">💎</span> 財運<br><small>Wealth</small></button>
-                <button onclick="startGame('人際 (Community)')"><span class="icon">🤝</span> 人際<br><small>Community</small></button>
+                <button onclick="startGame('感情')"><span class="icon">💕</span> 感情<br><small>Relationship</small></button>
+                <button onclick="startGame('事業')"><span class="icon">💼</span> 事業<br><small>Career</small></button>
+                <button onclick="startGame('學業')"><span class="icon">🎓</span> 學業<br><small>Education</small></button>
+                <button onclick="startGame('成長')"><span class="icon">🌱</span> 成長<br><small>Growth</small></button>
+                <button onclick="startGame('財運')"><span class="icon">💎</span> 財運<br><small>Wealth</small></button>
+                <button onclick="startGame('人際')"><span class="icon">🤝</span> 人際<br><small>Community</small></button>
             </div>
             <div class="custom-topic">
                 <input type="text" id="custom-topic-input" placeholder="其他... 請輸入你想問的問題">
@@ -88,7 +91,7 @@
     <div id="favorites-modal" class="hidden">
         <div class="modal-content">
             <span class="close-btn" onclick="hideFavorites()">&times;</span>
-            <h2 style="color: #d4b5ff; margin-bottom: 20px;">📖 魔法收藏本</h2>
+            <h2 id="fav-modal-title" style="color: #d4b5ff; margin-bottom: 20px;">📖 魔法收藏本</h2>
             <div id="favorites-list"></div>
         </div>
     </div>
