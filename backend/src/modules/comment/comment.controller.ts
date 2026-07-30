@@ -8,7 +8,7 @@ export class CommentController {
         try {
             const memberId = req.user?.member_id as number;
             const bottleId = Number(req.params.bottleId);
-            const { content } = req.body;
+            const { content, is_anonymous } = req.body;
 
             if (!memberId) {
                 return res.status(401).json({ message: "請先登入" });
@@ -20,6 +20,7 @@ export class CommentController {
                 return res.status(400).json({ message: "留言內容不能為空" });
             }
 
+            const isAnonymous = Boolean(is_anonymous);
             const newComment = await createComment(bottleId, memberId, content);
             return res.status(201).json({
                 message: "留言成功",
