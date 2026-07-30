@@ -108,21 +108,34 @@ body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden;
 .b-captcha-img div { width: 100%; height: 100%; border-radius: 15px; overflow: hidden; display: flex; justify-content: center; align-items: center; background: rgba(255,255,255,0.5); }
 .b-captcha-img img { width: 100%; height: 100%; object-fit: cover; }
 
-/* 黑色打勾按鈕：稍微縮小、離上方近一點 */
+/* ✨ 打勾按鈕：美化升級成海洋發光版 */
 .b-check-btn {
-    width: 55px; 
-    height: 55px; 
+    width: 65px; 
+    height: 65px; 
     border-radius: 50%; 
-    background: transparent; 
-    border: 4px solid #000; 
-    color: #000; 
+    background: linear-gradient(135deg, rgba(77, 166, 255, 0.9), rgba(0, 85, 165, 0.9)); 
+    border: 2px solid rgba(255, 255, 255, 0.8); 
+    color: #fff; 
     display: flex; 
     justify-content: center; 
     align-items: center; 
     cursor: pointer; 
-    margin-top: 10px; 
-    transition: 0.3s;
-    align-self: center; /* ✨ 關鍵魔法：不管在哪個表單，都強制站在正中間！ */
+    margin-top: 15px; 
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+    align-self: center;
+    box-shadow: 0 6px 20px rgba(0, 50, 100, 0.4), inset 0 0 15px rgba(255, 255, 255, 0.4);
+}
+.b-check-btn:hover {
+    transform: scale(1.1) translateY(-4px);
+    background: linear-gradient(135deg, rgba(106, 183, 255, 1), rgba(0, 115, 230, 1));
+    border-color: #ffffff;
+    box-shadow: 0 10px 30px rgba(77, 166, 255, 0.6), inset 0 0 20px rgba(255, 255, 255, 0.8);
+}
+.b-check-btn svg {
+    width: 30px;
+    height: 30px;
+    stroke-width: 3;
+    filter: drop-shadow(0 2px 4px rgba(0, 50, 100, 0.5));
 }
 
 /* ==================================================
@@ -139,9 +152,22 @@ body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden;
 }
 
 /* ==================================================
-   📱 手機版 RWD 自適應縮放，保證不跑版
+   📱 手機版 RWD 自適應縮放 (完美防擠壓膠囊版)
    ================================================== */
 @media screen and (max-width: 768px) {
+    .cute-modal-content {
+        width: 90vw !important;
+        height: auto !important;          /* 🌟 釋放高度限制，讓內容撐開 */
+        max-height: 90vh !important;      /* 避免彈窗超出整個螢幕 */
+        aspect-ratio: auto !important;    /* 🌟 取消正圓形比例，變成橢圓或膠囊 */
+        border-radius: 40px !important;   /* 變成唯美的圓角膠囊 */
+        padding: 40px 20px !important;
+        overflow-y: auto !important;      /* 內容太多時允許內部滾動 */
+    }
+    
+    /* 避免關閉按鈕跑出邊界 */
+    .close-btn { top: 15px; right: 25px; } 
+
     .bg-watermark { font-size: 1.8rem; margin-bottom: 5px; }
     .b-circle { width: 85px; height: 85px; }
     .b-pill { height: 60px; padding: 6px 15px; }
@@ -151,22 +177,39 @@ body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden;
 }
 
 @media screen and (max-width: 480px) {
-    .cute-modal-content { padding: 10px 5px !important; }
+    .cute-modal-content {
+        width: 95vw !important;
+        border-radius: 30px !important;
+        padding: 45px 15px 25px 15px !important; /* 上方多留空間給關閉按鈕與頁籤 */
+    }
+    .close-btn { top: 10px; right: 15px; font-size: 28px; }
     
-    .bg-watermark { font-size: 1.5rem; margin-top: -2px; margin-bottom: 5px; letter-spacing: 2px; }
-    .tab-container { margin-bottom: 5px; width: 65%; }
+    /* 🌟 解決「圖形驗證碼」被擠成一直線的問題，強制上下換行 */
+    #login-form .b-row, #forgot-form .b-row, #reset-form .b-row { 
+        flex-direction: column !important; 
+        gap: 12px !important; 
+    }
+    #login-form .b-row > .b-item, #forgot-form .b-row > .b-item, #reset-form .b-row > .b-item { 
+        width: 100% !important; 
+        flex: none !important; 
+    }
     
-    .b-row { gap: 6px; margin-top: 6px !important; }
-    .b-circle { width: 72px; height: 72px; }
-    .b-pill { height: 50px; padding: 5px 15px; }
+    .bg-watermark { font-size: 1.5rem; margin-top: 0; margin-bottom: 15px; letter-spacing: 2px; }
+    .tab-container { margin-bottom: 20px; width: 75%; }
+    
+    /* 註冊表單的小圓圈微調 */
+    .b-row { gap: 8px; margin-top: 8px !important; }
+    .b-circle { width: 75px; height: 75px; }
+    .b-pill { height: 55px; padding: 5px 15px; }
     .b-rect { padding: 8px 15px; }
-    .b-rect textarea { height: 32px !important; }
-    .b-captcha-img { height: 50px; }
+    .b-rect textarea { height: 35px !important; }
+    .b-captcha-img { height: 75px !important; }
     
-    .b-item label { font-size: 0.7rem; margin-bottom: 2px; }
-    .b-item input, .b-item select, .b-item textarea { font-size: 0.75rem !important; padding: 4px !important; }
-    .b-circle input[type="date"] { font-size: 0.6rem !important; }
+    .b-item label { font-size: 0.8rem; margin-bottom: 4px; }
+    .b-item input, .b-item select, .b-item textarea { font-size: 0.85rem !important; padding: 6px !important; }
+    .b-circle input[type="date"] { font-size: 0.65rem !important; }
     
-    .b-check-btn { width: 45px; height: 45px; margin-top: 6px; border-width: 2px; }
-    .b-check-btn svg { width: 25px; height: 25px; }
+    /* 調整送出打勾按鈕尺寸 */
+    .b-check-btn { width: 55px; height: 55px; margin-top: 15px; }
+    .b-check-btn svg { width: 24px; height: 24px; }
 }

@@ -1,566 +1,971 @@
 <!doctype html>
 <html lang="zh-TW">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    />
+    <title>心情漂流瓶 - 登入與註冊</title>
+    <link rel="stylesheet" href="login.css" />
+    <style>
+      /* ✨ 專屬返回按鈕樣式 (水滴小膠囊 - 美化升級版) */
+      .return-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 5px;
+        color: #fff;
+        font-size: 0.95rem;
+        font-weight: bold;
+        text-decoration: none;
+        background: rgba(0, 85, 165, 0.5);
+        backdrop-filter: blur(8px);
+        padding: 10px 25px;
+        border-radius: 30px;
+        border: 1px solid rgba(106, 183, 255, 0.6);
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+        letter-spacing: 1px;
+      }
+      .return-btn:hover {
+        background: rgba(77, 166, 255, 0.7);
+        border-color: #ffffff;
+        transform: translateY(-3px);
+        box-shadow: 0 8px 25px rgba(77, 166, 255, 0.5);
+      }
 
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>心情漂流瓶 - 登入與註冊</title>
-  <link rel="stylesheet" href="login.css" />
-  <style>
-    /* 專屬返回按鈕樣式 (水滴小膠囊) */
-    .return-btn {
-      display: inline-block;
-      color: #ffffff;
-      font-size: 0.9rem;
-      font-weight: bold;
-      text-decoration: none;
-      text-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
-      background: rgba(255, 255, 255, 0.15);
-      padding: 6px 20px;
-      border-radius: 25px;
-      border: 1px solid rgba(255, 255, 255, 0.4);
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-      transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-      margin-top: 5px;
-    }
+      /* 條款內容專用捲動區 */
+      #terms-content {
+        flex: 1;
+        width: 100%;
+        overflow-y: auto;
+        background: rgba(255, 255, 255, 0.65);
+        border-radius: 15px;
+        padding: 15px;
+        text-align: left;
+        font-size: 0.85rem;
+        line-height: 1.8;
+        color: #002244;
+        box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.1);
+        margin-bottom: 10px;
+      }
 
-    .return-btn:hover {
-      background: rgba(255, 255, 255, 0.35);
-      transform: translateY(-2px);
-      box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2);
-      border-color: rgba(255, 255, 255, 0.8);
-    }
+      #terms-content::-webkit-scrollbar {
+        width: 6px;
+      }
 
-    /* 條款內容專用捲動區 */
-    #terms-content {
-      flex: 1;
-      width: 100%;
-      overflow-y: auto;
-      background: rgba(255, 255, 255, 0.65);
-      border-radius: 15px;
-      padding: 15px;
-      text-align: left;
-      font-size: 0.85rem;
-      line-height: 1.8;
-      color: #002244;
-      box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.1);
-      margin-bottom: 10px;
-    }
+      #terms-content::-webkit-scrollbar-thumb {
+        background: rgba(0, 85, 165, 0.5);
+        border-radius: 10px;
+      }
+    </style>
+  </head>
 
-    #terms-content::-webkit-scrollbar {
-      width: 6px;
-    }
+  <body>
+    <div class="login-container">
+      <img src="images/background.png" class="bg-img" alt="背景" />
 
-    #terms-content::-webkit-scrollbar-thumb {
-      background: rgba(0, 85, 165, 0.5);
-      border-radius: 10px;
-    }
-  </style>
-</head>
-
-<body>
-  <div class="login-container">
-    <img src="images/background.png" class="bg-img" alt="背景" />
-
-    <div class="css-bubbles">
-      <div class="bubble"></div>
-      <div class="bubble"></div>
-      <div class="bubble"></div>
-      <div class="bubble"></div>
-      <div class="bubble"></div>
-    </div>
-
-    <div class="enter-btn-container" onclick="openAuthModal()">
-      <img src="images/fish_logo.png" style="width: 80px; margin-bottom: 10px" />
-      <h2>開啟漂流瓶</h2>
-      <p>點擊登入 / 註冊</p>
-    </div>
-  </div>
-
-  <!-- 登入註冊主彈窗 -->
-  <div id="auth-modal" class="cute-modal" style="display: none">
-    <div class="cute-modal-content">
-      <span class="close-btn" onclick="closeAuthModal()">&times;</span>
-
-      <div class="tab-container" id="main-tabs">
-        <div class="tab active" id="tab-login" onclick="switchTab('login')">登入</div>
-        <div class="tab" id="tab-register" onclick="switchTab('register')">註冊</div>
+      <div class="css-bubbles">
+        <div class="bubble"></div>
+        <div class="bubble"></div>
+        <div class="bubble"></div>
+        <div class="bubble"></div>
+        <div class="bubble"></div>
       </div>
 
-      <form id="login-form" class="auth-form bubble-layout" onsubmit="event.preventDefault(); processLogin();">
-        <div class="bg-watermark">心情漂流瓶</div>
-
-        <div class="b-row">
-          <div class="b-item b-pill" style="width: 100%;">
-            <label>信箱 (Email):</label>
-            <input type="email" id="login-email" required />
-          </div>
-        </div>
-
-        <div class="b-row">
-          <div class="b-item b-pill" style="width: 100%;">
-            <label>密碼 (Password):</label>
-            <div class="password-wrapper">
-              <input type="password" id="login-password" required style="padding-right:35px !important;" />
-              <span class="toggle-password" onclick="togglePassword('login-password', this)" style="right: 5px;">
-                <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none"
-                  stroke-linecap="round" stroke-linejoin="round">
-                  <path
-                    d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24">
-                  </path>
-                  <line x1="1" y1="1" x2="23" y2="23"></line>
-                </svg>
-              </span>
-            </div>
-          </div>
-        </div>
-
-        <div class="b-row">
-          <div class="b-item b-pill" style="flex: 1.5;">
-            <label>圖形驗證碼:</label>
-            <input type="text" id="captcha-input" required />
-            <input type="hidden" id="captcha-id" />
-          </div>
-          <div class="b-item b-captcha-img" style="flex: 1;" onclick="loadCaptcha()" title="看不清楚？點擊換一張">
-            <div id="captcha-container"><span>載入中...</span></div>
-          </div>
-        </div>
-
-        <div style="width: 100%; text-align: right; padding-right: 15px; margin-top: -5px; z-index: 10;">
-          <a href="#" onclick="switchTab('forgot')"
-            style="color: #ffffff; font-size: 0.9rem; text-decoration: none; font-weight: bold; text-shadow: 0 1px 4px rgba(0, 0, 0, 0.6);">忘記密碼？</a>
-        </div>
-
-        <button type="submit" class="b-check-btn" title="確認登入">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
-            <polyline points="20 6 9 17 4 12"></polyline>
-          </svg>
-        </button>
-      </form>
-
-      <form id="register-form" class="auth-form bubble-layout" style="display: none"
-        onsubmit="event.preventDefault(); processRegister();">
-        <div class="bg-watermark">心情漂流瓶</div>
-
-        <div class="b-row">
-          <div class="b-item b-circle">
-            <label>暱稱:</label>
-            <input type="text" id="reg-name" required />
-          </div>
-          <div class="b-item b-circle">
-            <label>性別:</label>
-            <select id="reg-gender">
-              <option value="生理男">生理男</option>
-              <option value="生理女">生理女</option>
-              <option value="秘密">秘密</option>
-            </select>
-          </div>
-          <div class="b-item b-circle">
-            <label>生日:</label>
-            <input type="date" id="reg-birthday" />
-          </div>
-        </div>
-
-        <div class="b-row">
-          <div class="b-item b-pill" style="flex: 1.3;">
-            <label>GMAIL:</label>
-            <input type="email" id="reg-email" required />
-          </div>
-          <div class="b-item b-circle" style="flex: 0.7;">
-            <label>星座:</label>
-            <select id="reg-zodiac">
-              <option value="">不透露</option>
-              <option value="牡羊座">牡羊座</option>
-              <option value="金牛座">金牛座</option>
-              <option value="雙子座">雙子座</option>
-              <option value="巨蟹座">巨蟹座</option>
-              <option value="獅子座">獅子座</option>
-              <option value="處女座">處女座</option>
-              <option value="天秤座">天秤座</option>
-              <option value="天蠍座">天蠍座</option>
-              <option value="射手座">射手座</option>
-              <option value="摩羯座">摩羯座</option>
-              <option value="水瓶座">水瓶座</option>
-              <option value="雙魚座">雙魚座</option>
-            </select>
-          </div>
-        </div>
-
-        <div class="b-row">
-          <div class="b-item b-pill" style="width: 100%;">
-            <label>密碼:</label>
-            <div class="password-wrapper">
-              <input type="password" id="reg-password" required style="padding-right: 30px !important;" />
-              <span class="toggle-password" onclick="togglePassword('reg-password', this)" style="right: 5px;">
-                <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none"
-                  stroke-linecap="round" stroke-linejoin="round">
-                  <path
-                    d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24">
-                  </path>
-                  <line x1="1" y1="1" x2="23" y2="23"></line>
-                </svg>
-              </span>
-            </div>
-          </div>
-        </div>
-
-        <div class="b-row">
-          <div class="b-item b-rect">
-            <label>自我介紹:</label>
-            <textarea id="reg-bio" rows="2"></textarea>
-          </div>
-        </div>
-
-        <!-- ✨ 新增：使用者條款勾選區塊 ✨ -->
-        <div class="b-row" style="margin-top: 5px !important;">
-          <div class="b-item b-pill"
-            style="width: 100%; height: auto; padding: 10px 15px; flex-direction: row; justify-content: center; border-radius: 20px; gap: 8px;">
-            <input type="checkbox" id="reg-terms" disabled
-              style="width: auto !important; box-shadow: none !important; cursor: not-allowed;"
-              title="請先點擊閱讀條款並滑至底部解鎖" />
-            <label for="reg-terms" style="margin: 0; font-size: 0.85rem; width: auto; cursor: pointer;">
-              我已閱讀並同意 <a href="#" onclick="openTermsModal()"
-                style="color: #0055a5; text-decoration: underline; font-weight: 900;">使用者條款</a>
-            </label>
-          </div>
-        </div>
-
-        <button type="submit" class="b-check-btn" title="送出註冊">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
-            <polyline points="20 6 9 17 4 12"></polyline>
-          </svg>
-        </button>
-      </form>
-
-      <form id="forgot-form" class="auth-form bubble-layout" style="display: none; align-items: center;"
-        onsubmit="event.preventDefault(); processForgotPassword();">
-        <h2
-          style="color: #ffffff; margin-top: 5px; margin-bottom: 0; font-weight: 900; letter-spacing: 2px; text-shadow: 0 2px 6px rgba(0, 0, 0, 0.5);">
-          找回密碼</h2>
-        <p
-          style="color: #ffffff; font-size: 0.95rem; text-align: center; font-weight: bold; margin: 0; line-height: 1.5; text-shadow: 0 1px 4px rgba(0, 0, 0, 0.6);">
-          請輸入你註冊時使用的信箱，<br>我們將發送驗證碼給你。</p>
-
-        <div class="b-row" style="width: 100%;">
-          <div class="b-item b-pill" style="width: 100%;">
-            <label>信箱 (Email):</label>
-            <input type="email" id="forgot-email" required />
-          </div>
-        </div>
-
-        <div style="text-align: center; z-index: 10;">
-          <a href="#" onclick="switchTab('login')" class="return-btn">返回登入</a>
-        </div>
-
-        <button type="submit" class="b-check-btn" title="發送驗證碼" style="margin-top: 10px;">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
-            width="24" height="24">
-            <polyline points="20 6 9 17 4 12"></polyline>
-          </svg>
-        </button>
-      </form>
-
-      <form id="reset-form" class="auth-form bubble-layout" style="display: none; align-items: center;"
-        onsubmit="event.preventDefault(); processResetPassword();">
-        <h2
-          style="color: #ffffff; margin-top: 5px; margin-bottom: 0; font-weight: 900; letter-spacing: 2px; text-shadow: 0 2px 6px rgba(0, 0, 0, 0.5);">
-          設定新密碼</h2>
-        <p
-          style="color: #ffffff; font-size: 0.95rem; text-align: center; font-weight: bold; margin: 0; text-shadow: 0 1px 4px rgba(0, 0, 0, 0.6);">
-          請輸入信件中的驗證碼與新密碼。</p>
-
-        <div class="b-row" style="width: 100%;">
-          <div class="b-item b-pill" style="width: 100%;">
-            <label>驗證碼 (Token):</label>
-            <input type="text" id="reset-token" required />
-          </div>
-        </div>
-        <div class="b-row" style="width: 100%;">
-          <div class="b-item b-pill" style="width: 100%;">
-            <label>新密碼 (New):</label>
-            <div class="password-wrapper">
-              <input type="password" id="reset-password" required style="padding-right:35px !important;" />
-              <span class="toggle-password" onclick="togglePassword('reset-password', this)" style="right: 5px;">
-                <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none"
-                  stroke-linecap="round" stroke-linejoin="round">
-                  <path
-                    d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24">
-                  </path>
-                  <line x1="1" y1="1" x2="23" y2="23"></line>
-                </svg>
-              </span>
-            </div>
-          </div>
-        </div>
-
-        <div style="text-align: center; z-index: 10;">
-          <a href="#" onclick="switchTab('login')" class="return-btn">返回登入</a>
-        </div>
-
-        <button type="submit" class="b-check-btn" title="確認重設" style="margin-top: 10px;">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
-            width="24" height="24">
-            <polyline points="20 6 9 17 4 12"></polyline>
-          </svg>
-        </button>
-      </form>
-    </div>
-  </div>
-
-  <!-- ✨ 新增：獨立的使用者條款泡泡彈窗 ✨ -->
-  <div id="terms-modal" class="cute-modal" style="display: none; z-index: 2000;">
-    <div class="cute-modal-content"
-      style="width: 90vmin !important; height: 90vmin !important; max-width: 600px !important; max-height: 600px !important;">
-      <span class="close-btn" onclick="closeTermsModal()">&times;</span>
-      <h2 style="color: #004b87; margin-top: 5px; margin-bottom: 10px; font-weight: 900; letter-spacing: 2px;">心情漂流瓶公約
-      </h2>
-
-      <div id="terms-content" onscroll="checkTermsScroll()">
-        <strong>歡迎來到心情漂流瓶！</strong><br><br>
-        為維護這片乾淨的海洋，請詳閱並遵守以下約定：<br><br>
-        1. <strong>友善交流：</strong> 請尊重其他漂流者，禁止使用謾罵、歧視或具攻擊性的言語。<br>
-        2. <strong>保護隱私：</strong> 請勿在公開漂流瓶中散佈自己或他人的敏感個人資料（如身分證字號、詳細住址、密碼等）。<br>
-        3. <strong>禁止濫用：</strong> 嚴禁發送惡意廣告、色情、暴力或違反台灣法律之內容。<br>
-        4. <strong>系統維護：</strong> 我們會盡力守護大家的秘密，但若遇不可抗力之系統異常，團隊保有最終解釋與處理權。<br>
-        5. <strong>帳號安全：</strong> 請妥善保管您的登入憑證，若因個人疏失導致帳號被盜用，後果須自行承擔。<br><br>
-        <em>(👇 寶寶，請繼續往下滑動，直到最底部解鎖勾選權限喔！)</em><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
-        <div id="scroll-bottom-indicator" style="text-align: center; color: #ff7675; font-weight: bold;">
-          🎉 恭喜你滑到底了！現在可以關閉視窗並勾選同意囉！
-        </div>
+      <div class="enter-btn-container" onclick="openAuthModal()">
+        <img
+          src="images/fish_logo.png"
+          style="width: 80px; margin-bottom: 10px"
+        />
+        <h2>開啟漂流瓶</h2>
+        <p>點擊登入 / 註冊</p>
       </div>
-
-      <button type="button" class="b-check-btn" title="關閉條款" onclick="closeTermsModal()"
-        style="margin-top: 5px; border-width: 3px; width: 45px; height: 45px;">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
-          width="20" height="20">
-          <polyline points="20 6 9 17 4 12"></polyline>
-        </svg>
-      </button>
     </div>
-  </div>
 
-  <script>
-    const API_BASE_URL = "https://api.drift-bottles.xyz";
+    <!-- 登入註冊主彈窗 -->
+    <div id="auth-modal" class="cute-modal" style="display: none">
+      <div class="cute-modal-content">
+        <span class="close-btn" onclick="closeAuthModal()">&times;</span>
 
-    // 彈窗與錯誤訊息控制
-    function openAuthModal() { document.getElementById("auth-modal").style.display = "flex"; clearErrorMessage(); }
-    function closeAuthModal() { document.getElementById("auth-modal").style.display = "none"; clearErrorMessage(); }
-    function clearErrorMessage() { const errorEl = document.getElementById("modal-error-msg"); if (errorEl) errorEl.remove(); }
+        <div class="tab-container" id="main-tabs">
+          <div class="tab active" id="tab-login" onclick="switchTab('login')">
+            登入
+          </div>
+          <div class="tab" id="tab-register" onclick="switchTab('register')">
+            註冊
+          </div>
+        </div>
 
-    function showModalError(message) {
-      clearErrorMessage();
-      const errorDiv = document.createElement("div");
-      errorDiv.id = "modal-error-msg";
-      errorDiv.style.cssText = `background: rgba(255, 77, 77, 0.15); border: 1px solid #ff4d4d; color: #ff4d4d; padding: 10px; border-radius: 15px; margin-bottom: 10px; font-size: 0.9rem; font-weight: bold; text-align: center; width: 90%; z-index: 10;`;
-      errorDiv.innerText = message;
-      const tabContainer = document.getElementById("main-tabs");
-      tabContainer.parentNode.insertBefore(errorDiv, tabContainer.nextSibling);
-    }
+        <form
+          id="login-form"
+          class="auth-form bubble-layout"
+          onsubmit="
+            event.preventDefault();
+            processLogin();
+          "
+        >
+          <div class="bg-watermark">心情漂流瓶</div>
 
-    // ✨ 新增：條款彈窗與捲動解鎖邏輯 ✨
-    function openTermsModal() {
-      document.getElementById("terms-modal").style.display = "flex";
-      // 確保視窗打開時能觸發一次檢查（避免螢幕太大一開始就見底的情況）
-      setTimeout(checkTermsScroll, 100);
-    }
-    function closeTermsModal() {
-      document.getElementById("terms-modal").style.display = "none";
-    }
-    function checkTermsScroll() {
-      const content = document.getElementById("terms-content");
-      const checkbox = document.getElementById("reg-terms");
-      // 判斷是否滑到底部 (給予 10px 的彈性容錯空間)
-      if (content.scrollHeight - content.scrollTop <= content.clientHeight + 10) {
-        checkbox.disabled = false;
-        checkbox.style.cursor = "pointer";
-        checkbox.title = "你已經閱讀完畢，可以勾選囉！";
-        document.getElementById("scroll-bottom-indicator").style.color = "#0073e6";
+          <div class="b-row">
+            <div class="b-item b-pill" style="width: 100%">
+              <label>信箱 (Email):</label>
+              <input type="email" id="login-email" required />
+            </div>
+          </div>
+
+          <div class="b-row">
+            <div class="b-item b-pill" style="width: 100%">
+              <label>密碼 (Password):</label>
+              <div class="password-wrapper">
+                <input
+                  type="password"
+                  id="login-password"
+                  required
+                  style="padding-right: 35px !important"
+                />
+                <span
+                  class="toggle-password"
+                  onclick="togglePassword('login-password', this)"
+                  style="right: 5px"
+                >
+                  <svg
+                    viewBox="0 0 24 24"
+                    width="20"
+                    height="20"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    fill="none"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <path
+                      d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"
+                    ></path>
+                    <line x1="1" y1="1" x2="23" y2="23"></line>
+                  </svg>
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <div class="b-row">
+            <div class="b-item b-pill" style="flex: 1.5">
+              <label>圖形驗證碼:</label>
+              <input type="text" id="captcha-input" required />
+              <input type="hidden" id="captcha-id" />
+            </div>
+            <div
+              class="b-item b-captcha-img"
+              style="flex: 1"
+              onclick="loadCaptcha()"
+              title="看不清楚？點擊換一張"
+            >
+              <div id="captcha-container"><span>載入中...</span></div>
+            </div>
+          </div>
+
+          <div
+            style="
+              width: 100%;
+              text-align: right;
+              padding-right: 15px;
+              margin-top: -5px;
+              z-index: 10;
+            "
+          >
+            <a
+              href="#"
+              onclick="switchTab('forgot')"
+              style="
+                color: #ffffff;
+                font-size: 0.9rem;
+                text-decoration: none;
+                font-weight: bold;
+                text-shadow: 0 1px 4px rgba(0, 0, 0, 0.6);
+              "
+              >忘記密碼？</a
+            >
+          </div>
+
+          <button type="submit" class="b-check-btn" title="確認登入">
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>
+          </button>
+        </form>
+
+        <form
+          id="register-form"
+          class="auth-form bubble-layout"
+          style="display: none"
+          onsubmit="
+            event.preventDefault();
+            processRegister();
+          "
+        >
+          <div class="bg-watermark">心情漂流瓶</div>
+
+          <div class="b-row">
+            <div class="b-item b-circle">
+              <label>暱稱:</label>
+              <input type="text" id="reg-name" required />
+            </div>
+            <div class="b-item b-circle">
+              <label>性別:</label>
+              <select id="reg-gender">
+                <option value="生理男">生理男</option>
+                <option value="生理女">生理女</option>
+                <option value="秘密">秘密</option>
+              </select>
+            </div>
+            <div class="b-item b-circle">
+              <label>生日:</label>
+              <input type="date" id="reg-birthday" />
+            </div>
+          </div>
+
+          <div class="b-row">
+            <div class="b-item b-pill" style="flex: 1.3">
+              <label>GMAIL:</label>
+              <input type="email" id="reg-email" required />
+            </div>
+            <div class="b-item b-circle" style="flex: 0.7">
+              <label>星座:</label>
+              <select id="reg-zodiac">
+                <option value="">不透露</option>
+                <option value="牡羊座">牡羊座</option>
+                <option value="金牛座">金牛座</option>
+                <option value="雙子座">雙子座</option>
+                <option value="巨蟹座">巨蟹座</option>
+                <option value="獅子座">獅子座</option>
+                <option value="處女座">處女座</option>
+                <option value="天秤座">天秤座</option>
+                <option value="天蠍座">天蠍座</option>
+                <option value="射手座">射手座</option>
+                <option value="摩羯座">摩羯座</option>
+                <option value="水瓶座">水瓶座</option>
+                <option value="雙魚座">雙魚座</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="b-row">
+            <div class="b-item b-pill" style="width: 100%">
+              <label>密碼:</label>
+              <div class="password-wrapper">
+                <input
+                  type="password"
+                  id="reg-password"
+                  required
+                  style="padding-right: 30px !important"
+                />
+                <span
+                  class="toggle-password"
+                  onclick="togglePassword('reg-password', this)"
+                  style="right: 5px"
+                >
+                  <svg
+                    viewBox="0 0 24 24"
+                    width="18"
+                    height="18"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    fill="none"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <path
+                      d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"
+                    ></path>
+                    <line x1="1" y1="1" x2="23" y2="23"></line>
+                  </svg>
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <div class="b-row">
+            <div class="b-item b-rect">
+              <label>自我介紹:</label>
+              <textarea id="reg-bio" rows="2"></textarea>
+            </div>
+          </div>
+
+          <!-- ✨ 新增：使用者條款勾選區塊 ✨ -->
+          <div class="b-row" style="margin-top: 5px !important">
+            <div
+              class="b-item b-pill"
+              style="
+                width: 100%;
+                height: auto;
+                padding: 10px 15px;
+                flex-direction: row;
+                justify-content: center;
+                border-radius: 20px;
+                gap: 8px;
+              "
+            >
+              <input
+                type="checkbox"
+                id="reg-terms"
+                disabled
+                style="
+                  width: auto !important;
+                  box-shadow: none !important;
+                  cursor: not-allowed;
+                "
+                title="請先點擊閱讀條款並滑至底部解鎖"
+              />
+              <label
+                for="reg-terms"
+                style="
+                  margin: 0;
+                  font-size: 0.85rem;
+                  width: auto;
+                  cursor: pointer;
+                "
+              >
+                我已閱讀並同意
+                <a
+                  href="#"
+                  onclick="openTermsModal()"
+                  style="
+                    color: #0055a5;
+                    text-decoration: underline;
+                    font-weight: 900;
+                  "
+                  >使用者條款</a
+                >
+              </label>
+            </div>
+          </div>
+
+          <button type="submit" class="b-check-btn" title="送出註冊">
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>
+          </button>
+        </form>
+
+        <form
+          id="forgot-form"
+          class="auth-form bubble-layout"
+          style="
+            display: none;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+          "
+          onsubmit="
+            event.preventDefault();
+            processForgotPassword();
+          "
+        >
+          <div style="text-align: center; margin-bottom: 20px">
+            <h2
+              style="
+                color: #ffffff;
+                margin-top: 0;
+                margin-bottom: 10px;
+                font-weight: 900;
+                letter-spacing: 4px;
+                text-shadow:
+                  0 2px 10px rgba(255, 255, 255, 0.5),
+                  0 4px 20px rgba(0, 85, 165, 0.8);
+                font-size: 2.2rem;
+              "
+            >
+              找回密碼
+            </h2>
+            <p
+              style="
+                color: #d1e8ff;
+                font-size: 0.95rem;
+                text-align: center;
+                font-weight: bold;
+                margin: 0;
+                line-height: 1.6;
+                text-shadow: 0 2px 5px rgba(0, 0, 0, 0.5);
+              "
+            >
+              請輸入你註冊時使用的信箱，<br />我們將發送驗證碼給你。
+            </p>
+          </div>
+
+          <div class="b-row" style="width: 100%; margin-bottom: 10px">
+            <div class="b-item b-pill" style="width: 100%">
+              <label>信箱 (Email):</label>
+              <input type="email" id="forgot-email" required />
+            </div>
+          </div>
+
+          <div
+            style="
+              display: flex;
+              flex-direction: column;
+              align-items: center;
+              gap: 20px;
+              margin-top: 10px;
+              width: 100%;
+              z-index: 10;
+            "
+          >
+            <button type="submit" class="b-check-btn" title="發送驗證碼">
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <polyline points="20 6 9 17 4 12"></polyline>
+              </svg>
+            </button>
+
+            <a href="#" onclick="switchTab('login')" class="return-btn"
+              >🔙 返回登入</a
+            >
+          </div>
+        </form>
+
+        <form
+          id="reset-form"
+          class="auth-form bubble-layout"
+          style="display: none; align-items: center"
+          onsubmit="
+            event.preventDefault();
+            processResetPassword();
+          "
+        >
+          <h2
+            style="
+              color: #ffffff;
+              margin-top: 5px;
+              margin-bottom: 0;
+              font-weight: 900;
+              letter-spacing: 2px;
+              text-shadow: 0 2px 6px rgba(0, 0, 0, 0.5);
+            "
+          >
+            設定新密碼
+          </h2>
+          <p
+            style="
+              color: #ffffff;
+              font-size: 0.95rem;
+              text-align: center;
+              font-weight: bold;
+              margin: 0;
+              text-shadow: 0 1px 4px rgba(0, 0, 0, 0.6);
+            "
+          >
+            請輸入信件中的驗證碼與新密碼。
+          </p>
+
+          <div class="b-row" style="width: 100%">
+            <div class="b-item b-pill" style="width: 100%">
+              <label>驗證碼 (Token):</label>
+              <input type="text" id="reset-token" required />
+            </div>
+          </div>
+          <div class="b-row" style="width: 100%">
+            <div class="b-item b-pill" style="width: 100%">
+              <label>新密碼 (New):</label>
+              <div class="password-wrapper">
+                <input
+                  type="password"
+                  id="reset-password"
+                  required
+                  style="padding-right: 35px !important"
+                />
+                <span
+                  class="toggle-password"
+                  onclick="togglePassword('reset-password', this)"
+                  style="right: 5px"
+                >
+                  <svg
+                    viewBox="0 0 24 24"
+                    width="20"
+                    height="20"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    fill="none"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <path
+                      d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"
+                    ></path>
+                    <line x1="1" y1="1" x2="23" y2="23"></line>
+                  </svg>
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <div style="text-align: center; z-index: 10">
+            <a href="#" onclick="switchTab('login')" class="return-btn"
+              >返回登入</a
+            >
+          </div>
+
+          <button
+            type="submit"
+            class="b-check-btn"
+            title="確認重設"
+            style="margin-top: 10px"
+          >
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              width="24"
+              height="24"
+            >
+              <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <!-- ✨ 新增：獨立的使用者條款泡泡彈窗 ✨ -->
+    <div
+      id="terms-modal"
+      class="cute-modal"
+      style="display: none; z-index: 2000"
+    >
+      <div
+        class="cute-modal-content"
+        style="
+          width: 90vmin !important;
+          height: 90vmin !important;
+          max-width: 600px !important;
+          max-height: 600px !important;
+        "
+      >
+        <span class="close-btn" onclick="closeTermsModal()">&times;</span>
+        <h2
+          style="
+            color: #004b87;
+            margin-top: 5px;
+            margin-bottom: 10px;
+            font-weight: 900;
+            letter-spacing: 2px;
+          "
+        >
+          心情漂流瓶公約
+        </h2>
+
+        <div id="terms-content" onscroll="checkTermsScroll()">
+          <strong>歡迎來到心情漂流瓶！</strong><br /><br />
+          為維護這片乾淨的海洋，請詳閱並遵守以下約定：<br /><br />
+          1.
+          <strong>友善交流：</strong>
+          請尊重其他漂流者，禁止使用謾罵、歧視或具攻擊性的言語。<br />
+          2.
+          <strong>保護隱私：</strong>
+          請勿在公開漂流瓶中散佈自己或他人的敏感個人資料（如身分證字號、詳細住址、密碼等）。<br />
+          3.
+          <strong>禁止濫用：</strong>
+          嚴禁發送惡意廣告、色情、暴力或違反台灣法律之內容。<br />
+          4.
+          <strong>系統維護：</strong>
+          我們會盡力守護大家的秘密，但若遇不可抗力之系統異常，團隊保有最終解釋與處理權。<br />
+          5.
+          <strong>帳號安全：</strong>
+          請妥善保管您的登入憑證，若因個人疏失導致帳號被盜用，後果須自行承擔。<br /><br />
+          <em>(👇 寶寶，請繼續往下滑動，直到最底部解鎖勾選權限喔！)</em
+          ><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br />
+          <div
+            id="scroll-bottom-indicator"
+            style="text-align: center; color: #ff7675; font-weight: bold"
+          >
+            🎉 恭喜你滑到底了！現在可以關閉視窗並勾選同意囉！
+          </div>
+        </div>
+
+        <button
+          type="button"
+          class="b-check-btn"
+          title="關閉條款"
+          onclick="closeTermsModal()"
+          style="margin-top: 5px; border-width: 3px; width: 45px; height: 45px"
+        >
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            width="20"
+            height="20"
+          >
+            <polyline points="20 6 9 17 4 12"></polyline>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <script>
+      const API_BASE_URL = "https://api.drift-bottles.xyz";
+
+      // 彈窗與錯誤訊息控制
+      function openAuthModal() {
+        document.getElementById("auth-modal").style.display = "flex";
+        clearErrorMessage();
       }
-    }
-
-    // 密碼顯示切換
-    function togglePassword(inputId, iconEl) {
-      const input = document.getElementById(inputId);
-      if (input.type === "password") {
-        input.type = "text";
-        iconEl.innerHTML = `<svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>`;
-      } else {
-        input.type = "password";
-        iconEl.innerHTML = `<svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>`;
+      function closeAuthModal() {
+        document.getElementById("auth-modal").style.display = "none";
+        clearErrorMessage();
       }
-    }
-
-    // 頁籤切換
-    function switchTab(tab) {
-      clearErrorMessage();
-      document.getElementById("login-form").style.display = "none";
-      document.getElementById("register-form").style.display = "none";
-      document.getElementById("forgot-form").style.display = "none";
-      document.getElementById("reset-form").style.display = "none";
-
-      const mainTabs = document.getElementById("main-tabs");
-      document.getElementById("tab-login").classList.remove("active");
-      document.getElementById("tab-register").classList.remove("active");
-
-      if (tab === "login") {
-        mainTabs.style.display = "flex"; document.getElementById("tab-login").classList.add("active"); document.getElementById("login-form").style.display = "flex";
-      } else if (tab === "register") {
-        mainTabs.style.display = "flex"; document.getElementById("tab-register").classList.add("active"); document.getElementById("register-form").style.display = "flex";
-      } else if (tab === "forgot") {
-        mainTabs.style.display = "none"; document.getElementById("forgot-form").style.display = "flex";
-      } else if (tab === "reset") {
-        mainTabs.style.display = "none"; document.getElementById("reset-form").style.display = "flex";
+      function clearErrorMessage() {
+        const errorEl = document.getElementById("modal-error-msg");
+        if (errorEl) errorEl.remove();
       }
-    }
 
-    // 星座自動判定
-    function updateZodiac() {
-      const birthdayInput = document.getElementById("reg-birthday").value;
-      const zodiacSelect = document.getElementById("reg-zodiac");
-      if (!birthdayInput) return;
-      const date = new Date(birthdayInput);
-      const month = date.getMonth() + 1;
-      const day = date.getDate();
-      let zodiac = "";
-
-      if ((month == 3 && day >= 21) || (month == 4 && day <= 19)) zodiac = "牡羊座";
-      else if ((month == 4 && day >= 20) || (month == 5 && day <= 20)) zodiac = "金牛座";
-      else if ((month == 5 && day >= 21) || (month == 6 && day <= 20)) zodiac = "雙子座";
-      else if ((month == 6 && day >= 21) || (month == 7 && day <= 22)) zodiac = "巨蟹座";
-      else if ((month == 7 && day >= 23) || (month == 8 && day <= 22)) zodiac = "獅子座";
-      else if ((month == 8 && day >= 23) || (month == 9 && day <= 22)) zodiac = "處女座";
-      else if ((month == 9 && day >= 23) || (month == 10 && day <= 22)) zodiac = "天秤座";
-      else if ((month == 10 && day >= 23) || (month == 11 && day <= 21)) zodiac = "天蠍座";
-      else if ((month == 11 && day >= 22) || (month == 12 && day <= 21)) zodiac = "射手座";
-      else if ((month == 12 && day >= 22) || (month == 1 && day <= 19)) zodiac = "摩羯座";
-      else if ((month == 1 && day >= 20) || (month == 2 && day <= 18)) zodiac = "水瓶座";
-      else if ((month == 2 && day >= 19) || (month == 3 && day <= 20)) zodiac = "雙魚座";
-
-      if (zodiac) zodiacSelect.value = zodiac;
-    }
-
-    // 載入驗證碼
-    async function loadCaptcha() {
-      const container = document.getElementById("captcha-container");
-      const idInput = document.getElementById("captcha-id");
-      try {
-        const response = await fetch(`${API_BASE_URL}/captcha`);
-        if (!response.ok) throw new Error("驗證碼載入失敗");
-        const data = await response.json();
-        container.innerHTML = data.image;
-        if (idInput) idInput.value = data.captchaId;
-      } catch (error) {
-        container.innerHTML = "<span style='color:#0055a5; font-weight:bold;'>載入失敗，點擊重試</span>";
+      function showModalError(message) {
+        clearErrorMessage();
+        const errorDiv = document.createElement("div");
+        errorDiv.id = "modal-error-msg";
+        errorDiv.style.cssText = `background: rgba(255, 77, 77, 0.15); border: 1px solid #ff4d4d; color: #ff4d4d; padding: 10px; border-radius: 15px; margin-bottom: 10px; font-size: 0.9rem; font-weight: bold; text-align: center; width: 90%; z-index: 10;`;
+        errorDiv.innerText = message;
+        const tabContainer = document.getElementById("main-tabs");
+        tabContainer.parentNode.insertBefore(
+          errorDiv,
+          tabContainer.nextSibling,
+        );
       }
-    }
 
-    // 登入處理
-    async function processLogin() {
-      const email = document.getElementById("login-email").value;
-      const password = document.getElementById("login-password").value;
-      const captchaId = document.getElementById("captcha-id").value;
-      const userInput = document.getElementById("captcha-input").value;
-
-      if (email.trim() === "" || password.trim() === "") { showModalError("⚠️ 請輸入信箱與密碼！"); return; }
-      if (userInput.trim() === "") { showModalError("⚠️ 驗證碼錯誤或已過期，請重新輸入"); return; }
-
-      try {
-        const response = await fetch(`${API_BASE_URL}/auth/login`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json", "ngrok-skip-browser-warning": "true" },
-          body: JSON.stringify({ email: email, password: password, captchaId: captchaId, userInput: userInput }),
-        });
-        const responseData = await response.json();
-
-        if (response.ok) {
-          const realToken = responseData.data?.result?.token || responseData.token || responseData.data?.token;
-          const realUser = responseData.data?.result?.member || responseData.user || responseData.data?.user || { email: email, name: email.split("@")[0] };
-          localStorage.setItem("authToken", realToken);
-
-          const userToSave = {
-            email: realUser.email || email, name: realUser.name || email.split("@")[0], avatar: realUser.avatar || "images/fish_logo.png",
-            birthday: realUser.birthday || "", bio: realUser.bio || "", constellation: realUser.constellation || "", role: realUser.role || "USER",
-          };
-          localStorage.setItem("currentUser", JSON.stringify(userToSave));
-          window.location.href = "test.html";
-        } else {
-          showModalError("❌ 登入失敗：" + (responseData.message || "帳號或密碼錯誤"));
-          document.getElementById("captcha-input").value = "";
-          loadCaptcha();
+      // ✨ 新增：條款彈窗與捲動解鎖邏輯 ✨
+      function openTermsModal() {
+        document.getElementById("terms-modal").style.display = "flex";
+        // 確保視窗打開時能觸發一次檢查（避免螢幕太大一開始就見底的情況）
+        setTimeout(checkTermsScroll, 100);
+      }
+      function closeTermsModal() {
+        document.getElementById("terms-modal").style.display = "none";
+      }
+      function checkTermsScroll() {
+        const content = document.getElementById("terms-content");
+        const checkbox = document.getElementById("reg-terms");
+        // 判斷是否滑到底部 (給予 10px 的彈性容錯空間)
+        if (
+          content.scrollHeight - content.scrollTop <=
+          content.clientHeight + 10
+        ) {
+          checkbox.disabled = false;
+          checkbox.style.cursor = "pointer";
+          checkbox.title = "你已經閱讀完畢，可以勾選囉！";
+          document.getElementById("scroll-bottom-indicator").style.color =
+            "#0073e6";
         }
-      } catch (error) {
-        showModalError("📡 無法連接到後端伺服器！");
       }
-    }
 
-    // 註冊處理
-    async function processRegister() {
-      const email = document.getElementById("reg-email").value;
-      const password = document.getElementById("reg-password").value;
-      const name = document.getElementById("reg-name").value;
-      const termsChecked = document.getElementById("reg-terms").checked; // ✨ 檢查條款是否勾選
-
-      if (email.trim() === "" || name.trim() === "" || password.trim() === "") { showModalError("⚠️ 信箱、姓名和密碼是必填的喔！"); return; }
-      const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z]).{8,16}$/;
-      if (!passwordRegex.test(password)) { showModalError("⚠️ 密碼格式錯誤！請設定 8~16 字元，且必須包含大小寫英文。"); return; }
-
-      // ✨ 如果沒勾選，直接擋下並顯示提示
-      if (!termsChecked) { showModalError("⚠️ 必須先閱讀並勾選同意「使用者條款」才能註冊喔！"); return; }
-
-      const birthdayRaw = document.getElementById("reg-birthday").value;
-      const finalBirthday = birthdayRaw ? new Date(birthdayRaw).toISOString() : new Date("2000-01-01").toISOString();
-
-      const userData = {
-        email: email, password: password, name: name, birthday: finalBirthday,
-        bio: document.getElementById("reg-bio").value || "", blood_type: "",
-        constellation: document.getElementById("reg-zodiac").value || "",
-      };
-
-      try {
-        const response = await fetch(`${API_BASE_URL}/auth/register`, {
-          method: "POST", headers: { "Content-Type": "application/json", "ngrok-skip-browser-warning": "true" }, body: JSON.stringify(userData),
-        });
-        const data = await response.json();
-        if (response.ok) {
-          alert("🎉 註冊成功！請登入。"); switchTab("login");
+      // 密碼顯示切換
+      function togglePassword(inputId, iconEl) {
+        const input = document.getElementById(inputId);
+        if (input.type === "password") {
+          input.type = "text";
+          iconEl.innerHTML = `<svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>`;
         } else {
-          showModalError("❌ 註冊失敗：" + (data.message || "信箱已存在或格式錯誤"));
+          input.type = "password";
+          iconEl.innerHTML = `<svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>`;
         }
-      } catch (error) {
-        showModalError("📡 無法連接到後端伺服器！");
       }
-    }
 
-    // 忘記密碼處理
-    async function processForgotPassword() {
-      const email = document.getElementById("forgot-email").value;
-      if (email.trim() === "") { alert("請填寫信箱！"); return; }
-      try {
-        const response = await fetch(`${API_BASE_URL}/auth/forgot-password`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email: email }) });
-        if (response.ok) { alert("✅ 已成功發送重設信件！"); switchTab("login"); }
-        else { const data = await response.json(); alert("發送失敗：" + (data.message || "請確認信箱是否正確")); }
-      } catch (error) { alert("無法連接到後端伺服器！"); }
-    }
+      // 頁籤切換
+      function switchTab(tab) {
+        clearErrorMessage();
+        document.getElementById("login-form").style.display = "none";
+        document.getElementById("register-form").style.display = "none";
+        document.getElementById("forgot-form").style.display = "none";
+        document.getElementById("reset-form").style.display = "none";
 
-    // 重設密碼處理
-    async function processResetPassword() {
-      const token = document.getElementById("reset-token").value;
-      const newPassword = document.getElementById("reset-password").value;
-      if (token.trim() === "" || newPassword.trim() === "") { alert("驗證碼與新密碼不可為空！"); return; }
-      try {
-        const response = await fetch(`${API_BASE_URL}/auth/reset-password`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ token: token, newPassword: newPassword }) });
-        if (response.ok) { alert("密碼重設成功！請登入。"); switchTab("login"); }
-        else { const data = await response.json(); alert("重設失敗：" + (data.message || "Token 無效或過期")); }
-      } catch (error) { alert("無法連接到後端伺服器！"); }
-    }
+        const mainTabs = document.getElementById("main-tabs");
+        document.getElementById("tab-login").classList.remove("active");
+        document.getElementById("tab-register").classList.remove("active");
 
-    // 初始掛載事件
-    window.addEventListener("DOMContentLoaded", () => {
-      loadCaptcha();
-      const birthdayInput = document.getElementById("reg-birthday");
-      if (birthdayInput) birthdayInput.addEventListener("change", updateZodiac);
-    });
-  </script>
-</body>
+        if (tab === "login") {
+          mainTabs.style.display = "flex";
+          document.getElementById("tab-login").classList.add("active");
+          document.getElementById("login-form").style.display = "flex";
+        } else if (tab === "register") {
+          mainTabs.style.display = "flex";
+          document.getElementById("tab-register").classList.add("active");
+          document.getElementById("register-form").style.display = "flex";
+        } else if (tab === "forgot") {
+          mainTabs.style.display = "none";
+          document.getElementById("forgot-form").style.display = "flex";
+        } else if (tab === "reset") {
+          mainTabs.style.display = "none";
+          document.getElementById("reset-form").style.display = "flex";
+        }
+      }
 
+      // 星座自動判定
+      function updateZodiac() {
+        const birthdayInput = document.getElementById("reg-birthday").value;
+        const zodiacSelect = document.getElementById("reg-zodiac");
+        if (!birthdayInput) return;
+        const date = new Date(birthdayInput);
+        const month = date.getMonth() + 1;
+        const day = date.getDate();
+        let zodiac = "";
+
+        if ((month == 3 && day >= 21) || (month == 4 && day <= 19))
+          zodiac = "牡羊座";
+        else if ((month == 4 && day >= 20) || (month == 5 && day <= 20))
+          zodiac = "金牛座";
+        else if ((month == 5 && day >= 21) || (month == 6 && day <= 20))
+          zodiac = "雙子座";
+        else if ((month == 6 && day >= 21) || (month == 7 && day <= 22))
+          zodiac = "巨蟹座";
+        else if ((month == 7 && day >= 23) || (month == 8 && day <= 22))
+          zodiac = "獅子座";
+        else if ((month == 8 && day >= 23) || (month == 9 && day <= 22))
+          zodiac = "處女座";
+        else if ((month == 9 && day >= 23) || (month == 10 && day <= 22))
+          zodiac = "天秤座";
+        else if ((month == 10 && day >= 23) || (month == 11 && day <= 21))
+          zodiac = "天蠍座";
+        else if ((month == 11 && day >= 22) || (month == 12 && day <= 21))
+          zodiac = "射手座";
+        else if ((month == 12 && day >= 22) || (month == 1 && day <= 19))
+          zodiac = "摩羯座";
+        else if ((month == 1 && day >= 20) || (month == 2 && day <= 18))
+          zodiac = "水瓶座";
+        else if ((month == 2 && day >= 19) || (month == 3 && day <= 20))
+          zodiac = "雙魚座";
+
+        if (zodiac) zodiacSelect.value = zodiac;
+      }
+
+      // 載入驗證碼
+      async function loadCaptcha() {
+        const container = document.getElementById("captcha-container");
+        const idInput = document.getElementById("captcha-id");
+        try {
+          const response = await fetch(`${API_BASE_URL}/captcha`);
+          if (!response.ok) throw new Error("驗證碼載入失敗");
+          const data = await response.json();
+          container.innerHTML = data.image;
+          if (idInput) idInput.value = data.captchaId;
+        } catch (error) {
+          container.innerHTML =
+            "<span style='color:#0055a5; font-weight:bold;'>載入失敗，點擊重試</span>";
+        }
+      }
+
+      // 登入處理
+      async function processLogin() {
+        const email = document.getElementById("login-email").value;
+        const password = document.getElementById("login-password").value;
+        const captchaId = document.getElementById("captcha-id").value;
+        const userInput = document.getElementById("captcha-input").value;
+
+        if (email.trim() === "" || password.trim() === "") {
+          showModalError("⚠️ 請輸入信箱與密碼！");
+          return;
+        }
+        if (userInput.trim() === "") {
+          showModalError("⚠️ 驗證碼錯誤或已過期，請重新輸入");
+          return;
+        }
+
+        try {
+          const response = await fetch(`${API_BASE_URL}/auth/login`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "ngrok-skip-browser-warning": "true",
+            },
+            body: JSON.stringify({
+              email: email,
+              password: password,
+              captchaId: captchaId,
+              userInput: userInput,
+            }),
+          });
+          const responseData = await response.json();
+
+          if (response.ok) {
+            const realToken =
+              responseData.data?.result?.token ||
+              responseData.token ||
+              responseData.data?.token;
+            const realUser = responseData.data?.result?.member ||
+              responseData.user ||
+              responseData.data?.user || {
+                email: email,
+                name: email.split("@")[0],
+              };
+            localStorage.setItem("authToken", realToken);
+
+            const userToSave = {
+              email: realUser.email || email,
+              name: realUser.name || email.split("@")[0],
+              avatar: realUser.avatar || "images/fish_logo.png",
+              birthday: realUser.birthday || "",
+              bio: realUser.bio || "",
+              constellation: realUser.constellation || "",
+              role: realUser.role || "USER",
+            };
+            localStorage.setItem("currentUser", JSON.stringify(userToSave));
+            window.location.href = "test.html";
+          } else {
+            showModalError(
+              "❌ 登入失敗：" + (responseData.message || "帳號或密碼錯誤"),
+            );
+            document.getElementById("captcha-input").value = "";
+            loadCaptcha();
+          }
+        } catch (error) {
+          showModalError("📡 無法連接到後端伺服器！");
+        }
+      }
+
+      // 註冊處理
+      async function processRegister() {
+        const email = document.getElementById("reg-email").value;
+        const password = document.getElementById("reg-password").value;
+        const name = document.getElementById("reg-name").value;
+        const termsChecked = document.getElementById("reg-terms").checked; // ✨ 檢查條款是否勾選
+
+        if (
+          email.trim() === "" ||
+          name.trim() === "" ||
+          password.trim() === ""
+        ) {
+          showModalError("⚠️ 信箱、姓名和密碼是必填的喔！");
+          return;
+        }
+        const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z]).{8,16}$/;
+        if (!passwordRegex.test(password)) {
+          showModalError(
+            "⚠️ 密碼格式錯誤！請設定 8~16 字元，且必須包含大小寫英文。",
+          );
+          return;
+        }
+
+        // ✨ 如果沒勾選，直接擋下並顯示提示
+        if (!termsChecked) {
+          showModalError("⚠️ 必須先閱讀並勾選同意「使用者條款」才能註冊喔！");
+          return;
+        }
+
+        const birthdayRaw = document.getElementById("reg-birthday").value;
+        const finalBirthday = birthdayRaw
+          ? new Date(birthdayRaw).toISOString()
+          : new Date("2000-01-01").toISOString();
+
+        const userData = {
+          email: email,
+          password: password,
+          name: name,
+          birthday: finalBirthday,
+          bio: document.getElementById("reg-bio").value || "",
+          blood_type: "",
+          constellation: document.getElementById("reg-zodiac").value || "",
+        };
+
+        try {
+          const response = await fetch(`${API_BASE_URL}/auth/register`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "ngrok-skip-browser-warning": "true",
+            },
+            body: JSON.stringify(userData),
+          });
+          const data = await response.json();
+          if (response.ok) {
+            alert("🎉 註冊成功！請登入。");
+            switchTab("login");
+          } else {
+            showModalError(
+              "❌ 註冊失敗：" + (data.message || "信箱已存在或格式錯誤"),
+            );
+          }
+        } catch (error) {
+          showModalError("📡 無法連接到後端伺服器！");
+        }
+      }
+
+      // 忘記密碼處理
+      async function processForgotPassword() {
+        const email = document.getElementById("forgot-email").value;
+        if (email.trim() === "") {
+          alert("請填寫信箱！");
+          return;
+        }
+        try {
+          const response = await fetch(`${API_BASE_URL}/auth/forgot-password`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ email: email }),
+          });
+          if (response.ok) {
+            alert("✅ 已成功發送重設信件！");
+            switchTab("login");
+          } else {
+            const data = await response.json();
+            alert("發送失敗：" + (data.message || "請確認信箱是否正確"));
+          }
+        } catch (error) {
+          alert("無法連接到後端伺服器！");
+        }
+      }
+
+      // 重設密碼處理
+      async function processResetPassword() {
+        const token = document.getElementById("reset-token").value;
+        const newPassword = document.getElementById("reset-password").value;
+        if (token.trim() === "" || newPassword.trim() === "") {
+          alert("驗證碼與新密碼不可為空！");
+          return;
+        }
+        try {
+          const response = await fetch(`${API_BASE_URL}/auth/reset-password`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ token: token, newPassword: newPassword }),
+          });
+          if (response.ok) {
+            alert("密碼重設成功！請登入。");
+            switchTab("login");
+          } else {
+            const data = await response.json();
+            alert("重設失敗：" + (data.message || "Token 無效或過期"));
+          }
+        } catch (error) {
+          alert("無法連接到後端伺服器！");
+        }
+      }
+
+      // 初始掛載事件
+      window.addEventListener("DOMContentLoaded", () => {
+        loadCaptcha();
+        const birthdayInput = document.getElementById("reg-birthday");
+        if (birthdayInput)
+          birthdayInput.addEventListener("change", updateZodiac);
+      });
+    </script>
+  </body>
 </html>
