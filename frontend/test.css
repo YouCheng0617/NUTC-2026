@@ -1326,3 +1326,59 @@ body, html { height: 100vh !important; overflow: hidden !important; background-c
 @media screen and (max-width: 1100px) {
   .ocean-popular-board, .ocean-rules-board { display: none !important; }
 }
+/* =========================================
+   💬 留言與回覆專區 (泡泡玻璃美化版)
+   ========================================= */
+.ocean-comment-card {
+    background: rgba(255, 255, 255, 0.85);
+    border: 1px solid rgba(77, 166, 255, 0.2);
+    border-radius: 20px;
+    padding: 22px 25px;
+    margin-bottom: 20px;
+    box-shadow: 0 8px 24px rgba(0, 30, 70, 0.04);
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+.ocean-comment-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 12px 28px rgba(77, 166, 255, 0.15);
+    border-color: rgba(77, 166, 255, 0.5);
+}
+
+/* 主留言頭部與內文 */
+.comment-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+.comment-author { display: flex; align-items: center; gap: 12px; font-size: 1.05rem; font-weight: bold; color: #1a5b92; }
+.comment-avatar { width: 42px; height: 42px; border-radius: 50%; object-fit: cover; box-shadow: 0 2px 6px rgba(0,0,0,0.1); border: 2px solid #e0f2f5; }
+.comment-floor { font-size: 0.85rem; color: #8899aa; font-weight: 900; background: #f0f7ff; padding: 4px 12px; border-radius: 12px; border: 1px solid #d1e8ff; }
+.comment-body { color: #334155; font-size: 1.05rem; line-height: 1.7; padding-left: 54px; white-space: pre-wrap; margin-bottom: 15px; }
+
+/* 子留言 (蓋樓) 區塊 */
+.reply-container { margin-top: 15px; padding-left: 54px; display: flex; flex-direction: column; gap: 12px; }
+.ocean-reply-item {
+    background: linear-gradient(135deg, rgba(240, 247, 255, 0.8), rgba(224, 242, 254, 0.5));
+    padding: 16px 20px;
+    border-radius: 16px;
+    border-left: 4px solid #4da6ff;
+    transition: all 0.2s ease;
+}
+.ocean-reply-item:hover { background: rgba(224, 242, 254, 0.95); transform: translateX(3px); }
+.reply-header { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+.reply-avatar { width: 30px; height: 30px; border-radius: 50%; object-fit: cover; border: 2px solid #fff; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+.reply-author { font-size: 0.95rem; font-weight: bold; color: #0055a5; }
+.reply-body { font-size: 0.95rem; color: #475569; line-height: 1.6; white-space: pre-wrap; padding-left: 40px; }
+
+/* 動作按鈕區塊 */
+.comment-actions { text-align: right; padding-right: 5px; display: flex; justify-content: flex-end; gap: 20px; margin-top: 18px; }
+.action-btn { cursor: pointer; font-size: 0.95rem; font-weight: bold; transition: all 0.2s; user-select: none; }
+.reply-trigger { color: #4da6ff; }
+.reply-trigger:hover { color: #0073e6; transform: scale(1.05); }
+.like-trigger:hover { transform: scale(1.1); }
+
+/* 子留言專屬輸入框 */
+.reply-input-box { margin-top: 18px; padding-left: 54px; }
+.reply-input-wrapper { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; background: #f8fafc; padding: 8px 12px; border-radius: 30px; border: 1px solid #e2e8f0; transition: border-color 0.3s; }
+.reply-input-wrapper:focus-within { border-color: #4da6ff; box-shadow: 0 0 0 3px rgba(77, 166, 255, 0.1); }
+.custom-reply-input { flex: 1; min-width: 150px; height: 38px !important; font-size: 0.95rem !important; border: none !important; background: transparent !important; box-shadow: none !important; padding: 0 10px !important; }
+.custom-reply-input:focus { outline: none; }
+.anon-label { font-size: 0.9rem; color: #64748b; display: flex; align-items: center; gap: 4px; cursor: pointer; user-select: none; }
+.mini-send-btn { height: 38px !important; padding: 0 20px !important; font-size: 0.95rem !important; border-radius: 20px !important; }
