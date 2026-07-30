@@ -77,6 +77,10 @@ window.switchAdminTab = function (tabName) {
 // 4. 總覽數據與圖表
 // ==========================================
 let myDoughnutChart = null;
+let myZodiacChart = null; 
+let myGenderChart = null;
+let myBottleGenderChart = null; // 🌟 新增發文者性別圖表變數
+let myTrendChart = null;
 
 async function loadDashboardData() {
     const token = localStorage.getItem("authToken");
@@ -86,21 +90,57 @@ async function loadDashboardData() {
             fetch(`${API_BASE_URL}/admin/bottles`, { headers: { 'Authorization': `Bearer ${token}`, 'ngrok-skip-browser-warning': 'true' } })
         ]);
 
-        const usersData = await usersRes.json();
+       const usersData = await usersRes.json();
         const bottlesData = await bottlesRes.json();
+
+        // 🚨 幫我印出後端真正傳來的長相！
+        console.log("👉 原始會員 API 回傳:", usersData);
+        console.log("👉 原始文章 API 回傳:", bottlesData);
 
         const users = usersData.data || usersData || [];
         const bottles = bottlesData.data || bottlesData.bottles || bottlesData || [];
 
+        // 更新頂部卡片數字
         document.getElementById('stat-users').innerText = users.length;
         document.getElementById('stat-bottles').innerText = bottles.length;
 
+        // --- 準備資料變數 ---
         let angry = 0, secret = 0, broken = 0, apathy = 0, happy = 0;
+        const zodiacCounts = { '牡羊座': 0, '金牛座': 0, '雙子座': 0, '巨蟹座': 0, '獅子座': 0, '處女座': 0, '天秤座': 0, '天蠍座': 0, '射手座': 0, '摩羯座': 0, '水瓶座': 0, '雙魚座': 0 };
+        let maleCount = 0, femaleCount = 0, otherCount = 0;
+        let bottleMale = 0, bottleFemale = 0, bottleOther = 0; // 🌟 發文者性別計數
+
+        // 建立會員性別字典 (提升比對效能)
+        const userGenderMap = {};
+        // --- 分析會員資料 ---
+        users.forEach(u => {
+            // 🌟 這裡修改：把 u.zodiac 換成 u.constellation
+            let z = u.constellation; 
+            if (z && zodiacCounts[z] !== undefined) zodiacCounts[z]++;
+
+            // 💡 註：你原本寫的性別判斷非常棒！(u.gender || '') 已經完美避開 null 報錯的問題了，會自動算進 otherCount
+            let g = String(u.gender || u.sex || '').toLowerCase().trim();
+            if (g === '男' || g === 'male' || g === 'm' || g === '1') maleCount++;
+            else if (g === '女' || g === 'female' || g === 'f' || g === '2') femaleCount++;
+            else otherCount++;
+        });
+
+        // 準備最近 7 天的日期標籤
+        const trendLabels = [];
+        const trendCounts = {};
+        for (let i = 6; i >= 0; i--) {
+            let d = new Date();
+            d.setDate(d.getDate() - i);
+            let dateStr = `${d.getMonth() + 1}/${d.getDate()}`;
+            trendLabels.push(dateStr);
+            trendCounts[dateStr] = 0;
+        }
+
+        // --- 分析文章資料 ---
         bottles.forEach(b => {
+            // 1. 情緒統計
             let rawCat = b.category_name || null;
-            if (!rawCat && b.categories && b.categories.length > 0) {
-                rawCat = (typeof b.categories[0] === 'string') ? b.categories[0] : b.categories[0].category?.name;
-            }
+            if (!rawCat && b.categories && b.categories.length > 0) rawCat = (typeof b.categories[0] === 'string') ? b.categories[0] : b.categories[0].category?.name;
             if (!rawCat && b.category_list && b.category_list.length > 0) rawCat = b.category_list[0];
             if (!rawCat) rawCat = '綜合閒聊';
 
@@ -109,36 +149,125 @@ async function loadDashboardData() {
             else if (rawCat.includes("秘密") || rawCat.includes("程式")) secret++;
             else if (rawCat.includes("破碎") || rawCat.includes("碎片") || rawCat.includes("美食")) broken++;
             else apathy++;
+
+            // 2. 趨勢統計
+            if (b.created_at) {
+                let bottleDate = new Date(b.created_at);
+                let bDateStr = `${bottleDate.getMonth() + 1}/${bottleDate.getDate()}`;
+                if (trendCounts[bDateStr] !== undefined) trendCounts[bDateStr]++;
+            }
+
+            // 🌟 3. 發文者性別統計
+            let bg = 'other';
+            let authorId = b.member_id || b.author_id;
+            
+            // 先看文章本身有沒有帶性別，沒有就去會員字典查
+            if (b.gender || (b.author && b.author.gender)) {
+                bg = String(b.gender || b.author.gender).toLowerCase().trim();
+            } else if (authorId && userGenderMap[authorId]) {
+                bg = userGenderMap[authorId];
+            }
+
+            if (bg === '男' || bg === 'male' || bg === 'm' || bg === '1') bottleMale++;
+            else if (bg === '女' || bg === 'female' || bg === 'f' || bg === '2') bottleFemale++;
+            else bottleOther++;
         });
 
+        // --- 分析會員資料 ---
+        users.forEach(u => {
+            let z = u.zodiac; 
+            if (z && zodiacCounts[z] !== undefined) zodiacCounts[z]++;
+
+            let g = String(u.gender || u.sex || '').toLowerCase().trim();
+            if (g === '男' || g === 'male' || g === 'm' || g === '1') maleCount++;
+            else if (g === '女' || g === 'female' || g === 'f' || g === '2') femaleCount++;
+            else otherCount++;
+        });
+
+        // --- 繪製圖表 ---
+        drawTrendChart(trendLabels, Object.values(trendCounts));
         drawDoughnutChart([angry, secret, broken, apathy, happy]);
+        drawZodiacChart(Object.keys(zodiacCounts), Object.values(zodiacCounts));
+        drawGenderChart([maleCount, femaleCount, otherCount]);
+        drawBottleGenderChart([bottleMale, bottleFemale, bottleOther]); // 🌟 繪製發文者男女比例
+
     } catch (error) {
         console.error("載入總覽數據失敗", error);
     }
+}
+
+function drawTrendChart(labels, dataArray) {
+    const ctx = document.getElementById('trendChart');
+    if (!ctx) return;
+    if (myTrendChart) myTrendChart.destroy();
+    myTrendChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: '每日發文數量', data: dataArray, borderColor: '#3b82f6', backgroundColor: 'rgba(59, 130, 246, 0.1)', borderWidth: 3, tension: 0.3, fill: true, pointBackgroundColor: '#ffffff', pointBorderColor: '#3b82f6', pointBorderWidth: 2, pointRadius: 4, pointHoverRadius: 6
+            }]
+        },
+        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { precision: 0 } } } }
+    });
 }
 
 function drawDoughnutChart(dataArray) {
     const ctx = document.getElementById('categoryChart');
     if (!ctx) return;
     if (myDoughnutChart) myDoughnutChart.destroy();
-
     myDoughnutChart = new Chart(ctx, {
         type: 'doughnut',
         data: {
             labels: ['😡 憤怒', '🤫 秘密', '💔 破碎', '😑 厭世', '😁 開心'],
             datasets: [{
-                data: dataArray,
-                backgroundColor: ['#fff1f0', '#f9f0ff', '#fff7e6', '#f6ffed', '#e6f7ff'],
-                borderColor: ['#ffa39e', '#d3adf7', '#ffd591', '#b7eb8f', '#91d5ff'],
-                borderWidth: 2,
-                hoverOffset: 10
+                data: dataArray, backgroundColor: ['#fff1f0', '#f9f0ff', '#fff7e6', '#f6ffed', '#e6f7ff'], borderColor: ['#ffa39e', '#d3adf7', '#ffd591', '#b7eb8f', '#91d5ff'], borderWidth: 2, hoverOffset: 10
             }]
         },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: { legend: { position: 'right', labels: { font: { size: 14 } } } }
-        }
+        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right', labels: { font: { size: 14 } } } } }
+    });
+}
+
+function drawZodiacChart(labels, dataArray) {
+    const ctx = document.getElementById('zodiacChart');
+    if (!ctx) return;
+    if (myZodiacChart) myZodiacChart.destroy();
+    myZodiacChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [{ label: '會員人數', data: dataArray, backgroundColor: '#8b5cf6', borderRadius: 4, borderWidth: 0 }]
+        },
+        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { precision: 0 } } } }
+    });
+}
+
+function drawGenderChart(dataArray) {
+    const ctx = document.getElementById('genderChart');
+    if (!ctx) return;
+    if (myGenderChart) myGenderChart.destroy();
+    myGenderChart = new Chart(ctx, {
+        type: 'pie',
+        data: {
+            labels: ['👦 男生', '👧 女生', '👽 未知 / 其他'],
+            datasets: [{ data: dataArray, backgroundColor: ['#60a5fa', '#f472b6', '#e2e8f0'], borderWidth: 1, borderColor: '#ffffff', hoverOffset: 10 }]
+        },
+        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { font: { size: 14 }, padding: 10 } } } }
+    });
+}
+
+// 🌟 新增：繪製發文者男女比例圖
+function drawBottleGenderChart(dataArray) {
+    const ctx = document.getElementById('bottleGenderChart');
+    if (!ctx) return;
+    if (myBottleGenderChart) myBottleGenderChart.destroy();
+    myBottleGenderChart = new Chart(ctx, {
+        type: 'pie',
+        data: {
+            labels: ['👦 發文男', '👧 發文女', '👽 未知 / 其他'],
+            datasets: [{ data: dataArray, backgroundColor: ['#3b82f6', '#ec4899', '#cbd5e1'], borderWidth: 1, borderColor: '#ffffff', hoverOffset: 10 }]
+        },
+        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { font: { size: 14 }, padding: 10 } } } }
     });
 }
 
