@@ -72,15 +72,14 @@ function renderSpread() {
     spreadContainer.innerHTML = ''; 
     
     const total = availableCards.length;
-    const startAngle = -75; // 展開幅度變大，讓牌不要太擠
-    const angleStep = 150 / total; 
+    const startAngle = -70; 
+    const angleStep = 140 / total; 
 
     for(let i=0; i<total; i++) {
         let card = document.createElement('div');
         card.className = 'spread-card';
         let angle = startAngle + (i * angleStep);
         card.style.setProperty('--rot', `${angle}deg`); 
-        card.style.zIndex = i;
         
         card.onclick = function() {
             drawFromSpread(this);
@@ -143,7 +142,6 @@ async function generateReading() {
     restartBtn.classList.add('hidden'); 
     saveBtn.classList.add('hidden');
     
-    // 正確的等待文字
     resultText.innerHTML = "✨ <i style='color:#a084ff'>星空與魔法交織，命運的解讀正在浮現...</i>";
 
     const cardsInfo = `
@@ -152,10 +150,10 @@ async function generateReading() {
         右邊第三張（未來）：${drawnCards['future'].name} (${drawnCards['future'].isReversed ? '逆位' : '正位'})
     `;
 
+    // 關鍵修復處：將字串插值的變數使用反引號包起來，並且加上嚴格的 \n 跳脫字元
     const prompt = `你現在是一位溫柔、充滿智慧的星空魔法塔羅占卜師。玩家想問的問題是關於【${selectedTopic}】。玩家抽到了一個三牌陣，請務必依照「由左至右」的順序（過去、現在、未來）進行解讀：\n${cardsInfo}\n請根據牌面與正逆位，針對玩家詢問的「${selectedTopic}」給出一份語氣溫柔、帶有魔法與星空隱喻且具有啟發性的解牌報告。請不要給出絕對的預言，而是給予引導。排版要清晰，字數請控制在 300 字以內。`;
 
-    // ⚠️ 記得替換成你的真實 API Key
-    const API_KEY = '請填寫你的_API_KEY';
+    const API_KEY = '請把這串中文字替換成你的_API_KEY'; 
     const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${API_KEY}`;
 
     try {
@@ -183,7 +181,6 @@ async function generateReading() {
             reading: aiReply
         };
         
-        // 正確的字串替換寫法
         resultText.innerHTML = `<div class="reading-time">占卜時間：${timeStr}</div>` + aiReply.replace(/\n/g, '<br>');
         
         restartBtn.classList.remove('hidden');
@@ -214,7 +211,6 @@ function showFavorites() {
     if(favs.length === 0) {
         list.innerHTML = "<p style='text-align:center; color:#a084ff;'>目前魔法筆記裡還是空空的喔！<br>趕快去進行你的第一場占卜吧🔮</p>";
     } else {
-        // 正確的字串替換寫法
         list.innerHTML = favs.reverse().map((fav, index) => `
             <div class="fav-item">
                 <h4>🔮 ${fav.topic} <span class="fav-time">${fav.time}</span></h4>
