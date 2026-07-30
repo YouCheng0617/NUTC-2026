@@ -1422,3 +1422,14 @@ body, html { height: 100vh !important; overflow: hidden !important; background-c
     box-shadow: 0 2px 5px rgba(255, 77, 77, 0.4);
     pointer-events: none; 
 }
+/* =========================================
+   🐾 手機版吉祥物專屬縮小設定
+   ========================================= */
+@media screen and (max-width: 768px) {
+    #svg-mermecat-mascot {
+        /* 使用 scale 縮放，0.7 代表縮小到原來的 70% */
+        /* 寶寶可以依照自己的喜好，把 0.7 改成 0.6 或 0.8 喔！ */
+        transform: scale(0.7) !important; 
+        transform-origin: center center !important;
+    }
+}
