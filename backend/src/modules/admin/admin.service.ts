@@ -51,7 +51,8 @@ export const getAllBottlesForAdmin = async () => {
                 select: {
                     name: true,
                     email: true,
-                    status: true // 順便看這個發文者是不是被停權了
+                    status: true, // 順便看這個發文者是不是被停權了
+                    gender: true,
                 }
             },
             categories: {
@@ -74,6 +75,7 @@ export const getAllBottlesForAdmin = async () => {
             ...bottleData,
             member_name: author?.name || "匿名使用者",
             member_email: author?.email || "匿名使用者",
+            member_gender: author?.gender || "保密",
             member_status: author?.status || "ACTIVE",
             categories: categories.map(c => c.category.name || "未知類別"),
             like_count: _count.likes,
