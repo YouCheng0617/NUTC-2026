@@ -67,18 +67,17 @@ async function fetchBottles() {
     try {
         let endpointUrl = `${API_BASE_URL}/bottles/random`;
 
-        if (currentView === 'mine') {
+       if (currentView === 'mine') {
             if (!token) { renderPosts([]); return; }
             endpointUrl = `${API_BASE_URL}/bottles/mybottles`;
         } else if (currentView === 'saved') {
             if (!token) { renderPosts([]); return; }
             endpointUrl = `${API_BASE_URL}/bottles/saved`;
         } else if (currentKeyword) {
-            endpointUrl = `${API_BASE_URL}/bottles/random`;
+            endpointUrl = `${API_BASE_URL}/bottles/search?keyword=${currentKeyword}`;
         } else if (currentCategoryId !== null) {
             endpointUrl = `${API_BASE_URL}/bottles/random?categoryId=${currentCategoryId}`;
         }
-
         let likedBottleIds = [];
         let savedBottleIds = [];
 
