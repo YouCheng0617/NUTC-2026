@@ -1382,3 +1382,54 @@ body, html { height: 100vh !important; overflow: hidden !important; background-c
 .custom-reply-input:focus { outline: none; }
 .anon-label { font-size: 0.9rem; color: #64748b; display: flex; align-items: center; gap: 4px; cursor: pointer; user-select: none; }
 .mini-send-btn { height: 38px !important; padding: 0 20px !important; font-size: 0.95rem !important; border-radius: 20px !important; }
+/* =========================================
+   🔔 通知鈴鐺專屬樣式
+   ========================================= */
+.notification-bell {
+    position: relative;
+    cursor: pointer;
+    font-size: 1.3rem; 
+    transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1), background 0.3s, border-color 0.3s;
+    user-select: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 38px; 
+    height: 38px;
+    background: rgba(255, 255, 255, 0.3); 
+    border-radius: 50%;
+    border: 1px solid rgba(255, 255, 255, 0.5);
+}
+
+.notification-bell:hover {
+    transform: scale(1.1) rotate(15deg);
+    background: rgba(255, 255, 255, 0.9);
+    border-color: #4da6ff;
+    box-shadow: 0 4px 10px rgba(77, 166, 255, 0.2);
+}
+
+.notification-bell .badge {
+    position: absolute;
+    top: -4px;
+    right: -4px;
+    background: linear-gradient(45deg, #ff4d4d, #ff7676);
+    color: white;
+    font-size: 0.65rem;
+    font-weight: 900;
+    padding: 2px 6px;
+    border-radius: 12px;
+    border: 2px solid #ffffff; 
+    box-shadow: 0 2px 5px rgba(255, 77, 77, 0.4);
+    pointer-events: none; 
+}
+/* =========================================
+   🐾 手機版吉祥物專屬縮小設定
+   ========================================= */
+@media screen and (max-width: 768px) {
+    #svg-mermecat-mascot {
+        /* 使用 scale 縮放，0.7 代表縮小到原來的 70% */
+        /* 寶寶可以依照自己的喜好，把 0.7 改成 0.6 或 0.8 喔！ */
+        transform: scale(0.7) !important; 
+        transform-origin: center center !important;
+    }
+}
