@@ -811,40 +811,54 @@ body, html { height: 100vh !important; overflow: hidden !important; background-c
     background: linear-gradient(45deg, #3399ff, #0066cc) !important;
 }
 /* =======================================================
-   🎮 頂部 Logo 旁邊的「遊樂場」快捷按鈕
+   🎮 頂部 Logo 旁邊的「遊樂場」快捷按鈕 (寶寶專屬調色盤版)
 ======================================================= */
 .header-game-btn {
+    /* 👇 魔法調色盤：在這裡更換你喜歡的顏色！ */
+    --btn-color-1: #ff7e5f;
+    --btn-color-2: #feb47b;
+    --btn-shadow: rgba(255, 126, 95, 0.4);
+
     margin-left: 15px;
-    background: rgba(255, 255, 255, 0.15);
-    border: 1px solid rgba(255, 255, 255, 0.3);
-    color: #fff;
-    padding: 6px 16px;
-    border-radius: 20px;
-    font-size: 1.05rem;
-    font-weight: bold;
+    background: linear-gradient(45deg, var(--btn-color-1), var(--btn-color-2));
+    border: 2px solid #ffffff;
+    color: #ffffff; /* 字體改成純白，配什麼深色漸層都百搭 */
+    padding: 8px 22px;
+    border-radius: 25px;
+    font-size: 1.15rem;
+    font-weight: 900;
     cursor: pointer;
     transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-    backdrop-filter: blur(5px);
     display: inline-flex;
     align-items: center;
-    gap: 6px;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-    text-shadow: none; /* 抵銷 logo 原本的文字陰影 */
+    gap: 8px;
+    box-shadow: 0 4px 15px var(--btn-shadow);
+    text-shadow: 0 1px 2px rgba(0,0,0,0.2); 
+    /* 🌟 保留超吸睛的呼吸燈動畫 */
+    animation: game-btn-pulse 2s infinite;
 }
 
 .header-game-btn:hover {
-    background: rgba(255, 255, 255, 0.3);
-    border-color: rgba(255, 255, 255, 0.6);
-    transform: translateY(-2px) scale(1.05);
-    box-shadow: 0 6px 15px rgba(77, 166, 255, 0.4);
+    /* 滑鼠移過去時直接提亮整體色彩，不用重寫漸層 */
+    filter: brightness(1.15);
+    border-color: #ffffff;
+    transform: translateY(-3px) scale(1.1);
+    box-shadow: 0 8px 25px var(--btn-shadow);
 }
 
-/* 📱 手機版 RWD 微調：如果螢幕太小，把「遊樂場」文字藏起來，只留手把圖示防破版 */
+/* 🌟 呼吸燈動畫自動抓取你設定的光暈顏色 */
+@keyframes game-btn-pulse {
+    0% { box-shadow: 0 0 0 0 var(--btn-shadow); }
+    70% { box-shadow: 0 0 0 12px rgba(255, 255, 255, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0); }
+}
+
+/* 📱 手機版 RWD 防撞版機制 */
 @media screen and (max-width: 450px) {
     .header-game-btn {
         margin-left: 10px;
-        padding: 5px 10px;
-        font-size: 1rem;
+        padding: 5px 12px;
+        font-size: 1.05rem;
     }
     .header-game-btn span {
         display: none; 
