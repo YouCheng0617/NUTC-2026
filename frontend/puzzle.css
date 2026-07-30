@@ -1,0 +1,361 @@
+/* ==================================================
+   🌊 全域與海洋背景
+   ================================================== */
+body, html {
+  margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden;
+  background-color: #001528; font-family: 'PingFang TC', sans-serif; color: #fff;
+}
+.ocean-bg {
+  position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+  background: radial-gradient(circle at 50% 50%, rgba(0, 85, 165, 0.2), rgba(0, 21, 40, 1));
+  z-index: -1;
+}
+
+/* ==================================================
+   🔙 返回按鈕
+   ================================================== */
+.back-btn {
+  position: absolute; top: 20px; left: 20px; z-index: 30;
+  background: rgba(255, 255, 255, 0.15); border: 1px solid rgba(255, 255, 255, 0.4);
+  color: white; padding: 10px 25px; border-radius: 25px;
+  cursor: pointer; font-weight: bold; font-size: 1.1rem;
+  transition: 0.3s; box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+  text-decoration: none; display: inline-block;
+}
+.back-btn:hover {
+  background: rgba(255, 255, 255, 0.3); transform: translateY(-2px);
+}
+
+/* ==================================================
+   📋 左側：每日任務區
+   ================================================== */
+.task-panel { flex: 1; max-width: 400px; }
+.task-item {
+  background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 15px; padding: 15px; margin-bottom: 15px;
+  display: flex; justify-content: space-between; align-items: center;
+  transition: 0.3s;
+}
+.task-item:hover { background: rgba(255, 255, 255, 0.1); }
+.task-info h4 { margin: 0 0 5px 0; font-size: 1.1rem; color: #fff; }
+.task-info p { margin: 0; font-size: 0.85rem; color: #a0c4ff; }
+
+.claim-btn {
+  background: linear-gradient(135deg, #4da6ff, #0066cc); border: none;
+  color: white; font-weight: bold; padding: 8px 15px; border-radius: 20px;
+  cursor: pointer; transition: 0.3s; box-shadow: 0 4px 10px rgba(0, 102, 204, 0.5);
+}
+.claim-btn:hover:not(:disabled) {
+  transform: scale(1.05); background: linear-gradient(135deg, #66b3ff, #005bb5);
+}
+.claim-btn:disabled {
+  background: rgba(255, 255, 255, 0.1); color: #888; cursor: not-allowed; box-shadow: none;
+}
+/* ==================================================
+   🖼️ 收藏冊按鈕與畫廊彈窗
+   ================================================== */
+.gallery-btn {
+  position: absolute; top: 20px; right: 20px; z-index: 30;
+  background: linear-gradient(135deg, rgba(77, 166, 255, 0.4), rgba(0, 85, 165, 0.4));
+  border: 1px solid rgba(106, 183, 255, 0.6); backdrop-filter: blur(5px);
+  color: white; padding: 10px 25px; border-radius: 25px;
+  cursor: pointer; font-weight: bold; font-size: 1.1rem;
+  transition: 0.3s; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+}
+.gallery-btn:hover {
+  background: linear-gradient(135deg, rgba(77, 166, 255, 0.6), rgba(0, 85, 165, 0.6));
+  transform: translateY(-2px) scale(1.05); box-shadow: 0 6px 20px rgba(77, 166, 255, 0.4);
+}
+
+.glass-modal {
+  display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%;
+  background: rgba(0, 20, 40, 0.8); backdrop-filter: blur(10px);
+  justify-content: center; align-items: center;
+  animation: fadeIn 0.3s ease;
+}
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+/* ==================================================
+   🌊 精緻海洋水晶展示櫃與發光層架 (全螢幕升級版)
+   ================================================== */
+.glass-modal-content {
+  background: radial-gradient(circle at 50% 0%, rgba(0, 85, 165, 0.8) 0%, rgba(0, 20, 40, 0.95) 70%);
+  border: 2px solid rgba(106, 183, 255, 0.4); 
+  border-radius: 20px;
+  width: 96vw;               /* 🌟 從 90% 擴大到 96vw，幾乎填滿寬度 */
+  height: 94vh;              /* 🌟 給定具體高度，撐開整個畫面 */
+  max-width: 1400px;         /* 🌟 解除原本 900px 的限制，變得很寬 */
+  max-height: 96vh;
+  padding: 40px 60px;        /* 加大內側留白，更有高級展覽感 */
+  position: relative; overflow-y: auto;
+  box-shadow: 0 30px 60px rgba(0,0,0,0.8), inset 0 0 50px rgba(77, 166, 255, 0.15);
+  backdrop-filter: blur(20px);
+}
+
+.panel-title {
+  /* 櫃子頂部的水晶發光標題 */
+  color: #e6f2ff;
+  text-shadow: 0 0 15px rgba(106, 183, 255, 0.8), 0 2px 5px rgba(0,0,0,0.8);
+  letter-spacing: 4px;
+}
+
+.close-gallery {
+  position: absolute; top: 15px; right: 25px; font-size: 2.5rem;
+  color: #a0c4ff; cursor: pointer; transition: 0.3s; font-weight: bold;
+  text-shadow: 0 0 10px rgba(106, 183, 255, 0.5);
+}
+.close-gallery:hover { color: #ff7675; transform: rotate(90deg) scale(1.1); text-shadow: 0 0 15px #ff7675; }
+
+/* 📚 畫廊網格排版：強制一排 3 個 */
+.gallery-grid {
+  display: grid; 
+  grid-template-columns: repeat(3, 1fr); /* 🌟 強制設定為 3 欄 (這樣放 6 張就會剛好兩排) */
+  gap: 80px 40px;                        /* 🌟 加大卡片之間的間距，讓層架有呼吸空間 */
+  padding-top: 20px;
+  padding-bottom: 40px;
+}
+
+/* 🖼️ 單個展示品與它的專屬層架 */
+.gallery-item {
+  background: transparent; border: none;
+  padding: 0 10px 15px 10px; text-align: center;
+  transition: all 0.5s cubic-bezier(0.25, 0.8, 0.25, 1); cursor: pointer;
+  display: flex; flex-direction: column; align-items: center;
+  position: relative;
+}
+
+/* ✨ CSS 魔法：畫出底部的「發光冰晶玻璃層架」 */
+.gallery-item::after {
+  content: '';
+  position: absolute;
+  bottom: 0; left: -5%; width: 110%; height: 20px;
+  background: linear-gradient(to bottom, rgba(255,255,255,0.3) 0%, rgba(77, 166, 255, 0.1) 100%);
+  border-top: 1px solid rgba(255, 255, 255, 0.6); /* 層架的高光邊緣 */
+  border-bottom: 2px solid rgba(0, 40, 80, 0.8); /* 層架的底部暗角 */
+  box-shadow: 0 20px 25px rgba(0,0,0,0.6), inset 0 2px 15px rgba(106,183,255,0.4);
+  border-radius: 4px;
+  z-index: 0;
+}
+
+/* 🖼️ 拼圖的珍珠銀畫框 (限制最大尺寸，避免全螢幕時無限放大) */
+.img-frame {
+  width: 80%; 
+  max-width: 280px; /* 🌟 加上最大寬度限制，確保畫框精緻細膩 */
+  aspect-ratio: 1/1; border-radius: 8px; overflow: hidden;
+  margin-bottom: 25px; position: relative; 
+  background: #fff;
+  border: 4px solid rgba(230, 242, 255, 0.9); 
+  box-shadow: 0 15px 25px rgba(0,0,0,0.6), inset 0 0 15px rgba(0, 85, 165, 0.4);
+  z-index: 1; 
+  transition: 0.5s;
+}
+.img-frame img { width: 100%; height: 100%; object-fit: cover; transition: 0.5s; }
+
+/* 懸停時，畫框微微浮起，散發藍光 */
+.gallery-item:hover { transform: translateY(-8px); }
+.gallery-item:hover .img-frame { 
+  box-shadow: 0 20px 30px rgba(0,0,0,0.8), 0 0 25px rgba(106, 183, 255, 0.6);
+  border-color: #ffffff;
+}
+
+/* 文字加上半透明深海泡泡底 */
+.gallery-item p { 
+  margin: 0 0 5px 0; font-size: 1.1rem; font-weight: 900; color: #fff; 
+  background: rgba(0, 30, 60, 0.7); padding: 5px 15px; border-radius: 20px;
+  z-index: 1; border: 1px solid rgba(106, 183, 255, 0.3);
+  box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+}
+.gallery-item .date { 
+  font-size: 0.8rem; color: #a0c4ff; font-weight: bold; 
+  background: rgba(0, 20, 40, 0.6); padding: 3px 12px; border-radius: 12px;
+  z-index: 1;
+}
+
+/* 🔒 未解鎖狀態：沉睡在深海的質感 */
+.gallery-item.locked .img-frame img { 
+  /* 染上深海藍色的濾鏡，保留模糊感 */
+  filter: sepia(100%) hue-rotate(190deg) saturate(200%) grayscale(30%) blur(3px) brightness(0.4); 
+}
+.gallery-item.locked .lock-icon {
+  position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+  font-size: 3rem; color: rgba(255,255,255,0.7);
+  text-shadow: 0 0 15px rgba(106, 183, 255, 0.8), 0 4px 10px rgba(0,0,0,0.8);
+}
+.gallery-item.locked p { color: #8cb4ff; border-color: rgba(255,255,255,0.1); background: rgba(0, 20, 40, 0.5); }
+.gallery-item.locked .date { color: #5a8bb8; }
+.gallery-item.locked:hover { transform: none; cursor: not-allowed; }
+.gallery-item.locked:hover .img-frame { box-shadow: 0 15px 25px rgba(0,0,0,0.6); border-color: rgba(230, 242, 255, 0.9); }
+
+/* ==================================================
+   📄 底部頁碼控制區
+   ================================================== */
+.pagination-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 15px;
+  margin-top: 20px;
+  padding-top: 25px;
+  border-top: 1px dashed rgba(106, 183, 255, 0.3); /* 頂部加上微弱的分隔線 */
+}
+
+/* 按鈕與數字共通樣式 */
+.page-btn, .page-num {
+  background: rgba(0, 30, 60, 0.7);
+  border: 1px solid rgba(106, 183, 255, 0.4);
+  color: #a0c4ff;
+  padding: 8px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: bold;
+  font-size: 1rem;
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  box-shadow: 0 4px 10px rgba(0,0,0,0.4);
+  font-family: 'PingFang TC', sans-serif;
+}
+
+/* 數字按鈕稍微做成方形一點 */
+.page-num {
+  padding: 8px 14px;
+  margin: 0 4px;
+  border-radius: 50%; /* 變成圓形按鈕更有質感 */
+}
+
+/* 滑鼠懸停的發光特效 */
+.page-btn:hover:not(:disabled), .page-num:hover:not(.active) {
+  background: rgba(77, 166, 255, 0.3);
+  color: #fff;
+  border-color: #fff;
+  box-shadow: 0 0 15px rgba(106, 183, 255, 0.6);
+  transform: translateY(-2px);
+}
+
+/* 當前頁面的亮起狀態 */
+.page-num.active {
+  background: linear-gradient(135deg, #4da6ff, #005bb5);
+  color: #fff;
+  border-color: #ffffff;
+  box-shadow: 0 0 15px rgba(77, 166, 255, 0.9);
+  cursor: default;
+}
+
+/* 停用狀態 (例如在第一頁時，上一頁按鈕會反灰) */
+.page-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+/* ==================================================
+   📱 自適應 RWD 排版
+   ================================================== */
+/* 筆電 / 平板：縮成一排 2 個 */
+@media screen and (max-width: 1024px) {
+  .gallery-grid { grid-template-columns: repeat(2, 1fr); gap: 60px 30px; }
+  .glass-modal-content { padding: 40px 30px; }
+}
+
+/* 手機版：縮成一排 1 個，並調整背景版面 */
+@media screen and (max-width: 768px) {
+  .main-container { flex-direction: column; height: auto; padding: 80px 0 30px 0; gap: 20px;}
+  .task-panel, .board-panel { width: 100%; max-width: 100%; }
+  .back-btn, .gallery-btn { top: 15px; padding: 8px 15px; font-size: 0.9rem; }
+  .back-btn { left: 15px; } .gallery-btn { right: 15px; }
+  
+  .glass-modal-content { 
+    width: 95vw; padding: 25px 15px; height: 95vh;
+    border-radius: 15px;
+  }
+  .gallery-grid { grid-template-columns: 1fr; gap: 40px 15px; }
+  .gallery-item p { font-size: 0.95rem; }
+  .img-frame { max-width: 220px; }
+}
+
+/* ==================================================
+   🧩 主版面配置 (上下垂直排版)
+   ================================================== */
+.main-container {
+  display: flex; flex-direction: column; align-items: center; justify-content: flex-start;
+  width: 90%; max-width: 900px; min-height: 100vh; margin: 0 auto;
+  padding-top: 80px; padding-bottom: 40px; gap: 30px;
+}
+.glass-panel {
+  background: rgba(0, 40, 80, 0.4); backdrop-filter: blur(15px);
+  border: 1px solid rgba(106, 183, 255, 0.3); border-radius: 25px;
+  padding: 30px; box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4), inset 0 0 20px rgba(255, 255, 255, 0.1);
+  width: 100%; box-sizing: border-box;
+}
+.panel-title {
+  font-size: 1.8rem; font-weight: 900; color: #4da6ff;
+  text-align: center; margin-top: 0; margin-bottom: 20px;
+  letter-spacing: 2px; text-shadow: 0 2px 5px rgba(0,0,0,0.5);
+}
+
+/* ==================================================
+   🔮 抽獎法陣區 (上半部)
+   ================================================== */
+.gacha-panel { display: flex; flex-direction: column; align-items: center; }
+.gacha-display {
+  width: 100%; display: flex; justify-content: center; margin-bottom: 30px;
+}
+
+/* 水晶球/法陣本體 */
+.crystal-ball {
+  width: 180px; height: 180px; border-radius: 50%;
+  background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.8), rgba(0, 85, 165, 0.5));
+  box-shadow: 0 10px 30px rgba(0,0,0,0.5), inset 0 0 30px rgba(255,255,255,0.6), 0 0 40px rgba(77,166,255,0.4);
+  display: flex; flex-direction: column; justify-content: center; align-items: center;
+  border: 2px solid rgba(255,255,255,0.5);
+  transition: all 0.5s ease; text-align: center; padding: 10px;
+}
+.idle-text { color: #002244; font-weight: bold; font-size: 1.1rem; }
+
+/* 抽獎震動動畫 */
+.crystal-ball.shaking { animation: shake 0.5s linear infinite; filter: brightness(1.5); }
+@keyframes shake {
+  0% { transform: translate(1px, 1px) rotate(0deg); }
+  25% { transform: translate(-3px, 0px) rotate(5deg); }
+  50% { transform: translate(2px, -2px) rotate(-5deg); }
+  75% { transform: translate(-1px, 2px) rotate(3deg); }
+  100% { transform: translate(1px, 1px) rotate(0deg); }
+}
+
+/* 🌟 抽獎結果稀有度特效 */
+.crystal-ball.rarity-N { background: radial-gradient(circle, #e0e0e0, #7f8fa6); box-shadow: 0 0 40px #7f8fa6; border-color: #fff;}
+.crystal-ball.rarity-R { background: radial-gradient(circle, #d1f2eb, #1abc9c); box-shadow: 0 0 50px #1abc9c; border-color: #fff;}
+.crystal-ball.rarity-SR { background: radial-gradient(circle, #f3e5f5, #9b59b6); box-shadow: 0 0 60px #9b59b6; border-color: #fff;}
+.crystal-ball.rarity-SSR { background: radial-gradient(circle, #fff9c4, #f39c12); box-shadow: 0 0 80px #f39c12, inset 0 0 50px #fff; border-color: #fff;}
+
+.gacha-controls { text-align: center; }
+.gacha-btn {
+  background: linear-gradient(135deg, #ff7675, #d63031); border: 2px solid #ff9a9e;
+  color: white; font-weight: bold; font-size: 1.2rem; padding: 12px 30px; border-radius: 30px;
+  cursor: pointer; transition: 0.3s; box-shadow: 0 6px 15px rgba(214, 48, 49, 0.5);
+  letter-spacing: 1px;
+}
+.gacha-btn:hover:not(:disabled) { transform: scale(1.05); box-shadow: 0 8px 20px rgba(255, 118, 117, 0.8); }
+.gacha-btn:disabled { background: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.2); color: #666; cursor: not-allowed; box-shadow: none;}
+
+/* ==================================================
+   📋 底部任務列區塊
+   ================================================== */
+.task-panel-bottom { padding: 20px 30px; }
+.task-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; }
+
+.task-item {
+  background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 15px; padding: 15px;
+  display: flex; flex-direction: column; justify-content: space-between; align-items: center;
+  transition: 0.3s; text-align: center; gap: 10px;
+}
+.task-item:hover { background: rgba(255, 255, 255, 0.1); border-color: #4da6ff;}
+.task-info h4 { margin: 0 0 5px 0; font-size: 1.1rem; color: #fff; }
+.task-info p { margin: 0; font-size: 0.85rem; color: #a0c4ff; }
+
+.claim-btn {
+  background: linear-gradient(135deg, #4da6ff, #0066cc); border: none;
+  color: white; font-weight: bold; padding: 8px 15px; border-radius: 20px;
+  cursor: pointer; transition: 0.3s; box-shadow: 0 4px 10px rgba(0, 102, 204, 0.5); width: 100%;
+}
+.claim-btn:hover:not(:disabled) { background: linear-gradient(135deg, #66b3ff, #005bb5); }
+.claim-btn:disabled { background: rgba(255, 255, 255, 0.1); color: #888; cursor: not-allowed; box-shadow: none; }
