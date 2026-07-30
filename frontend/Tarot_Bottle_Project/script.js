@@ -6,18 +6,162 @@ const tarotDeck = [
     { id: 64, name: "金幣王牌", image: "images/p01.jpg" }, { id: 65, name: "金幣二", image: "images/p02.jpg" }, { id: 66, name: "金幣三", image: "images/p03.jpg" }, { id: 67, name: "金幣四", image: "images/p04.jpg" }, { id: 68, name: "金幣五", image: "images/p05.jpg" }, { id: 69, name: "金幣六", image: "images/p06.jpg" }, { id: 70, name: "金幣七", image: "images/p07.jpg" }, { id: 71, name: "金幣八", image: "images/p08.jpg" }, { id: 72, name: "金幣九", image: "images/p09.jpg" }, { id: 73, name: "金幣十", image: "images/p10.jpg" }, { id: 74, name: "金幣侍者", image: "images/p11.jpg" }, { id: 75, name: "金幣騎士", image: "images/p12.jpg" }, { id: 76, name: "金幣王后", image: "images/p13.jpg" }, { id: 77, name: "金幣國王", image: "images/p14.jpg" }
 ];
 
+/* 翻譯字典 i18n */
+const i18n = {
+    'zh-TW': {
+        langToggle: "🌐 English",
+        favBtn: "📖 魔法收藏本",
+        mainTitle: "🔮 今日塔羅瓶",
+        subtitle: "請靜下心來，選擇你今日想探索的塔羅指引...",
+        btnRel: "<span class='icon'>💕</span> 感情<br><small>Relationship</small>",
+        btnCar: "<span class='icon'>💼</span> 事業<br><small>Career</small>",
+        btnEdu: "<span class='icon'>🎓</span> 學業<br><small>Education</small>",
+        btnGro: "<span class='icon'>🌱</span> 成長<br><small>Growth</small>",
+        btnWea: "<span class='icon'>💎</span> 財運<br><small>Wealth</small>",
+        btnCom: "<span class='icon'>🤝</span> 人際<br><small>Community</small>",
+        topicRel: "感情",
+        topicCar: "事業",
+        topicEdu: "學業",
+        topicGro: "成長",
+        topicWea: "財運",
+        topicCom: "人際",
+        placeholder: "其他... 請輸入你想問的問題",
+        startBtn: "開始占卜",
+        instruction: "請從下方的扇形牌陣中，憑直覺抽出 <span style='color:#d4b5ff; font-size:1.3em;'>3</span> 張牌",
+        past: "【過去】",
+        present: "【現在】",
+        future: "【未來】",
+        resultTitle: "✨ 占卜結果 ✨",
+        loadingInput: "✨ <i style='color:#a084ff'>命運的魔法陣正在啟動，請稍候...</i>",
+        loadingAI: "✨ <i style='color:#a084ff'>星空與魔法交織，命運的解讀正在浮現...</i>",
+        restartBtn: "✨ 再問一次",
+        saveBtn: "💾 收藏此占卜",
+        favTitle: "📖 魔法收藏本",
+        emptyFav: "目前魔法筆記裡還是空空的喔！<br>趕快去進行你的第一場占卜吧🔮",
+        delBtn: "刪除紀錄",
+        alertInput: "魔法陣還沒有感應到你的問題... 請輸入你想問的事情喔！",
+        alertSave: "✨ 已成功收錄至您的魔法筆記中！",
+        confirmDel: "確定要將這條指引從筆記中抹除嗎？",
+        currentTopicPrefix: "✨ 目前探索的領域：",
+        aiLang: "Traditional Chinese (繁體中文)",
+        apiError: "⚠️ 魔法陣的連結受到干擾，無法解讀塔羅牌。",
+        devNote: "開發者提示 (錯誤原因)："
+    },
+    'en': {
+        langToggle: "🌐 中文",
+        favBtn: "📖 Spellbook",
+        mainTitle: "🔮 Tarot Bottle",
+        subtitle: "Calm your mind and choose a topic to explore today...",
+        btnRel: "<span class='icon'>💕</span> Romance<br><small>Relationship</small>",
+        btnCar: "<span class='icon'>💼</span> Career<br><small>Work</small>",
+        btnEdu: "<span class='icon'>🎓</span> Education<br><small>Studies</small>",
+        btnGro: "<span class='icon'>🌱</span> Growth<br><small>Personal</small>",
+        btnWea: "<span class='icon'>💎</span> Wealth<br><small>Money</small>",
+        btnCom: "<span class='icon'>🤝</span> Social<br><small>Community</small>",
+        topicRel: "Relationship",
+        topicCar: "Career",
+        topicEdu: "Education",
+        topicGro: "Personal Growth",
+        topicWea: "Wealth",
+        topicCom: "Community",
+        placeholder: "Other... enter your question",
+        startBtn: "Start Reading",
+        instruction: "Intuitively draw <span style='color:#d4b5ff; font-size:1.3em;'>3</span> cards from the spread below",
+        past: "[ Past ]",
+        present: "[ Present ]",
+        future: "[ Future ]",
+        resultTitle: "✨ Reading Result ✨",
+        loadingInput: "✨ <i style='color:#a084ff'>Activating the magic circle, please wait...</i>",
+        loadingAI: "✨ <i style='color:#a084ff'>Weaving stars and magic, interpreting your destiny...</i>",
+        restartBtn: "✨ Ask Again",
+        saveBtn: "💾 Save Reading",
+        favTitle: "📖 Spellbook (Favorites)",
+        emptyFav: "Your spellbook is empty!<br>Go get your first reading 🔮",
+        delBtn: "Delete",
+        alertInput: "The magic circle didn't sense your question... Please enter one!",
+        alertSave: "✨ Successfully saved to your spellbook!",
+        confirmDel: "Are you sure you want to delete this reading?",
+        currentTopicPrefix: "✨ Current Topic: ",
+        aiLang: "English",
+        apiError: "⚠️ The magic circle is disturbed, unable to read the cards.",
+        devNote: "Developer Note (Error):"
+    }
+};
+
 let drawnCards = {};
 let currentSlotIndex = 0;
 const slotNames = ['past', 'present', 'future'];
 let availableCards = [...tarotDeck]; 
 let selectedTopic = ""; 
 let currentReadingData = null; 
+let currentLang = 'zh-TW';
+
+// 頁面載入時初始化 UI 語言
+document.addEventListener('DOMContentLoaded', updateUI);
+
+function toggleLanguage() {
+    currentLang = currentLang === 'zh-TW' ? 'en' : 'zh-TW';
+    updateUI();
+}
+
+function updateUI() {
+    const t = i18n[currentLang];
+    
+    // 更新固定文字
+    document.getElementById('lang-toggle-btn').innerHTML = t.langToggle;
+    document.getElementById('view-fav-btn').innerHTML = t.favBtn;
+    document.querySelector('.main-title').innerHTML = t.mainTitle;
+    document.querySelector('.subtitle').innerHTML = t.subtitle;
+    
+    // 更新網格按鈕
+    const btns = document.querySelectorAll('.topic-grid button');
+    btns[0].innerHTML = t.btnRel; btns[0].setAttribute('onclick', `startGame('${t.topicRel}')`);
+    btns[1].innerHTML = t.btnCar; btns[1].setAttribute('onclick', `startGame('${t.topicCar}')`);
+    btns[2].innerHTML = t.btnEdu; btns[2].setAttribute('onclick', `startGame('${t.topicEdu}')`);
+    btns[3].innerHTML = t.btnGro; btns[3].setAttribute('onclick', `startGame('${t.topicGro}')`);
+    btns[4].innerHTML = t.btnWea; btns[4].setAttribute('onclick', `startGame('${t.topicWea}')`);
+    btns[5].innerHTML = t.btnCom; btns[5].setAttribute('onclick', `startGame('${t.topicCom}')`);
+    
+    // 更新輸入框與開始按鈕
+    document.getElementById('custom-topic-input').placeholder = t.placeholder;
+    document.querySelector('.custom-topic button').innerHTML = t.startBtn;
+    
+    // 更新抽牌區提示
+    document.querySelector('.instruction-text').innerHTML = t.instruction;
+    document.querySelector('#card-past .card-title').innerText = t.past;
+    document.querySelector('#card-present .card-title').innerText = t.present;
+    document.querySelector('#card-future .card-title').innerText = t.future;
+    
+    // 更新結果區
+    document.querySelector('.result-title').innerHTML = t.resultTitle;
+    document.getElementById('restart-btn').innerHTML = t.restartBtn;
+    document.getElementById('save-btn').innerHTML = t.saveBtn;
+    
+    // 更新收藏 Modal
+    document.getElementById('fav-modal-title').innerHTML = t.favTitle;
+    
+    // 若已選擇主題，即時更新顯示的主題文字
+    if (selectedTopic !== "") {
+        document.getElementById('current-topic-display').innerText = `${t.currentTopicPrefix}【${selectedTopic}】`;
+    }
+    
+    // 若目前正在顯示讀取文字，即時切換
+    const resText = document.getElementById('ai-reading-result').innerHTML;
+    if (resText.includes('命運的魔法陣') || resText.includes('Activating')) {
+        document.getElementById('ai-reading-result').innerHTML = t.loadingInput;
+    }
+    
+    // 若收藏庫開啟中，即時重新渲染
+    if (!document.getElementById('favorites-modal').classList.contains('hidden')) {
+        showFavorites();
+    }
+}
 
 function startGame(topic) {
     selectedTopic = topic; 
     document.getElementById('topic-selection').classList.add('hidden');
     document.getElementById('tarot-area').classList.remove('hidden');
-    document.getElementById('current-topic-display').innerText = `✨ 目前探索的領域：【${topic}】`;
+    document.getElementById('current-topic-display').innerText = `${i18n[currentLang].currentTopicPrefix}【${topic}】`;
     
     resetSlots();
     renderSpread(); 
@@ -26,7 +170,7 @@ function startGame(topic) {
 function startCustomGame() {
     const customInput = document.getElementById('custom-topic-input').value.trim();
     if (customInput === "") {
-        alert("魔法陣還沒有感應到你的問題... 請輸入你想問的事情喔！");
+        alert(i18n[currentLang].alertInput);
         return;
     }
     startGame(customInput);
@@ -55,7 +199,7 @@ function resetGame() {
     document.getElementById('restart-btn').classList.add('hidden');
     document.getElementById('save-btn').classList.add('hidden');
     document.getElementById('custom-topic-input').value = "";
-    document.getElementById('ai-reading-result').innerHTML = "✨ <i style='color:#a084ff'>命運的魔法陣正在啟動，請稍候...</i>";
+    document.getElementById('ai-reading-result').innerHTML = i18n[currentLang].loadingInput;
 
     drawnCards = {};
     availableCards = [...tarotDeck];
@@ -137,12 +281,13 @@ async function generateReading() {
     const resultText = document.getElementById('ai-reading-result');
     const restartBtn = document.getElementById('restart-btn');
     const saveBtn = document.getElementById('save-btn');
+    const t = i18n[currentLang];
     
     resultBox.classList.remove('hidden');
     restartBtn.classList.add('hidden'); 
     saveBtn.classList.add('hidden');
     
-    resultText.innerHTML = "✨ <i style='color:#a084ff'>星空與魔法交織，命運的解讀正在浮現...</i>";
+    resultText.innerHTML = t.loadingAI;
 
     const cardsInfo = `
         左邊第一張（過去）：${drawnCards['past'].name} (${drawnCards['past'].isReversed ? '逆位' : '正位'})
@@ -150,8 +295,19 @@ async function generateReading() {
         右邊第三張（未來）：${drawnCards['future'].name} (${drawnCards['future'].isReversed ? '逆位' : '正位'})
     `;
 
-    // 關鍵修復處：將字串插值的變數使用反引號包起來，並且加上嚴格的 \n 跳脫字元
-    const prompt = `你現在是一位溫柔、充滿智慧的星空魔法塔羅占卜師。玩家想問的問題是關於【${selectedTopic}】。玩家抽到了一個三牌陣，請務必依照「由左至右」的順序（過去、現在、未來）進行解讀：\n${cardsInfo}\n請根據牌面與正逆位，針對玩家詢問的「${selectedTopic}」給出一份語氣溫柔、帶有魔法與星空隱喻且具有啟發性的解牌報告。請不要給出絕對的預言，而是給予引導。排版要清晰，字數請控制在 300 字以內。`;
+    // 關鍵更新：明確要求 AI 回覆「整體建議」段落
+    const prompt = `你現在是一位溫柔、充滿智慧的星空魔法塔羅占卜師。玩家想問的問題是關於【${selectedTopic}】。玩家抽到了一個三牌陣：
+
+${cardsInfo}
+
+請根據牌面與正逆位，給出一份語氣溫柔、帶有魔法與星空隱喻的解牌報告。請務必包含以下四個段落：
+1. 過去的指引
+2. 現在的狀態
+3. 未來的展現
+4. 整體建議 (請給予溫暖的總結與指引)
+
+排版要清晰，字數請控制在 400 字以內。
+IMPORTANT: You MUST write your ENTIRE response in ${t.aiLang}. If replying in English, please translate the Tarot card names and sections (Past, Present, Future, Overall Advice) into English in your response.`;
 
     const API_KEY = '請把這串中文字替換成你的_API_KEY'; 
     const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${API_KEY}`;
@@ -181,15 +337,16 @@ async function generateReading() {
             reading: aiReply
         };
         
-        resultText.innerHTML = `<div class="reading-time">占卜時間：${timeStr}</div>` + aiReply.replace(/\n/g, '<br>');
+        const formattedReply = aiReply.replace(/\n/g, '<br>');
+        
+        resultText.innerHTML = `<div class="reading-time">占卜時間：${timeStr}</div>${formattedReply}`;
         
         restartBtn.classList.remove('hidden');
         saveBtn.classList.remove('hidden');
         
     } catch (error) {
         console.error("API 錯誤:", error);
-        resultText.innerHTML = `⚠️ 魔法陣的連結受到干擾，無法解讀塔羅牌。<br><br>
-        <span style="color:#e74c3c; font-size: 0.9em;"><b>開發者提示 (錯誤原因)：</b><br>${error.message}</span>`;
+        resultText.innerHTML = `${t.apiError}<br><br><span style="color:#e74c3c; font-size: 0.9em;"><b>${t.devNote}</b><br>${error.message}</span>`;
         restartBtn.classList.remove('hidden');
     }
 }
@@ -199,24 +356,25 @@ function saveCurrentReading() {
     let favs = JSON.parse(localStorage.getItem('tarotFavorites') || '[]');
     favs.push(currentReadingData);
     localStorage.setItem('tarotFavorites', JSON.stringify(favs));
-    alert('✨ 已成功收錄至您的魔法筆記中！');
+    alert(i18n[currentLang].alertSave);
     document.getElementById('save-btn').classList.add('hidden'); 
 }
 
 function showFavorites() {
     const modal = document.getElementById('favorites-modal');
     const list = document.getElementById('favorites-list');
+    const t = i18n[currentLang];
     let favs = JSON.parse(localStorage.getItem('tarotFavorites') || '[]');
 
     if(favs.length === 0) {
-        list.innerHTML = "<p style='text-align:center; color:#a084ff;'>目前魔法筆記裡還是空空的喔！<br>趕快去進行你的第一場占卜吧🔮</p>";
+        list.innerHTML = `<p style='text-align:center; color:#a084ff;'>${t.emptyFav}</p>`;
     } else {
         list.innerHTML = favs.reverse().map((fav, index) => `
             <div class="fav-item">
                 <h4>🔮 ${fav.topic} <span class="fav-time">${fav.time}</span></h4>
                 <p class="fav-cards">${fav.cards.replace(/\n/g, '<br>')}</p>
                 <p class="fav-reading">${fav.reading.replace(/\n/g, '<br>')}</p>
-                <button class="delete-btn" onclick="deleteFavorite(${index})">刪除紀錄</button>
+                <button class="delete-btn" onclick="deleteFavorite(${index})">${t.delBtn}</button>
             </div>
         `).join('');
     }
@@ -228,7 +386,7 @@ function hideFavorites() {
 }
 
 function deleteFavorite(reverseIndex) {
-    if(confirm("確定要將這條指引從筆記中抹除嗎？")) {
+    if(confirm(i18n[currentLang].confirmDel)) {
         let favs = JSON.parse(localStorage.getItem('tarotFavorites') || '[]');
         const actualIndex = favs.length - 1 - reverseIndex;
         favs.splice(actualIndex, 1);
