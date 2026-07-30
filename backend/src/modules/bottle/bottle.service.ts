@@ -425,3 +425,9 @@ export const getPopularBottles = async (limit: number = 10) => {
         };
     });
 };
+
+/*
+export const votePoll = async (bottleId: number, memberId: number, optionId: number) => {
+    const option = await prisma.PollOption.findUnique({
+    })
+}*/

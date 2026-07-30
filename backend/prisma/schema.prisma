@@ -50,8 +50,9 @@ model Member {
   commentLikes     CommentLike[]
   DaliyNote        DaliyNote[]
 
-  following Follow[] @relation("UserFollows") // 這個會員追蹤了哪些人 (我追蹤的人)
-  followers Follow[] @relation("UserFollowedBy") // 哪些人追蹤了這個會員 (我的粉絲)
+  following Follow[]   @relation("UserFollows") // 這個會員追蹤了哪些人 (我追蹤的人)
+  followers Follow[]   @relation("UserFollowedBy") // 哪些人追蹤了這個會員 (我的粉絲)
+  PollVote  PollVote[]
 }
 
 model BlacklistedToken {
@@ -94,6 +95,8 @@ model Bottle {
   saves      BottleSave[]
   Comment    Comment[]
   report     BottleReport[]
+  PollOption PollOption[]
+  PollVote   PollVote[]
 }
 
 // 類別表
@@ -225,4 +228,29 @@ model Follow {
 
   // 複合主鍵，確保同一個使用者不會重複追蹤同一個人兩次
   @@id([follower_id, following_id])
+}
+
+model PollOption {
+  id        Int    @id @default(autoincrement())
+  bottle_id Int    @map("bottle_id")
+  text      String @db.VarChar(100) // 選項文字 (例如：贊成、反對)
+
+  // 關聯
+  bottle Bottle     @relation(fields: [bottle_id], references: [bottle_id], onDelete: Cascade)
+  votes  PollVote[]
+}
+
+model PollVote {
+  id         Int      @id @default(autoincrement())
+  member_id  Int      @map("member_id")
+  bottle_id  Int      @map("bottle_id")
+  option_id  Int      @map("option_id")
+  created_at DateTime @default(now())
+
+  // 關聯
+  member Member     @relation(fields: [member_id], references: [member_id], onDelete: Cascade)
+  bottle Bottle     @relation(fields: [bottle_id], references: [bottle_id], onDelete: Cascade)
+  option PollOption @relation(fields: [option_id], references: [id], onDelete: Cascade)
+
+  @@unique([member_id, bottle_id])
 }
