@@ -1448,48 +1448,46 @@ body, html { height: 100vh !important; overflow: hidden !important; background-c
     }
 }
 /* =========================================
-   🏠 吉祥物的溫暖小窩 (珊瑚貝殼)
+   🏠 吉祥物的尊爵深海珊瑚小窩 (全新打光升級版✨)
    ========================================= */
 #mascot-home {
     position: fixed;
-    bottom: 120px; /* 故意設定高一點，避免擋到回到主頁或熱門抽屜 */
+    bottom: 120px; 
     left: 25px; 
-    width: 65px;
-    height: 65px;
-    background: radial-gradient(circle, #ffecd2 0%, #fcb69f 100%);
+    width: 180px; 
+    height: 180px; 
     border-radius: 50%;
-    border: 3px solid #ff7e5f;
-    box-shadow: 0 5px 15px rgba(255, 126, 95, 0.4);
-    z-index: 9998; /* 稍微比吉祥物的 99999 低一點，讓吉祥物可以蓋在上面 */
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7); 
+    z-index: 9998; 
     cursor: pointer;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    font-size: 1.8rem;
     transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
     user-select: none;
-    animation: home-breathe 3s infinite ease-in-out;
+    
+    /* 🌟 魔法更新：套用熱騰騰的深海珊瑚新圖片！ */
+    background-image: url('images/watermarked_img_11133072913409157599.png');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    
+    border: 2px solid rgba(255, 255, 255, 0.15); /* 微微的玻璃反光感 */
+    overflow: hidden; 
+}
+
+/* 手機版稍微縮小一點才不會擋住畫面 */
+@media screen and (max-width: 600px) {
+    #mascot-home {
+        width: 130px;
+        height: 130px;
+        left: 15px;
+        bottom: 90px;
+    }
 }
 
 #mascot-home:hover {
-    transform: scale(1.15) rotate(-8deg);
-    box-shadow: 0 8px 25px rgba(255, 126, 95, 0.7);
-    animation: none; /* 滑鼠移上去時暫停呼吸動畫 */
+    transform: scale(1.03) translateY(-3px); 
+    box-shadow: 0 15px 35px rgba(0, 20, 40, 0.9); /* 滑過時陰影加深，更有立體感 */
 }
 
 #mascot-home::after {
-    content: "🏠";
-}
-
-@keyframes home-breathe {
-    0%, 100% { box-shadow: 0 5px 15px rgba(255, 126, 95, 0.4); transform: scale(1); }
-    50% { box-shadow: 0 5px 25px rgba(255, 126, 95, 0.8); transform: scale(1.05); }
-}
-
-/* 💤 吉祥物睡覺時的隱形狀態 */
-.mascot-sleeping {
-    opacity: 0 !important;
-    transform: scale(0) !important;
-    pointer-events: none !important;
-    transition: all 0.5s ease-in-out !important; /* 讓牠有縮小被吸進去的感覺 */
+    content: "";
 }
