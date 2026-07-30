@@ -32,42 +32,45 @@
             <p id="current-topic-display" class="topic-display"></p>
             <p class="instruction-text">請從下方的扇形牌陣中，憑直覺抽出 <span style="color:#d4b5ff; font-size:1.3em;">3</span> 張牌</p>
             
-            <!-- 扇形展開牌陣區 -->
-            <div id="deck-spread" class="deck-spread"></div>
-            
-            <!-- 三張牌的放置區 -->
-            <div class="tarot-container">
-                <div class="tarot-card empty-slot" id="card-past">
-                    <div class="card-inner">
-                        <div class="card-back"><img src="images/card-back.png" alt="牌背"></div>
-                        <div class="card-front" id="front-past">
-                            <img id="img-past" src="" alt="">
-                            <span id="text-past" class="card-name-label"></span>
-                        </div>
-                    </div>
-                    <p class="card-title">【過去】</p>
-                </div>
+            <!-- 塔羅牌專屬占卜墊 -->
+            <div class="tarot-mat">
+                <!-- 扇形展開牌陣區 -->
+                <div id="deck-spread" class="deck-spread"></div>
                 
-                <div class="tarot-card empty-slot" id="card-present">
-                    <div class="card-inner">
-                        <div class="card-back"><img src="images/card-back.png" alt="牌背"></div>
-                        <div class="card-front" id="front-present">
-                             <img id="img-present" src="" alt="">
-                             <span id="text-present" class="card-name-label"></span>
+                <!-- 三張牌的放置區 (由左至右：過去、現在、未來) -->
+                <div class="tarot-container">
+                    <div class="tarot-card empty-slot" id="card-past">
+                        <div class="card-inner">
+                            <div class="card-back"><img src="images/card-back.png" alt="牌背"></div>
+                            <div class="card-front" id="front-past">
+                                <img id="img-past" src="" alt="">
+                                <span id="text-past" class="card-name-label"></span>
+                            </div>
                         </div>
+                        <p class="card-title">【過去】</p>
                     </div>
-                    <p class="card-title">【現在】</p>
-                </div>
-                
-                <div class="tarot-card empty-slot" id="card-future">
-                    <div class="card-inner">
-                        <div class="card-back"><img src="images/card-back.png" alt="牌背"></div>
-                        <div class="card-front" id="front-future">
-                             <img id="img-future" src="" alt="">
-                             <span id="text-future" class="card-name-label"></span>
+                    
+                    <div class="tarot-card empty-slot" id="card-present">
+                        <div class="card-inner">
+                            <div class="card-back"><img src="images/card-back.png" alt="牌背"></div>
+                            <div class="card-front" id="front-present">
+                                 <img id="img-present" src="" alt="">
+                                 <span id="text-present" class="card-name-label"></span>
+                            </div>
                         </div>
+                        <p class="card-title">【現在】</p>
                     </div>
-                    <p class="card-title">【未來】</p>
+                    
+                    <div class="tarot-card empty-slot" id="card-future">
+                        <div class="card-inner">
+                            <div class="card-back"><img src="images/card-back.png" alt="牌背"></div>
+                            <div class="card-front" id="front-future">
+                                 <img id="img-future" src="" alt="">
+                                 <span id="text-future" class="card-name-label"></span>
+                            </div>
+                        </div>
+                        <p class="card-title">【未來】</p>
+                    </div>
                 </div>
             </div>
         </div>

@@ -13,6 +13,7 @@ export function bottleRouter() {
     bottleRouter.get("/saved", authCheck, bottleController.getMySavedBottlesList);
     bottleRouter.get("/search", optionalAuthCheck, bottleController.searchBottlesController);
     bottleRouter.get("/popular", optionalAuthCheck, bottleController.getPopularBottlesController);
+    bottleRouter.post("/:bottleId/vote", authCheck, bottleController.votePollController);
     bottleRouter.post("/:bottleId/like", authCheck, bottleController.likeBottle);
     bottleRouter.post("/:bottleId/save", authCheck, bottleController.saveBottle);
     bottleRouter.delete("/:bottleId/delete", authCheck, bottleController.deleteMyBottle);

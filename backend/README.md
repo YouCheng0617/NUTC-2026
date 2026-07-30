@@ -75,6 +75,7 @@ postman 測試用語
     "content": "",
     "isAnonymous": false,
     "category_id": []
+    "pollOptions": []
 }
 
 看文： GET /bottles/random
@@ -194,3 +195,8 @@ Query 參數 (必填)：?keyword=你要找的字
 
 新增回覆-子留言 POST 給Token /comments/bottles/:bottleId/comments/:parentId/reply 
 (:bottleId: 漂流瓶的 ID ; :parentId: 要回覆的主留言 ID)
+
+投票 POST 給Token /bottles/:bottleId/vote
+{
+  "optionId": 2
+}
