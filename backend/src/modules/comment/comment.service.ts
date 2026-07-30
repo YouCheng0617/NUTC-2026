@@ -1,7 +1,7 @@
 import prisma from "../../lib/prisma.js";
 
 /*新增留言*/
-export const createComment = async (bottleId: number, memberId: number, content: string) => {
+export const createComment = async (bottleId: number, memberId: number, content: string, isAnonymous: boolean = false) => {
     // 防呆：確認瓶子存不存在，以及狀態是不是可以被留言的 (例如: 1 通過)
     const bottle = await prisma.bottle.findUnique({
         where: { bottle_id: bottleId }
@@ -18,7 +18,8 @@ export const createComment = async (bottleId: number, memberId: number, content:
         data: {
             bottle_id: bottleId,
             member_id: memberId,
-            content: content
+            content: content,
+            is_anonymous: isAnonymous
         },
         include: {
             member: {
@@ -31,6 +32,8 @@ export const createComment = async (bottleId: number, memberId: number, content:
 
     return {
         ...newComment,
+        member_name: newComment.is_anonymous ? "匿名使用者" : newComment.member?.name,
+        member: undefined,
         likeCount: 0
     }
 };
