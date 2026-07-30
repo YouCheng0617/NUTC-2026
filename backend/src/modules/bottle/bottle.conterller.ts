@@ -118,7 +118,7 @@ export const bottleController = {
                 status: 1, // 只撈取審核通過的瓶子
             };
 
-            // 🌟 如果是會員，就不撈自己的瓶子；如果是訪客，這段就不會加進去
+            // 🌟 如果是會員，就不撈自己的瓶子
             if (memberId) {
                 whereCondition.member_id = { not: memberId };
             }
@@ -144,69 +144,72 @@ export const bottleController = {
             const suffledBottles = availableBottles.sort(() => 0.5 - Math.random());
             const seletBottles = suffledBottles.slice(0, limit).map(bottle => bottle.bottle_id);
 
-            // 🌟 3. 第二次查詢：獲取詳細資訊
+            // 🌟 3. 動態建立 include 物件，避開 false 導致 Prisma 崩潰的問題
+            const includeCondition: any = {
+                author: {
+                    select: {
+                        member_id: true,
+                        name: true,
+                        gender: true,
+                    }
+                },
+                _count: {
+                    select: { likes: true, saves: true }
+                },
+                categories: {
+                    include: {
+                        category: true
+                    }
+                },
+                pollOptions: {
+                    select: {
+                        id: true,
+                        text: true,
+                        _count: {
+                            select: { votes: true }
+                        }
+                    }
+                }
+            };
+
+            // 💡 只有當 memberId 存在時，才將 pollVotes 加入 include
+            if (memberId) {
+                includeCondition.pollVotes = {
+                    where: { member_id: memberId },
+                    select: { option_id: true }
+                };
+            }
+
+            // 🌟 第二次查詢
             const randomBottles = await prisma.bottle.findMany({
                 where: {
                     bottle_id: { in: seletBottles }
                 },
-                include: {
-                    author: {
-                        select: {
-                            member_id: true,
-                            name: true,
-                            gender: true,
-                        }
-                    },
-                    _count: {
-                        select: { likes: true, saves: true }
-                    },
-                    categories: {
-                        include: {
-                            category: true
-                        }
-                    },
-                    // 👇 新增這段：抓取投票選項與個別票數
-                    pollOptions: {
-                        select: {
-                            id: true,
-                            text: true,
-                            _count: {
-                                select: { votes: true } // 讓 Prisma 自動計算這個選項有幾票
-                            }
-                        }
-                    },
-                    // 👇 新增這段：如果是會員登入，一併查詢他對這個瓶子投了哪一票
-                    pollVotes: memberId ? {
-                        where: { member_id: memberId },
-                        select: { option_id: true }
-                    } : false
-                }
+                include: includeCondition
             });
 
-            // 🌟 4. 整理回傳格式，並清楚告知前端目前的狀態
-            const responseBottles = randomBottles.map(bottle => ({
+            // 🌟 4. 整理回傳格式
+            const responseBottles = randomBottles.map((bottle: any) => ({
                 bottle_id: bottle.bottle_id,
                 title: bottle.title,
                 content: bottle.content,
-                author_id: bottle.is_anonymous ? null : bottle.author.member_id,
-                author_name: bottle.is_anonymous ? "匿名使用者" : bottle.author.name,
-                author_gender: bottle.is_anonymous ? null : bottle.author.gender,
+                author_id: bottle.is_anonymous ? null : (bottle.author?.member_id ?? null),
+                author_name: bottle.is_anonymous ? "匿名使用者" : (bottle.author?.name || "未知使用者"),
+                author_gender: bottle.is_anonymous ? null : (bottle.author?.gender ?? null),
                 created_at: bottle.created_at,
-                like_count: bottle._count.likes,
-                save_count: bottle._count.saves,
+                like_count: bottle._count?.likes ?? 0,
+                save_count: bottle._count?.saves ?? 0,
                 view_count: bottle.view_count,
-                category_list: bottle.categories.map(c => c.category?.name || "未知類別"),
+                category_list: bottle.categories?.map((c: any) => c.category?.name || "未知類別") || [],
 
-                // 👇 強制宣告為 any[]，破解 'never' 報錯
-                poll_options: (bottle.pollOptions as any[])?.map((opt: any) => ({
+                poll_options: bottle.pollOptions?.map((opt: any) => ({
                     option_id: opt.id,
                     text: opt.text,
-                    vote_count: opt._count.votes
+                    vote_count: opt._count?.votes ?? 0
                 })) || [],
 
-                // 👇 這裡也一併加上 as any[] 保護，避免 pollVotes 也跳一樣的錯
-                user_voted_option_id: (bottle.pollVotes as any[]) && (bottle.pollVotes as any[]).length > 0
-                    ? (bottle.pollVotes as any[])[0].option_id
+                user_voted_option_id: bottle.pollVotes && bottle.pollVotes.length > 0
+                    ? bottle.pollVotes[0].option_id
                     : null
             }));
 
