@@ -136,6 +136,7 @@ export const bottleController = {
                 bottle_id: bottle.bottle_id,
                 title: bottle.title,
                 content: bottle.content,
+                author_id: bottle.is_anonymous ? null : bottle.author.member_id,
                 author_name: bottle.is_anonymous ? "匿名使用者" : bottle.author.name,
                 created_at: bottle.created_at,
                 like_count: bottle._count.likes,
