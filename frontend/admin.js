@@ -157,12 +157,15 @@ async function loadDashboardData() {
                 if (trendCounts[bDateStr] !== undefined) trendCounts[bDateStr]++;
             }
 
-            // 🌟 3. 發文者性別統計
+          
+           // 🌟 3. 發文者性別統計
             let bg = 'other';
             let authorId = b.member_id || b.author_id;
             
-            // 先看文章本身有沒有帶性別，沒有就去會員字典查
-            if (b.gender || (b.author && b.author.gender)) {
+            // 🌟 這裡修改：優先抓取後端回傳的 member_gender 欄位
+            if (b.member_gender) {
+                bg = String(b.member_gender).toLowerCase().trim();
+            } else if (b.gender || (b.author && b.author.gender)) {
                 bg = String(b.gender || b.author.gender).toLowerCase().trim();
             } else if (authorId && userGenderMap[authorId]) {
                 bg = userGenderMap[authorId];
