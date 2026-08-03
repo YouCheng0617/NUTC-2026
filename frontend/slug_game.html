@@ -1233,7 +1233,295 @@ let trialInterval = null;
             // 🌟 寶寶的「VIP 特效包廂」🌟
             // 根據不同的特效名字，進入不同的專屬製作區！
             switch (effectKey) {
-                
+// ------------------------------------------------
+                // ⛩️ 【BUG 退散】正宗大符版 (遠景置中 + 近處極致柔軟羽毛飄落 + 支援手機點擊)
+                // ------------------------------------------------
+                case 'bugFree':
+                    if (!document.getElementById('talismanStyle')) {
+                        const style = document.createElement('style');
+                        style.id = 'talismanStyle';
+                        style.innerHTML = `
+                            /* 遠景巨大鎮守符咒：完美置中對齊 */
+                            .cyber-giant-talisman {
+                                position: absolute;
+                                width: 110px; 
+                                height: 280px; 
+                                background-color: #fef08a; 
+                                background-image: radial-gradient(rgba(217, 119, 6, 0.25) 1px, transparent 1px);
+                                background-size: 5px 5px;
+                                border: 4px solid #dc2626; 
+                                box-shadow: 0 0 35px rgba(220, 38, 38, 0.4); 
+                                border-radius: 8px;
+                                pointer-events: none; 
+                                display: flex;
+                                flex-direction: column;
+                                align-items: center;
+                                justify-content: space-between;
+                                padding: 10px 6px;
+                                box-sizing: border-box;
+                                z-index: 1; 
+                                transform-origin: center center;
+                                animation: giantBreathe 6s ease-in-out infinite alternate;
+                            }
+                            @keyframes giantBreathe {
+                                0% { transform: translateX(-50%) scale(1) rotate(-2deg); opacity: 0.25; }
+                                100% { transform: translateX(-50%) scale(1.03) rotate(2deg); opacity: 0.4; }
+                            }
+                            .giant-content {
+                                display: flex;
+                                justify-content: center;
+                                gap: 10px; 
+                                width: 100%;
+                                flex: 1;
+                                align-items: center;
+                            }
+                            .giant-col {
+                                writing-mode: vertical-rl;
+                                text-orientation: upright;
+                                letter-spacing: 12px; 
+                                font-family: "DFKai-SB", "BiauKai", "楷體", "Kaiti", serif;
+                                font-weight: 900;
+                                font-size: 26px;
+                                color: #b91c1c;
+                                text-shadow: 1px 1px 0px rgba(254, 240, 138, 0.8);
+                                text-align: center;
+                            }
+
+                            /* 近處羽毛般柔軟飄落的小符咒 */
+                            .cyber-talisman {
+                                position: absolute;
+                                width: 65px; 
+                                height: 160px; 
+                                background-color: #fef08a; 
+                                background-image: radial-gradient(rgba(217, 119, 6, 0.2) 1px, transparent 1px);
+                                background-size: 4px 4px;
+                                border: 3px solid #dc2626; 
+                                box-shadow: 0 0 20px rgba(220, 38, 38, 0.7); 
+                                border-radius: 6px; 
+                                cursor: pointer; /* 改成指標手勢，暗示可以點擊 */
+                                pointer-events: auto; 
+                                display: flex;
+                                flex-direction: column;
+                                align-items: center;
+                                justify-content: space-between;
+                                padding: 6px 4px;
+                                box-sizing: border-box;
+                                perspective: 800px;
+                                transform-style: preserve-3d;
+                                transform-origin: center center;
+                                z-index: 3; 
+                            }
+                            .talisman-content {
+                                display: flex;
+                                justify-content: center;
+                                gap: 6px; 
+                                width: 100%;
+                                flex: 1;
+                                align-items: center;
+                            }
+                            .talisman-col {
+                                writing-mode: vertical-rl;
+                                text-orientation: upright;
+                                letter-spacing: 8px; 
+                                font-family: "DFKai-SB", "BiauKai", "楷體", "Kaiti", serif;
+                                font-weight: 900;
+                                font-size: 18px;
+                                color: #b91c1c;
+                                text-shadow: 1px 1px 0px rgba(254, 240, 138, 0.8);
+                                text-align: center;
+                            }
+                            .cyber-spark {
+                                position: absolute;
+                                width: 8px;
+                                height: 8px;
+                                background: #fbbf24;
+                                border-radius: 50%;
+                                box-shadow: 0 0 10px #ef4444;
+                                pointer-events: none;
+                                transition: transform 0.4s cubic-bezier(0.1, 0.8, 0.2, 1), opacity 0.4s ease-out;
+                                z-index: 4;
+                            }
+                        `;
+                        document.head.appendChild(style);
+                    }
+
+                    if (window.bugFreeInterval) clearInterval(window.bugFreeInterval);
+                    if (window.bugFreeAnimFrame) cancelAnimationFrame(window.bugFreeAnimFrame);
+
+                    const spellPairs = [
+                        { col1: "BUG退散", col2: "永不報錯" },
+                        { col1: "順利PASS", col2: "綠燈常亮" },
+                        { col1: "急急如律", col2: "BUG快滾" },
+                        { col1: "神仙保佑", col2: "絕對不當" }
+                    ];
+
+                    let activeTalismans = [];
+
+                    const giantPairs = [
+                        { col1: "天地玄宗", col2: "萬氣本根" },
+                        { col1: "鎮壓百邪", col2: "永無代碼" },
+                        { col1: "神威浩蕩", col2: "BUG退散" },
+                        { col1: "太上老君", col2: "急急如律" }
+                    ];
+
+                    const stageWidth = layer.offsetWidth || window.innerWidth;
+                    
+                    giantPairs.forEach((pair, index) => {
+                        let giant = document.createElement('div');
+                        giant.className = 'cyber-giant-talisman';
+                        
+                        let posX = (stageWidth / 4) * (index + 0.5);
+                        let posY = 20 + Math.random() * 35; 
+                        
+                        giant.style.left = posX + 'px';
+                        giant.style.top = posY + 'px';
+                        giant.style.transform = 'translateX(-50%)';
+                        giant.style.animationDelay = (index * 1.5) + 's';
+
+                        giant.innerHTML = `
+                            <svg width="90" height="40" viewBox="0 0 90 40" style="opacity: 0.9;">
+                                <path d="M10,20 Q25,2 45,20 Q65,38 80,20" fill="none" stroke="#dc2626" stroke-width="4" stroke-linecap="round"/>
+                                <circle cx="45" cy="10" r="4" fill="#dc2626"/>
+                                <circle cx="20" cy="30" r="2.5" fill="#dc2626"/>
+                                <circle cx="70" cy="30" r="2.5" fill="#dc2626"/>
+                            </svg>
+                            <div class="giant-content">
+                                <div class="giant-col">${pair.col1}</div>
+                                <div class="giant-col">${pair.col2}</div>
+                            </div>
+                            <svg width="90" height="45" viewBox="0 0 90 45" style="opacity: 0.9;">
+                                <path d="M15,5 Q45,40 75,5 M22,15 Q45,42 68,15 M45,5 L45,35" fill="none" stroke="#dc2626" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+                                <circle cx="45" cy="32" r="3.5" fill="#dc2626"/>
+                            </svg>
+                        `;
+                        layer.appendChild(giant);
+                    });
+
+                    class SoftTalisman {
+                        constructor(containerWidth, containerHeight) {
+                            this.el = document.createElement('div');
+                            this.el.className = 'cyber-talisman';
+                            
+                            this.w = 65;
+                            this.h = 160;
+                            this.x = Math.random() * (containerWidth - this.w - 50) + 25;
+                            this.y = -200; 
+                            
+                            this.vy = 0.6 + Math.random() * 0.4; 
+                            this.amplitude = 50 + Math.random() * 30; 
+                            this.frequency = 0.006 + Math.random() * 0.004; 
+                            this.angleSeed = Math.random() * Math.PI * 2; 
+                            
+                            this.baseX = this.x;
+                            this.markedForDeletion = false;
+
+                            const pair = spellPairs[Math.floor(Math.random() * spellPairs.length)];
+                            this.el.innerHTML = `
+                                <svg width="55" height="28" viewBox="0 0 55 28" style="opacity: 0.95;">
+                                    <path d="M5,14 Q15,2 27,14 Q40,26 50,14" fill="none" stroke="#dc2626" stroke-width="3" stroke-linecap="round"/>
+                                    <circle cx="27" cy="6" r="3" fill="#dc2626"/>
+                                    <circle cx="12" cy="20" r="2" fill="#dc2626"/>
+                                    <circle cx="42" cy="20" r="2" fill="#dc2626"/>
+                                </svg>
+                                <div class="talisman-content">
+                                    <div class="talisman-col">${pair.col1}</div>
+                                    <div class="talisman-col">${pair.col2}</div>
+                                </div>
+                                <svg width="55" height="32" viewBox="0 0 55 32" style="opacity: 0.95;">
+                                    <path d="M10,4 Q27,28 45,4 M15,12 Q27,30 39,12 M27,4 L27,28" fill="none" stroke="#dc2626" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+                                    <circle cx="27" cy="26" r="2.5" fill="#dc2626"/>
+                                </svg>
+                            `;
+
+                            // 🌟 修正：改成 onclick，這樣電腦滑鼠點擊跟手機手指觸控都能完美引爆！
+                            this.el.onclick = (e) => {
+                                const rect = this.el.getBoundingClientRect();
+                                const layerRect = layer.getBoundingClientRect();
+                                const centerX = rect.left - layerRect.left + rect.width / 2;
+                                const centerY = rect.top - layerRect.top + rect.height / 2;
+
+                                this.markedForDeletion = true;
+                                this.el.remove();
+
+                                for(let i = 0; i < 10; i++) {
+                                    let spark = document.createElement('div');
+                                    spark.className = 'cyber-spark';
+                                    spark.style.left = centerX + 'px';
+                                    spark.style.top = centerY + 'px';
+                                    layer.appendChild(spark);
+
+                                    requestAnimationFrame(() => {
+                                        const angle = Math.random() * Math.PI * 2;
+                                        const dist = Math.random() * 60 + 25;
+                                        spark.style.transform = `translate(${Math.cos(angle) * dist}px, ${Math.sin(angle) * dist}px) scale(0)`;
+                                        spark.style.opacity = '0'; 
+                                    });
+
+                                    setTimeout(() => {
+                                        if (spark.parentNode) spark.remove();
+                                    }, 400);
+                                }
+                            };
+
+                            layer.appendChild(this.el);
+                        }
+
+                        update(height) {
+                            this.y += this.vy;
+                            
+                            let progress = this.y * 0.007;
+                            let swayX = Math.sin(this.angleSeed + progress) * this.amplitude;
+                            let zFactor = Math.cos(this.angleSeed * 1.2 + progress * 1.5) * 25;
+                            let currentX = this.baseX + swayX + zFactor;
+                            
+                            let rotateX = Math.sin(progress * 2) * 18; 
+                            let rotateY = Math.cos(progress * 1.5) * 25; 
+                            let rotateZ = Math.sin(this.angleSeed + progress) * 15; 
+                            let floatY = Math.sin(progress * 3) * 8; 
+
+                            this.el.style.transform = `translate3d(${currentX}px, ${this.y + floatY}px, 0) rotateX(${rotateX}deg) rotateY(${rotateY}deg) rotateZ(${rotateZ}deg)`;
+
+                            if (this.y > height + 100) {
+                                this.markedForDeletion = true;
+                                this.el.remove();
+                            }
+                        }
+                    }
+
+                    function renderLoop() {
+                        if (gameState.currentEffect !== 'bugFree' && trialState.effect !== 'bugFree') {
+                            activeTalismans.forEach(t => t.el.remove());
+                            activeTalismans = [];
+                            return;
+                        }
+
+                        window.bugFreeAnimFrame = requestAnimationFrame(renderLoop);
+
+                        let h = layer.offsetHeight;
+                        for (let i = activeTalismans.length - 1; i >= 0; i--) {
+                            let t = activeTalismans[i];
+                            t.update(h);
+                            if (t.markedForDeletion) {
+                                activeTalismans.splice(i, 1);
+                            }
+                        }
+                    }
+
+                    renderLoop();
+
+                    function spawnTalisman() {
+                        if (gameState.currentEffect !== 'bugFree' && trialState.effect !== 'bugFree') return;
+                        if (activeTalismans.length < 7) {
+                            activeTalismans.push(new SoftTalisman(layer.offsetWidth, layer.offsetHeight));
+                        }
+                    }
+
+                    spawnTalisman();
+                    setTimeout(spawnTalisman, 1200);
+                    setTimeout(spawnTalisman, 2400);
+
+                    window.bugFreeInterval = setInterval(spawnTalisman, 1800);
+                    break;
                 // ------------------------------------------------
                 // 🌧️ 【綿綿細雨】專屬地盤 (極致朦朧升級版！)
                 // ------------------------------------------------
