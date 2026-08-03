@@ -1472,6 +1472,7 @@ document.addEventListener('DOMContentLoaded', () => {
     setInterval(() => { if (Math.random() > 0.2) showRandomDialogue(); }, 8000 + Math.random() * 6000);
 
     const startDrag = (clientX, clientY) => {
+        if (window.isMascotSleeping) return;
         isDragging = true;
         hasMoved = false;
 
@@ -1634,6 +1635,7 @@ mascotHome.addEventListener('click', () => {
 
     // 🫧 雙擊頁面空白處，讓吉祥物游到使用者指定的位置。
     document.addEventListener('dblclick', (e) => {
+        if (window.isMascotSleeping) return;
         const target = e.target;
         if (target instanceof Element && target.closest(
             'a, button, input, textarea, select, label, [role="button"], #svg-mermecat-mascot'
@@ -1660,12 +1662,27 @@ mascotHome.addEventListener('click', () => {
         swimTimer = setTimeout(swimLikeLazyMermaid, 3000);
     });
 
-    // 🚀 防止拖曳完不小心觸發跳轉，只有真的「單純點擊」才會去 AI 助手頁面
+ // 🚀 防止拖曳完不小心觸發跳轉，只有真的「單純點擊」才會去 AI 助手頁面
     mascot.addEventListener('click', (e) => {
+        
+        // 👇 第一步：先檢查是不是「剛被拖曳完」放開滑鼠
         if (hasMoved) {
             e.preventDefault();
+            hasMoved = false; // ✨ 終極魔法：拖曳完馬上把狀態歸零，才不會卡住下次的點擊！
+            return; // 剛拖曳完，不執行點擊動作，讓牠乖乖留在小窩睡覺
+        }
+
+        // 👇 第二步：如果是單純點擊，而且在睡覺，就叫醒牠
+        if (window.isMascotSleeping) {
+            e.preventDefault();
+            const mascotHome = document.getElementById('mascot-home');
+            if (mascotHome) {
+                mascotHome.click();
+            }
             return;
         }
+
+        // 👇 第三步：如果是單純點擊，且醒著，就去聊天室
         window.location.href = AI_ASSISTANT_URL;
     });
 
