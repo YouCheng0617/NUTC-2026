@@ -903,6 +903,8 @@ const i18n = {
         };
 
         let currentTab = 'species';
+        let trialState = { species: null, bg: null, effect: null };
+        let trialTimer = null;
 
         window.onload = function() {
             loadGame();
@@ -1048,71 +1050,127 @@ const i18n = {
 
         function switchTab(tab) {
             currentTab = tab;
+            
+            // 切換分類時，強制清空試用狀態！
+            trialState = { species: null, bg: null, effect: null };
+            if(trialTimer) clearTimeout(trialTimer);
+            refreshAll(); 
+            
             document.getElementById('tabSpecies').className = tab === 'species' ? 'tab active' : 'tab';
             document.getElementById('tabBg').className = tab === 'bg' ? 'tab active' : 'tab';
             document.getElementById('tabEffect').className = tab === 'effect' ? 'tab active' : 'tab';
-            renderShop();
         }
 
         function renderShop() {
             const grid = document.getElementById('shopGrid');
             grid.innerHTML = '';
             const t = i18n[currLang];
+            
+            // 動態翻譯按鈕
+            const txtTry = currLang === 'zh' ? '👀 試用' : 'Try';
+            const txtBuy = currLang === 'zh' ? '💰 購買' : 'Buy';
+            const txtCancel = currLang === 'zh' ? '❌ 取消' : 'Cancel';
 
-            let dataObj, unlockedArr, currentActive;
-            if (currentTab === 'species') { dataObj = speciesData; unlockedArr = gameState.unlockedSpecies; currentActive = gameState.currentSpecies; }
-            else if (currentTab === 'bg') { dataObj = bgData; unlockedArr = gameState.unlockedBgs; currentActive = gameState.currentBg; }
-            else { dataObj = effectData; unlockedArr = gameState.unlockedEffects; currentActive = gameState.currentEffect; }
+            let dataObj, unlockedArr, currentActive, typeKey, currentTrial;
+            if (currentTab === 'species') { dataObj = speciesData; unlockedArr = gameState.unlockedSpecies; currentActive = gameState.currentSpecies; typeKey = 'species'; currentTrial = trialState.species; }
+            else if (currentTab === 'bg') { dataObj = bgData; unlockedArr = gameState.unlockedBgs; currentActive = gameState.currentBg; typeKey = 'bg'; currentTrial = trialState.bg; }
+            else { dataObj = effectData; unlockedArr = gameState.unlockedEffects; currentActive = gameState.currentEffect; typeKey = 'effect'; currentTrial = trialState.effect; }
 
             Object.keys(dataObj).forEach(key => {
                 const item = dataObj[key];
                 let isUnlocked = unlockedArr.includes(key);
-                let isEquipped = currentActive === key;
+                let isEquipped = (currentActive === key) && !currentTrial; 
+                let isTrialing = (currentTrial === key);
 
                 const card = document.createElement('div');
-                card.className = `item-card ${isEquipped ? 'equipped' : ''}`;
-                card.onclick = () => handlePurchase(key, item, currentTab);
+                card.className = `item-card ${isEquipped || isTrialing ? 'equipped' : ''}`;
                 
-                let btnText = isUnlocked ? (isEquipped ? t.equip : t.owned) : item.cost;
+                let actionHTML = '';
+                if (isUnlocked) {
+                    let btnText = isEquipped ? t.equip : t.owned;
+                    actionHTML = `<div class="item-cost owned">${btnText}</div>`;
+                    card.onclick = () => equipItem(key, typeKey);
+                } else if (isTrialing) {
+                    actionHTML = `
+                        <div style="display:flex; gap:6px; justify-content:center; margin-top:5px;">
+                            <div class="item-cost" style="background:#4ade80; font-size:0.8rem; padding:4px 8px; cursor:pointer;" onclick="buyItem('${key}', '${typeKey}', ${item.cost}, event)">${txtBuy}</div>
+                            <div class="item-cost" style="background:#ef4444; font-size:0.8rem; padding:4px 8px; cursor:pointer;" onclick="cancelTrial('${typeKey}', event)">${txtCancel}</div>
+                        </div>
+                    `;
+                } else {
+                    actionHTML = `<div class="item-cost"><span style="font-size:0.7rem;margin-right:4px;">${txtTry}</span>${item.cost}</div>`;
+                    card.onclick = () => tryItem(key, typeKey);
+                }
                 
-                let previewStyle = currentTab === 'species' 
+                let previewStyle = typeKey === 'species' 
                     ? `background:${item.body}; border: 3px solid ${item.outline}`
                     : `background: ${item.preview}; border: 3px solid #cbd5e1`;
 
                 card.innerHTML = `
                     <div class="item-color-preview" style="${previewStyle}"></div>
                     <div class="item-name">${item.name[currLang]}</div>
-                    <div class="item-cost ${isUnlocked ? 'owned' : ''}">${btnText}</div>
+                    ${actionHTML}
                 `;
                 grid.appendChild(card);
             });
         }
 
-        function handlePurchase(key, item, type) {
-            let unlockedArr = (type === 'species') ? gameState.unlockedSpecies : (type === 'bg' ? gameState.unlockedBgs : gameState.unlockedEffects);
-            let isUnlocked = unlockedArr.includes(key);
-
-            if (!isUnlocked) {
-                if (gameState.points >= item.cost) {
-                    gameState.points -= item.cost;
-                    unlockedArr.push(key);
-                } else { return; }
-            }
-
+        function equipItem(key, type) {
+            trialState[type] = null; 
             if (type === 'species') gameState.currentSpecies = key;
             else if (type === 'bg') gameState.currentBg = key;
             else gameState.currentEffect = key;
+            refreshAll();
+            saveGame();
+        }
 
+        function tryItem(key, type) {
+            trialState[type] = key;
+            refreshAll();
+            
+            if(trialTimer) clearTimeout(trialTimer);
+            
+            showFloatText('⏱️ 試用開始 (10秒)');
+            
+            trialTimer = setTimeout(() => {
+                if(trialState[type] === key) { 
+                    trialState[type] = null;
+                    refreshAll();
+                    showFloatText('✨ 試用結束，喜歡就帶回家吧！');
+                }
+            }, 10000); 
+        }
+
+        function buyItem(key, type, cost, e) {
+            if(e) e.stopPropagation(); 
+            if (gameState.points >= cost) {
+                gameState.points -= cost;
+                if (type === 'species') gameState.unlockedSpecies.push(key);
+                else if (type === 'bg') gameState.unlockedBgs.push(key);
+                else gameState.unlockedEffects.push(key);
+                
+                equipItem(key, type); 
+                showFloatText('✨ 購買成功 ✨');
+            } else {
+                showFloatText('積分不足 😢');
+            }
+        }
+
+        function cancelTrial(type, e) {
+            if(e) e.stopPropagation();
+            trialState[type] = null;
+            refreshAll();
+        }
+
+        function refreshAll() {
             applySlugStyles();
             applyBg();
             applyEffect();
-            saveGame();
             renderShop();
-            updateUI();
         }
 
         function applySlugStyles() {
-            const spec = speciesData[gameState.currentSpecies];
+            const spec = speciesData[trialState.species || gameState.currentSpecies];
             if(!spec) return;
 
             const root = document.documentElement;
@@ -1125,7 +1183,7 @@ const i18n = {
         }
 
         function applyBg() {
-            const bg = bgData[gameState.currentBg];
+            const bg = bgData[trialState.bg || gameState.currentBg];
             if(bg) {
                 document.getElementById('mainStage').style.background = bg.style;
                 document.getElementById('dotPattern').style.opacity = bg.hasDots ? '0.9' : '0';
@@ -1135,7 +1193,7 @@ const i18n = {
       function applyEffect() {
             const layer = document.getElementById('effectLayer');
             layer.innerHTML = ''; 
-            const effectKey = gameState.currentEffect;
+            const effectKey = trialState.effect || gameState.currentEffect;
             const effect = effectData[effectKey];
             
             if (!effect || effectKey === 'none') return;
