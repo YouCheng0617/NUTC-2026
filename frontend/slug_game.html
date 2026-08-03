@@ -803,61 +803,80 @@
             bathhouse: { name: {zh: '溫泉澡堂', en: 'Bathhouse'}, cost: 3400, preview: '#7dd3fc', style: 'linear-gradient(to bottom, #e0f2fe 0%, #7dd3fc 60%, #1d4ed8 100%)', hasDots: false }
         };
 
+// 🎨 寶寶專屬的 SVG 向量圖形庫
+        const svgLib = {
+            tomato: `<svg viewBox="0 0 100 100" width="100%" height="100%"><circle cx="50" cy="60" r="35" fill="#ef4444"/><path d="M50 25 L35 15 L45 30 L50 20 L55 30 L65 15 Z" fill="#22c55e"/></svg>`,
+            heart: `<svg viewBox="0 0 100 100" width="100%" height="100%"><path d="M50 85 C10 50 10 20 30 10 C45 0 50 15 50 15 C50 15 55 0 70 10 C90 20 90 50 50 85Z" fill="currentColor"/></svg>`,
+            star: `<svg viewBox="0 0 100 100" width="100%" height="100%"><polygon points="50,5 61,35 95,35 68,55 79,85 50,65 21,85 32,55 5,35 39,35" fill="currentColor"/></svg>`,
+            sparkle: `<svg viewBox="0 0 100 100" width="100%" height="100%"><path d="M50 5 Q50 50 95 50 Q50 50 50 95 Q50 50 5 50 Q50 50 50 5 Z" fill="currentColor"/></svg>`,
+            drop: `<svg viewBox="0 0 100 100" width="100%" height="100%"><path d="M50 10 C50 10 20 50 20 70 A 30 30 0 0 0 80 70 C80 50 50 10 50 10 Z" fill="currentColor"/></svg>`,
+            leaf: `<svg viewBox="0 0 100 100" width="100%" height="100%"><path d="M50 10 C80 10 90 40 90 60 C90 80 50 90 50 90 C20 90 10 60 10 40 C10 20 50 10 50 10 Z" fill="currentColor"/></svg>`,
+            moon: `<svg viewBox="0 0 100 100" width="100%" height="100%"><path d="M65 15 A 40 40 0 1 1 25 85 A 50 50 0 1 0 65 15 Z" fill="currentColor"/></svg>`,
+            snow: `<svg viewBox="0 0 100 100" width="100%" height="100%"><path d="M50 10 L50 90 M10 50 L90 50 M20 20 L80 80 M20 80 L80 20" stroke="currentColor" stroke-width="10" stroke-linecap="round"/></svg>`,
+            music: `<svg viewBox="0 0 100 100" width="100%" height="100%"><path d="M30 70 A 15 15 0 1 1 15 55 L15 10 L85 20 L85 65 A 15 15 0 1 1 70 50 L70 30 L25 25 L25 70 Z" fill="currentColor"/></svg>`,
+            poop: `<svg viewBox="0 0 100 100" width="100%" height="100%"><path d="M20 80 Q50 90 80 80 Q90 60 70 50 Q80 40 60 30 Q70 15 50 10 Q30 15 40 30 Q20 40 30 50 Q10 60 20 80 Z" fill="currentColor"/></svg>`,
+            bubble: `<svg viewBox="0 0 100 100" width="100%" height="100%"><circle cx="50" cy="50" r="40" fill="rgba(255,255,255,0.2)" stroke="currentColor" stroke-width="4"/><path d="M30 30 A 20 20 0 0 1 50 20" stroke="currentColor" stroke-width="4" fill="none" stroke-linecap="round"/></svg>`,
+            money: `<svg viewBox="0 0 100 100" width="100%" height="100%"><rect x="10" y="30" width="80" height="40" rx="5" fill="#86efac" stroke="#166534" stroke-width="4"/><circle cx="50" cy="50" r="12" fill="#166534"/></svg>`,
+            cross: `<svg viewBox="0 0 100 100" width="100%" height="100%"><path d="M20 20 L80 80 M80 20 L20 80" stroke="currentColor" stroke-width="15" stroke-linecap="round"/></svg>`,
+            circle: `<svg viewBox="0 0 100 100" width="100%" height="100%"><circle cx="50" cy="50" r="40" fill="currentColor"/></svg>`
+        };
+
+        // 重新定義原本的特效資料，改為呼叫 SVG 形狀與指定顏色
         const effectData = {
             none: { name: {zh: '無特效', en: 'None'}, cost: 0, preview: '#ffffff' },
-            rain: { name: {zh: '綿綿細雨', en: 'Raindrops'}, cost: 800, preview: '#93c5fd' },
-            bubble: { name: {zh: '夢幻泡泡', en: 'Bubbles'}, cost: 1200, preview: '#67e8f9' },
-            tomato: { name: {zh: '飛天小番茄', en: 'Flying Tomato'}, cost: 1500, preview: '#fca5a5', emoji: ['🍅', '✨'], dir: 'down', count: 12 },
-            bugFree: { name: {zh: 'Bug退散', en: 'No More Bugs'}, cost: 8888, preview: '#4ade80', emoji: ['🐛', '❌', '💻'], dir: 'up', count: 15 },
-            disco: { name: {zh: '迪斯可舞池', en: 'Disco Party'}, cost: 2500, preview: '#c084fc', emoji: ['🪩', '💃', '✨'], dir: 'up', count: 10 },
-            paint: { name: {zh: '揮灑顏料', en: 'Paint Splash'}, cost: 2000, preview: '#f472b6', emoji: ['🎨', '🖌️', '💧'], dir: 'down', count: 15 },
-            heartbeat: { name: {zh: '心動滿滿', en: 'Heartbeat'}, cost: 1800, preview: '#f43f5e', emoji: ['💖', '🏡', '💕'], dir: 'up', count: 18 },
-            noClass: { name: {zh: '不想上課', en: 'Skip Class'}, cost: 1600, preview: '#94a3b8', emoji: ['📚', '💨', '🛌'], dir: 'down', count: 12 },
-            money: { name: {zh: '財富自由', en: 'Money Rain'}, cost: 9999, preview: '#facc15', emoji: ['💸', '💰', '💎'], dir: 'down', count: 20 },
-            zzz: { name: {zh: '強烈睡意', en: 'Sleepy'}, cost: 1000, preview: '#cbd5e1', emoji: ['💤'], dir: 'up', count: 8 },
-            sweat: { name: {zh: '尷尬流汗', en: 'Sweating'}, cost: 1000, preview: '#7dd3fc', emoji: ['💦', '💧'], dir: 'down', count: 15 },
-            math: { name: {zh: '數學當機', en: 'Math Error'}, cost: 1200, preview: '#0f172a', emoji: ['➕', '➖', '✖️', '➗', '❓'], dir: 'down', count: 20 },
-            poop: { name: {zh: '黃金天降', en: 'Holy Poop'}, cost: 500, preview: '#78350f', emoji: ['💩', '✨'], dir: 'down', count: 10 },
-            snow: { name: {zh: '初雪飄落', en: 'Snowfall'}, cost: 1500, preview: '#e0f2fe', emoji: ['❄️', '❅', '❆'], dir: 'down', count: 25 },
-            sakura: { name: {zh: '櫻花飛舞', en: 'Sakura'}, cost: 2200, preview: '#fbcfe8', emoji: ['🌸', '💮'], dir: 'down', count: 20 },
-            star: { name: {zh: '繁星閃爍', en: 'Starry'}, cost: 1800, preview: '#fef08a', emoji: ['⭐', '✨', '🌟'], dir: 'down', count: 20 },
-            firefly: { name: {zh: '螢火蟲', en: 'Fireflies'}, cost: 2000, preview: '#84cc16', emoji: ['🟡', '✨'], dir: 'up', count: 15 },
-            leaf: { name: {zh: '落葉紛飛', en: 'Falling Leaves'}, cost: 1400, preview: '#ea580c', emoji: ['🍂', '🍁'], dir: 'down', count: 15 },
-            meteor: { name: {zh: '流星雨', en: 'Meteor Shower'}, cost: 3000, preview: '#818cf8', emoji: ['🌠'], dir: 'down', count: 8 },
-            sun: { name: {zh: '陽光普照', en: 'Sunny'}, cost: 1500, preview: '#fb923c', emoji: ['☀️', '🌻'], dir: 'up', count: 10 },
-            moon: { name: {zh: '月光灑落', en: 'Moonlight'}, cost: 1500, preview: '#1e293b', emoji: ['🌙', '☁️'], dir: 'down', count: 8 },
-            lightning: { name: {zh: '閃電交加', en: 'Lightning'}, cost: 2400, preview: '#fde047', emoji: ['⚡', '🌩️'], dir: 'down', count: 12 },
-            rainbowStars: { name: {zh: '彩虹星塵', en: 'Rainbow Dust'}, cost: 2800, preview: '#a855f7', emoji: ['🌈', '✨'], dir: 'up', count: 12 },
-            butterfly: { name: {zh: '蝴蝶翩翩', en: 'Butterflies'}, cost: 2100, preview: '#c084fc', emoji: ['🦋'], dir: 'up', count: 10 },
-            bat: { name: {zh: '吸血蝙蝠', en: 'Vampire Bats'}, cost: 2300, preview: '#334155', emoji: ['🦇'], dir: 'down', count: 12 },
-            ghost: { name: {zh: '小幽靈', en: 'Little Ghosts'}, cost: 2500, preview: '#f8fafc', emoji: ['👻', '💨'], dir: 'up', count: 10 },
-            duck: { name: {zh: '黃色小鴨', en: 'Rubber Ducks'}, cost: 1800, preview: '#fde047', emoji: ['🦆', '🐤'], dir: 'down', count: 15 },
-            fish: { name: {zh: '深海魚群', en: 'School of Fish'}, cost: 1900, preview: '#0284c7', emoji: ['🐟', '🐠', '🐡'], dir: 'up', count: 18 },
-            sheep: { name: {zh: '數羊羊', en: 'Counting Sheep'}, cost: 1600, preview: '#e2e8f0', emoji: ['🐑', '☁️'], dir: 'up', count: 8 },
-            feather: { name: {zh: '天使羽毛', en: 'Angel Feathers'}, cost: 2400, preview: '#ffffff', emoji: ['🪶', '🕊️'], dir: 'down', count: 15 },
-            boba: { name: {zh: '珍奶珍珠', en: 'Boba Pearls'}, cost: 1700, preview: '#78350f', emoji: ['🧋', '⚫'], dir: 'down', count: 20 },
-            sushi: { name: {zh: '迴轉壽司', en: 'Sushi Roll'}, cost: 2200, preview: '#f87171', emoji: ['🍣', '🍤', '🍙'], dir: 'down', count: 12 },
-            pizza: { name: {zh: '披薩派對', en: 'Pizza Party'}, cost: 2000, preview: '#ea580c', emoji: ['🍕'], dir: 'down', count: 10 },
-            fries: { name: {zh: '薯條雨', en: 'French Fries'}, cost: 1900, preview: '#facc15', emoji: ['🍟'], dir: 'down', count: 15 },
-            cake: { name: {zh: '甜點時間', en: 'Dessert Time'}, cost: 2100, preview: '#fbcfe8', emoji: ['🍰', '🧁', '🍩'], dir: 'down', count: 12 },
-            coffee: { name: {zh: '咖啡續命', en: 'Coffee Refill'}, cost: 1800, preview: '#451a03', emoji: ['☕', '🤎'], dir: 'up', count: 10 },
-            cookie: { name: {zh: '餅干碎屑', en: 'Cookies'}, cost: 1600, preview: '#b45309', emoji: ['🍪'], dir: 'down', count: 12 },
-            confetti: { name: {zh: '派對拉炮', en: 'Confetti'}, cost: 2500, preview: '#f472b6', emoji: ['🎉', '🎊', '✨'], dir: 'down', count: 20 },
-            balloon: { name: {zh: '彩色氣球', en: 'Balloons'}, cost: 2000, preview: '#ef4444', emoji: ['🎈'], dir: 'up', count: 10 },
-            magic: { name: {zh: '魔法詠唱', en: 'Magic Spell'}, cost: 3500, preview: '#a855f7', emoji: ['🪄', '✨', '🔮'], dir: 'up', count: 15 },
-            potion: { name: {zh: '煉金藥水', en: 'Alchemy Potions'}, cost: 3200, preview: '#22c55e', emoji: ['🧪', '⚗️'], dir: 'up', count: 12 },
-            sword: { name: {zh: '勇者之劍', en: 'Hero Swords'}, cost: 3800, preview: '#94a3b8', emoji: ['⚔️', '🛡️'], dir: 'down', count: 8 },
-            ufo: { name: {zh: '外星綁架', en: 'UFO Abduction'}, cost: 4000, preview: '#4ade80', emoji: ['🛸', '👽'], dir: 'up', count: 6 },
-            planet: { name: {zh: '行星軌道', en: 'Planets'}, cost: 4200, preview: '#312e81', emoji: ['🪐', '🌍', '🌕'], dir: 'up', count: 8 },
-            clock: { name: {zh: '時光倒流', en: 'Time Reversal'}, cost: 3600, preview: '#d4d4d8', emoji: ['⏳', '🕰️'], dir: 'up', count: 10 },
-            gift: { name: {zh: '驚喜禮物', en: 'Surprise Gifts'}, cost: 2800, preview: '#f43f5e', emoji: ['🎁', '🎀'], dir: 'down', count: 12 },
-            sparkle: { name: {zh: 'Bling閃光', en: 'Sparkles'}, cost: 2000, preview: '#fef08a', emoji: ['✨', '💫'], dir: 'up', count: 25 },
-            crown: { name: {zh: '加冕皇冠', en: 'Royal Crown'}, cost: 5000, preview: '#eab308', emoji: ['👑', '✨'], dir: 'down', count: 8 },
-            card: { name: {zh: '魔術撲克', en: 'Magic Cards'}, cost: 2700, preview: '#ef4444', emoji: ['🃏', '♠️', '♥️', '♦️', '♣️'], dir: 'down', count: 18 },
-            gear: { name: {zh: '齒輪運轉', en: 'Gears Turning'}, cost: 2600, preview: '#64748b', emoji: ['⚙️'], dir: 'down', count: 12 },
-            music: { name: {zh: '跳動音符', en: 'Musical Notes'}, cost: 2200, preview: '#3b82f6', emoji: ['🎵', '🎶'], dir: 'up', count: 15 }
+            rain: { name: {zh: '綿綿細雨', en: 'Raindrops'}, cost: 800, preview: '#93c5fd', svg: [{s: 'drop', c: '#93c5fd'}], dir: 'down', count: 20 },
+            bubble: { name: {zh: '夢幻泡泡', en: 'Bubbles'}, cost: 1200, preview: '#67e8f9', svg: [{s: 'bubble', c: '#ffffff'}], dir: 'up', count: 15 },
+            tomato: { name: {zh: '飛天小番茄', en: 'Flying Tomato'}, cost: 1500, preview: '#fca5a5', svg: [{s: 'tomato'}, {s: 'sparkle', c: '#fef08a'}], dir: 'down', count: 12 },
+            bugFree: { name: {zh: 'Bug退散', en: 'No More Bugs'}, cost: 8888, preview: '#4ade80', svg: [{s: 'cross', c: '#ef4444'}, {s: 'sparkle', c: '#4ade80'}], dir: 'up', count: 15 },
+            disco: { name: {zh: '迪斯可舞池', en: 'Disco Party'}, cost: 2500, preview: '#c084fc', svg: [{s: 'star', c: '#c084fc'}, {s: 'sparkle', c: '#f472b6'}], dir: 'up', count: 10 },
+            paint: { name: {zh: '揮灑顏料', en: 'Paint Splash'}, cost: 2000, preview: '#f472b6', svg: [{s: 'drop', c: '#f472b6'}, {s: 'drop', c: '#38bdf8'}], dir: 'down', count: 15 },
+            heartbeat: { name: {zh: '心動滿滿', en: 'Heartbeat'}, cost: 1800, preview: '#f43f5e', svg: [{s: 'heart', c: '#f43f5e'}, {s: 'heart', c: '#fb7185'}], dir: 'up', count: 18 },
+            noClass: { name: {zh: '不想上課', en: 'Skip Class'}, cost: 1600, preview: '#94a3b8', svg: [{s: 'drop', c: '#94a3b8'}, {s: 'moon', c: '#cbd5e1'}], dir: 'down', count: 12 },
+            money: { name: {zh: '財富自由', en: 'Money Rain'}, cost: 9999, preview: '#facc15', svg: [{s: 'money'}, {s: 'sparkle', c: '#facc15'}], dir: 'down', count: 20 },
+            zzz: { name: {zh: '強烈睡意', en: 'Sleepy'}, cost: 1000, preview: '#cbd5e1', svg: [{s: 'moon', c: '#94a3b8'}, {s: 'bubble', c: '#ffffff'}], dir: 'up', count: 8 },
+            sweat: { name: {zh: '尷尬流汗', en: 'Sweating'}, cost: 1000, preview: '#7dd3fc', svg: [{s: 'drop', c: '#7dd3fc'}, {s: 'drop', c: '#38bdf8'}], dir: 'down', count: 15 },
+            math: { name: {zh: '數學當機', en: 'Math Error'}, cost: 1200, preview: '#0f172a', svg: [{s: 'cross', c: '#94a3b8'}], dir: 'down', count: 20 },
+            poop: { name: {zh: '黃金天降', en: 'Holy Poop'}, cost: 500, preview: '#78350f', svg: [{s: 'poop', c: '#78350f'}, {s: 'sparkle', c: '#fef08a'}], dir: 'down', count: 10 },
+            snow: { name: {zh: '初雪飄落', en: 'Snowfall'}, cost: 1500, preview: '#e0f2fe', svg: [{s: 'snow', c: '#ffffff'}], dir: 'down', count: 25 },
+            sakura: { name: {zh: '櫻花飛舞', en: 'Sakura'}, cost: 2200, preview: '#fbcfe8', svg: [{s: 'leaf', c: '#fbcfe8'}, {s: 'leaf', c: '#f472b6'}], dir: 'down', count: 20 },
+            star: { name: {zh: '繁星閃爍', en: 'Starry'}, cost: 1800, preview: '#fef08a', svg: [{s: 'star', c: '#fef08a'}, {s: 'sparkle', c: '#ffffff'}], dir: 'down', count: 20 },
+            firefly: { name: {zh: '螢火蟲', en: 'Fireflies'}, cost: 2000, preview: '#84cc16', svg: [{s: 'circle', c: '#bef264'}, {s: 'sparkle', c: '#fef08a'}], dir: 'up', count: 15 },
+            leaf: { name: {zh: '落葉紛飛', en: 'Falling Leaves'}, cost: 1400, preview: '#ea580c', svg: [{s: 'leaf', c: '#ea580c'}, {s: 'leaf', c: '#f59e0b'}], dir: 'down', count: 15 },
+            meteor: { name: {zh: '流星雨', en: 'Meteor Shower'}, cost: 3000, preview: '#818cf8', svg: [{s: 'star', c: '#c7d2fe'}], dir: 'down', count: 8 },
+            sun: { name: {zh: '陽光普照', en: 'Sunny'}, cost: 1500, preview: '#fb923c', svg: [{s: 'circle', c: '#fb923c'}, {s: 'sparkle', c: '#fef08a'}], dir: 'up', count: 10 },
+            moon: { name: {zh: '月光灑落', en: 'Moonlight'}, cost: 1500, preview: '#1e293b', svg: [{s: 'moon', c: '#fde047'}, {s: 'star', c: '#ffffff'}], dir: 'down', count: 8 },
+            lightning: { name: {zh: '閃電交加', en: 'Lightning'}, cost: 2400, preview: '#fde047', svg: [{s: 'star', c: '#facc15'}, {s: 'drop', c: '#38bdf8'}], dir: 'down', count: 12 },
+            rainbowStars: { name: {zh: '彩虹星塵', en: 'Rainbow Dust'}, cost: 2800, preview: '#a855f7', svg: [{s: 'star', c: '#a855f7'}, {s: 'sparkle', c: '#f472b6'}], dir: 'up', count: 12 },
+            butterfly: { name: {zh: '蝴蝶翩翩', en: 'Butterflies'}, cost: 2100, preview: '#c084fc', svg: [{s: 'heart', c: '#c084fc'}], dir: 'up', count: 10 },
+            bat: { name: {zh: '吸血蝙蝠', en: 'Vampire Bats'}, cost: 2300, preview: '#334155', svg: [{s: 'heart', c: '#1e293b'}, {s: 'moon', c: '#475569'}], dir: 'down', count: 12 },
+            ghost: { name: {zh: '小幽靈', en: 'Little Ghosts'}, cost: 2500, preview: '#f8fafc', svg: [{s: 'drop', c: '#f8fafc'}, {s: 'bubble', c: '#ffffff'}], dir: 'up', count: 10 },
+            duck: { name: {zh: '黃色小鴨', en: 'Rubber Ducks'}, cost: 1800, preview: '#fde047', svg: [{s: 'circle', c: '#facc15'}, {s: 'drop', c: '#f59e0b'}], dir: 'down', count: 15 },
+            fish: { name: {zh: '深海魚群', en: 'School of Fish'}, cost: 1900, preview: '#0284c7', svg: [{s: 'leaf', c: '#38bdf8'}, {s: 'bubble', c: '#ffffff'}], dir: 'up', count: 18 },
+            sheep: { name: {zh: '數羊羊', en: 'Counting Sheep'}, cost: 1600, preview: '#e2e8f0', svg: [{s: 'circle', c: '#ffffff'}, {s: 'moon', c: '#94a3b8'}], dir: 'up', count: 8 },
+            feather: { name: {zh: '天使羽毛', en: 'Angel Feathers'}, cost: 2400, preview: '#ffffff', svg: [{s: 'leaf', c: '#ffffff'}, {s: 'sparkle', c: '#e2e8f0'}], dir: 'down', count: 15 },
+            boba: { name: {zh: '珍奶珍珠', en: 'Boba Pearls'}, cost: 1700, preview: '#78350f', svg: [{s: 'circle', c: '#451a03'}], dir: 'down', count: 20 },
+            sushi: { name: {zh: '迴轉壽司', en: 'Sushi Roll'}, cost: 2200, preview: '#f87171', svg: [{s: 'circle', c: '#f87171'}, {s: 'drop', c: '#ffffff'}], dir: 'down', count: 12 },
+            pizza: { name: {zh: '披薩派對', en: 'Pizza Party'}, cost: 2000, preview: '#ea580c', svg: [{s: 'star', c: '#f59e0b'}, {s: 'circle', c: '#ef4444'}], dir: 'down', count: 10 },
+            fries: { name: {zh: '薯條雨', en: 'French Fries'}, cost: 1900, preview: '#facc15', svg: [{s: 'cross', c: '#facc15'}], dir: 'down', count: 15 },
+            cake: { name: {zh: '甜點時間', en: 'Dessert Time'}, cost: 2100, preview: '#fbcfe8', svg: [{s: 'circle', c: '#fbcfe8'}, {s: 'drop', c: '#ffffff'}], dir: 'down', count: 12 },
+            coffee: { name: {zh: '咖啡續命', en: 'Coffee Refill'}, cost: 1800, preview: '#451a03', svg: [{s: 'circle', c: '#78350f'}, {s: 'drop', c: '#d4d4d8'}], dir: 'up', count: 10 },
+            cookie: { name: {zh: '餅干碎屑', en: 'Cookies'}, cost: 1600, preview: '#b45309', svg: [{s: 'circle', c: '#d97706'}, {s: 'star', c: '#78350f'}], dir: 'down', count: 12 },
+            confetti: { name: {zh: '派對拉炮', en: 'Confetti'}, cost: 2500, preview: '#f472b6', svg: [{s: 'star', c: '#f472b6'}, {s: 'sparkle', c: '#38bdf8'}], dir: 'down', count: 20 },
+            balloon: { name: {zh: '彩色氣球', en: 'Balloons'}, cost: 2000, preview: '#ef4444', svg: [{s: 'drop', c: '#ef4444'}, {s: 'drop', c: '#3b82f6'}], dir: 'up', count: 10 },
+            magic: { name: {zh: '魔法詠唱', en: 'Magic Spell'}, cost: 3500, preview: '#a855f7', svg: [{s: 'sparkle', c: '#a855f7'}, {s: 'star', c: '#c084fc'}], dir: 'up', count: 15 },
+            potion: { name: {zh: '煉金藥水', en: 'Alchemy Potions'}, cost: 3200, preview: '#22c55e', svg: [{s: 'drop', c: '#22c55e'}, {s: 'bubble', c: '#4ade80'}], dir: 'up', count: 12 },
+            sword: { name: {zh: '勇者之劍', en: 'Hero Swords'}, cost: 3800, preview: '#94a3b8', svg: [{s: 'cross', c: '#cbd5e1'}, {s: 'sparkle', c: '#fef08a'}], dir: 'down', count: 8 },
+            ufo: { name: {zh: '外星綁架', en: 'UFO Abduction'}, cost: 4000, preview: '#4ade80', svg: [{s: 'circle', c: '#4ade80'}, {s: 'sparkle', c: '#22c55e'}], dir: 'up', count: 6 },
+            planet: { name: {zh: '行星軌道', en: 'Planets'}, cost: 4200, preview: '#312e81', svg: [{s: 'circle', c: '#312e81'}, {s: 'star', c: '#fef08a'}], dir: 'up', count: 8 },
+            clock: { name: {zh: '時光倒流', en: 'Time Reversal'}, cost: 3600, preview: '#d4d4d8', svg: [{s: 'circle', c: '#e2e8f0'}, {s: 'sparkle', c: '#ffffff'}], dir: 'up', count: 10 },
+            gift: { name: {zh: '驚喜禮物', en: 'Surprise Gifts'}, cost: 2800, preview: '#f43f5e', svg: [{s: 'heart', c: '#f43f5e'}, {s: 'star', c: '#fb7185'}], dir: 'down', count: 12 },
+            sparkle: { name: {zh: 'Bling閃光', en: 'Sparkles'}, cost: 2000, preview: '#fef08a', svg: [{s: 'sparkle', c: '#fef08a'}, {s: 'sparkle', c: '#ffffff'}], dir: 'up', count: 25 },
+            crown: { name: {zh: '加冕皇冠', en: 'Royal Crown'}, cost: 5000, preview: '#eab308', svg: [{s: 'star', c: '#eab308'}, {s: 'sparkle', c: '#fef08a'}], dir: 'down', count: 8 },
+            card: { name: {zh: '魔術撲克', en: 'Magic Cards'}, cost: 2700, preview: '#ef4444', svg: [{s: 'heart', c: '#ef4444'}, {s: 'leaf', c: '#1e293b'}], dir: 'down', count: 18 },
+            gear: { name: {zh: '齒輪運轉', en: 'Gears Turning'}, cost: 2600, preview: '#64748b', svg: [{s: 'star', c: '#64748b'}, {s: 'circle', c: '#94a3b8'}], dir: 'down', count: 12 },
+            music: { name: {zh: '跳動音符', en: 'Musical Notes'}, cost: 2200, preview: '#3b82f6', svg: [{s: 'music', c: '#3b82f6'}, {s: 'sparkle', c: '#93c5fd'}], dir: 'up', count: 15 }
         };
-        
+
         let currentTab = 'species';
 
         window.onload = function() {
@@ -944,41 +963,33 @@
             }, 500);
         }
 
-        // --- 專屬寵物命名系統 ---
-
-        // 幽默隨機名字庫 (為專題增添趣味亮點)
         const randomNames = {
             zh: ["不願意透露姓名的海兔", "代碼寫不完", "軟爛小麻糬", "霸道總裁的兔兔", "深海大鳳梨", "絕世好兔", "世界第一可愛", "拒絕 Debug", "寶寶的乖海兔", "不要吃我"],
             en: ["Bug Maker", "Mr. Squishy", "Not A Snail", "Sleepy Sluuuug", "Ocean Potato", "Error 404", "Sir Slime-a-lot", "Baby's Cutie"]
         };
 
-        // 更新畫面上的名字與鎖定狀態
         function updateNameUI() {
             const nameDisplay = document.getElementById('displayPetName');
             const nameTag = document.getElementById('petNameTag');
             const pencil = document.getElementById('pencilIcon');
             
             if (gameState.petName) {
-                // 【已經命名】顯示單純的名字
                 nameDisplay.innerText = gameState.petName;
                 nameTag.classList.add('named'); 
                 if (pencil) pencil.style.display = 'none'; 
             } else {
-                // 【還沒命名】保持原本狀態
                 nameDisplay.innerText = currLang === 'zh' ? '神祕海兔' : 'Mystic Slug';
                 nameTag.classList.remove('named');
                 if (pencil) pencil.style.display = 'inline';
             }
         }
 
-        // 打開彈窗（雙重防護版）
         function openNameModal() {
-            if (gameState.petName) return; // 雙重防護：如果已經有名字，直接擋掉彈窗
+            if (gameState.petName) return; 
             
             const modal = document.getElementById('nameModalOverlay');
             const input = document.getElementById('petNameInput');
             
-            // 支援雙語切換
             document.getElementById('txtModalTitle').innerText = currLang === 'zh' ? '給海兔寶寶取名' : 'Name Your Baby';
             document.getElementById('btnRandomName').innerText = currLang === 'zh' ? '🎲 幫我隨機想一個' : '🎲 Random Name';
             document.getElementById('btnCancelName').innerText = currLang === 'zh' ? '取消' : 'Cancel';
@@ -989,12 +1000,10 @@
             modal.style.display = 'flex';
         }
 
-        // 關閉彈窗
         function closeNameModal() {
             document.getElementById('nameModalOverlay').style.display = 'none';
         }
 
-        // 確定儲存名字
         function confirmName() {
             const newName = document.getElementById('petNameInput').value.trim();
             if (newName) {
@@ -1006,7 +1015,6 @@
             closeNameModal();
         }
 
-        // 隨機產生搞笑名字
         function generateRandomName() {
             const pool = randomNames[currLang];
             const randomStr = pool[Math.floor(Math.random() * pool.length)];
@@ -1099,6 +1107,7 @@
             }
         }
 
+        // 🌟 升級版的 SVG 渲染引擎
         function applyEffect() {
             const layer = document.getElementById('effectLayer');
             layer.innerHTML = ''; 
@@ -1107,52 +1116,41 @@
             
             if (!effect || effectKey === 'none') return;
 
-            if (effectKey === 'rain') {
-                for (let i = 0; i < 30; i++) {
-                    let drop = document.createElement('div');
-                    drop.className = 'rain-drop';
-                    drop.style.left = Math.random() * 100 + '%';
-                    drop.style.animationDuration = (Math.random() * 0.5 + 0.5) + 's';
-                    drop.style.animationDelay = Math.random() * 2 + 's';
-                    layer.appendChild(drop);
+            let count = effect.count || 15;
+            for (let i = 0; i < count; i++) {
+                let el = document.createElement('div');
+                el.style.position = 'absolute';
+                el.style.left = Math.random() * 100 + '%';
+                el.style.opacity = Math.random() * 0.5 + 0.5;
+                
+                // 隨機選取該特效對應的 SVG 配置，並填入顏色
+                let svgItem = effect.svg[Math.floor(Math.random() * effect.svg.length)];
+                let rawSVG = svgLib[svgItem.s];
+                
+                // 動態調整圖形大小 (20px ~ 40px)
+                let size = Math.random() * 20 + 20; 
+                el.style.width = size + 'px';
+                el.style.height = size + 'px';
+                
+                if (svgItem.c) el.style.color = svgItem.c; // 設定 currentColor
+                el.innerHTML = rawSVG;
+                
+                let duration = Math.random() * 3 + 3; 
+                let delay = Math.random() * 2;        
+                
+                if (effect.dir === 'up') {
+                    el.style.bottom = '-40px';
+                    el.style.animation = `bubbleRise ${duration}s ease-in infinite`;
+                } else {
+                    el.style.top = '-40px';
+                    el.style.animation = `rainFall ${duration}s linear infinite`;
                 }
-            } else if (effectKey === 'bubble') {
-                for (let i = 0; i < 15; i++) {
-                    let b = document.createElement('div');
-                    b.className = 'bubble';
-                    b.style.left = Math.random() * 100 + '%';
-                    b.style.width = b.style.height = (Math.random() * 12 + 6) + 'px';
-                    b.style.animationDuration = (Math.random() * 3 + 3) + 's';
-                    b.style.animationDelay = Math.random() * 2 + 's';
-                    layer.appendChild(b);
-                }
-            } 
-            else if (effect.emoji) {
-                let count = effect.count || 15;
-                for (let i = 0; i < count; i++) {
-                    let el = document.createElement('div');
-                    el.innerText = effect.emoji[Math.floor(Math.random() * effect.emoji.length)];
-                    el.style.position = 'absolute';
-                    el.style.fontSize = (Math.random() * 15 + 15) + 'px'; 
-                    el.style.left = Math.random() * 100 + '%';
-                    el.style.opacity = Math.random() * 0.5 + 0.5;
-                    
-                    let duration = Math.random() * 3 + 3; 
-                    let delay = Math.random() * 2;        
-                    
-                    if (effect.dir === 'up') {
-                        el.style.bottom = '-40px';
-                        el.style.animation = `bubbleRise ${duration}s ease-in infinite`;
-                    } else {
-                        el.style.top = '-40px';
-                        el.style.animation = `rainFall ${duration}s linear infinite`;
-                    }
-                    
-                    el.style.animationDelay = delay + 's';
-                    layer.appendChild(el);
-                }
+                
+                el.style.animationDelay = delay + 's';
+                layer.appendChild(el);
             }
         }
+        
 
         function interact(type, reward, cdSeconds) {
             if (gameState.cooldowns[type] > 0) return;
