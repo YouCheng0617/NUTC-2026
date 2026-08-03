@@ -361,7 +361,9 @@
     </button>
 
     <div id="game-ui" style="display: none">
-      <div class="ui-box">分數: <span id="score">0</span></div>
+      <div class="ui-box">
+        <span data-i18n="score-label">分數: </span><span id="score">0</span>
+      </div>
       <div class="ui-box">⏳ <span id="time">30</span>s</div>
     </div>
 
@@ -555,6 +557,7 @@
           "diff-hard-label": "困難",
           "score-text-1": "你的 ",
           "score-text-2": " 總得分是：",
+          "score-label": "分數: ", // 👈 補上這行
         },
         en: {
           "toggle-btn": "🌐 中文",
@@ -579,6 +582,7 @@
           "diff-hard-label": "Hard",
           "score-text-1": "Your ",
           "score-text-2": " total score is:",
+          "score-label": "Score: ", // 👈 補上這行
         },
       };
 

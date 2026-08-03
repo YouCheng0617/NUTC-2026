@@ -34,48 +34,72 @@ function updateTokenDisplay() {
   }
 }
 
-// 3. 執行抽獎
+// 3. 執行抽獎 (水晶球炸裂蹦出拼圖版)
 function performDraw() {
   if (drawTokens <= 0) return;
   
-  // 扣除石頭並鎖定按鈕
   drawTokens--;
   updateTokenDisplay();
   const drawBtn = document.getElementById("draw-btn");
   const crystal = document.getElementById("crystal-ball");
   
   drawBtn.disabled = true;
-  crystal.className = "crystal-ball shaking"; // 加上震動動畫
-  crystal.innerHTML = `<span style="font-size:3rem;">🌀</span>`; // 旋轉特效圖示
+  
+  // 💥 階段一：蓄力期 (確保每次抽獎都先變回水晶球的樣貌)
+  crystal.className = "crystal-ball drawing"; 
+  
+  // 利用 SVG 畫出三道會慢慢蔓延的裂痕，取代原本的漩渦
+  crystal.innerHTML = `
+    <svg class="crack-svg" viewBox="0 0 100 100">
+      <!-- 主裂痕 (從上往下，0秒開始蔓延) -->
+      <path class="crack-line" style="animation-duration: 0.8s; stroke-dasharray: 150; stroke-dashoffset: 150;" 
+            d="M 45,0 L 55,20 L 45,45 L 60,65 L 45,85 L 50,100" />
+      <!-- 左側分支裂痕 (延遲 0.3 秒出現，營造碎裂擴散感) -->
+      <path class="crack-line" style="animation-duration: 0.5s; animation-delay: 0.3s; stroke-dasharray: 80; stroke-dashoffset: 80;" 
+            d="M 45,45 L 25,50 L 10,40" />
+      <!-- 右側分支裂痕 (延遲 0.6 秒出現，接近臨界點) -->
+      <path class="crack-line" style="animation-duration: 0.5s; animation-delay: 0.6s; stroke-dasharray: 80; stroke-dashoffset: 80;" 
+            d="M 60,65 L 85,60 L 95,75" />
+    </svg>
+  `;
 
-  // 模擬抽獎延遲 (1.5秒後顯示結果)
   setTimeout(() => {
-    // 🎲 決定稀有度 (0.00 ~ 0.99)
+    // 🎲 決定稀有度與獎品
     const rand = Math.random();
     let rarity = 'N';
-    if (rand < 0.03) rarity = 'SSR';             // 0~3%
-    else if (rand < 0.15) rarity = 'SR';         // 3%~15%
-    else if (rand < 0.40) rarity = 'R';          // 15%~40%
-    else rarity = 'N';                           // 40%~100%
+    if (rand < 0.03) rarity = 'SSR';             
+    else if (rand < 0.15) rarity = 'SR';         
+    else if (rand < 0.40) rarity = 'R';          
+    else rarity = 'N';                           
 
-    // 🎲 在該稀有度中隨機抽出一張碎片
     const pool = gachaPool[rarity];
     const pieceId = pool.pieces[Math.floor(Math.random() * pool.pieces.length)];
 
-    // ✨ 顯示華麗結果
-    crystal.className = `crystal-ball rarity-${rarity}`;
-    crystal.innerHTML = `
-      <div style="color: ${pool.color}; font-weight: 900; line-height: 1.4;">
-        <span style="font-size: 0.9rem; letter-spacing: 2px;">獲得</span><br>
-        <span style="font-size: 1.5rem;">${pool.name}</span><br>
-        <span style="font-size: 1.1rem; color: #333;">第 ${pieceId} 號碎片</span>
-      </div>
-    `;
+    // 💥 階段二：水晶球極速膨脹並炸裂
+    crystal.className = "crystal-ball explode";
+    crystal.innerHTML = "";
 
-    // 抽完後如果還有石頭，恢復按鈕
-    if (drawTokens > 0) drawBtn.disabled = false;
-    
-  }, 1500); // 動畫持續 1.5 秒
+    // 💥 階段三：炸裂後，原地蹦出實體發光拼圖
+    setTimeout(() => {
+      // 拔掉水晶球外觀，切換成無邊框的「獎品模式」
+      crystal.className = "prize-mode";
+      
+      crystal.innerHTML = `
+        <div class="puzzle-reveal" style="background: linear-gradient(135deg, ${pool.color}, #000); box-shadow: 0 0 30px ${pool.color}, inset 0 0 15px rgba(255,255,255,0.6);">
+          🧩
+        </div>
+        <div style="color: ${pool.color}; font-weight: 900; line-height: 1.4; text-align: center; text-shadow: 0 2px 4px rgba(0,0,0,0.8);">
+          <span style="font-size: 0.9rem; letter-spacing: 2px; color: #fff;">獲得</span><br>
+          <span style="font-size: 1.6rem; filter: brightness(1.5);">${pool.name}</span><br>
+          <span style="font-size: 1.1rem; color: #a0c4ff;">第 ${pieceId} 號碎片</span>
+        </div>
+      `;
+
+      if (drawTokens > 0) drawBtn.disabled = false;
+      
+    }, 400); // 配合 CSS explode 炸裂的時間點 (0.4秒時蹦出)
+
+  }, 1500); // 蓄力 1.5 秒
 }
 
 // 網頁載入時初始化狀態 (移除原本的 initBoard)

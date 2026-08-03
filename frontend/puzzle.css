@@ -1,4 +1,19 @@
 /* ==================================================
+   🌊 深海專屬自訂捲軸與防吃字修復
+   ================================================== */
+::-webkit-scrollbar { width: 8px; }
+::-webkit-scrollbar-track { background: rgba(0, 15, 30, 0.8); }
+::-webkit-scrollbar-thumb { background: rgba(77, 166, 255, 0.5); border-radius: 10px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(77, 166, 255, 0.9); }
+
+/* 修復主容器底部被吃掉的問題 */
+.main-container {
+  display: flex; flex-direction: column; align-items: center; justify-content: flex-start;
+  width: 90%; max-width: 900px; min-height: 100vh; margin: 0 auto;
+  /* 🌟 把 padding-bottom 加大到 100px，確保最下面有呼吸空間 */
+  padding-top: 80px; padding-bottom: 100px; gap: 30px;
+}
+/* ==================================================
    🌊 全域與海洋背景
    ================================================== */
 body, html {
@@ -261,7 +276,8 @@ body, html {
   .task-panel, .board-panel { width: 100%; max-width: 100%; }
   .back-btn, .gallery-btn { top: 15px; padding: 8px 15px; font-size: 0.9rem; }
   .back-btn { left: 15px; } .gallery-btn { right: 15px; }
-  
+  /* 手機版時，變成一排 2 個 */
+  .task-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
   .glass-modal-content { 
     width: 95vw; padding: 25px 15px; height: 95vh;
     border-radius: 15px;
@@ -279,10 +295,20 @@ body, html {
   width: 90%; max-width: 900px; min-height: 100vh; margin: 0 auto;
   padding-top: 80px; padding-bottom: 40px; gap: 30px;
 }
+/* ==================================================
+   💎 頂級毛玻璃面板質感
+   ================================================== */
 .glass-panel {
-  background: rgba(0, 40, 80, 0.4); backdrop-filter: blur(15px);
-  border: 1px solid rgba(106, 183, 255, 0.3); border-radius: 25px;
-  padding: 30px; box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4), inset 0 0 20px rgba(255, 255, 255, 0.1);
+  background: linear-gradient(145deg, rgba(0, 40, 80, 0.6), rgba(0, 20, 40, 0.8));
+  backdrop-filter: blur(25px);
+  -webkit-backdrop-filter: blur(25px);
+  /* 🌟 加入邊緣高光，模擬玻璃厚度 */
+  border: 1px solid rgba(106, 183, 255, 0.2);
+  border-top: 1px solid rgba(255, 255, 255, 0.4); 
+  border-left: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 25px;
+  /* 🌟 加深陰影，讓面板更有浮空感 */
+  box-shadow: 0 25px 45px rgba(0, 0, 0, 0.6), inset 0 0 30px rgba(77, 166, 255, 0.05);
   width: 100%; box-sizing: border-box;
 }
 .panel-title {
@@ -292,32 +318,126 @@ body, html {
 }
 
 /* ==================================================
-   🔮 抽獎法陣區 (上半部)
+   🔮 抽獎法陣區 (祭壇升級版)
    ================================================== */
-.gacha-panel { display: flex; flex-direction: column; align-items: center; }
 .gacha-display {
-  width: 100%; display: flex; justify-content: center; margin-bottom: 30px;
+  width: 100%; 
+  display: flex; justify-content: center; align-items: center;
+  margin-bottom: 30px;
+  padding: 40px 0;
+  position: relative; /* 🌟 讓光暈和底座可以絕對定位在水晶球下方 */
 }
 
-/* 水晶球/法陣本體 */
+/* ✨ 魔法陣背景呼吸光暈 */
+.gacha-display::before {
+  content: '';
+  position: absolute;
+  top: 50%; left: 50%; transform: translate(-50%, -50%);
+  width: 250px; height: 250px;
+  background: radial-gradient(circle, rgba(77, 166, 255, 0.15) 0%, transparent 65%);
+  animation: pulseGlowBg 3s infinite alternate ease-in-out;
+  z-index: 0;
+}
+
+/* 🪵 立體深海祭壇底座 */
+.gacha-display::after {
+  content: '';
+  position: absolute;
+  bottom: 10px; left: 50%; transform: translateX(-50%);
+  width: 160px; height: 35px;
+  background: radial-gradient(ellipse, rgba(0, 30, 60, 0.9) 0%, rgba(0, 10, 20, 0) 75%);
+  border-bottom: 2px solid rgba(106, 183, 255, 0.4);
+  border-radius: 50%;
+  box-shadow: 0 10px 20px rgba(0,0,0,0.8);
+  z-index: 0;
+}
+
+@keyframes pulseGlowBg {
+  0% { transform: translate(-50%, -50%) scale(0.9); opacity: 0.6; }
+  100% { transform: translate(-50%, -50%) scale(1.1); opacity: 1; }
+}
+
+/* 確保水晶球在底座之上，並加入待機懸浮動畫 (完整版) */
 .crystal-ball {
+  /* 把水晶球的形狀與背景設定找回來 */
   width: 180px; height: 180px; border-radius: 50%;
   background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.8), rgba(0, 85, 165, 0.5));
   box-shadow: 0 10px 30px rgba(0,0,0,0.5), inset 0 0 30px rgba(255,255,255,0.6), 0 0 40px rgba(77,166,255,0.4);
   display: flex; flex-direction: column; justify-content: center; align-items: center;
   border: 2px solid rgba(255,255,255,0.5);
   transition: all 0.5s ease; text-align: center; padding: 10px;
+  
+  /* 加上層級與懸浮動畫 */
+  z-index: 1;
+  animation: floatIdle 3s ease-in-out infinite; 
 }
+
+@keyframes floatIdle {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); box-shadow: 0 15px 35px rgba(0,0,0,0.6), inset 0 0 30px rgba(255,255,255,0.6), 0 0 40px rgba(77,166,255,0.4); }
+}
+
+/* ⚠️ 注意：如果你原本的 drawing 或 explode 動畫有覆蓋到 transform，
+   待機懸浮會在抽獎瞬間自然被取代，效果會非常順暢！ */
 .idle-text { color: #002244; font-weight: bold; font-size: 1.1rem; }
 
-/* 抽獎震動動畫 */
-.crystal-ball.shaking { animation: shake 0.5s linear infinite; filter: brightness(1.5); }
-@keyframes shake {
-  0% { transform: translate(1px, 1px) rotate(0deg); }
-  25% { transform: translate(-3px, 0px) rotate(5deg); }
-  50% { transform: translate(2px, -2px) rotate(-5deg); }
-  75% { transform: translate(-1px, 2px) rotate(3deg); }
-  100% { transform: translate(1px, 1px) rotate(0deg); }
+/* ==================================================
+   ✨ 抽獎特效與動畫區塊
+   ================================================== */
+/* 1. 蓄力期：劇烈震動與發光 */
+.crystal-ball.drawing {
+  animation: ultimateShake 0.4s ease-in-out infinite, pulseGlow 0.6s alternate infinite;
+}
+
+@keyframes ultimateShake {
+  0% { transform: translate(2px, 1px) rotate(0deg) scale(1); }
+  25% { transform: translate(-3px, -2px) rotate(5deg) scale(0.95); }
+  50% { transform: translate(3px, 2px) rotate(-5deg) scale(1.05); }
+  75% { transform: translate(-2px, -1px) rotate(3deg) scale(0.95); }
+  100% { transform: translate(1px, 2px) rotate(0deg) scale(1); }
+}
+
+@keyframes pulseGlow {
+  from { filter: brightness(1) drop-shadow(0 0 10px #4da6ff); }
+  to { filter: brightness(1.8) drop-shadow(0 0 30px #ffffff); }
+}
+
+/* ⚡ 裂痕蔓延動畫 (取代原本的漩渦) */
+.crack-svg {
+  position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+  pointer-events: none;
+  /* 讓裂痕透出魔法光芒 */
+  filter: drop-shadow(0 0 3px rgba(255, 255, 255, 0.9)) drop-shadow(0 0 10px rgba(106, 183, 255, 0.9));
+}
+.crack-line {
+  fill: none;
+  stroke: #ffffff;
+  stroke-width: 2.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  /* 利用 dasharray 讓線條一開始隱藏，再透過動畫慢慢畫出來 */
+  animation: drawCrack forwards ease-in;
+}
+
+@keyframes drawCrack {
+  to { stroke-dashoffset: 0; }
+}
+
+/* 2. 爆發期：白光閃爍 */
+.crystal-ball.flash {
+  animation: flashWhite 0.4s ease-out forwards;
+}
+
+@keyframes flashWhite {
+  0% { background: white; box-shadow: 0 0 100px white; transform: scale(1.2); }
+  100% { transform: scale(1); }
+}
+
+/* 3. 揭曉期：文字與獎品彈出特效 */
+@keyframes popUp {
+  0% { transform: scale(0.5); opacity: 0; }
+  70% { transform: scale(1.15); opacity: 1; }
+  100% { transform: scale(1); opacity: 1; }
 }
 
 /* 🌟 抽獎結果稀有度特效 */
@@ -327,30 +447,107 @@ body, html {
 .crystal-ball.rarity-SSR { background: radial-gradient(circle, #fff9c4, #f39c12); box-shadow: 0 0 80px #f39c12, inset 0 0 50px #fff; border-color: #fff;}
 
 .gacha-controls { text-align: center; }
+/* ==================================================
+   🔘 高級流光抽獎按鈕
+   ================================================== */
 .gacha-btn {
-  background: linear-gradient(135deg, #ff7675, #d63031); border: 2px solid #ff9a9e;
-  color: white; font-weight: bold; font-size: 1.2rem; padding: 12px 30px; border-radius: 30px;
-  cursor: pointer; transition: 0.3s; box-shadow: 0 6px 15px rgba(214, 48, 49, 0.5);
-  letter-spacing: 1px;
+  /* 立體水晶藍漸層 */
+  background: linear-gradient(180deg, #4da6ff 0%, #005bb5 100%);
+  border: 1px solid #99ccff;
+  color: white; font-weight: 900; font-size: 1.3rem;
+  padding: 15px 40px; border-radius: 40px;
+  cursor: pointer; transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  
+  /* 多層陰影做出立體按鈕的質感 (內發光 + 外陰影) */
+  box-shadow: 
+    0 8px 20px rgba(0, 30, 60, 0.7), 
+    inset 0 4px 10px rgba(255, 255, 255, 0.4),
+    inset 0 -4px 10px rgba(0, 0, 0, 0.3);
+  letter-spacing: 2px;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+  position: relative;
+  overflow: hidden; /* 把超出按鈕的流光切掉 */
 }
-.gacha-btn:hover:not(:disabled) { transform: scale(1.05); box-shadow: 0 8px 20px rgba(255, 118, 117, 0.8); }
-.gacha-btn:disabled { background: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.2); color: #666; cursor: not-allowed; box-shadow: none;}
 
+/* ✨ 表面掃過的流光特效 */
+.gacha-btn::after {
+  content: '';
+  position: absolute; top: -50%; left: -50%;
+  width: 200%; height: 200%;
+  background: linear-gradient(to right, rgba(255,255,255,0) 0%, rgba(255,255,255,0.4) 50%, rgba(255,255,255,0) 100%);
+  transform: rotate(45deg) translateX(-100%);
+  animation: buttonShine 3.5s infinite;
+}
+
+@keyframes buttonShine {
+  0%, 20% { transform: rotate(45deg) translateX(-100%); }
+  40%, 100% { transform: rotate(45deg) translateX(100%); }
+}
+
+/* 懸停時按鈕浮起並發亮 */
+.gacha-btn:hover:not(:disabled) { 
+  transform: scale(1.05) translateY(-3px); 
+  box-shadow: 0 12px 25px rgba(0, 85, 165, 0.8), inset 0 4px 15px rgba(255, 255, 255, 0.6);
+  filter: brightness(1.1);
+}
+
+/* 禁用狀態 (反灰且凹陷) */
+.gacha-btn:disabled { 
+  background: linear-gradient(180deg, #444, #222);
+  border-color: #555; color: #888; text-shadow: none;
+  box-shadow: inset 0 3px 8px rgba(0,0,0,0.6);
+  cursor: not-allowed;
+}
+/* 禁用時隱藏流光 */
+.gacha-btn:disabled::after { display: none; }
 /* ==================================================
    📋 底部任務列區塊
    ================================================== */
 .task-panel-bottom { padding: 20px 30px; }
-.task-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; }
-
-.task-item {
-  background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 15px; padding: 15px;
-  display: flex; flex-direction: column; justify-content: space-between; align-items: center;
-  transition: 0.3s; text-align: center; gap: 10px;
+/* 強制劃分成 4 等份，讓 4 個任務並排 */
+.task-grid { 
+  display: grid; 
+  grid-template-columns: repeat(4, 1fr); 
+  gap: 15px; 
 }
-.task-item:hover { background: rgba(255, 255, 255, 0.1); border-color: #4da6ff;}
-.task-info h4 { margin: 0 0 5px 0; font-size: 1.1rem; color: #fff; }
-.task-info p { margin: 0; font-size: 0.85rem; color: #a0c4ff; }
+/* ==================================================
+   📋 全息數據任務卡片
+   ================================================== */
+.task-item {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.02));
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 15px; padding: 18px 15px;
+  display: flex; flex-direction: column; justify-content: space-between; align-items: center;
+  transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+  box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+  position: relative;
+  overflow: hidden; /* 隱藏超出卡片的反光 */
+}
+
+/* ✨ 全息反光特效 (隱藏在左側) */
+.task-item::before {
+  content: ''; 
+  position: absolute; top: 0; left: -100%; 
+  width: 50%; height: 100%;
+  background: linear-gradient(to right, transparent, rgba(255,255,255,0.15), transparent);
+  transform: skewX(-25deg); 
+  transition: 0.6s;
+  z-index: 0; pointer-events: none;
+}
+
+/* 滑鼠懸停時，卡片浮起變亮，且反光掃過 */
+.task-item:hover { 
+  transform: translateY(-5px); 
+  border-color: rgba(106, 183, 255, 0.6);
+  box-shadow: 0 15px 30px rgba(0, 85, 165, 0.5);
+  background: linear-gradient(180deg, rgba(77, 166, 255, 0.15), rgba(0, 40, 80, 0.5));
+}
+.task-item:hover::before { 
+  left: 200%; /* 反光從左邊掃到右邊 */
+}
+
+/* 確保文字與按鈕在反光之上 */
+.task-info, .claim-btn { z-index: 1; position: relative; }
 
 .claim-btn {
   background: linear-gradient(135deg, #4da6ff, #0066cc); border: none;
@@ -359,3 +556,46 @@ body, html {
 }
 .claim-btn:hover:not(:disabled) { background: linear-gradient(135deg, #66b3ff, #005bb5); }
 .claim-btn:disabled { background: rgba(255, 255, 255, 0.1); color: #888; cursor: not-allowed; box-shadow: none; }
+
+/* 2. 爆發期：水晶球極速膨脹並炸裂消失 */
+.crystal-ball.explode {
+  animation: shatter 0.5s ease-out forwards;
+}
+
+@keyframes shatter {
+  0% { transform: scale(1); filter: brightness(2); opacity: 1; box-shadow: 0 0 50px #fff; }
+  40% { transform: scale(1.4); filter: brightness(3); opacity: 1; box-shadow: 0 0 100px #fff; }
+  100% { transform: scale(2); opacity: 0; visibility: hidden; }
+}
+
+/* 3. 揭曉期：移除水晶球外框，變成獨立的獎品展示區 */
+.prize-mode {
+  width: 200px; height: 200px;
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  display: flex; flex-direction: column; justify-content: center; align-items: center;
+  animation: popOut 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+
+@keyframes popOut {
+  0% { transform: scale(0.3) translateY(50px); opacity: 0; }
+  70% { transform: scale(1.1) translateY(-10px); opacity: 1; }
+  100% { transform: scale(1) translateY(0); opacity: 1; }
+}
+
+/* 🧩 蹦出來的實體拼圖圖示 */
+.puzzle-reveal {
+  width: 80px; height: 80px;
+  border-radius: 15px;
+  display: flex; justify-content: center; align-items: center;
+  font-size: 3.5rem; margin-bottom: 15px;
+  border: 2px solid rgba(255,255,255,0.8);
+  /* 讓拼圖在空中微微上下浮動 */
+  animation: floatPuzzle 2s ease-in-out infinite; 
+}
+
+@keyframes floatPuzzle {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
