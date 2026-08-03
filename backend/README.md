@@ -203,3 +203,10 @@ Query 參數 (必填)：?keyword=你要找的字
 }
 
 管理員獲取所有留言 GET 給Token /admin/comments
+
+取得當前登入使用者的通知列表 GET 給Token /notifications
+
+將單筆通知標記為已讀 PATCH 給Token /notifications/:id/read
+(:id 是通知的 ID，例如：/notifications/1/read)
+
+一鍵全部標記為已讀 PATCH 給Token /notifications/read-all
