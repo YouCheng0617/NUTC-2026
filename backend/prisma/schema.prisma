@@ -52,9 +52,10 @@ model Member {
   commentLikes     CommentLike[]
   DaliyNote        DaliyNote[]
 
-  following Follow[]   @relation("UserFollows") // 這個會員追蹤了哪些人 (我追蹤的人)
-  followers Follow[]   @relation("UserFollowedBy") // 哪些人追蹤了這個會員 (我的粉絲)
-  PollVote  PollVote[]
+  following    Follow[]       @relation("UserFollows") // 這個會員追蹤了哪些人 (我追蹤的人)
+  followers    Follow[]       @relation("UserFollowedBy") // 哪些人追蹤了這個會員 (我的粉絲)
+  PollVote     PollVote[]
+  Notification Notification[]
 }
 
 model BlacklistedToken {
@@ -257,4 +258,17 @@ model PollVote {
   option PollOption @relation(fields: [option_id], references: [id], onDelete: Cascade)
 
   @@unique([member_id, bottle_id])
+}
+
+model Notification {
+  id         Int      @id @default(autoincrement())
+  member_id  Int      @map("member_id")
+  actor_id   Int?
+  type       String
+  content    String   @db.Text
+  is_read    Boolean  @default(false)
+  target_id  Int?
+  created_at DateTime @default(now())
+
+  member Member @relation(fields: [member_id], references: [member_id], onDelete: Cascade)
 }

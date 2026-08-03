@@ -149,6 +149,7 @@ Headers要給 x-api-key (跟我拿)
 (要留言給 ID 84 的瓶子/comments/bottles/84)
 {
     "content": "這是一則溫暖的回覆。"
+    "isAnonymous": false,
 }
 
 獲取特定瓶子的所有留言 GET /comments/bottles/:bottleId
