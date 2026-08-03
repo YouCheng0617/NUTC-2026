@@ -443,55 +443,55 @@ window.renderComments = async function (postId) {
                         const rAvatar = reply.avatar || 'images/fish_logo.png';
 
                         repliesHtml += `
-                                    <div class="ocean-reply-item">
-                                        <div class="reply-header">
-                                            <img src="${rAvatar}" class="reply-avatar">
-                                            <span class="reply-author">${escapeHTML(rAuthor)}</span>
-                                        </div>
-                                        <div class="reply-body">${escapeHTML(rContent)}</div>
-                                    </div>
-                                `;
+                            <div class="ocean-reply-item">
+                                <div class="reply-header">
+                                    <img src="${rAvatar}" class="reply-avatar">
+                                    <span class="reply-author">${escapeHTML(rAuthor)}</span>
+                                </div>
+                                <div class="reply-body">${escapeHTML(rContent)}</div>
+                            </div>
+                        `;
                     });
                 }
 
                 html += `
-                            <div class="ocean-comment-card">
-                                <div class="comment-header">
-                                    <span class="comment-author">
-                                        <img src="${avatar}" class="comment-avatar">
-                                        ${escapeHTML(authorName)}
-                                    </span>
-                                    <span class="comment-floor">B${index + 1}</span>
-                                </div>
-                                <div class="comment-body">${escapeHTML(content)}</div>
-                                
-                                <!-- 🌟 這裡是蓋好的子留言展示區塊 -->
-                                <div class="reply-container" style="${repliesHtml ? '' : 'display: none;'}">
-                                    ${repliesHtml}
-                                </div>
-                                
-                                <!-- 動作區塊加上回覆按鈕 -->
-                                <div class="comment-actions">
-                                    <span class="action-btn reply-trigger" onclick="toggleReplyBox('${commentId}')">
-                                        💬 回覆
-                                    </span>
-                                    <span id="comment-like-btn-${commentId}" class="action-btn like-trigger" style="color: ${isLiked ? '#e74c3c' : '#999'};" onclick="toggleCommentLike('${postId}', '${commentId}')">
-                                        ${isLiked ? '❤️' : '🤍'} ${likesCount}
-                                    </span>
-                                </div>
+                    <div class="ocean-comment-card">
+                        <div class="comment-header">
+                            <span class="comment-author">
+                                <img src="${avatar}" class="comment-avatar">
+                                ${escapeHTML(authorName)}
+                            </span>
+                            <span class="comment-floor">B${index + 1}</span>
+                        </div>
+                        <div class="comment-body">${escapeHTML(content)}</div>
+                        
+                        <!-- 🌟 這裡是蓋好的子留言展示區塊 -->
+                        <div class="reply-container" style="${repliesHtml ? '' : 'display: none;'}">
+                            ${repliesHtml}
+                        </div>
+                        
+                        <!-- 動作區塊加上回覆按鈕 -->
+                        <div class="comment-actions">
+                            <span class="action-btn reply-trigger" onclick="toggleReplyBox('${commentId}')">
+                                💬 回覆
+                            </span>
+                            <span id="comment-like-btn-${commentId}" class="action-btn like-trigger" style="color: ${isLiked ? '#e74c3c' : '#999'};" onclick="toggleCommentLike('${postId}', '${commentId}')">
+                                ${isLiked ? '❤️' : '🤍'} ${likesCount}
+                            </span>
+                        </div>
 
-                                <!-- 專屬子留言輸入框 -->
-                                <div id="reply-box-${commentId}" class="reply-input-box" style="display: none;">
-                                    <div class="reply-input-wrapper">
-                                        <input type="text" id="reply-input-${commentId}" placeholder="偷偷回覆他一點溫暖..." class="custom-reply-input" autocomplete="off">
-                                        <label class="anon-label">
-                                            <input type="checkbox" id="reply-anon-${commentId}"> 🎭 匿名
-                                        </label>
-                                        <button onclick="submitReply('${postId}', '${commentId}')" class="send-btn mini-send-btn">送出</button>
-                                    </div>
-                                </div>
+                        <!-- 專屬子留言輸入框 -->
+                        <div id="reply-box-${commentId}" class="reply-input-box" style="display: none;">
+                            <div class="reply-input-wrapper">
+                                <input type="text" id="reply-input-${commentId}" placeholder="偷偷回覆他一點溫暖..." class="custom-reply-input" autocomplete="off">
+                                <label class="anon-label">
+                                    <input type="checkbox" id="reply-anon-${commentId}"> 🎭 匿名
+                                </label>
+                                <button onclick="submitReply('${postId}', '${commentId}')" class="send-btn mini-send-btn">送出</button>
                             </div>
-                        `;
+                        </div>
+                    </div>
+                `;
             });
             listContainer.innerHTML = html;
         });
@@ -528,6 +528,10 @@ window.submitComment = async function () {
     const token = localStorage.getItem("authToken");
     if (!token) { alert("寶寶，要先登入才能留言喔！"); return; }
 
+    // 🌟 修正點：專屬「主留言」的匿名 checkbox
+    const mainAnonCheckbox = document.getElementById('main-comment-anon');
+    const isAnon = mainAnonCheckbox ? mainAnonCheckbox.checked : false;
+
     try {
         const response = await fetch(`${API_BASE_URL}/comments/bottles/${currentOpenPostId}`, {
             method: 'POST',
@@ -536,11 +540,19 @@ window.submitComment = async function () {
                 'Content-Type': 'application/json',
                 'ngrok-skip-browser-warning': 'true'
             },
-            body: JSON.stringify({ content: text })
+            // 🚀 正確傳送 isAnonymous
+            body: JSON.stringify({
+                content: text,
+                isAnonymous: isAnon
+            })
         });
 
         if (response.ok) {
-            targetInput.value = '';
+            targetInput.value = ''; // 乖乖清空輸入框
+            if (mainAnonCheckbox) mainAnonCheckbox.checked = false; // 送出後幫忙把勾勾取消
+
+            alert(isAnon ? "✨ 匿名留言已悄悄送出！" : "✨ 留言成功傳達囉！");
+
             await renderComments(currentOpenPostId);
             const detailView = document.getElementById('detail-view');
             if (detailView && detailView.offsetParent !== null) {
@@ -555,14 +567,11 @@ window.submitComment = async function () {
         alert("伺服器連線失敗，請稍後再試 😢");
     }
 };
-// 🌟 魔法 1：控制回覆框優雅地彈出來
+
 window.toggleReplyBox = function (commentId) {
     const box = document.getElementById(`reply-box-${commentId}`);
     if (box) {
-        // 如果原本是隱藏就顯示，如果是顯示就藏起來，就是這麼調皮
         box.style.display = box.style.display === 'none' ? 'block' : 'none';
-
-        // 如果打開了，順便貼心地幫寶寶把游標對焦到輸入框
         if (box.style.display === 'block') {
             const input = document.getElementById(`reply-input-${commentId}`);
             if (input) input.focus();
@@ -570,7 +579,6 @@ window.toggleReplyBox = function (commentId) {
     }
 };
 
-// 🌟 魔法 2：發射子留言 API
 window.submitReply = async function (bottleId, parentId) {
     const replyInput = document.getElementById(`reply-input-${parentId}`);
     if (!replyInput) return;
@@ -580,7 +588,8 @@ window.submitReply = async function (bottleId, parentId) {
         alert("寶寶，要先打點字才能回覆別人喔！📝");
         return;
     }
-    // 🌟 抓取「專屬這則回覆」的匿名選項有沒有被打勾
+
+    // 子留言匿名抓取邏輯完全正確
     const isAnon = document.getElementById(`reply-anon-${parentId}`)?.checked || false;
     const token = localStorage.getItem("authToken");
     if (!token) {
@@ -590,7 +599,6 @@ window.submitReply = async function (bottleId, parentId) {
     }
 
     try {
-        // 🚀 依據給定的 API 格式：POST 給 /comments/bottles/:bottleId/comments/:parentId/reply
         const response = await fetch(`${API_BASE_URL}/comments/bottles/${bottleId}/comments/${parentId}/reply`, {
             method: 'POST',
             headers: {
@@ -602,9 +610,8 @@ window.submitReply = async function (bottleId, parentId) {
         });
 
         if (response.ok) {
-            replyInput.value = ''; // 乖乖清空輸入框
+            replyInput.value = '';
             alert(isAnon ? "✨ 匿名回覆已悄悄送出！" : "✨ 回覆成功傳達囉！");
-            // 重新讀取留言列表，讓最新回覆浮出水面
             await renderComments(bottleId);
         } else {
             const err = await response.json();
@@ -615,6 +622,7 @@ window.submitReply = async function (bottleId, parentId) {
         alert("伺服器開小差了，回覆失敗請稍後再試 😢");
     }
 };
+
 window.toggleCommentLike = async function (postId, commentId) {
     const token = localStorage.getItem("authToken");
 
@@ -654,8 +662,7 @@ window.toggleCommentLike = async function (postId, commentId) {
                 'Authorization': `Bearer ${token}`,
                 'Content-Type': 'application/json',
                 'ngrok-skip-browser-warning': 'true'
-            },
-            body: JSON.stringify({ content: text, isAnonymous: isAnon })
+            }
         });
 
         if (!response.ok) {
@@ -1513,104 +1520,104 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-const stopDrag = () => {
-    if (isDragging) {
-        isDragging = false;
+    const stopDrag = () => {
+        if (isDragging) {
+            isDragging = false;
 
-        try {
-            const mascotHome = document.getElementById('mascot-home');
-            if (mascotHome && !window.isMascotSleeping) {
-                const homeRect = mascotHome.getBoundingClientRect();
-                const mascotRect = mascot.getBoundingClientRect();
-                
-                const mascotCenterX = mascotRect.left + mascotRect.width / 2;
-                const mascotCenterY = mascotRect.top + mascotRect.height / 2;
+            try {
+                const mascotHome = document.getElementById('mascot-home');
+                if (mascotHome && !window.isMascotSleeping) {
+                    const homeRect = mascotHome.getBoundingClientRect();
+                    const mascotRect = mascot.getBoundingClientRect();
 
-                // 碰撞范围判定
-                if (
-                    mascotCenterX > homeRect.left &&
-                    mascotCenterX < homeRect.right &&
-                    mascotCenterY > homeRect.top &&
-                    mascotCenterY < homeRect.bottom
-                ) {
-                    window.isMascotSleeping = true;
-                    mascot.classList.add('mascot-sleeping');
-                    clearTimeout(swimTimer); // 停下
+                    const mascotCenterX = mascotRect.left + mascotRect.width / 2;
+                    const mascotCenterY = mascotRect.top + mascotRect.height / 2;
 
-                    // 🌟 圖片切換魔法
-                    const awakeMascot = document.getElementById('awake-mascot');
-                    const sleepingMascot = document.getElementById('sleeping-mascot');
-                    if (awakeMascot) awakeMascot.style.display = 'none';
-                    if (sleepingMascot) sleepingMascot.style.display = 'block';
+                    // 碰撞范围判定
+                    if (
+                        mascotCenterX > homeRect.left &&
+                        mascotCenterX < homeRect.right &&
+                        mascotCenterY > homeRect.top &&
+                        mascotCenterY < homeRect.bottom
+                    ) {
+                        window.isMascotSleeping = true;
+                        mascot.classList.add('mascot-sleeping');
+                        clearTimeout(swimTimer); // 停下
 
-                    // 🌟 完美置中與大小魔法 (不會再偏到右下角了！)
-                    mascot.style.transition = 'all 0.5s ease-out';
-                    mascot.style.transform = `scale(0.65)`; // ✨ 尺寸調整為剛好的大小
-                    
-                    // 扣掉吉祥物本身一半的寬度跟高度，才會真的置中！
-                    const exactX = homeRect.left + (homeRect.width / 2) - (mascot.offsetWidth / 2);
-                    const exactY = homeRect.top + (homeRect.height / 2) - (mascot.offsetHeight / 2) + 15; // +15 讓牠稍微沉在水底
+                        // 🌟 圖片切換魔法
+                        const awakeMascot = document.getElementById('awake-mascot');
+                        const sleepingMascot = document.getElementById('sleeping-mascot');
+                        if (awakeMascot) awakeMascot.style.display = 'none';
+                        if (sleepingMascot) sleepingMascot.style.display = 'block';
 
-                    mascot.style.left = `${exactX}px`;
-                    mascot.style.top = `${exactY}px`;
+                        // 🌟 完美置中與大小魔法 (不會再偏到右下角了！)
+                        mascot.style.transition = 'all 0.5s ease-out';
+                        mascot.style.transform = `scale(0.65)`; // ✨ 尺寸調整為剛好的大小
 
-                    const dialogueBox = document.getElementById('mermecat-dialogue');
-                    if (dialogueBox) {
-                        dialogueBox.innerText = "呼嚕呼嚕... 進來休息喵 ✨🐚";
-                        dialogueBox.classList.add('show-dialogue');
-                        setTimeout(() => { dialogueBox.classList.remove('show-dialogue'); }, 3000);
+                        // 扣掉吉祥物本身一半的寬度跟高度，才會真的置中！
+                        const exactX = homeRect.left + (homeRect.width / 2) - (mascot.offsetWidth / 2);
+                        const exactY = homeRect.top + (homeRect.height / 2) - (mascot.offsetHeight / 2) + 15; // +15 讓牠稍微沉在水底
+
+                        mascot.style.left = `${exactX}px`;
+                        mascot.style.top = `${exactY}px`;
+
+                        const dialogueBox = document.getElementById('mermecat-dialogue');
+                        if (dialogueBox) {
+                            dialogueBox.innerText = "呼嚕呼嚕... 進來休息喵 ✨🐚";
+                            dialogueBox.classList.add('show-dialogue');
+                            setTimeout(() => { dialogueBox.classList.remove('show-dialogue'); }, 3000);
+                        }
+                        return;
                     }
-                    return; 
                 }
-            } 
-        } catch(e) {
-            console.log('小窩魔法打結了:', e);
-        }
+            } catch (e) {
+                console.log('小窩魔法打結了:', e);
+            }
 
-        if (!window.isMascotSleeping) {
-            swimLikeLazyMermaid();
+            if (!window.isMascotSleeping) {
+                swimLikeLazyMermaid();
+            }
         }
+    };
+
+    // 🏠 --- 蓋房子與起床的程式碼 ---
+    let mascotHome = document.getElementById('mascot-home');
+    if (!mascotHome) {
+        mascotHome = document.createElement('div');
+        mascotHome.id = 'mascot-home';
+        mascotHome.title = '把小助理拖進來休息，點擊再叫牠起床喔！';
+        document.body.appendChild(mascotHome);
     }
-};
 
-// 🏠 --- 蓋房子與起床的程式碼 ---
-let mascotHome = document.getElementById('mascot-home');
-if (!mascotHome) {
-    mascotHome = document.createElement('div');
-    mascotHome.id = 'mascot-home';
-    mascotHome.title = '把小助理拖進來休息，點擊再叫牠起床喔！';
-    document.body.appendChild(mascotHome);
-}
+    mascotHome.addEventListener('click', () => {
+        if (window.isMascotSleeping) {
+            window.isMascotSleeping = false;
+            mascot.classList.remove('mascot-sleeping');
 
-mascotHome.addEventListener('click', () => {
-    if (window.isMascotSleeping) {
-        window.isMascotSleeping = false;
-        mascot.classList.remove('mascot-sleeping');
-        
-        // 🌟 切換回醒著的圖片
-        const awakeMascot = document.getElementById('awake-mascot');
-        const sleepingMascot = document.getElementById('sleeping-mascot');
-        if (awakeMascot) awakeMascot.style.display = 'block';
-        if (sleepingMascot) sleepingMascot.style.display = 'none';
-        
-        // 恢復大小跟位置
-        const homeRect = mascotHome.getBoundingClientRect();
-        mascot.style.transition = 'none'; 
-        mascot.style.transform = `scale(1)`; 
-        mascot.style.left = (homeRect.right + 15) + 'px';
-        mascot.style.top = (homeRect.top - 30) + 'px';
-        mascot.offsetHeight; // 強制瀏覽器重繪
-        
-        mascot.style.transition = 'top 8s ease-in-out, left 8s ease-in-out';
-        
-        const dialogueBox = document.getElementById('mermecat-dialogue');
-        if (dialogueBox) {
-            dialogueBox.innerText = "喵嗚！謝謝寶寶叫我起床✨🐬";
-            dialogueBox.classList.add('show-dialogue');
-            setTimeout(() => { dialogueBox.classList.remove('show-dialogue'); }, 3500);
+            // 🌟 切換回醒著的圖片
+            const awakeMascot = document.getElementById('awake-mascot');
+            const sleepingMascot = document.getElementById('sleeping-mascot');
+            if (awakeMascot) awakeMascot.style.display = 'block';
+            if (sleepingMascot) sleepingMascot.style.display = 'none';
+
+            // 恢復大小跟位置
+            const homeRect = mascotHome.getBoundingClientRect();
+            mascot.style.transition = 'none';
+            mascot.style.transform = `scale(1)`;
+            mascot.style.left = (homeRect.right + 15) + 'px';
+            mascot.style.top = (homeRect.top - 30) + 'px';
+            mascot.offsetHeight; // 強制瀏覽器重繪
+
+            mascot.style.transition = 'top 8s ease-in-out, left 8s ease-in-out';
+
+            const dialogueBox = document.getElementById('mermecat-dialogue');
+            if (dialogueBox) {
+                dialogueBox.innerText = "喵嗚！謝謝寶寶叫我起床✨🐬";
+                dialogueBox.classList.add('show-dialogue');
+                setTimeout(() => { dialogueBox.classList.remove('show-dialogue'); }, 3500);
+            }
         }
-    }
-});
+    });
     // 🖱️ 滑鼠事件
     mascot.addEventListener('mousedown', (e) => {
         e.preventDefault();
@@ -1662,9 +1669,9 @@ mascotHome.addEventListener('click', () => {
         swimTimer = setTimeout(swimLikeLazyMermaid, 3000);
     });
 
- // 🚀 防止拖曳完不小心觸發跳轉，只有真的「單純點擊」才會去 AI 助手頁面
+    // 🚀 防止拖曳完不小心觸發跳轉，只有真的「單純點擊」才會去 AI 助手頁面
     mascot.addEventListener('click', (e) => {
-        
+
         // 👇 第一步：先檢查是不是「剛被拖曳完」放開滑鼠
         if (hasMoved) {
             e.preventDefault();
