@@ -7,7 +7,7 @@ import { adminRouter } from './modules/admin/admin.router.js';
 import { categoryRouter } from './modules/category/category.router.js';
 import { commentRouter } from './modules/comment/comment.router.js';
 import { gameRouter } from './modules/game/game.router.js';
-import { notificationRouter } from './modules/notification/comment.router.js';
+import { notificationRouter } from './modules/notification/notification.router.js';
 
 import { generateCaptcha } from './lib/captchaHelper.js';
 import prisma from './lib/prisma.js';
