@@ -42,7 +42,7 @@ body {
     background: rgba(20, 10, 40, 0.25); 
     border: 1px solid rgba(160, 132, 255, 0.3);
     border-radius: 20px;
-    padding: 40px 20px 80px; 
+    padding: 40px 20px 60px; 
     box-shadow: 0 10px 40px rgba(0,0,0,0.4), inset 0 0 30px rgba(0,0,0,0.3);
     margin-top: 20px;
     backdrop-filter: blur(8px);
@@ -51,9 +51,7 @@ body {
 .deck-spread { 
     position: relative; 
     width: 100%; 
-    /* ★ 增加整體容器的高度，確保扇形上移後不會被切掉 */
     height: 360px; 
-    /* ★ 大幅吃掉上方的空間，並增加下方與卡槽的距離，將整個扇形向上提 ★ */
     margin: 0px auto 60px; 
     display: flex; 
     justify-content: center; 
@@ -70,7 +68,6 @@ body {
     height: 190px;  
     cursor: pointer; 
     transform-origin: center 220%; 
-    /* ★ 將卡片起點位置大幅上移，徹底遠離底下的格子 ★ */
     bottom: 150px;  
     transform: rotate(var(--rot)) translate3d(0, 0, 0); 
     transition: opacity 0.5s ease; 
@@ -118,15 +115,13 @@ body {
 .card-back img { width: 100%; height: 100%; object-fit: cover; }
 .tarot-card:hover .card-back { box-shadow: 0 0 25px rgba(160, 132, 255, 0.8); border-color: #d4b5ff; }
 
-/* 修正卡片翻轉與逆位的邏輯：讓標籤始終正向且固定在底部 */
+/* 修正卡片翻轉與逆位的邏輯 */
 .card-front { background-color: #fff; color: #333; transform: rotateY(180deg); display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; }
-/* 只讓圖片自己轉 180 度，不影響外層和標籤 */
 .card-front img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.5s ease; }
 .card-front img.reversed-img { transform: rotate(180deg); }
 
 .card-title { font-weight: bold; margin-top: 15px; color: #d4b5ff; text-shadow: 0 0 5px rgba(0,0,0,0.9); font-size: 1.1em; }
 
-/* ★ 標籤終極美化與位置微調 ★ */
 .card-name-label { 
     position: absolute; 
     bottom: 28px; 
@@ -160,9 +155,13 @@ body {
 .save-btn-style { background: rgba(10, 5, 25, 0.5); border: 2px solid #a084ff; color: #d4b5ff; backdrop-filter: blur(5px); }
 .save-btn-style:hover { background: rgba(160, 132, 255, 0.3); transform: scale(1.05); color: #fff; border-color: #fff;}
 
-#lang-toggle-btn, #view-fav-btn { position: absolute; top: 20px; background: rgba(20, 15, 40, 0.8); border: 1px solid #a084ff; color: #d4b5ff; padding: 10px 20px; border-radius: 20px; cursor: pointer; z-index: 100; transition: 0.3s; font-weight: bold; backdrop-filter: blur(10px); box-shadow: 0 0 10px rgba(0,0,0,0.8); }
-#lang-toggle-btn:hover, #view-fav-btn:hover { background: #7b2cbf; color: white; box-shadow: 0 0 20px rgba(160, 132, 255, 0.8); }
-#lang-toggle-btn { left: 20px; }
+/* 右上/左上按鈕共用樣式 */
+#back-games-btn, #lang-toggle-btn, #view-fav-btn { position: absolute; top: 20px; background: rgba(20, 15, 40, 0.8); border: 1px solid #a084ff; color: #d4b5ff; padding: 10px 20px; border-radius: 20px; cursor: pointer; z-index: 100; transition: 0.3s; font-weight: bold; backdrop-filter: blur(10px); box-shadow: 0 0 10px rgba(0,0,0,0.8); }
+#back-games-btn:hover, #lang-toggle-btn:hover, #view-fav-btn:hover { background: #7b2cbf; color: white; box-shadow: 0 0 20px rgba(160, 132, 255, 0.8); }
+
+/* 位置設定 */
+#back-games-btn { left: 20px; }
+#lang-toggle-btn { left: 180px; }
 #view-fav-btn { right: 20px; }
 
 #favorites-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.85); z-index: 1000; display: flex; justify-content: center; align-items: center; backdrop-filter: blur(8px); }
@@ -177,3 +176,80 @@ body {
 .fav-reading { color: #e0d4ff; line-height: 1.6; font-size: 0.95em; }
 .delete-btn { background: transparent; border: 1px solid #e74c3c; color: #e74c3c; padding: 5px 15px; border-radius: 15px; cursor: pointer; margin-top: 10px; transition: 0.3s; }
 .delete-btn:hover { background: #e74c3c; color: white; }
+
+/* =========================================
+   手機版響應式設計 (Media Query)
+   ========================================= */
+@media screen and (max-width: 768px) {
+    /* 調整頂部按鈕，讓它們在手機上不會擠在一起 */
+    #back-games-btn, #lang-toggle-btn, #view-fav-btn {
+        padding: 6px 12px;
+        font-size: 13px;
+        top: 10px;
+    }
+    #lang-toggle-btn { left: 140px; }
+    
+    /* 縮小標題 */
+    .main-title { font-size: 2em; margin-top: 40px; }
+    .subtitle { font-size: 1em; }
+    
+    /* 六宮格按鈕縮小 */
+    .topic-grid { gap: 10px; }
+    .topic-grid button { padding: 10px 5px; font-size: 15px; }
+    
+    /* 縮小自訂問題輸入框 */
+    .custom-topic input { width: 220px; font-size: 14px; }
+    .custom-topic button { padding: 10px 20px; font-size: 14px; }
+
+    /* ★ 核心：手機版扇形牌陣排版 ★ */
+    .deck-spread {
+        /* 將容器高度降低，避免佔用太多手機螢幕空間 */
+        height: 180px; 
+        margin: 10px auto 30px;
+    }
+
+    .spread-card {
+        /* 縮小卡牌尺寸以適應手機 */
+        width: 60px;
+        height: 103px;
+        /* 重新調整旋轉中心點，讓扇形更緊湊 */
+        transform-origin: center 180%;
+        bottom: 80px;
+    }
+    
+    /* 調整手機版卡片浮起的高度 */
+    .spread-card:hover::before {
+        transform: translateY(-15px) translateZ(30px) scale(1.05); 
+    }
+
+    /* ★ 核心：手機版抽牌放置區 ★ */
+    .tarot-container {
+        margin-top: 20px;
+        gap: 10px;
+    }
+    
+    .tarot-card {
+        width: 90px;
+        height: 158px;
+        margin-bottom: 10px;
+    }
+
+    /* 手機版的卡片標籤縮小 */
+    .card-name-label {
+        font-size: 11px;
+        padding: 4px 10px;
+        bottom: 15px;
+        letter-spacing: 1px;
+    }
+    
+    .card-title {
+        font-size: 0.9em;
+        margin-top: 10px;
+    }
+
+    /* 結果區塊調整 */
+    #result-box {
+        padding: 15px;
+        font-size: 14px;
+    }
+}

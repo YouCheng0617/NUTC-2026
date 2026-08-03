@@ -11,6 +11,7 @@ const i18n = {
     'zh-TW': {
         langToggle: "🌐 English",
         favBtn: "📖 魔法收藏本",
+        backGamesBtn: "🎮 回到遊樂園",
         mainTitle: "🔮 今日塔羅瓶",
         subtitle: "請靜下心來，選擇你今日想探索的塔羅指引...",
         btnRel: "<span class='icon'>💕</span> 感情<br><small>Relationship</small>",
@@ -50,6 +51,7 @@ const i18n = {
     'en': {
         langToggle: "🌐 中文",
         favBtn: "📖 Spellbook",
+        backGamesBtn: "🎮 Back to Park",
         mainTitle: "🔮 Tarot Bottle",
         subtitle: "Calm your mind and choose a topic to explore today...",
         btnRel: "<span class='icon'>💕</span> Romance<br><small>Relationship</small>",
@@ -110,6 +112,7 @@ function updateUI() {
     // 更新固定文字
     document.getElementById('lang-toggle-btn').innerHTML = t.langToggle;
     document.getElementById('view-fav-btn').innerHTML = t.favBtn;
+    document.getElementById('back-games-btn').innerHTML = t.backGamesBtn;
     document.querySelector('.main-title').innerHTML = t.mainTitle;
     document.querySelector('.subtitle').innerHTML = t.subtitle;
     
@@ -163,6 +166,7 @@ function startGame(topic) {
     document.getElementById('tarot-area').classList.remove('hidden');
     document.getElementById('current-topic-display').innerText = `${i18n[currentLang].currentTopicPrefix}【${topic}】`;
     
+    // ★ 關鍵：每次進入抽牌區，重新計算與渲染牌陣，適應當前螢幕寬度
     resetSlots();
     renderSpread(); 
 }
@@ -211,13 +215,26 @@ function resetGame() {
     spreadContainer.classList.remove('hidden');
 }
 
+// 監聽視窗大小改變，如果正在抽牌畫面，就重新繪製扇形
+window.addEventListener('resize', () => {
+    const tarotArea = document.getElementById('tarot-area');
+    if (!tarotArea.classList.contains('hidden') && currentSlotIndex < 3) {
+        renderSpread();
+    }
+});
+
 function renderSpread() {
     const spreadContainer = document.getElementById('deck-spread');
     spreadContainer.innerHTML = ''; 
     
     const total = availableCards.length;
-    const startAngle = -70; 
-    const angleStep = 140 / total; 
+    
+    // ★ 根據螢幕寬度動態調整扇形展開的角度
+    // 電腦版寬廣 (140度)，手機版因為寬度受限，角度要縮小 (約90-100度) 才不會超出螢幕
+    const isMobile = window.innerWidth <= 768;
+    const spreadAngle = isMobile ? 90 : 140; 
+    const startAngle = -(spreadAngle / 2); 
+    const angleStep = spreadAngle / total; 
 
     for(let i=0; i<total; i++) {
         let card = document.createElement('div');
@@ -255,7 +272,6 @@ function drawFromSpread(cardElement) {
     imgElement.alt = randomCard.name;
     textElement.innerText = randomCard.name;
     
-    // ★ 關鍵修復：現在改為對 img 元素添加倒轉 class，讓標籤始終維持正向！
     if (isReversed) { imgElement.classList.add('reversed-img'); }
 
     setTimeout(() => {
@@ -297,7 +313,7 @@ async function generateReading() {
 
     const prompt = `你現在是一位溫柔、充滿智慧的星空魔法塔羅占卜師。玩家想問的問題是關於【${selectedTopic}】。玩家抽到了一個三牌陣：\n\n${cardsInfo}\n\n請根據牌面與正逆位，給出一份語氣溫柔、帶有魔法與星空隱喻的解牌報告。請務必包含以下四個段落，並且【請直接使用括號內的文字作為標題，絕對不要在標題前面加上 1. 2. 3. 4. 等數字標號】：\n- 【過去的指引】\n- 【現在的狀態】\n- 【未來的展現】\n- 【整體建議】\n\n排版要清晰，字數請控制在 400 字以內。\nIMPORTANT: You MUST write your ENTIRE response in ${t.aiLang}. If replying in English, please translate the Tarot card names and sections (Past, Present, Future, Overall Advice) into English in your response, and DO NOT use numbers for the section titles.`;
 
-    const API_KEY = '請把這串中文字替換成你的_API_KEY'; 
+    const API_KEY = 'AQ.Ab8RN6IGWQbxp0f3fIpWV7c0qk5rY6NfvwHzHsEgdmFAXM-ufQ'; 
     const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${API_KEY}`;
 
     try {
