@@ -247,27 +247,36 @@ function drawZodiacChart(labels, dataArray) {
     const ctx = document.getElementById('zodiacChart');
     if (!ctx) return;
     if (myZodiacChart) myZodiacChart.destroy();
+    
+    // 💡 保持把「座」字過濾掉，節省 X 軸空間
+    const shortLabels = labels.map(label => label.replace('座', ''));
+
     myZodiacChart = new Chart(ctx, {
         type: 'bar',
         data: {
-            labels: labels,
+            labels: shortLabels,
             datasets: [{ label: '會員人數', data: dataArray, backgroundColor: '#8b5cf6', borderRadius: 4, borderWidth: 0 }]
         },
         options: { 
             responsive: true, 
             maintainAspectRatio: false, 
-            layout: { padding: { bottom: 35 } }, // 🌟 加大底部 Padding 到 35
+            layout: { padding: { bottom: 15 } }, // 🌟 稍微留一點底部空間給手機版傾斜時使用
             plugins: { legend: { display: false } }, 
             scales: { 
                 x: {
+                    grid: { display: false },
                     ticks: {
-                        autoSkip: false, 
-                        maxRotation: 45, 
-                        minRotation: 45,
-                        font: { size: 11 } // 稍微縮小字體讓傾斜排版更順
+                        autoSkip: false,  // 強制顯示全部 12 個星座
+                        maxRotation: 45,  // 🌟 關鍵：允許在手機版螢幕太窄時，傾斜 45 度排版
+                        minRotation: 0,   // 🌟 關鍵：在電腦版螢幕夠寬時，自動保持 0 度水平
+                        font: { size: 11 },
+                        color: '#64748b'
                     }
                 },
-                y: { beginAtZero: true, ticks: { precision: 0 } } 
+                y: { 
+                    beginAtZero: true, 
+                    ticks: { precision: 0 } 
+                } 
             } 
         }
     });
