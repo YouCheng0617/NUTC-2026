@@ -128,7 +128,7 @@ export const likeComment = async (commentId: number, memberId: number) => {
     }
 };
 
-export const createReply = async (bottleId: number, memberId: number, content: string, parentId: number) => {
+export const createReply = async (bottleId: number, memberId: number, content: string, parentId: number, isAnonymous: boolean = false) => {
     // 🛡️ 防呆 1：確認主留言是否存在
     const parentComment = await prisma.comment.findUnique({
         where: { id: parentId }
@@ -153,12 +153,18 @@ export const createReply = async (bottleId: number, memberId: number, content: s
             bottle_id: bottleId,
             member_id: memberId,
             content: content,
-            parent_id: parentId
+            parent_id: parentId,
+            is_anonymous: isAnonymous
         },
         include: {
             member: { select: { name: true } }
         }
     });
 
-    return newReply;
+    return {
+        ...newReply,
+        member_name: newReply.is_anonymous ? "匿名使用者" : newReply.member?.name,
+        member: undefined,
+        likeCount: 0
+    };
 };
