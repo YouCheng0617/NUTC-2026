@@ -1317,6 +1317,7 @@ const i18n = {
             el.innerText = text;
             el.style.left = '50%';
             el.style.top = '30%';
+            el.style.animation = `floatUp ${duration / 1000}s forwards cubic-bezier(0.18, 0.89, 0.32, 1.28)`;
             document.body.appendChild(el);
             setTimeout(() => el.remove(), 1000);
         }
