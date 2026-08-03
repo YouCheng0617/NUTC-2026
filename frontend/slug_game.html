@@ -808,7 +808,7 @@ const i18n = {
 
         // 🌟 真實手工雕刻版 SVG 圖形庫 🌟
         const svgLib = {
-            tomato: `<svg viewBox="0 0 100 100"><circle cx="50" cy="55" r="35" fill="#ef4444"/><polygon points="50,15 35,30 45,35 50,25 55,35 65,30" fill="#22c55e"/><ellipse cx="35" cy="40" rx="10" ry="5" transform="rotate(-30 35 40)" fill="rgba(255,255,255,0.5)"/></svg>`,
+            tomato: `<svg viewBox="0 0 200 200"><defs><radialGradient id="coreGlow" cx="50%" cy="55%" r="50%"><stop offset="0%" stop-color="#ffffff" stop-opacity="1"/><stop offset="20%" stop-color="#fef08a" stop-opacity="0.8"/><stop offset="60%" stop-color="#ef4444" stop-opacity="0.9"/><stop offset="100%" stop-color="#991b1b" stop-opacity="0"/></radialGradient><filter id="fireworkGlow" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="2" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs><g filter="url(#fireworkGlow)"><circle cx="100" cy="120" r="75" fill="url(#coreGlow)"/><circle cx="100" cy="120" r="75" fill="none" stroke="#ef4444" stroke-width="3" stroke-dasharray="1, 8" stroke-linecap="round"/><circle cx="100" cy="120" r="68" fill="none" stroke="#fca5a5" stroke-width="2" stroke-dasharray="1, 6" stroke-linecap="round"/><circle cx="100" cy="120" r="60" fill="none" stroke="#ef4444" stroke-width="3" stroke-dasharray="1, 7" stroke-linecap="round"/><circle cx="100" cy="120" r="50" fill="none" stroke="#f87171" stroke-width="2" stroke-dasharray="1, 5" stroke-linecap="round"/><circle cx="100" cy="120" r="40" fill="none" stroke="#fef08a" stroke-width="2" stroke-dasharray="1, 6" stroke-linecap="round"/><circle cx="100" cy="120" r="30" fill="none" stroke="#ffffff" stroke-width="1.5" stroke-dasharray="1, 4" stroke-linecap="round"/><circle cx="100" cy="120" r="20" fill="none" stroke="#fef08a" stroke-width="2" stroke-dasharray="1, 5" stroke-linecap="round"/><circle cx="100" cy="120" r="10" fill="none" stroke="#ffffff" stroke-width="2" stroke-dasharray="1, 3" stroke-linecap="round"/><path d="M 100 120 L 100 45 M 100 120 L 100 195 M 100 120 L 25 120 M 100 120 L 175 120 M 100 120 L 47 67 M 100 120 L 153 67 M 100 120 L 47 173 M 100 120 L 153 173 M 100 120 L 70 50 M 100 120 L 130 50 M 100 120 L 70 190 M 100 120 L 130 190 M 100 120 L 30 90 M 100 120 L 170 90 M 100 120 L 30 150 M 100 120 L 170 150" stroke="#ef4444" stroke-width="2" stroke-dasharray="1, 8" stroke-linecap="round"/><path d="M 100 120 L 60 50 M 100 120 L 140 50 M 100 120 L 50 160 M 100 120 L 150 160" stroke="#fca5a5" stroke-width="1.5" stroke-dasharray="1, 6" stroke-linecap="round"/><g fill="none" stroke-linecap="round"><g stroke="#22c55e" stroke-width="6" stroke-dasharray="1, 6"><path d="M 100 80 Q 105 40 120 15"/><path d="M 100 80 Q 50 80 30 100"/><path d="M 100 80 Q 70 65 45 45"/><path d="M 100 80 Q 85 50 75 30"/><path d="M 100 80 Q 130 65 160 45"/><path d="M 100 80 Q 140 80 170 100"/><path d="M 100 80 Q 80 100 65 125"/><path d="M 100 80 Q 120 100 135 125"/></g><g stroke="#4ade80" stroke-width="3" stroke-dasharray="1, 5"><path d="M 100 80 Q 105 40 120 15"/><path d="M 100 80 Q 50 80 30 100"/><path d="M 100 80 Q 70 65 45 45"/><path d="M 100 80 Q 85 50 75 30"/><path d="M 100 80 Q 130 65 160 45"/><path d="M 100 80 Q 140 80 170 100"/><path d="M 100 80 Q 80 100 65 125"/><path d="M 100 80 Q 120 100 135 125"/></g><g stroke="#fef08a" stroke-width="1.5" stroke-dasharray="1, 4"><path d="M 100 80 Q 105 40 120 15"/><path d="M 100 80 Q 50 80 30 100"/><path d="M 100 80 Q 70 65 45 45"/><path d="M 100 80 Q 85 50 75 30"/><path d="M 100 80 Q 130 65 160 45"/><path d="M 100 80 Q 140 80 170 100"/><path d="M 100 80 Q 80 100 65 125"/><path d="M 100 80 Q 120 100 135 125"/></g><ellipse cx="122" cy="13" rx="6" ry="3" stroke="#4ade80" stroke-width="2" stroke-dasharray="1, 3" transform="rotate(-25 122 13)"/><ellipse cx="122" cy="13" rx="6" ry="3" stroke="#fef08a" stroke-width="1" stroke-dasharray="1, 2" transform="rotate(-25 122 13)"/></g></g></svg>`,
             boba: `<svg viewBox="0 0 100 100"><path d="M30 30 L35 85 Q50 95 65 85 L70 30 Z" fill="#fed7aa"/><rect x="25" y="20" width="50" height="10" rx="3" fill="#f8fafc"/><rect x="45" y="5" width="10" height="85" fill="#38bdf8"/><circle cx="45" cy="75" r="5" fill="#292524"/><circle cx="55" cy="70" r="5" fill="#292524"/><circle cx="40" cy="65" r="5" fill="#292524"/><circle cx="60" cy="80" r="5" fill="#292524"/></svg>`,
             sushi: `<svg viewBox="0 0 100 100"><rect x="20" y="50" width="60" height="25" rx="10" fill="#f8fafc"/><path d="M15 55 Q50 35 85 55 L80 65 Q50 45 20 65 Z" fill="#f97316"/><rect x="45" y="45" width="10" height="35" fill="#0f172a"/></svg>`,
             pizza: `<svg viewBox="0 0 100 100"><polygon points="50 90, 15 25, 85 25" fill="#fde047"/><path d="M10 25 Q50 5 90 25 L85 30 Q50 15 15 30 Z" fill="#d97706"/><circle cx="40" cy="40" r="6" fill="#ef4444"/><circle cx="60" cy="50" r="6" fill="#ef4444"/><circle cx="45" cy="65" r="6" fill="#ef4444"/></svg>`,
@@ -852,7 +852,7 @@ const i18n = {
             none: { name: {zh: '無特效', en: 'None'}, cost: 0, preview: '#ffffff' },
             rain: { name: {zh: '綿綿細雨', en: 'Raindrops'}, cost: 800, preview: '#93c5fd', svg: [{s: 'drop'}], dir: 'down', count: 20 },
             bubble: { name: {zh: '夢幻泡泡', en: 'Bubbles'}, cost: 1200, preview: '#67e8f9', svg: [{s: 'bubble'}], dir: 'up', count: 15 },
-            tomato: { name: {zh: '飛天小番茄', en: 'Flying Tomato'}, cost: 1500, preview: '#fca5a5', svg: [{s: 'tomato'}], dir: 'down', count: 12 },
+            tomato: { name: {zh: '小番茄煙火', en: 'Tomato Fireworks'}, cost: 1500, preview: '#fca5a5', svg: [{s: 'tomato'}], dir: 'down', count: 12 },
             bugFree: { name: {zh: 'Bug退散', en: 'No More Bugs'}, cost: 8888, preview: '#4ade80', svg: [{s: 'bugFree'}], dir: 'up', count: 15 },
             disco: { name: {zh: '迪斯可舞池', en: 'Disco Party'}, cost: 2500, preview: '#c084fc', svg: [{s: 'star'}, {s: 'music'}], dir: 'up', count: 10 },
             paint: { name: {zh: '揮灑顏料', en: 'Paint Splash'}, cost: 2000, preview: '#f472b6', svg: [{s: 'drop'}], dir: 'down', count: 15 },
@@ -1271,33 +1271,174 @@ let trialInterval = null;
                     }
                     break;
 
-                // ------------------------------------------------
-                // 🍅 【飛天小番茄】專屬地盤
+// ------------------------------------------------
+                // 🎆 【小番茄煙火】護眼護機流暢版 (智慧限制數量，拯救電腦)
                 // ------------------------------------------------
                 case 'tomato':
-                    for (let i = 0; i < 12; i++) {
-                        let el = document.createElement('div');
-                        el.style.position = 'absolute';
-                        el.style.left = Math.random() * 100 + '%';
-                        el.style.top = '-60px';
-                        
-                        el.innerHTML = svgLib['tomato'];
-                        let size = Math.random() * 30 + 30;
-                        el.style.width = size + 'px';
-                        el.style.height = size + 'px';
-                        
-                        // ✨ 專屬靈魂：在空中隨機瘋狂翻轉！
-                        let randomRotation = Math.random() * 360; 
-                        el.style.transform = `rotate(${randomRotation}deg)`;
-                        
-                        let duration = Math.random() * 3 + 3;
-                        el.style.animation = `rainFall ${duration}s linear infinite`;
-                        el.style.animationDelay = (Math.random() * 2) + 's';
-                        
-                        layer.appendChild(el);
-                    }
-                    break;
+                    // 1. 清除所有的舊計時器與動畫
+                    if (window.tomatoFwInterval) clearInterval(window.tomatoFwInterval);
+                    if (window.tomatoFwTimeout) clearTimeout(window.tomatoFwTimeout);
+                    if (window.tomatoAnimFrame) cancelAnimationFrame(window.tomatoAnimFrame);
 
+                    let canvas = document.getElementById('tomatoCanvas');
+                    if (!canvas) {
+                        canvas = document.createElement('canvas');
+                        canvas.id = 'tomatoCanvas';
+                        canvas.style.position = 'absolute';
+                        canvas.style.top = '0';
+                        canvas.style.left = '0';
+                        canvas.style.width = '100%';
+                        canvas.style.height = '100%';
+                        canvas.style.pointerEvents = 'none'; 
+                        canvas.style.zIndex = '999';
+                        layer.appendChild(canvas);
+                    }
+
+                    const ctx = canvas.getContext('2d');
+                    let particles = [];
+
+                    function createFirework(startX, startY, scale) {
+                        // 🌟 嚴格優化火花數量！用稍微大一點的粒子填補空間，減輕負擔
+                        let redCount = Math.floor(300 * scale);
+                        let greenCount = Math.floor(100 * scale);
+
+                        // 🍅 紅色番茄本體
+                        for (let i = 0; i < redCount; i++) {
+                            let angle = Math.random() * Math.PI * 2;
+                            let r = Math.random() > 0.6 ? 1.0 : Math.sqrt(Math.random()); 
+                            
+                            let targetX = Math.cos(angle) * r * 85 * scale; 
+                            let targetY = Math.sin(angle) * r * 75 * scale; 
+                            
+                            let rand = Math.random();
+                            let c = '#dc2626'; 
+                            if (rand > 0.95) c = '#ffffff'; 
+                            else if (rand > 0.4) c = '#ef4444'; 
+
+                            particles.push({
+                                startX: startX, startY: startY,
+                                x: startX, y: startY,
+                                tx: startX + targetX, ty: startY + targetY,
+                                color: c,
+                                alpha: 1,
+                                // 🌟 粒子稍微放大一點點，彌補數量的減少，一樣飽滿！
+                                baseSize: Math.max(1.5, (Math.random() * 2.5 + 2) * scale), 
+                                progress: 0,
+                                speed: Math.random() * 0.02 + 0.015 
+                            });
+                        }
+                        
+                        // 🌿 綠色立體蒂頭
+                        for (let i = 0; i < greenCount; i++) {
+                            let branch = i % 7; 
+                            let t = Math.random();
+                            let targetX, targetY;
+                            let originY = -70 * scale; 
+
+                            if (branch === 0) { targetX = t * 25 * scale; targetY = originY - t * 55 * scale; } 
+                            else if (branch === 1) { targetX = -75 * t * scale; targetY = originY + 15 * t * scale; } 
+                            else if (branch === 2) { targetX = -55 * t * scale; targetY = originY - 20 * t * scale; } 
+                            else if (branch === 3) { targetX = -30 * t * scale; targetY = originY - 45 * t * scale; } 
+                            else if (branch === 4) { targetX = 30 * t * scale; targetY = originY - 45 * t * scale; }  
+                            else if (branch === 5) { targetX = 55 * t * scale; targetY = originY - 20 * t * scale; }  
+                            else { targetX = 75 * t * scale; targetY = originY + 15 * t * scale; } 
+
+                            targetX += (Math.random() - 0.5) * 6 * scale;
+                            targetY += (Math.random() - 0.5) * 6 * scale;
+
+                            let rand = Math.random();
+                            let c = '#16a34a'; 
+                            if (rand > 0.95) c = '#ffffff'; 
+                            else if (rand > 0.4) c = '#22c55e'; 
+
+                            particles.push({
+                                startX: startX, startY: startY,
+                                x: startX, y: startY,
+                                tx: startX + targetX, ty: startY + targetY,
+                                color: c,
+                                alpha: 1,
+                                baseSize: Math.max(1.5, (Math.random() * 3 + 2) * scale),
+                                progress: 0,
+                                speed: Math.random() * 0.02 + 0.015 
+                            });
+                        }
+                    }
+
+                    function render() {
+                        if (gameState.currentEffect !== 'tomato' && trialState.effect !== 'tomato') {
+                            if (canvas.parentNode) canvas.parentNode.removeChild(canvas);
+                            if (window.tomatoFwTimeout) clearTimeout(window.tomatoFwTimeout);
+                            return;
+                        }
+                        
+                        window.tomatoAnimFrame = requestAnimationFrame(render);
+                        
+                        ctx.globalCompositeOperation = 'destination-out';
+                        ctx.fillStyle = 'rgba(0, 0, 0, 0.15)'; 
+                        ctx.fillRect(0, 0, canvas.width, canvas.height);
+                        
+                        ctx.globalCompositeOperation = 'source-over'; 
+                        ctx.shadowBlur = 3; // 稍微降低光暈的運算負擔
+
+                        for (let i = particles.length - 1; i >= 0; i--) {
+                            let p = particles[i];
+                            
+                            p.progress += p.speed;
+                            if (p.progress >= 1) p.progress = 1;
+                            
+                            let ease = 1 - Math.pow(1 - p.progress, 3);
+                            
+                            p.x = p.startX + (p.tx - p.startX) * ease;
+                            p.y = p.startY + (p.ty - p.startY) * ease;
+                            
+                            if (p.progress >= 1) {
+                                p.ty += 0.4; 
+                                p.alpha -= 0.015; 
+                            }
+
+                            if (p.alpha <= 0) {
+                                particles.splice(i, 1);
+                                continue;
+                            }
+
+                            let twinkleSize = p.baseSize * (0.7 + Math.random() * 0.5);
+                            let twinkleAlpha = p.alpha * (0.6 + Math.random() * 0.4);
+
+                            ctx.beginPath();
+                            ctx.arc(p.x, p.y, twinkleSize, 0, Math.PI * 2);
+                            ctx.fillStyle = p.color;
+                            ctx.shadowColor = p.color; 
+                            ctx.globalAlpha = twinkleAlpha;
+                            ctx.fill();
+                        }
+                    }
+
+                    render();
+
+                    function randomLaunch() {
+                        if (gameState.currentEffect !== 'tomato' && trialState.effect !== 'tomato') return;
+                        
+                        // 🌟 煞車系統：如果畫面上已經有超過 1000 顆火花在飛，就跳過這次發射，保護電腦！
+                        if (particles.length < 1000) {
+                            canvas.width = canvas.offsetWidth;
+                            canvas.height = canvas.offsetHeight;
+                            
+                            let targetX = canvas.width * (0.1 + Math.random() * 0.8);
+                            let targetY = canvas.height * (0.1 + Math.random() * 0.65);
+                            
+                            let scale = 0.25 + Math.random() * 0.45;
+                            createFirework(targetX, targetY, scale);
+                        }
+
+                        // 🌟 放慢發射間隔時間，讓電腦有時間喘氣 (1.2秒 到 2.5秒 之間)
+                        let nextLaunchTime = 1200 + Math.random() * 1300;
+                        window.tomatoFwTimeout = setTimeout(randomLaunch, nextLaunchTime);
+                    }
+                    
+                    randomLaunch();
+                    // 第一波稍微給點層次感，延遲0.8秒發射第二顆
+                    setTimeout(randomLaunch, 800); 
+                    break;
                 // ------------------------------------------------
                 // 🛠️ 其他還沒改到的特效，先用這個「通用備用方案」頂著
                 // ------------------------------------------------
