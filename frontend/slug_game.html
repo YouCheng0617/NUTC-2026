@@ -1130,7 +1130,7 @@ const i18n = {
             
             if(trialTimer) clearTimeout(trialTimer);
             
-            showFloatText('⏱️ 試用開始 (10秒)');
+            showFloatText('⏱️ 試用開始 (10秒)', 10000);
             
             trialTimer = setTimeout(() => {
                 if(trialState[type] === key) { 
@@ -1150,7 +1150,7 @@ const i18n = {
                 else gameState.unlockedEffects.push(key);
                 
                 equipItem(key, type); 
-                showFloatText('✨ 購買成功 ✨');
+                showFloatText('✨ 購買成功 ✨', 5000);
             } else {
                 showFloatText('積分不足 😢');
             }
