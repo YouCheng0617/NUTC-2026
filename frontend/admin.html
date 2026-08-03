@@ -116,10 +116,21 @@
  <!-- 📈 第一列圖表 (寬版圖表：折線圖 / 長條圖) -->
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 400px), 1fr)); gap: 24px; margin-top: 24px;">
           
-          <!-- 發文趨勢圖 (折線圖) -->
+  <!-- 發文趨勢圖 (折線圖) -->
           <div class="modern-card" style="padding: 24px; box-sizing: border-box;">
-            <h3 style="margin: 0 0 20px 0; font-size: 1.1rem; color: #1f2937;">📈 最近 7 天發文趨勢</h3>
-            <!-- 🌟 將 display: flex 替換為 position: relative 讓圖表隨容器縮放 -->
+            <!-- 🌟 將標題列改為 Flexbox，讓標題跟下拉選單左右對齊 -->
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+              <h3 style="margin: 0; font-size: 1.1rem; color: #1f2937;">📈 發文趨勢</h3>
+              
+              <!-- 🌟 新增的下拉選單，綁定 onchange 事件 -->
+              <select id="trend-time-filter" onchange="changeTrendTimeRange(this.value)" style="padding: 6px 12px; border: 1px solid #cbd5e1; border-radius: 20px; outline: none; font-weight: 600; color: #475569; background: #f8fafc; cursor: pointer;">
+                <option value="7">最近 7 天</option>
+                <option value="30">最近 1 個月</option>
+                <option value="180">最近半年</option>
+                <option value="365">最近一年</option>
+              </select>
+            </div>
+            
             <div style="position: relative; height: 300px; width: 100%;">
               <canvas id="trendChart"></canvas>
             </div>
@@ -164,6 +175,14 @@
             <h3 style="margin: 0 0 20px 0; font-size: 1.1rem; color: #1f2937;">💬 全站留言身份比例</h3>
             <div style="position: relative; height: 300px; width: 100%;">
               <canvas id="commentTypeChart"></canvas>
+            </div>
+          </div>
+
+          <!-- 👇 新增這塊：留言者男女比例 (圓餅圖) -->
+          <div class="modern-card" style="padding: 24px; box-sizing: border-box;">
+            <h3 style="margin: 0 0 20px 0; font-size: 1.1rem; color: #1f2937;">🗣️ 留言者男女比例</h3>
+            <div style="position: relative; height: 300px; width: 100%;">
+              <canvas id="commentGenderChart"></canvas>
             </div>
           </div>
 
