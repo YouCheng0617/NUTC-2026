@@ -51,8 +51,10 @@ body {
 .deck-spread { 
     position: relative; 
     width: 100%; 
-    height: 320px; 
-    margin: 20px auto 140px; 
+    /* ★ 增加整體容器的高度，確保扇形上移後不會被切掉 */
+    height: 360px; 
+    /* ★ 大幅吃掉上方的空間，並增加下方與卡槽的距離，將整個扇形向上提 ★ */
+    margin: 0px auto 60px; 
     display: flex; 
     justify-content: center; 
     align-items: flex-end; 
@@ -61,20 +63,22 @@ body {
     perspective: 1200px; 
 }
 
-/* ★ 極致絲滑感應區：底層軌道完全不動，視覺影像完美分離 ★ */
+/* 絲滑感應區：底層軌道完全不動 */
 .spread-card { 
     position: absolute; 
     width: 110px;   
     height: 190px;  
     cursor: pointer; 
     transform-origin: center 220%; 
-    bottom: 110px;  
-    transform: rotate(var(--rot)); /* 移除 Z 軸，讓感應區完全貼合 2D 平面 */
+    /* ★ 將卡片起點位置大幅上移，徹底遠離底下的格子 ★ */
+    bottom: 150px;  
+    transform: rotate(var(--rot)) translate3d(0, 0, 0); 
     transition: opacity 0.5s ease; 
     background: transparent; 
     transform-style: preserve-3d; 
 }
 
+/* 視覺卡片 */
 .spread-card::before {
     content: "";
     position: absolute;
@@ -83,14 +87,13 @@ body {
     border-radius: 10px; 
     box-shadow: -2px 0 8px rgba(0,0,0,0.7); 
     border: 1px solid rgba(160, 132, 255, 0.4); 
-    transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1), filter 0.3s ease; 
-    pointer-events: none; /* 絕對關鍵：視覺圖片無法被滑鼠觸碰 */
-    transform: translateZ(0px); 
+    transition: transform 0.4s cubic-bezier(0.25, 0.8, 0.25, 1), filter 0.4s ease; 
+    pointer-events: none; 
+    transform: translateZ(1px); 
 }
 
 .spread-card:hover::before {
-    /* 卡片輕巧往前飛出、往上抬升，不改變 DOM 層級 */
-    transform: translateY(-60px) translateZ(60px) scale(1.05); 
+    transform: translateY(-30px) translateZ(40px) scale(1.05); 
     filter: drop-shadow(0 0 15px #d4b5ff) brightness(1.15); 
     border-color: #d4b5ff; 
 }
@@ -98,7 +101,7 @@ body {
 .tarot-container { 
     display: flex; 
     justify-content: space-around; 
-    margin-top: 180px; 
+    margin-top: 50px; 
     gap: 20px; 
     flex-wrap: wrap;
 }
@@ -114,11 +117,35 @@ body {
 .card-back { background-color: #0b0d17; }
 .card-back img { width: 100%; height: 100%; object-fit: cover; }
 .tarot-card:hover .card-back { box-shadow: 0 0 25px rgba(160, 132, 255, 0.8); border-color: #d4b5ff; }
+
+/* 修正卡片翻轉與逆位的邏輯：讓標籤始終正向且固定在底部 */
 .card-front { background-color: #fff; color: #333; transform: rotateY(180deg); display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; }
-.card-front img { width: 100%; height: 100%; object-fit: cover; }
-.card-front.reversed { transform: rotateY(180deg) rotateZ(180deg); }
+/* 只讓圖片自己轉 180 度，不影響外層和標籤 */
+.card-front img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.5s ease; }
+.card-front img.reversed-img { transform: rotate(180deg); }
+
 .card-title { font-weight: bold; margin-top: 15px; color: #d4b5ff; text-shadow: 0 0 5px rgba(0,0,0,0.9); font-size: 1.1em; }
-.card-name-label { position: absolute; bottom: 40px; background: rgba(0, 0, 0, 0.8); color: #d4b5ff; padding: 4px 10px; border-radius: 8px; font-size: 14px; font-weight: bold; border: 1px solid rgba(160, 132, 255, 0.5); backdrop-filter: blur(5px); }
+
+/* ★ 標籤終極美化與位置微調 ★ */
+.card-name-label { 
+    position: absolute; 
+    bottom: 28px; 
+    left: 50%;
+    transform: translateX(-50%); 
+    background: linear-gradient(135deg, rgba(89, 36, 150, 0.9), rgba(30, 11, 60, 0.95)); 
+    color: #ffffff; 
+    padding: 6px 18px; 
+    border-radius: 25px; 
+    font-size: 15px; 
+    font-weight: bold; 
+    letter-spacing: 3px; 
+    border: 1px solid rgba(212, 181, 255, 0.8); 
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.8), 0 0 12px rgba(160, 132, 255, 0.6); 
+    backdrop-filter: blur(8px); 
+    white-space: nowrap;
+    z-index: 10; 
+    text-shadow: 0 1px 3px rgba(0,0,0,0.9);
+}
 
 .hidden { display: none !important; }
 

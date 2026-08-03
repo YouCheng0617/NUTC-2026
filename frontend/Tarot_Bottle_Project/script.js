@@ -248,7 +248,6 @@ function drawFromSpread(cardElement) {
     const cardContainer = document.getElementById(`card-${pos}`);
     const imgElement = document.getElementById(`img-${pos}`);
     const textElement = document.getElementById(`text-${pos}`);
-    const frontElement = document.getElementById(`front-${pos}`);
 
     cardContainer.classList.remove('empty-slot');
 
@@ -256,7 +255,8 @@ function drawFromSpread(cardElement) {
     imgElement.alt = randomCard.name;
     textElement.innerText = randomCard.name;
     
-    if (isReversed) { frontElement.classList.add('reversed'); }
+    // ★ 關鍵修復：現在改為對 img 元素添加倒轉 class，讓標籤始終維持正向！
+    if (isReversed) { imgElement.classList.add('reversed-img'); }
 
     setTimeout(() => {
         cardContainer.classList.add('flipped');
@@ -295,19 +295,7 @@ async function generateReading() {
         右邊第三張（未來）：${drawnCards['future'].name} (${drawnCards['future'].isReversed ? '逆位' : '正位'})
     `;
 
-    // 關鍵更新：明確要求 AI 回覆「整體建議」段落
-    const prompt = `你現在是一位溫柔、充滿智慧的星空魔法塔羅占卜師。玩家想問的問題是關於【${selectedTopic}】。玩家抽到了一個三牌陣：
-
-${cardsInfo}
-
-請根據牌面與正逆位，給出一份語氣溫柔、帶有魔法與星空隱喻的解牌報告。請務必包含以下四個段落：
-1. 過去的指引
-2. 現在的狀態
-3. 未來的展現
-4. 整體建議 (請給予溫暖的總結與指引)
-
-排版要清晰，字數請控制在 400 字以內。
-IMPORTANT: You MUST write your ENTIRE response in ${t.aiLang}. If replying in English, please translate the Tarot card names and sections (Past, Present, Future, Overall Advice) into English in your response.`;
+    const prompt = `你現在是一位溫柔、充滿智慧的星空魔法塔羅占卜師。玩家想問的問題是關於【${selectedTopic}】。玩家抽到了一個三牌陣：\n\n${cardsInfo}\n\n請根據牌面與正逆位，給出一份語氣溫柔、帶有魔法與星空隱喻的解牌報告。請務必包含以下四個段落，並且【請直接使用括號內的文字作為標題，絕對不要在標題前面加上 1. 2. 3. 4. 等數字標號】：\n- 【過去的指引】\n- 【現在的狀態】\n- 【未來的展現】\n- 【整體建議】\n\n排版要清晰，字數請控制在 400 字以內。\nIMPORTANT: You MUST write your ENTIRE response in ${t.aiLang}. If replying in English, please translate the Tarot card names and sections (Past, Present, Future, Overall Advice) into English in your response, and DO NOT use numbers for the section titles.`;
 
     const API_KEY = '請把這串中文字替換成你的_API_KEY'; 
     const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${API_KEY}`;
