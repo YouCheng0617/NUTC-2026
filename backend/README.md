@@ -200,3 +200,5 @@ Query 參數 (必填)：?keyword=你要找的字
 {
   "optionId": 2
 }
+
+管理員獲取所有留言 GET 給Token /admin/comments
