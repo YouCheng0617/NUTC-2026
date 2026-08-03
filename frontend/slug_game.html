@@ -1311,16 +1311,21 @@ const i18n = {
             updateUI();
         }
 
-        function showFloatText(text) {
-            const el = document.createElement('div');
-            el.className = 'float-text';
-            el.innerText = text;
-            el.style.left = '50%';
-            el.style.top = '30%';
-            el.style.animation = `floatUp ${duration / 1000}s forwards cubic-bezier(0.18, 0.89, 0.32, 1.28)`;
-            document.body.appendChild(el);
-            setTimeout(() => el.remove(), 1000);
-        }
+function showFloatText(text, duration = 1000) {
+    const el = document.createElement('div');
+    el.className = 'float-text';
+    el.innerText = text;
+    el.style.left = '50%';
+    el.style.top = '30%';
+    
+    // 這裡的 duration 終於有主人了！
+    el.style.animation = `floatUp ${duration / 1000}s forwards cubic-bezier(0.18, 0.89, 0.32, 1.28)`;
+    
+    document.body.appendChild(el);
+    
+    // 這裡原本的 1000 也要改成 duration，這樣文字才會乖乖停留！
+    setTimeout(() => el.remove(), duration);
+}
 
         function startCooldownTimer() {
             setInterval(() => {
