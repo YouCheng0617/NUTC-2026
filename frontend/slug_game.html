@@ -400,6 +400,7 @@
             font-size: 2rem;
             pointer-events: none;
             text-shadow: 2px 2px 0px white, -2px -2px 0px white, 2px -2px 0px white, -2px 2px 0px white;
+            animation: floatUp 1s forwards cubic-bezier(0.18, 0.89, 0.32, 1.28);
             z-index: 100;
         }
         @keyframes floatUp {
@@ -408,7 +409,7 @@
             100% { opacity: 0; transform: translate(-50%, -90px) scale(1); }
         }
 
-        /* 寵物名字標籤 */
+        /* 寵物名字標籤（極簡純文字版 - 清晰立體優化） */
         .pet-name-tag {
             position: absolute;
             top: -45px;
@@ -418,13 +419,16 @@
             border: none;
             padding: 0;
             font-weight: 900;
-            color: var(--text-dark);
-            font-size: 1.35rem;
+            color: var(--text-dark); /* 保持原本可愛的深咖啡色 */
+            font-size: 1.35rem; /* 字體稍微放大一點點，更清楚 */
             letter-spacing: 2px;
+            
+            /* 捨棄會吃掉字體顏色的描邊，改用 8 個方向的實心白邊，加上底下淡淡的黑影，絕對清晰！ */
             text-shadow: 
                 2px 2px 0 #fff, -2px -2px 0 #fff, 2px -2px 0 #fff, -2px 2px 0 #fff,
                 0px 2px 0 #fff,  0px -2px 0 #fff, 2px  0px 0 #fff, -2px 0px 0 #fff,
                 0px 5px 10px rgba(0,0,0,0.2);
+            
             white-space: nowrap;
             pointer-events: auto; 
             cursor: pointer;
@@ -435,8 +439,13 @@
             z-index: 20;
         }
 
-        .pet-name-tag.named { cursor: default; pointer-events: none; }
+        /* 命名後的鎖定狀態 */
+        .pet-name-tag.named {
+            cursor: default;
+            pointer-events: none;
+        }
 
+        /* 還沒命名時的 Hover 動畫 */
         .pet-name-tag:hover:not(.named) {
             transform: translateX(-50%) scale(1.1);
             text-shadow: 
@@ -444,7 +453,9 @@
                 0px 2px 0 #fff,  0px -2px 0 #fff, 2px  0px 0 #fff, -2px 0px 0 #fff,
                 0px 6px 15px rgba(255, 182, 193, 0.8);
         }
-        .pet-name-tag:active:not(.named) { transform: translateX(-50%) scale(0.95); }
+        .pet-name-tag:active:not(.named) {
+            transform: translateX(-50%) scale(0.95);
+        }
 
         /* 超可愛命名彈窗 */
         .name-modal-overlay {
@@ -486,7 +497,10 @@
             transition: 0.2s;
             background: var(--card-bg);
         }
-        .name-input:focus { border-color: var(--accent-color); background: #fff; }
+        .name-input:focus {
+            border-color: var(--accent-color);
+            background: #fff;
+        }
         .modal-btns { display: flex; gap: 12px; justify-content: center; }
         .modal-btn {
             flex: 1;
@@ -830,11 +844,67 @@ const i18n = {
             poop: `<svg viewBox="0 0 100 100"><path d="M20 80 Q50 90 80 80 Q90 60 70 50 Q80 40 60 30 Q70 15 50 10 Q30 15 40 30 Q20 40 30 50 Q10 60 20 80 Z" fill="#78350f"/></svg>`
         };
 
-        // 🌟 新增：計時器與倒數秒數變數
+        // 完美對應字典：每個特效都精準對上它的手工 SVG
+        const effectData = {
+            none: { name: {zh: '無特效', en: 'None'}, cost: 0, preview: '#ffffff' },
+            rain: { name: {zh: '綿綿細雨', en: 'Raindrops'}, cost: 800, preview: '#93c5fd', svg: [{s: 'drop'}], dir: 'down', count: 20 },
+            bubble: { name: {zh: '夢幻泡泡', en: 'Bubbles'}, cost: 1200, preview: '#67e8f9', svg: [{s: 'bubble'}], dir: 'up', count: 15 },
+            tomato: { name: {zh: '飛天小番茄', en: 'Flying Tomato'}, cost: 1500, preview: '#fca5a5', svg: [{s: 'tomato'}], dir: 'down', count: 12 },
+            bugFree: { name: {zh: 'Bug退散', en: 'No More Bugs'}, cost: 8888, preview: '#4ade80', svg: [{s: 'bugFree'}], dir: 'up', count: 15 },
+            disco: { name: {zh: '迪斯可舞池', en: 'Disco Party'}, cost: 2500, preview: '#c084fc', svg: [{s: 'star'}, {s: 'music'}], dir: 'up', count: 10 },
+            paint: { name: {zh: '揮灑顏料', en: 'Paint Splash'}, cost: 2000, preview: '#f472b6', svg: [{s: 'drop'}], dir: 'down', count: 15 },
+            heartbeat: { name: {zh: '心動滿滿', en: 'Heartbeat'}, cost: 1800, preview: '#f43f5e', svg: [{s: 'heart'}], dir: 'up', count: 18 },
+            noClass: { name: {zh: '不想上課', en: 'Skip Class'}, cost: 1600, preview: '#94a3b8', svg: [{s: 'book'}, {s: 'moon'}], dir: 'down', count: 12 },
+            money: { name: {zh: '財富自由', en: 'Money Rain'}, cost: 9999, preview: '#facc15', svg: [{s: 'money'}], dir: 'down', count: 20 },
+            zzz: { name: {zh: '強烈睡意', en: 'Sleepy'}, cost: 1000, preview: '#cbd5e1', svg: [{s: 'moon'}], dir: 'up', count: 8 },
+            sweat: { name: {zh: '尷尬流汗', en: 'Sweating'}, cost: 1000, preview: '#7dd3fc', svg: [{s: 'drop'}], dir: 'down', count: 15 },
+            math: { name: {zh: '數學當機', en: 'Math Error'}, cost: 1200, preview: '#0f172a', svg: [{s: 'cross'}, {s: 'book'}], dir: 'down', count: 20 },
+            poop: { name: {zh: '黃金天降', en: 'Holy Poop'}, cost: 500, preview: '#78350f', svg: [{s: 'poop'}], dir: 'down', count: 10 },
+            snow: { name: {zh: '初雪飄落', en: 'Snowfall'}, cost: 1500, preview: '#e0f2fe', svg: [{s: 'snow'}], dir: 'down', count: 25 },
+            sakura: { name: {zh: '櫻花飛舞', en: 'Sakura'}, cost: 2200, preview: '#fbcfe8', svg: [{s: 'leaf'}], dir: 'down', count: 20 },
+            star: { name: {zh: '繁星閃爍', en: 'Starry'}, cost: 1800, preview: '#fef08a', svg: [{s: 'star'}, {s: 'sparkle'}], dir: 'down', count: 20 },
+            firefly: { name: {zh: '螢火蟲', en: 'Fireflies'}, cost: 2000, preview: '#84cc16', svg: [{s: 'sparkle'}], dir: 'up', count: 15 },
+            leaf: { name: {zh: '落葉紛飛', en: 'Falling Leaves'}, cost: 1400, preview: '#ea580c', svg: [{s: 'leaf'}], dir: 'down', count: 15 },
+            meteor: { name: {zh: '流星雨', en: 'Meteor Shower'}, cost: 3000, preview: '#818cf8', svg: [{s: 'star'}], dir: 'down', count: 8 },
+            sun: { name: {zh: '陽光普照', en: 'Sunny'}, cost: 1500, preview: '#fb923c', svg: [{s: 'sun'}], dir: 'up', count: 10 },
+            moon: { name: {zh: '月光灑落', en: 'Moonlight'}, cost: 1500, preview: '#1e293b', svg: [{s: 'moon'}], dir: 'down', count: 8 },
+            lightning: { name: {zh: '閃電交加', en: 'Lightning'}, cost: 2400, preview: '#fde047', svg: [{s: 'lightning'}], dir: 'down', count: 12 },
+            rainbowStars: { name: {zh: '彩虹星塵', en: 'Rainbow Dust'}, cost: 2800, preview: '#a855f7', svg: [{s: 'star'}], dir: 'up', count: 12 },
+            butterfly: { name: {zh: '蝴蝶翩翩', en: 'Butterflies'}, cost: 2100, preview: '#c084fc', svg: [{s: 'butterfly'}], dir: 'up', count: 10 },
+            bat: { name: {zh: '吸血蝙蝠', en: 'Vampire Bats'}, cost: 2300, preview: '#334155', svg: [{s: 'bat'}], dir: 'down', count: 12 },
+            ghost: { name: {zh: '小幽靈', en: 'Little Ghosts'}, cost: 2500, preview: '#f8fafc', svg: [{s: 'ghost'}], dir: 'up', count: 10 },
+            duck: { name: {zh: '黃色小鴨', en: 'Rubber Ducks'}, cost: 1800, preview: '#fde047', svg: [{s: 'duck'}], dir: 'down', count: 15 },
+            fish: { name: {zh: '深海魚群', en: 'School of Fish'}, cost: 1900, preview: '#0284c7', svg: [{s: 'fish'}], dir: 'up', count: 18 },
+            sheep: { name: {zh: '數羊羊', en: 'Counting Sheep'}, cost: 1600, preview: '#e2e8f0', svg: [{s: 'moon'}], dir: 'up', count: 8 },
+            feather: { name: {zh: '天使羽毛', en: 'Angel Feathers'}, cost: 2400, preview: '#ffffff', svg: [{s: 'leaf'}], dir: 'down', count: 15 },
+            boba: { name: {zh: '珍奶珍珠', en: 'Boba Pearls'}, cost: 1700, preview: '#78350f', svg: [{s: 'boba'}], dir: 'down', count: 20 },
+            sushi: { name: {zh: '迴轉壽司', en: 'Sushi Roll'}, cost: 2200, preview: '#f87171', svg: [{s: 'sushi'}], dir: 'down', count: 12 },
+            pizza: { name: {zh: '披薩派對', en: 'Pizza Party'}, cost: 2000, preview: '#ea580c', svg: [{s: 'pizza'}], dir: 'down', count: 10 },
+            fries: { name: {zh: '薯條雨', en: 'French Fries'}, cost: 1900, preview: '#facc15', svg: [{s: 'fries'}], dir: 'down', count: 15 },
+            cake: { name: {zh: '甜點時間', en: 'Dessert Time'}, cost: 2100, preview: '#fbcfe8', svg: [{s: 'cake'}], dir: 'down', count: 12 },
+            coffee: { name: {zh: '咖啡續命', en: 'Coffee Refill'}, cost: 1800, preview: '#451a03', svg: [{s: 'coffee'}], dir: 'up', count: 10 },
+            cookie: { name: {zh: '餅干碎屑', en: 'Cookies'}, cost: 1600, preview: '#b45309', svg: [{s: 'cookie'}], dir: 'down', count: 12 },
+            confetti: { name: {zh: '派對拉炮', en: 'Confetti'}, cost: 2500, preview: '#f472b6', svg: [{s: 'star'}, {s: 'sparkle'}], dir: 'down', count: 20 },
+            balloon: { name: {zh: '彩色氣球', en: 'Balloons'}, cost: 2000, preview: '#ef4444', svg: [{s: 'drop'}], dir: 'up', count: 10 },
+            magic: { name: {zh: '魔法詠唱', en: 'Magic Spell'}, cost: 3500, preview: '#a855f7', svg: [{s: 'sparkle'}, {s: 'star'}], dir: 'up', count: 15 },
+            potion: { name: {zh: '煉金藥水', en: 'Alchemy Potions'}, cost: 3200, preview: '#22c55e', svg: [{s: 'potion'}], dir: 'up', count: 12 },
+            sword: { name: {zh: '勇者之劍', en: 'Hero Swords'}, cost: 3800, preview: '#94a3b8', svg: [{s: 'sword'}], dir: 'down', count: 8 },
+            ufo: { name: {zh: '外星綁架', en: 'UFO Abduction'}, cost: 4000, preview: '#4ade80', svg: [{s: 'ufo'}], dir: 'up', count: 6 },
+            planet: { name: {zh: '行星軌道', en: 'Planets'}, cost: 4200, preview: '#312e81', svg: [{s: 'planet'}], dir: 'up', count: 8 },
+            clock: { name: {zh: '時光倒流', en: 'Time Reversal'}, cost: 3600, preview: '#d4d4d8', svg: [{s: 'clock'}], dir: 'up', count: 10 },
+            gift: { name: {zh: '驚喜禮物', en: 'Surprise Gifts'}, cost: 2800, preview: '#f43f5e', svg: [{s: 'gift'}], dir: 'down', count: 12 },
+            sparkle: { name: {zh: 'Bling閃光', en: 'Sparkles'}, cost: 2000, preview: '#fef08a', svg: [{s: 'sparkle'}], dir: 'up', count: 25 },
+            crown: { name: {zh: '加冕皇冠', en: 'Royal Crown'}, cost: 5000, preview: '#eab308', svg: [{s: 'crown'}], dir: 'down', count: 8 },
+            card: { name: {zh: '魔術撲克', en: 'Magic Cards'}, cost: 2700, preview: '#ef4444', svg: [{s: 'heart'}, {s: 'leaf'}], dir: 'down', count: 18 },
+            gear: { name: {zh: '齒輪運轉', en: 'Gears Turning'}, cost: 2600, preview: '#64748b', svg: [{s: 'gear'}], dir: 'down', count: 12 },
+            music: { name: {zh: '跳動音符', en: 'Musical Notes'}, cost: 2200, preview: '#3b82f6', svg: [{s: 'music'}], dir: 'up', count: 15 },
+            tvStatic: { name: {zh: '阿嬤的舊電視', en: 'Old TV'}, cost: 1000, preview: '#94a3b8', svg: [{s: 'tvStatic'}], dir: 'down', count: 12 },
+            heartbeat: { name: {zh: '心動小鎮', en: 'Heartbeat Town'}, cost: 6666, preview: '#f43f5e', svg: [{s: 'heart'}], dir: 'up', count: 15 }
+        };
+
         let currentTab = 'species';
         let trialState = { species: null, bg: null, effect: null };
         let trialTimer = null;
-        let trialTimeLeft = 0;
 
         window.onload = function() {
             loadGame();
@@ -978,11 +1048,12 @@ const i18n = {
             document.getElementById('petNameInput').value = randomStr;
         }
 
-        // 🌟 切換標籤時清空計時器
         function switchTab(tab) {
             currentTab = tab;
+            
+            // 切換分類時，強制清空試用狀態！
             trialState = { species: null, bg: null, effect: null };
-            if(trialTimer) clearInterval(trialTimer);
+            if(trialTimer) clearTimeout(trialTimer);
             refreshAll(); 
             
             document.getElementById('tabSpecies').className = tab === 'species' ? 'tab active' : 'tab';
@@ -990,12 +1061,12 @@ const i18n = {
             document.getElementById('tabEffect').className = tab === 'effect' ? 'tab active' : 'tab';
         }
 
-        // 🌟 重新設計渲染商店，加入超明顯倒數 UI
         function renderShop() {
             const grid = document.getElementById('shopGrid');
             grid.innerHTML = '';
             const t = i18n[currLang];
             
+            // 動態翻譯按鈕
             const txtTry = currLang === 'zh' ? '👀 試用' : 'Try';
             const txtBuy = currLang === 'zh' ? '💰 購買' : 'Buy';
             const txtCancel = currLang === 'zh' ? '❌ 取消' : 'Cancel';
@@ -1020,11 +1091,8 @@ const i18n = {
                     actionHTML = `<div class="item-cost owned">${btnText}</div>`;
                     card.onclick = () => equipItem(key, typeKey);
                 } else if (isTrialing) {
-                    // 加入顯示倒數秒數的設計
-                    let timerText = currLang === 'zh' ? `⏳ 試用中: ${trialTimeLeft}s` : `⏳ Trial: ${trialTimeLeft}s`;
                     actionHTML = `
-                        <div style="font-size:0.75rem; color:#ef4444; font-weight:900; margin-bottom:4px;">${timerText}</div>
-                        <div style="display:flex; gap:6px; justify-content:center;">
+                        <div style="display:flex; gap:6px; justify-content:center; margin-top:5px;">
                             <div class="item-cost" style="background:#4ade80; font-size:0.8rem; padding:4px 8px; cursor:pointer;" onclick="buyItem('${key}', '${typeKey}', ${item.cost}, event)">${txtBuy}</div>
                             <div class="item-cost" style="background:#ef4444; font-size:0.8rem; padding:4px 8px; cursor:pointer;" onclick="cancelTrial('${typeKey}', event)">${txtCancel}</div>
                         </div>
@@ -1047,10 +1115,8 @@ const i18n = {
             });
         }
 
-        // 🌟 裝備物品時清空計時器
         function equipItem(key, type) {
             trialState[type] = null; 
-            if(trialTimer) clearInterval(trialTimer);
             if (type === 'species') gameState.currentSpecies = key;
             else if (type === 'bg') gameState.currentBg = key;
             else gameState.currentEffect = key;
@@ -1058,30 +1124,21 @@ const i18n = {
             saveGame();
         }
 
-        // 🌟 試用功能全面升級成每秒倒數
         function tryItem(key, type) {
             trialState[type] = key;
-            trialTimeLeft = 10; // 預設試用 10 秒
-            refreshAll(); // 先套用試用的外觀
+            refreshAll();
             
-            if(trialTimer) clearInterval(trialTimer);
+            if(trialTimer) clearTimeout(trialTimer);
             
-            showFloatText('⏱️ 試用開始！', 2000);
+            showFloatText('⏱️ 試用開始 (10秒)', 10000);
             
-            // 使用 setInterval 每一秒更新一次畫面
-            trialTimer = setInterval(() => {
-                trialTimeLeft--; // 秒數減 1
-                if(trialTimeLeft <= 0) {
-                    clearInterval(trialTimer);
-                    if(trialState[type] === key) { 
-                        trialState[type] = null;
-                        refreshAll(); // 取消試用外觀
-                        showFloatText('✨ 試用結束，喜歡就帶回家吧！', 3000);
-                    }
-                } else {
-                    renderShop(); // 時間還沒到，只更新按鈕上的秒數
+            trialTimer = setTimeout(() => {
+                if(trialState[type] === key) { 
+                    trialState[type] = null;
+                    refreshAll();
+                    showFloatText('✨ 試用結束，喜歡就帶回家吧！', 10000);
                 }
-            }, 1000); 
+            }, 10000); 
         }
 
         function buyItem(key, type, cost, e) {
@@ -1093,17 +1150,15 @@ const i18n = {
                 else gameState.unlockedEffects.push(key);
                 
                 equipItem(key, type); 
-                showFloatText('✨ 購買成功 ✨', 3000);
+                showFloatText('✨ 購買成功 ✨', 5000);
             } else {
-                showFloatText('積分不足 😢', 2000);
+                showFloatText('積分不足 😢');
             }
         }
 
-        // 🌟 取消試用時清空計時器
         function cancelTrial(type, e) {
             if(e) e.stopPropagation();
             trialState[type] = null;
-            if(trialTimer) clearInterval(trialTimer);
             refreshAll();
         }
 
@@ -1143,24 +1198,39 @@ const i18n = {
             
             if (!effect || effectKey === 'none') return;
 
+            // 🌟 寶寶的「VIP 特效包廂」🌟
+            // 根據不同的特效名字，進入不同的專屬製作區！
             switch (effectKey) {
+                
+                // ------------------------------------------------
+                // 🌧️ 【綿綿細雨】專屬地盤 (極致朦朧升級版！)
+                // ------------------------------------------------
                 case 'rain':
+                    // ✨ 數量再加碼到 100，因為模糊後的雨絲會交織成一片水霧！
                     for (let i = 0; i < 100; i++) { 
                         let el = document.createElement('div');
                         el.style.position = 'absolute';
                         el.style.left = Math.random() * 100 + '%';
                         el.style.top = '-60px'; 
+                        
+                        // 呼叫你的針狀雨絲
                         el.innerHTML = svgLib['drop']; 
                         
                         let size = Math.random() * 25 + 15;
                         el.style.width = size + 'px'; 
                         el.style.height = size + 'px';
+                        
+                        // 固定斜斜的 15 度，咻咻咻
                         el.style.transform = 'rotate(15deg)';
                         
-                        let blurValue = Math.random() * 4;
+                        // ✨ 朦朧感魔法：讓每一根雨絲有不同的模糊度與透明度！
+                        let blurValue = Math.random() * 4; // 隨機加上 0 到 4 像素的模糊
                         el.style.filter = `blur(${blurValue}px)`;
+                        
+                        // 越模糊的雨絲（越遠的），透明度就越低，創造超逼真的空氣霧感
                         el.style.opacity = Math.random() * 0.4 + (1 - blurValue / 5) * 0.5; 
                         
+                        // 速度與延遲
                         let duration = Math.random() * 1.5 + 0.8; 
                         el.style.animation = `rainFall ${duration}s linear infinite`;
                         el.style.animationDelay = (Math.random() * 3) + 's';
@@ -1169,17 +1239,22 @@ const i18n = {
                     }
                     break;
 
+                // ------------------------------------------------
+                // 🍅 【飛天小番茄】專屬地盤
+                // ------------------------------------------------
                 case 'tomato':
                     for (let i = 0; i < 12; i++) {
                         let el = document.createElement('div');
                         el.style.position = 'absolute';
                         el.style.left = Math.random() * 100 + '%';
                         el.style.top = '-60px';
+                        
                         el.innerHTML = svgLib['tomato'];
                         let size = Math.random() * 30 + 30;
                         el.style.width = size + 'px';
                         el.style.height = size + 'px';
                         
+                        // ✨ 專屬靈魂：在空中隨機瘋狂翻轉！
                         let randomRotation = Math.random() * 360; 
                         el.style.transform = `rotate(${randomRotation}deg)`;
                         
@@ -1191,6 +1266,9 @@ const i18n = {
                     }
                     break;
 
+                // ------------------------------------------------
+                // 🛠️ 其他還沒改到的特效，先用這個「通用備用方案」頂著
+                // ------------------------------------------------
                 default:
                     let count = effect.count || 15;
                     for (let i = 0; i < count; i++) {
@@ -1233,19 +1311,21 @@ const i18n = {
             updateUI();
         }
 
-        // 🌟 字體顯示修復與最佳化版
-        function showFloatText(text, duration = 1000) {
-            const el = document.createElement('div');
-            el.className = 'float-text';
-            el.innerText = text;
-            el.style.left = '50%';
-            el.style.top = '30%';
-            
-            el.style.animation = `floatUp ${duration / 1000}s forwards cubic-bezier(0.18, 0.89, 0.32, 1.28)`;
-            
-            document.body.appendChild(el);
-            setTimeout(() => el.remove(), duration);
-        }
+function showFloatText(text, duration = 1000) {
+    const el = document.createElement('div');
+    el.className = 'float-text';
+    el.innerText = text;
+    el.style.left = '50%';
+    el.style.top = '30%';
+    
+    // 這裡的 duration 終於有主人了！
+    el.style.animation = `floatUp ${duration / 1000}s forwards cubic-bezier(0.18, 0.89, 0.32, 1.28)`;
+    
+    document.body.appendChild(el);
+    
+    // 這裡原本的 1000 也要改成 duration，這樣文字才會乖乖停留！
+    setTimeout(() => el.remove(), duration);
+}
 
         function startCooldownTimer() {
             setInterval(() => {
