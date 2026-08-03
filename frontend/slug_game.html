@@ -538,7 +538,10 @@
             </div>
         </div>
     </div>
-    
+    <!-- 試用倒數計時器 -->
+<div id="trialTimerDisplay" style="display:none; position: absolute; top: 15%; left: 50%; transform: translateX(-50%); font-size: 1.2rem; font-weight: 900; color: var(--text-dark); background: rgba(255, 255, 255, 0.85); border: 3px solid var(--accent-color); padding: 8px 24px; border-radius: 30px; box-shadow: 0 5px 15px var(--shadow-color); backdrop-filter: blur(4px); z-index: 100; pointer-events: none;">
+    ⏱️ 試用中 <span id="trialCountdownNum" style="color: var(--accent-color); font-size: 1.4rem;">10</span>s
+</div>
     <div class="gacha-overlay" id="gachaScreen">
         <div class="gacha-title" id="gachaTitle">發現神祕海兔卵</div>
         <div class="gacha-box" id="gachaBox" onclick="rollGacha()">點擊孵化</div>
@@ -905,7 +908,7 @@ const i18n = {
         let currentTab = 'species';
         let trialState = { species: null, bg: null, effect: null };
         let trialTimer = null;
-
+let trialInterval = null;
         window.onload = function() {
             loadGame();
             updateLangUI();
@@ -1054,6 +1057,9 @@ const i18n = {
             // 切換分類時，強制清空試用狀態！
             trialState = { species: null, bg: null, effect: null };
             if(trialTimer) clearTimeout(trialTimer);
+            // 🌟 清除倒數並隱藏 UI
+    if(trialInterval) clearInterval(trialInterval);
+    document.getElementById('trialTimerDisplay').style.display = 'none';
             refreshAll(); 
             
             document.getElementById('tabSpecies').className = tab === 'species' ? 'tab active' : 'tab';
@@ -1117,6 +1123,9 @@ const i18n = {
 
         function equipItem(key, type) {
             trialState[type] = null; 
+            // 🌟 如果試用到一半直接購買/裝備，也要清除倒數
+    if(trialInterval) clearInterval(trialInterval);
+    document.getElementById('trialTimerDisplay').style.display = 'none';
             if (type === 'species') gameState.currentSpecies = key;
             else if (type === 'bg') gameState.currentBg = key;
             else gameState.currentEffect = key;
@@ -1124,22 +1133,42 @@ const i18n = {
             saveGame();
         }
 
-        function tryItem(key, type) {
-            trialState[type] = key;
-            refreshAll();
+       function tryItem(key, type) {
+    trialState[type] = key;
+    refreshAll();
+    
+    // 清除舊的計時器
+    if(trialTimer) clearTimeout(trialTimer);
+    if(trialInterval) clearInterval(trialInterval);
+    
+    let timeLeft = 10;
+    const timerDisplay = document.getElementById('trialTimerDisplay');
+    const numDisplay = document.getElementById('trialCountdownNum');
+    
+    // 顯示倒數 UI
+    timerDisplay.style.display = 'block';
+    numDisplay.innerText = timeLeft;
+    
+    showFloatText('⏱️ 試用開始', 2000);
+    
+    // 每秒更新數字
+    trialInterval = setInterval(() => {
+        timeLeft--;
+        numDisplay.innerText = timeLeft;
+        
+        // 時間到！結束試用
+        if(timeLeft <= 0) {
+            clearInterval(trialInterval);
+            timerDisplay.style.display = 'none';
             
-            if(trialTimer) clearTimeout(trialTimer);
-            
-            showFloatText('⏱️ 試用開始 (10秒)', 10000);
-            
-            trialTimer = setTimeout(() => {
-                if(trialState[type] === key) { 
-                    trialState[type] = null;
-                    refreshAll();
-                    showFloatText('✨ 試用結束，喜歡就帶回家吧！', 10000);
-                }
-            }, 10000); 
+            if(trialState[type] === key) { 
+                trialState[type] = null;
+                refreshAll();
+                showFloatText('✨ 試用結束，喜歡就帶回家吧！', 3000);
+            }
         }
+    }, 1000);
+}
 
         function buyItem(key, type, cost, e) {
             if(e) e.stopPropagation(); 
@@ -1159,6 +1188,9 @@ const i18n = {
         function cancelTrial(type, e) {
             if(e) e.stopPropagation();
             trialState[type] = null;
+            // 🌟 清除倒數並隱藏 UI
+    if(trialInterval) clearInterval(trialInterval);
+    document.getElementById('trialTimerDisplay').style.display = 'none';
             refreshAll();
         }
 
