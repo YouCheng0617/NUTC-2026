@@ -228,3 +228,77 @@ body::before {
     font-size: 1.1rem;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
 }
+/* =========================================
+   ✨ 響應式設計 (RWD) 手機與平板適配 ✨
+   ========================================= */
+
+/* 針對平板與大尺寸手機 (螢幕寬度 768px 以下) */
+@media (max-width: 768px) {
+    /* 讓 UI 狀態列縮小，避免超出螢幕邊界 */
+    #ui-layer {
+        width: 95%;
+        top: 10px;
+        padding: 8px 15px;
+        font-size: 1rem;
+        gap: 10px;
+        justify-content: center;
+        flex-wrap: wrap; /* 如果真的太擠可以自動換行 */
+    }
+
+    /* 遊戲彈窗的內距與標題微調，給畫面多點呼吸空間 */
+    .game-modal {
+        padding: 25px 20px;
+        width: 95%;
+    }
+    .game-modal h1 { 
+        font-size: 1.8rem; 
+    }
+
+    /* 難度按鈕稍微縮小，避免在手機上折行太醜 */
+    .diff-selector { 
+        gap: 8px; 
+        margin-bottom: 20px; 
+    }
+    .diff-btn {
+        padding: 6px 10px;
+        font-size: 0.9rem;
+    }
+
+    /* 右上角的全域排行榜縮小一點 */
+    #top-right-leaderboard {
+        padding: 6px 12px;
+        font-size: 0.9rem;
+    }
+}
+
+/* 針對小尺寸手機 (螢幕寬度 480px 以下) 的終極壓縮 */
+@media (max-width: 480px) {
+    #ui-layer {
+        font-size: 0.85rem;
+        gap: 5px;
+        padding: 5px 10px;
+        border-radius: 20px;
+    }
+    
+    .game-modal h1 { 
+        font-size: 1.5rem; 
+    }
+    
+    .game-modal p { 
+        font-size: 0.9rem; 
+    }
+
+    .btn-action {
+        padding: 10px 20px;
+        font-size: 1rem;
+    }
+
+    /* 彈藥補給貝殼特效在手機上稍微縮小 */
+    .ammo-shell {
+        font-size: 2.5rem;
+    }
+    .ammo-shell::after {
+        font-size: 1rem;
+        bottom: -10px;
+    }
+}
