@@ -1,5 +1,5 @@
 import type { Response, Request } from "express";
-import { getAllMembers, changeMemberStatus, getAllBottlesForAdmin, updateBottleStatus, deleteBottleByAdmin, deleteMemberByAdmin, getReportedBottles } from "./admin.service.js";
+import { getAllMembers, changeMemberStatus, getAllBottlesForAdmin, updateBottleStatus, deleteBottleByAdmin, deleteMemberByAdmin, getReportedBottles, getAllComments } from "./admin.service.js";
 
 export class AdminController {
 
@@ -142,6 +142,22 @@ export class AdminController {
             });
         } catch (error: any) {
             console.error("Error fetching reported bottles:", error);
+            return res.status(500).json({
+                message: "內部伺服器錯誤",
+                real_error: error.message || error.toString(),
+                stack: error.stack
+            });
+        }
+    }
+    async getAllCommentsController(req: Request, res: Response) {
+        try {
+            const comments = await getAllComments();
+            return res.status(200).json({
+                message: "所有留言獲取成功",
+                data: comments
+            });
+        } catch (error: any) {
+            console.error("Error fetching comments:", error);
             return res.status(500).json({
                 message: "內部伺服器錯誤",
                 real_error: error.message || error.toString(),

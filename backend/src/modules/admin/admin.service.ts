@@ -158,3 +158,41 @@ export const getReportedBottles = async () => {
 
     return reportedBottles
 }
+
+export const getAllComments = async () => {
+    const comments = await prisma.comment.findMany({
+        orderBy: {
+            createdAt: "desc"
+        },
+        include: {
+            member: {
+                select: {
+                    name: true,
+                    email: true,
+                    gender: true,
+                    status: true,
+                }
+            },
+            bottle: {
+                select: {
+                    title: true,
+                    status: true,
+                }
+            }
+        }
+    });
+
+    return comments.map(comment => {
+        const { member, bottle, ...commentData } = comment;
+        return {
+            ...commentData,
+            member_name: member?.name || "匿名使用者",
+            member_email: member?.email || "未知信箱",
+            member_gender: member?.gender || "保密",
+            member_status: member?.status || "ACTIVE",
+            bottle_title: bottle?.title || "未知標題",
+            bottle_status: bottle?.status || 0,
+            is_anonymous: commentData?.is_anonymous || false
+        };
+    });
+}
