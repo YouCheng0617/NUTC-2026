@@ -622,6 +622,7 @@ window.submitReply = async function (bottleId, parentId) {
         alert("伺服器開小差了，回覆失敗請稍後再試 😢");
     }
 };
+
 window.toggleCommentLike = async function (postId, commentId) {
     const token = localStorage.getItem("authToken");
 
@@ -661,8 +662,7 @@ window.toggleCommentLike = async function (postId, commentId) {
                 'Authorization': `Bearer ${token}`,
                 'Content-Type': 'application/json',
                 'ngrok-skip-browser-warning': 'true'
-            },
-            body: JSON.stringify({ content: text, isAnonymous: isAnon })
+            }
         });
 
         if (!response.ok) {
