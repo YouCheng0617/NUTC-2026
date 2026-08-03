@@ -117,6 +117,15 @@ body::before {
     touch-action: none;
     -webkit-user-drag: none;
 }
+/* =========================================
+   🐟 讓扣分的雙魚變得超級大 (修正版)
+   ========================================= */
+.game-target[data-type="fish"] {
+    /* 直接修改寬高，避免與下墜動畫 (transform) 衝突，同時放大判定範圍 */
+    width: clamp(175px, 25vw, 250px) !important; 
+    height: clamp(175px, 25vw, 250px) !important;
+    z-index: 50;
+}
 
 .game-target img {
     position: absolute;
@@ -175,7 +184,7 @@ body::before {
     position: relative;
     width: 100%; height: 100%;
     display: flex; justify-content: center; align-items: center;
-    font-size: 3.5rem;
+    font-size: 2rem; /* 👈 從原本的 3.5rem 改成 2rem */
     filter: drop-shadow(0 0 15px #00ffcc);
     animation: pulse-glow 0.8s infinite alternate;
 }
@@ -290,9 +299,9 @@ body::before {
         gap: 5px !important;
     }
     
-    /* 彈藥補給貝殼特效縮小，避免擋住畫面 */
+    /* 彈藥補給貝殼特效縮小，增加手機版點擊難度 */
     .ammo-shell {
-        font-size: 2.2rem !important;
+        font-size: 1.5rem !important; /* 👈 從原本的 2.2rem 改成 1.5rem */
     }
     
     .game-modal h1 { 
