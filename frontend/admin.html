@@ -113,56 +113,61 @@
           </div>
         </div>
 
-        <!-- 📈 第一列圖表 (寬版圖表：折線圖 / 長條圖) -->
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 24px; margin-top: 24px;">
+ <!-- 📈 第一列圖表 (寬版圖表：折線圖 / 長條圖) -->
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 400px), 1fr)); gap: 24px; margin-top: 24px;">
           
           <!-- 發文趨勢圖 (折線圖) -->
-          <div class="modern-card" style="padding: 24px;">
+          <div class="modern-card" style="padding: 24px; box-sizing: border-box;">
             <h3 style="margin: 0 0 20px 0; font-size: 1.1rem; color: #1f2937;">📈 最近 7 天發文趨勢</h3>
-            <div style="height: 300px; width: 100%; display: flex; justify-content: center;">
+            <!-- 🌟 將 display: flex 替換為 position: relative 讓圖表隨容器縮放 -->
+            <div style="position: relative; height: 300px; width: 100%;">
               <canvas id="trendChart"></canvas>
             </div>
           </div>
 
           <!-- 會員星座分佈圖 (長條圖) -->
-          <div class="modern-card" style="padding: 24px;">
+          <div class="modern-card" style="padding: 24px; box-sizing: border-box;">
             <h3 style="margin: 0 0 20px 0; font-size: 1.1rem; color: #1f2937;">🌌 會員星座分佈圖</h3>
-            <div style="height: 300px; width: 100%; display: flex; justify-content: center;">
+            <div style="position: relative; height: 300px; width: 100%;">
               <canvas id="zodiacChart"></canvas>
             </div>
           </div>
         </div>
 
         <!-- 🥧 第二列圖表 (圓形圖表：環狀圖 / 圓餅圖) -->
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 24px; margin-top: 24px;">
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr)); gap: 24px; margin-top: 24px;">
           
           <!-- 漂流瓶情緒分佈圖 (環狀圖) -->
-          <div class="modern-card" style="padding: 24px;">
+          <div class="modern-card" style="padding: 24px; box-sizing: border-box;">
             <h3 style="margin: 0 0 20px 0; font-size: 1.1rem; color: #1f2937;">📊 漂流瓶情緒分佈圖</h3>
-            <div style="height: 300px; width: 100%; display: flex; justify-content: center;">
+            <div style="position: relative; height: 300px; width: 100%;">
               <canvas id="categoryChart"></canvas>
             </div>
           </div>
 
           <!-- 全體會員男女比例分佈圖 (圓餅圖) -->
-          <div class="modern-card" style="padding: 24px;">
+          <div class="modern-card" style="padding: 24px; box-sizing: border-box;">
             <h3 style="margin: 0 0 20px 0; font-size: 1.1rem; color: #1f2937;">👥 全體會員男女比例</h3>
-            <div style="height: 300px; width: 100%; display: flex; justify-content: center;">
+            <div style="position: relative; height: 300px; width: 100%;">
               <canvas id="genderChart"></canvas>
             </div>
           </div>
 
           <!-- 發文者男女比例分佈圖 (圓餅圖) -->
-          <div class="modern-card" style="padding: 24px;">
+          <div class="modern-card" style="padding: 24px; box-sizing: border-box;">
             <h3 style="margin: 0 0 20px 0; font-size: 1.1rem; color: #1f2937;">📝 發文者男女比例</h3>
-            <div style="height: 300px; width: 100%; display: flex; justify-content: center;">
+            <div style="position: relative; height: 300px; width: 100%;">
               <canvas id="bottleGenderChart"></canvas>
+            </div>
+          </div>
+          <div class="modern-card" style="padding: 24px; box-sizing: border-box;">
+            <h3 style="margin: 0 0 20px 0; font-size: 1.1rem; color: #1f2937;">💬 全站留言身份比例</h3>
+            <div style="position: relative; height: 300px; width: 100%;">
+              <canvas id="commentTypeChart"></canvas>
             </div>
           </div>
 
         </div>
-
-      </div>
 
       <div id="section-users" class="admin-section" style="display: none">
         <div class="modern-card">

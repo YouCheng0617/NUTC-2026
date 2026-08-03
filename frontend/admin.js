@@ -81,17 +81,20 @@ let myZodiacChart = null;
 let myGenderChart = null;
 let myBottleGenderChart = null; // 🌟 新增發文者性別圖表變數
 let myTrendChart = null;
+let myCommentTypeChart = null; // 🌟 新增留言類型圖表變數
 
 async function loadDashboardData() {
     const token = localStorage.getItem("authToken");
     try {
-        const [usersRes, bottlesRes] = await Promise.all([
+        const [usersRes, bottlesRes, commentsRes] = await Promise.all([
             fetch(`${API_BASE_URL}/admin/members`, { headers: { 'Authorization': `Bearer ${token}`, 'ngrok-skip-browser-warning': 'true' } }),
-            fetch(`${API_BASE_URL}/admin/bottles`, { headers: { 'Authorization': `Bearer ${token}`, 'ngrok-skip-browser-warning': 'true' } })
+            fetch(`${API_BASE_URL}/admin/bottles`, { headers: { 'Authorization': `Bearer ${token}`, 'ngrok-skip-browser-warning': 'true' } }),
+            fetch(`${API_BASE_URL}/admin/comments`, { headers: { 'Authorization': `Bearer ${token}`, 'ngrok-skip-browser-warning': 'true' } }).catch(() => null)
         ]);
 
-       const usersData = await usersRes.json();
+        const usersData = await usersRes.json();
         const bottlesData = await bottlesRes.json();
+        const commentsData = commentsRes ? await commentsRes.json() : [];
 
         // 🚨 幫我印出後端真正傳來的長相！
         console.log("👉 原始會員 API 回傳:", usersData);
@@ -99,6 +102,7 @@ async function loadDashboardData() {
 
         const users = usersData.data || usersData || [];
         const bottles = bottlesData.data || bottlesData.bottles || bottlesData || [];
+        const comments = commentsData.data || commentsData || []; 
 
         // 更新頂部卡片數字
         document.getElementById('stat-users').innerText = users.length;
@@ -187,12 +191,20 @@ async function loadDashboardData() {
             else otherCount++;
         });
 
+        // 🌟 統計留言身份比例
+        let realCommentCount = 0, anonCommentCount = 0;
+        comments.forEach(c => {
+            if (c.is_anonymous || c.isAnonymous) anonCommentCount++;
+            else realCommentCount++;
+        });
+
         // --- 繪製圖表 ---
         drawTrendChart(trendLabels, Object.values(trendCounts));
         drawDoughnutChart([angry, secret, broken, apathy, happy]);
         drawZodiacChart(Object.keys(zodiacCounts), Object.values(zodiacCounts));
         drawGenderChart([maleCount, femaleCount, otherCount]);
         drawBottleGenderChart([bottleMale, bottleFemale, bottleOther]); // 🌟 繪製發文者男女比例
+        drawCommentTypeChart([realCommentCount, anonCommentCount]); // 🌟 畫出留言比例
 
     } catch (error) {
         console.error("載入總覽數據失敗", error);
@@ -241,7 +253,23 @@ function drawZodiacChart(labels, dataArray) {
             labels: labels,
             datasets: [{ label: '會員人數', data: dataArray, backgroundColor: '#8b5cf6', borderRadius: 4, borderWidth: 0 }]
         },
-        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { precision: 0 } } } }
+        options: { 
+            responsive: true, 
+            maintainAspectRatio: false, 
+            layout: { padding: { bottom: 35 } }, // 🌟 加大底部 Padding 到 35
+            plugins: { legend: { display: false } }, 
+            scales: { 
+                x: {
+                    ticks: {
+                        autoSkip: false, 
+                        maxRotation: 45, 
+                        minRotation: 45,
+                        font: { size: 11 } // 稍微縮小字體讓傾斜排版更順
+                    }
+                },
+                y: { beginAtZero: true, ticks: { precision: 0 } } 
+            } 
+        }
     });
 }
 
@@ -271,6 +299,37 @@ function drawBottleGenderChart(dataArray) {
             datasets: [{ data: dataArray, backgroundColor: ['#3b82f6', '#ec4899', '#cbd5e1'], borderWidth: 1, borderColor: '#ffffff', hoverOffset: 10 }]
         },
         options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { font: { size: 14 }, padding: 10 } } } }
+    });
+}
+
+// 🌟 新增：繪製留言身份比例圓餅圖
+function drawCommentTypeChart(dataArray) {
+    const ctx = document.getElementById('commentTypeChart');
+    if (!ctx) return;
+    if (myCommentTypeChart) myCommentTypeChart.destroy();
+    
+    // 防呆：如果完全沒留言就不畫
+    if (dataArray[0] === 0 && dataArray[1] === 0) return;
+
+    myCommentTypeChart = new Chart(ctx, {
+        type: 'pie',
+        data: {
+            labels: ['👤 實名留言', '🎭 匿名留言'],
+            datasets: [{ 
+                data: dataArray, 
+                backgroundColor: ['#3b82f6', '#94a3b8'], 
+                borderWidth: 1, 
+                borderColor: '#ffffff', 
+                hoverOffset: 10 
+            }]
+        },
+        options: { 
+            responsive: true, 
+            maintainAspectRatio: false, 
+            plugins: { 
+                legend: { position: 'bottom', labels: { font: { size: 14 }, padding: 10 } } 
+            } 
+        }
     });
 }
 
