@@ -1472,6 +1472,7 @@ document.addEventListener('DOMContentLoaded', () => {
     setInterval(() => { if (Math.random() > 0.2) showRandomDialogue(); }, 8000 + Math.random() * 6000);
 
     const startDrag = (clientX, clientY) => {
+        if (window.isMascotSleeping) return;
         isDragging = true;
         hasMoved = false;
 
@@ -1512,113 +1513,104 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-    const stopDrag = () => {
-        if (isDragging) {
-            isDragging = false;
+const stopDrag = () => {
+    if (isDragging) {
+        isDragging = false;
 
-            try {
-                const mascotHome = document.getElementById('mascot-home');
-                if (mascotHome && !window.isMascotSleeping) {
-                    const homeRect = mascotHome.getBoundingClientRect();
-                    const mascotRect = mascot.getBoundingClientRect();
+        try {
+            const mascotHome = document.getElementById('mascot-home');
+            if (mascotHome && !window.isMascotSleeping) {
+                const homeRect = mascotHome.getBoundingClientRect();
+                const mascotRect = mascot.getBoundingClientRect();
+                
+                const mascotCenterX = mascotRect.left + mascotRect.width / 2;
+                const mascotCenterY = mascotRect.top + mascotRect.height / 2;
 
-                    const mascotCenterX = mascotRect.left + mascotRect.width / 2;
-                    const mascotCenterY = mascotRect.top + mascotRect.height / 2;
+                // 碰撞范围判定
+                if (
+                    mascotCenterX > homeRect.left &&
+                    mascotCenterX < homeRect.right &&
+                    mascotCenterY > homeRect.top &&
+                    mascotCenterY < homeRect.bottom
+                ) {
+                    window.isMascotSleeping = true;
+                    mascot.classList.add('mascot-sleeping');
+                    clearTimeout(swimTimer); // 停下
 
-                    // 碰撞范围判定
-                    if (
-                        mascotCenterX > homeRect.left &&
-                        mascotCenterX < homeRect.right &&
-                        mascotCenterY > homeRect.top &&
-                        mascotCenterY < homeRect.bottom
-                    ) {
-                        window.isMascotSleeping = true;
-                        mascot.classList.add('mascot-sleeping');
-                        clearTimeout(swimTimer); // 停下
+                    // 🌟 圖片切換魔法
+                    const awakeMascot = document.getElementById('awake-mascot');
+                    const sleepingMascot = document.getElementById('sleeping-mascot');
+                    if (awakeMascot) awakeMascot.style.display = 'none';
+                    if (sleepingMascot) sleepingMascot.style.display = 'block';
 
-                        // 🌟 圖片切換魔法
-                        const awakeMascot = document.getElementById('awake-mascot');
-                        const sleepingMascot = document.getElementById('sleeping-mascot');
-                        if (awakeMascot) awakeMascot.style.display = 'none';
-                        if (sleepingMascot) sleepingMascot.style.display = 'block';
+                    // 🌟 完美置中與大小魔法 (不會再偏到右下角了！)
+                    mascot.style.transition = 'all 0.5s ease-out';
+                    mascot.style.transform = `scale(0.65)`; // ✨ 尺寸調整為剛好的大小
+                    
+                    // 扣掉吉祥物本身一半的寬度跟高度，才會真的置中！
+                    const exactX = homeRect.left + (homeRect.width / 2) - (mascot.offsetWidth / 2);
+                    const exactY = homeRect.top + (homeRect.height / 2) - (mascot.offsetHeight / 2) + 15; // +15 讓牠稍微沉在水底
 
-                        // 🌟 完美置中與大小魔法 (不會再偏到右下角了！)
-                        mascot.style.transition = 'all 0.5s ease-out';
-                        mascot.style.transform = `scale(0.65)`; // ✨ 尺寸調整為剛好的大小
+                    mascot.style.left = `${exactX}px`;
+                    mascot.style.top = `${exactY}px`;
 
-                        // 扣掉吉祥物本身一半的寬度跟高度，才會真的置中！
-                        const exactX = homeRect.left + (homeRect.width / 2) - (mascot.offsetWidth / 2);
-                        const exactY = homeRect.top + (homeRect.height / 2) - (mascot.offsetHeight / 2) + 15; // +15 讓牠稍微沉在水底
-
-                        mascot.style.left = `${exactX}px`;
-                        mascot.style.top = `${exactY}px`;
-
-                        const dialogueBox = document.getElementById('mermecat-dialogue');
-                        if (dialogueBox) {
-                            dialogueBox.innerText = "呼嚕呼嚕... 進來休息喵 ✨🐚";
-                            dialogueBox.classList.add('show-dialogue');
-                            setTimeout(() => { dialogueBox.classList.remove('show-dialogue'); }, 3000);
-                        }
-                        return;
+                    const dialogueBox = document.getElementById('mermecat-dialogue');
+                    if (dialogueBox) {
+                        dialogueBox.innerText = "呼嚕呼嚕... 進來休息喵 ✨🐚";
+                        dialogueBox.classList.add('show-dialogue');
+                        setTimeout(() => { dialogueBox.classList.remove('show-dialogue'); }, 3000);
                     }
+                    return; 
                 }
-            } catch (e) {
-                console.log('小窩魔法打結了:', e);
-            }
-
-            if (!window.isMascotSleeping) {
-                swimLikeLazyMermaid();
-            }
+            } 
+        } catch(e) {
+            console.log('小窩魔法打結了:', e);
         }
-    };
 
-    // 🏠 --- 蓋房子與起床的程式碼 ---
-    let mascotHome = document.getElementById('mascot-home');
-    if (!mascotHome) {
-        mascotHome = document.createElement('div');
-        mascotHome.id = 'mascot-home';
-        mascotHome.title = '把小助理拖進來休息，點擊再叫牠起床喔！';
-        document.body.appendChild(mascotHome);
-    }
-
-    mascotHome.addEventListener('click', () => {
-        if (window.isMascotSleeping) {
-            window.isMascotSleeping = false;
-            mascot.classList.remove('mascot-sleeping');
-
-            // 🌟 切換回醒著的圖片
-            const awakeMascot = document.getElementById('awake-mascot');
-            const sleepingMascot = document.getElementById('sleeping-mascot');
-            if (awakeMascot) awakeMascot.style.display = 'block';
-            if (sleepingMascot) sleepingMascot.style.display = 'none';
-
-            // 恢復大小跟位置
-            const homeRect = mascotHome.getBoundingClientRect();
-            mascot.style.transition = 'none';
-            mascot.style.transform = `scale(1)`;
-            mascot.style.left = (homeRect.right + 15) + 'px';
-            mascot.style.top = (homeRect.top - 30) + 'px';
-            mascot.offsetHeight; // 強制瀏覽器重繪
-
-            mascot.style.transition = 'top 8s ease-in-out, left 8s ease-in-out';
-
-            const dialogueBox = document.getElementById('mermecat-dialogue');
-            if (dialogueBox) {
-                dialogueBox.innerText = "喵嗚！謝謝寶寶叫我起床✨🐬";
-                dialogueBox.classList.add('show-dialogue');
-                setTimeout(() => { dialogueBox.classList.remove('show-dialogue'); }, 3500);
-            }
-
+        if (!window.isMascotSleeping) {
             swimLikeLazyMermaid();
-        } else {
-            const dialogueBox = document.getElementById('mermecat-dialogue');
-            if (dialogueBox) {
-                dialogueBox.innerText = "我還不想睡啦！把我拖過去我才要睡！😝";
-                dialogueBox.classList.add('show-dialogue');
-                setTimeout(() => { dialogueBox.classList.remove('show-dialogue'); }, 2500);
-            }
         }
-    });
+    }
+};
+
+// 🏠 --- 蓋房子與起床的程式碼 ---
+let mascotHome = document.getElementById('mascot-home');
+if (!mascotHome) {
+    mascotHome = document.createElement('div');
+    mascotHome.id = 'mascot-home';
+    mascotHome.title = '把小助理拖進來休息，點擊再叫牠起床喔！';
+    document.body.appendChild(mascotHome);
+}
+
+mascotHome.addEventListener('click', () => {
+    if (window.isMascotSleeping) {
+        window.isMascotSleeping = false;
+        mascot.classList.remove('mascot-sleeping');
+        
+        // 🌟 切換回醒著的圖片
+        const awakeMascot = document.getElementById('awake-mascot');
+        const sleepingMascot = document.getElementById('sleeping-mascot');
+        if (awakeMascot) awakeMascot.style.display = 'block';
+        if (sleepingMascot) sleepingMascot.style.display = 'none';
+        
+        // 恢復大小跟位置
+        const homeRect = mascotHome.getBoundingClientRect();
+        mascot.style.transition = 'none'; 
+        mascot.style.transform = `scale(1)`; 
+        mascot.style.left = (homeRect.right + 15) + 'px';
+        mascot.style.top = (homeRect.top - 30) + 'px';
+        mascot.offsetHeight; // 強制瀏覽器重繪
+        
+        mascot.style.transition = 'top 8s ease-in-out, left 8s ease-in-out';
+        
+        const dialogueBox = document.getElementById('mermecat-dialogue');
+        if (dialogueBox) {
+            dialogueBox.innerText = "喵嗚！謝謝寶寶叫我起床✨🐬";
+            dialogueBox.classList.add('show-dialogue');
+            setTimeout(() => { dialogueBox.classList.remove('show-dialogue'); }, 3500);
+        }
+    }
+});
     // 🖱️ 滑鼠事件
     mascot.addEventListener('mousedown', (e) => {
         e.preventDefault();
@@ -1643,6 +1635,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 🫧 雙擊頁面空白處，讓吉祥物游到使用者指定的位置。
     document.addEventListener('dblclick', (e) => {
+        if (window.isMascotSleeping) return;
         const target = e.target;
         if (target instanceof Element && target.closest(
             'a, button, input, textarea, select, label, [role="button"], #svg-mermecat-mascot'
@@ -1669,12 +1662,27 @@ document.addEventListener('DOMContentLoaded', () => {
         swimTimer = setTimeout(swimLikeLazyMermaid, 3000);
     });
 
-    // 🚀 防止拖曳完不小心觸發跳轉，只有真的「單純點擊」才會去 AI 助手頁面
+ // 🚀 防止拖曳完不小心觸發跳轉，只有真的「單純點擊」才會去 AI 助手頁面
     mascot.addEventListener('click', (e) => {
+        
+        // 👇 第一步：先檢查是不是「剛被拖曳完」放開滑鼠
         if (hasMoved) {
             e.preventDefault();
+            hasMoved = false; // ✨ 終極魔法：拖曳完馬上把狀態歸零，才不會卡住下次的點擊！
+            return; // 剛拖曳完，不執行點擊動作，讓牠乖乖留在小窩睡覺
+        }
+
+        // 👇 第二步：如果是單純點擊，而且在睡覺，就叫醒牠
+        if (window.isMascotSleeping) {
+            e.preventDefault();
+            const mascotHome = document.getElementById('mascot-home');
+            if (mascotHome) {
+                mascotHome.click();
+            }
             return;
         }
+
+        // 👇 第三步：如果是單純點擊，且醒著，就去聊天室
         window.location.href = AI_ASSISTANT_URL;
     });
 

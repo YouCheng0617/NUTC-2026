@@ -1457,7 +1457,7 @@ body, html { height: 100vh !important; overflow: hidden !important; background-c
     width: 180px; 
     height: 180px; 
     border-radius: 50%;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7); 
+    box-shadow: 0 10px 30px rgba(4, 102, 249, 0.7); 
     z-index: 9998; 
     cursor: pointer;
     transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
@@ -1469,7 +1469,7 @@ body, html { height: 100vh !important; overflow: hidden !important; background-c
     background-position: center;
     background-repeat: no-repeat;
     
-    border: 2px solid rgba(255, 255, 255, 0.15); /* 微微的玻璃反光感 */
+    border: 2px solid rgba(17, 148, 249, 0.645); /* 微微的玻璃反光感 */
     overflow: hidden; 
 }
 
