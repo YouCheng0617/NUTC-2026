@@ -7,6 +7,7 @@ import { adminRouter } from './modules/admin/admin.router.js';
 import { categoryRouter } from './modules/category/category.router.js';
 import { commentRouter } from './modules/comment/comment.router.js';
 import { gameRouter } from './modules/game/game.router.js';
+import { notificationRouter } from './modules/notification/notification.router.js';
 
 import { generateCaptcha } from './lib/captchaHelper.js';
 import prisma from './lib/prisma.js';
@@ -23,6 +24,7 @@ app.use('/admin', adminRouter());
 app.use('/category', categoryRouter());
 app.use('/comments', commentRouter());
 app.use('/game', gameRouter());
+app.use('/notifications', notificationRouter());
 
 if (!process.env["DATABASE_URL"]) {
     console.error("DATABASE_URL is not defined in env.");

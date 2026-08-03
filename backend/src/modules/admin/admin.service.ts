@@ -1,4 +1,5 @@
 import prisma from "../../lib/prisma.js";
+import { createNotification } from "../notification/notification.service.js";
 
 export const getAllMembers = async () => {
     const members = await prisma.member.findMany({
@@ -93,6 +94,20 @@ export const updateBottleStatus = async (bottle_id: number, newStatus: number, v
             violation_reason: newStatus === 2 ? violationReason || null : null,
         }
     });
+    if (newStatus === 2 && updatedBottle.member_id) {
+        // 組合通知文案，如果有填寫違規原因就一併附上
+        const reasonText = violationReason ? ` 原因：${violationReason}` : '請留意社群規範。';
+        const message = `你的漂流瓶已被系統下架。${reasonText}`;
+
+        await createNotification(
+            updatedBottle.member_id,
+            'SYSTEM_ALERT',
+            message,
+            undefined,
+            bottle_id
+        ).catch(err => console.error("下架通知發送失敗:", err));
+    }
+
     return updatedBottle;
 };
 
@@ -106,6 +121,16 @@ export const deleteBottleByAdmin = async (bottle_id: number) => {
     await prisma.bottle.delete({
         where: { bottle_id: bottle_id }
     });
+
+    if (bottle.member_id) {
+        await createNotification(
+            bottle.member_id,
+            'SYSTEM_ALERT',
+            '你的漂流瓶因為違反社群規範，已被管理員強制刪除。',
+            undefined
+        ).catch(err => console.error("強制刪除通知發送失敗:", err));
+    }
+
     return true;
 };
 
