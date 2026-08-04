@@ -229,3 +229,150 @@ Query 參數 (必填)：?keyword=你要找的字
   "category": "pet_color", /*可選: "pet_color(圖鑑)", "background_color(背景)", "background_effects(特效)" */
   "itemName": "snow"
 }
+
+---
+
+## 🐾 寵物多人連線 WebSocket (Socket.IO) 使用說明
+
+### 🔌 連線位址
+- **WebSocket 伺服器端點:** 同 HTTP Server 網址及 Port（預設 `https://163.17.135.120:3000`）
+
+---
+
+### 📤 前端發送事件 (Client -> Server)
+
+#### 1. 創立房間 (`create_room`)
+```json
+// Event: "create_room"
+{
+  "playerData": {
+    "memberId": 1,
+    "petName": "海兔小可愛",
+    "petColor": "snow"
+  },
+  "maxPlayers": 6 // 選填，房間人數上限 (2~6 人)，預設為 6
+}
+```
+
+#### 2. 加入房間 (`join_room`)
+
+```json
+// Event: "join_room"
+{
+  "roomId": "ABC123", // 房間 6 碼邀請碼 (大寫英數)
+  "playerData": {
+    "memberId": 1,
+    "petName": "海兔小可愛",
+    "petColor": "snow"
+  }
+}
+```
+
+#### 3. 離開房間 (`leave_room`)
+
+```json
+// Event: "leave_room"
+// 無需帶 Payload
+```
+
+#### 4. 寵物移動 (`move`)
+
+```json
+// Event: "move"
+{
+  "roomId": "ABC123",
+  "x": 120, // 寵物 X 座標
+  "y": 250  // 寵物 Y 座標
+}
+```
+
+#### 5. 發送聊天訊息 (`send_message`)
+
+```json
+// Event: "send_message"
+{
+  "roomId": "ABC123",
+  "message": "大家好呀！"
+}
+```
+
+---
+
+### 📥 前端接收事件 (Server -> Client)
+
+#### 1. 創房成功通知 (`room_created`) — *僅發給創房者*
+
+```json
+{
+  "roomId": "ABC123",
+  "maxCapacity": 6
+}
+```
+
+#### 2. 加入房間成功 (`room_joined`) — *僅發給剛加入者*
+
+```json
+{
+  "roomId": "ABC123",
+  "maxCapacity": 6,
+  "players": [
+    {
+      "socketId": "xyz123...",
+      "memberId": 1,
+      "petName": "海兔小可愛",
+      "petColor": "snow",
+      "x": 0,
+      "y": 0
+    }
+  ]
+}
+```
+
+#### 3. 其他玩家加入 (`player_joined`) — *廣播給房間內其他人*
+
+```json
+{
+  "socketId": "abc456...",
+  "memberId": 2,
+  "petName": "小藍海兔",
+  "petColor": "blue",
+  "x": 0,
+  "y": 0
+}
+```
+
+#### 4. 其他玩家移動 (`player_moved`) — *廣播給房間內其他人*
+
+```json
+{
+  "socketId": "abc456...",
+  "x": 150,
+  "y": 300
+}
+```
+
+#### 5. 玩家離開房間 (`player_left`) — *廣播給房間內所有人*
+
+```json
+{
+  "socketId": "abc456..."
+}
+```
+
+#### 6. 收到聊天/系統訊息 (`receive_message`) — *廣播給房間內所有人*
+
+```json
+{
+  "senderName": "海兔小可愛", // 系統訊息會顯示 "系統"
+  "message": "大家好呀！",
+  "timestamp": "2026-08-04T14:35:00.000Z"
+}
+```
+
+#### 7. 錯誤通知 (`error`) — *僅發給觸發錯誤者*
+
+```json
+{
+  "message": "您已經在另一個房間中了，請先退出再開新房間！"
+}
+```

@@ -15,6 +15,8 @@ import { gameRouter } from './modules/game/game.router.js';
 import { notificationRouter } from './modules/notification/notification.router.js';
 import { petGameRouter } from './socket/petGame.router.js';
 
+import { setupPetSocket } from './socket/petServer.js';
+
 /*其他套件引用區*/
 import { generateCaptcha } from './lib/captchaHelper.js';
 import prisma from './lib/prisma.js';
@@ -63,6 +65,8 @@ io.on("connection", (socket) => {
     });
 });
 
+/*掛載寵物多人連線 Socket 伺服器 */
+setupPetSocket(io);
 
 const PORT = process.env.PORT || 3000;
 
