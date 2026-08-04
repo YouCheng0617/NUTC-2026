@@ -545,31 +545,13 @@
         #floatingRecallBtn:active {
             transform: scale(0.95);
         }
-/* 🌟 讓海兔 SVG 圖片本身進行完美的水平左右轉圈圈 */
-@keyframes slugSpinTaunt {
-    0% { transform: rotateY(0deg); }
-    50% { transform: rotateY(180deg) scale(1.05); } /* 轉到一半時微微放大，讓 3D 挑釁感更強 */
-    100% { transform: rotateY(360deg) scale(1); }
+@keyframes trueHorizontalFlip {
+    0% { transform: scaleX(1); }
+    50% { transform: scaleX(-1); } /* 左右完全鏡像對調 */
+    100% { transform: scaleX(1); }
 }
-
-/* 當觸發時，把動畫掛在海兔的 SVG 上面 */
 .slug-svg.is-spinning-taunt {
-    /* 使用 ease-in-out 讓旋轉有甩動的動態感，加 !important 防止被其他互動覆蓋 */
-    animation: slugSpinTaunt 0.6s ease-in-out !important; 
-}
-
-.slug-svg {
-    display: block; /* 🌟 關鍵1：避免 inline 元素的基線導致旋轉時上下偏移搖晃 */
-    transform-origin: 170px 120px; /* 🌟 關鍵2：絕對中心點！(寬340的一半, 高240的一半)，保證 100% 原地不抖動 */
-    transform-style: preserve-3d; /* 確保 3D 旋轉效果完美呈現 */
-    
-    /* --- 以下保留你原本的設定 --- */
-    width: 100%;
-    height: 100%;
-    overflow: visible;
-    filter: drop-shadow(0 15px 15px rgba(0,0,0,0.15));
-    transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1.2), filter 0.3s ease;
-    pointer-events: none !important;
+    animation: trueHorizontalFlip 0.6s ease-in-out;
 }
     </style>
 </head>
@@ -2233,17 +2215,17 @@ function showFloatText(text, duration = 1000) {
          btn.style.left = (left + width - 40) + 'px';
          btn.style.top = (top + 20) + 'px';
      }
-// 🌟 3. 點擊按鈕觸發：轉圈圈 + 連續叮叮叫
+// 🌟 3. 點擊按鈕觸發：海兔 SVG 側向轉圈圈 + 連續叮叮叫
         function triggerRecallTaunt() {
-            const slugEl = document.getElementById('slugContainer');
+            const svgEl = document.querySelector('.slug-svg');
             
             // 如果正在轉，就不重複觸發
-            if (slugEl.classList.contains('is-spinning-taunt')) return;
+            if (svgEl.classList.contains('is-spinning-taunt')) return;
             
-            // 加上轉圈圈動畫類別
-            slugEl.classList.add('is-spinning-taunt');
+            // 加上轉圈圈動畫類別（只讓兔子自己轉，名字不動！）
+            svgEl.classList.add('is-spinning-taunt');
             setTimeout(() => {
-                slugEl.classList.remove('is-spinning-taunt');
+                svgEl.classList.remove('is-spinning-taunt');
             }, 600); // 0.6秒轉一圈
 
             // 播放 3 次清脆的「叮叮叮」聲音
