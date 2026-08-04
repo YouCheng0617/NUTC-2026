@@ -6,7 +6,11 @@
     <title>海兔養成記</title>
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;800;900&display=swap" rel="stylesheet">
     
+    <!-- 🌟 引入 Socket.IO (用來處理多人連線的套件) -->
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+
     <style>
+        /* 🌟 【全域變數調色盤】這裡定義了整個遊戲的主要顏色，換這裡的色號，整個網頁風格就會跟著變哦！ */
         :root {
             --primary-bg: #fff0f5; 
             --panel-bg: #ffffff;
@@ -18,6 +22,7 @@
             --btn-hover: #ffedf0;
             --shadow-color: rgba(255, 182, 193, 0.4);
             
+            /* 海兔預設的身體顏色變數 */
             --c-body: #ffffff;
             --c-outline: #3f2a2a;
             --c-ear-top: #3f2a2a;
@@ -26,6 +31,7 @@
             --c-blush: #fca5a5;
         }
 
+        /* 🌟 基礎排版設定，不讓玩家反白選取文字 */
         * {
             box-sizing: border-box;
             user-select: none;
@@ -43,6 +49,36 @@
             color: var(--text-dark);
         }
 
+        /* 🌟 【多人連線區塊 UI】包含右上角的連線按鈕、房間代碼顯示 */
+        .mp-panel {
+            position: absolute;
+            top: 75px;
+            right: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            z-index: 55;
+            background: rgba(255, 255, 255, 0.85);
+            padding: 15px;
+            border-radius: 20px;
+            border: 3px solid var(--border-color);
+            box-shadow: 0 5px 15px var(--shadow-color);
+            backdrop-filter: blur(4px);
+        }
+        .mp-info { font-size: 0.9rem; font-weight: 900; color: var(--text-dark); text-align: center; }
+        .mp-btn { background: var(--text-dark); color: white; border: none; padding: 8px 15px; border-radius: 15px; font-weight: 900; cursor: pointer; box-shadow: 0 4px 0 rgba(0,0,0,0.15); transition: 0.1s; }
+        .mp-btn:active { transform: translateY(4px); box-shadow: 0 0 0 transparent; }
+        .mp-btn.secondary { background: #ffffff; color: var(--text-dark); border: 2px solid var(--text-dark); box-shadow: 0 4px 0 var(--text-dark); }
+        
+        /* 🌟 【其他玩家與聊天泡泡】別人進來房間時的顯示設定 */
+        .other-player { position: absolute; width: 280px; height: 180px; pointer-events: none; transition: left 0.15s ease-out, top 0.15s ease-out; z-index: 8; }
+        .other-player-name { position: absolute; top: -10px; width: 100%; text-align: center; font-weight: 900; font-size: 1.1rem; color: var(--text-dark); text-shadow: 2px 2px 0 #fff, -2px -2px 0 #fff, 2px -2px 0 #fff, -2px 2px 0 #fff; z-index: 10; }  
+        .chat-bubble { position: absolute; top: -65px; left: 50%; transform: translateX(-50%); background: white; padding: 8px 15px; border-radius: 20px; border: 2px solid var(--accent-color); font-weight: 900; font-size: 1rem; color: var(--text-dark); white-space: nowrap; box-shadow: 0 5px 15px rgba(255, 182, 193, 0.4); animation: chatPop 0.3s cubic-bezier(0.18, 0.89, 0.32, 1.28); z-index: 30; }
+        .chat-bubble::after { content: ''; position: absolute; bottom: -8px; left: 50%; transform: translateX(-50%); border-width: 8px 8px 0; border-style: solid; border-color: white transparent transparent transparent; }
+        .chat-bubble::before { content: ''; position: absolute; bottom: -11px; left: 50%; transform: translateX(-50%); border-width: 10px 10px 0; border-style: solid; border-color: var(--accent-color) transparent transparent transparent; z-index: -1; }
+        @keyframes chatPop { 0% { transform: translateX(-50%) scale(0.5); opacity: 0; } 100% { transform: translateX(-50%) scale(1); opacity: 1; } }
+
+        /* 🌟 【最頂端資訊列】返回按鈕、積分顯示、語言切換 */
         .top-bar {
             position: absolute;
             top: 0;
@@ -53,7 +89,6 @@
             align-items: center;
             z-index: 50;
         }
-
         .points-display {
             background: #ffffff;
             padding: 8px 24px;
@@ -66,7 +101,6 @@
             backdrop-filter: blur(4px);
             font-size: 1.1rem;
         }
-
         .lang-btn {
             background: #ffffff;
             border: 3px solid var(--border-color);
@@ -79,524 +113,183 @@
             transition: 0.1s;
             box-shadow: 0 4px 0 var(--border-color);
         }
-        
-        .lang-btn:active {
-            transform: translateY(4px);
-            box-shadow: 0 0 0 transparent;
-        }
+        .lang-btn:active { transform: translateY(4px); box-shadow: 0 0 0 transparent; }
 
+        /* 🌟 【主要遊戲舞台】包含背景底色、網點、還有特效圖層 */
         .stage {
             position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 58%;
-            background: #dbeafe; 
-            overflow: hidden;
-            transition: background 1s ease;
+            top: 0; left: 0; width: 100%; height: 58%;
+            background: #dbeafe; overflow: hidden; transition: background 1s ease;
         }
-
         .dot-pattern {
-            position: absolute;
-            width: 100%;
-            height: 100%;
+            position: absolute; width: 100%; height: 100%;
             background-image: radial-gradient(rgba(255,255,255,0.7) 3px, transparent 3px);
-            background-size: 35px 35px;
-            opacity: 0.9;
-            pointer-events: none;
-            box-shadow: inset 0 0 50px rgba(255, 255, 255, 0.5);
-            z-index: 2;
-            transition: opacity 0.5s;
+            background-size: 35px 35px; opacity: 0.9; pointer-events: none;
+            box-shadow: inset 0 0 50px rgba(255, 255, 255, 0.5); z-index: 2; transition: opacity 0.5s;
         }
+        .effect-layer { position: absolute; width: 100%; height: 100%; top: 0; left: 0; pointer-events: none; z-index: 5; overflow: hidden; }
 
-        .effect-layer {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            top: 0;
-            left: 0;
-            pointer-events: none;
-            z-index: 5;
-            overflow: hidden;
-        }
-
-        .rain-drop {
-            position: absolute;
-            width: 2px;
-            height: 20px;
-            background: rgba(255, 255, 255, 0.7);
-            top: -20px;
-            animation: rainFall linear infinite;
-        }
+        /* 特效動畫：雨滴與泡泡 */
+        .rain-drop { position: absolute; width: 2px; height: 20px; background: rgba(255, 255, 255, 0.7); top: -20px; animation: rainFall linear infinite; }
         @keyframes rainFall { to { transform: translateY(60vh); } }
-
-        .bubble {
-            position: absolute;
-            border-radius: 50%;
-            border: 1.5px solid rgba(255, 255, 255, 0.7);
-            background: rgba(255, 255, 255, 0.2);
-            bottom: -20px;
-            animation: bubbleRise ease-in infinite;
-        }
+        .bubble { position: absolute; border-radius: 50%; border: 1.5px solid rgba(255, 255, 255, 0.7); background: rgba(255, 255, 255, 0.2); bottom: -20px; animation: bubbleRise ease-in infinite; }
         @keyframes bubbleRise { to { transform: translateY(-60vh) scale(1.5); opacity: 0; } }
 
-        /* 寶寶專屬：封印瀏覽器預設行為 */
+        /* 🌟 【海兔本體的容器與動畫】 */
         .slug-container {
             position: absolute !important;
-            width: 340px !important;
-            height: 240px !important;
-            cursor: grab !important;
-            z-index: 10 !important;
-            touch-action: none !important;
-            left: calc(50% - 170px);
-            top: calc(50% - 120px);
-            user-select: none !important;
-            -webkit-user-select: none !important;
-            -webkit-user-drag: none !important;
-            perspective: 800px; /* 🌟 加上這行，解鎖 3D 側翻視覺 */
+            width: 340px !important; height: 240px !important;
+            cursor: grab !important; z-index: 10 !important; touch-action: none !important;
+            left: calc(50% - 170px); top: calc(50% - 120px);
+            user-select: none !important; -webkit-user-select: none !important; -webkit-user-drag: none !important;
+            perspective: 800px; /* 解鎖 3D 側翻視覺 */
         }
-
-        /* 終極鎖定狀態 */
-        body.is-dragging-global, body.is-dragging-global * {
-            cursor: grabbing !important;
-            user-select: none !important;
-            -webkit-user-select: none !important;
-        }
-
-        /* 被撫摸時的開心擠壓動畫 */
-        .slug-container.is-petting .slug-svg {
-            transform: scale(1.06, 0.92) translateY(12px);
-            filter: drop-shadow(0 5px 8px rgba(0,0,0,0.25));
-        }
-
-        .slug-svg {
-            width: 100%;
-            height: 100%;
-            overflow: visible;
-            filter: drop-shadow(0 15px 15px rgba(0,0,0,0.15));
-            transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1.2), filter 0.3s ease;
-            pointer-events: none !important;
-        }
-
+        body.is-dragging-global, body.is-dragging-global * { cursor: grabbing !important; user-select: none !important; -webkit-user-select: none !important; }
+        .slug-container.is-petting .slug-svg { transform: scale(1.06, 0.92) translateY(12px); filter: drop-shadow(0 5px 8px rgba(0,0,0,0.25)); }
+        .slug-svg { width: 100%; height: 100%; overflow: visible; filter: drop-shadow(0 15px 15px rgba(0,0,0,0.15)); transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1.2), filter 0.3s ease; pointer-events: none !important; }
+        
+        /* 兔子的耳朵與尾巴自動擺動動畫 */
         @keyframes earTwitchL { 0%, 100% { transform: rotate(0deg); } 50% { transform: rotate(-6deg); } }
         @keyframes earTwitchR { 0%, 100% { transform: rotate(0deg); } 50% { transform: rotate(6deg); } }
         @keyframes tailFluff { 0%, 100% { transform: scale(1) rotate(0deg); } 50% { transform: scale(1.05) rotate(3deg); } }
-
         .anim-earL { animation: earTwitchL 3s infinite ease-in-out; transform-origin: 100px 95px; }
         .anim-earR { animation: earTwitchR 3.5s infinite ease-in-out; transform-origin: 145px 90px; }
         .anim-tail { animation: tailFluff 4s infinite ease-in-out; transform-origin: 240px 120px; }
 
+        /* 🌟 【底部操作面板】餵食互動、切換商店與圖鑑 */
         .ui-panel {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            width: 100%;
-            height: 45%;
-            background: var(--panel-bg);
-            border-top: 3px solid white;
-            display: flex;
-            flex-direction: column;
-            padding: 30px 20px 20px 20px;
-            z-index: 20;
-            border-radius: 40px 40px 0 0;
-            box-shadow: 0 -10px 40px var(--shadow-color);
+            position: absolute; bottom: 0; left: 0; width: 100%; height: 45%;
+            background: var(--panel-bg); border-top: 3px solid white; display: flex; flex-direction: column;
+            padding: 30px 20px 20px 20px; z-index: 20; border-radius: 40px 40px 0 0; box-shadow: 0 -10px 40px var(--shadow-color);
         }
-
-        .interaction-group {
-            display: flex;
-            gap: 15px;
-            margin-bottom: 25px;
-        }
-
-        .btn-interact {
-            flex: 1;
-            background: var(--card-bg);
-            border: 3px solid var(--border-color);
-            border-radius: 22px;
-            padding: 16px 0;
-            color: var(--text-dark);
-            cursor: pointer;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            transition: 0.1s;
-            box-shadow: 0 5px 0 var(--border-color);
-        }
-
-        .btn-interact:active:not(:disabled) {
-            transform: translateY(5px);
-            box-shadow: 0 0px 0 transparent;
-            background: var(--btn-hover);
-        }
-
-        .btn-interact:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-            background: #f1f5f9;
-            border-color: #cbd5e1;
-            box-shadow: 0 5px 0 #cbd5e1;
-            color: #94a3b8;
-        }
-
+        .interaction-group { display: flex; gap: 15px; margin-bottom: 25px; }
+        .btn-interact { flex: 1; background: var(--card-bg); border: 3px solid var(--border-color); border-radius: 22px; padding: 16px 0; color: var(--text-dark); cursor: pointer; display: flex; flex-direction: column; align-items: center; transition: 0.1s; box-shadow: 0 5px 0 var(--border-color); }
+        .btn-interact:active:not(:disabled) { transform: translateY(5px); box-shadow: 0 0px 0 transparent; background: var(--btn-hover); }
+        .btn-interact:disabled { opacity: 0.6; cursor: not-allowed; background: #f1f5f9; border-color: #cbd5e1; box-shadow: 0 5px 0 #cbd5e1; color: #94a3b8; }
         .btn-title { font-size: 1.05rem; font-weight: 900; margin-bottom: 6px; }
         .btn-desc { font-size: 0.8rem; color: var(--text-dim); font-weight: 800;}
 
-        .tabs {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
-            border-bottom: 3px solid var(--border-color);
-            padding-bottom: 10px;
-            padding-left: 5px;
-            align-items: center;
-        }
-
-        .tab {
-            background: transparent;
-            border: none;
-            color: var(--text-dim);
-            font-size: 1.1rem;
-            font-weight: 900;
-            cursor: pointer;
-            padding: 8px 16px;
-            border-radius: 15px;
-            transition: 0.2s;
-        }
-        
+        /* 面板標籤與商品網格 */
+        .tabs { display: flex; gap: 10px; margin-bottom: 20px; border-bottom: 3px solid var(--border-color); padding-bottom: 10px; padding-left: 5px; align-items: center; }
+        .tab { background: transparent; border: none; color: var(--text-dim); font-size: 1.1rem; font-weight: 900; cursor: pointer; padding: 8px 16px; border-radius: 15px; transition: 0.2s; }
         .tab:hover { background: var(--btn-hover); }
-        
-        .tab.active { 
-            color: white; 
-            background: var(--text-dark);
-            box-shadow: 0 3px 10px rgba(107, 76, 74, 0.2);
-        }
-
-        .shop-grid {
-            flex: 1;
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
-            gap: 15px;
-            overflow-y: auto;
-            padding: 5px 5px 20px 5px;
-        }
+        .tab.active { color: white; background: var(--text-dark); box-shadow: 0 3px 10px rgba(107, 76, 74, 0.2); }
+        .shop-grid { flex: 1; display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 15px; overflow-y: auto; padding: 5px 5px 20px 5px; }
         .shop-grid::-webkit-scrollbar { width: 0; }
-
-        .item-card {
-            background: var(--card-bg);
-            border: 3px solid var(--border-color);
-            border-radius: 22px;
-            padding: 18px 10px;
-            text-align: center;
-            cursor: pointer;
-            transition: 0.1s;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            box-shadow: 0 4px 0 var(--border-color);
-        }
-        
-        .item-card:active {
-            transform: translateY(4px);
-            box-shadow: 0 0 0 transparent;
-        }
-        
-        .item-card.equipped { 
-            border-color: var(--text-dark); 
-            background: #ffffff; 
-            box-shadow: 0 4px 0 var(--text-dark);
-        }
-        
-        .item-color-preview {
-            width: 45px;
-            height: 45px;
-            border-radius: 15px;
-            margin: 0 auto 15px auto;
-            border: 3px solid rgba(0,0,0,0.08);
-        }
+        .item-card { background: var(--card-bg); border: 3px solid var(--border-color); border-radius: 22px; padding: 18px 10px; text-align: center; cursor: pointer; transition: 0.1s; display: flex; flex-direction: column; justify-content: space-between; box-shadow: 0 4px 0 var(--border-color); }
+        .item-card:active { transform: translateY(4px); box-shadow: 0 0 0 transparent; }
+        .item-card.equipped { border-color: var(--text-dark); background: #ffffff; box-shadow: 0 4px 0 var(--text-dark); }
+        .item-color-preview { width: 45px; height: 45px; border-radius: 15px; margin: 0 auto 15px auto; border: 3px solid rgba(0,0,0,0.08); }
         .item-name { font-size: 0.85rem; font-weight: 900; margin-bottom: 10px; color: var(--text-dark); line-height: 1.3;}
-        .item-cost { 
-            font-size: 0.9rem; 
-            font-weight: 900; 
-            color: white; 
-            background: var(--accent-color);
-            padding: 4px 8px;
-            border-radius: 12px;
-            display: inline-block;
-            margin: 0 auto;
-        }
-        .item-cost.owned { 
-            background: #e2e8f0;
-            color: var(--text-dim);
-        }
-        .item-card.equipped .item-cost.owned {
-            background: var(--text-dark);
-            color: white;
-        }
+        .item-cost { font-size: 0.9rem; font-weight: 900; color: white; background: var(--accent-color); padding: 4px 8px; border-radius: 12px; display: inline-block; margin: 0 auto; }
+        .item-cost.owned { background: #e2e8f0; color: var(--text-dim); }
+        .item-card.equipped .item-cost.owned { background: var(--text-dark); color: white; }
 
-        .gacha-overlay {
-            position: fixed;
-            top: 0; left: 0; width: 100vw; height: 100vh;
-            background: rgba(255, 240, 245, 0.95);
-            backdrop-filter: blur(5px);
-            z-index: 9999;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            transition: opacity 0.5s;
-        }
-
-        .gacha-box {
-            width: 160px;
-            height: 160px;
-            background: white;
-            border: 5px dashed var(--accent-color);
-            border-radius: 40px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            margin-bottom: 40px;
-            transition: 0.2s;
-            color: var(--accent-color);
-            font-size: 1.4rem;
-            font-weight: 900;
-            box-shadow: 0 15px 35px rgba(255, 182, 193, 0.3);
-            animation: breatheBox 2s infinite ease-in-out;
-        }
-        
-        @keyframes breatheBox {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.05); }
-        }
-        
+        /* 🌟 【第一次玩的新手抽獎畫面】 */
+        .gacha-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(255, 240, 245, 0.95); backdrop-filter: blur(5px); z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: opacity 0.5s; }
+        .gacha-box { width: 160px; height: 160px; background: white; border: 5px dashed var(--accent-color); border-radius: 40px; display: flex; align-items: center; justify-content: center; cursor: pointer; margin-bottom: 40px; transition: 0.2s; color: var(--accent-color); font-size: 1.4rem; font-weight: 900; box-shadow: 0 15px 35px rgba(255, 182, 193, 0.3); animation: breatheBox 2s infinite ease-in-out; }
+        @keyframes breatheBox { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }
         .gacha-box:active { transform: scale(0.95); animation: none; }
-
-        .gacha-title {
-            font-size: 2.2rem;
-            margin-bottom: 30px;
-            font-weight: 900;
-            color: var(--text-dark);
-            text-shadow: 0 4px 10px rgba(255,255,255,0.8);
-        }
-
-        .start-btn {
-            background: var(--text-dark);
-            color: white;
-            border: none;
-            padding: 16px 50px;
-            border-radius: 35px;
-            font-weight: 900;
-            font-size: 1.3rem;
-            cursor: pointer;
-            display: none;
-            box-shadow: 0 6px 0 rgba(0,0,0,0.15);
-            transition: 0.1s;
-        }
+        .gacha-title { font-size: 2.2rem; margin-bottom: 30px; font-weight: 900; color: var(--text-dark); text-shadow: 0 4px 10px rgba(255,255,255,0.8); }
+        .start-btn { background: var(--text-dark); color: white; border: none; padding: 16px 50px; border-radius: 35px; font-weight: 900; font-size: 1.3rem; cursor: pointer; display: none; box-shadow: 0 6px 0 rgba(0,0,0,0.15); transition: 0.1s; }
         .start-btn:active { transform: translateY(6px); box-shadow: 0 0 0 transparent; }
 
-        .float-text {
-            position: absolute;
-            color: var(--accent-color);
-            font-weight: 900;
-            font-size: 2rem;
-            pointer-events: none;
-            text-shadow: 2px 2px 0px white, -2px -2px 0px white, 2px -2px 0px white, -2px 2px 0px white;
-            animation: floatUp 1s forwards cubic-bezier(0.18, 0.89, 0.32, 1.28);
-            z-index: 100;
-        }
-        @keyframes floatUp {
-            0% { opacity: 1; transform: translate(-50%, 0) scale(0.5); }
-            50% { transform: translate(-50%, -50px) scale(1.2); }
-            100% { opacity: 0; transform: translate(-50%, -90px) scale(1); }
-        }
+        /* 🌟 【獲得積分時飄起來的文字】 */
+        .float-text { position: absolute; color: var(--accent-color); font-weight: 900; font-size: 2rem; pointer-events: none; text-shadow: 2px 2px 0px white, -2px -2px 0px white, 2px -2px 0px white, -2px 2px 0px white; animation: floatUp 1s forwards cubic-bezier(0.18, 0.89, 0.32, 1.28); z-index: 100; }
+        @keyframes floatUp { 0% { opacity: 1; transform: translate(-50%, 0) scale(0.5); } 50% { transform: translate(-50%, -50px) scale(1.2); } 100% { opacity: 0; transform: translate(-50%, -90px) scale(1); } }
 
-        /* 寵物名字標籤（極簡純文字版 - 清晰立體優化） */
-        .pet-name-tag {
-            position: absolute;
-            top: -45px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: transparent;
-            border: none;
-            padding: 0;
-            font-weight: 900;
-            color: var(--text-dark); /* 保持原本可愛的深咖啡色 */
-            font-size: 1.35rem; /* 字體稍微放大一點點，更清楚 */
-            letter-spacing: 2px;
-            
-            /* 捨棄會吃掉字體顏色的描邊，改用 8 個方向的實心白邊，加上底下淡淡的黑影，絕對清晰！ */
-            text-shadow: 
-                2px 2px 0 #fff, -2px -2px 0 #fff, 2px -2px 0 #fff, -2px 2px 0 #fff,
-                0px 2px 0 #fff,  0px -2px 0 #fff, 2px  0px 0 #fff, -2px 0px 0 #fff,
-                0px 5px 10px rgba(0,0,0,0.2);
-            
-            white-space: nowrap;
-            pointer-events: auto; 
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            transition: 0.3s cubic-bezier(0.18, 0.89, 0.32, 1.28);
-            z-index: 20;
-        }
+        /* 🌟 【寵物名字標籤與命名彈窗】 */
+        .pet-name-tag { position: absolute; top: -45px; left: 50%; transform: translateX(-50%); background: transparent; border: none; padding: 0; font-weight: 900; color: var(--text-dark); font-size: 1.35rem; letter-spacing: 2px; text-shadow: 2px 2px 0 #fff, -2px -2px 0 #fff, 2px -2px 0 #fff, -2px 2px 0 #fff, 0px 2px 0 #fff, 0px -2px 0 #fff, 2px 0px 0 #fff, -2px 0px 0 #fff, 0px 5px 10px rgba(0,0,0,0.2); white-space: nowrap; pointer-events: auto; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: 0.3s cubic-bezier(0.18, 0.89, 0.32, 1.28); z-index: 20; }
+        .pet-name-tag.named { cursor: default; pointer-events: none; }
+        .pet-name-tag:hover:not(.named) { transform: translateX(-50%) scale(1.1); text-shadow: 2px 2px 0 #fff, -2px -2px 0 #fff, 2px -2px 0 #fff, -2px 2px 0 #fff, 0px 2px 0 #fff, 0px -2px 0 #fff, 2px 0px 0 #fff, -2px 0px 0 #fff, 0px 6px 15px rgba(255, 182, 193, 0.8); }
+        .pet-name-tag:active:not(.named) { transform: translateX(-50%) scale(0.95); }
 
-        /* 命名後的鎖定狀態 */
-        .pet-name-tag.named {
-            cursor: default;
-            pointer-events: none;
-        }
-
-        /* 還沒命名時的 Hover 動畫 */
-        .pet-name-tag:hover:not(.named) {
-            transform: translateX(-50%) scale(1.1);
-            text-shadow: 
-                2px 2px 0 #fff, -2px -2px 0 #fff, 2px -2px 0 #fff, -2px 2px 0 #fff,
-                0px 2px 0 #fff,  0px -2px 0 #fff, 2px  0px 0 #fff, -2px 0px 0 #fff,
-                0px 6px 15px rgba(255, 182, 193, 0.8);
-        }
-        .pet-name-tag:active:not(.named) {
-            transform: translateX(-50%) scale(0.95);
-        }
-
-        /* 超可愛命名彈窗 */
-        .name-modal-overlay {
-            position: fixed;
-            top: 0; left: 0; width: 100vw; height: 100vh;
-            background: rgba(255, 240, 245, 0.8);
-            backdrop-filter: blur(8px);
-            z-index: 10000;
-            display: none;
-            align-items: center;
-            justify-content: center;
-        }
-        .name-modal {
-            background: #fff;
-            width: 85%;
-            max-width: 340px;
-            border-radius: 35px;
-            border: 4px solid var(--border-color);
-            padding: 30px 25px;
-            text-align: center;
-            box-shadow: 0 20px 50px rgba(255, 182, 193, 0.4);
-            animation: popIn 0.4s cubic-bezier(0.18, 0.89, 0.32, 1.28);
-        }
-        @keyframes popIn {
-            0% { transform: scale(0.8) translateY(20px); opacity: 0; }
-            100% { transform: scale(1) translateY(0); opacity: 1; }
-        }
-        .name-input {
-            width: 100%;
-            padding: 14px 15px;
-            border: 3px solid var(--border-color);
-            border-radius: 20px;
-            font-size: 1.1rem;
-            font-weight: 900;
-            color: var(--text-dark);
-            margin: 15px 0 20px 0;
-            text-align: center;
-            outline: none;
-            transition: 0.2s;
-            background: var(--card-bg);
-        }
-        .name-input:focus {
-            border-color: var(--accent-color);
-            background: #fff;
-        }
+        .name-modal-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(255, 240, 245, 0.8); backdrop-filter: blur(8px); z-index: 10000; display: none; align-items: center; justify-content: center; }
+        .name-modal { background: #fff; width: 85%; max-width: 340px; border-radius: 35px; border: 4px solid var(--border-color); padding: 30px 25px; text-align: center; box-shadow: 0 20px 50px rgba(255, 182, 193, 0.4); animation: popIn 0.4s cubic-bezier(0.18, 0.89, 0.32, 1.28); }
+        @keyframes popIn { 0% { transform: scale(0.8) translateY(20px); opacity: 0; } 100% { transform: scale(1) translateY(0); opacity: 1; } }
+        .name-input { width: 100%; padding: 14px 15px; border: 3px solid var(--border-color); border-radius: 20px; font-size: 1.1rem; font-weight: 900; color: var(--text-dark); margin: 15px 0 20px 0; text-align: center; outline: none; transition: 0.2s; background: var(--card-bg); }
+        .name-input:focus { border-color: var(--accent-color); background: #fff; }
         .modal-btns { display: flex; gap: 12px; justify-content: center; }
-        .modal-btn {
-            flex: 1;
-            padding: 12px 0;
-            border: none;
-            border-radius: 20px;
-            font-weight: 900;
-            font-size: 1.1rem;
-            cursor: pointer;
-            transition: 0.1s;
-        }
+        .modal-btn { flex: 1; padding: 12px 0; border: none; border-radius: 20px; font-weight: 900; font-size: 1.1rem; cursor: pointer; transition: 0.1s; }
         .btn-cancel { background: #f1f5f9; color: var(--text-dim); }
         .btn-confirm { background: var(--text-dark); color: white; box-shadow: 0 5px 0 rgba(0,0,0,0.15); }
         .btn-confirm:active { transform: translateY(5px); box-shadow: 0 0 0 transparent; }
-        .btn-random {
-            background: var(--accent-color);
-            color: white;
-            margin-bottom: 5px;
-            width: 100%;
-            box-shadow: 0 5px 0 rgba(255, 182, 193, 0.8);
-        }
+        .btn-random { background: var(--accent-color); color: white; margin-bottom: 5px; width: 100%; box-shadow: 0 5px 0 rgba(255, 182, 193, 0.8); }
         .btn-random:active { transform: translateY(5px); box-shadow: 0 0 0 transparent; }
-        /* 🌟 兔子旁邊的懸浮挑釁按鈕 */
-        #floatingRecallBtn {
-            position: absolute;
-            display: none; /* 預設隱藏，等切換到回城特效才顯示 */
-            z-index: 25; /* 浮在舞台上，高於背景但不會干擾海兔拖曳 */
-            background: #fef08a;
-            color: #78350f;
-            border: 3px solid #f59e0b;
-            padding: 8px 16px;
-            border-radius: 20px;
-            font-weight: 900;
-            font-size: 0.95rem;
-            cursor: pointer;
-            box-shadow: 0 4px 10px rgba(245, 158, 11, 0.4);
-            transition: transform 0.1s;
-            white-space: nowrap;
-        }
-        #floatingRecallBtn:active {
-            transform: scale(0.95);
-        }
-@keyframes trueHorizontalFlip {
-    0% { transform: scaleX(1); }
-    50% { transform: scaleX(-1); } /* 左右完全鏡像對調 */
-    100% { transform: scaleX(1); }
-}
-.slug-svg.is-spinning-taunt {
-    animation: trueHorizontalFlip 0.6s ease-in-out;
-}
+
+        /* 🌟 【懸浮挑釁按鈕】裝備回城特效時才會顯示 */
+        #floatingRecallBtn { position: absolute; display: none; z-index: 25; background: #fef08a; color: #78350f; border: 3px solid #f59e0b; padding: 8px 16px; border-radius: 20px; font-weight: 900; font-size: 0.95rem; cursor: pointer; box-shadow: 0 4px 10px rgba(245, 158, 11, 0.4); transition: transform 0.1s; white-space: nowrap; }
+        #floatingRecallBtn:active { transform: scale(0.95); }
+        @keyframes trueHorizontalFlip { 0% { transform: scaleX(1); } 50% { transform: scaleX(-1); } 100% { transform: scaleX(1); } }
+        .slug-svg.is-spinning-taunt { animation: trueHorizontalFlip 0.6s ease-in-out; }
     </style>
 </head>
 <body>
-    <!-- 命名彈窗 -->
-    <div class="name-modal-overlay" id="nameModalOverlay">
-        <div class="name-modal">
-            <h2 style="margin-top:0; margin-bottom: 10px; font-weight:900; font-size:1.5rem; color: var(--text-dark);" id="txtModalTitle">為寶寶取個名字</h2>
-            <button class="modal-btn btn-random" onclick="generateRandomName()" id="btnRandomName">🎲 幫我隨機想一個</button>
-            <input type="text" class="name-input" id="petNameInput" maxlength="12" placeholder="輸入可愛的名字...">
-            <div class="modal-btns">
-                <button class="modal-btn btn-cancel" onclick="closeNameModal()" id="btnCancelName">取消</button>
-                <button class="modal-btn btn-confirm" onclick="confirmName()" id="btnConfirmName">確定</button>
+
+    <!-- 🌟 【百寶袋彈出視窗】只有連線時的房主才能打開炫耀 -->
+    <div class="name-modal-overlay" id="catalogModalOverlay">
+        <div class="name-modal" style="width: 90%; max-width: 400px; height: 75vh; display: flex; flex-direction: column; padding: 25px 20px;">
+            <h2 style="margin-top:0; font-weight:900; color: var(--text-dark); margin-bottom: 15px;" id="txtCatalogTitle">🎒 我的百寶袋</h2>
+            <div class="tabs">
+                <button class="tab active" id="catTabSpecies" onclick="switchCatalogTab('species')">幻獸</button>
+                <button class="tab" id="catTabBg" onclick="switchCatalogTab('bg')">背景</button>
+                <button class="tab" id="catTabEffect" onclick="switchCatalogTab('effect')">特效</button>
+            </div>
+            <div class="shop-grid" id="catalogGrid" style="flex: 1; align-content: start;"></div>
+            <div class="modal-btns" style="margin-top: 15px;">
+                <button class="modal-btn btn-confirm" onclick="closeCatalog()" id="btnCloseCatalog" style="width: 100%;">關閉</button>
             </div>
         </div>
     </div>
-    <!-- 試用倒數計時器 -->
-<div id="trialTimerDisplay" style="display:none; position: absolute; top: 15%; left: 50%; transform: translateX(-50%); font-size: 1.2rem; font-weight: 900; color: var(--text-dark); background: rgba(255, 255, 255, 0.85); border: 3px solid var(--accent-color); padding: 8px 24px; border-radius: 30px; box-shadow: 0 5px 15px var(--shadow-color); backdrop-filter: blur(4px); z-index: 100; pointer-events: none;">
-    ⏱️ 試用中 <span id="trialCountdownNum" style="color: var(--accent-color); font-size: 1.4rem;">10</span>s
-</div>
-    <div class="gacha-overlay" id="gachaScreen">
+
+    <!-- 🌟 【試用倒數計時器】點擊尚未解鎖的商品時會出現 -->
+    <div id="trialTimerDisplay" style="display:none; position: absolute; top: 15%; left: 50%; transform: translateX(-50%); font-size: 1.2rem; font-weight: 900; color: var(--text-dark); background: rgba(255, 255, 255, 0.85); border: 3px solid var(--accent-color); padding: 8px 24px; border-radius: 30px; box-shadow: 0 5px 15px var(--shadow-color); backdrop-filter: blur(4px); z-index: 100; pointer-events: none;">
+        ⏱️ 試用中 <span id="trialCountdownNum" style="color: var(--accent-color); font-size: 1.4rem;">10</span>s
+    </div>
+
+    <!-- 🌟 【首抽抽獎畫面】預設隱藏，如果系統發現你是新來的，才會跑出來逼你抽 -->
+    <div class="gacha-overlay" id="gachaScreen" style="display: none;">
         <div class="gacha-title" id="gachaTitle">發現神祕海兔卵</div>
         <div class="gacha-box" id="gachaBox" onclick="rollGacha()">點擊孵化</div>
         <button class="start-btn" id="startBtn" onclick="startGame()">開始照顧</button>
     </div>
 
-    <!-- 導覽列 -->
+<!-- 🌟 【最上層的選單列】(正式上線版：乾淨俐落) -->
     <div class="top-bar">
         <button class="lang-btn" onclick="location.href='games.html'" id="btnBack">🏠 返回</button>
         <div class="points-display"><span id="txtPts">積分</span>: <span id="pointDisplay">0</span></div>
         <button class="lang-btn" onclick="toggleLang()" id="btnLang">EN</button>
     </div>
 
+    <!-- 🌟 【多人連線控制面板】創房間、加房間、聊天功能都在這 -->
+    <div class="mp-panel" id="mpPanel">
+        <div class="mp-info" id="roomStatusText">尚未連線</div>
+        <button class="mp-btn" onclick="createSocketRoom()" id="btnCreateRoom">創立房間</button>
+        <button class="mp-btn secondary" onclick="joinSocketRoom()" id="btnJoinRoom">加入房間</button>
+        <button class="mp-btn" onclick="sendChatPrompt()" id="btnChat" style="display:none; background: var(--accent-color);">💬 聊天</button>
+        <button class="mp-btn secondary" onclick="leaveSocketRoom()" id="btnLeaveRoom" style="display:none; border-color: #ef4444; color: #ef4444;">離開房間</button>
+    </div>
+
+    <!-- 🌟 【遊戲的主要背景舞台】 -->
     <div class="stage" id="mainStage">
         <div class="dot-pattern" id="dotPattern"></div>
         <div id="effectLayer" class="effect-layer"></div>
-        <!-- 🌟 兔子旁邊的懸浮挑釁按鈕（獨立於兔子容器外，不影響兔子動畫） -->
-     <button id="floatingRecallBtn" onclick="triggerRecallTaunt()">🌀 挑釁！</button>
+        
+        <!-- 其他玩家的顯示圖層 -->
+        <div id="otherPlayersLayer" style="position: absolute; width:100%; height:100%; top:0; left:0; pointer-events:none; z-index:9;"></div>
+
+        <!-- 懸浮挑釁按鈕 (迴旋踢準備) -->
+        <button id="floatingRecallBtn" onclick="triggerRecallTaunt()">🌀 挑釁！</button>
+        
+        <!-- 🐰 【海兔本體圖層】 -->
         <div class="slug-container" id="slugContainer">
             <div class="pet-name-tag" id="petNameTag" onclick="openNameModal()">
                 <span id="displayPetName">神祕海兔</span> <span id="pencilIcon">✏️</span>
             </div>
-            <!-- 🌟 終極防護罩 -->
+            <!-- 防止奇怪的瀏覽器拖曳行為的防護罩 -->
             <div style="position: absolute; width: 100%; height: 100%; top: 0; left: 0; z-index: 10; cursor: inherit; background: rgba(0,0,0,0);"></div>
             
+            <!-- 海兔的 SVG 繪圖代碼 -->
             <svg class="slug-svg" viewBox="0 0 340 240" style="position: relative; z-index: 1;">
                 <defs>
                     <linearGradient id="earGrad" x1="0%" y1="0%" x2="0%" y2="100%">
@@ -622,21 +315,9 @@
                     <path d="M 70 190 C 20 180, 30 120, 90 110 C 160 100, 220 105, 260 130 C 290 150, 280 200, 200 210 C 130 220, 90 200, 70 190 Z" fill="var(--c-body)" stroke="var(--c-outline)" stroke-width="5" stroke-linejoin="round"/>
 
                     <g fill="var(--c-spot)">
-                        <circle cx="90" cy="135" r="4"/>
-                        <circle cx="125" cy="125" r="5"/>
-                        <circle cx="170" cy="130" r="3.5"/>
-                        <circle cx="210" cy="140" r="5.5"/>
-                        <circle cx="245" cy="155" r="4"/>
-                        
-                        <circle cx="75" cy="160" r="4.5"/>
-                        <circle cx="110" cy="165" r="3"/>
-                        <circle cx="145" cy="180" r="5.5"/>
-                        <circle cx="190" cy="185" r="4"/>
-                        <circle cx="230" cy="175" r="4.5"/>
-                        
-                        <circle cx="100" cy="190" r="4"/>
-                        <circle cx="160" cy="200" r="4.5"/>
-                        <circle cx="205" cy="195" r="3.5"/>
+                        <circle cx="90" cy="135" r="4"/><circle cx="125" cy="125" r="5"/><circle cx="170" cy="130" r="3.5"/><circle cx="210" cy="140" r="5.5"/><circle cx="245" cy="155" r="4"/>
+                        <circle cx="75" cy="160" r="4.5"/><circle cx="110" cy="165" r="3"/><circle cx="145" cy="180" r="5.5"/><circle cx="190" cy="185" r="4"/><circle cx="230" cy="175" r="4.5"/>
+                        <circle cx="100" cy="190" r="4"/><circle cx="160" cy="200" r="4.5"/><circle cx="205" cy="195" r="3.5"/>
                     </g>
 
                     <g stroke="var(--c-outline)" stroke-width="4" stroke-linejoin="round">
@@ -647,13 +328,10 @@
                     <g transform="translate(130, 150)">
                         <ellipse cx="-35" cy="12" rx="14" ry="8" fill="var(--c-blush)" opacity="0.85"/>
                         <ellipse cx="35" cy="12" rx="14" ry="8" fill="var(--c-blush)" opacity="0.85"/>
-                        
                         <circle cx="-20" cy="0" r="7" fill="#2c3e50" />
                         <circle cx="20" cy="0" r="7" fill="#2c3e50" />
-                        
                         <circle cx="-18" cy="-2" r="2.5" fill="#ffffff" />
                         <circle cx="22" cy="-2" r="2.5" fill="#ffffff" />
-                        
                         <path d="M -7 5 Q 0 12 7 5" fill="none" stroke="#2c3e50" stroke-width="3.5" stroke-linecap="round"/>
                     </g>
                 </g>
@@ -662,6 +340,7 @@
         </div>
     </div>
 
+    <!-- 🌟 【底部的操作商店面板】 -->
     <div class="ui-panel">
         <div class="interaction-group">
             <button class="btn-interact" id="btnFeed" onclick="interact('feed', 80, 8)">
@@ -676,6 +355,10 @@
                 <span class="btn-title" id="txtPetTitle">溫柔撫摸</span>
                 <span class="btn-desc" id="txtPetDesc">冷卻 0s</span>
             </button>
+            <button class="btn-interact" id="btnCatalog" onclick="openCatalog()" style="display: none; background: var(--text-dark); color: white; border-color: var(--text-dark); box-shadow: 0 5px 0 rgba(0,0,0,0.15);">
+                <span class="btn-title" id="txtCatalogBtn">🎒 百寶袋</span>
+                <span class="btn-desc" id="txtCatalogDesc" style="color: #cbd5e1;">我的收藏</span>
+            </button>
         </div>
 
         <div class="tabs">
@@ -687,20 +370,261 @@
         <div class="shop-grid" id="shopGrid"></div>
     </div>
 
+    <!-- 🌟 ==========================================
+         🌟 JavaScript 遊戲程式邏輯開始
+         🌟 ========================================== -->
     <script>
-const i18n = {
+        // 🌟 【後台與網路連線資料】
+        const API_BASE = 'https://163.17.135.120:3000'; // 伺服器網址
+        
+        // 🌟 正式上線邏輯：直接去拿真實登入系統發的通行證
+        let GAME_TOKEN = localStorage.getItem('nudi_token');
+        
+        // 🌟 離線測試防呆：如果還沒接上真實登入，就自動幫這個瀏覽器發一張「永久專屬號碼牌」
+        if (!GAME_TOKEN) {
+            GAME_TOKEN = 'real_user_' + Math.floor(Math.random() * 10000000);
+            localStorage.setItem('nudi_token', GAME_TOKEN); // 永遠記在這個瀏覽器裡，不會再變了！
+        }
+        
+        let socket = null;
+        let currentRoomId = null;
+        let otherPlayersData = {};
+        let isRoomHost = false; // 🌟 判斷：用來確認目前這個人是不是房間的主人！
+        
+        // 單機模擬展示模式狀態
+        let isMockMode = false;
+        let mockIntervals = [];
+
+        // 🌟 【呼叫伺服器 API 的小幫手】
+        async function fetchAPI(endpoint, method = 'GET', payload = null) {
+            try {
+                const options = {
+                    method: method,
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${GAME_TOKEN}` }
+                };
+                if (payload) options.body = JSON.stringify(payload);
+                const response = await fetch(`${API_BASE}${endpoint}`, options);
+                return await response.json();
+            } catch (error) {
+                console.warn(`[API] ${endpoint} 失敗，使用本地邏輯...`);
+                return null;
+            }
+        }
+
+        // 🌟 【多人連線小總管】負責跟伺服器打招呼，處理誰加進來、誰離開，還有房主權限的判定
+        function initSocketIO() {
+            try {
+                socket = io(API_BASE, { reconnectionAttempts: 3, timeout: 2000, transports: ['websocket', 'polling'] });
+                socket.on('connect', () => { console.log('Socket 連線成功!'); });
+                
+                // 創立房間成功 -> 代表我是房主
+                socket.on('room_created', (data) => { 
+                    isRoomHost = true; 
+                    currentRoomId = data.roomId; 
+                    updateRoomUI(`房間代碼: ${currentRoomId} (房主)`); 
+                    showFloatText('創立房間成功！'); 
+                });
+                
+                // 加入別人的房間 -> 代表我是作客的
+                socket.on('room_joined', (data) => {
+                    isRoomHost = false; 
+                    currentRoomId = data.roomId; 
+                    updateRoomUI(`已加入房間: ${currentRoomId}`); 
+                    showFloatText('加入房間成功！');
+                    document.getElementById('otherPlayersLayer').innerHTML = ''; 
+                    otherPlayersData = {};
+                    // 把房間裡原有的玩家畫出來
+                    if(data.players) { 
+                        data.players.forEach(p => { if(p.socketId !== socket.id) addOtherPlayer(p); }); 
+                    }
+                });
+
+                socket.on('player_joined', (p) => { addOtherPlayer(p); showFloatText(`${p.petName} 來串門子了！`); });
+                socket.on('player_moved', (data) => { /* 寶寶專屬護法陣型，不吃原本亂跑的設定 */ });
+                socket.on('player_left', (data) => {
+                    const el = document.getElementById(`player-${data.socketId}`);
+                    if(el) { el.remove(); delete otherPlayersData[data.socketId]; }
+                });
+                socket.on('receive_message', (data) => { showChatBubble(data.senderName, data.message); });
+                socket.on('error', (err) => { alert(err.message || "發生錯誤"); });
+            } catch (e) { console.log('Socket.IO 未連線'); }
+        }
+
+        function getPlayerData() { return { memberId: Math.floor(Math.random() * 1000), petName: gameState.petName || '小可愛', petColor: gameState.currentSpecies }; }
+        
+        function createSocketRoom() { 
+            if(!socket || !socket.connected) {
+                if(confirm("伺服器未連線！要先開啟「單機模擬展示」看看連線後的樣子嗎？")) {
+                    startMockMultiplayer();
+                }
+                return;
+            }
+            socket.emit('create_room', { playerData: getPlayerData(), maxPlayers: 6 }); 
+        }
+
+        function joinSocketRoom() {
+            if(!socket || !socket.connected) {
+                if(confirm("伺服器未連線！要先開啟「單機模擬展示」看看連線後的樣子嗎？")) {
+                    startMockMultiplayer();
+                }
+                return;
+            }
+            const code = prompt("請輸入 6 碼房間邀請碼 (大寫英數):");
+            if (code && code.trim().length > 0) socket.emit('join_room', { roomId: code.trim().toUpperCase(), playerData: getPlayerData() });
+        }
+
+        function leaveSocketRoom() { 
+            if(isMockMode) {
+                isMockMode = false;
+                mockIntervals.forEach(clearInterval);
+                mockIntervals = [];
+            } else if(socket) {
+                socket.emit('leave_room'); 
+            }
+            currentRoomId = null; 
+            document.getElementById('otherPlayersLayer').innerHTML = ''; 
+            otherPlayersData = {}; 
+            updateRoomUI("尚未連線"); 
+        }
+
+        function sendChatPrompt() { 
+            const msg = prompt("想說些什麼呀？"); 
+            if(msg) {
+                if (isMockMode) { showChatBubble(gameState.petName || '我的海兔', msg); } 
+                else if(socket && currentRoomId) { socket.emit('send_message', { roomId: currentRoomId, message: msg }); }
+            } 
+        }
+
+        function broadcastMove(x, y) { 
+            if (socket && currentRoomId && !isMockMode) { socket.emit('move', { roomId: currentRoomId, x, y }); } 
+        }
+        
+        // 🌟 【單機展示模式】沒網路時的備用方案，假裝有人陪你玩
+        function startMockMultiplayer() {
+            isMockMode = true;
+            isRoomHost = true; // 🌟 單機模式下，你當然就是老大！
+            currentRoomId = "DEMO99";
+            updateRoomUI(`房間代碼: ${currentRoomId} (模擬展示)`);
+            showFloatText('進入模擬連線模式！');
+
+            // 隨便捏造兩隻可愛的海兔鄰居
+            const fakePlayers = [
+                { socketId: 'fake_1', petName: '隔壁小明', petColor: 'ocean', x: 50, y: 80 },
+                { socketId: 'fake_2', petName: '可愛兔兔', petColor: 'sakura', x: 220, y: 140 }
+            ];
+            fakePlayers.forEach(p => addOtherPlayer(p));
+        }
+
+        // 🌟 【寶寶專屬：好友護法列陣系統】讓好友乖乖排在你旁邊
+        function updateFriendsPosition() {
+            const slugEl = document.getElementById('slugContainer');
+            const cx = parseFloat(slugEl.style.left) || (window.innerWidth / 2 - 170);
+            const cy = parseFloat(slugEl.style.top) || (window.innerHeight * 0.29 - 120);
+
+            // 排列位置：左、右、左下、右下
+            const offsets = [
+                { dx: -240, dy: 20 }, { dx: 260, dy: 20 },
+                { dx: -130, dy: 160 }, { dx: 150, dy: 160 }
+            ];
+
+            Object.keys(otherPlayersData).forEach((id, index) => {
+                const el = document.getElementById(`player-${id}`);
+                if (el) {
+                    const offset = offsets[index % 4];
+                    el.style.left = (cx + offset.dx) + 'px';
+                    el.style.top = (cy + offset.dy) + 'px';
+                }
+            });
+        }
+
+        // 把其他玩家畫到畫面上
+        function addOtherPlayer(p) {
+            otherPlayersData[p.socketId] = p;
+            const spec = speciesData[p.petColor] || speciesData['snow'];
+            const el = document.createElement('div'); 
+            el.className = 'other-player'; 
+            el.id = `player-${p.socketId}`; 
+            
+            // 放大比例 scale(0.9) 讓好友看起來更清楚
+            el.innerHTML = `<div class="other-player-name">${p.petName}</div><svg viewBox="0 0 340 240" style="width: 100%; height: 100%; transform: scale(0.9); transform-origin: top left; filter: drop-shadow(0 10px 10px rgba(0,0,0,0.1));"><ellipse cx="170" cy="205" rx="120" ry="15" fill="rgba(0,0,0,0.12)" /><path d="M 70 190 C 20 180, 30 120, 90 110 C 160 100, 220 105, 260 130 C 290 150, 280 200, 200 210 C 130 220, 90 200, 70 190 Z" fill="${spec.body}" stroke="${spec.outline}" stroke-width="5" stroke-linejoin="round"/><g stroke="${spec.outline}" stroke-width="4" stroke-linejoin="round"><path d="M 100 105 C 80 50, 95 20, 110 25 C 125 30, 120 90, 115 105 Z" fill="${spec.earTop}"/><path d="M 145 100 C 135 45, 160 15, 175 25 C 190 35, 165 85, 160 100 Z" fill="${spec.earTop}"/></g><g transform="translate(130, 150)"><circle cx="-20" cy="0" r="7" fill="#2c3e50" /><circle cx="20" cy="0" r="7" fill="#2c3e50" /><path d="M -7 5 Q 0 12 7 5" fill="none" stroke="#2c3e50" stroke-width="3.5" stroke-linecap="round"/></g></svg>`;
+            document.getElementById('otherPlayersLayer').appendChild(el);
+            
+            updateFriendsPosition(); // 呼叫排隊系統
+        }
+
+        // 🌟 【切換介面顯示狀態】進入房間後，把商店收起來，只有房主能開百寶袋
+        function updateRoomUI(text) {
+            document.getElementById('roomStatusText').innerText = text;
+            
+            const btnFeed = document.getElementById('btnFeed');
+            const btnClean = document.getElementById('btnClean');
+            const btnPet = document.getElementById('btnPet');
+            const tabs = document.querySelector('.ui-panel .tabs');
+            const shopGrid = document.getElementById('shopGrid');
+            const btnCatalog = document.getElementById('btnCatalog');
+
+            if (currentRoomId) {
+                // 已連線：隱藏大廳按鈕，顯示房間按鈕
+                document.getElementById('btnCreateRoom').style.display = 'none'; 
+                document.getElementById('btnJoinRoom').style.display = 'none'; 
+                document.getElementById('btnChat').style.display = 'block'; 
+                document.getElementById('btnLeaveRoom').style.display = 'block';
+                
+                // 隱藏互動按鈕與商店區塊
+                if (btnFeed) btnFeed.style.display = 'none';
+                if (btnClean) btnClean.style.display = 'none';
+                if (btnPet) btnPet.style.display = 'none';
+                if (tabs) tabs.style.display = 'none';
+                if (shopGrid) shopGrid.style.display = 'none';
+                
+                // 🌟 房主專屬特權：如果是房主就顯示百寶袋，不然就隱藏
+                if (btnCatalog) {
+                    btnCatalog.style.display = isRoomHost ? 'flex' : 'none';
+                }
+            } else {
+                // 未連線：顯示大廳按鈕
+                document.getElementById('btnCreateRoom').style.display = 'block'; 
+                document.getElementById('btnJoinRoom').style.display = 'block'; 
+                document.getElementById('btnChat').style.display = 'none'; 
+                document.getElementById('btnLeaveRoom').style.display = 'none';
+                
+                // 恢復原狀，顯示互動按鈕與商店
+                if (btnFeed) btnFeed.style.display = 'flex';
+                if (btnClean) btnClean.style.display = 'flex';
+                if (btnPet) btnPet.style.display = 'flex';
+                if (tabs) tabs.style.display = 'flex';
+                if (shopGrid) shopGrid.style.display = 'grid';
+                if (btnCatalog) btnCatalog.style.display = 'none';
+            }
+        }
+
+        // 🌟 產生對話泡泡
+        function showChatBubble(name, message) {
+            const el = document.createElement('div'); 
+            el.className = 'chat-bubble'; 
+            el.innerHTML = `<span style="font-size:0.8em; color:var(--text-dim);">${name}</span><br/>${message}`;
+            let targetEl = document.getElementById('slugContainer');
+            // 如果不是自己說的，就貼到對應的玩家頭上
+            if (name !== gameState.petName && name !== '系統') {
+                const others = document.querySelectorAll('.other-player-name');
+                others.forEach(node => { if (node.innerText === name) targetEl = node.parentElement; });
+            }
+            if (targetEl) targetEl.appendChild(el);
+            setTimeout(() => { if (el.parentNode) el.remove(); }, 3000);
+        }
+
+        // 🌟 【多國語言翻譯字典】
+        const i18n = {
             zh: {
-                backBtn: "🏠 返回",
-                points: "積分", langBtn: "EN", 
+                backBtn: "🏠 返回", points: "積分", langBtn: "EN", 
                 gachaTitle: "發現神祕海兔卵", gachaBox: "點擊孵化", startBtn: "開始照顧",
                 feed: "餵食海藻", clean: "淨化水質", pet: "溫柔撫摸",
                 cooldown: "冷卻", ready: "可互動",
                 tabSpecies: "圖鑑", tabBg: "背景", tabEffect: "特效",
                 equip: "使用中", owned: "已解鎖"
             },
-            en: {
-                backBtn: "🏠 Home",
-                points: "Pts", langBtn: "中文", 
+            en: { /* 英文翻譯保持不變 */
+                backBtn: "🏠 Home", points: "Pts", langBtn: "中文", 
                 gachaTitle: "Mystic Egg Found", gachaBox: "Incubate", startBtn: "Start Caring",
                 feed: "Feed Algae", clean: "Purify Water", pet: "Gentle Pet",
                 cooldown: "CD", ready: "Ready",
@@ -710,6 +634,7 @@ const i18n = {
         };
         let currLang = 'zh';
 
+        // 🌟 【遊戲資料大腦】所有關於你有什麼東西、多少錢，都存在這裡
         let gameState = {
             hasAdopted: false,
             points: 2000,
@@ -723,6 +648,8 @@ const i18n = {
             cooldowns: { feed: 0, clean: 0, pet: 0 }
         };
 
+        // 🌟 【圖鑑資料庫：幻獸、背景、特效】
+        /* ... 原本的顏色與商品設定，完全保留不變 ... */
         const speciesData = {
             snow: { name: {zh: '經典雪兔', en: 'Snow Bunny'}, cost: 0, body: '#ffffff', outline: '#3f2a2a', earTop: '#3f2a2a', tail: '#3f2a2a', spot: '#3f2a2a', blush: '#fca5a5' },
             ocean: { name: {zh: '深海藍寶', en: 'Ocean Gem'}, cost: 1200, body: '#e0f2fe', outline: '#1e3a8a', earTop: '#1e3a8a', tail: '#1e3a8a', spot: '#1e3a8a', blush: '#f472b6' },
@@ -837,7 +764,6 @@ const i18n = {
             bathhouse: { name: {zh: '溫泉澡堂', en: 'Bathhouse'}, cost: 3400, preview: '#7dd3fc', style: 'linear-gradient(to bottom, #e0f2fe 0%, #7dd3fc 60%, #1d4ed8 100%)', hasDots: false }
         };
 
-        // 🌟 真實手工雕刻版 SVG 圖形庫 🌟
         const svgLib = {
             tomato: `<svg viewBox="0 0 200 200"><defs><radialGradient id="coreGlow" cx="50%" cy="55%" r="50%"><stop offset="0%" stop-color="#ffffff" stop-opacity="1"/><stop offset="20%" stop-color="#fef08a" stop-opacity="0.8"/><stop offset="60%" stop-color="#ef4444" stop-opacity="0.9"/><stop offset="100%" stop-color="#991b1b" stop-opacity="0"/></radialGradient><filter id="fireworkGlow" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="2" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs><g filter="url(#fireworkGlow)"><circle cx="100" cy="120" r="75" fill="url(#coreGlow)"/><circle cx="100" cy="120" r="75" fill="none" stroke="#ef4444" stroke-width="3" stroke-dasharray="1, 8" stroke-linecap="round"/><circle cx="100" cy="120" r="68" fill="none" stroke="#fca5a5" stroke-width="2" stroke-dasharray="1, 6" stroke-linecap="round"/><circle cx="100" cy="120" r="60" fill="none" stroke="#ef4444" stroke-width="3" stroke-dasharray="1, 7" stroke-linecap="round"/><circle cx="100" cy="120" r="50" fill="none" stroke="#f87171" stroke-width="2" stroke-dasharray="1, 5" stroke-linecap="round"/><circle cx="100" cy="120" r="40" fill="none" stroke="#fef08a" stroke-width="2" stroke-dasharray="1, 6" stroke-linecap="round"/><circle cx="100" cy="120" r="30" fill="none" stroke="#ffffff" stroke-width="1.5" stroke-dasharray="1, 4" stroke-linecap="round"/><circle cx="100" cy="120" r="20" fill="none" stroke="#fef08a" stroke-width="2" stroke-dasharray="1, 5" stroke-linecap="round"/><circle cx="100" cy="120" r="10" fill="none" stroke="#ffffff" stroke-width="2" stroke-dasharray="1, 3" stroke-linecap="round"/><path d="M 100 120 L 100 45 M 100 120 L 100 195 M 100 120 L 25 120 M 100 120 L 175 120 M 100 120 L 47 67 M 100 120 L 153 67 M 100 120 L 47 173 M 100 120 L 153 173 M 100 120 L 70 50 M 100 120 L 130 50 M 100 120 L 70 190 M 100 120 L 130 190 M 100 120 L 30 90 M 100 120 L 170 90 M 100 120 L 30 150 M 100 120 L 170 150" stroke="#ef4444" stroke-width="2" stroke-dasharray="1, 8" stroke-linecap="round"/><path d="M 100 120 L 60 50 M 100 120 L 140 50 M 100 120 L 50 160 M 100 120 L 150 160" stroke="#fca5a5" stroke-width="1.5" stroke-dasharray="1, 6" stroke-linecap="round"/><g fill="none" stroke-linecap="round"><g stroke="#22c55e" stroke-width="6" stroke-dasharray="1, 6"><path d="M 100 80 Q 105 40 120 15"/><path d="M 100 80 Q 50 80 30 100"/><path d="M 100 80 Q 70 65 45 45"/><path d="M 100 80 Q 85 50 75 30"/><path d="M 100 80 Q 130 65 160 45"/><path d="M 100 80 Q 140 80 170 100"/><path d="M 100 80 Q 80 100 65 125"/><path d="M 100 80 Q 120 100 135 125"/></g><g stroke="#4ade80" stroke-width="3" stroke-dasharray="1, 5"><path d="M 100 80 Q 105 40 120 15"/><path d="M 100 80 Q 50 80 30 100"/><path d="M 100 80 Q 70 65 45 45"/><path d="M 100 80 Q 85 50 75 30"/><path d="M 100 80 Q 130 65 160 45"/><path d="M 100 80 Q 140 80 170 100"/><path d="M 100 80 Q 80 100 65 125"/><path d="M 100 80 Q 120 100 135 125"/></g><g stroke="#fef08a" stroke-width="1.5" stroke-dasharray="1, 4"><path d="M 100 80 Q 105 40 120 15"/><path d="M 100 80 Q 50 80 30 100"/><path d="M 100 80 Q 70 65 45 45"/><path d="M 100 80 Q 85 50 75 30"/><path d="M 100 80 Q 130 65 160 45"/><path d="M 100 80 Q 140 80 170 100"/><path d="M 100 80 Q 80 100 65 125"/><path d="M 100 80 Q 120 100 135 125"/></g><ellipse cx="122" cy="13" rx="6" ry="3" stroke="#4ade80" stroke-width="2" stroke-dasharray="1, 3" transform="rotate(-25 122 13)"/><ellipse cx="122" cy="13" rx="6" ry="3" stroke="#fef08a" stroke-width="1" stroke-dasharray="1, 2" transform="rotate(-25 122 13)"/></g></g></svg>`,
             boba: `<svg viewBox="0 0 100 100"><path d="M30 30 L35 85 Q50 95 65 85 L70 30 Z" fill="#fed7aa"/><rect x="25" y="20" width="50" height="10" rx="3" fill="#f8fafc"/><rect x="45" y="5" width="10" height="85" fill="#38bdf8"/><circle cx="45" cy="75" r="5" fill="#292524"/><circle cx="55" cy="70" r="5" fill="#292524"/><circle cx="40" cy="65" r="5" fill="#292524"/><circle cx="60" cy="80" r="5" fill="#292524"/></svg>`,
@@ -878,7 +804,6 @@ const i18n = {
             poop: `<svg viewBox="0 0 100 100"><path d="M20 80 Q50 90 80 80 Q90 60 70 50 Q80 40 60 30 Q70 15 50 10 Q30 15 40 30 Q20 40 30 50 Q10 60 20 80 Z" fill="#78350f"/></svg>`
         };
 
-        // 完美對應字典：每個特效都精準對上它的手工 SVG
         const effectData = {
             none: { name: {zh: '無特效', en: 'None'}, cost: 0, preview: '#ffffff' },
             rain: { name: {zh: '綿綿細雨', en: 'Raindrops'}, cost: 800, preview: '#93c5fd', svg: [{s: 'drop'}], dir: 'down', count: 20 },
@@ -939,18 +864,77 @@ const i18n = {
         let currentTab = 'species';
         let trialState = { species: null, bg: null, effect: null };
         let trialTimer = null;
-let trialInterval = null;
-        window.onload = function() {
+        let trialInterval = null;
+        
+        // 🌟 【遊戲啟動核心】網頁載入後第一個跑來這裡，負責讀檔、連線、把所有畫面準備好
+        async function initGameData() {
+            // 1. 先第一時間讀取本地存檔，讓畫面瞬間恢復！
             loadGame();
-            updateLangUI();
+
+            // 2. 判斷要不要顯示抽獎畫面，並且更新全部的按鈕與圖案
             checkFirstTime();
+            updateLangUI();
             renderShop();
             startCooldownTimer();
             initDragAndPetSystem(); 
             updateNameUI();
             updateRecallButtonVisibility();
-        };
 
+            // 🌟 3. 背景悄悄同步伺服器資料
+            try {
+                const data = await fetchAPI('/pet-games/my-pet', 'GET');
+                if (data && !data.error) {
+                    console.log('成功從伺服器同步海兔資料！', data);
+                    
+                    // 同步名字與金幣
+                    if (data.petName) gameState.petName = data.petName;
+                    if (data.coins !== undefined) gameState.points = data.coins;
+                    
+                    // 同步目前裝備 (以下屬性名稱 data.bgColor 等，需確認後端實際給的名稱)
+                    if (data.petColor) gameState.currentSpecies = data.petColor;
+                    if (data.bgColor) gameState.currentBg = data.bgColor;
+                    if (data.bgEffect) gameState.currentEffect = data.bgEffect;
+                    
+                    // 同步背包已解鎖清單 (這部分也需確認後端傳回的陣列名稱)
+                    if (data.unlockedPets) gameState.unlockedSpecies = data.unlockedPets;
+                    if (data.unlockedBgs) gameState.unlockedBgs = data.unlockedBgs;
+                    if (data.unlockedEffects) gameState.unlockedEffects = data.unlockedEffects;
+                    
+                    // 防呆：確保預設的經典兔一定在背包裡
+                    if (!gameState.unlockedSpecies.includes(gameState.currentSpecies)) {
+                        gameState.unlockedSpecies.push(gameState.currentSpecies);
+                    }
+                    
+                    gameState.hasAdopted = true; 
+                    saveGame();
+                    
+                    checkFirstTime();
+                    updateNameUI();
+                    renderShop();
+                    updateUI();
+                }
+            } catch(e) {
+                console.log('伺服器未連線，繼續使用本地存檔');
+            }
+
+            // 啟動多人連線
+            initSocketIO(); 
+        }
+        
+        // 當網頁讀取完畢，就去呼叫上面的「遊戲啟動核心」
+        window.onload = function() {
+            initGameData(); 
+        };
+// 🌟 寶寶專屬：洗掉前任記憶的忘情水！
+        function clearTestLogin() {
+            // 把瀏覽器死記硬背的測試帳號跟正式 Token 通通刪掉
+            sessionStorage.removeItem('test_nudi_token');
+            localStorage.removeItem('nudi_token'); 
+            
+            // 讓網頁重新整理，海兔就會乖乖重新投胎啦！
+            location.reload(); 
+        }
+        // 🌟 【切換語言小幫手】
         function toggleLang() {
             currLang = currLang === 'zh' ? 'en' : 'zh';
             updateLangUI();
@@ -959,6 +943,7 @@ let trialInterval = null;
             updateNameUI();
         }
 
+        // 把畫面上的文字全部翻譯過一遍
         function updateLangUI() {
             const t = i18n[currLang];
             document.getElementById('btnBack').innerText = t.backBtn;
@@ -979,6 +964,7 @@ let trialInterval = null;
             document.getElementById('tabEffect').innerText = t.tabEffect;
         }
 
+        // 🌟 【防偷看機制】檢查是不是第一次玩，沒寵物就強迫顯示抽獎畫面
         function checkFirstTime() {
             if (!gameState.hasAdopted) {
                 document.getElementById('gachaScreen').style.display = 'flex';
@@ -991,6 +977,7 @@ let trialInterval = null;
             }
         }
 
+        // 🌟 【新手隨機抽寵物】
         function rollGacha() {
             const box = document.getElementById('gachaBox');
             box.style.border = '5px solid transparent';
@@ -999,11 +986,11 @@ let trialInterval = null;
             
             setTimeout(() => {
                 const keys = Object.keys(speciesData);
-                const randomKey = keys[Math.floor(Math.random() * keys.length)];
+                const randomKey = keys[Math.floor(Math.random() * keys.length)]; // 隨機挑一隻
                 
                 gameState.unlockedSpecies = [randomKey];
                 gameState.currentSpecies = randomKey;
-                gameState.hasAdopted = true;
+                gameState.hasAdopted = true; // 標記為已經有寵物了
                 
                 document.getElementById('gachaTitle').innerText = speciesData[randomKey].name[currLang];
                 box.style.border = 'none';
@@ -1030,6 +1017,7 @@ let trialInterval = null;
             en: ["Bug Maker", "Mr. Squishy", "Not A Snail", "Sleepy Sluuuug", "Ocean Potato", "Error 404", "Sir Slime-a-lot", "Baby's Cutie"]
         };
 
+        // 🌟 【名字顯示小幫手】
         function updateNameUI() {
             const nameDisplay = document.getElementById('displayPetName');
             const nameTag = document.getElementById('petNameTag');
@@ -1037,7 +1025,7 @@ let trialInterval = null;
             
             if (gameState.petName) {
                 nameDisplay.innerText = gameState.petName;
-                nameTag.classList.add('named'); 
+                nameTag.classList.add('named'); // 鎖住名字不讓改
                 if (pencil) pencil.style.display = 'none'; 
             } else {
                 nameDisplay.innerText = currLang === 'zh' ? '神祕海兔' : 'Mystic Slug';
@@ -1047,7 +1035,7 @@ let trialInterval = null;
         }
 
         function openNameModal() {
-            if (gameState.petName) return; 
+            if (gameState.petName) return; // 已經有名字就不理你
             
             const modal = document.getElementById('nameModalOverlay');
             const input = document.getElementById('petNameInput');
@@ -1062,9 +1050,7 @@ let trialInterval = null;
             modal.style.display = 'flex';
         }
 
-        function closeNameModal() {
-            document.getElementById('nameModalOverlay').style.display = 'none';
-        }
+        function closeNameModal() { document.getElementById('nameModalOverlay').style.display = 'none'; }
 
         function confirmName() {
             const newName = document.getElementById('petNameInput').value.trim();
@@ -1073,6 +1059,8 @@ let trialInterval = null;
                 updateNameUI();
                 saveGame();
                 showFloatText('✨ 命名成功 ✨');
+                // 將改名結果告訴伺服器
+                fetchAPI('/pet-games/rename', 'POST', { newName: newName });
             }
             closeNameModal();
         }
@@ -1083,28 +1071,21 @@ let trialInterval = null;
             document.getElementById('petNameInput').value = randomStr;
         }
 
+        // 切換商店的標籤頁 (幻獸/背景/特效)
         function switchTab(tab) {
             currentTab = tab;
-            
-            // 切換分類時，強制清空試用狀態！
-            trialState = { species: null, bg: null, effect: null };
-            if(trialTimer) clearTimeout(trialTimer);
-            // 🌟 清除倒數並隱藏 UI
-    if(trialInterval) clearInterval(trialInterval);
-    document.getElementById('trialTimerDisplay').style.display = 'none';
             refreshAll(); 
-            
             document.getElementById('tabSpecies').className = tab === 'species' ? 'tab active' : 'tab';
             document.getElementById('tabBg').className = tab === 'bg' ? 'tab active' : 'tab';
             document.getElementById('tabEffect').className = tab === 'effect' ? 'tab active' : 'tab';
         }
 
+        // 🌟 【商店總管】幫你把商品排好，判斷你買過了沒
         function renderShop() {
             const grid = document.getElementById('shopGrid');
             grid.innerHTML = '';
             const t = i18n[currLang];
             
-            // 動態翻譯按鈕
             const txtTry = currLang === 'zh' ? '👀 試用' : 'Try';
             const txtBuy = currLang === 'zh' ? '💰 購買' : 'Buy';
             const txtCancel = currLang === 'zh' ? '❌ 取消' : 'Cancel';
@@ -1116,26 +1097,26 @@ let trialInterval = null;
 
             Object.keys(dataObj).forEach(key => {
                 const item = dataObj[key];
-                let isUnlocked = unlockedArr.includes(key);
-                let isEquipped = (currentActive === key) && !currentTrial; 
-                let isTrialing = (currentTrial === key);
+                let isUnlocked = unlockedArr.includes(key); // 買過了沒
+                let isEquipped = (currentActive === key) && !currentTrial; // 正穿著嗎
+                let isTrialing = (currentTrial === key); // 正在試用嗎
 
                 const card = document.createElement('div');
                 card.className = `item-card ${isEquipped || isTrialing ? 'equipped' : ''}`;
                 
                 let actionHTML = '';
-                if (isUnlocked) {
+                if (isUnlocked) { // 買過了
                     let btnText = isEquipped ? t.equip : t.owned;
                     actionHTML = `<div class="item-cost owned">${btnText}</div>`;
-                    card.onclick = () => equipItem(key, typeKey);
-                } else if (isTrialing) {
+                    card.onclick = () => equipItem(key, typeKey); // 點了直接穿上
+                } else if (isTrialing) { // 試用中
                     actionHTML = `
                         <div style="display:flex; gap:6px; justify-content:center; margin-top:5px;">
                             <div class="item-cost" style="background:#4ade80; font-size:0.8rem; padding:4px 8px; cursor:pointer;" onclick="buyItem('${key}', '${typeKey}', ${item.cost}, event)">${txtBuy}</div>
                             <div class="item-cost" style="background:#ef4444; font-size:0.8rem; padding:4px 8px; cursor:pointer;" onclick="cancelTrial('${typeKey}', event)">${txtCancel}</div>
                         </div>
                     `;
-                } else {
+                } else { // 還沒買
                     actionHTML = `<div class="item-cost"><span style="font-size:0.7rem;margin-right:4px;">${txtTry}</span>${item.cost}</div>`;
                     card.onclick = () => tryItem(key, typeKey);
                 }
@@ -1153,63 +1134,121 @@ let trialInterval = null;
             });
         }
 
+        // 🌟 【百寶袋專屬邏輯】跟商店很像，只是過濾掉還沒買的東西
+        function openCatalog() {
+            document.getElementById('catalogModalOverlay').style.display = 'flex';
+            renderCatalog();
+        }
+        function closeCatalog() { document.getElementById('catalogModalOverlay').style.display = 'none'; }
+        
+        function switchCatalogTab(tab) {
+            currentTab = tab;
+            document.getElementById('catTabSpecies').className = tab === 'species' ? 'tab active' : 'tab';
+            document.getElementById('catTabBg').className = tab === 'bg' ? 'tab active' : 'tab';
+            document.getElementById('catTabEffect').className = tab === 'effect' ? 'tab active' : 'tab';
+            renderCatalog();
+        }
+
+        function renderCatalog() {
+            const grid = document.getElementById('catalogGrid');
+            grid.innerHTML = '';
+            const t = i18n[currLang];
+            
+            let dataObj, unlockedArr, currentActive, typeKey;
+            if (currentTab === 'species') { dataObj = speciesData; unlockedArr = gameState.unlockedSpecies; currentActive = gameState.currentSpecies; typeKey = 'species'; }
+            else if (currentTab === 'bg') { dataObj = bgData; unlockedArr = gameState.unlockedBgs; currentActive = gameState.currentBg; typeKey = 'bg'; }
+            else { dataObj = effectData; unlockedArr = gameState.unlockedEffects; currentActive = gameState.currentEffect; typeKey = 'effect'; }
+
+            Object.keys(dataObj).forEach(key => {
+                const item = dataObj[key];
+                
+                // 🌟 核心：如果沒擁有的直接跳過不顯示！
+                if (!unlockedArr.includes(key)) return;
+
+                let isEquipped = (currentActive === key);
+                const card = document.createElement('div');
+                card.className = `item-card ${isEquipped ? 'equipped' : ''}`;
+                
+                let btnText = isEquipped ? t.equip : t.owned;
+                card.onclick = () => { 
+                    equipItem(key, typeKey); 
+                    renderCatalog(); // 點擊換上後馬上刷新按鈕狀態
+                };
+
+                let previewStyle = typeKey === 'species' 
+                    ? `background:${item.body}; border: 3px solid ${item.outline}`
+                    : `background: ${item.preview}; border: 3px solid #cbd5e1`;
+
+                card.innerHTML = `
+                    <div class="item-color-preview" style="${previewStyle}"></div>
+                    <div class="item-name">${item.name[currLang]}</div>
+                    <div class="item-cost owned">${btnText}</div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        // 🌟 【穿上裝備】
         function equipItem(key, type) {
-            trialState[type] = null; 
-            // 🌟 如果試用到一半直接購買/裝備，也要清除倒數
-    if(trialInterval) clearInterval(trialInterval);
-    document.getElementById('trialTimerDisplay').style.display = 'none';
+            trialState[type] = null; // 取消試用狀態
+            
             if (type === 'species') gameState.currentSpecies = key;
             else if (type === 'bg') gameState.currentBg = key;
             else gameState.currentEffect = key;
+            
+            // 如果身上已經沒有任何試用的東西了，就把倒數計時器收起來
+            if (!trialState.species && !trialState.bg && !trialState.effect) {
+                if(trialInterval) clearInterval(trialInterval);
+                document.getElementById('trialTimerDisplay').style.display = 'none';
+            }
+            
             refreshAll();
             saveGame();
         }
 
-       function tryItem(key, type) {
-    trialState[type] = key;
-    refreshAll();
-    
-    // 清除舊的計時器
-    if(trialTimer) clearTimeout(trialTimer);
-    if(trialInterval) clearInterval(trialInterval);
-    
-    let timeLeft = 10;
-    const timerDisplay = document.getElementById('trialTimerDisplay');
-    const numDisplay = document.getElementById('trialCountdownNum');
-    
-    // 顯示倒數 UI
-    timerDisplay.style.display = 'block';
-    numDisplay.innerText = timeLeft;
-    
-    showFloatText('⏱️ 試用開始', 2000);
-    
-    // 每秒更新數字
-    trialInterval = setInterval(() => {
-        timeLeft--;
-        numDisplay.innerText = timeLeft;
-        
-        // 時間到！結束試用
-        if(timeLeft <= 0) {
-            clearInterval(trialInterval);
-            timerDisplay.style.display = 'none';
+        // 🌟 【試用機制】給你十秒鐘體驗特效
+        function tryItem(key, type) {
+            trialState[type] = key;
+            refreshAll();
             
-            if(trialState[type] === key) { 
-                trialState[type] = null;
-                refreshAll();
-                showFloatText('✨ 試用結束，喜歡就帶回家吧！', 50000);
-            }
+            if(trialTimer) clearTimeout(trialTimer);
+            if(trialInterval) clearInterval(trialInterval);
+            
+            let timeLeft = 10;
+            const timerDisplay = document.getElementById('trialTimerDisplay');
+            const numDisplay = document.getElementById('trialCountdownNum');
+            
+            timerDisplay.style.display = 'block';
+            numDisplay.innerText = timeLeft;
+            showFloatText('⏱️ 試用開始', 2000);
+            
+            trialInterval = setInterval(() => {
+                timeLeft--;
+                numDisplay.innerText = timeLeft;
+                
+                if(timeLeft <= 0) {
+                    clearInterval(trialInterval);
+                    timerDisplay.style.display = 'none';
+                    // 時間一到，清空所有試用狀態
+                    trialState = { species: null, bg: null, effect: null };
+                    refreshAll();
+                    showFloatText('✨ 試用結束，喜歡就帶回家吧！', 5000); 
+                }
+            }, 1000);
         }
-    }, 1000);
-}
 
+// 🌟 1. 購買物品：只要負責扣錢跟解鎖就好，剩下的交給 equipItem
         function buyItem(key, type, cost, e) {
             if(e) e.stopPropagation(); 
             if (gameState.points >= cost) {
-                gameState.points -= cost;
-                if (type === 'species') gameState.unlockedSpecies.push(key);
-                else if (type === 'bg') gameState.unlockedBgs.push(key);
-                else gameState.unlockedEffects.push(key);
+                gameState.points -= cost; // 扣錢
                 
+                // 記錄到本地的已解鎖清單
+                if (type === 'species') gameState.unlockedSpecies.push(key); 
+                else if (type === 'bg') gameState.unlockedBgs.push(key); 
+                else gameState.unlockedEffects.push(key); 
+                
+                // 呼叫裝備函數 (裡面會統一發送 API 給伺服器)
                 equipItem(key, type); 
                 showFloatText('✨ 購買成功 ✨', 5000);
             } else {
@@ -1217,23 +1256,45 @@ let trialInterval = null;
             }
         }
 
-        function cancelTrial(type, e) {
-            if(e) e.stopPropagation();
-            trialState[type] = null;
-            // 🌟 清除倒數並隱藏 UI
-    if(trialInterval) clearInterval(trialInterval);
-    document.getElementById('trialTimerDisplay').style.display = 'none';
+        // 🌟 2. 裝備物品：不管你是剛買的還是早就有的，只要穿上就跟伺服器報備！
+        function equipItem(key, type) {
+            trialState[type] = null; 
+            
+            let categoryStr = '';
+            if (type === 'species') {
+                gameState.currentSpecies = key;
+                categoryStr = 'pet_color';
+            } else if (type === 'bg') {
+                gameState.currentBg = key;
+                categoryStr = 'background_color';
+            } else {
+                gameState.currentEffect = key;
+                categoryStr = 'background_effects';
+            }
+            
+            // ✨ 在這裡統一告訴伺服器：我換裝備囉！
+            fetchAPI('/pet-games/buy', 'POST', { category: categoryStr, itemName: key });
+            
+            // 取消試用計時器
+            if (!trialState.species && !trialState.bg && !trialState.effect) {
+                if(trialInterval) clearInterval(trialInterval);
+                document.getElementById('trialTimerDisplay').style.display = 'none';
+            }
+            
             refreshAll();
+            saveGame();
         }
 
+        // 🌟 【一鍵畫面重繪】每次有改變就叫他幫忙把海兔、背景、特效全部重新畫一次
         function refreshAll() {
             applySlugStyles();
             applyBg();
             applyEffect();
             renderShop();
-            updateRecallButtonVisibility(); // 🌟 確保每次畫面更新時，都會同步判斷專屬按鈕該不該出現
+            updateRecallButtonVisibility(); // 確保浮動挑釁按鈕顯示正確
         }
 
+        // 把海兔塗上你選的顏色
         function applySlugStyles() {
             const spec = speciesData[trialState.species || gameState.currentSpecies];
             if(!spec) return;
@@ -1247,6 +1308,7 @@ let trialInterval = null;
             root.style.setProperty('--c-blush', spec.blush);
         }
 
+        // 幫房間鋪上你選的背景
         function applyBg() {
             const bg = bgData[trialState.bg || gameState.currentBg];
             if(bg) {
@@ -1255,7 +1317,8 @@ let trialInterval = null;
             }
         }
 
-      function applyEffect() {
+        // 🌟 【好萊塢特效組】負責放煙火、下雨、丟符咒等華麗效果
+        function applyEffect() {
             const layer = document.getElementById('effectLayer');
             layer.innerHTML = ''; 
             const effectKey = trialState.effect || gameState.currentEffect;
@@ -1263,104 +1326,30 @@ let trialInterval = null;
             
             if (!effect || effectKey === 'none') return;
 
-                switch (effectKey) {
-                // ------------------------------------------------
-                // 🌊 【回程挑釁】外擴水波 + 半罩式大泡泡 + 迴旋巨型水母
-                // ------------------------------------------------
-             case 'disco':
+            switch (effectKey) {
+                // 🌊 【回程挑釁】外擴水波 + 半罩式大泡泡
+                case 'disco':
                     if (!document.getElementById('recallStyle')) {
                         const style = document.createElement('style');
                         style.id = 'recallStyle';
                         style.innerHTML = `
                             .recall-bubble {
-                position: absolute;
-                width: 360px; 
-                height: 360px; 
-                transform: translate(-50%, -50%);
-                animation: bubbleBreathe 3s infinite ease-in-out, bubbleWobble 6s infinite linear;
-                background: radial-gradient(circle at 25% 25%, 
-                    rgba(255, 255, 255, 0.9) 0%, 
-                    rgba(255, 255, 255, 0.15) 8%, 
-                    rgba(255, 255, 255, 0) 35%, 
-                    rgba(138, 43, 226, 0.03) 65%, 
-                    rgba(0, 191, 255, 0.08) 85%, 
-                    rgba(255, 255, 255, 0.25) 100%
-                );
-                /* 🌟 加上四周夢幻的霧感與水藍/粉紫光暈 */
-                box-shadow: 
-                    inset 0 0 15px rgba(255, 255, 255, 0.2), 
-                    inset 15px 0 30px rgba(0, 191, 255, 0.05), 
-                    inset -15px 0 30px rgba(138, 43, 226, 0.05),
-                    0 0 25px rgba(186, 230, 253, 0.6),
-                    0 0 50px rgba(244, 114, 182, 0.3);
-                border: 1px solid rgba(255, 255, 255, 0.3); 
-                pointer-events: none;
-                z-index: 15; 
-                border-radius: 50%;
-                -webkit-mask-image: linear-gradient(to bottom, rgba(0,0,0,1) 52%, rgba(0,0,0,0) 78%);
-                mask-image: linear-gradient(to bottom, rgba(0,0,0,1) 52%, rgba(0,0,0,0) 78%);
-            }
-
-            /* 🌟 散落在四周、會往外飄的小泡泡與微霧粒子 */
-            .ambient-tiny-bubble {
-                position: absolute;
-                border-radius: 50%;
-                background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.9), rgba(56,189,248,0.2));
-                border: 1px solid rgba(255,255,255,0.6);
-                pointer-events: none;
-                z-index: 14;
-                animation: tinyBubbleFloat 3s infinite ease-out;
-            }
-
-            @keyframes tinyBubbleFloat {
-                0% { transform: translate(0, 0) scale(0.5); opacity: 0; }
-                30% { opacity: 0.8; }
-                100% { transform: translate(var(--tx), var(--ty)) scale(1.2); opacity: 0; }
-            }
-                            .recall-ripple {
-                                position: absolute;
-                                width: 420px;
-                                height: 210px;
-                                transform: translate(-50%, -50%);
-                                pointer-events: none;
-                                z-index: 5;
+                                position: absolute; width: 360px; height: 360px; transform: translate(-50%, -50%);
+                                animation: bubbleBreathe 3s infinite ease-in-out, bubbleWobble 6s infinite linear;
+                                background: radial-gradient(circle at 25% 25%, rgba(255, 255, 255, 0.9) 0%, rgba(255, 255, 255, 0.15) 8%, rgba(255, 255, 255, 0) 35%, rgba(138, 43, 226, 0.03) 65%, rgba(0, 191, 255, 0.08) 85%, rgba(255, 255, 255, 0.25) 100%);
+                                box-shadow: inset 0 0 15px rgba(255, 255, 255, 0.2), inset 15px 0 30px rgba(0, 191, 255, 0.05), inset -15px 0 30px rgba(138, 43, 226, 0.05), 0 0 25px rgba(186, 230, 253, 0.6), 0 0 50px rgba(244, 114, 182, 0.3);
+                                border: 1px solid rgba(255, 255, 255, 0.3); pointer-events: none; z-index: 15; border-radius: 50%;
+                                -webkit-mask-image: linear-gradient(to bottom, rgba(0,0,0,1) 52%, rgba(0,0,0,0) 78%);
+                                mask-image: linear-gradient(to bottom, rgba(0,0,0,1) 52%, rgba(0,0,0,0) 78%);
                             }
-
-                            /* 🌊 海浪一波波往外擴散、漸漸淡出的動態 */
-                            .wave-surge {
-                                transform-origin: center;
-                                animation: waveExpandAndFade 3.5s infinite cubic-bezier(0.1, 0.6, 0.3, 1);
-                            }
-                            .ws-1 { animation-delay: 0s; }
-                            .ws-2 { animation-delay: 1.75s; }
-
-                            @keyframes waveExpandAndFade {
-                                0% { 
-                                    transform: scale(0.6); 
-                                    opacity: 0.9; 
-                                    stroke-width: 7px;
-                                }
-                                70% { 
-                                    opacity: 0.4; 
-                                }
-                                100% { 
-                                    transform: scale(1.55); 
-                                    opacity: 0;             
-                                    stroke-width: 1.5px;    
-                                }
-                            }
-
-                            @keyframes bubbleBreathe {
-                                0%, 100% { transform: translate(-50%, -50%) scale(1); }
-                                50% { transform: translate(-50%, -52%) scale(1.02); }
-                            }
-                            
-                            @keyframes bubbleWobble {
-                                0%, 100% { border-radius: 50%; }
-                                25% { border-radius: 51% 49% 52% 48% / 48% 52% 49% 51%; }
-                                50% { border-radius: 49% 51% 48% 52% / 52% 48% 51% 49%; }
-                                75% { border-radius: 52% 48% 51% 49% / 49% 51% 48% 52%; }
-                            }
+                            .ambient-tiny-bubble { position: absolute; border-radius: 50%; background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.9), rgba(56,189,248,0.2)); border: 1px solid rgba(255,255,255,0.6); pointer-events: none; z-index: 14; animation: tinyBubbleFloat 3s infinite ease-out; }
+                            @keyframes tinyBubbleFloat { 0% { transform: translate(0, 0) scale(0.5); opacity: 0; } 30% { opacity: 0.8; } 100% { transform: translate(var(--tx), var(--ty)) scale(1.2); opacity: 0; } }
+                            .recall-ripple { position: absolute; width: 420px; height: 210px; transform: translate(-50%, -50%); pointer-events: none; z-index: 5; }
+                            .wave-surge { transform-origin: center; animation: waveExpandAndFade 3.5s infinite cubic-bezier(0.1, 0.6, 0.3, 1); }
+                            .ws-1 { animation-delay: 0s; } .ws-2 { animation-delay: 1.75s; }
+                            @keyframes waveExpandAndFade { 0% { transform: scale(0.6); opacity: 0.9; stroke-width: 7px; } 70% { opacity: 0.4; } 100% { transform: scale(1.55); opacity: 0; stroke-width: 1.5px; } }
+                            @keyframes bubbleBreathe { 0%, 100% { transform: translate(-50%, -50%) scale(1); } 50% { transform: translate(-50%, -52%) scale(1.02); } }
+                            @keyframes bubbleWobble { 0%, 100% { border-radius: 50%; } 25% { border-radius: 51% 49% 52% 48% / 48% 52% 49% 51%; } 50% { border-radius: 49% 51% 48% 52% / 52% 48% 51% 49%; } 75% { border-radius: 52% 48% 51% 49% / 49% 51% 48% 52%; } }
                         `;
                         document.head.appendChild(style);
                     }
@@ -1374,38 +1363,21 @@ let trialInterval = null;
                     ripple.innerHTML = `
                         <svg viewBox="0 0 420 210" width="100%" height="100%">
                             <defs>
-                                <radialGradient id="seaPool" cx="50%" cy="50%" r="50%">
-                                    <stop offset="0%" stop-color="#38bdf8" stop-opacity="0.85"/>
-                                    <stop offset="60%" stop-color="#0284c7" stop-opacity="0.5"/>
-                                    <stop offset="100%" stop-color="#0369a1" stop-opacity="0"/>
-                                </radialGradient>
-                                <filter id="seaDistort" x="-20%" y="-20%" width="140%" height="140%">
-                                    <feTurbulence type="fractalNoise" baseFrequency="0.03" numOctaves="3" result="noise" />
-                                    <feDisplacementMap in="SourceGraphic" in2="noise" scale="12" xChannelSelector="R" yChannelSelector="G" />
-                                    <feGaussianBlur stdDeviation="1.5" result="blur" />
-                                    <feMerge><feMergeNode in="blur" /><feMergeNode in="SourceGraphic" /></feMerge>
-                                </filter>
+                                <radialGradient id="seaPool" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#38bdf8" stop-opacity="0.85"/><stop offset="60%" stop-color="#0284c7" stop-opacity="0.5"/><stop offset="100%" stop-color="#0369a1" stop-opacity="0"/></radialGradient>
+                                <filter id="seaDistort" x="-20%" y="-20%" width="140%" height="140%"><feTurbulence type="fractalNoise" baseFrequency="0.03" numOctaves="3" result="noise" /><feDisplacementMap in="SourceGraphic" in2="noise" scale="12" xChannelSelector="R" yChannelSelector="G" /><feGaussianBlur stdDeviation="1.5" result="blur" /><feMerge><feMergeNode in="blur" /><feMergeNode in="SourceGraphic" /></feMerge></filter>
                             </defs>
-                            <g filter="url(#seaDistort)">
-                                <ellipse cx="210" cy="105" rx="160" ry="70" fill="url(#seaPool)" />
-                            </g>
-                            <g filter="url(#seaDistort)">
-                                <ellipse class="wave-surge ws-1" cx="210" cy="105" rx="140" ry="60" fill="none" stroke="#ffffff" stroke-width="6" />
-                                <ellipse class="wave-surge ws-2" cx="210" cy="105" rx="120" ry="50" fill="none" stroke="#bae6fd" stroke-width="4" />
-                            </g>
+                            <g filter="url(#seaDistort)"><ellipse cx="210" cy="105" rx="160" ry="70" fill="url(#seaPool)" /></g>
+                            <g filter="url(#seaDistort)"><ellipse class="wave-surge ws-1" cx="210" cy="105" rx="140" ry="60" fill="none" stroke="#ffffff" stroke-width="6" /><ellipse class="wave-surge ws-2" cx="210" cy="105" rx="120" ry="50" fill="none" stroke="#bae6fd" stroke-width="4" /></g>
                         </svg>
                     `;
                     layer.appendChild(ripple);
 
                     // 2. 半罩式大泡泡
-                    const bubble = document.createElement('div');
-                    bubble.className = 'recall-ripple' ? document.createElement('div') : null; // 保險起見直接建立泡泡
-                    // 為了確保萬無一失，直接用標準的泡泡建立：
                     const pureBubble = document.createElement('div');
                     pureBubble.className = 'recall-bubble';
                     layer.appendChild(pureBubble);
 
-                    // 3. 同步位置追蹤
+                    // 3. 同步位置追蹤 (泡泡跟著兔子跑)
                     function renderRecall() {
                         if (gameState.currentEffect !== 'disco' && trialState.effect !== 'disco') {
                             if (window.recallAnimFrame) cancelAnimationFrame(window.recallAnimFrame);
@@ -1422,117 +1394,23 @@ let trialInterval = null;
                         pureBubble.style.left = cx + 'px';
                         pureBubble.style.top = (cy + 45) + 'px'; 
                     }
-
                     renderRecall();
                     break;
-                // ------------------------------------------------
-                // ⛩️ 【BUG 退散】正宗大符版 (遠景置中 + 近處極致柔軟羽毛飄落 + 支援手機點擊)
-                // ------------------------------------------------
+
+                // ⛩️ 【BUG 退散】超酷的賽博龐克符咒
                 case 'bugFree':
                     if (!document.getElementById('talismanStyle')) {
                         const style = document.createElement('style');
                         style.id = 'talismanStyle';
                         style.innerHTML = `
-                            /* 遠景巨大鎮守符咒：完美置中對齊 */
-                            .cyber-giant-talisman {
-                                position: absolute;
-                                width: 110px; 
-                                height: 280px; 
-                                background-color: #fef08a; 
-                                background-image: radial-gradient(rgba(217, 119, 6, 0.25) 1px, transparent 1px);
-                                background-size: 5px 5px;
-                                border: 4px solid #dc2626; 
-                                box-shadow: 0 0 35px rgba(220, 38, 38, 0.4); 
-                                border-radius: 8px;
-                                pointer-events: none; 
-                                display: flex;
-                                flex-direction: column;
-                                align-items: center;
-                                justify-content: space-between;
-                                padding: 10px 6px;
-                                box-sizing: border-box;
-                                z-index: 1; 
-                                transform-origin: center center;
-                                animation: giantBreathe 6s ease-in-out infinite alternate;
-                            }
-                            @keyframes giantBreathe {
-                                0% { transform: translateX(-50%) scale(1) rotate(-2deg); opacity: 0.25; }
-                                100% { transform: translateX(-50%) scale(1.03) rotate(2deg); opacity: 0.4; }
-                            }
-                            .giant-content {
-                                display: flex;
-                                justify-content: center;
-                                gap: 10px; 
-                                width: 100%;
-                                flex: 1;
-                                align-items: center;
-                            }
-                            .giant-col {
-                                writing-mode: vertical-rl;
-                                text-orientation: upright;
-                                letter-spacing: 12px; 
-                                font-family: "DFKai-SB", "BiauKai", "楷體", "Kaiti", serif;
-                                font-weight: 900;
-                                font-size: 26px;
-                                color: #b91c1c;
-                                text-shadow: 1px 1px 0px rgba(254, 240, 138, 0.8);
-                                text-align: center;
-                            }
-
-                            /* 近處羽毛般柔軟飄落的小符咒 */
-                            .cyber-talisman {
-                                position: absolute;
-                                width: 65px; 
-                                height: 160px; 
-                                background-color: #fef08a; 
-                                background-image: radial-gradient(rgba(217, 119, 6, 0.2) 1px, transparent 1px);
-                                background-size: 4px 4px;
-                                border: 3px solid #dc2626; 
-                                box-shadow: 0 0 20px rgba(220, 38, 38, 0.7); 
-                                border-radius: 6px; 
-                                cursor: pointer; /* 改成指標手勢，暗示可以點擊 */
-                                pointer-events: auto; 
-                                display: flex;
-                                flex-direction: column;
-                                align-items: center;
-                                justify-content: space-between;
-                                padding: 6px 4px;
-                                box-sizing: border-box;
-                                perspective: 800px;
-                                transform-style: preserve-3d;
-                                transform-origin: center center;
-                                z-index: 3; 
-                            }
-                            .talisman-content {
-                                display: flex;
-                                justify-content: center;
-                                gap: 6px; 
-                                width: 100%;
-                                flex: 1;
-                                align-items: center;
-                            }
-                            .talisman-col {
-                                writing-mode: vertical-rl;
-                                text-orientation: upright;
-                                letter-spacing: 8px; 
-                                font-family: "DFKai-SB", "BiauKai", "楷體", "Kaiti", serif;
-                                font-weight: 900;
-                                font-size: 18px;
-                                color: #b91c1c;
-                                text-shadow: 1px 1px 0px rgba(254, 240, 138, 0.8);
-                                text-align: center;
-                            }
-                            .cyber-spark {
-                                position: absolute;
-                                width: 8px;
-                                height: 8px;
-                                background: #fbbf24;
-                                border-radius: 50%;
-                                box-shadow: 0 0 10px #ef4444;
-                                pointer-events: none;
-                                transition: transform 0.4s cubic-bezier(0.1, 0.8, 0.2, 1), opacity 0.4s ease-out;
-                                z-index: 4;
-                            }
+                            .cyber-giant-talisman { position: absolute; width: 110px; height: 280px; background-color: #fef08a; background-image: radial-gradient(rgba(217, 119, 6, 0.25) 1px, transparent 1px); background-size: 5px 5px; border: 4px solid #dc2626; box-shadow: 0 0 35px rgba(220, 38, 38, 0.4); border-radius: 8px; pointer-events: none; display: flex; flex-direction: column; align-items: center; justify-content: space-between; padding: 10px 6px; box-sizing: border-box; z-index: 1; transform-origin: center center; animation: giantBreathe 6s ease-in-out infinite alternate; }
+                            @keyframes giantBreathe { 0% { transform: translateX(-50%) scale(1) rotate(-2deg); opacity: 0.25; } 100% { transform: translateX(-50%) scale(1.03) rotate(2deg); opacity: 0.4; } }
+                            .giant-content { display: flex; justify-content: center; gap: 10px; width: 100%; flex: 1; align-items: center; }
+                            .giant-col { writing-mode: vertical-rl; text-orientation: upright; letter-spacing: 12px; font-family: "DFKai-SB", "BiauKai", "楷體", "Kaiti", serif; font-weight: 900; font-size: 26px; color: #b91c1c; text-shadow: 1px 1px 0px rgba(254, 240, 138, 0.8); text-align: center; }
+                            .cyber-talisman { position: absolute; width: 65px; height: 160px; background-color: #fef08a; background-image: radial-gradient(rgba(217, 119, 6, 0.2) 1px, transparent 1px); background-size: 4px 4px; border: 3px solid #dc2626; box-shadow: 0 0 20px rgba(220, 38, 38, 0.7); border-radius: 6px; cursor: pointer; pointer-events: auto; display: flex; flex-direction: column; align-items: center; justify-content: space-between; padding: 6px 4px; box-sizing: border-box; perspective: 800px; transform-style: preserve-3d; transform-origin: center center; z-index: 3; }
+                            .talisman-content { display: flex; justify-content: center; gap: 6px; width: 100%; flex: 1; align-items: center; }
+                            .talisman-col { writing-mode: vertical-rl; text-orientation: upright; letter-spacing: 8px; font-family: "DFKai-SB", "BiauKai", "楷體", "Kaiti", serif; font-weight: 900; font-size: 18px; color: #b91c1c; text-shadow: 1px 1px 0px rgba(254, 240, 138, 0.8); text-align: center; }
+                            .cyber-spark { position: absolute; width: 8px; height: 8px; background: #fbbf24; border-radius: 50%; box-shadow: 0 0 10px #ef4444; pointer-events: none; transition: transform 0.4s cubic-bezier(0.1, 0.8, 0.2, 1), opacity 0.4s ease-out; z-index: 4; }
                         `;
                         document.head.appendChild(style);
                     }
@@ -1540,52 +1418,18 @@ let trialInterval = null;
                     if (window.bugFreeInterval) clearInterval(window.bugFreeInterval);
                     if (window.bugFreeAnimFrame) cancelAnimationFrame(window.bugFreeAnimFrame);
 
-                    const spellPairs = [
-                        { col1: "BUG退散", col2: "永不報錯" },
-                        { col1: "順利PASS", col2: "綠燈常亮" },
-                        { col1: "急急如律", col2: "BUG快滾" },
-                        { col1: "神仙保佑", col2: "絕對不當" }
-                    ];
-
+                    const spellPairs = [ { col1: "BUG退散", col2: "永不報錯" }, { col1: "順利PASS", col2: "綠燈常亮" }, { col1: "急急如律", col2: "BUG快滾" }, { col1: "神仙保佑", col2: "絕對不當" } ];
                     let activeTalismans = [];
-
-                    const giantPairs = [
-                        { col1: "天地玄宗", col2: "萬氣本根" },
-                        { col1: "鎮壓百邪", col2: "永無代碼" },
-                        { col1: "神威浩蕩", col2: "BUG退散" },
-                        { col1: "太上老君", col2: "急急如律" }
-                    ];
-
+                    const giantPairs = [ { col1: "天地玄宗", col2: "萬氣本根" }, { col1: "鎮壓百邪", col2: "永無代碼" }, { col1: "神威浩蕩", col2: "BUG退散" }, { col1: "太上老君", col2: "急急如律" } ];
                     const stageWidth = layer.offsetWidth || window.innerWidth;
                     
                     giantPairs.forEach((pair, index) => {
                         let giant = document.createElement('div');
                         giant.className = 'cyber-giant-talisman';
-                        
                         let posX = (stageWidth / 4) * (index + 0.5);
                         let posY = 20 + Math.random() * 35; 
-                        
-                        giant.style.left = posX + 'px';
-                        giant.style.top = posY + 'px';
-                        giant.style.transform = 'translateX(-50%)';
-                        giant.style.animationDelay = (index * 1.5) + 's';
-
-                        giant.innerHTML = `
-                            <svg width="90" height="40" viewBox="0 0 90 40" style="opacity: 0.9;">
-                                <path d="M10,20 Q25,2 45,20 Q65,38 80,20" fill="none" stroke="#dc2626" stroke-width="4" stroke-linecap="round"/>
-                                <circle cx="45" cy="10" r="4" fill="#dc2626"/>
-                                <circle cx="20" cy="30" r="2.5" fill="#dc2626"/>
-                                <circle cx="70" cy="30" r="2.5" fill="#dc2626"/>
-                            </svg>
-                            <div class="giant-content">
-                                <div class="giant-col">${pair.col1}</div>
-                                <div class="giant-col">${pair.col2}</div>
-                            </div>
-                            <svg width="90" height="45" viewBox="0 0 90 45" style="opacity: 0.9;">
-                                <path d="M15,5 Q45,40 75,5 M22,15 Q45,42 68,15 M45,5 L45,35" fill="none" stroke="#dc2626" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
-                                <circle cx="45" cy="32" r="3.5" fill="#dc2626"/>
-                            </svg>
-                        `;
+                        giant.style.left = posX + 'px'; giant.style.top = posY + 'px'; giant.style.transform = 'translateX(-50%)'; giant.style.animationDelay = (index * 1.5) + 's';
+                        giant.innerHTML = `<svg width="90" height="40" viewBox="0 0 90 40" style="opacity: 0.9;"><path d="M10,20 Q25,2 45,20 Q65,38 80,20" fill="none" stroke="#dc2626" stroke-width="4" stroke-linecap="round"/><circle cx="45" cy="10" r="4" fill="#dc2626"/><circle cx="20" cy="30" r="2.5" fill="#dc2626"/><circle cx="70" cy="30" r="2.5" fill="#dc2626"/></svg><div class="giant-content"><div class="giant-col">${pair.col1}</div><div class="giant-col">${pair.col2}</div></div><svg width="90" height="45" viewBox="0 0 90 45" style="opacity: 0.9;"><path d="M15,5 Q45,40 75,5 M22,15 Q45,42 68,15 M45,5 L45,35" fill="none" stroke="#dc2626" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/><circle cx="45" cy="32" r="3.5" fill="#dc2626"/></svg>`;
                         layer.appendChild(giant);
                     });
 
@@ -1593,109 +1437,69 @@ let trialInterval = null;
                         constructor(containerWidth, containerHeight) {
                             this.el = document.createElement('div');
                             this.el.className = 'cyber-talisman';
-                            
-                            this.w = 65;
-                            this.h = 160;
+                            this.w = 65; this.h = 160;
                             this.x = Math.random() * (containerWidth - this.w - 50) + 25;
                             this.y = -200; 
-                            
                             this.vy = 0.6 + Math.random() * 0.4; 
                             this.amplitude = 50 + Math.random() * 30; 
                             this.frequency = 0.006 + Math.random() * 0.004; 
                             this.angleSeed = Math.random() * Math.PI * 2; 
-                            
                             this.baseX = this.x;
                             this.markedForDeletion = false;
 
                             const pair = spellPairs[Math.floor(Math.random() * spellPairs.length)];
-                            this.el.innerHTML = `
-                                <svg width="55" height="28" viewBox="0 0 55 28" style="opacity: 0.95;">
-                                    <path d="M5,14 Q15,2 27,14 Q40,26 50,14" fill="none" stroke="#dc2626" stroke-width="3" stroke-linecap="round"/>
-                                    <circle cx="27" cy="6" r="3" fill="#dc2626"/>
-                                    <circle cx="12" cy="20" r="2" fill="#dc2626"/>
-                                    <circle cx="42" cy="20" r="2" fill="#dc2626"/>
-                                </svg>
-                                <div class="talisman-content">
-                                    <div class="talisman-col">${pair.col1}</div>
-                                    <div class="talisman-col">${pair.col2}</div>
-                                </div>
-                                <svg width="55" height="32" viewBox="0 0 55 32" style="opacity: 0.95;">
-                                    <path d="M10,4 Q27,28 45,4 M15,12 Q27,30 39,12 M27,4 L27,28" fill="none" stroke="#dc2626" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
-                                    <circle cx="27" cy="26" r="2.5" fill="#dc2626"/>
-                                </svg>
-                            `;
+                            this.el.innerHTML = `<svg width="55" height="28" viewBox="0 0 55 28" style="opacity: 0.95;"><path d="M5,14 Q15,2 27,14 Q40,26 50,14" fill="none" stroke="#dc2626" stroke-width="3" stroke-linecap="round"/><circle cx="27" cy="6" r="3" fill="#dc2626"/><circle cx="12" cy="20" r="2" fill="#dc2626"/><circle cx="42" cy="20" r="2" fill="#dc2626"/></svg><div class="talisman-content"><div class="talisman-col">${pair.col1}</div><div class="talisman-col">${pair.col2}</div></div><svg width="55" height="32" viewBox="0 0 55 32" style="opacity: 0.95;"><path d="M10,4 Q27,28 45,4 M15,12 Q27,30 39,12 M27,4 L27,28" fill="none" stroke="#dc2626" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/><circle cx="27" cy="26" r="2.5" fill="#dc2626"/></svg>`;
 
-                            // 🌟 修正：改成 onclick，這樣電腦滑鼠點擊跟手機手指觸控都能完美引爆！
+                            // 點擊引爆符咒！
                             this.el.onclick = (e) => {
                                 const rect = this.el.getBoundingClientRect();
                                 const layerRect = layer.getBoundingClientRect();
                                 const centerX = rect.left - layerRect.left + rect.width / 2;
                                 const centerY = rect.top - layerRect.top + rect.height / 2;
-
                                 this.markedForDeletion = true;
                                 this.el.remove();
 
                                 for(let i = 0; i < 10; i++) {
                                     let spark = document.createElement('div');
                                     spark.className = 'cyber-spark';
-                                    spark.style.left = centerX + 'px';
-                                    spark.style.top = centerY + 'px';
+                                    spark.style.left = centerX + 'px'; spark.style.top = centerY + 'px';
                                     layer.appendChild(spark);
-
                                     requestAnimationFrame(() => {
                                         const angle = Math.random() * Math.PI * 2;
                                         const dist = Math.random() * 60 + 25;
                                         spark.style.transform = `translate(${Math.cos(angle) * dist}px, ${Math.sin(angle) * dist}px) scale(0)`;
                                         spark.style.opacity = '0'; 
                                     });
-
-                                    setTimeout(() => {
-                                        if (spark.parentNode) spark.remove();
-                                    }, 400);
+                                    setTimeout(() => { if (spark.parentNode) spark.remove(); }, 400);
                                 }
                             };
-
                             layer.appendChild(this.el);
                         }
-
                         update(height) {
                             this.y += this.vy;
-                            
                             let progress = this.y * 0.007;
                             let swayX = Math.sin(this.angleSeed + progress) * this.amplitude;
                             let zFactor = Math.cos(this.angleSeed * 1.2 + progress * 1.5) * 25;
                             let currentX = this.baseX + swayX + zFactor;
-                            
                             let rotateX = Math.sin(progress * 2) * 18; 
                             let rotateY = Math.cos(progress * 1.5) * 25; 
                             let rotateZ = Math.sin(this.angleSeed + progress) * 15; 
                             let floatY = Math.sin(progress * 3) * 8; 
-
                             this.el.style.transform = `translate3d(${currentX}px, ${this.y + floatY}px, 0) rotateX(${rotateX}deg) rotateY(${rotateY}deg) rotateZ(${rotateZ}deg)`;
-
-                            if (this.y > height + 100) {
-                                this.markedForDeletion = true;
-                                this.el.remove();
-                            }
+                            if (this.y > height + 100) { this.markedForDeletion = true; this.el.remove(); }
                         }
                     }
 
                     function renderLoop() {
                         if (gameState.currentEffect !== 'bugFree' && trialState.effect !== 'bugFree') {
-                            activeTalismans.forEach(t => t.el.remove());
-                            activeTalismans = [];
-                            return;
+                            activeTalismans.forEach(t => t.el.remove()); activeTalismans = []; return;
                         }
-
                         window.bugFreeAnimFrame = requestAnimationFrame(renderLoop);
-
                         let h = layer.offsetHeight;
                         for (let i = activeTalismans.length - 1; i >= 0; i--) {
                             let t = activeTalismans[i];
                             t.update(h);
-                            if (t.markedForDeletion) {
-                                activeTalismans.splice(i, 1);
-                            }
+                            if (t.markedForDeletion) { activeTalismans.splice(i, 1); }
                         }
                     }
 
@@ -1703,74 +1507,40 @@ let trialInterval = null;
 
                     function spawnTalisman() {
                         if (gameState.currentEffect !== 'bugFree' && trialState.effect !== 'bugFree') return;
-                        if (activeTalismans.length < 7) {
-                            activeTalismans.push(new SoftTalisman(layer.offsetWidth, layer.offsetHeight));
-                        }
+                        if (activeTalismans.length < 7) { activeTalismans.push(new SoftTalisman(layer.offsetWidth, layer.offsetHeight)); }
                     }
 
-                    spawnTalisman();
-                    setTimeout(spawnTalisman, 1200);
-                    setTimeout(spawnTalisman, 2400);
-
+                    spawnTalisman(); setTimeout(spawnTalisman, 1200); setTimeout(spawnTalisman, 2400);
                     window.bugFreeInterval = setInterval(spawnTalisman, 1800);
                     break;
-                // ------------------------------------------------
-                // 🌧️ 【綿綿細雨】專屬地盤 (極致朦朧升級版！)
-                // ------------------------------------------------
+
+                // 🌧️ 【綿綿細雨】極致朦朧升級版
                 case 'rain':
-                    // ✨ 數量再加碼到 100，因為模糊後的雨絲會交織成一片水霧！
                     for (let i = 0; i < 100; i++) { 
                         let el = document.createElement('div');
-                        el.style.position = 'absolute';
-                        el.style.left = Math.random() * 100 + '%';
-                        el.style.top = '-60px'; 
-                        
-                        // 呼叫你的針狀雨絲
+                        el.style.position = 'absolute'; el.style.left = Math.random() * 100 + '%'; el.style.top = '-60px'; 
                         el.innerHTML = svgLib['drop']; 
-                        
-                        let size = Math.random() * 25 + 15;
-                        el.style.width = size + 'px'; 
-                        el.style.height = size + 'px';
-                        
-                        // 固定斜斜的 15 度，咻咻咻
+                        let size = Math.random() * 25 + 15; el.style.width = size + 'px'; el.style.height = size + 'px';
                         el.style.transform = 'rotate(15deg)';
-                        
-                        // ✨ 朦朧感魔法：讓每一根雨絲有不同的模糊度與透明度！
-                        let blurValue = Math.random() * 4; // 隨機加上 0 到 4 像素的模糊
+                        let blurValue = Math.random() * 4; 
                         el.style.filter = `blur(${blurValue}px)`;
-                        
-                        // 越模糊的雨絲（越遠的），透明度就越低，創造超逼真的空氣霧感
                         el.style.opacity = Math.random() * 0.4 + (1 - blurValue / 5) * 0.5; 
-                        
-                        // 速度與延遲
                         let duration = Math.random() * 1.5 + 0.8; 
                         el.style.animation = `rainFall ${duration}s linear infinite`;
                         el.style.animationDelay = (Math.random() * 3) + 's';
-                        
                         layer.appendChild(el);
                     }
                     break;
 
-// ------------------------------------------------
-                // 🎆 【小番茄煙火】護眼護機流暢版 (智慧限制數量，拯救電腦)
-                // ------------------------------------------------
+                // 🎆 【小番茄煙火】護眼護機流暢版
                 case 'tomato':
-                    // 1. 清除所有的舊計時器與動畫
                     if (window.tomatoFwInterval) clearInterval(window.tomatoFwInterval);
                     if (window.tomatoFwTimeout) clearTimeout(window.tomatoFwTimeout);
                     if (window.tomatoAnimFrame) cancelAnimationFrame(window.tomatoAnimFrame);
 
                     let canvas = document.getElementById('tomatoCanvas');
                     if (!canvas) {
-                        canvas = document.createElement('canvas');
-                        canvas.id = 'tomatoCanvas';
-                        canvas.style.position = 'absolute';
-                        canvas.style.top = '0';
-                        canvas.style.left = '0';
-                        canvas.style.width = '100%';
-                        canvas.style.height = '100%';
-                        canvas.style.pointerEvents = 'none'; 
-                        canvas.style.zIndex = '999';
+                        canvas = document.createElement('canvas'); canvas.id = 'tomatoCanvas'; canvas.style.position = 'absolute'; canvas.style.top = '0'; canvas.style.left = '0'; canvas.style.width = '100%'; canvas.style.height = '100%'; canvas.style.pointerEvents = 'none'; canvas.style.zIndex = '999';
                         layer.appendChild(canvas);
                     }
 
@@ -1778,118 +1548,45 @@ let trialInterval = null;
                     let particles = [];
 
                     function createFirework(startX, startY, scale) {
-                        // 🌟 嚴格優化火花數量！用稍微大一點的粒子填補空間，減輕負擔
                         let redCount = Math.floor(300 * scale);
                         let greenCount = Math.floor(100 * scale);
 
-                        // 🍅 紅色番茄本體
+                        // 紅色番茄本體
                         for (let i = 0; i < redCount; i++) {
-                            let angle = Math.random() * Math.PI * 2;
-                            let r = Math.random() > 0.6 ? 1.0 : Math.sqrt(Math.random()); 
-                            
-                            let targetX = Math.cos(angle) * r * 85 * scale; 
-                            let targetY = Math.sin(angle) * r * 75 * scale; 
-                            
-                            let rand = Math.random();
-                            let c = '#dc2626'; 
-                            if (rand > 0.95) c = '#ffffff'; 
-                            else if (rand > 0.4) c = '#ef4444'; 
-
-                            particles.push({
-                                startX: startX, startY: startY,
-                                x: startX, y: startY,
-                                tx: startX + targetX, ty: startY + targetY,
-                                color: c,
-                                alpha: 1,
-                                // 🌟 粒子稍微放大一點點，彌補數量的減少，一樣飽滿！
-                                baseSize: Math.max(1.5, (Math.random() * 2.5 + 2) * scale), 
-                                progress: 0,
-                                speed: Math.random() * 0.02 + 0.015 
-                            });
+                            let angle = Math.random() * Math.PI * 2; let r = Math.random() > 0.6 ? 1.0 : Math.sqrt(Math.random()); 
+                            let targetX = Math.cos(angle) * r * 85 * scale; let targetY = Math.sin(angle) * r * 75 * scale; 
+                            let rand = Math.random(); let c = '#dc2626'; if (rand > 0.95) c = '#ffffff'; else if (rand > 0.4) c = '#ef4444'; 
+                            particles.push({ startX: startX, startY: startY, x: startX, y: startY, tx: startX + targetX, ty: startY + targetY, color: c, alpha: 1, baseSize: Math.max(1.5, (Math.random() * 2.5 + 2) * scale), progress: 0, speed: Math.random() * 0.02 + 0.015 });
                         }
                         
-                        // 🌿 綠色立體蒂頭
+                        // 綠色立體蒂頭
                         for (let i = 0; i < greenCount; i++) {
-                            let branch = i % 7; 
-                            let t = Math.random();
-                            let targetX, targetY;
-                            let originY = -70 * scale; 
-
-                            if (branch === 0) { targetX = t * 25 * scale; targetY = originY - t * 55 * scale; } 
-                            else if (branch === 1) { targetX = -75 * t * scale; targetY = originY + 15 * t * scale; } 
-                            else if (branch === 2) { targetX = -55 * t * scale; targetY = originY - 20 * t * scale; } 
-                            else if (branch === 3) { targetX = -30 * t * scale; targetY = originY - 45 * t * scale; } 
-                            else if (branch === 4) { targetX = 30 * t * scale; targetY = originY - 45 * t * scale; }  
-                            else if (branch === 5) { targetX = 55 * t * scale; targetY = originY - 20 * t * scale; }  
-                            else { targetX = 75 * t * scale; targetY = originY + 15 * t * scale; } 
-
-                            targetX += (Math.random() - 0.5) * 6 * scale;
-                            targetY += (Math.random() - 0.5) * 6 * scale;
-
-                            let rand = Math.random();
-                            let c = '#16a34a'; 
-                            if (rand > 0.95) c = '#ffffff'; 
-                            else if (rand > 0.4) c = '#22c55e'; 
-
-                            particles.push({
-                                startX: startX, startY: startY,
-                                x: startX, y: startY,
-                                tx: startX + targetX, ty: startY + targetY,
-                                color: c,
-                                alpha: 1,
-                                baseSize: Math.max(1.5, (Math.random() * 3 + 2) * scale),
-                                progress: 0,
-                                speed: Math.random() * 0.02 + 0.015 
-                            });
+                            let branch = i % 7; let t = Math.random(); let targetX, targetY; let originY = -70 * scale; 
+                            if (branch === 0) { targetX = t * 25 * scale; targetY = originY - t * 55 * scale; } else if (branch === 1) { targetX = -75 * t * scale; targetY = originY + 15 * t * scale; } else if (branch === 2) { targetX = -55 * t * scale; targetY = originY - 20 * t * scale; } else if (branch === 3) { targetX = -30 * t * scale; targetY = originY - 45 * t * scale; } else if (branch === 4) { targetX = 30 * t * scale; targetY = originY - 45 * t * scale; } else if (branch === 5) { targetX = 55 * t * scale; targetY = originY - 20 * t * scale; } else { targetX = 75 * t * scale; targetY = originY + 15 * t * scale; } 
+                            targetX += (Math.random() - 0.5) * 6 * scale; targetY += (Math.random() - 0.5) * 6 * scale;
+                            let rand = Math.random(); let c = '#16a34a'; if (rand > 0.95) c = '#ffffff'; else if (rand > 0.4) c = '#22c55e'; 
+                            particles.push({ startX: startX, startY: startY, x: startX, y: startY, tx: startX + targetX, ty: startY + targetY, color: c, alpha: 1, baseSize: Math.max(1.5, (Math.random() * 3 + 2) * scale), progress: 0, speed: Math.random() * 0.02 + 0.015 });
                         }
                     }
 
                     function render() {
                         if (gameState.currentEffect !== 'tomato' && trialState.effect !== 'tomato') {
                             if (canvas.parentNode) canvas.parentNode.removeChild(canvas);
-                            if (window.tomatoFwTimeout) clearTimeout(window.tomatoFwTimeout);
-                            return;
+                            if (window.tomatoFwTimeout) clearTimeout(window.tomatoFwTimeout); return;
                         }
-                        
                         window.tomatoAnimFrame = requestAnimationFrame(render);
-                        
-                        ctx.globalCompositeOperation = 'destination-out';
-                        ctx.fillStyle = 'rgba(0, 0, 0, 0.15)'; 
-                        ctx.fillRect(0, 0, canvas.width, canvas.height);
-                        
-                        ctx.globalCompositeOperation = 'source-over'; 
-                        ctx.shadowBlur = 3; // 稍微降低光暈的運算負擔
+                        ctx.globalCompositeOperation = 'destination-out'; ctx.fillStyle = 'rgba(0, 0, 0, 0.15)'; ctx.fillRect(0, 0, canvas.width, canvas.height);
+                        ctx.globalCompositeOperation = 'source-over'; ctx.shadowBlur = 3; 
 
                         for (let i = particles.length - 1; i >= 0; i--) {
                             let p = particles[i];
-                            
-                            p.progress += p.speed;
-                            if (p.progress >= 1) p.progress = 1;
-                            
+                            p.progress += p.speed; if (p.progress >= 1) p.progress = 1;
                             let ease = 1 - Math.pow(1 - p.progress, 3);
-                            
-                            p.x = p.startX + (p.tx - p.startX) * ease;
-                            p.y = p.startY + (p.ty - p.startY) * ease;
-                            
-                            if (p.progress >= 1) {
-                                p.ty += 0.4; 
-                                p.alpha -= 0.015; 
-                            }
-
-                            if (p.alpha <= 0) {
-                                particles.splice(i, 1);
-                                continue;
-                            }
-
-                            let twinkleSize = p.baseSize * (0.7 + Math.random() * 0.5);
-                            let twinkleAlpha = p.alpha * (0.6 + Math.random() * 0.4);
-
-                            ctx.beginPath();
-                            ctx.arc(p.x, p.y, twinkleSize, 0, Math.PI * 2);
-                            ctx.fillStyle = p.color;
-                            ctx.shadowColor = p.color; 
-                            ctx.globalAlpha = twinkleAlpha;
-                            ctx.fill();
+                            p.x = p.startX + (p.tx - p.startX) * ease; p.y = p.startY + (p.ty - p.startY) * ease;
+                            if (p.progress >= 1) { p.ty += 0.4; p.alpha -= 0.015; }
+                            if (p.alpha <= 0) { particles.splice(i, 1); continue; }
+                            let twinkleSize = p.baseSize * (0.7 + Math.random() * 0.5); let twinkleAlpha = p.alpha * (0.6 + Math.random() * 0.4);
+                            ctx.beginPath(); ctx.arc(p.x, p.y, twinkleSize, 0, Math.PI * 2); ctx.fillStyle = p.color; ctx.shadowColor = p.color; ctx.globalAlpha = twinkleAlpha; ctx.fill();
                         }
                     }
 
@@ -1897,54 +1594,31 @@ let trialInterval = null;
 
                     function randomLaunch() {
                         if (gameState.currentEffect !== 'tomato' && trialState.effect !== 'tomato') return;
-                        
-                        // 🌟 煞車系統：如果畫面上已經有超過 1000 顆火花在飛，就跳過這次發射，保護電腦！
-                        if (particles.length < 1000) {
-                            canvas.width = canvas.offsetWidth;
-                            canvas.height = canvas.offsetHeight;
-                            
-                            let targetX = canvas.width * (0.1 + Math.random() * 0.8);
-                            let targetY = canvas.height * (0.1 + Math.random() * 0.65);
-                            
+                        if (particles.length < 1000) { // 防止卡頓，火花太多就先不射
+                            canvas.width = canvas.offsetWidth; canvas.height = canvas.offsetHeight;
+                            let targetX = canvas.width * (0.1 + Math.random() * 0.8); let targetY = canvas.height * (0.1 + Math.random() * 0.65);
                             let scale = 0.25 + Math.random() * 0.45;
                             createFirework(targetX, targetY, scale);
                         }
-
-                        // 🌟 放慢發射間隔時間，讓電腦有時間喘氣 (1.2秒 到 2.5秒 之間)
                         let nextLaunchTime = 1200 + Math.random() * 1300;
                         window.tomatoFwTimeout = setTimeout(randomLaunch, nextLaunchTime);
                     }
-                    
-                    randomLaunch();
-                    // 第一波稍微給點層次感，延遲0.8秒發射第二顆
-                    setTimeout(randomLaunch, 800); 
+                    randomLaunch(); setTimeout(randomLaunch, 800); 
                     break;
-                // ------------------------------------------------
-                // 🛠️ 其他還沒改到的特效，先用這個「通用備用方案」頂著
-                // ------------------------------------------------
+
+                // 🛠️ 其他通用的純 SVG 特效飄落
                 default:
                     let count = effect.count || 15;
                     for (let i = 0; i < count; i++) {
                         let el = document.createElement('div');
-                        el.style.position = 'absolute';
-                        el.style.left = Math.random() * 100 + '%';
-                        el.style.opacity = Math.random() * 0.5 + 0.5;
-                        
-                        let svgItem = effect.svg[Math.floor(Math.random() * effect.svg.length)];
-                        let rawSVG = svgLib[svgItem.s] || svgLib['circle']; 
-                        el.innerHTML = rawSVG;
-                        if (svgItem.c) el.style.color = svgItem.c; 
-                        
-                        let size = Math.random() * 30 + 30;
-                        el.style.width = size + 'px';
-                        el.style.height = size + 'px';
-                        
+                        el.style.position = 'absolute'; el.style.left = Math.random() * 100 + '%'; el.style.opacity = Math.random() * 0.5 + 0.5;
+                        let svgItem = effect.svg[Math.floor(Math.random() * effect.svg.length)]; let rawSVG = svgLib[svgItem.s] || svgLib['circle']; 
+                        el.innerHTML = rawSVG; if (svgItem.c) el.style.color = svgItem.c; 
+                        let size = Math.random() * 30 + 30; el.style.width = size + 'px'; el.style.height = size + 'px';
                         if (effect.dir === 'up') {
-                            el.style.bottom = '-60px';
-                            el.style.animation = `bubbleRise ${Math.random() * 3 + 3}s ease-in infinite`;
+                            el.style.bottom = '-60px'; el.style.animation = `bubbleRise ${Math.random() * 3 + 3}s ease-in infinite`;
                         } else {
-                            el.style.top = '-60px';
-                            el.style.animation = `rainFall ${Math.random() * 3 + 3}s linear infinite`;
+                            el.style.top = '-60px'; el.style.animation = `rainFall ${Math.random() * 3 + 3}s linear infinite`;
                         }
                         el.style.animationDelay = (Math.random() * 2) + 's';
                         layer.appendChild(el);
@@ -1953,33 +1627,34 @@ let trialInterval = null;
             }
         }
         
+        // 🌟 處理餵食、洗澡、摸摸等賺積分的互動
         function interact(type, reward, cdSeconds) {
             if (gameState.cooldowns[type] > 0) return;
 
             gameState.points += reward;
-            gameState.cooldowns[type] = cdSeconds;
+            gameState.cooldowns[type] = cdSeconds; // 設定冷卻時間
 
             showFloatText(`+${reward}`);
             saveGame();
             updateUI();
+
+            // 呼叫伺服器記綠動作
+            const actionMap = { 'feed': 'FEED', 'clean': 'PURIFY', 'pet': 'PET' };
+            if(actionMap[type]) {
+                fetchAPI('/pet-games/interact', 'POST', { actionType: actionMap[type] });
+            }
         }
 
-function showFloatText(text, duration = 1000) {
-    const el = document.createElement('div');
-    el.className = 'float-text';
-    el.innerText = text;
-    el.style.left = '50%';
-    el.style.top = '30%';
-    
-    // 這裡的 duration 終於有主人了！
-    el.style.animation = `floatUp ${duration / 1000}s forwards cubic-bezier(0.18, 0.89, 0.32, 1.28)`;
-    
-    document.body.appendChild(el);
-    
-    // 這裡原本的 1000 也要改成 duration，這樣文字才會乖乖停留！
-    setTimeout(() => el.remove(), duration);
-}
+        // 噴出獎勵數字的小動畫
+        function showFloatText(text, duration = 1000) {
+            const el = document.createElement('div');
+            el.className = 'float-text'; el.innerText = text; el.style.left = '50%'; el.style.top = '30%';
+            el.style.animation = `floatUp ${duration / 1000}s forwards cubic-bezier(0.18, 0.89, 0.32, 1.28)`;
+            document.body.appendChild(el);
+            setTimeout(() => el.remove(), duration);
+        }
 
+        // 倒數計時冷卻時間的大時鐘
         function startCooldownTimer() {
             setInterval(() => {
                 let needUpdate = false;
@@ -1993,39 +1668,48 @@ function showFloatText(text, duration = 1000) {
             }, 1000);
         }
 
-        // 修改儲存功能：加入簡單的編碼加密
-function saveGame() { 
-    const dataString = JSON.stringify(gameState);
-    // 使用 encodeURIComponent 避免中文寵物名字造成 btoa 報錯
-    const encodedData = btoa(encodeURIComponent(dataString)); 
-    localStorage.setItem('nudi_v9_save', encodedData); 
-}
+        // 🌟 【防撞衫專屬鑰匙】拿每個人的專屬 Token 當保險箱密碼，確保大家的存檔不會混在一起
+        function getSaveKey() {
+            return 'nudi_save_' + (GAME_TOKEN ? GAME_TOKEN.substring(0, 20) : 'guest');
+        }
 
-// 修改讀取功能：加入解密
-function loadGame() {
-    const saved = localStorage.getItem('nudi_v9_save');
-    if (saved) { 
-        try { 
-            // 將編碼解密回原本的 JSON 字串
-            const decodedData = decodeURIComponent(atob(saved));
-            let parsed = JSON.parse(decodedData);
-            
-            // 以下保留你原本的版本相容性處理邏輯
-            if(parsed.currentEnv) {
-                parsed.currentBg = 'sky';
-                parsed.currentEffect = 'none';
-                parsed.unlockedBgs = ['sky'];
-                parsed.unlockedEffects = ['none'];
-                delete parsed.currentEnv;
-                delete parsed.unlockedItems;
+        // 🌟 【記憶吐司：儲存進度】
+        function saveGame() { 
+            try {
+                const dataString = JSON.stringify(gameState);
+                const encodedData = btoa(encodeURIComponent(dataString)); 
+                localStorage.setItem(getSaveKey(), encodedData); // 用專屬鑰匙上鎖！
+            } catch(e) {
+                console.warn("存檔失敗", e);
             }
-            gameState = { ...gameState, ...parsed }; 
-        } catch(e) {
-            console.error("存檔讀取失敗或已損毀", e);
-        } 
-    }
-}
+        }
+
+        // 🌟 【記憶吐司：讀取進度】
+        function loadGame() {
+            const saved = localStorage.getItem(getSaveKey()); // 用專屬鑰匙開鎖！
+            if (saved) { 
+                try { 
+                    let decodedData = saved;
+                    // 如果有加密過，就幫它解碼
+                    if (!saved.startsWith('{')) {
+                        decodedData = decodeURIComponent(atob(saved));
+                    }
+                    let parsed = JSON.parse(decodedData);
+                    
+                    // 為了相容舊版存檔的自動修復程式
+                    if(parsed.currentEnv) {
+                        parsed.currentBg = 'sky'; parsed.currentEffect = 'none';
+                        parsed.unlockedBgs = ['sky']; parsed.unlockedEffects = ['none'];
+                        delete parsed.currentEnv; delete parsed.unlockedItems;
+                    }
+                    gameState = { ...gameState, ...parsed }; 
+                } catch(e) {
+                    console.error("存檔讀取失敗或已損毀", e);
+                } 
+            }
+        }
         
+        // 更新按鈕是否鎖定與積分顯示
         function updateUI() {
             const t = i18n[currLang];
             document.getElementById('pointDisplay').innerText = gameState.points;
@@ -2045,15 +1729,12 @@ function loadGame() {
             });
         }
 
+        // 🌟 【物理互動引擎】負責計算你怎麼抓海兔、怎麼摸牠，以及噴出愛心
         function initDragAndPetSystem() {
             const slugEl = document.getElementById('slugContainer');
             const stageEl = document.getElementById('mainStage');
             
-            let isDragging = false;
-            let moved = false;
-            let startX = 0, startY = 0;
-            let slugStartLeft = 0, slugStartTop = 0;
-            let petTimer = null;
+            let isDragging = false; let moved = false; let startX = 0, startY = 0; let slugStartLeft = 0, slugStartTop = 0; let petTimer = null;
 
             slugEl.oncontextmenu = (e) => { e.preventDefault(); return false; };
             slugEl.ondragstart = (e) => { e.preventDefault(); return false; };
@@ -2066,59 +1747,41 @@ function loadGame() {
 
             function onStart(e) {
                 if (e.type === 'mousedown' && e.button !== 0) return;
-                
-                isDragging = true;
-                moved = false;
-                document.body.classList.add('is-dragging-global');
-
-                const pos = getPos(e);
-                startX = pos.x;
-                startY = pos.y;
-
+                isDragging = true; moved = false; document.body.classList.add('is-dragging-global');
+                const pos = getPos(e); startX = pos.x; startY = pos.y;
                 const style = window.getComputedStyle(slugEl);
                 slugStartLeft = parseFloat(style.left) || (stageEl.clientWidth / 2 - 170);
                 slugStartTop = parseFloat(style.top) || (stageEl.clientHeight / 2 - 120);
-                
                 slugEl.classList.add('is-petting');
                 spawnMiniHeart(pos.x, pos.y);
             }
 
             function onMove(e) {
                 if (!isDragging) return; 
-
                 if (e.cancelable) e.preventDefault(); 
-
-                const pos = getPos(e);
-                const dx = pos.x - startX;
-                const dy = pos.y - startY;
-
+                const pos = getPos(e); const dx = pos.x - startX; const dy = pos.y - startY;
                 if (Math.abs(dx) > 5 || Math.abs(dy) > 5) moved = true;
+                if (moved && Math.random() < 0.08) spawnMiniHeart(pos.x, pos.y); // 拖著跑會狂冒愛心
 
-                if (moved && Math.random() < 0.08) spawnMiniHeart(pos.x, pos.y);
+                let newLeft = slugStartLeft + dx; let newTop = slugStartTop + dy;
+                const stageRect = stageEl.getBoundingClientRect(); const slugRect = slugEl.getBoundingClientRect();
 
-                let newLeft = slugStartLeft + dx;
-                let newTop = slugStartTop + dy;
-
-                const stageRect = stageEl.getBoundingClientRect();
-                const slugRect = slugEl.getBoundingClientRect();
-
+                // 避免被丟出畫面外
                 newLeft = Math.max(0, Math.min(newLeft, stageRect.width - slugRect.width));
                 newTop = Math.max(0, Math.min(newTop, stageRect.height - slugRect.height));
 
-                slugEl.style.left = newLeft + 'px';
-                slugEl.style.top = newTop + 'px';
-                updateFloatingButtonPosition(); // 🌟 就是這行！讓按鈕跟著兔子一起跑
+                slugEl.style.left = newLeft + 'px'; slugEl.style.top = newTop + 'px';
+                updateFloatingButtonPosition(); // 讓挑釁按鈕乖乖跟著海兔一起跑
+                
+                // 拖曳時，隨機挑選時機同步你的座標給大家看 (避免伺服器大塞車)
+                if (Math.random() < 0.2) broadcastMove(newLeft, newTop);
             }
 
             function onEnd(e) {
                 if (!isDragging) return;
-                isDragging = false;
-                document.body.classList.remove('is-dragging-global');
-                slugEl.classList.remove('is-petting');
-
-                if (!moved && gameState.cooldowns['pet'] === 0) {
-                    interact('pet', 50, 5);
-                }
+                isDragging = false; document.body.classList.remove('is-dragging-global'); slugEl.classList.remove('is-petting');
+                if (!moved && gameState.cooldowns['pet'] === 0) { interact('pet', 50, 5); } // 點一下沒拖動當作是摸摸
+                broadcastMove(parseFloat(slugEl.style.left) || 0, parseFloat(slugEl.style.top) || 0);
             }
 
             function onHover(e) {
@@ -2130,121 +1793,65 @@ function loadGame() {
                 }
             }
 
-            slugEl.addEventListener('mousedown', onStart, { passive: false });
-            slugEl.addEventListener('touchstart', onStart, { passive: false });
-            slugEl.addEventListener('mousemove', onHover);
-
-            document.addEventListener('mousemove', onMove, { passive: false });
-            document.addEventListener('touchmove', onMove, { passive: false });
-            document.addEventListener('mouseup', onEnd);
-            document.addEventListener('touchend', onEnd);
-            document.addEventListener('touchcancel', onEnd);
+            slugEl.addEventListener('mousedown', onStart, { passive: false }); slugEl.addEventListener('touchstart', onStart, { passive: false }); slugEl.addEventListener('mousemove', onHover);
+            document.addEventListener('mousemove', onMove, { passive: false }); document.addEventListener('touchmove', onMove, { passive: false }); document.addEventListener('mouseup', onEnd); document.addEventListener('touchend', onEnd); document.addEventListener('touchcancel', onEnd);
             
+            // 愛心特效產生器
             function spawnMiniHeart(x, y) {
-                const el = document.createElement('div');
-                el.innerHTML = svgLib.heart;
-                el.style.width = '30px';
-                el.style.height = '30px';
-                el.style.position = 'fixed';
-                el.style.left = (x - 15 + Math.random() * 20) + 'px';
-                el.style.top = (y - 30) + 'px';
-                el.style.pointerEvents = 'none';
-                el.style.animation = 'floatUp 1s ease-out forwards';
-                el.style.zIndex = '1000';
-                document.body.appendChild(el);
-                setTimeout(() => el.remove(), 1000);
+                const el = document.createElement('div'); el.innerHTML = svgLib.heart; el.style.width = '30px'; el.style.height = '30px'; el.style.position = 'fixed'; el.style.left = (x - 15 + Math.random() * 20) + 'px'; el.style.top = (y - 30) + 'px'; el.style.pointerEvents = 'none'; el.style.animation = 'floatUp 1s ease-out forwards'; el.style.zIndex = '1000'; document.body.appendChild(el); setTimeout(() => el.remove(), 1000);
             }
         }
-        // 🌟 1. 控制浮動按鈕的顯示與隱藏
-     function updateRecallButtonVisibility() {
-         const btn = document.getElementById('floatingRecallBtn');
-         const activeEffect = trialState.effect || gameState.currentEffect;
-         if (activeEffect === 'disco') {
-             btn.style.display = 'block';
-             updateFloatingButtonPosition(); // 顯示時立即對齊位置
-         } else {
-             btn.style.display = 'none';
-         }
-     }
 
-     // 🌟 2. 讓按鈕自動貼在海兔旁邊的數學定位函式
-     function updateFloatingButtonPosition() {
-         const btn = document.getElementById('floatingRecallBtn');
-         const slugEl = document.getElementById('slugContainer');
-         if (!btn || !slugEl || btn.style.display === 'none') return;
+        // 🌟 【專屬彩蛋：挑釁按鈕顯示控制】只有裝備『回城特效』才看得到
+        function updateRecallButtonVisibility() {
+            const btn = document.getElementById('floatingRecallBtn');
+            const activeEffect = trialState.effect || gameState.currentEffect;
+            if (activeEffect === 'disco') {
+                btn.style.display = 'block'; updateFloatingButtonPosition();
+            } else {
+                btn.style.display = 'none';
+            }
+        }
 
-         // 取得兔子當前的位置與大小
-         const left = parseFloat(slugEl.style.left) || (window.innerWidth / 2 - 170);
-         const top = parseFloat(slugEl.style.top) || (window.innerHeight * 0.29 - 120);
-         const width = slugEl.offsetWidth || 340;
+        // 計算挑釁按鈕要黏在海兔旁邊的哪裡
+        function updateFloatingButtonPosition() {
+            const btn = document.getElementById('floatingRecallBtn'); const slugEl = document.getElementById('slugContainer');
+            if (!btn || !slugEl || btn.style.display === 'none') return;
+            const left = parseFloat(slugEl.style.left) || (window.innerWidth / 2 - 170); const top = parseFloat(slugEl.style.top) || (window.innerHeight * 0.29 - 120); const width = slugEl.offsetWidth || 340;
+            btn.style.left = (left + width - 40) + 'px'; btn.style.top = (top + 20) + 'px';
+        }
 
-         // 把按鈕定位在海兔的右上方偏右側一點點
-         btn.style.left = (left + width - 40) + 'px';
-         btn.style.top = (top + 20) + 'px';
-     }
-// 🌟 3. 點擊按鈕觸發：海兔 SVG 側向轉圈圈 + 連續叮叮叫
+        // 🌟 點擊挑釁按鈕觸發：海兔側翻 + 連續叮叮聲
         function triggerRecallTaunt() {
             const svgEl = document.querySelector('.slug-svg');
-            
-            // 如果正在轉，就不重複觸發
-            if (svgEl.classList.contains('is-spinning-taunt')) return;
-            
-            // 加上轉圈圈動畫類別（只讓兔子自己轉，名字不動！）
+            if (svgEl.classList.contains('is-spinning-taunt')) return; // 防止狂按卡住
             svgEl.classList.add('is-spinning-taunt');
-            setTimeout(() => {
-                svgEl.classList.remove('is-spinning-taunt');
-            }, 600); // 0.6秒轉一圈
-
-            // 播放 3 次清脆的「叮叮叮」聲音
+            setTimeout(() => { svgEl.classList.remove('is-spinning-taunt'); }, 600);
             playDingSound(3);
         }
 
-        // 🌟 全域共用一個音訊管理器，防止瀏覽器記憶體爆掉、音效消音
+        // 🌟 【全域共用的超強音效處理器】防當機、防卡音
         let sharedAudioCtx = null;
 
-        // 🌟 完美無限連點音效函式
         function playDingSound(times) {
             let count = 0;
-            
-            // 確保每次點擊都能安全初始化共用音訊通道
             try {
-                if (!sharedAudioCtx || sharedAudioCtx.state === 'closed') {
-                    sharedAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
-                }
-                if (sharedAudioCtx.state === 'suspended') {
-                    sharedAudioCtx.resume();
-                }
-            } catch(e) {
-                return;
-            }
+                if (!sharedAudioCtx || sharedAudioCtx.state === 'closed') { sharedAudioCtx = new (window.AudioContext || window.webkitAudioContext)(); }
+                if (sharedAudioCtx.state === 'suspended') { sharedAudioCtx.resume(); }
+            } catch(e) { return; }
 
             const interval = setInterval(() => {
-                if (count >= times) {
-                    clearInterval(interval);
-                    return;
-                }
+                if (count >= times) { clearInterval(interval); return; }
                 try {
-                    const osc = sharedAudioCtx.createOscillator();
-                    const gain = sharedAudioCtx.createGain();
-                    
-                    osc.type = 'sine';
-                    // 模擬金屬清脆的高音頻率
-                    osc.frequency.setValueAtTime(1200 + count * 300, sharedAudioCtx.currentTime);
-                    
-                    gain.gain.setValueAtTime(0.15, sharedAudioCtx.currentTime);
-                    gain.gain.exponentialRampToValueAtTime(0.001, sharedAudioCtx.currentTime + 0.3);
-                    
-                    osc.connect(gain);
-                    gain.connect(sharedAudioCtx.destination);
-                    
-                    osc.start();
-                    osc.stop(sharedAudioCtx.currentTime + 0.3);
+                    const osc = sharedAudioCtx.createOscillator(); const gain = sharedAudioCtx.createGain();
+                    osc.type = 'sine'; osc.frequency.setValueAtTime(1200 + count * 300, sharedAudioCtx.currentTime);
+                    gain.gain.setValueAtTime(0.15, sharedAudioCtx.currentTime); gain.gain.exponentialRampToValueAtTime(0.001, sharedAudioCtx.currentTime + 0.3);
+                    osc.connect(gain); gain.connect(sharedAudioCtx.destination);
+                    osc.start(); osc.stop(sharedAudioCtx.currentTime + 0.3);
                 } catch(e) {}
-                
                 count++;
-            }, 150); // 每 0.15 秒叮一聲
+            }, 150); 
         }
-        
         
     </script>
 </body>
