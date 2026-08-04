@@ -1327,29 +1327,177 @@
             if (!effect || effectKey === 'none') return;
 
             switch (effectKey) {
-                // 🌊 【回程挑釁】外擴水波 + 半罩式大泡泡
+                // 🌀 【回程挑釁】背景底層流動自定義彈幕 + 藍色魔法火焰 + 滿版神祕藍色月相魔法陣 + 強力向內吸聚水流 + 半罩式清透大泡泡
                 case 'disco':
                     if (!document.getElementById('recallStyle')) {
                         const style = document.createElement('style');
                         style.id = 'recallStyle';
                         style.innerHTML = `
+                            /* 半罩式防護泡泡與四周霧感光暈 */
                             .recall-bubble {
                                 position: absolute; width: 360px; height: 360px; transform: translate(-50%, -50%);
                                 animation: bubbleBreathe 3s infinite ease-in-out, bubbleWobble 6s infinite linear;
-                                background: radial-gradient(circle at 25% 25%, rgba(255, 255, 255, 0.9) 0%, rgba(255, 255, 255, 0.15) 8%, rgba(255, 255, 255, 0) 35%, rgba(138, 43, 226, 0.03) 65%, rgba(0, 191, 255, 0.08) 85%, rgba(255, 255, 255, 0.25) 100%);
-                                box-shadow: inset 0 0 15px rgba(255, 255, 255, 0.2), inset 15px 0 30px rgba(0, 191, 255, 0.05), inset -15px 0 30px rgba(138, 43, 226, 0.05), 0 0 25px rgba(186, 230, 253, 0.6), 0 0 50px rgba(244, 114, 182, 0.3);
+                                background: radial-gradient(circle at 25% 25%, rgba(255, 255, 255, 0.9) 0%, rgba(255, 255, 255, 0.15) 8%, rgba(255, 255, 255, 0) 35%, rgba(56, 189, 248, 0.03) 65%, rgba(0, 191, 255, 0.08) 85%, rgba(255, 255, 255, 0.25) 100%);
+                                box-shadow: inset 0 0 15px rgba(255, 255, 255, 0.2), inset 15px 0 30px rgba(56, 189, 248, 0.05), inset -15px 0 30px rgba(56, 189, 248, 0.05), 0 0 25px rgba(186, 230, 253, 0.6), 0 0 50px rgba(56, 189, 248, 0.3);
                                 border: 1px solid rgba(255, 255, 255, 0.3); pointer-events: none; z-index: 15; border-radius: 50%;
                                 -webkit-mask-image: linear-gradient(to bottom, rgba(0,0,0,1) 52%, rgba(0,0,0,0) 78%);
                                 mask-image: linear-gradient(to bottom, rgba(0,0,0,1) 52%, rgba(0,0,0,0) 78%);
                             }
+                            
+                            /* 泡泡四周漂浮的小氣泡粒子 */
                             .ambient-tiny-bubble { position: absolute; border-radius: 50%; background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.9), rgba(56,189,248,0.2)); border: 1px solid rgba(255,255,255,0.6); pointer-events: none; z-index: 14; animation: tinyBubbleFloat 3s infinite ease-out; }
                             @keyframes tinyBubbleFloat { 0% { transform: translate(0, 0) scale(0.5); opacity: 0; } 30% { opacity: 0.8; } 100% { transform: translate(var(--tx), var(--ty)) scale(1.2); opacity: 0; } }
+                            
+                            /* 地板外擴水波底座 */
                             .recall-ripple { position: absolute; width: 420px; height: 210px; transform: translate(-50%, -50%); pointer-events: none; z-index: 5; }
                             .wave-surge { transform-origin: center; animation: waveExpandAndFade 3.5s infinite cubic-bezier(0.1, 0.6, 0.3, 1); }
                             .ws-1 { animation-delay: 0s; } .ws-2 { animation-delay: 1.75s; }
                             @keyframes waveExpandAndFade { 0% { transform: scale(0.6); opacity: 0.9; stroke-width: 7px; } 70% { opacity: 0.4; } 100% { transform: scale(1.55); opacity: 0; stroke-width: 1.5px; } }
+                            
                             @keyframes bubbleBreathe { 0%, 100% { transform: translate(-50%, -50%) scale(1); } 50% { transform: translate(-50%, -52%) scale(1.02); } }
                             @keyframes bubbleWobble { 0%, 100% { border-radius: 50%; } 25% { border-radius: 51% 49% 52% 48% / 48% 52% 49% 51%; } 50% { border-radius: 49% 51% 48% 52% / 52% 48% 51% 49%; } 75% { border-radius: 52% 48% 51% 49% / 49% 51% 48% 52%; } }
+
+                            /* 🌟 位於最底層背景的流動嘲諷彈幕層（由左向右在背景飄動） */
+                            .background-taunt-layer {
+                                position: absolute;
+                                width: 100%;
+                                height: 100%;
+                                top: 0;
+                                left: 0;
+                                pointer-events: none;
+                                z-index: 0; /* 在魔法陣與煙霧的最底層背景後面 */
+                                overflow: hidden;
+                            }
+                            .floating-taunt-text {
+                                position: absolute;
+                                font-family: 'Nunito', 'Microsoft JhengHei', sans-serif;
+                                font-size: 1.4rem;
+                                font-weight: 900;
+                                color: rgba(186, 230, 253, 0.6); /* 半透明冰晶藍，製造在深處的飄動感 */
+                                text-shadow: 0 0 12px rgba(56, 189, 248, 0.8), 2px 2px 0px rgba(15, 23, 42, 0.9);
+                                white-space: nowrap;
+                                animation: floatLeftToRight linear infinite;
+                            }
+                            @keyframes floatLeftToRight {
+                                0% { transform: translateX(-400px); }
+                                100% { transform: translateX(calc(100vw + 400px)); }
+                            }
+
+                            /* 🌟 佔滿背景板的滿版神祕藍色月相魔法陣 */
+                            .magic-circle-wrapper {
+                                position: absolute;
+                                width: 100%;
+                                height: 100%;
+                                top: 0;
+                                left: 0;
+                                pointer-events: none;
+                                z-index: 1;
+                                display: flex;
+                                align-items: center;
+                                justify-content: center;
+                                perspective: 1000px;
+                            }
+                            .magic-circle-inner {
+                                width: 850px;
+                                height: 850px;
+                                transform: rotateX(35deg) rotateZ(0deg);
+                                animation: circleRotateAndGlow 40s linear infinite;
+                                filter: drop-shadow(0 0 20px rgba(56, 189, 248, 0.9)) drop-shadow(0 0 45px rgba(2, 132, 199, 0.7));
+                            }
+                            @keyframes circleRotateAndGlow {
+                                0% { transform: rotateX(35deg) rotateZ(0deg); }
+                                100% { transform: rotateX(35deg) rotateZ(360deg); }
+                            }
+
+                            /* 🌟 最外圍的藍色魔法火焰外框 */
+                            .magic-blue-flame-rim {
+                                position: absolute;
+                                width: 920px;
+                                height: 920px;
+                                border-radius: 50%;
+                                border: 3px dashed rgba(125, 211, 252, 0.7);
+                                box-shadow: 0 0 40px rgba(56, 189, 248, 0.9), inset 0 0 40px rgba(56, 189, 248, 0.6);
+                                animation: flamePulse 2s ease-in-out infinite alternate, circleRotateAndGlow 25s linear reverse infinite;
+                            }
+                            @keyframes flamePulse {
+                                0% { transform: rotateX(35deg) scale(0.98); opacity: 0.6; }
+                                100% { transform: rotateX(35deg) scale(1.03); opacity: 1; }
+                            }
+
+                            /* 🌟 魔法陣上方飄動的神秘藍色魔法煙霧特效 */
+                            .magic-smoke-layer {
+                                position: absolute;
+                                width: 100%;
+                                height: 100%;
+                                top: 0;
+                                left: 0;
+                                pointer-events: none;
+                                z-index: 2;
+                                background: radial-gradient(circle at 50% 50%, rgba(56, 189, 248, 0.15) 0%, rgba(3, 105, 161, 0.3) 60%, rgba(15, 23, 42, 0.7) 100%);
+                                opacity: 0.85;
+                                animation: smokePulse 6s ease-in-out infinite alternate;
+                            }
+                            .smoke-wisp {
+                                position: absolute;
+                                background: radial-gradient(circle, rgba(186, 230, 253, 0.35) 0%, rgba(56, 189, 248, 0.15) 50%, transparent 80%);
+                                border-radius: 50%;
+                                filter: blur(20px);
+                                animation: smokeFloat linear infinite;
+                            }
+                            @keyframes smokeFloat {
+                                0% { transform: translate(0, 0) scale(1); opacity: 0.2; }
+                                50% { opacity: 0.6; transform: translate(var(--dx), var(--dy)) scale(1.4); }
+                                100% { transform: translate(calc(var(--dx) * 2), calc(var(--dy) * 2)) scale(1.8); opacity: 0; }
+                            }
+                            @keyframes smokePulse {
+                                0% { opacity: 0.7; }
+                                100% { opacity: 0.95; }
+                            }
+
+                            /* 🌊 水流被強力吸過來的龍捲風特效 */
+                            .suction-water-wrapper {
+                                position: absolute;
+                                width: 500px;
+                                height: 500px;
+                                transform: translate(-50%, -50%);
+                                pointer-events: none;
+                                z-index: 8;
+                            }
+                            .suction-stream {
+                                position: absolute;
+                                top: 50%;
+                                left: 50%;
+                                width: 100%;
+                                height: 100%;
+                                transform: translate(-50%, -50%);
+                                animation: waterPullIn 1.2s linear infinite;
+                            }
+                            @keyframes waterPullIn {
+                                0% { transform: translate(-50%, -50%) rotate(var(--angle)) scale(1.4); opacity: 0; }
+                                20% { opacity: 0.9; }
+                                80% { opacity: 0.9; }
+                                100% { transform: translate(-50%, -50%) rotate(var(--angle)) scale(0.2); opacity: 0; }
+                            }
+
+                           /* 🌟 畫面右下角的自定義彈幕設定按鈕（乾淨安全、絕對不擋按鈕） */
+                            #customTauntBtn {
+                                position: absolute;
+                                bottom: 25px;
+                                right: 25px;
+                                z-index: 99999; /* 最高層級，確保絕對點得到 */
+                                background: linear-gradient(135deg, #38bdf8, #0284c7);
+                                color: white;
+                                border: 3px solid #e0f2fe;
+                                padding: 12px 20px;
+                                border-radius: 25px;
+                                font-weight: 900;
+                                font-size: 0.95rem;
+                                cursor: pointer;
+                                box-shadow: 0 6px 20px rgba(56, 189, 248, 0.6);
+                                transition: 0.1s;
+                                pointer-events: auto !important;
+                            }
+                            #customTauntBtn:active { transform: scale(0.95); }
                         `;
                         document.head.appendChild(style);
                     }
@@ -1357,7 +1505,7 @@
                     if (window.recallAnimFrame) cancelAnimationFrame(window.recallAnimFrame);
                     const slugEl = document.getElementById('slugContainer');
 
-                    // 1. 水波底座
+                    // 1. 建立地板水波底座
                     const ripple = document.createElement('div');
                     ripple.className = 'recall-ripple';
                     ripple.innerHTML = `
@@ -1372,15 +1520,201 @@
                     `;
                     layer.appendChild(ripple);
 
-                    // 2. 半罩式大泡泡
+                    // 2. 🌟 建立背景底層的流動自定義彈幕層（讀取玩家存的句子，由左向右無限飄動）
+                    const tauntLayer = document.createElement('div');
+                    tauntLayer.className = 'background-taunt-layer';
+                    
+                    let userTaunts = JSON.parse(localStorage.getItem('nudi_custom_taunts') || '["MISS! 打不到我~", "就這點傷害？我已經逃囉！", "哈哈，你抓不到我！"]');
+                    
+                    userTaunts.forEach((text, i) => {
+                        let tEl = document.createElement('div');
+                        tEl.className = 'floating-taunt-text';
+                        tEl.innerText = text;
+                        tEl.style.top = (15 + (i * 15)) + '%'; // 錯開每一條的高度
+                        tEl.style.animationDuration = (Math.random() * 4 + 7) + 's'; // 7秒到11秒不等的飄動速度
+                        tEl.style.animationDelay = (Math.random() * 5) + 's';
+                        tauntLayer.appendChild(tEl);
+                    });
+                    layer.appendChild(tauntLayer);
+
+                    // 3. 🌟 在舞台左上角加入「設定彈幕」按鈕
+                    // 🌟 【自定義彈幕設定彈窗邏輯（已修復輸入焦點）】
+    function openCustomTauntModal(currentTaunts) {
+        // 如果畫面上已經有彈窗就先移除
+        let oldModal = document.getElementById('customTauntModal');
+        if (oldModal) oldModal.remove();
+
+        const modalOverlay = document.createElement('div');
+        modalOverlay.id = 'customTauntModal';
+        modalOverlay.style.cssText = `
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(6px);
+            z-index: 999999; display: flex; align-items: center; justify-content: center;
+            pointer-events: auto !important;
+        `;
+
+        modalOverlay.innerHTML = `
+            <div style="background: #fff; width: 90%; max-width: 380px; border-radius: 30px; border: 4px solid #38bdf8; padding: 25px; text-align: center; box-shadow: 0 20px 40px rgba(56, 189, 248, 0.4);">
+                <h3 style="margin-top:0; color: #0284c7; font-weight: 900;">✨ 自定義嘲諷彈幕設定</h3>
+                <p style="font-size: 0.85rem; color: #64748b; margin-bottom: 15px;">輸入你想在背景飄動的嘲諷字句！<br>（最多 4 句，每句限 15 字內）</p>
+                <div id="tauntInputsContainer" style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px;"></div>
+                <div style="display: flex; gap: 10px;">
+                    <button id="closeTauntModalBtn" style="flex: 1; padding: 12px; border: none; border-radius: 18px; background: #f1f5f9; color: #64748b; font-weight: 900; cursor: pointer;">取消</button>
+                    <button id="saveTauntModalBtn" style="flex: 1; padding: 12px; border: none; border-radius: 18px; background: #0284c7; color: white; font-weight: 900; cursor: pointer;">儲存套用</button>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(modalOverlay);
+
+        const container = document.getElementById('tauntInputsContainer');
+        let firstInput = null;
+        
+        // 限制最多 4 句
+        for (let i = 0; i < 4; i++) {
+            let input = document.createElement('input');
+            input.type = 'text';
+            input.maxLength = 15; // 限制每句最多 15 個字
+            input.value = currentTaunts[i] || '';
+            input.placeholder = `嘲諷句子 ${i + 1} (最多15字)...`;
+            input.style.cssText = `
+                width: 100%; padding: 10px 12px; border: 2px solid #cbd5e1; border-radius: 15px;
+                font-weight: 900; color: #1e293b; outline: none; background: #f8fafc; font-size: 0.95rem;
+                pointer-events: auto !important; z-index: 1000000;
+            `;
+            
+            // 阻止點擊輸入框時被遊戲背景事件攔截
+            input.onclick = (e) => e.stopPropagation();
+            input.onkeydown = (e) => e.stopPropagation();
+            
+            container.appendChild(input);
+            if (i === 0) firstInput = input;
+        }
+
+        // 🌟 強制讓第一個輸入框自動取得焦點，這樣彈窗跳出來就能直接打字！
+        if (firstInput) {
+            setTimeout(() => { firstInput.focus(); }, 100);
+        }
+
+        document.getElementById('closeTauntModalBtn').onclick = (e) => {
+            e.stopPropagation();
+            modalOverlay.remove();
+        };
+
+        document.getElementById('saveTauntModalBtn').onclick = (e) => {
+            e.stopPropagation();
+            const inputs = container.querySelectorAll('input');
+            let newTaunts = [];
+            inputs.forEach(input => {
+                let val = input.value.trim();
+                if (val.length > 0) newTaunts.push(val);
+            });
+
+            if (newTaunts.length === 0) {
+                alert('至少要輸入一句嘲諷字句哦！');
+                return;
+            }
+
+            // 儲存到 localStorage
+            localStorage.setItem('nudi_custom_taunts', JSON.stringify(newTaunts));
+            modalOverlay.remove();
+            showFloatText('✨ 彈幕設定成功！');
+            
+            // 重新整理特效讓彈幕立刻生效
+            refreshAll();
+        };
+    }
+
+                    // 4. 建立佔滿背景板的滿版神祕藍色月相魔法陣 + 藍色火焰外環
+                    const magicCircle = document.createElement('div');
+                    magicCircle.className = 'magic-circle-wrapper';
+                    magicCircle.innerHTML = `
+                        <div class="magic-blue-flame-rim"></div>
+                        <div class="magic-circle-inner">
+                            <svg viewBox="0 0 500 500" width="100%" height="100%">
+                                <defs>
+                                    <filter id="moonMagicGlow" x="-50%" y="-50%" width="200%" height="200%">
+                                        <feGaussianBlur stdDeviation="4" result="blur1" />
+                                        <feGaussianBlur stdDeviation="1" result="blur2" />
+                                        <feMerge><feMergeNode in="blur1"/><feMergeNode in="blur2"/><feMergeNode in="SourceGraphic"/></feMerge>
+                                    </filter>
+                                </defs>
+                                <g filter="url(#moonMagicGlow)" fill="none" stroke="#bae6fd" stroke-linecap="round" stroke-linejoin="round">
+                                    <circle cx="250" cy="250" r="235" stroke-width="5"/>
+                                    <circle cx="250" cy="250" r="220" stroke-width="2"/>
+                                    <circle cx="250" cy="250" r="212" stroke-width="3" stroke-dasharray="6, 4"/>
+                                    <g stroke-width="2">
+                                        <circle cx="250" cy="55" r="24" fill="#0284c7"/><path d="M250,31 A24,24 0 0,1 250,79 Z" fill="#ffffff"/>
+                                        <circle cx="375" cy="85" r="22" fill="#0284c7"/><path d="M375,63 A22,22 0 0,1 375,107 Z" fill="#ffffff"/>
+                                        <circle cx="125" cy="85" r="22" fill="#0284c7"/><path d="M125,63 A22,22 0 0,0 125,107 Z" fill="#ffffff"/>
+                                        <circle cx="435" cy="210" r="22" fill="#0284c7"/><circle cx="435" cy="210" r="22" fill="#ffffff" clip-path="inset(0 50% 0 0)"/>
+                                        <circle cx="65" cy="210" r="22" fill="#0284c7"/><circle cx="65" cy="210" r="22" fill="#ffffff" clip-path="inset(0 0 0 50%)"/>
+                                        <circle cx="400" cy="340" r="20" fill="#ffffff"/><path d="M400,320 A20,20 0 0,1 400,360 Z" fill="#0284c7"/>
+                                        <circle cx="100" cy="340" r="20" fill="#ffffff"/><path d="M100,320 A20,20 0 0,0 100,360 Z" fill="#1e1b4b"/>
+                                        <circle cx="250" cy="425" r="22" fill="#ffffff"/>
+                                    </g>
+                                    <circle cx="250" cy="250" r="160" stroke-width="2"/>
+                                    <circle cx="250" cy="250" r="130" stroke-width="1.5" stroke-dasharray="4, 4"/>
+                                    <circle cx="250" cy="250" r="95" stroke-width="2"/>
+                                    <circle cx="250" cy="250" r="50" stroke-width="2"/>
+                                    <circle cx="250" cy="250" r="20" stroke-width="1.5"/>
+                                    <path d="M 250,90 L 330,350 L 110,200 L 390,200 L 170,350 Z" stroke-width="1.5" opacity="0.8"/>
+                                    <path d="M 250,410 L 110,150 L 380,310 L 120,310 L 390,150 Z" stroke-width="1.5" opacity="0.8"/>
+                                    <line x1="250" y1="15" x2="250" y2="485" stroke-width="1" opacity="0.6"/>
+                                    <line x1="15" y1="250" x2="485" y2="250" stroke-width="1" opacity="0.6"/>
+                                    <line x1="60" y1="60" x2="440" y2="440" stroke-width="1" opacity="0.6"/>
+                                    <line x1="440" y1="60" x2="60" y2="440" stroke-width="1" opacity="0.6"/>
+                                </g>
+                            </svg>
+                        </div>
+                    `;
+                    layer.appendChild(magicCircle);
+
+                    // 5. 建立背景魔法藍色煙霧層
+                    const magicSmoke = document.createElement('div');
+                    magicSmoke.className = 'magic-smoke-layer';
+                    for (let s = 0; s < 5; s++) {
+                        let wisp = document.createElement('div');
+                        wisp.className = 'smoke-wisp';
+                        let size = Math.random() * 200 + 150;
+                        wisp.style.width = size + 'px';
+                        wisp.style.height = size + 'px';
+                        wisp.style.left = (Math.random() * 80 + 10) + '%';
+                        wisp.style.top = (Math.random() * 80 + 10) + '%';
+                        wisp.style.setProperty('--dx', (Math.random() * 100 - 50) + 'px');
+                        wisp.style.setProperty('--dy', (Math.random() * 100 - 50) + 'px');
+                        wisp.style.animationDuration = (Math.random() * 4 + 4) + 's';
+                        wisp.style.animationDelay = (Math.random() * 2) + 's';
+                        magicSmoke.appendChild(wisp);
+                    }
+                    layer.appendChild(magicSmoke);
+
+                    // 6. 建立強力向內吸聚的水流龍捲風
+                    const suctionWater = document.createElement('div');
+                    suctionWater.className = 'suction-water-wrapper';
+                    
+                    let suctionHTML = `<svg viewBox="0 0 400 400" width="100%" height="100%"><defs><linearGradient id="suctionGrad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#38bdf8" stop-opacity="0"/><stop offset="50%" stop-color="#38bdf8" stop-opacity="0.8"/><stop offset="100%" stop-color="#ffffff" stop-opacity="1"/></linearGradient><filter id="suctionGlow"><feGaussianBlur stdDeviation="4" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs><g filter="url(#suctionGlow)" fill="none" stroke-linecap="round">`;
+                    
+                    const angles = [0, 60, 120, 180, 240, 300];
+                    angles.forEach((angle, idx) => {
+                        suctionHTML += `<div class="suction-stream" style="animation-delay: ${idx * 0.2}s; --angle: ${angle}deg;"><svg viewBox="0 0 400 400" width="100%" height="100%"><path d="M 350 200 C 300 200, 250 200, 200 200" stroke="url(#suctionGrad)" stroke-width="6"/></svg></div>`;
+                    });
+                    suctionHTML += `</g></svg>`;
+                    suctionWater.innerHTML = suctionHTML;
+                    layer.appendChild(suctionWater);
+
+                    // 7. 建立半罩式防護泡泡
                     const pureBubble = document.createElement('div');
                     pureBubble.className = 'recall-bubble';
                     layer.appendChild(pureBubble);
 
-                    // 3. 同步位置追蹤 (泡泡跟著兔子跑)
+                   // 即時追蹤海兔位置，讓水流與泡泡完美置中
                     function renderRecall() {
                         if (gameState.currentEffect !== 'disco' && trialState.effect !== 'disco') {
                             if (window.recallAnimFrame) cancelAnimationFrame(window.recallAnimFrame);
+                            if (window.tauntBubbleInterval) clearInterval(window.tauntBubbleInterval);
+                            // 🌟 當離開這個特效時，把自定義按鈕主動移除，避免殘留
+                            const oldBtn = document.getElementById('customTauntBtn');
+                            if (oldBtn) oldBtn.remove();
                             return;
                         }
                         window.recallAnimFrame = requestAnimationFrame(renderRecall);
@@ -1391,9 +1725,13 @@
                         ripple.style.left = cx + 'px';
                         ripple.style.top = (cy + 90) + 'px'; 
 
+                        suctionWater.style.left = cx + 'px';
+                        suctionWater.style.top = (cy + 20) + 'px';
+
                         pureBubble.style.left = cx + 'px';
                         pureBubble.style.top = (cy + 45) + 'px'; 
                     }
+
                     renderRecall();
                     break;
 
