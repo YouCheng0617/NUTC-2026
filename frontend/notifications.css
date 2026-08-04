@@ -5,7 +5,7 @@ body, html {
   width: 100%;
   height: 100vh;
   font-family: 'PingFang TC', sans-serif;
-  background-color: #001528; /* 深海藍 */
+  background-color: #001528; /* 深海藍 */ /*[cite: 1] */
   overflow: hidden;
 }
 .ocean-bg {
@@ -13,7 +13,7 @@ body, html {
   top: 0; left: 0; width: 100%; height: 100%;
   background: radial-gradient(circle at 50% 50%, rgba(0, 85, 165, 0.2), rgba(0, 21, 40, 1));
   z-index: -1;
-}
+} /*[cite: 1] */
 
 /* 主容器 (置中對齊，限制最大寬度，像 IG/Dcard APP 介面) */
 .notif-page-container {
@@ -28,7 +28,7 @@ body, html {
   border-left: 1px solid rgba(255, 255, 255, 0.1);
   border-right: 1px solid rgba(255, 255, 255, 0.1);
   box-shadow: 0 0 30px rgba(0, 0, 0, 0.5);
-}
+} /*[cite: 1] */
 
 /* 頂部導覽列 */
 .notif-header {
@@ -38,8 +38,8 @@ body, html {
   padding: 20px;
   border-bottom: 1px solid rgba(106, 183, 255, 0.3);
   background: rgba(0, 40, 80, 0.6);
-}
-.notif-header h2 { margin: 0; color: #fff; font-size: 1.4rem; letter-spacing: 2px; }
+} /*[cite: 1] */
+.notif-header h2 { margin: 0; color: #fff; font-size: 1.4rem; letter-spacing: 2px; } /*[cite: 1] */
 .back-btn, .mark-all-btn {
   background: transparent;
   border: none;
@@ -48,17 +48,17 @@ body, html {
   font-weight: bold;
   cursor: pointer;
   transition: 0.2s;
-}
-.back-btn:hover, .mark-all-btn:hover { color: #fff; text-shadow: 0 0 10px #4da6ff; }
+} /*[cite: 1] */
+.back-btn:hover, .mark-all-btn:hover { color: #fff; text-shadow: 0 0 10px #4da6ff; } /*[cite: 1] */
 
 /* 通知列表滾動區 */
 .notif-list {
   flex: 1;
   overflow-y: auto;
   padding: 15px;
-}
-.notif-list::-webkit-scrollbar { width: 6px; }
-.notif-list::-webkit-scrollbar-thumb { background: rgba(77, 166, 255, 0.5); border-radius: 10px; }
+} /*[cite: 1] */
+.notif-list::-webkit-scrollbar { width: 6px; } /*[cite: 1] */
+.notif-list::-webkit-scrollbar-thumb { background: rgba(77, 166, 255, 0.5); border-radius: 10px; } /*[cite: 1] */
 
 /* 獨立通知卡片 */
 .notif-card {
@@ -72,16 +72,16 @@ body, html {
   cursor: pointer;
   transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
   position: relative;
-}
+} /*[cite: 1] */
 .notif-card:hover {
   background: rgba(255, 255, 255, 0.12);
   transform: translateY(-3px);
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4), inset 0 0 10px rgba(255, 255, 255, 0.1);
-}
+} /*[cite: 1] */
 
 /* 未讀狀態的卡片加亮 */
-.notif-card.unread { background: rgba(77, 166, 255, 0.15); border-color: rgba(77, 166, 255, 0.4); }
-.notif-card.unread:hover { background: rgba(77, 166, 255, 0.25); }
+.notif-card.unread { background: rgba(77, 166, 255, 0.15); border-color: rgba(77, 166, 255, 0.4); } /*[cite: 1] */
+.notif-card.unread:hover { background: rgba(77, 166, 255, 0.25); } /*[cite: 1] */
 
 /* 左側圓形圖示 */
 .icon-box {
@@ -92,17 +92,17 @@ body, html {
   margin-right: 15px;
   flex-shrink: 0;
   box-shadow: 0 4px 10px rgba(0,0,0,0.3);
-}
-.icon-box.heart { background: linear-gradient(135deg, #ff758c, #ff7eb3); }
-.icon-box.reply { background: linear-gradient(135deg, #f6d365, #fda085); }
-.icon-box.system { background: linear-gradient(135deg, #4da6ff, #005bb5); }
-.icon-box.user { background: linear-gradient(135deg, #a18cd1, #fbc2eb); }
+} /*[cite: 1] */
+.icon-box.heart { background: linear-gradient(135deg, #ff758c, #ff7eb3); } /*[cite: 1] */
+.icon-box.reply { background: linear-gradient(135deg, #f6d365, #fda085); } /*[cite: 1] */
+.icon-box.system { background: linear-gradient(135deg, #4da6ff, #005bb5); } /*[cite: 1] */
+.icon-box.user { background: linear-gradient(135deg, #a18cd1, #fbc2eb); } /*[cite: 1] */
 
 /* 中間文字區塊 */
-.text-box { flex: 1; }
-.text-box p { margin: 0 0 6px 0; color: #fff; font-size: 0.95rem; line-height: 1.5; }
-.text-box p strong { color: #a3d5ff; }
-.time { font-size: 0.8rem; color: #8cb4ff; }
+.text-box { flex: 1; } /*[cite: 1] */
+.text-box p { margin: 0 0 6px 0; color: #fff; font-size: 0.95rem; line-height: 1.5; } /*[cite: 1] */
+.text-box p strong { color: #a3d5ff; } /*[cite: 1] */
+.time { font-size: 0.8rem; color: #8cb4ff; } /*[cite: 1] */
 
 /* 🔵 未讀小藍點 */
 .unread-dot {
@@ -111,4 +111,4 @@ body, html {
   border-radius: 50%;
   box-shadow: 0 0 10px #4da6ff;
   margin-left: 10px;
-}
+} /*[cite: 1] */

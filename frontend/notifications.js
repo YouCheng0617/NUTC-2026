@@ -1,21 +1,119 @@
-// 點擊「全部已讀」的互動邏輯
-function markAllAsRead() {
-  // 選取所有帶有 'unread' 類別的卡片
-  const unreadCards = document.querySelectorAll('.notif-card.unread');
+// 寶寶，記得在這裡填入後端主機位置和你的 Token 喔！
+const API_BASE_URL = 'https://your-api-domain.com'; 
+const USER_TOKEN = 'YOUR_BEARER_TOKEN_HERE'; 
+
+// 幫 API 請求建立一個通用設定，節省程式碼
+const getFetchOptions = (method = 'GET') => ({
+  method: method,
+  headers: {
+    'Authorization': `Bearer ${USER_TOKEN}`,
+    'Content-Type': 'application/json'
+  }
+});
+
+// 當網頁載入完成後，馬上跟後端要通知資料！
+document.addEventListener('DOMContentLoaded', fetchNotifications);
+
+// === 1. 取得當前登入使用者的通知列表 ===
+async function fetchNotifications() {
+  try {
+    // 呼叫 GET /notifications
+    const response = await fetch(`${API_BASE_URL}/notifications`, getFetchOptions('GET'));
+    if (!response.ok) throw new Error('伺服器傲嬌了，抓不到資料');
+    
+    const data = await response.json();
+    renderNotifications(data); // 拿到資料後，交給渲染函數畫出畫面
+  } catch (error) {
+    console.error("抓取通知失敗：", error);
+  }
+}
+
+// === 渲染畫面邏輯 ===
+function renderNotifications(notifications) {
+  const container = document.getElementById('notif-list-container');
+  container.innerHTML = ''; // 清空原本的載入中狀態
+
+  notifications.forEach(notif => {
+    // 判斷通知類型來決定 icon 的樣式 (假設後端會傳 type)
+    let iconClass = 'system';
+    let iconEmoji = '🌊';
+    if (notif.type === 'like') { iconClass = 'heart'; iconEmoji = '❤️'; }
+    else if (notif.type === 'reply') { iconClass = 'reply'; iconEmoji = '💬'; }
+    else if (notif.type === 'follow') { iconClass = 'user'; iconEmoji = '👤'; }
+
+    // 判斷是否未讀，決定有沒有亮藍色的 class 和藍點
+    const unreadClass = notif.isRead ? '' : 'unread';
+    const dotHtml = notif.isRead ? '' : '<div class="unread-dot"></div>';
+
+    // 產生專屬卡片 HTML
+    const card = document.createElement('div');
+    card.className = `notif-card ${unreadClass}`;
+    // 如果是未讀，點擊時就呼叫單筆已讀 API
+    if (!notif.isRead) {
+      card.onclick = () => markSingleAsReadAPI(notif.id, card);
+    }
+
+    card.innerHTML = `
+      <div class="icon-box ${iconClass}">${iconEmoji}</div>
+      <div class="text-box">
+        <p><strong>${notif.senderName}</strong> ${notif.message}</p>
+        <span class="time">${notif.time}</span>
+      </div>
+      ${dotHtml}
+    `;
+
+    container.appendChild(card);
+  });
+}
+
+// === 2. 將單筆通知標記為已讀 ===
+async function markSingleAsReadAPI(id, cardElement) {
+  try {
+    // 呼叫 PATCH /notifications/:id/read
+    const response = await fetch(`${API_BASE_URL}/notifications/${id}/read`, getFetchOptions('PATCH'));
+    
+    if (response.ok) {
+      // 成功後，在畫面上拔掉未讀狀態
+      cardElement.classList.remove('unread');
+      const dot = cardElement.querySelector('.unread-dot');
+      if (dot) dot.style.display = 'none';
+      // 移除點擊事件，避免重複發送請求
+      cardElement.onclick = null; 
+    }
+  } catch (error) {
+    console.error(`標記通知 ${id} 失敗：`, error);
+  }
+}
+
+// === 3. 一鍵全部標記為已讀 ===
+async function markAllAsReadAPI() {
+  // 先選取所有帶有 'unread' 類別的卡片[cite: 3]
+  const unreadCards = document.querySelectorAll('.notif-card.unread'); //[cite: 3]
   
-  if (unreadCards.length === 0) {
-    alert("目前沒有未讀通知喔！🌊");
-    return;
+  // 如果長度等於 0，跳出提醒[cite: 3]
+  if (unreadCards.length === 0) { //[cite: 3]
+    alert("目前沒有未讀通知喔！🌊"); //[cite: 3]
+    return; //[cite: 3]
   }
 
-  // 將每一張卡片的未讀狀態移除
-  unreadCards.forEach(card => {
-    card.classList.remove('unread');
+  try {
+    // 呼叫 PATCH /notifications/read-all
+    const response = await fetch(`${API_BASE_URL}/notifications/read-all`, getFetchOptions('PATCH'));
     
-    // 把卡片裡面的小藍點隱藏起來
-    const dot = card.querySelector('.unread-dot');
-    if (dot) {
-      dot.style.display = 'none';
+    if (response.ok) {
+      // 成功後，將每一張卡片的未讀狀態移除[cite: 3]
+      unreadCards.forEach(card => { //[cite: 3]
+        card.classList.remove('unread'); //[cite: 3]
+        // 把卡片裡面的小藍點隱藏起來[cite: 3]
+        const dot = card.querySelector('.unread-dot'); //[cite: 3]
+        if (dot) { //[cite: 3]
+          dot.style.display = 'none'; //[cite: 3]
+        }
+        card.onclick = null; // 清除點擊事件
+      });
+      alert("全部都看過囉，寶寶真棒！✨");
     }
-  });
+  } catch (error) {
+    console.error("全部標記已讀失敗：", error);
+  }
 }
