@@ -2232,36 +2232,52 @@ function showFloatText(text, duration = 1000) {
             playDingSound(3);
         }
 
-        // 🌟 4. 用瀏覽器音訊 API 直接發出「叮～」的魔法高音
+        // 🌟 全域共用一個音訊管理器，防止瀏覽器記憶體爆掉、音效消音
+        let sharedAudioCtx = null;
+
+        // 🌟 完美無限連點音效函式
         function playDingSound(times) {
             let count = 0;
+            
+            // 確保每次點擊都能安全初始化共用音訊通道
+            try {
+                if (!sharedAudioCtx || sharedAudioCtx.state === 'closed') {
+                    sharedAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                }
+                if (sharedAudioCtx.state === 'suspended') {
+                    sharedAudioCtx.resume();
+                }
+            } catch(e) {
+                return;
+            }
+
             const interval = setInterval(() => {
                 if (count >= times) {
                     clearInterval(interval);
                     return;
                 }
                 try {
-                    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-                    const osc = audioCtx.createOscillator();
-                    const gain = audioCtx.createGain();
+                    const osc = sharedAudioCtx.createOscillator();
+                    const gain = sharedAudioCtx.createGain();
                     
                     osc.type = 'sine';
-                    // 模擬金屬清脆的高音頻率 (逐漸升高更有靈動感)
-                    osc.frequency.setValueAtTime(1200 + count * 300, audioCtx.currentTime);
+                    // 模擬金屬清脆的高音頻率
+                    osc.frequency.setValueAtTime(1200 + count * 300, sharedAudioCtx.currentTime);
                     
-                    gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
-                    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.3);
+                    gain.gain.setValueAtTime(0.15, sharedAudioCtx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.001, sharedAudioCtx.currentTime + 0.3);
                     
                     osc.connect(gain);
-                    gain.connect(audioCtx.destination);
+                    gain.connect(sharedAudioCtx.destination);
                     
                     osc.start();
-                    osc.stop(audioCtx.currentTime + 0.3);
+                    osc.stop(sharedAudioCtx.currentTime + 0.3);
                 } catch(e) {}
                 
                 count++;
             }, 150); // 每 0.15 秒叮一聲
         }
+        
         
     </script>
 </body>
