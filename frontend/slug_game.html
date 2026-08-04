@@ -153,6 +153,7 @@
             user-select: none !important;
             -webkit-user-select: none !important;
             -webkit-user-drag: none !important;
+            perspective: 800px; /* 🌟 加上這行，解鎖 3D 側翻視覺 */
         }
 
         /* 終極鎖定狀態 */
@@ -242,11 +243,12 @@
 
         .tabs {
             display: flex;
-            gap: 15px;
+            gap: 10px;
             margin-bottom: 20px;
             border-bottom: 3px solid var(--border-color);
             padding-bottom: 10px;
             padding-left: 5px;
+            align-items: center;
         }
 
         .tab {
@@ -523,6 +525,34 @@
             box-shadow: 0 5px 0 rgba(255, 182, 193, 0.8);
         }
         .btn-random:active { transform: translateY(5px); box-shadow: 0 0 0 transparent; }
+        /* 🌟 兔子旁邊的懸浮挑釁按鈕 */
+        #floatingRecallBtn {
+            position: absolute;
+            display: none; /* 預設隱藏，等切換到回城特效才顯示 */
+            z-index: 25; /* 浮在舞台上，高於背景但不會干擾海兔拖曳 */
+            background: #fef08a;
+            color: #78350f;
+            border: 3px solid #f59e0b;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: 900;
+            font-size: 0.95rem;
+            cursor: pointer;
+            box-shadow: 0 4px 10px rgba(245, 158, 11, 0.4);
+            transition: transform 0.1s;
+            white-space: nowrap;
+        }
+        #floatingRecallBtn:active {
+            transform: scale(0.95);
+        }
+@keyframes trueHorizontalFlip {
+    0% { transform: scaleX(1); }
+    50% { transform: scaleX(-1); } /* 左右完全鏡像對調 */
+    100% { transform: scaleX(1); }
+}
+.slug-svg.is-spinning-taunt {
+    animation: trueHorizontalFlip 0.6s ease-in-out;
+}
     </style>
 </head>
 <body>
@@ -538,7 +568,10 @@
             </div>
         </div>
     </div>
-    
+    <!-- 試用倒數計時器 -->
+<div id="trialTimerDisplay" style="display:none; position: absolute; top: 15%; left: 50%; transform: translateX(-50%); font-size: 1.2rem; font-weight: 900; color: var(--text-dark); background: rgba(255, 255, 255, 0.85); border: 3px solid var(--accent-color); padding: 8px 24px; border-radius: 30px; box-shadow: 0 5px 15px var(--shadow-color); backdrop-filter: blur(4px); z-index: 100; pointer-events: none;">
+    ⏱️ 試用中 <span id="trialCountdownNum" style="color: var(--accent-color); font-size: 1.4rem;">10</span>s
+</div>
     <div class="gacha-overlay" id="gachaScreen">
         <div class="gacha-title" id="gachaTitle">發現神祕海兔卵</div>
         <div class="gacha-box" id="gachaBox" onclick="rollGacha()">點擊孵化</div>
@@ -555,7 +588,8 @@
     <div class="stage" id="mainStage">
         <div class="dot-pattern" id="dotPattern"></div>
         <div id="effectLayer" class="effect-layer"></div>
-        
+        <!-- 🌟 兔子旁邊的懸浮挑釁按鈕（獨立於兔子容器外，不影響兔子動畫） -->
+     <button id="floatingRecallBtn" onclick="triggerRecallTaunt()">🌀 挑釁！</button>
         <div class="slug-container" id="slugContainer">
             <div class="pet-name-tag" id="petNameTag" onclick="openNameModal()">
                 <span id="displayPetName">神祕海兔</span> <span id="pencilIcon">✏️</span>
@@ -654,7 +688,7 @@
     </div>
 
     <script>
-        const i18n = {
+const i18n = {
             zh: {
                 backBtn: "🏠 返回",
                 points: "積分", langBtn: "EN", 
@@ -679,7 +713,7 @@
         let gameState = {
             hasAdopted: false,
             points: 2000,
-            petName: '', // 新增這行來儲存名字
+            petName: '', 
             currentSpecies: 'snow',
             currentBg: 'sky',
             currentEffect: 'none',
@@ -803,82 +837,109 @@
             bathhouse: { name: {zh: '溫泉澡堂', en: 'Bathhouse'}, cost: 3400, preview: '#7dd3fc', style: 'linear-gradient(to bottom, #e0f2fe 0%, #7dd3fc 60%, #1d4ed8 100%)', hasDots: false }
         };
 
-// 🎨 寶寶專屬的 SVG 向量圖形庫
+        // 🌟 真實手工雕刻版 SVG 圖形庫 🌟
         const svgLib = {
-            tomato: `<svg viewBox="0 0 100 100" width="100%" height="100%"><circle cx="50" cy="60" r="35" fill="#ef4444"/><path d="M50 25 L35 15 L45 30 L50 20 L55 30 L65 15 Z" fill="#22c55e"/></svg>`,
-            heart: `<svg viewBox="0 0 100 100" width="100%" height="100%"><path d="M50 85 C10 50 10 20 30 10 C45 0 50 15 50 15 C50 15 55 0 70 10 C90 20 90 50 50 85Z" fill="currentColor"/></svg>`,
-            star: `<svg viewBox="0 0 100 100" width="100%" height="100%"><polygon points="50,5 61,35 95,35 68,55 79,85 50,65 21,85 32,55 5,35 39,35" fill="currentColor"/></svg>`,
-            sparkle: `<svg viewBox="0 0 100 100" width="100%" height="100%"><path d="M50 5 Q50 50 95 50 Q50 50 50 95 Q50 50 5 50 Q50 50 50 5 Z" fill="currentColor"/></svg>`,
-            drop: `<svg viewBox="0 0 100 100" width="100%" height="100%"><path d="M50 10 C50 10 20 50 20 70 A 30 30 0 0 0 80 70 C80 50 50 10 50 10 Z" fill="currentColor"/></svg>`,
-            leaf: `<svg viewBox="0 0 100 100" width="100%" height="100%"><path d="M50 10 C80 10 90 40 90 60 C90 80 50 90 50 90 C20 90 10 60 10 40 C10 20 50 10 50 10 Z" fill="currentColor"/></svg>`,
-            moon: `<svg viewBox="0 0 100 100" width="100%" height="100%"><path d="M65 15 A 40 40 0 1 1 25 85 A 50 50 0 1 0 65 15 Z" fill="currentColor"/></svg>`,
-            snow: `<svg viewBox="0 0 100 100" width="100%" height="100%"><path d="M50 10 L50 90 M10 50 L90 50 M20 20 L80 80 M20 80 L80 20" stroke="currentColor" stroke-width="10" stroke-linecap="round"/></svg>`,
-            music: `<svg viewBox="0 0 100 100" width="100%" height="100%"><path d="M30 70 A 15 15 0 1 1 15 55 L15 10 L85 20 L85 65 A 15 15 0 1 1 70 50 L70 30 L25 25 L25 70 Z" fill="currentColor"/></svg>`,
-            poop: `<svg viewBox="0 0 100 100" width="100%" height="100%"><path d="M20 80 Q50 90 80 80 Q90 60 70 50 Q80 40 60 30 Q70 15 50 10 Q30 15 40 30 Q20 40 30 50 Q10 60 20 80 Z" fill="currentColor"/></svg>`,
-            bubble: `<svg viewBox="0 0 100 100" width="100%" height="100%"><circle cx="50" cy="50" r="40" fill="rgba(255,255,255,0.2)" stroke="currentColor" stroke-width="4"/><path d="M30 30 A 20 20 0 0 1 50 20" stroke="currentColor" stroke-width="4" fill="none" stroke-linecap="round"/></svg>`,
-            money: `<svg viewBox="0 0 100 100" width="100%" height="100%"><rect x="10" y="30" width="80" height="40" rx="5" fill="#86efac" stroke="#166534" stroke-width="4"/><circle cx="50" cy="50" r="12" fill="#166534"/></svg>`,
-            cross: `<svg viewBox="0 0 100 100" width="100%" height="100%"><path d="M20 20 L80 80 M80 20 L20 80" stroke="currentColor" stroke-width="15" stroke-linecap="round"/></svg>`,
-            circle: `<svg viewBox="0 0 100 100" width="100%" height="100%"><circle cx="50" cy="50" r="40" fill="currentColor"/></svg>`
+            tomato: `<svg viewBox="0 0 200 200"><defs><radialGradient id="coreGlow" cx="50%" cy="55%" r="50%"><stop offset="0%" stop-color="#ffffff" stop-opacity="1"/><stop offset="20%" stop-color="#fef08a" stop-opacity="0.8"/><stop offset="60%" stop-color="#ef4444" stop-opacity="0.9"/><stop offset="100%" stop-color="#991b1b" stop-opacity="0"/></radialGradient><filter id="fireworkGlow" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="2" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs><g filter="url(#fireworkGlow)"><circle cx="100" cy="120" r="75" fill="url(#coreGlow)"/><circle cx="100" cy="120" r="75" fill="none" stroke="#ef4444" stroke-width="3" stroke-dasharray="1, 8" stroke-linecap="round"/><circle cx="100" cy="120" r="68" fill="none" stroke="#fca5a5" stroke-width="2" stroke-dasharray="1, 6" stroke-linecap="round"/><circle cx="100" cy="120" r="60" fill="none" stroke="#ef4444" stroke-width="3" stroke-dasharray="1, 7" stroke-linecap="round"/><circle cx="100" cy="120" r="50" fill="none" stroke="#f87171" stroke-width="2" stroke-dasharray="1, 5" stroke-linecap="round"/><circle cx="100" cy="120" r="40" fill="none" stroke="#fef08a" stroke-width="2" stroke-dasharray="1, 6" stroke-linecap="round"/><circle cx="100" cy="120" r="30" fill="none" stroke="#ffffff" stroke-width="1.5" stroke-dasharray="1, 4" stroke-linecap="round"/><circle cx="100" cy="120" r="20" fill="none" stroke="#fef08a" stroke-width="2" stroke-dasharray="1, 5" stroke-linecap="round"/><circle cx="100" cy="120" r="10" fill="none" stroke="#ffffff" stroke-width="2" stroke-dasharray="1, 3" stroke-linecap="round"/><path d="M 100 120 L 100 45 M 100 120 L 100 195 M 100 120 L 25 120 M 100 120 L 175 120 M 100 120 L 47 67 M 100 120 L 153 67 M 100 120 L 47 173 M 100 120 L 153 173 M 100 120 L 70 50 M 100 120 L 130 50 M 100 120 L 70 190 M 100 120 L 130 190 M 100 120 L 30 90 M 100 120 L 170 90 M 100 120 L 30 150 M 100 120 L 170 150" stroke="#ef4444" stroke-width="2" stroke-dasharray="1, 8" stroke-linecap="round"/><path d="M 100 120 L 60 50 M 100 120 L 140 50 M 100 120 L 50 160 M 100 120 L 150 160" stroke="#fca5a5" stroke-width="1.5" stroke-dasharray="1, 6" stroke-linecap="round"/><g fill="none" stroke-linecap="round"><g stroke="#22c55e" stroke-width="6" stroke-dasharray="1, 6"><path d="M 100 80 Q 105 40 120 15"/><path d="M 100 80 Q 50 80 30 100"/><path d="M 100 80 Q 70 65 45 45"/><path d="M 100 80 Q 85 50 75 30"/><path d="M 100 80 Q 130 65 160 45"/><path d="M 100 80 Q 140 80 170 100"/><path d="M 100 80 Q 80 100 65 125"/><path d="M 100 80 Q 120 100 135 125"/></g><g stroke="#4ade80" stroke-width="3" stroke-dasharray="1, 5"><path d="M 100 80 Q 105 40 120 15"/><path d="M 100 80 Q 50 80 30 100"/><path d="M 100 80 Q 70 65 45 45"/><path d="M 100 80 Q 85 50 75 30"/><path d="M 100 80 Q 130 65 160 45"/><path d="M 100 80 Q 140 80 170 100"/><path d="M 100 80 Q 80 100 65 125"/><path d="M 100 80 Q 120 100 135 125"/></g><g stroke="#fef08a" stroke-width="1.5" stroke-dasharray="1, 4"><path d="M 100 80 Q 105 40 120 15"/><path d="M 100 80 Q 50 80 30 100"/><path d="M 100 80 Q 70 65 45 45"/><path d="M 100 80 Q 85 50 75 30"/><path d="M 100 80 Q 130 65 160 45"/><path d="M 100 80 Q 140 80 170 100"/><path d="M 100 80 Q 80 100 65 125"/><path d="M 100 80 Q 120 100 135 125"/></g><ellipse cx="122" cy="13" rx="6" ry="3" stroke="#4ade80" stroke-width="2" stroke-dasharray="1, 3" transform="rotate(-25 122 13)"/><ellipse cx="122" cy="13" rx="6" ry="3" stroke="#fef08a" stroke-width="1" stroke-dasharray="1, 2" transform="rotate(-25 122 13)"/></g></g></svg>`,
+            boba: `<svg viewBox="0 0 100 100"><path d="M30 30 L35 85 Q50 95 65 85 L70 30 Z" fill="#fed7aa"/><rect x="25" y="20" width="50" height="10" rx="3" fill="#f8fafc"/><rect x="45" y="5" width="10" height="85" fill="#38bdf8"/><circle cx="45" cy="75" r="5" fill="#292524"/><circle cx="55" cy="70" r="5" fill="#292524"/><circle cx="40" cy="65" r="5" fill="#292524"/><circle cx="60" cy="80" r="5" fill="#292524"/></svg>`,
+            sushi: `<svg viewBox="0 0 100 100"><rect x="20" y="50" width="60" height="25" rx="10" fill="#f8fafc"/><path d="M15 55 Q50 35 85 55 L80 65 Q50 45 20 65 Z" fill="#f97316"/><rect x="45" y="45" width="10" height="35" fill="#0f172a"/></svg>`,
+            pizza: `<svg viewBox="0 0 100 100"><polygon points="50 90, 15 25, 85 25" fill="#fde047"/><path d="M10 25 Q50 5 90 25 L85 30 Q50 15 15 30 Z" fill="#d97706"/><circle cx="40" cy="40" r="6" fill="#ef4444"/><circle cx="60" cy="50" r="6" fill="#ef4444"/><circle cx="45" cy="65" r="6" fill="#ef4444"/></svg>`,
+            fries: `<svg viewBox="0 0 100 100"><polygon points="25 40, 75 40, 65 90, 35 90" fill="#ef4444"/><rect x="30" y="15" width="8" height="40" fill="#facc15" rx="4"/><rect x="45" y="10" width="8" height="45" fill="#facc15" rx="4"/><rect x="60" y="20" width="8" height="35" fill="#facc15" rx="4"/></svg>`,
+            cake: `<svg viewBox="0 0 100 100"><path d="M20 70 L80 70 L80 40 L20 40 Z" fill="#fef08a"/><path d="M20 40 Q35 50 50 40 Q65 50 80 40 L80 25 L20 25 Z" fill="#fbcfe8"/><circle cx="50" cy="20" r="8" fill="#ef4444"/></svg>`,
+            cookie: `<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="35" fill="#d97706"/><circle cx="35" cy="40" r="4" fill="#451a03"/><circle cx="65" cy="45" r="5" fill="#451a03"/><circle cx="50" cy="65" r="4" fill="#451a03"/><circle cx="45" cy="25" r="3" fill="#451a03"/><circle cx="70" cy="60" r="3" fill="#451a03"/></svg>`,
+            ghost: `<svg viewBox="0 0 100 100"><path d="M25 50 C25 15 75 15 75 50 L75 90 L62.5 80 L50 90 L37.5 80 L25 90 Z" fill="#f8fafc"/><circle cx="40" cy="45" r="5" fill="#0f172a"/><circle cx="60" cy="45" r="5" fill="#0f172a"/><ellipse cx="50" cy="55" rx="4" ry="6" fill="#0f172a"/></svg>`,
+            bat: `<svg viewBox="0 0 100 100"><path d="M50 70 L30 40 C20 20 5 15 5 15 C15 35 30 35 40 45 L50 55 L60 45 C70 35 85 35 95 15 C95 15 80 20 70 40 L50 70 Z" fill="#1e293b"/><polygon points="45 25, 50 35, 55 25" fill="#1e293b"/><circle cx="45" cy="35" r="2" fill="#ef4444"/><circle cx="55" cy="35" r="2" fill="#ef4444"/></svg>`,
+            duck: `<svg viewBox="0 0 100 100"><circle cx="65" cy="40" r="15" fill="#facc15"/><ellipse cx="45" cy="65" rx="25" ry="15" fill="#facc15"/><circle cx="70" cy="35" r="2" fill="#0f172a"/><path d="M80 40 L95 42 L80 45 Z" fill="#ea580c"/></svg>`,
+            fish: `<svg viewBox="0 0 100 100"><path d="M70 50 C70 25 30 25 30 50 C30 75 70 75 70 50 Z" fill="#0284c7"/><polygon points="35 50, 10 30, 10 70" fill="#0284c7"/><circle cx="60" cy="45" r="3" fill="#ffffff"/><circle cx="61" cy="45" r="1" fill="#0f172a"/></svg>`,
+            potion: `<svg viewBox="0 0 100 100"><path d="M40 20 L60 20 L60 40 L80 80 L20 80 L40 40 Z" fill="rgba(255,255,255,0.4)" stroke="#94a3b8" stroke-width="4"/><path d="M25 70 L75 70 L65 50 L35 50 Z" fill="#22c55e"/><rect x="35" y="10" width="30" height="10" fill="#78350f" rx="3"/></svg>`,
+            sword: `<svg viewBox="0 0 100 100"><path d="M45 65 L15 95 M35 75 L25 85" stroke="#78350f" stroke-width="8" stroke-linecap="round"/><path d="M40 60 L85 15 L90 10 L80 20 L45 65 Z" fill="#cbd5e1"/><polygon points="30 70, 50 50, 45 45, 25 65" fill="#facc15"/></svg>`,
+            ufo: `<svg viewBox="0 0 100 100"><ellipse cx="50" cy="45" rx="20" ry="20" fill="#67e8f9"/><ellipse cx="50" cy="55" rx="40" ry="12" fill="#94a3b8"/><circle cx="30" cy="55" r="3" fill="#fef08a"/><circle cx="50" cy="58" r="3" fill="#fef08a"/><circle cx="70" cy="55" r="3" fill="#fef08a"/></svg>`,
+            planet: `<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="25" fill="#6366f1"/><ellipse cx="50" cy="50" rx="45" ry="10" fill="none" stroke="#facc15" stroke-width="6" transform="rotate(-20 50 50)"/></svg>`,
+            clock: `<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="35" fill="#f8fafc" stroke="#94a3b8" stroke-width="8"/><line x1="50" y1="50" x2="50" y2="25" stroke="#ef4444" stroke-width="4" stroke-linecap="round"/><line x1="50" y1="50" x2="70" y2="50" stroke="#0f172a" stroke-width="4" stroke-linecap="round"/></svg>`,
+            music: `<svg viewBox="0 0 100 100"><circle cx="30" cy="70" r="10" fill="#a855f7"/><circle cx="70" cy="60" r="10" fill="#a855f7"/><rect x="35" y="20" width="5" height="50" fill="#a855f7"/><rect x="75" y="10" width="5" height="50" fill="#a855f7"/><polygon points="35 20, 75 10, 75 25, 35 35" fill="#a855f7"/></svg>`,
+            coffee: `<svg viewBox="0 0 100 100"><path d="M25 35 L25 70 Q25 85 50 85 Q75 85 75 70 L75 35 Z" fill="#f8fafc"/><path d="M75 45 Q90 45 90 60 Q90 70 75 70" fill="none" stroke="#f8fafc" stroke-width="8"/><path d="M40 15 Q45 25 40 30 M60 10 Q65 20 60 25" fill="none" stroke="#d4d4d8" stroke-width="4"/></svg>`,
+            gift: `<svg viewBox="0 0 100 100"><rect x="25" y="45" width="50" height="40" fill="#ef4444"/><rect x="20" y="35" width="60" height="10" fill="#ef4444"/><rect x="45" y="35" width="10" height="50" fill="#facc15"/><path d="M50 35 Q30 10 45 25 L50 35 M50 35 Q70 10 55 25 L50 35" fill="none" stroke="#facc15" stroke-width="6"/></svg>`,
+            crown: `<svg viewBox="0 0 100 100"><polygon points="20 80, 80 80, 90 30, 70 50, 50 20, 30 50, 10 30" fill="#facc15"/><circle cx="10" cy="30" r="5" fill="#ef4444"/><circle cx="50" cy="20" r="5" fill="#38bdf8"/><circle cx="90" cy="30" r="5" fill="#ef4444"/></svg>`,
+            tvStatic: `<svg viewBox="0 0 100 100"><rect x="15" y="25" width="70" height="55" rx="5" fill="#475569"/><rect x="25" y="35" width="40" height="35" fill="#cbd5e1"/><circle cx="75" cy="45" r="4" fill="#1e293b"/><circle cx="75" cy="60" r="4" fill="#1e293b"/><line x1="30" y1="10" x2="50" y2="25" stroke="#94a3b8" stroke-width="3"/><line x1="70" y1="10" x2="50" y2="25" stroke="#94a3b8" stroke-width="3"/></svg>`,
+            money: `<svg viewBox="0 0 100 100"><rect x="15" y="35" width="70" height="35" fill="#86efac" stroke="#166534" stroke-width="4" rx="2"/><circle cx="50" cy="52.5" r="10" fill="#166534"/><line x1="25" y1="52.5" x2="35" y2="52.5" stroke="#166534" stroke-width="4"/><line x1="65" y1="52.5" x2="75" y2="52.5" stroke="#166534" stroke-width="4"/></svg>`,
+            bugFree: `<svg viewBox="0 0 100 100"><ellipse cx="50" cy="50" rx="20" ry="30" fill="#65a30d"/><line x1="20" y1="20" x2="80" y2="80" stroke="#ef4444" stroke-width="10"/><line x1="80" y1="20" x2="20" y2="80" stroke="#ef4444" stroke-width="10"/></svg>`,
+            heart: `<svg viewBox="0 0 100 100"><path d="M50 85 C10 50 10 20 30 10 C45 0 50 15 50 15 C50 15 55 0 70 10 C90 20 90 50 50 85Z" fill="#f43f5e"/></svg>`,
+            drop: `<svg viewBox="0 0 100 100"><polygon points="48,0 52,0 50,100" fill="rgba(255, 255, 255, 0.3)"/><polygon points="49.5,0 50.5,0 50,80" fill="rgba(255, 255, 255, 0.9)"/></svg>`,
+            star: `<svg viewBox="0 0 100 100"><polygon points="50,5 61,35 95,35 68,55 79,85 50,65 21,85 32,55 5,35 39,35" fill="#facc15"/></svg>`,
+            sparkle: `<svg viewBox="0 0 100 100"><path d="M50 5 Q50 50 95 50 Q50 50 50 95 Q50 50 5 50 Q50 50 5 50 Z" fill="#fef08a"/></svg>`,
+            leaf: `<svg viewBox="0 0 100 100"><path d="M50 10 C80 10 90 40 90 60 C90 80 50 90 50 90 C20 90 10 60 10 40 C10 20 50 10 50 10 Z" fill="#ea580c"/></svg>`,
+            moon: `<svg viewBox="0 0 100 100"><path d="M65 15 A 40 40 0 1 1 25 85 A 50 50 0 1 0 65 15 Z" fill="#fef08a"/></svg>`,
+            snow: `<svg viewBox="0 0 100 100"><path d="M50 10 L50 90 M10 50 L90 50 M20 20 L80 80 M20 80 L80 20" stroke="#ffffff" stroke-width="10" stroke-linecap="round"/></svg>`,
+           bubble: `<svg viewBox="0 0 100 100"><defs><radialGradient id="pureCrystal" cx="35%" cy="35%" r="65%"><stop offset="0%" stop-color="#ffffff" stop-opacity="0.95"/><stop offset="30%" stop-color="#bae6fd" stop-opacity="0.15"/><stop offset="70%" stop-color="#38bdf8" stop-opacity="0.05"/><stop offset="90%" stop-color="#0284c7" stop-opacity="0.3"/><stop offset="100%" stop-color="#ffffff" stop-opacity="0.8"/></radialGradient><linearGradient id="rainbowRing" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#38bdf8"/><stop offset="30%" stop-color="#facc15"/><stop offset="65%" stop-color="#ec4899"/><stop offset="100%" stop-color="#a855f7"/></linearGradient></defs><circle cx="50" cy="50" r="45" fill="url(#pureCrystal)" stroke="url(#rainbowRing)" stroke-width="3"/><ellipse cx="33" cy="30" rx="18" ry="6" transform="rotate(-35 33 30)" fill="rgba(255,255,255,0.95)"/><circle cx="70" cy="35" r="3" fill="rgba(255,255,255,0.9)"/></svg>`,
+            cross: `<svg viewBox="0 0 100 100"><path d="M20 20 L80 80 M80 20 L20 80" stroke="#ef4444" stroke-width="15" stroke-linecap="round"/></svg>`,
+            lightning: `<svg viewBox="0 0 100 100"><polygon points="55,5 15,55 50,55 45,95 85,45 50,45" fill="#facc15"/></svg>`,
+            book: `<svg viewBox="0 0 100 100"><path d="M10 20 L45 30 L45 90 L10 80 Z" fill="#cbd5e1"/><path d="M90 20 L55 30 L55 90 L90 80 Z" fill="#f8fafc"/></svg>`,
+            sun: `<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="25" fill="#facc15"/><path d="M50 10 L50 20 M50 80 L50 90 M10 50 L20 50 M80 50 L90 50 M22 22 L29 29 M71 71 L78 78 M22 78 L29 71 M71 22 L78 29" stroke="#f59e0b" stroke-width="6" stroke-linecap="round"/></svg>`,
+            gear: `<svg viewBox="0 0 100 100"><path d="M50 15 A 35 35 0 1 0 85 50 A 35 35 0 0 0 50 15 Z" fill="none" stroke="#94a3b8" stroke-width="12" stroke-dasharray="10 10"/><circle cx="50" cy="50" r="15" fill="none" stroke="#cbd5e1" stroke-width="8"/></svg>`,
+            poop: `<svg viewBox="0 0 100 100"><path d="M20 80 Q50 90 80 80 Q90 60 70 50 Q80 40 60 30 Q70 15 50 10 Q30 15 40 30 Q20 40 30 50 Q10 60 20 80 Z" fill="#78350f"/></svg>`
         };
 
-        // 重新定義原本的特效資料，改為呼叫 SVG 形狀與指定顏色
+        // 完美對應字典：每個特效都精準對上它的手工 SVG
         const effectData = {
             none: { name: {zh: '無特效', en: 'None'}, cost: 0, preview: '#ffffff' },
-            rain: { name: {zh: '綿綿細雨', en: 'Raindrops'}, cost: 800, preview: '#93c5fd', svg: [{s: 'drop', c: '#93c5fd'}], dir: 'down', count: 20 },
-            bubble: { name: {zh: '夢幻泡泡', en: 'Bubbles'}, cost: 1200, preview: '#67e8f9', svg: [{s: 'bubble', c: '#ffffff'}], dir: 'up', count: 15 },
-            tomato: { name: {zh: '飛天小番茄', en: 'Flying Tomato'}, cost: 1500, preview: '#fca5a5', svg: [{s: 'tomato'}, {s: 'sparkle', c: '#fef08a'}], dir: 'down', count: 12 },
-            bugFree: { name: {zh: 'Bug退散', en: 'No More Bugs'}, cost: 8888, preview: '#4ade80', svg: [{s: 'cross', c: '#ef4444'}, {s: 'sparkle', c: '#4ade80'}], dir: 'up', count: 15 },
-            disco: { name: {zh: '迪斯可舞池', en: 'Disco Party'}, cost: 2500, preview: '#c084fc', svg: [{s: 'star', c: '#c084fc'}, {s: 'sparkle', c: '#f472b6'}], dir: 'up', count: 10 },
-            paint: { name: {zh: '揮灑顏料', en: 'Paint Splash'}, cost: 2000, preview: '#f472b6', svg: [{s: 'drop', c: '#f472b6'}, {s: 'drop', c: '#38bdf8'}], dir: 'down', count: 15 },
-            heartbeat: { name: {zh: '心動滿滿', en: 'Heartbeat'}, cost: 1800, preview: '#f43f5e', svg: [{s: 'heart', c: '#f43f5e'}, {s: 'heart', c: '#fb7185'}], dir: 'up', count: 18 },
-            noClass: { name: {zh: '不想上課', en: 'Skip Class'}, cost: 1600, preview: '#94a3b8', svg: [{s: 'drop', c: '#94a3b8'}, {s: 'moon', c: '#cbd5e1'}], dir: 'down', count: 12 },
-            money: { name: {zh: '財富自由', en: 'Money Rain'}, cost: 9999, preview: '#facc15', svg: [{s: 'money'}, {s: 'sparkle', c: '#facc15'}], dir: 'down', count: 20 },
-            zzz: { name: {zh: '強烈睡意', en: 'Sleepy'}, cost: 1000, preview: '#cbd5e1', svg: [{s: 'moon', c: '#94a3b8'}, {s: 'bubble', c: '#ffffff'}], dir: 'up', count: 8 },
-            sweat: { name: {zh: '尷尬流汗', en: 'Sweating'}, cost: 1000, preview: '#7dd3fc', svg: [{s: 'drop', c: '#7dd3fc'}, {s: 'drop', c: '#38bdf8'}], dir: 'down', count: 15 },
-            math: { name: {zh: '數學當機', en: 'Math Error'}, cost: 1200, preview: '#0f172a', svg: [{s: 'cross', c: '#94a3b8'}], dir: 'down', count: 20 },
-            poop: { name: {zh: '黃金天降', en: 'Holy Poop'}, cost: 500, preview: '#78350f', svg: [{s: 'poop', c: '#78350f'}, {s: 'sparkle', c: '#fef08a'}], dir: 'down', count: 10 },
-            snow: { name: {zh: '初雪飄落', en: 'Snowfall'}, cost: 1500, preview: '#e0f2fe', svg: [{s: 'snow', c: '#ffffff'}], dir: 'down', count: 25 },
-            sakura: { name: {zh: '櫻花飛舞', en: 'Sakura'}, cost: 2200, preview: '#fbcfe8', svg: [{s: 'leaf', c: '#fbcfe8'}, {s: 'leaf', c: '#f472b6'}], dir: 'down', count: 20 },
-            star: { name: {zh: '繁星閃爍', en: 'Starry'}, cost: 1800, preview: '#fef08a', svg: [{s: 'star', c: '#fef08a'}, {s: 'sparkle', c: '#ffffff'}], dir: 'down', count: 20 },
-            firefly: { name: {zh: '螢火蟲', en: 'Fireflies'}, cost: 2000, preview: '#84cc16', svg: [{s: 'circle', c: '#bef264'}, {s: 'sparkle', c: '#fef08a'}], dir: 'up', count: 15 },
-            leaf: { name: {zh: '落葉紛飛', en: 'Falling Leaves'}, cost: 1400, preview: '#ea580c', svg: [{s: 'leaf', c: '#ea580c'}, {s: 'leaf', c: '#f59e0b'}], dir: 'down', count: 15 },
-            meteor: { name: {zh: '流星雨', en: 'Meteor Shower'}, cost: 3000, preview: '#818cf8', svg: [{s: 'star', c: '#c7d2fe'}], dir: 'down', count: 8 },
-            sun: { name: {zh: '陽光普照', en: 'Sunny'}, cost: 1500, preview: '#fb923c', svg: [{s: 'circle', c: '#fb923c'}, {s: 'sparkle', c: '#fef08a'}], dir: 'up', count: 10 },
-            moon: { name: {zh: '月光灑落', en: 'Moonlight'}, cost: 1500, preview: '#1e293b', svg: [{s: 'moon', c: '#fde047'}, {s: 'star', c: '#ffffff'}], dir: 'down', count: 8 },
-            lightning: { name: {zh: '閃電交加', en: 'Lightning'}, cost: 2400, preview: '#fde047', svg: [{s: 'star', c: '#facc15'}, {s: 'drop', c: '#38bdf8'}], dir: 'down', count: 12 },
-            rainbowStars: { name: {zh: '彩虹星塵', en: 'Rainbow Dust'}, cost: 2800, preview: '#a855f7', svg: [{s: 'star', c: '#a855f7'}, {s: 'sparkle', c: '#f472b6'}], dir: 'up', count: 12 },
-            butterfly: { name: {zh: '蝴蝶翩翩', en: 'Butterflies'}, cost: 2100, preview: '#c084fc', svg: [{s: 'heart', c: '#c084fc'}], dir: 'up', count: 10 },
-            bat: { name: {zh: '吸血蝙蝠', en: 'Vampire Bats'}, cost: 2300, preview: '#334155', svg: [{s: 'heart', c: '#1e293b'}, {s: 'moon', c: '#475569'}], dir: 'down', count: 12 },
-            ghost: { name: {zh: '小幽靈', en: 'Little Ghosts'}, cost: 2500, preview: '#f8fafc', svg: [{s: 'drop', c: '#f8fafc'}, {s: 'bubble', c: '#ffffff'}], dir: 'up', count: 10 },
-            duck: { name: {zh: '黃色小鴨', en: 'Rubber Ducks'}, cost: 1800, preview: '#fde047', svg: [{s: 'circle', c: '#facc15'}, {s: 'drop', c: '#f59e0b'}], dir: 'down', count: 15 },
-            fish: { name: {zh: '深海魚群', en: 'School of Fish'}, cost: 1900, preview: '#0284c7', svg: [{s: 'leaf', c: '#38bdf8'}, {s: 'bubble', c: '#ffffff'}], dir: 'up', count: 18 },
-            sheep: { name: {zh: '數羊羊', en: 'Counting Sheep'}, cost: 1600, preview: '#e2e8f0', svg: [{s: 'circle', c: '#ffffff'}, {s: 'moon', c: '#94a3b8'}], dir: 'up', count: 8 },
-            feather: { name: {zh: '天使羽毛', en: 'Angel Feathers'}, cost: 2400, preview: '#ffffff', svg: [{s: 'leaf', c: '#ffffff'}, {s: 'sparkle', c: '#e2e8f0'}], dir: 'down', count: 15 },
-            boba: { name: {zh: '珍奶珍珠', en: 'Boba Pearls'}, cost: 1700, preview: '#78350f', svg: [{s: 'circle', c: '#451a03'}], dir: 'down', count: 20 },
-            sushi: { name: {zh: '迴轉壽司', en: 'Sushi Roll'}, cost: 2200, preview: '#f87171', svg: [{s: 'circle', c: '#f87171'}, {s: 'drop', c: '#ffffff'}], dir: 'down', count: 12 },
-            pizza: { name: {zh: '披薩派對', en: 'Pizza Party'}, cost: 2000, preview: '#ea580c', svg: [{s: 'star', c: '#f59e0b'}, {s: 'circle', c: '#ef4444'}], dir: 'down', count: 10 },
-            fries: { name: {zh: '薯條雨', en: 'French Fries'}, cost: 1900, preview: '#facc15', svg: [{s: 'cross', c: '#facc15'}], dir: 'down', count: 15 },
-            cake: { name: {zh: '甜點時間', en: 'Dessert Time'}, cost: 2100, preview: '#fbcfe8', svg: [{s: 'circle', c: '#fbcfe8'}, {s: 'drop', c: '#ffffff'}], dir: 'down', count: 12 },
-            coffee: { name: {zh: '咖啡續命', en: 'Coffee Refill'}, cost: 1800, preview: '#451a03', svg: [{s: 'circle', c: '#78350f'}, {s: 'drop', c: '#d4d4d8'}], dir: 'up', count: 10 },
-            cookie: { name: {zh: '餅干碎屑', en: 'Cookies'}, cost: 1600, preview: '#b45309', svg: [{s: 'circle', c: '#d97706'}, {s: 'star', c: '#78350f'}], dir: 'down', count: 12 },
-            confetti: { name: {zh: '派對拉炮', en: 'Confetti'}, cost: 2500, preview: '#f472b6', svg: [{s: 'star', c: '#f472b6'}, {s: 'sparkle', c: '#38bdf8'}], dir: 'down', count: 20 },
-            balloon: { name: {zh: '彩色氣球', en: 'Balloons'}, cost: 2000, preview: '#ef4444', svg: [{s: 'drop', c: '#ef4444'}, {s: 'drop', c: '#3b82f6'}], dir: 'up', count: 10 },
-            magic: { name: {zh: '魔法詠唱', en: 'Magic Spell'}, cost: 3500, preview: '#a855f7', svg: [{s: 'sparkle', c: '#a855f7'}, {s: 'star', c: '#c084fc'}], dir: 'up', count: 15 },
-            potion: { name: {zh: '煉金藥水', en: 'Alchemy Potions'}, cost: 3200, preview: '#22c55e', svg: [{s: 'drop', c: '#22c55e'}, {s: 'bubble', c: '#4ade80'}], dir: 'up', count: 12 },
-            sword: { name: {zh: '勇者之劍', en: 'Hero Swords'}, cost: 3800, preview: '#94a3b8', svg: [{s: 'cross', c: '#cbd5e1'}, {s: 'sparkle', c: '#fef08a'}], dir: 'down', count: 8 },
-            ufo: { name: {zh: '外星綁架', en: 'UFO Abduction'}, cost: 4000, preview: '#4ade80', svg: [{s: 'circle', c: '#4ade80'}, {s: 'sparkle', c: '#22c55e'}], dir: 'up', count: 6 },
-            planet: { name: {zh: '行星軌道', en: 'Planets'}, cost: 4200, preview: '#312e81', svg: [{s: 'circle', c: '#312e81'}, {s: 'star', c: '#fef08a'}], dir: 'up', count: 8 },
-            clock: { name: {zh: '時光倒流', en: 'Time Reversal'}, cost: 3600, preview: '#d4d4d8', svg: [{s: 'circle', c: '#e2e8f0'}, {s: 'sparkle', c: '#ffffff'}], dir: 'up', count: 10 },
-            gift: { name: {zh: '驚喜禮物', en: 'Surprise Gifts'}, cost: 2800, preview: '#f43f5e', svg: [{s: 'heart', c: '#f43f5e'}, {s: 'star', c: '#fb7185'}], dir: 'down', count: 12 },
-            sparkle: { name: {zh: 'Bling閃光', en: 'Sparkles'}, cost: 2000, preview: '#fef08a', svg: [{s: 'sparkle', c: '#fef08a'}, {s: 'sparkle', c: '#ffffff'}], dir: 'up', count: 25 },
-            crown: { name: {zh: '加冕皇冠', en: 'Royal Crown'}, cost: 5000, preview: '#eab308', svg: [{s: 'star', c: '#eab308'}, {s: 'sparkle', c: '#fef08a'}], dir: 'down', count: 8 },
-            card: { name: {zh: '魔術撲克', en: 'Magic Cards'}, cost: 2700, preview: '#ef4444', svg: [{s: 'heart', c: '#ef4444'}, {s: 'leaf', c: '#1e293b'}], dir: 'down', count: 18 },
-            gear: { name: {zh: '齒輪運轉', en: 'Gears Turning'}, cost: 2600, preview: '#64748b', svg: [{s: 'star', c: '#64748b'}, {s: 'circle', c: '#94a3b8'}], dir: 'down', count: 12 },
-            music: { name: {zh: '跳動音符', en: 'Musical Notes'}, cost: 2200, preview: '#3b82f6', svg: [{s: 'music', c: '#3b82f6'}, {s: 'sparkle', c: '#93c5fd'}], dir: 'up', count: 15 }
+            rain: { name: {zh: '綿綿細雨', en: 'Raindrops'}, cost: 800, preview: '#93c5fd', svg: [{s: 'drop'}], dir: 'down', count: 20 },
+            bubble: { name: {zh: '夢幻泡泡', en: 'Bubbles'}, cost: 1200, preview: '#67e8f9', svg: [{s: 'bubble'}], dir: 'up', count: 15 },
+            tomato: { name: {zh: '小番茄煙火', en: 'Tomato Fireworks'}, cost: 1500, preview: '#fca5a5', svg: [{s: 'tomato'}], dir: 'down', count: 12 },
+            bugFree: { name: {zh: 'Bug退散', en: 'No More Bugs'}, cost: 8888, preview: '#4ade80', svg: [{s: 'bugFree'}], dir: 'up', count: 15 },
+           disco: { name: {zh: '回程挑釁', en: 'Recall Taunt'}, cost: 2500, preview: '#c084fc', svg: [{s: 'star'}, {s: 'music'}], dir: 'up', count: 10 },
+            paint: { name: {zh: '揮灑顏料', en: 'Paint Splash'}, cost: 2000, preview: '#f472b6', svg: [{s: 'drop'}], dir: 'down', count: 15 },
+            heartbeat: { name: {zh: '心動滿滿', en: 'Heartbeat'}, cost: 1800, preview: '#f43f5e', svg: [{s: 'heart'}], dir: 'up', count: 18 },
+            noClass: { name: {zh: '不想上課', en: 'Skip Class'}, cost: 1600, preview: '#94a3b8', svg: [{s: 'book'}, {s: 'moon'}], dir: 'down', count: 12 },
+            money: { name: {zh: '財富自由', en: 'Money Rain'}, cost: 9999, preview: '#facc15', svg: [{s: 'money'}], dir: 'down', count: 20 },
+            zzz: { name: {zh: '強烈睡意', en: 'Sleepy'}, cost: 1000, preview: '#cbd5e1', svg: [{s: 'moon'}], dir: 'up', count: 8 },
+            sweat: { name: {zh: '尷尬流汗', en: 'Sweating'}, cost: 1000, preview: '#7dd3fc', svg: [{s: 'drop'}], dir: 'down', count: 15 },
+            math: { name: {zh: '數學當機', en: 'Math Error'}, cost: 1200, preview: '#0f172a', svg: [{s: 'cross'}, {s: 'book'}], dir: 'down', count: 20 },
+            poop: { name: {zh: '黃金天降', en: 'Holy Poop'}, cost: 500, preview: '#78350f', svg: [{s: 'poop'}], dir: 'down', count: 10 },
+            snow: { name: {zh: '初雪飄落', en: 'Snowfall'}, cost: 1500, preview: '#e0f2fe', svg: [{s: 'snow'}], dir: 'down', count: 25 },
+            sakura: { name: {zh: '櫻花飛舞', en: 'Sakura'}, cost: 2200, preview: '#fbcfe8', svg: [{s: 'leaf'}], dir: 'down', count: 20 },
+            star: { name: {zh: '繁星閃爍', en: 'Starry'}, cost: 1800, preview: '#fef08a', svg: [{s: 'star'}, {s: 'sparkle'}], dir: 'down', count: 20 },
+            firefly: { name: {zh: '螢火蟲', en: 'Fireflies'}, cost: 2000, preview: '#84cc16', svg: [{s: 'sparkle'}], dir: 'up', count: 15 },
+            leaf: { name: {zh: '落葉紛飛', en: 'Falling Leaves'}, cost: 1400, preview: '#ea580c', svg: [{s: 'leaf'}], dir: 'down', count: 15 },
+            meteor: { name: {zh: '流星雨', en: 'Meteor Shower'}, cost: 3000, preview: '#818cf8', svg: [{s: 'star'}], dir: 'down', count: 8 },
+            sun: { name: {zh: '陽光普照', en: 'Sunny'}, cost: 1500, preview: '#fb923c', svg: [{s: 'sun'}], dir: 'up', count: 10 },
+            moon: { name: {zh: '月光灑落', en: 'Moonlight'}, cost: 1500, preview: '#1e293b', svg: [{s: 'moon'}], dir: 'down', count: 8 },
+            lightning: { name: {zh: '閃電交加', en: 'Lightning'}, cost: 2400, preview: '#fde047', svg: [{s: 'lightning'}], dir: 'down', count: 12 },
+            rainbowStars: { name: {zh: '彩虹星塵', en: 'Rainbow Dust'}, cost: 2800, preview: '#a855f7', svg: [{s: 'star'}], dir: 'up', count: 12 },
+            butterfly: { name: {zh: '蝴蝶翩翩', en: 'Butterflies'}, cost: 2100, preview: '#c084fc', svg: [{s: 'butterfly'}], dir: 'up', count: 10 },
+            bat: { name: {zh: '吸血蝙蝠', en: 'Vampire Bats'}, cost: 2300, preview: '#334155', svg: [{s: 'bat'}], dir: 'down', count: 12 },
+            ghost: { name: {zh: '小幽靈', en: 'Little Ghosts'}, cost: 2500, preview: '#f8fafc', svg: [{s: 'ghost'}], dir: 'up', count: 10 },
+            duck: { name: {zh: '黃色小鴨', en: 'Rubber Ducks'}, cost: 1800, preview: '#fde047', svg: [{s: 'duck'}], dir: 'down', count: 15 },
+            fish: { name: {zh: '深海魚群', en: 'School of Fish'}, cost: 1900, preview: '#0284c7', svg: [{s: 'fish'}], dir: 'up', count: 18 },
+            sheep: { name: {zh: '數羊羊', en: 'Counting Sheep'}, cost: 1600, preview: '#e2e8f0', svg: [{s: 'moon'}], dir: 'up', count: 8 },
+            feather: { name: {zh: '天使羽毛', en: 'Angel Feathers'}, cost: 2400, preview: '#ffffff', svg: [{s: 'leaf'}], dir: 'down', count: 15 },
+            boba: { name: {zh: '珍奶珍珠', en: 'Boba Pearls'}, cost: 1700, preview: '#78350f', svg: [{s: 'boba'}], dir: 'down', count: 20 },
+            sushi: { name: {zh: '迴轉壽司', en: 'Sushi Roll'}, cost: 2200, preview: '#f87171', svg: [{s: 'sushi'}], dir: 'down', count: 12 },
+            pizza: { name: {zh: '披薩派對', en: 'Pizza Party'}, cost: 2000, preview: '#ea580c', svg: [{s: 'pizza'}], dir: 'down', count: 10 },
+            fries: { name: {zh: '薯條雨', en: 'French Fries'}, cost: 1900, preview: '#facc15', svg: [{s: 'fries'}], dir: 'down', count: 15 },
+            cake: { name: {zh: '甜點時間', en: 'Dessert Time'}, cost: 2100, preview: '#fbcfe8', svg: [{s: 'cake'}], dir: 'down', count: 12 },
+            coffee: { name: {zh: '咖啡續命', en: 'Coffee Refill'}, cost: 1800, preview: '#451a03', svg: [{s: 'coffee'}], dir: 'up', count: 10 },
+            cookie: { name: {zh: '餅干碎屑', en: 'Cookies'}, cost: 1600, preview: '#b45309', svg: [{s: 'cookie'}], dir: 'down', count: 12 },
+            confetti: { name: {zh: '派對拉炮', en: 'Confetti'}, cost: 2500, preview: '#f472b6', svg: [{s: 'star'}, {s: 'sparkle'}], dir: 'down', count: 20 },
+            balloon: { name: {zh: '彩色氣球', en: 'Balloons'}, cost: 2000, preview: '#ef4444', svg: [{s: 'drop'}], dir: 'up', count: 10 },
+            magic: { name: {zh: '魔法詠唱', en: 'Magic Spell'}, cost: 3500, preview: '#a855f7', svg: [{s: 'sparkle'}, {s: 'star'}], dir: 'up', count: 15 },
+            potion: { name: {zh: '煉金藥水', en: 'Alchemy Potions'}, cost: 3200, preview: '#22c55e', svg: [{s: 'potion'}], dir: 'up', count: 12 },
+            sword: { name: {zh: '勇者之劍', en: 'Hero Swords'}, cost: 3800, preview: '#94a3b8', svg: [{s: 'sword'}], dir: 'down', count: 8 },
+            ufo: { name: {zh: '外星綁架', en: 'UFO Abduction'}, cost: 4000, preview: '#4ade80', svg: [{s: 'ufo'}], dir: 'up', count: 6 },
+            planet: { name: {zh: '行星軌道', en: 'Planets'}, cost: 4200, preview: '#312e81', svg: [{s: 'planet'}], dir: 'up', count: 8 },
+            clock: { name: {zh: '時光倒流', en: 'Time Reversal'}, cost: 3600, preview: '#d4d4d8', svg: [{s: 'clock'}], dir: 'up', count: 10 },
+            gift: { name: {zh: '驚喜禮物', en: 'Surprise Gifts'}, cost: 2800, preview: '#f43f5e', svg: [{s: 'gift'}], dir: 'down', count: 12 },
+            sparkle: { name: {zh: 'Bling閃光', en: 'Sparkles'}, cost: 2000, preview: '#fef08a', svg: [{s: 'sparkle'}], dir: 'up', count: 25 },
+            crown: { name: {zh: '加冕皇冠', en: 'Royal Crown'}, cost: 5000, preview: '#eab308', svg: [{s: 'crown'}], dir: 'down', count: 8 },
+            card: { name: {zh: '魔術撲克', en: 'Magic Cards'}, cost: 2700, preview: '#ef4444', svg: [{s: 'heart'}, {s: 'leaf'}], dir: 'down', count: 18 },
+            gear: { name: {zh: '齒輪運轉', en: 'Gears Turning'}, cost: 2600, preview: '#64748b', svg: [{s: 'gear'}], dir: 'down', count: 12 },
+            music: { name: {zh: '跳動音符', en: 'Musical Notes'}, cost: 2200, preview: '#3b82f6', svg: [{s: 'music'}], dir: 'up', count: 15 },
+            tvStatic: { name: {zh: '阿嬤的舊電視', en: 'Old TV'}, cost: 1000, preview: '#94a3b8', svg: [{s: 'tvStatic'}], dir: 'down', count: 12 },
+            heartbeat: { name: {zh: '心動小鎮', en: 'Heartbeat Town'}, cost: 6666, preview: '#f43f5e', svg: [{s: 'heart'}], dir: 'up', count: 15 }
         };
 
         let currentTab = 'species';
-
+        let trialState = { species: null, bg: null, effect: null };
+        let trialTimer = null;
+let trialInterval = null;
         window.onload = function() {
             loadGame();
             updateLangUI();
@@ -887,6 +948,7 @@
             startCooldownTimer();
             initDragAndPetSystem(); 
             updateNameUI();
+            updateRecallButtonVisibility();
         };
 
         function toggleLang() {
@@ -1023,71 +1085,157 @@
 
         function switchTab(tab) {
             currentTab = tab;
+            
+            // 切換分類時，強制清空試用狀態！
+            trialState = { species: null, bg: null, effect: null };
+            if(trialTimer) clearTimeout(trialTimer);
+            // 🌟 清除倒數並隱藏 UI
+    if(trialInterval) clearInterval(trialInterval);
+    document.getElementById('trialTimerDisplay').style.display = 'none';
+            refreshAll(); 
+            
             document.getElementById('tabSpecies').className = tab === 'species' ? 'tab active' : 'tab';
             document.getElementById('tabBg').className = tab === 'bg' ? 'tab active' : 'tab';
             document.getElementById('tabEffect').className = tab === 'effect' ? 'tab active' : 'tab';
-            renderShop();
         }
 
         function renderShop() {
             const grid = document.getElementById('shopGrid');
             grid.innerHTML = '';
             const t = i18n[currLang];
+            
+            // 動態翻譯按鈕
+            const txtTry = currLang === 'zh' ? '👀 試用' : 'Try';
+            const txtBuy = currLang === 'zh' ? '💰 購買' : 'Buy';
+            const txtCancel = currLang === 'zh' ? '❌ 取消' : 'Cancel';
 
-            let dataObj, unlockedArr, currentActive;
-            if (currentTab === 'species') { dataObj = speciesData; unlockedArr = gameState.unlockedSpecies; currentActive = gameState.currentSpecies; }
-            else if (currentTab === 'bg') { dataObj = bgData; unlockedArr = gameState.unlockedBgs; currentActive = gameState.currentBg; }
-            else { dataObj = effectData; unlockedArr = gameState.unlockedEffects; currentActive = gameState.currentEffect; }
+            let dataObj, unlockedArr, currentActive, typeKey, currentTrial;
+            if (currentTab === 'species') { dataObj = speciesData; unlockedArr = gameState.unlockedSpecies; currentActive = gameState.currentSpecies; typeKey = 'species'; currentTrial = trialState.species; }
+            else if (currentTab === 'bg') { dataObj = bgData; unlockedArr = gameState.unlockedBgs; currentActive = gameState.currentBg; typeKey = 'bg'; currentTrial = trialState.bg; }
+            else { dataObj = effectData; unlockedArr = gameState.unlockedEffects; currentActive = gameState.currentEffect; typeKey = 'effect'; currentTrial = trialState.effect; }
 
             Object.keys(dataObj).forEach(key => {
                 const item = dataObj[key];
                 let isUnlocked = unlockedArr.includes(key);
-                let isEquipped = currentActive === key;
+                let isEquipped = (currentActive === key) && !currentTrial; 
+                let isTrialing = (currentTrial === key);
 
                 const card = document.createElement('div');
-                card.className = `item-card ${isEquipped ? 'equipped' : ''}`;
-                card.onclick = () => handlePurchase(key, item, currentTab);
+                card.className = `item-card ${isEquipped || isTrialing ? 'equipped' : ''}`;
                 
-                let btnText = isUnlocked ? (isEquipped ? t.equip : t.owned) : item.cost;
+                let actionHTML = '';
+                if (isUnlocked) {
+                    let btnText = isEquipped ? t.equip : t.owned;
+                    actionHTML = `<div class="item-cost owned">${btnText}</div>`;
+                    card.onclick = () => equipItem(key, typeKey);
+                } else if (isTrialing) {
+                    actionHTML = `
+                        <div style="display:flex; gap:6px; justify-content:center; margin-top:5px;">
+                            <div class="item-cost" style="background:#4ade80; font-size:0.8rem; padding:4px 8px; cursor:pointer;" onclick="buyItem('${key}', '${typeKey}', ${item.cost}, event)">${txtBuy}</div>
+                            <div class="item-cost" style="background:#ef4444; font-size:0.8rem; padding:4px 8px; cursor:pointer;" onclick="cancelTrial('${typeKey}', event)">${txtCancel}</div>
+                        </div>
+                    `;
+                } else {
+                    actionHTML = `<div class="item-cost"><span style="font-size:0.7rem;margin-right:4px;">${txtTry}</span>${item.cost}</div>`;
+                    card.onclick = () => tryItem(key, typeKey);
+                }
                 
-                let previewStyle = currentTab === 'species' 
+                let previewStyle = typeKey === 'species' 
                     ? `background:${item.body}; border: 3px solid ${item.outline}`
                     : `background: ${item.preview}; border: 3px solid #cbd5e1`;
 
                 card.innerHTML = `
                     <div class="item-color-preview" style="${previewStyle}"></div>
                     <div class="item-name">${item.name[currLang]}</div>
-                    <div class="item-cost ${isUnlocked ? 'owned' : ''}">${btnText}</div>
+                    ${actionHTML}
                 `;
                 grid.appendChild(card);
             });
         }
 
-        function handlePurchase(key, item, type) {
-            let unlockedArr = (type === 'species') ? gameState.unlockedSpecies : (type === 'bg' ? gameState.unlockedBgs : gameState.unlockedEffects);
-            let isUnlocked = unlockedArr.includes(key);
-
-            if (!isUnlocked) {
-                if (gameState.points >= item.cost) {
-                    gameState.points -= item.cost;
-                    unlockedArr.push(key);
-                } else { return; }
-            }
-
+        function equipItem(key, type) {
+            trialState[type] = null; 
+            // 🌟 如果試用到一半直接購買/裝備，也要清除倒數
+    if(trialInterval) clearInterval(trialInterval);
+    document.getElementById('trialTimerDisplay').style.display = 'none';
             if (type === 'species') gameState.currentSpecies = key;
             else if (type === 'bg') gameState.currentBg = key;
             else gameState.currentEffect = key;
+            refreshAll();
+            saveGame();
+        }
 
+       function tryItem(key, type) {
+    trialState[type] = key;
+    refreshAll();
+    
+    // 清除舊的計時器
+    if(trialTimer) clearTimeout(trialTimer);
+    if(trialInterval) clearInterval(trialInterval);
+    
+    let timeLeft = 10;
+    const timerDisplay = document.getElementById('trialTimerDisplay');
+    const numDisplay = document.getElementById('trialCountdownNum');
+    
+    // 顯示倒數 UI
+    timerDisplay.style.display = 'block';
+    numDisplay.innerText = timeLeft;
+    
+    showFloatText('⏱️ 試用開始', 2000);
+    
+    // 每秒更新數字
+    trialInterval = setInterval(() => {
+        timeLeft--;
+        numDisplay.innerText = timeLeft;
+        
+        // 時間到！結束試用
+        if(timeLeft <= 0) {
+            clearInterval(trialInterval);
+            timerDisplay.style.display = 'none';
+            
+            if(trialState[type] === key) { 
+                trialState[type] = null;
+                refreshAll();
+                showFloatText('✨ 試用結束，喜歡就帶回家吧！', 50000);
+            }
+        }
+    }, 1000);
+}
+
+        function buyItem(key, type, cost, e) {
+            if(e) e.stopPropagation(); 
+            if (gameState.points >= cost) {
+                gameState.points -= cost;
+                if (type === 'species') gameState.unlockedSpecies.push(key);
+                else if (type === 'bg') gameState.unlockedBgs.push(key);
+                else gameState.unlockedEffects.push(key);
+                
+                equipItem(key, type); 
+                showFloatText('✨ 購買成功 ✨', 5000);
+            } else {
+                showFloatText('積分不足 😢');
+            }
+        }
+
+        function cancelTrial(type, e) {
+            if(e) e.stopPropagation();
+            trialState[type] = null;
+            // 🌟 清除倒數並隱藏 UI
+    if(trialInterval) clearInterval(trialInterval);
+    document.getElementById('trialTimerDisplay').style.display = 'none';
+            refreshAll();
+        }
+
+        function refreshAll() {
             applySlugStyles();
             applyBg();
             applyEffect();
-            saveGame();
             renderShop();
-            updateUI();
+            updateRecallButtonVisibility(); // 🌟 確保每次畫面更新時，都會同步判斷專屬按鈕該不該出現
         }
 
         function applySlugStyles() {
-            const spec = speciesData[gameState.currentSpecies];
+            const spec = speciesData[trialState.species || gameState.currentSpecies];
             if(!spec) return;
 
             const root = document.documentElement;
@@ -1100,58 +1248,711 @@
         }
 
         function applyBg() {
-            const bg = bgData[gameState.currentBg];
+            const bg = bgData[trialState.bg || gameState.currentBg];
             if(bg) {
                 document.getElementById('mainStage').style.background = bg.style;
                 document.getElementById('dotPattern').style.opacity = bg.hasDots ? '0.9' : '0';
             }
         }
 
-        // 🌟 升級版的 SVG 渲染引擎
-        function applyEffect() {
+      function applyEffect() {
             const layer = document.getElementById('effectLayer');
             layer.innerHTML = ''; 
-            const effectKey = gameState.currentEffect;
+            const effectKey = trialState.effect || gameState.currentEffect;
             const effect = effectData[effectKey];
             
             if (!effect || effectKey === 'none') return;
 
-            let count = effect.count || 15;
-            for (let i = 0; i < count; i++) {
-                let el = document.createElement('div');
-                el.style.position = 'absolute';
-                el.style.left = Math.random() * 100 + '%';
-                el.style.opacity = Math.random() * 0.5 + 0.5;
-                
-                // 隨機選取該特效對應的 SVG 配置，並填入顏色
-                let svgItem = effect.svg[Math.floor(Math.random() * effect.svg.length)];
-                let rawSVG = svgLib[svgItem.s];
-                
-                // 動態調整圖形大小 (20px ~ 40px)
-                let size = Math.random() * 20 + 20; 
-                el.style.width = size + 'px';
-                el.style.height = size + 'px';
-                
-                if (svgItem.c) el.style.color = svgItem.c; // 設定 currentColor
-                el.innerHTML = rawSVG;
-                
-                let duration = Math.random() * 3 + 3; 
-                let delay = Math.random() * 2;        
-                
-                if (effect.dir === 'up') {
-                    el.style.bottom = '-40px';
-                    el.style.animation = `bubbleRise ${duration}s ease-in infinite`;
-                } else {
-                    el.style.top = '-40px';
-                    el.style.animation = `rainFall ${duration}s linear infinite`;
-                }
-                
-                el.style.animationDelay = delay + 's';
-                layer.appendChild(el);
+                switch (effectKey) {
+                // ------------------------------------------------
+                // 🌊 【回程挑釁】外擴水波 + 半罩式大泡泡 + 迴旋巨型水母
+                // ------------------------------------------------
+             case 'disco':
+                    if (!document.getElementById('recallStyle')) {
+                        const style = document.createElement('style');
+                        style.id = 'recallStyle';
+                        style.innerHTML = `
+                            .recall-bubble {
+                position: absolute;
+                width: 360px; 
+                height: 360px; 
+                transform: translate(-50%, -50%);
+                animation: bubbleBreathe 3s infinite ease-in-out, bubbleWobble 6s infinite linear;
+                background: radial-gradient(circle at 25% 25%, 
+                    rgba(255, 255, 255, 0.9) 0%, 
+                    rgba(255, 255, 255, 0.15) 8%, 
+                    rgba(255, 255, 255, 0) 35%, 
+                    rgba(138, 43, 226, 0.03) 65%, 
+                    rgba(0, 191, 255, 0.08) 85%, 
+                    rgba(255, 255, 255, 0.25) 100%
+                );
+                /* 🌟 加上四周夢幻的霧感與水藍/粉紫光暈 */
+                box-shadow: 
+                    inset 0 0 15px rgba(255, 255, 255, 0.2), 
+                    inset 15px 0 30px rgba(0, 191, 255, 0.05), 
+                    inset -15px 0 30px rgba(138, 43, 226, 0.05),
+                    0 0 25px rgba(186, 230, 253, 0.6),
+                    0 0 50px rgba(244, 114, 182, 0.3);
+                border: 1px solid rgba(255, 255, 255, 0.3); 
+                pointer-events: none;
+                z-index: 15; 
+                border-radius: 50%;
+                -webkit-mask-image: linear-gradient(to bottom, rgba(0,0,0,1) 52%, rgba(0,0,0,0) 78%);
+                mask-image: linear-gradient(to bottom, rgba(0,0,0,1) 52%, rgba(0,0,0,0) 78%);
+            }
+
+            /* 🌟 散落在四周、會往外飄的小泡泡與微霧粒子 */
+            .ambient-tiny-bubble {
+                position: absolute;
+                border-radius: 50%;
+                background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.9), rgba(56,189,248,0.2));
+                border: 1px solid rgba(255,255,255,0.6);
+                pointer-events: none;
+                z-index: 14;
+                animation: tinyBubbleFloat 3s infinite ease-out;
+            }
+
+            @keyframes tinyBubbleFloat {
+                0% { transform: translate(0, 0) scale(0.5); opacity: 0; }
+                30% { opacity: 0.8; }
+                100% { transform: translate(var(--tx), var(--ty)) scale(1.2); opacity: 0; }
+            }
+                            .recall-ripple {
+                                position: absolute;
+                                width: 420px;
+                                height: 210px;
+                                transform: translate(-50%, -50%);
+                                pointer-events: none;
+                                z-index: 5;
+                            }
+
+                            /* 🌊 海浪一波波往外擴散、漸漸淡出的動態 */
+                            .wave-surge {
+                                transform-origin: center;
+                                animation: waveExpandAndFade 3.5s infinite cubic-bezier(0.1, 0.6, 0.3, 1);
+                            }
+                            .ws-1 { animation-delay: 0s; }
+                            .ws-2 { animation-delay: 1.75s; }
+
+                            @keyframes waveExpandAndFade {
+                                0% { 
+                                    transform: scale(0.6); 
+                                    opacity: 0.9; 
+                                    stroke-width: 7px;
+                                }
+                                70% { 
+                                    opacity: 0.4; 
+                                }
+                                100% { 
+                                    transform: scale(1.55); 
+                                    opacity: 0;             
+                                    stroke-width: 1.5px;    
+                                }
+                            }
+
+                            @keyframes bubbleBreathe {
+                                0%, 100% { transform: translate(-50%, -50%) scale(1); }
+                                50% { transform: translate(-50%, -52%) scale(1.02); }
+                            }
+                            
+                            @keyframes bubbleWobble {
+                                0%, 100% { border-radius: 50%; }
+                                25% { border-radius: 51% 49% 52% 48% / 48% 52% 49% 51%; }
+                                50% { border-radius: 49% 51% 48% 52% / 52% 48% 51% 49%; }
+                                75% { border-radius: 52% 48% 51% 49% / 49% 51% 48% 52%; }
+                            }
+                        `;
+                        document.head.appendChild(style);
+                    }
+
+                    if (window.recallAnimFrame) cancelAnimationFrame(window.recallAnimFrame);
+                    const slugEl = document.getElementById('slugContainer');
+
+                    // 1. 水波底座
+                    const ripple = document.createElement('div');
+                    ripple.className = 'recall-ripple';
+                    ripple.innerHTML = `
+                        <svg viewBox="0 0 420 210" width="100%" height="100%">
+                            <defs>
+                                <radialGradient id="seaPool" cx="50%" cy="50%" r="50%">
+                                    <stop offset="0%" stop-color="#38bdf8" stop-opacity="0.85"/>
+                                    <stop offset="60%" stop-color="#0284c7" stop-opacity="0.5"/>
+                                    <stop offset="100%" stop-color="#0369a1" stop-opacity="0"/>
+                                </radialGradient>
+                                <filter id="seaDistort" x="-20%" y="-20%" width="140%" height="140%">
+                                    <feTurbulence type="fractalNoise" baseFrequency="0.03" numOctaves="3" result="noise" />
+                                    <feDisplacementMap in="SourceGraphic" in2="noise" scale="12" xChannelSelector="R" yChannelSelector="G" />
+                                    <feGaussianBlur stdDeviation="1.5" result="blur" />
+                                    <feMerge><feMergeNode in="blur" /><feMergeNode in="SourceGraphic" /></feMerge>
+                                </filter>
+                            </defs>
+                            <g filter="url(#seaDistort)">
+                                <ellipse cx="210" cy="105" rx="160" ry="70" fill="url(#seaPool)" />
+                            </g>
+                            <g filter="url(#seaDistort)">
+                                <ellipse class="wave-surge ws-1" cx="210" cy="105" rx="140" ry="60" fill="none" stroke="#ffffff" stroke-width="6" />
+                                <ellipse class="wave-surge ws-2" cx="210" cy="105" rx="120" ry="50" fill="none" stroke="#bae6fd" stroke-width="4" />
+                            </g>
+                        </svg>
+                    `;
+                    layer.appendChild(ripple);
+
+                    // 2. 半罩式大泡泡
+                    const bubble = document.createElement('div');
+                    bubble.className = 'recall-ripple' ? document.createElement('div') : null; // 保險起見直接建立泡泡
+                    // 為了確保萬無一失，直接用標準的泡泡建立：
+                    const pureBubble = document.createElement('div');
+                    pureBubble.className = 'recall-bubble';
+                    layer.appendChild(pureBubble);
+
+                    // 3. 同步位置追蹤
+                    function renderRecall() {
+                        if (gameState.currentEffect !== 'disco' && trialState.effect !== 'disco') {
+                            if (window.recallAnimFrame) cancelAnimationFrame(window.recallAnimFrame);
+                            return;
+                        }
+                        window.recallAnimFrame = requestAnimationFrame(renderRecall);
+
+                        const cx = slugEl.offsetLeft + slugEl.offsetWidth / 2;
+                        const cy = slugEl.offsetTop + slugEl.offsetHeight / 2;
+
+                        ripple.style.left = cx + 'px';
+                        ripple.style.top = (cy + 90) + 'px'; 
+
+                        pureBubble.style.left = cx + 'px';
+                        pureBubble.style.top = (cy + 45) + 'px'; 
+                    }
+
+                    renderRecall();
+                    break;
+                // ------------------------------------------------
+                // ⛩️ 【BUG 退散】正宗大符版 (遠景置中 + 近處極致柔軟羽毛飄落 + 支援手機點擊)
+                // ------------------------------------------------
+                case 'bugFree':
+                    if (!document.getElementById('talismanStyle')) {
+                        const style = document.createElement('style');
+                        style.id = 'talismanStyle';
+                        style.innerHTML = `
+                            /* 遠景巨大鎮守符咒：完美置中對齊 */
+                            .cyber-giant-talisman {
+                                position: absolute;
+                                width: 110px; 
+                                height: 280px; 
+                                background-color: #fef08a; 
+                                background-image: radial-gradient(rgba(217, 119, 6, 0.25) 1px, transparent 1px);
+                                background-size: 5px 5px;
+                                border: 4px solid #dc2626; 
+                                box-shadow: 0 0 35px rgba(220, 38, 38, 0.4); 
+                                border-radius: 8px;
+                                pointer-events: none; 
+                                display: flex;
+                                flex-direction: column;
+                                align-items: center;
+                                justify-content: space-between;
+                                padding: 10px 6px;
+                                box-sizing: border-box;
+                                z-index: 1; 
+                                transform-origin: center center;
+                                animation: giantBreathe 6s ease-in-out infinite alternate;
+                            }
+                            @keyframes giantBreathe {
+                                0% { transform: translateX(-50%) scale(1) rotate(-2deg); opacity: 0.25; }
+                                100% { transform: translateX(-50%) scale(1.03) rotate(2deg); opacity: 0.4; }
+                            }
+                            .giant-content {
+                                display: flex;
+                                justify-content: center;
+                                gap: 10px; 
+                                width: 100%;
+                                flex: 1;
+                                align-items: center;
+                            }
+                            .giant-col {
+                                writing-mode: vertical-rl;
+                                text-orientation: upright;
+                                letter-spacing: 12px; 
+                                font-family: "DFKai-SB", "BiauKai", "楷體", "Kaiti", serif;
+                                font-weight: 900;
+                                font-size: 26px;
+                                color: #b91c1c;
+                                text-shadow: 1px 1px 0px rgba(254, 240, 138, 0.8);
+                                text-align: center;
+                            }
+
+                            /* 近處羽毛般柔軟飄落的小符咒 */
+                            .cyber-talisman {
+                                position: absolute;
+                                width: 65px; 
+                                height: 160px; 
+                                background-color: #fef08a; 
+                                background-image: radial-gradient(rgba(217, 119, 6, 0.2) 1px, transparent 1px);
+                                background-size: 4px 4px;
+                                border: 3px solid #dc2626; 
+                                box-shadow: 0 0 20px rgba(220, 38, 38, 0.7); 
+                                border-radius: 6px; 
+                                cursor: pointer; /* 改成指標手勢，暗示可以點擊 */
+                                pointer-events: auto; 
+                                display: flex;
+                                flex-direction: column;
+                                align-items: center;
+                                justify-content: space-between;
+                                padding: 6px 4px;
+                                box-sizing: border-box;
+                                perspective: 800px;
+                                transform-style: preserve-3d;
+                                transform-origin: center center;
+                                z-index: 3; 
+                            }
+                            .talisman-content {
+                                display: flex;
+                                justify-content: center;
+                                gap: 6px; 
+                                width: 100%;
+                                flex: 1;
+                                align-items: center;
+                            }
+                            .talisman-col {
+                                writing-mode: vertical-rl;
+                                text-orientation: upright;
+                                letter-spacing: 8px; 
+                                font-family: "DFKai-SB", "BiauKai", "楷體", "Kaiti", serif;
+                                font-weight: 900;
+                                font-size: 18px;
+                                color: #b91c1c;
+                                text-shadow: 1px 1px 0px rgba(254, 240, 138, 0.8);
+                                text-align: center;
+                            }
+                            .cyber-spark {
+                                position: absolute;
+                                width: 8px;
+                                height: 8px;
+                                background: #fbbf24;
+                                border-radius: 50%;
+                                box-shadow: 0 0 10px #ef4444;
+                                pointer-events: none;
+                                transition: transform 0.4s cubic-bezier(0.1, 0.8, 0.2, 1), opacity 0.4s ease-out;
+                                z-index: 4;
+                            }
+                        `;
+                        document.head.appendChild(style);
+                    }
+
+                    if (window.bugFreeInterval) clearInterval(window.bugFreeInterval);
+                    if (window.bugFreeAnimFrame) cancelAnimationFrame(window.bugFreeAnimFrame);
+
+                    const spellPairs = [
+                        { col1: "BUG退散", col2: "永不報錯" },
+                        { col1: "順利PASS", col2: "綠燈常亮" },
+                        { col1: "急急如律", col2: "BUG快滾" },
+                        { col1: "神仙保佑", col2: "絕對不當" }
+                    ];
+
+                    let activeTalismans = [];
+
+                    const giantPairs = [
+                        { col1: "天地玄宗", col2: "萬氣本根" },
+                        { col1: "鎮壓百邪", col2: "永無代碼" },
+                        { col1: "神威浩蕩", col2: "BUG退散" },
+                        { col1: "太上老君", col2: "急急如律" }
+                    ];
+
+                    const stageWidth = layer.offsetWidth || window.innerWidth;
+                    
+                    giantPairs.forEach((pair, index) => {
+                        let giant = document.createElement('div');
+                        giant.className = 'cyber-giant-talisman';
+                        
+                        let posX = (stageWidth / 4) * (index + 0.5);
+                        let posY = 20 + Math.random() * 35; 
+                        
+                        giant.style.left = posX + 'px';
+                        giant.style.top = posY + 'px';
+                        giant.style.transform = 'translateX(-50%)';
+                        giant.style.animationDelay = (index * 1.5) + 's';
+
+                        giant.innerHTML = `
+                            <svg width="90" height="40" viewBox="0 0 90 40" style="opacity: 0.9;">
+                                <path d="M10,20 Q25,2 45,20 Q65,38 80,20" fill="none" stroke="#dc2626" stroke-width="4" stroke-linecap="round"/>
+                                <circle cx="45" cy="10" r="4" fill="#dc2626"/>
+                                <circle cx="20" cy="30" r="2.5" fill="#dc2626"/>
+                                <circle cx="70" cy="30" r="2.5" fill="#dc2626"/>
+                            </svg>
+                            <div class="giant-content">
+                                <div class="giant-col">${pair.col1}</div>
+                                <div class="giant-col">${pair.col2}</div>
+                            </div>
+                            <svg width="90" height="45" viewBox="0 0 90 45" style="opacity: 0.9;">
+                                <path d="M15,5 Q45,40 75,5 M22,15 Q45,42 68,15 M45,5 L45,35" fill="none" stroke="#dc2626" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+                                <circle cx="45" cy="32" r="3.5" fill="#dc2626"/>
+                            </svg>
+                        `;
+                        layer.appendChild(giant);
+                    });
+
+                    class SoftTalisman {
+                        constructor(containerWidth, containerHeight) {
+                            this.el = document.createElement('div');
+                            this.el.className = 'cyber-talisman';
+                            
+                            this.w = 65;
+                            this.h = 160;
+                            this.x = Math.random() * (containerWidth - this.w - 50) + 25;
+                            this.y = -200; 
+                            
+                            this.vy = 0.6 + Math.random() * 0.4; 
+                            this.amplitude = 50 + Math.random() * 30; 
+                            this.frequency = 0.006 + Math.random() * 0.004; 
+                            this.angleSeed = Math.random() * Math.PI * 2; 
+                            
+                            this.baseX = this.x;
+                            this.markedForDeletion = false;
+
+                            const pair = spellPairs[Math.floor(Math.random() * spellPairs.length)];
+                            this.el.innerHTML = `
+                                <svg width="55" height="28" viewBox="0 0 55 28" style="opacity: 0.95;">
+                                    <path d="M5,14 Q15,2 27,14 Q40,26 50,14" fill="none" stroke="#dc2626" stroke-width="3" stroke-linecap="round"/>
+                                    <circle cx="27" cy="6" r="3" fill="#dc2626"/>
+                                    <circle cx="12" cy="20" r="2" fill="#dc2626"/>
+                                    <circle cx="42" cy="20" r="2" fill="#dc2626"/>
+                                </svg>
+                                <div class="talisman-content">
+                                    <div class="talisman-col">${pair.col1}</div>
+                                    <div class="talisman-col">${pair.col2}</div>
+                                </div>
+                                <svg width="55" height="32" viewBox="0 0 55 32" style="opacity: 0.95;">
+                                    <path d="M10,4 Q27,28 45,4 M15,12 Q27,30 39,12 M27,4 L27,28" fill="none" stroke="#dc2626" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+                                    <circle cx="27" cy="26" r="2.5" fill="#dc2626"/>
+                                </svg>
+                            `;
+
+                            // 🌟 修正：改成 onclick，這樣電腦滑鼠點擊跟手機手指觸控都能完美引爆！
+                            this.el.onclick = (e) => {
+                                const rect = this.el.getBoundingClientRect();
+                                const layerRect = layer.getBoundingClientRect();
+                                const centerX = rect.left - layerRect.left + rect.width / 2;
+                                const centerY = rect.top - layerRect.top + rect.height / 2;
+
+                                this.markedForDeletion = true;
+                                this.el.remove();
+
+                                for(let i = 0; i < 10; i++) {
+                                    let spark = document.createElement('div');
+                                    spark.className = 'cyber-spark';
+                                    spark.style.left = centerX + 'px';
+                                    spark.style.top = centerY + 'px';
+                                    layer.appendChild(spark);
+
+                                    requestAnimationFrame(() => {
+                                        const angle = Math.random() * Math.PI * 2;
+                                        const dist = Math.random() * 60 + 25;
+                                        spark.style.transform = `translate(${Math.cos(angle) * dist}px, ${Math.sin(angle) * dist}px) scale(0)`;
+                                        spark.style.opacity = '0'; 
+                                    });
+
+                                    setTimeout(() => {
+                                        if (spark.parentNode) spark.remove();
+                                    }, 400);
+                                }
+                            };
+
+                            layer.appendChild(this.el);
+                        }
+
+                        update(height) {
+                            this.y += this.vy;
+                            
+                            let progress = this.y * 0.007;
+                            let swayX = Math.sin(this.angleSeed + progress) * this.amplitude;
+                            let zFactor = Math.cos(this.angleSeed * 1.2 + progress * 1.5) * 25;
+                            let currentX = this.baseX + swayX + zFactor;
+                            
+                            let rotateX = Math.sin(progress * 2) * 18; 
+                            let rotateY = Math.cos(progress * 1.5) * 25; 
+                            let rotateZ = Math.sin(this.angleSeed + progress) * 15; 
+                            let floatY = Math.sin(progress * 3) * 8; 
+
+                            this.el.style.transform = `translate3d(${currentX}px, ${this.y + floatY}px, 0) rotateX(${rotateX}deg) rotateY(${rotateY}deg) rotateZ(${rotateZ}deg)`;
+
+                            if (this.y > height + 100) {
+                                this.markedForDeletion = true;
+                                this.el.remove();
+                            }
+                        }
+                    }
+
+                    function renderLoop() {
+                        if (gameState.currentEffect !== 'bugFree' && trialState.effect !== 'bugFree') {
+                            activeTalismans.forEach(t => t.el.remove());
+                            activeTalismans = [];
+                            return;
+                        }
+
+                        window.bugFreeAnimFrame = requestAnimationFrame(renderLoop);
+
+                        let h = layer.offsetHeight;
+                        for (let i = activeTalismans.length - 1; i >= 0; i--) {
+                            let t = activeTalismans[i];
+                            t.update(h);
+                            if (t.markedForDeletion) {
+                                activeTalismans.splice(i, 1);
+                            }
+                        }
+                    }
+
+                    renderLoop();
+
+                    function spawnTalisman() {
+                        if (gameState.currentEffect !== 'bugFree' && trialState.effect !== 'bugFree') return;
+                        if (activeTalismans.length < 7) {
+                            activeTalismans.push(new SoftTalisman(layer.offsetWidth, layer.offsetHeight));
+                        }
+                    }
+
+                    spawnTalisman();
+                    setTimeout(spawnTalisman, 1200);
+                    setTimeout(spawnTalisman, 2400);
+
+                    window.bugFreeInterval = setInterval(spawnTalisman, 1800);
+                    break;
+                // ------------------------------------------------
+                // 🌧️ 【綿綿細雨】專屬地盤 (極致朦朧升級版！)
+                // ------------------------------------------------
+                case 'rain':
+                    // ✨ 數量再加碼到 100，因為模糊後的雨絲會交織成一片水霧！
+                    for (let i = 0; i < 100; i++) { 
+                        let el = document.createElement('div');
+                        el.style.position = 'absolute';
+                        el.style.left = Math.random() * 100 + '%';
+                        el.style.top = '-60px'; 
+                        
+                        // 呼叫你的針狀雨絲
+                        el.innerHTML = svgLib['drop']; 
+                        
+                        let size = Math.random() * 25 + 15;
+                        el.style.width = size + 'px'; 
+                        el.style.height = size + 'px';
+                        
+                        // 固定斜斜的 15 度，咻咻咻
+                        el.style.transform = 'rotate(15deg)';
+                        
+                        // ✨ 朦朧感魔法：讓每一根雨絲有不同的模糊度與透明度！
+                        let blurValue = Math.random() * 4; // 隨機加上 0 到 4 像素的模糊
+                        el.style.filter = `blur(${blurValue}px)`;
+                        
+                        // 越模糊的雨絲（越遠的），透明度就越低，創造超逼真的空氣霧感
+                        el.style.opacity = Math.random() * 0.4 + (1 - blurValue / 5) * 0.5; 
+                        
+                        // 速度與延遲
+                        let duration = Math.random() * 1.5 + 0.8; 
+                        el.style.animation = `rainFall ${duration}s linear infinite`;
+                        el.style.animationDelay = (Math.random() * 3) + 's';
+                        
+                        layer.appendChild(el);
+                    }
+                    break;
+
+// ------------------------------------------------
+                // 🎆 【小番茄煙火】護眼護機流暢版 (智慧限制數量，拯救電腦)
+                // ------------------------------------------------
+                case 'tomato':
+                    // 1. 清除所有的舊計時器與動畫
+                    if (window.tomatoFwInterval) clearInterval(window.tomatoFwInterval);
+                    if (window.tomatoFwTimeout) clearTimeout(window.tomatoFwTimeout);
+                    if (window.tomatoAnimFrame) cancelAnimationFrame(window.tomatoAnimFrame);
+
+                    let canvas = document.getElementById('tomatoCanvas');
+                    if (!canvas) {
+                        canvas = document.createElement('canvas');
+                        canvas.id = 'tomatoCanvas';
+                        canvas.style.position = 'absolute';
+                        canvas.style.top = '0';
+                        canvas.style.left = '0';
+                        canvas.style.width = '100%';
+                        canvas.style.height = '100%';
+                        canvas.style.pointerEvents = 'none'; 
+                        canvas.style.zIndex = '999';
+                        layer.appendChild(canvas);
+                    }
+
+                    const ctx = canvas.getContext('2d');
+                    let particles = [];
+
+                    function createFirework(startX, startY, scale) {
+                        // 🌟 嚴格優化火花數量！用稍微大一點的粒子填補空間，減輕負擔
+                        let redCount = Math.floor(300 * scale);
+                        let greenCount = Math.floor(100 * scale);
+
+                        // 🍅 紅色番茄本體
+                        for (let i = 0; i < redCount; i++) {
+                            let angle = Math.random() * Math.PI * 2;
+                            let r = Math.random() > 0.6 ? 1.0 : Math.sqrt(Math.random()); 
+                            
+                            let targetX = Math.cos(angle) * r * 85 * scale; 
+                            let targetY = Math.sin(angle) * r * 75 * scale; 
+                            
+                            let rand = Math.random();
+                            let c = '#dc2626'; 
+                            if (rand > 0.95) c = '#ffffff'; 
+                            else if (rand > 0.4) c = '#ef4444'; 
+
+                            particles.push({
+                                startX: startX, startY: startY,
+                                x: startX, y: startY,
+                                tx: startX + targetX, ty: startY + targetY,
+                                color: c,
+                                alpha: 1,
+                                // 🌟 粒子稍微放大一點點，彌補數量的減少，一樣飽滿！
+                                baseSize: Math.max(1.5, (Math.random() * 2.5 + 2) * scale), 
+                                progress: 0,
+                                speed: Math.random() * 0.02 + 0.015 
+                            });
+                        }
+                        
+                        // 🌿 綠色立體蒂頭
+                        for (let i = 0; i < greenCount; i++) {
+                            let branch = i % 7; 
+                            let t = Math.random();
+                            let targetX, targetY;
+                            let originY = -70 * scale; 
+
+                            if (branch === 0) { targetX = t * 25 * scale; targetY = originY - t * 55 * scale; } 
+                            else if (branch === 1) { targetX = -75 * t * scale; targetY = originY + 15 * t * scale; } 
+                            else if (branch === 2) { targetX = -55 * t * scale; targetY = originY - 20 * t * scale; } 
+                            else if (branch === 3) { targetX = -30 * t * scale; targetY = originY - 45 * t * scale; } 
+                            else if (branch === 4) { targetX = 30 * t * scale; targetY = originY - 45 * t * scale; }  
+                            else if (branch === 5) { targetX = 55 * t * scale; targetY = originY - 20 * t * scale; }  
+                            else { targetX = 75 * t * scale; targetY = originY + 15 * t * scale; } 
+
+                            targetX += (Math.random() - 0.5) * 6 * scale;
+                            targetY += (Math.random() - 0.5) * 6 * scale;
+
+                            let rand = Math.random();
+                            let c = '#16a34a'; 
+                            if (rand > 0.95) c = '#ffffff'; 
+                            else if (rand > 0.4) c = '#22c55e'; 
+
+                            particles.push({
+                                startX: startX, startY: startY,
+                                x: startX, y: startY,
+                                tx: startX + targetX, ty: startY + targetY,
+                                color: c,
+                                alpha: 1,
+                                baseSize: Math.max(1.5, (Math.random() * 3 + 2) * scale),
+                                progress: 0,
+                                speed: Math.random() * 0.02 + 0.015 
+                            });
+                        }
+                    }
+
+                    function render() {
+                        if (gameState.currentEffect !== 'tomato' && trialState.effect !== 'tomato') {
+                            if (canvas.parentNode) canvas.parentNode.removeChild(canvas);
+                            if (window.tomatoFwTimeout) clearTimeout(window.tomatoFwTimeout);
+                            return;
+                        }
+                        
+                        window.tomatoAnimFrame = requestAnimationFrame(render);
+                        
+                        ctx.globalCompositeOperation = 'destination-out';
+                        ctx.fillStyle = 'rgba(0, 0, 0, 0.15)'; 
+                        ctx.fillRect(0, 0, canvas.width, canvas.height);
+                        
+                        ctx.globalCompositeOperation = 'source-over'; 
+                        ctx.shadowBlur = 3; // 稍微降低光暈的運算負擔
+
+                        for (let i = particles.length - 1; i >= 0; i--) {
+                            let p = particles[i];
+                            
+                            p.progress += p.speed;
+                            if (p.progress >= 1) p.progress = 1;
+                            
+                            let ease = 1 - Math.pow(1 - p.progress, 3);
+                            
+                            p.x = p.startX + (p.tx - p.startX) * ease;
+                            p.y = p.startY + (p.ty - p.startY) * ease;
+                            
+                            if (p.progress >= 1) {
+                                p.ty += 0.4; 
+                                p.alpha -= 0.015; 
+                            }
+
+                            if (p.alpha <= 0) {
+                                particles.splice(i, 1);
+                                continue;
+                            }
+
+                            let twinkleSize = p.baseSize * (0.7 + Math.random() * 0.5);
+                            let twinkleAlpha = p.alpha * (0.6 + Math.random() * 0.4);
+
+                            ctx.beginPath();
+                            ctx.arc(p.x, p.y, twinkleSize, 0, Math.PI * 2);
+                            ctx.fillStyle = p.color;
+                            ctx.shadowColor = p.color; 
+                            ctx.globalAlpha = twinkleAlpha;
+                            ctx.fill();
+                        }
+                    }
+
+                    render();
+
+                    function randomLaunch() {
+                        if (gameState.currentEffect !== 'tomato' && trialState.effect !== 'tomato') return;
+                        
+                        // 🌟 煞車系統：如果畫面上已經有超過 1000 顆火花在飛，就跳過這次發射，保護電腦！
+                        if (particles.length < 1000) {
+                            canvas.width = canvas.offsetWidth;
+                            canvas.height = canvas.offsetHeight;
+                            
+                            let targetX = canvas.width * (0.1 + Math.random() * 0.8);
+                            let targetY = canvas.height * (0.1 + Math.random() * 0.65);
+                            
+                            let scale = 0.25 + Math.random() * 0.45;
+                            createFirework(targetX, targetY, scale);
+                        }
+
+                        // 🌟 放慢發射間隔時間，讓電腦有時間喘氣 (1.2秒 到 2.5秒 之間)
+                        let nextLaunchTime = 1200 + Math.random() * 1300;
+                        window.tomatoFwTimeout = setTimeout(randomLaunch, nextLaunchTime);
+                    }
+                    
+                    randomLaunch();
+                    // 第一波稍微給點層次感，延遲0.8秒發射第二顆
+                    setTimeout(randomLaunch, 800); 
+                    break;
+                // ------------------------------------------------
+                // 🛠️ 其他還沒改到的特效，先用這個「通用備用方案」頂著
+                // ------------------------------------------------
+                default:
+                    let count = effect.count || 15;
+                    for (let i = 0; i < count; i++) {
+                        let el = document.createElement('div');
+                        el.style.position = 'absolute';
+                        el.style.left = Math.random() * 100 + '%';
+                        el.style.opacity = Math.random() * 0.5 + 0.5;
+                        
+                        let svgItem = effect.svg[Math.floor(Math.random() * effect.svg.length)];
+                        let rawSVG = svgLib[svgItem.s] || svgLib['circle']; 
+                        el.innerHTML = rawSVG;
+                        if (svgItem.c) el.style.color = svgItem.c; 
+                        
+                        let size = Math.random() * 30 + 30;
+                        el.style.width = size + 'px';
+                        el.style.height = size + 'px';
+                        
+                        if (effect.dir === 'up') {
+                            el.style.bottom = '-60px';
+                            el.style.animation = `bubbleRise ${Math.random() * 3 + 3}s ease-in infinite`;
+                        } else {
+                            el.style.top = '-60px';
+                            el.style.animation = `rainFall ${Math.random() * 3 + 3}s linear infinite`;
+                        }
+                        el.style.animationDelay = (Math.random() * 2) + 's';
+                        layer.appendChild(el);
+                    }
+                    break;
             }
         }
         
-
         function interact(type, reward, cdSeconds) {
             if (gameState.cooldowns[type] > 0) return;
 
@@ -1163,15 +1964,21 @@
             updateUI();
         }
 
-        function showFloatText(text) {
-            const el = document.createElement('div');
-            el.className = 'float-text';
-            el.innerText = text;
-            el.style.left = '50%';
-            el.style.top = '30%';
-            document.body.appendChild(el);
-            setTimeout(() => el.remove(), 1000);
-        }
+function showFloatText(text, duration = 1000) {
+    const el = document.createElement('div');
+    el.className = 'float-text';
+    el.innerText = text;
+    el.style.left = '50%';
+    el.style.top = '30%';
+    
+    // 這裡的 duration 終於有主人了！
+    el.style.animation = `floatUp ${duration / 1000}s forwards cubic-bezier(0.18, 0.89, 0.32, 1.28)`;
+    
+    document.body.appendChild(el);
+    
+    // 這裡原本的 1000 也要改成 duration，這樣文字才會乖乖停留！
+    setTimeout(() => el.remove(), duration);
+}
 
         function startCooldownTimer() {
             setInterval(() => {
@@ -1225,7 +2032,6 @@
             });
         }
 
-        // --- 🌟 究極防彈版：Mouse + Touch 雙核驅動系統，再也不當機 🌟 ---
         function initDragAndPetSystem() {
             const slugEl = document.getElementById('slugContainer');
             const stageEl = document.getElementById('mainStage');
@@ -1236,7 +2042,6 @@
             let slugStartLeft = 0, slugStartTop = 0;
             let petTimer = null;
 
-            // 封印原生的選單與拖曳
             slugEl.oncontextmenu = (e) => { e.preventDefault(); return false; };
             slugEl.ondragstart = (e) => { e.preventDefault(); return false; };
 
@@ -1268,7 +2073,7 @@
             function onMove(e) {
                 if (!isDragging) return; 
 
-                if (e.cancelable) e.preventDefault(); // 絕對防止手機畫面跟著亂滾
+                if (e.cancelable) e.preventDefault(); 
 
                 const pos = getPos(e);
                 const dx = pos.x - startX;
@@ -1289,6 +2094,7 @@
 
                 slugEl.style.left = newLeft + 'px';
                 slugEl.style.top = newTop + 'px';
+                updateFloatingButtonPosition(); // 🌟 就是這行！讓按鈕跟著兔子一起跑
             }
 
             function onEnd(e) {
@@ -1302,7 +2108,6 @@
                 }
             }
 
-            // 單純懸浮時的專屬互動 (只在海兔身上有效)
             function onHover(e) {
                 if (!isDragging && e.type === 'mousemove') {
                     slugEl.classList.add('is-petting');
@@ -1312,7 +2117,6 @@
                 }
             }
 
-            // 把所有的互動事件通通綁好綁滿
             slugEl.addEventListener('mousedown', onStart, { passive: false });
             slugEl.addEventListener('touchstart', onStart, { passive: false });
             slugEl.addEventListener('mousemove', onHover);
@@ -1325,10 +2129,12 @@
             
             function spawnMiniHeart(x, y) {
                 const el = document.createElement('div');
-                el.innerText = '💖';
+                el.innerHTML = svgLib.heart;
+                el.style.width = '30px';
+                el.style.height = '30px';
                 el.style.position = 'fixed';
-                el.style.left = (x - 10 + Math.random() * 20) + 'px';
-                el.style.top = (y - 20) + 'px';
+                el.style.left = (x - 15 + Math.random() * 20) + 'px';
+                el.style.top = (y - 30) + 'px';
                 el.style.pointerEvents = 'none';
                 el.style.animation = 'floatUp 1s ease-out forwards';
                 el.style.zIndex = '1000';
@@ -1336,6 +2142,97 @@
                 setTimeout(() => el.remove(), 1000);
             }
         }
+        // 🌟 1. 控制浮動按鈕的顯示與隱藏
+     function updateRecallButtonVisibility() {
+         const btn = document.getElementById('floatingRecallBtn');
+         const activeEffect = trialState.effect || gameState.currentEffect;
+         if (activeEffect === 'disco') {
+             btn.style.display = 'block';
+             updateFloatingButtonPosition(); // 顯示時立即對齊位置
+         } else {
+             btn.style.display = 'none';
+         }
+     }
+
+     // 🌟 2. 讓按鈕自動貼在海兔旁邊的數學定位函式
+     function updateFloatingButtonPosition() {
+         const btn = document.getElementById('floatingRecallBtn');
+         const slugEl = document.getElementById('slugContainer');
+         if (!btn || !slugEl || btn.style.display === 'none') return;
+
+         // 取得兔子當前的位置與大小
+         const left = parseFloat(slugEl.style.left) || (window.innerWidth / 2 - 170);
+         const top = parseFloat(slugEl.style.top) || (window.innerHeight * 0.29 - 120);
+         const width = slugEl.offsetWidth || 340;
+
+         // 把按鈕定位在海兔的右上方偏右側一點點
+         btn.style.left = (left + width - 40) + 'px';
+         btn.style.top = (top + 20) + 'px';
+     }
+// 🌟 3. 點擊按鈕觸發：海兔 SVG 側向轉圈圈 + 連續叮叮叫
+        function triggerRecallTaunt() {
+            const svgEl = document.querySelector('.slug-svg');
+            
+            // 如果正在轉，就不重複觸發
+            if (svgEl.classList.contains('is-spinning-taunt')) return;
+            
+            // 加上轉圈圈動畫類別（只讓兔子自己轉，名字不動！）
+            svgEl.classList.add('is-spinning-taunt');
+            setTimeout(() => {
+                svgEl.classList.remove('is-spinning-taunt');
+            }, 600); // 0.6秒轉一圈
+
+            // 播放 3 次清脆的「叮叮叮」聲音
+            playDingSound(3);
+        }
+
+        // 🌟 全域共用一個音訊管理器，防止瀏覽器記憶體爆掉、音效消音
+        let sharedAudioCtx = null;
+
+        // 🌟 完美無限連點音效函式
+        function playDingSound(times) {
+            let count = 0;
+            
+            // 確保每次點擊都能安全初始化共用音訊通道
+            try {
+                if (!sharedAudioCtx || sharedAudioCtx.state === 'closed') {
+                    sharedAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                }
+                if (sharedAudioCtx.state === 'suspended') {
+                    sharedAudioCtx.resume();
+                }
+            } catch(e) {
+                return;
+            }
+
+            const interval = setInterval(() => {
+                if (count >= times) {
+                    clearInterval(interval);
+                    return;
+                }
+                try {
+                    const osc = sharedAudioCtx.createOscillator();
+                    const gain = sharedAudioCtx.createGain();
+                    
+                    osc.type = 'sine';
+                    // 模擬金屬清脆的高音頻率
+                    osc.frequency.setValueAtTime(1200 + count * 300, sharedAudioCtx.currentTime);
+                    
+                    gain.gain.setValueAtTime(0.15, sharedAudioCtx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.001, sharedAudioCtx.currentTime + 0.3);
+                    
+                    osc.connect(gain);
+                    gain.connect(sharedAudioCtx.destination);
+                    
+                    osc.start();
+                    osc.stop(sharedAudioCtx.currentTime + 0.3);
+                } catch(e) {}
+                
+                count++;
+            }, 150); // 每 0.15 秒叮一聲
+        }
+        
+        
     </script>
 </body>
 </html>
