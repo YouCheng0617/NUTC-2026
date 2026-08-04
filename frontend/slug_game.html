@@ -1993,25 +1993,38 @@ function showFloatText(text, duration = 1000) {
             }, 1000);
         }
 
-        function saveGame() { localStorage.setItem('nudi_v9_save', JSON.stringify(gameState)); }
-        
-        function loadGame() {
-            const saved = localStorage.getItem('nudi_v9_save');
-            if (saved) { 
-                try { 
-                    let parsed = JSON.parse(saved);
-                    if(parsed.currentEnv) {
-                        parsed.currentBg = 'sky';
-                        parsed.currentEffect = 'none';
-                        parsed.unlockedBgs = ['sky'];
-                        parsed.unlockedEffects = ['none'];
-                        delete parsed.currentEnv;
-                        delete parsed.unlockedItems;
-                    }
-                    gameState = { ...gameState, ...parsed }; 
-                } catch(e) {} 
+        // 修改儲存功能：加入簡單的編碼加密
+function saveGame() { 
+    const dataString = JSON.stringify(gameState);
+    // 使用 encodeURIComponent 避免中文寵物名字造成 btoa 報錯
+    const encodedData = btoa(encodeURIComponent(dataString)); 
+    localStorage.setItem('nudi_v9_save', encodedData); 
+}
+
+// 修改讀取功能：加入解密
+function loadGame() {
+    const saved = localStorage.getItem('nudi_v9_save');
+    if (saved) { 
+        try { 
+            // 將編碼解密回原本的 JSON 字串
+            const decodedData = decodeURIComponent(atob(saved));
+            let parsed = JSON.parse(decodedData);
+            
+            // 以下保留你原本的版本相容性處理邏輯
+            if(parsed.currentEnv) {
+                parsed.currentBg = 'sky';
+                parsed.currentEffect = 'none';
+                parsed.unlockedBgs = ['sky'];
+                parsed.unlockedEffects = ['none'];
+                delete parsed.currentEnv;
+                delete parsed.unlockedItems;
             }
-        }
+            gameState = { ...gameState, ...parsed }; 
+        } catch(e) {
+            console.error("存檔讀取失敗或已損毀", e);
+        } 
+    }
+}
         
         function updateUI() {
             const t = i18n[currLang];
