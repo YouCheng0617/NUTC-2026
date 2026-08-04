@@ -153,6 +153,7 @@
             user-select: none !important;
             -webkit-user-select: none !important;
             -webkit-user-drag: none !important;
+            perspective: 800px; /* 🌟 加上這行，解鎖 3D 側翻視覺 */
         }
 
         /* 終極鎖定狀態 */
@@ -242,11 +243,12 @@
 
         .tabs {
             display: flex;
-            gap: 15px;
+            gap: 10px;
             margin-bottom: 20px;
             border-bottom: 3px solid var(--border-color);
             padding-bottom: 10px;
             padding-left: 5px;
+            align-items: center;
         }
 
         .tab {
@@ -523,6 +525,52 @@
             box-shadow: 0 5px 0 rgba(255, 182, 193, 0.8);
         }
         .btn-random:active { transform: translateY(5px); box-shadow: 0 0 0 transparent; }
+        /* 🌟 兔子旁邊的懸浮挑釁按鈕 */
+        #floatingRecallBtn {
+            position: absolute;
+            display: none; /* 預設隱藏，等切換到回城特效才顯示 */
+            z-index: 25; /* 浮在舞台上，高於背景但不會干擾海兔拖曳 */
+            background: #fef08a;
+            color: #78350f;
+            border: 3px solid #f59e0b;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: 900;
+            font-size: 0.95rem;
+            cursor: pointer;
+            box-shadow: 0 4px 10px rgba(245, 158, 11, 0.4);
+            transition: transform 0.1s;
+            white-space: nowrap;
+        }
+        #floatingRecallBtn:active {
+            transform: scale(0.95);
+        }
+/* 🌟 讓海兔 SVG 圖片本身進行完美的水平左右轉圈圈 */
+@keyframes slugSpinTaunt {
+    0% { transform: rotateY(0deg); }
+    50% { transform: rotateY(180deg) scale(1.05); } /* 轉到一半時微微放大，讓 3D 挑釁感更強 */
+    100% { transform: rotateY(360deg) scale(1); }
+}
+
+/* 當觸發時，把動畫掛在海兔的 SVG 上面 */
+.slug-svg.is-spinning-taunt {
+    /* 使用 ease-in-out 讓旋轉有甩動的動態感，加 !important 防止被其他互動覆蓋 */
+    animation: slugSpinTaunt 0.6s ease-in-out !important; 
+}
+
+.slug-svg {
+    display: block; /* 🌟 關鍵1：避免 inline 元素的基線導致旋轉時上下偏移搖晃 */
+    transform-origin: 170px 120px; /* 🌟 關鍵2：絕對中心點！(寬340的一半, 高240的一半)，保證 100% 原地不抖動 */
+    transform-style: preserve-3d; /* 確保 3D 旋轉效果完美呈現 */
+    
+    /* --- 以下保留你原本的設定 --- */
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+    filter: drop-shadow(0 15px 15px rgba(0,0,0,0.15));
+    transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1.2), filter 0.3s ease;
+    pointer-events: none !important;
+}
     </style>
 </head>
 <body>
@@ -558,7 +606,8 @@
     <div class="stage" id="mainStage">
         <div class="dot-pattern" id="dotPattern"></div>
         <div id="effectLayer" class="effect-layer"></div>
-        
+        <!-- 🌟 兔子旁邊的懸浮挑釁按鈕（獨立於兔子容器外，不影響兔子動畫） -->
+     <button id="floatingRecallBtn" onclick="triggerRecallTaunt()">🌀 挑釁！</button>
         <div class="slug-container" id="slugContainer">
             <div class="pet-name-tag" id="petNameTag" onclick="openNameModal()">
                 <span id="displayPetName">神祕海兔</span> <span id="pencilIcon">✏️</span>
@@ -834,7 +883,7 @@ const i18n = {
             heart: `<svg viewBox="0 0 100 100"><path d="M50 85 C10 50 10 20 30 10 C45 0 50 15 50 15 C50 15 55 0 70 10 C90 20 90 50 50 85Z" fill="#f43f5e"/></svg>`,
             drop: `<svg viewBox="0 0 100 100"><polygon points="48,0 52,0 50,100" fill="rgba(255, 255, 255, 0.3)"/><polygon points="49.5,0 50.5,0 50,80" fill="rgba(255, 255, 255, 0.9)"/></svg>`,
             star: `<svg viewBox="0 0 100 100"><polygon points="50,5 61,35 95,35 68,55 79,85 50,65 21,85 32,55 5,35 39,35" fill="#facc15"/></svg>`,
-            sparkle: `<svg viewBox="0 0 100 100"><path d="M50 5 Q50 50 95 50 Q50 50 50 95 Q50 50 5 50 Q50 50 50 5 Z" fill="#fef08a"/></svg>`,
+            sparkle: `<svg viewBox="0 0 100 100"><path d="M50 5 Q50 50 95 50 Q50 50 50 95 Q50 50 5 50 Q50 50 5 50 Z" fill="#fef08a"/></svg>`,
             leaf: `<svg viewBox="0 0 100 100"><path d="M50 10 C80 10 90 40 90 60 C90 80 50 90 50 90 C20 90 10 60 10 40 C10 20 50 10 50 10 Z" fill="#ea580c"/></svg>`,
             moon: `<svg viewBox="0 0 100 100"><path d="M65 15 A 40 40 0 1 1 25 85 A 50 50 0 1 0 65 15 Z" fill="#fef08a"/></svg>`,
             snow: `<svg viewBox="0 0 100 100"><path d="M50 10 L50 90 M10 50 L90 50 M20 20 L80 80 M20 80 L80 20" stroke="#ffffff" stroke-width="10" stroke-linecap="round"/></svg>`,
@@ -854,7 +903,7 @@ const i18n = {
             bubble: { name: {zh: '夢幻泡泡', en: 'Bubbles'}, cost: 1200, preview: '#67e8f9', svg: [{s: 'bubble'}], dir: 'up', count: 15 },
             tomato: { name: {zh: '小番茄煙火', en: 'Tomato Fireworks'}, cost: 1500, preview: '#fca5a5', svg: [{s: 'tomato'}], dir: 'down', count: 12 },
             bugFree: { name: {zh: 'Bug退散', en: 'No More Bugs'}, cost: 8888, preview: '#4ade80', svg: [{s: 'bugFree'}], dir: 'up', count: 15 },
-            disco: { name: {zh: '迪斯可舞池', en: 'Disco Party'}, cost: 2500, preview: '#c084fc', svg: [{s: 'star'}, {s: 'music'}], dir: 'up', count: 10 },
+           disco: { name: {zh: '回程挑釁', en: 'Recall Taunt'}, cost: 2500, preview: '#c084fc', svg: [{s: 'star'}, {s: 'music'}], dir: 'up', count: 10 },
             paint: { name: {zh: '揮灑顏料', en: 'Paint Splash'}, cost: 2000, preview: '#f472b6', svg: [{s: 'drop'}], dir: 'down', count: 15 },
             heartbeat: { name: {zh: '心動滿滿', en: 'Heartbeat'}, cost: 1800, preview: '#f43f5e', svg: [{s: 'heart'}], dir: 'up', count: 18 },
             noClass: { name: {zh: '不想上課', en: 'Skip Class'}, cost: 1600, preview: '#94a3b8', svg: [{s: 'book'}, {s: 'moon'}], dir: 'down', count: 12 },
@@ -917,6 +966,7 @@ let trialInterval = null;
             startCooldownTimer();
             initDragAndPetSystem(); 
             updateNameUI();
+            updateRecallButtonVisibility();
         };
 
         function toggleLang() {
@@ -1199,6 +1249,7 @@ let trialInterval = null;
             applyBg();
             applyEffect();
             renderShop();
+            updateRecallButtonVisibility(); // 🌟 確保每次畫面更新時，都會同步判斷專屬按鈕該不該出現
         }
 
         function applySlugStyles() {
@@ -1233,7 +1284,212 @@ let trialInterval = null;
             // 🌟 寶寶的「VIP 特效包廂」🌟
             // 根據不同的特效名字，進入不同的專屬製作區！
             switch (effectKey) {
-// ------------------------------------------------
+                // ------------------------------------------------
+                // 🌊 【回程挑釁】純淨海浪拍岸版 (對應原本的 disco)
+                // ------------------------------------------------
+                case 'disco':
+                    if (!document.getElementById('recallStyle')) {
+                        const style = document.createElement('style');
+                        style.id = 'recallStyle';
+                        style.innerHTML = `
+                            .recall-bubble {
+                                position: absolute;
+                                width: 280px;
+                                height: 280px;
+                                animation: bubbleBreathe 3s infinite ease-in-out, bubbleWobble 6s infinite linear;
+                                background: radial-gradient(circle at 25% 25%, 
+                                    rgba(255, 255, 255, 0.9) 0%, 
+                                    rgba(255, 255, 255, 0.15) 8%, 
+                                    rgba(255, 255, 255, 0) 35%, 
+                                    rgba(138, 43, 226, 0.03) 65%, 
+                                    rgba(0, 191, 255, 0.08) 85%, 
+                                    rgba(255, 255, 255, 0.25) 100%
+                                );
+                                box-shadow: 
+                                    inset 0 0 15px rgba(255, 255, 255, 0.2), 
+                                    inset 15px 0 30px rgba(0, 191, 255, 0.05), 
+                                    inset -15px 0 30px rgba(138, 43, 226, 0.05),
+                                    0 0 10px rgba(255, 255, 255, 0.1);
+                                border: 1px solid rgba(255, 255, 255, 0.2); 
+                                pointer-events: none;
+                                z-index: 15; 
+                            }
+                            
+                            .recall-ripple {
+                                position: absolute;
+                                width: 420px;
+                                height: 210px;
+                                transform: translate(-50%, -50%);
+                                pointer-events: none;
+                                z-index: 5;
+                            }
+
+                            /* 🌊 海浪一波波湧上來的呼吸動畫 */
+                            .wave-surge {
+                                transform-origin: center;
+                                animation: waveSurgeAnim 2.8s infinite ease-in-out;
+                            }
+                            .ws-1 { animation-delay: 0s; }
+                            .ws-2 { animation-delay: 1.4s; }
+
+                            @keyframes waveSurgeAnim {
+                                0% { transform: scale(0.85); opacity: 0.2; }
+                                50% { transform: scale(1.12); opacity: 0.9; }
+                                100% { transform: scale(1.25); opacity: 0; }
+                            }
+
+                            .water-spirit {
+                                position: absolute;
+                                width: 400px;
+                                height: 400px;
+                                pointer-events: none;
+                                z-index: 4;
+                                filter: drop-shadow(0 0 15px rgba(0, 191, 255, 0.6));
+                                animation: spiritFloat 4s infinite ease-in-out;
+                            }
+                            
+                            @keyframes bubbleBreathe {
+                                0%, 100% { transform: translate(-50%, -50%) scale(1); }
+                                50% { transform: translate(-50%, -52%) scale(1.02); }
+                            }
+                            
+                            @keyframes bubbleWobble {
+                                0%, 100% { border-radius: 50%; }
+                                25% { border-radius: 51% 49% 52% 48% / 48% 52% 49% 51%; }
+                                50% { border-radius: 49% 51% 48% 52% / 52% 48% 51% 49%; }
+                                75% { border-radius: 52% 48% 51% 49% / 49% 51% 48% 52%; }
+                            }
+                            
+                            @keyframes spiritFloat {
+                                0%, 100% { transform: translate(-50%, -100%) translateY(0) scale(1); }
+                                50% { transform: translate(-50%, -100%) translateY(-15px) scale(1.02); }
+                            }
+                            @keyframes slugSpinTaunt {
+                                0% { transform: rotate(0deg) scale(1); }
+                                50% { transform: rotate(180deg) scale(1.15); }
+                                100% { transform: rotate(360deg) scale(1); }
+                            }
+
+                            .is-spinning-taunt {
+                                animation: slugSpinTaunt 0.6s linear infinite; /* 可以先改成 infinite 讓你測試觀察 */
+            transform-origin: center center; /* 🌟 關鍵：強制以正中央為旋轉中心 */
+                            }
+                        `;
+                        document.head.appendChild(style);
+                    }
+
+                    if (window.recallAnimFrame) cancelAnimationFrame(window.recallAnimFrame);
+                    const slugEl = document.getElementById('slugContainer');
+
+                    // 2. 建立純淨海浪拍岸的底座（已移除所有白圓圈）
+                    const ripple = document.createElement('div');
+                    ripple.className = 'recall-ripple';
+                    ripple.innerHTML = `
+                        <svg viewBox="0 0 420 210" width="100%" height="100%">
+                            <defs>
+                                <radialGradient id="seaPool" cx="50%" cy="50%" r="50%">
+                                    <stop offset="0%" stop-color="#38bdf8" stop-opacity="0.85"/>
+                                    <stop offset="60%" stop-color="#0284c7" stop-opacity="0.5"/>
+                                    <stop offset="100%" stop-color="#0369a1" stop-opacity="0"/>
+                                </radialGradient>
+                                
+                                <filter id="seaDistort" x="-20%" y="-20%" width="140%" height="140%">
+                                    <feTurbulence type="fractalNoise" baseFrequency="0.03" numOctaves="3" result="noise" />
+                                    <feDisplacementMap in="SourceGraphic" in2="noise" scale="12" xChannelSelector="R" yChannelSelector="G" />
+                                    <feGaussianBlur stdDeviation="1.5" result="blur" />
+                                    <feMerge>
+                                        <feMergeNode in="blur" />
+                                        <feMergeNode in="SourceGraphic" />
+                                    </feMerge>
+                                </filter>
+                            </defs>
+                            
+                            <!-- 海水主體基底 -->
+                            <g filter="url(#seaDistort)">
+                                <ellipse cx="210" cy="105" rx="160" ry="70" fill="url(#seaPool)" />
+                            </g>
+
+                            <!-- 🌊 湧上來的海浪拍岸線條 -->
+                            <g filter="url(#seaDistort)">
+                                <ellipse class="wave-surge ws-1" cx="210" cy="105" rx="140" ry="60" fill="none" stroke="#ffffff" stroke-width="6" />
+                                <ellipse class="wave-surge ws-2" cx="210" cy="105" rx="120" ry="50" fill="none" stroke="#bae6fd" stroke-width="4" />
+                            </g>
+                        </svg>
+                    `;
+                    layer.appendChild(ripple);
+
+                    // 3. 建立背後的巨大水精靈
+                    const spirit = document.createElement('div');
+                    spirit.className = 'water-spirit';
+                    spirit.innerHTML = `
+                        <svg viewBox="0 0 400 400" width="100%" height="100%">
+                            <defs>
+                                <radialGradient id="spiritGrad" cx="50%" cy="50%" r="50%">
+                                    <stop offset="0%" stop-color="#ffffff" stop-opacity="0.9"/>
+                                    <stop offset="35%" stop-color="#38bdf8" stop-opacity="0.8"/>
+                                    <stop offset="75%" stop-color="#8b5cf6" stop-opacity="0.6"/>
+                                    <stop offset="100%" stop-color="#1e3a8a" stop-opacity="0"/>
+                                </radialGradient>
+                                <filter id="glow">
+                                    <feGaussianBlur stdDeviation="5" result="blur" />
+                                    <feMerge>
+                                        <feMergeNode in="blur"/>
+                                        <feMergeNode in="SourceGraphic"/>
+                                    </feMerge>
+                                </filter>
+                            </defs>
+                            <g filter="url(#glow)">
+                                <path d="M 100 150 C 100 50, 300 50, 300 150 C 300 210, 100 210, 100 150 Z" fill="url(#spiritGrad)" opacity="0.85"/>
+                                <circle cx="200" cy="130" r="35" fill="#ffffff" opacity="0.7" filter="blur(6px)"/>
+                                <circle cx="170" cy="110" r="15" fill="#ffffff" opacity="0.9" filter="blur(3px)"/>
+                                <circle cx="240" cy="140" r="10" fill="#ffffff" opacity="0.8" filter="blur(2px)"/>
+                                
+                                <path d="M 150 180 Q 30 200 40 280" fill="none" stroke="url(#spiritGrad)" stroke-width="14" stroke-linecap="round" stroke-dasharray="3 20"/>
+                                <path d="M 120 170 Q 60 270 90 350" fill="none" stroke="url(#spiritGrad)" stroke-width="20" stroke-linecap="round" stroke-dasharray="6 28"/>
+                                <path d="M 110 140 Q 20 100 60 40" fill="none" stroke="url(#spiritGrad)" stroke-width="16" stroke-linecap="round" stroke-dasharray="4 22"/>
+                                
+                                <path d="M 250 180 Q 370 200 360 280" fill="none" stroke="url(#spiritGrad)" stroke-width="14" stroke-linecap="round" stroke-dasharray="3 20"/>
+                                <path d="M 280 170 Q 340 270 310 350" fill="none" stroke="url(#spiritGrad)" stroke-width="20" stroke-linecap="round" stroke-dasharray="6 28"/>
+                                <path d="M 290 140 Q 380 100 340 40" fill="none" stroke="url(#spiritGrad)" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"/>
+                                
+                                <circle cx="200" cy="220" r="12" fill="url(#spiritGrad)"/>
+                                <circle cx="170" cy="260" r="18" fill="url(#spiritGrad)"/>
+                                <circle cx="230" cy="270" r="10" fill="url(#spiritGrad)"/>
+                                <circle cx="200" cy="300" r="15" fill="url(#spiritGrad)"/>
+                            </g>
+                        </svg>
+                    `;
+                    layer.appendChild(spirit);
+
+                    // 4. 建立包覆海兔的巨大泡泡
+                    const bubble = document.createElement('div');
+                    bubble.className = 'recall-bubble';
+                    layer.appendChild(bubble);
+
+                    // 5. 終極追蹤渲染迴圈
+                    function renderRecall() {
+                        if (gameState.currentEffect !== 'disco' && trialState.effect !== 'disco') {
+                            if (window.recallAnimFrame) cancelAnimationFrame(window.recallAnimFrame);
+                            return;
+                        }
+                        window.recallAnimFrame = requestAnimationFrame(renderRecall);
+
+                        const cx = slugEl.offsetLeft + slugEl.offsetWidth / 2;
+                        const cy = slugEl.offsetTop + slugEl.offsetHeight / 2;
+
+                        ripple.style.left = cx + 'px';
+                        ripple.style.top = (cy + 90) + 'px'; 
+
+                        bubble.style.left = cx + 'px';
+                        bubble.style.top = (cy + 15) + 'px'; 
+
+                        spirit.style.left = cx + 'px';
+                        spirit.style.top = (cy + 70) + 'px'; 
+                    }
+
+                    renderRecall();
+                    break;
+                // ------------------------------------------------
                 // ⛩️ 【BUG 退散】正宗大符版 (遠景置中 + 近處極致柔軟羽毛飄落 + 支援手機點擊)
                 // ------------------------------------------------
                 case 'bugFree':
@@ -1902,6 +2158,7 @@ function showFloatText(text, duration = 1000) {
 
                 slugEl.style.left = newLeft + 'px';
                 slugEl.style.top = newTop + 'px';
+                updateFloatingButtonPosition(); // 🌟 就是這行！讓按鈕跟著兔子一起跑
             }
 
             function onEnd(e) {
@@ -1949,6 +2206,81 @@ function showFloatText(text, duration = 1000) {
                 setTimeout(() => el.remove(), 1000);
             }
         }
+        // 🌟 1. 控制浮動按鈕的顯示與隱藏
+     function updateRecallButtonVisibility() {
+         const btn = document.getElementById('floatingRecallBtn');
+         const activeEffect = trialState.effect || gameState.currentEffect;
+         if (activeEffect === 'disco') {
+             btn.style.display = 'block';
+             updateFloatingButtonPosition(); // 顯示時立即對齊位置
+         } else {
+             btn.style.display = 'none';
+         }
+     }
+
+     // 🌟 2. 讓按鈕自動貼在海兔旁邊的數學定位函式
+     function updateFloatingButtonPosition() {
+         const btn = document.getElementById('floatingRecallBtn');
+         const slugEl = document.getElementById('slugContainer');
+         if (!btn || !slugEl || btn.style.display === 'none') return;
+
+         // 取得兔子當前的位置與大小
+         const left = parseFloat(slugEl.style.left) || (window.innerWidth / 2 - 170);
+         const top = parseFloat(slugEl.style.top) || (window.innerHeight * 0.29 - 120);
+         const width = slugEl.offsetWidth || 340;
+
+         // 把按鈕定位在海兔的右上方偏右側一點點
+         btn.style.left = (left + width - 40) + 'px';
+         btn.style.top = (top + 20) + 'px';
+     }
+// 🌟 3. 點擊按鈕觸發：轉圈圈 + 連續叮叮叫
+        function triggerRecallTaunt() {
+            const slugEl = document.getElementById('slugContainer');
+            
+            // 如果正在轉，就不重複觸發
+            if (slugEl.classList.contains('is-spinning-taunt')) return;
+            
+            // 加上轉圈圈動畫類別
+            slugEl.classList.add('is-spinning-taunt');
+            setTimeout(() => {
+                slugEl.classList.remove('is-spinning-taunt');
+            }, 600); // 0.6秒轉一圈
+
+            // 播放 3 次清脆的「叮叮叮」聲音
+            playDingSound(3);
+        }
+
+        // 🌟 4. 用瀏覽器音訊 API 直接發出「叮～」的魔法高音
+        function playDingSound(times) {
+            let count = 0;
+            const interval = setInterval(() => {
+                if (count >= times) {
+                    clearInterval(interval);
+                    return;
+                }
+                try {
+                    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                    const osc = audioCtx.createOscillator();
+                    const gain = audioCtx.createGain();
+                    
+                    osc.type = 'sine';
+                    // 模擬金屬清脆的高音頻率 (逐漸升高更有靈動感)
+                    osc.frequency.setValueAtTime(1200 + count * 300, audioCtx.currentTime);
+                    
+                    gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.3);
+                    
+                    osc.connect(gain);
+                    gain.connect(audioCtx.destination);
+                    
+                    osc.start();
+                    osc.stop(audioCtx.currentTime + 0.3);
+                } catch(e) {}
+                
+                count++;
+            }, 150); // 每 0.15 秒叮一聲
+        }
+        
     </script>
 </body>
 </html>
