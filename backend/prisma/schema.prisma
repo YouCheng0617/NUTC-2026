@@ -292,5 +292,18 @@ model Pet {
   last_purify_time DateTime @default("2000-01-01T00:00:00Z")
   last_pet_time    DateTime @default("2000-01-01T00:00:00Z")
 
-  member Member @relation(fields: [member_id], references: [member_id], onDelete: Cascade)
+  member       Member         @relation(fields: [member_id], references: [member_id], onDelete: Cascade)
+  PetInventory PetInventory[]
+}
+
+model PetInventory {
+  inventory_id Int      @id @default(autoincrement())
+  pet_id       Int
+  category     String
+  item_name    String
+  created_at   DateTime @default(now())
+
+  pet Pet @relation(fields: [pet_id], references: [pet_id], onDelete: Cascade)
+
+  @@unique([pet_id, category, item_name])
 }

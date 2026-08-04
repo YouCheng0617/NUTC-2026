@@ -210,3 +210,22 @@ Query 參數 (必填)：?keyword=你要找的字
 (:id 是通知的 ID，例如：/notifications/1/read)
 
 一鍵全部標記為已讀 PATCH 給Token /notifications/read-all
+
+
+取得我的寵物與背包資料 GET 給Token /pet-games/my-pet
+
+寵物命名 POST 給Token /pet-games/rename
+{
+  "newName": "寵物名字"
+}
+
+與寵物互動(賺金幣) POST 給Token /pet-games/interact
+{
+  "actionType": "FEED" /* 可選值: "FEED(餵食海藻)", "PURIFY(淨化水質)", "PET(溫柔撫摸)" */
+}
+
+購買或裝備商店物品 POST 給Token /pet-games/buy
+{
+  "category": "pet_color", /*可選: "pet_color(圖鑑)", "background_color(背景)", "background_effects(特效)" */
+  "itemName": "snow"
+}

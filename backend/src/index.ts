@@ -13,6 +13,7 @@ import { categoryRouter } from './modules/category/category.router.js';
 import { commentRouter } from './modules/comment/comment.router.js';
 import { gameRouter } from './modules/game/game.router.js';
 import { notificationRouter } from './modules/notification/notification.router.js';
+import { petGameRouter } from './socket/petGame.router.js';
 
 /*其他套件引用區*/
 import { generateCaptcha } from './lib/captchaHelper.js';
@@ -40,7 +41,7 @@ app.use('/category', categoryRouter());
 app.use('/comments', commentRouter());
 app.use('/game', gameRouter());
 app.use('/notifications', notificationRouter());
-
+app.use('/pet-games', petGameRouter());
 if (!process.env["DATABASE_URL"]) {
     console.error("DATABASE_URL is not defined in env.");
 }
