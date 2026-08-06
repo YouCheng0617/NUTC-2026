@@ -7,7 +7,9 @@
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;800;900&display=swap" rel="stylesheet">
     
     <!-- 🌟 引入 Socket.IO (用來處理多人連線的套件) -->
-    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js">
+
+    </script>
 
     <style>
         /* 🌟 【全域變數調色盤】這裡定義了整個遊戲的主要顏色，換這裡的色號，整個網頁風格就會跟著變哦！ */
@@ -196,6 +198,51 @@
 
         /* 🌟 【獲得積分時飄起來的文字】 */
         .float-text { position: absolute; color: var(--accent-color); font-weight: 900; font-size: 2rem; pointer-events: none; text-shadow: 2px 2px 0px white, -2px -2px 0px white, 2px -2px 0px white, -2px 2px 0px white; animation: floatUp 1s forwards cubic-bezier(0.18, 0.89, 0.32, 1.28); z-index: 100; }
+        /* 🌟 14天簽到網格樣式 */
+        .checkin-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin: 15px 0; max-height: 40vh; overflow-y: auto; padding-right: 5px; }
+        .checkin-grid::-webkit-scrollbar { width: 4px; }
+        .checkin-grid::-webkit-scrollbar-thumb { background: #ffd1dc; border-radius: 4px; }
+        
+        .checkin-day { background: #f8fafc; border: 2px solid #e2e8f0; border-radius: 12px; padding: 10px 4px; text-align: center; color: #94a3b8; font-weight: 900; transition: 0.3s; position: relative; }
+        
+        /* 🌟 簽到過的格子會亮黃色並打勾 */
+        .checkin-day.claimed { background: #fef08a; border-color: #fde047; color: #ca8a04; }
+        .checkin-day.claimed::after { content: '✔️'; position: absolute; top: -8px; right: -5px; font-size: 1.1rem; filter: drop-shadow(0 2px 2px rgba(0,0,0,0.2)); }
+        
+        /* 🌟 今天該簽到的那格會跳動提示 */
+        .checkin-day.today { border-color: #f43f5e; background: #fff1f2; color: #e11d48; animation: pulseDay 1.5s infinite; cursor: pointer; box-shadow: 0 0 10px rgba(244, 63, 94, 0.3); }
+        @keyframes pulseDay { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }
+
+        /* 🌟 只有純禮物盒的透明按鈕 */
+        .btn-pure-gift { background: transparent; border: none; padding: 0; margin-left: 10px; cursor: pointer; outline: none; -webkit-tap-highlight-color: transparent; transition: transform 0.1s; }
+        .btn-pure-gift:active { transform: scale(0.92); }
+        
+        /* 🌟 禮物盒 SVG 動畫設定 */
+        .gift-svg { width: 38px; height: 38px; filter: drop-shadow(0px 3px 5px rgba(244,63,94,0.4)); overflow: visible; }
+        
+        /* 蓋子的旋轉中心點設在右下角，這樣打開時會往右上方翻 */
+        .gift-lid { transform-origin: 80% 40%; transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        
+        /* 當被加上 is-opening 類別時，播放蓋子飛走的動畫 */
+        @keyframes lidPopOff {
+            0% { transform: translateY(0) rotate(0deg); opacity: 1; }
+            40% { transform: translateY(-15px) rotate(15deg); opacity: 1; }
+            100% { transform: translateY(-35px) translateX(10px) rotate(35deg); opacity: 0; }
+        }
+        .gift-svg.is-opening .gift-lid { animation: lidPopOff 0.5s forwards ease-in; }
+
+        /* 🌟 以下是新增的：禮物盒的呼吸發光誘惑 */
+        @keyframes giftBreathe {
+            0%, 100% { transform: scale(1) translateY(0); filter: drop-shadow(0px 3px 5px rgba(244,63,94,0.4)); }
+            50% { transform: scale(1.08) translateY(-3px); filter: drop-shadow(0px 8px 15px rgba(244,63,94,0.8)); }
+        }
+        /* 當按鈕被加上 needs-attention 標籤時，禮物盒就會開始呼吸 */
+        .btn-pure-gift.needs-attention .gift-svg { animation: giftBreathe 2s infinite ease-in-out; }
+
+        /* 🌟 以下是新增的：無法抗拒的靈魂小紅點 */
+        .gift-noti-dot { position: absolute; top: -2px; right: -5px; width: 12px; height: 12px; background: #ef4444; border: 2px solid #fff; border-radius: 50%; box-shadow: 0 2px 4px rgba(0,0,0,0.2); display: none; z-index: 10; }
+        /* 只有沒領獎時，小紅點才會出現並跳動 */
+        .btn-pure-gift.needs-attention .gift-noti-dot { display: block; animation: pulseDay 1.5s infinite; }
         @keyframes floatUp { 0% { opacity: 1; transform: translate(-50%, 0) scale(0.5); } 50% { transform: translate(-50%, -50px) scale(1.2); } 100% { opacity: 0; transform: translate(-50%, -90px) scale(1); } }
 
         /* 🌟 【寵物名字標籤與命名彈窗】 */
@@ -262,29 +309,79 @@
     <!-- 🌟 【每日任務彈窗】 -->
     <div class="name-modal-overlay" id="dailyModalOverlay">
         <div class="name-modal" style="width: 90%; max-width: 350px;">
-            <h2 style="margin-top:0; font-weight:900; color: var(--text-dark);">📅 每日任務</h2>
+            <!-- 任務標題與圓形簽到按鈕 -->
+            <div style="display: flex; justify-content: center; align-items: center; margin-bottom: 5px;">
+                <!-- 任務標題與「開箱動畫」純禮物盒按鈕 -->
+            <div style="display: flex; justify-content: center; align-items: center; margin-bottom: 5px;">
+                <h2 style="margin:0; font-weight:900; color: var(--text-dark);">📅 每日任務</h2>
+                
+                <!-- 🌟 點擊時改呼叫 playGiftAnimation，加上 ID 方便控制 -->
+                <button class="btn-pure-gift" id="btnDailyGift" onclick="playGiftAnimation(this)" title="14天簽到" style="position: relative;">
+                    
+                    <!-- 🔴 新增：靈魂小紅點 -->
+                    <div class="gift-noti-dot"></div>
+
+                    <svg viewBox="0 0 100 100" class="gift-svg">
+                        <!-- 📦 禮物盒底座 (下半部) -->
+                        <g class="gift-base">
+                            <path d="M 15 45 L 85 45 L 85 78 C 85 85 80 90 73 90 L 27 90 C 20 90 15 85 15 78 Z" fill="#ffe4e6" stroke="#fb7185" stroke-width="4"/>
+                            <path d="M 25 45 L 75 45 L 75 76 C 75 80 71 84 67 84 L 33 84 C 29 84 25 80 25 76 Z" fill="#fb7185"/>
+                            <rect x="42" y="45" width="16" height="45" fill="#fde047"/>
+                        </g>
+                        
+                        <!-- 🎀 禮物盒蓋子 (上半部，包含緞帶結) -->
+                        <g class="gift-lid">
+                            <rect x="11" y="25" width="78" height="20" rx="6" fill="#ffe4e6" stroke="#fb7185" stroke-width="4"/>
+                            <rect x="21" y="29" width="58" height="12" rx="3" fill="#fb7185"/>
+                            <rect x="11" y="30" width="78" height="10" fill="#facc15"/>
+                            <rect x="42" y="25" width="16" height="20" fill="#fde047"/>
+                            <path d="M 50 30 C 20 5 10 25 35 35 Z" fill="#fde047" stroke="#eab308" stroke-width="2" stroke-linejoin="round"/>
+                            <path d="M 50 30 C 80 5 90 25 65 35 Z" fill="#fde047" stroke="#eab308" stroke-width="2" stroke-linejoin="round"/>
+                            <circle cx="50" cy="33" r="7" fill="#eab308"/>
+                            <rect x="15" y="28" width="70" height="4" rx="2" fill="rgba(255,255,255,0.8)"/>
+                        </g>
+                    </svg>
+                </button>
+            </div>
+            </div>
             <div style="font-size: 0.9rem; color: var(--text-dim); margin-bottom: 15px;">完成任務領取豐厚獎勵！</div>
             
             <div id="dailyTaskList" style="display: flex; flex-direction: column; gap: 10px;">
                 <!-- 任務會由 JS 自動生成在這裡 -->
             </div>
+            <!-- 🌟 【全新：14天日曆簽到彈窗】 -->
+    <div class="name-modal-overlay" id="checkInModalOverlay" style="z-index: 10010;">
+        <div class="name-modal" style="width: 95%; max-width: 380px;">
+            <h2 style="margin-top:0; font-weight:900; color: #eab308;">🎁 14天簽到獎勵</h2>
+            <div style="font-size: 0.9rem; color: var(--text-dim); margin-bottom: 10px;">連續簽到拿大獎，第7與14天翻倍！</div>
             
+            <!-- 🌟 14天的格子會由 JS 自動畫在這裡面 -->
+            <div id="checkInGrid" class="checkin-grid"></div>
+            
+            <button class="modal-btn btn-confirm" id="btnClaimCheckIn" onclick="claimCheckIn()" style="width: 100%; background: #eab308; box-shadow: 0 5px 0 #ca8a04; color: white; margin-top: 15px;">馬上簽到！</button>
+            <button class="modal-btn" onclick="document.getElementById('checkInModalOverlay').style.display='none'" style="width: 100%; background: #f1f5f9; color: var(--text-dim); margin-top: 10px; border: none; font-weight: 900; padding: 12px; border-radius: 20px; cursor: pointer;">關閉日曆</button>
+        </div>
+    </div>
             <div class="modal-btns" style="margin-top: 20px;">
                 <button class="modal-btn btn-confirm" onclick="document.getElementById('dailyModalOverlay').style.display='none'" style="width: 100%;">關閉</button>
             </div>
         </div>
-    </div>
-    <!-- 🌟 【每日登入驚喜大禮包彈窗】 -->
-    <div class="name-modal-overlay" id="loginBonusModalOverlay" style="z-index: 10005;">
+        </div>
+<!-- 🌟 【全新：累計簽到大禮包彈窗】 -->
+    <div class="name-modal-overlay" id="checkInModalOverlay" style="z-index: 10005;">
         <div class="name-modal" style="width: 85%; max-width: 320px; text-align: center;">
-            <h2 style="margin-top:0; font-weight:900; color: #eab308; font-size: 1.8rem; text-shadow: 0 2px 5px rgba(253, 224, 71, 0.5);">🎉 歡迎回來</h2>
-            <div style="font-size: 4rem; margin: 15px 0; animation: tailFluff 2s infinite ease-in-out;">🎁</div>
-            <div style="font-size: 1.1rem; color: var(--text-dark); font-weight: 800; margin-bottom: 25px; line-height: 1.5;">
-                海兔寶寶想你了！<br>
-                為你送上每日登入零用錢<br>
-                <span style="color: #ef4444; font-size: 1.5rem; font-weight: 900; display: inline-block; margin-top: 5px;">+100 積分</span>
+            <h2 style="margin-top:0; font-weight:900; color: #eab308; text-shadow: 0 2px 5px rgba(253, 224, 71, 0.5);">📅 每日簽到</h2>
+            <div style="font-size: 1.1rem; color: var(--text-dim); margin-bottom: 15px; font-weight: 900;">
+                累計簽到第 <span id="txtStreakDays" style="color: #ef4444; font-size: 1.6rem;">1</span> 天
             </div>
-            <button class="modal-btn btn-confirm" onclick="document.getElementById('loginBonusModalOverlay').style.display='none'" style="width: 100%; background: #eab308; box-shadow: 0 5px 0 #ca8a04; color: white; font-size: 1.2rem;">開心收下！💰</button>
+            
+            <div style="font-size: 4rem; margin: 10px 0; animation: tailFluff 2s infinite ease-in-out;">🎁</div>
+            
+            <div style="font-size: 1.1rem; color: var(--text-dark); font-weight: 800; margin-bottom: 25px; line-height: 1.5;">
+                今日獎勵<br>
+                <span id="txtTodayReward" style="color: #ef4444; font-size: 1.8rem; font-weight: 900;">+100 積分</span>
+            </div>
+            <button class="modal-btn btn-confirm" onclick="claimCheckIn()" style="width: 100%; background: #eab308; box-shadow: 0 5px 0 #ca8a04; color: white; font-size: 1.2rem;">開心收下！💰</button>
         </div>
     </div>
 <!-- 🌟 【命名彈窗】把海兔寶寶的名字寫下來！ -->
@@ -2265,33 +2362,105 @@ addDailyProgress(type);
 const DAILY_TARGETS = { pet: 3, feed: 2, clean: 1 };
 const DAILY_REWARD = 500; 
 
-// 檢查今天是不是新的一天，並發放 100 積分
+// 檢查每天登入，並計算連續簽到天數
+// 檢查每天登入狀態
 function checkDaily() {
     const today = new Date().toLocaleDateString();
     
-    if (!gameState.daily || gameState.daily.date !== today) {
+    if (!gameState.daily) {
         gameState.daily = {
-            date: today,
-            loginBonusClaimed: false,
-            progress: { pet: 0, feed: 0, clean: 0 },
-            claimed: { pet: false, feed: false, clean: false }
+            lastCheckInDate: '', streakDays: 0, todayClaimed: false,
+            progress: { pet: 0, feed: 0, clean: 0 }, claimed: { pet: false, feed: false, clean: false }
         };
+    }
+
+    if (gameState.daily.lastCheckInDate !== today) {
+        if (gameState.daily.streakDays >= 14) {
+            gameState.daily.streakDays = 0; // 滿 14 天自動回到第 1 天！
+        }
+        gameState.daily.lastCheckInDate = today;
+        gameState.daily.todayClaimed = false; 
+        gameState.daily.progress = { pet: 0, feed: 0, clean: 0 };
+        gameState.daily.claimed = { pet: false, feed: false, clean: false };
         saveGame();
     }
 
-if (!gameState.daily.loginBonusClaimed) {
-        gameState.points += 100;
-        gameState.daily.loginBonusClaimed = true;
-        saveGame();
-        updateUI();
+    // 如果今天還沒簽到過，打開遊戲時自動彈出日曆提醒玩家！
+    if (!gameState.daily.todayClaimed) {
+        // 🌟 新增：幫按鈕貼上標籤，啟動呼吸跟紅點
+        document.getElementById('btnDailyGift').classList.add('needs-attention');
         
-        // 延遲半秒鐘等畫面載入好，再「啪！」地彈出超華麗大禮包！
-        setTimeout(() => { 
-            document.getElementById('loginBonusModalOverlay').style.display = 'flex'; 
-        }, 500); 
+        setTimeout(() => { openCheckInModal(); }, 500); 
     }
 }
 
+// 打開日曆並把 14 天的格子畫出來
+function openCheckInModal() {
+    const grid = document.getElementById('checkInGrid');
+    grid.innerHTML = '';
+    
+    let streak = gameState.daily.streakDays || 0;
+    let todayClaimed = gameState.daily.todayClaimed || false;
+
+    // 繪製 14 個格子
+    for (let i = 1; i <= 14; i++) {
+        let isClaimed = i <= streak;
+        let isToday = (i === streak + 1) && !todayClaimed;
+        let reward = (i === 7 || i === 14) ? 200 : 100;
+        let icon = (i === 7 || i === 14) ? '💎' : '💰';
+        
+        let classes = 'checkin-day';
+        if (isClaimed) classes += ' claimed'; // 已簽到的格子會發光變黃
+        if (isToday) classes += ' today';     // 今天的格子會跳動
+
+        let innerHtml = `
+            <div style="font-size:0.75rem;">Day ${i}</div>
+            <div style="font-size:1.4rem; margin:4px 0;">${icon}</div>
+            <div style="font-size:0.9rem;">${reward}</div>
+        `;
+        grid.innerHTML += `<div class="${classes}">${innerHtml}</div>`;
+    }
+    
+    const btn = document.getElementById('btnClaimCheckIn');
+    if (todayClaimed) {
+        btn.disabled = true;
+        btn.innerText = '今天已簽到 (明天再來)';
+        btn.style.background = '#cbd5e1';
+        btn.style.boxShadow = '0 5px 0 #94a3b8';
+        btn.style.cursor = 'not-allowed';
+        btn.style.transform = 'none';
+    } else {
+        btn.disabled = false;
+        btn.innerText = '馬上簽到！';
+        btn.style.background = '#eab308';
+        btn.style.boxShadow = '0 5px 0 #ca8a04';
+        btn.style.cursor = 'pointer';
+    }
+    
+    document.getElementById('checkInModalOverlay').style.display = 'flex';
+}
+
+// 按下簽到按鈕發錢
+function claimCheckIn() {
+    if (gameState.daily.todayClaimed) return; 
+    
+    gameState.daily.streakDays++; 
+    let currentDay = gameState.daily.streakDays;
+    let reward = (currentDay === 7 || currentDay === 14) ? 200 : 100;
+    
+    gameState.points += reward; 
+    gameState.daily.todayClaimed = true; 
+    
+    saveGame();
+    updateUI();
+    
+    // 🌟 新增：領完錢了，把小紅點跟呼吸燈關掉
+    document.getElementById('btnDailyGift').classList.remove('needs-attention');
+
+    // 重新繪製網格（讓剛簽到的那一格瞬間打上勾勾 ✔️）
+    openCheckInModal();
+    showFloatText(`✨ 簽到成功 +${reward} ✨`);
+}
 // 記錄任務做了幾次
 function addDailyProgress(type) {
     if (!gameState.daily) return;
@@ -2349,6 +2518,27 @@ function claimDaily(type) {
         openDailyModal(); // 刷新面板
         showFloatText(`✨ 任務完成 +${DAILY_REWARD} ✨`);
     }
+}
+// 🌟 播放禮物盒開蓋動畫，再進入日曆
+function playGiftAnimation(btnElement) {
+    const svg = btnElement.querySelector('.gift-svg');
+    if (!svg) return openCheckInModal(); // 萬一找不到圖案，當作沒事直接開
+    
+    // 防呆：如果正在開，就不要重複點擊
+    if (svg.classList.contains('is-opening')) return;
+
+    // 啟動開蓋動畫！
+    svg.classList.add('is-opening');
+    
+    // 延遲 400 毫秒，等蓋子「啵！」地飛走後，再打開 14 天簽到面板
+    setTimeout(() => {
+        openCheckInModal();
+        
+        // 面板打開後，偷偷把蓋子「變回來蓋好」，為玩家明天點擊做準備
+        setTimeout(() => {
+            svg.classList.remove('is-opening');
+        }, 300);
+    }, 400); 
 }
     </script>
 </body>
