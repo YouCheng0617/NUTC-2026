@@ -274,6 +274,19 @@
             </div>
         </div>
     </div>
+    <!-- 🌟 【每日登入驚喜大禮包彈窗】 -->
+    <div class="name-modal-overlay" id="loginBonusModalOverlay" style="z-index: 10005;">
+        <div class="name-modal" style="width: 85%; max-width: 320px; text-align: center;">
+            <h2 style="margin-top:0; font-weight:900; color: #eab308; font-size: 1.8rem; text-shadow: 0 2px 5px rgba(253, 224, 71, 0.5);">🎉 歡迎回來</h2>
+            <div style="font-size: 4rem; margin: 15px 0; animation: tailFluff 2s infinite ease-in-out;">🎁</div>
+            <div style="font-size: 1.1rem; color: var(--text-dark); font-weight: 800; margin-bottom: 25px; line-height: 1.5;">
+                海兔寶寶想你了！<br>
+                為你送上每日登入零用錢<br>
+                <span style="color: #ef4444; font-size: 1.5rem; font-weight: 900; display: inline-block; margin-top: 5px;">+100 積分</span>
+            </div>
+            <button class="modal-btn btn-confirm" onclick="document.getElementById('loginBonusModalOverlay').style.display='none'" style="width: 100%; background: #eab308; box-shadow: 0 5px 0 #ca8a04; color: white; font-size: 1.2rem;">開心收下！💰</button>
+        </div>
+    </div>
 <!-- 🌟 【命名彈窗】把海兔寶寶的名字寫下來！ -->
 <div class="name-modal-overlay" id="nameModalOverlay">
     <div class="name-modal">
@@ -2266,12 +2279,16 @@ function checkDaily() {
         saveGame();
     }
 
-    if (!gameState.daily.loginBonusClaimed) {
+if (!gameState.daily.loginBonusClaimed) {
         gameState.points += 100;
         gameState.daily.loginBonusClaimed = true;
         saveGame();
         updateUI();
-        setTimeout(() => { showFloatText('✨ 每日登入 +100 ✨', 3000); }, 1500); 
+        
+        // 延遲半秒鐘等畫面載入好，再「啪！」地彈出超華麗大禮包！
+        setTimeout(() => { 
+            document.getElementById('loginBonusModalOverlay').style.display = 'flex'; 
+        }, 500); 
     }
 }
 
