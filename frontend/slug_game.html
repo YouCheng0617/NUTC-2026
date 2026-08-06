@@ -1224,7 +1224,8 @@
             saveGame();
         }
 
-        // 🌟 【試用機制】給你十秒鐘體驗特效
+let trialTimeLeft = 10; // 全域記錄試用剩餘時間
+
         function tryItem(key, type) {
             trialState[type] = key;
             refreshAll();
@@ -1232,22 +1233,30 @@
             if(trialTimer) clearTimeout(trialTimer);
             if(trialInterval) clearInterval(trialInterval);
             
-            let timeLeft = 10;
+            trialTimeLeft = 10;
             const timerDisplay = document.getElementById('trialTimerDisplay');
             const numDisplay = document.getElementById('trialCountdownNum');
             
             timerDisplay.style.display = 'block';
-            numDisplay.innerText = timeLeft;
+            numDisplay.innerText = trialTimeLeft;
             showFloatText('⏱️ 試用開始', 2000);
             
+            startTrialCountdown();
+        }
+
+        // 獨立出計時器啟動函式，方便暫停與恢復
+        function startTrialCountdown() {
+            if(trialInterval) clearInterval(trialInterval);
+            const timerDisplay = document.getElementById('trialTimerDisplay');
+            
             trialInterval = setInterval(() => {
-                timeLeft--;
-                numDisplay.innerText = timeLeft;
+                trialTimeLeft--;
+                const numDisplay = document.getElementById('trialCountdownNum');
+                if (numDisplay) numDisplay.innerText = trialTimeLeft;
                 
-                if(timeLeft <= 0) {
+                if(trialTimeLeft <= 0) {
                     clearInterval(trialInterval);
                     timerDisplay.style.display = 'none';
-                    // 時間一到，清空所有試用狀態
                     trialState = { species: null, bg: null, effect: null };
                     refreshAll();
                     showFloatText('✨ 試用結束，喜歡就帶回家吧！', 5000); 
@@ -2102,8 +2111,18 @@
                 count++;
             }, 150); 
         }
-        // 🌟 【自定義彈幕設定彈窗邏輯】
+// 🌟 【自定義彈幕設定彈窗邏輯（已加入計時暫停與恢復）】
     function openCustomTauntModal() {
+        // 🌟 1. 當彈窗打開時，如果正在試用，立刻暫停倒數計時！
+        if (trialInterval) {
+            clearInterval(trialInterval);
+            trialInterval = null;
+        }
+        const timerDisplay = document.getElementById('trialTimerDisplay');
+        if (timerDisplay && trialState.effect === 'disco') {
+            timerDisplay.innerHTML = `⏱️ 試用已暫停（輸入中...）`;
+        }
+
         let currentTaunts = JSON.parse(localStorage.getItem('nudi_custom_taunts') || '["MISS! 打不到我~", "就這點傷害？我已經逃囉！", "哈哈，你抓不到我！"]');
         
         let oldModal = document.getElementById('customTauntModal');
@@ -2155,9 +2174,23 @@
             setTimeout(() => { firstInput.focus(); }, 100);
         }
 
+        // 恢復計時器的共用小幫手
+        function closeAndResumeTimer() {
+            modalOverlay.remove();
+            if (trialState.effect === 'disco' && trialTimeLeft > 0) {
+                // 恢復顯示原本的倒數 HTML 結構
+                const timerDisplay = document.getElementById('trialTimerDisplay');
+                if (timerDisplay) {
+                    timerDisplay.innerHTML = `⏱️ 試用中 <span id="trialCountdownNum" style="color: var(--accent-color); font-size: 1.4rem;">${trialTimeLeft}</span>s`;
+                    timerDisplay.style.display = 'block';
+                }
+                startTrialCountdown(); // 繼續倒數
+            }
+        }
+
         document.getElementById('closeTauntModalBtn').onclick = (e) => {
             e.stopPropagation();
-            modalOverlay.remove();
+            closeAndResumeTimer();
         };
 
         document.getElementById('saveTauntModalBtn').onclick = (e) => {
@@ -2175,7 +2208,7 @@
             }
 
             localStorage.setItem('nudi_custom_taunts', JSON.stringify(newTaunts));
-            modalOverlay.remove();
+            closeAndResumeTimer();
             showFloatText('✨ 彈幕設定成功！');
             refreshAll();
         };
