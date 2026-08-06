@@ -222,10 +222,28 @@
         #floatingRecallBtn:active { transform: scale(0.95); }
         @keyframes trueHorizontalFlip { 0% { transform: scaleX(1); } 50% { transform: scaleX(-1); } 100% { transform: scaleX(1); } }
         .slug-svg.is-spinning-taunt { animation: trueHorizontalFlip 0.6s ease-in-out; }
+#customTauntBtn {
+        position: fixed;
+        bottom: 48%; /* 讓它安全懸浮在下方商店面板的上方，絕不掉進選單裡！ */
+        right: 25px;
+        z-index: 999999;
+        background: linear-gradient(135deg, #38bdf8, #0284c7);
+        color: white;
+        border: 3px solid #e0f2fe;
+        padding: 12px 20px;
+        border-radius: 25px;
+        font-weight: 900;
+        font-size: 0.95rem;
+        cursor: pointer;
+        box-shadow: 0 6px 20px rgba(56, 189, 248, 0.6);
+        transition: 0.1s;
+        pointer-events: auto !important;
+    }
+    #customTauntBtn:active { transform: scale(0.95); }
     </style>
 </head>
 <body>
-
+<button id="customTauntBtn" onclick="openCustomTauntModal()" style="display: none;">✏️ 設定自定義彈幕</button>
     <!-- 🌟 【百寶袋彈出視窗】只有連線時的房主才能打開炫耀 -->
     <div class="name-modal-overlay" id="catalogModalOverlay">
         <div class="name-modal" style="width: 90%; max-width: 400px; height: 75vh; display: flex; flex-direction: column; padding: 25px 20px;">
@@ -1327,7 +1345,7 @@
             if (!effect || effectKey === 'none') return;
 
             switch (effectKey) {
-                // 🌀 【回程挑釁】背景底層流動自定義彈幕 + 藍色魔法火焰 + 滿版神祕藍色月相魔法陣 + 強力向內吸聚水流 + 半罩式清透大泡泡
+// 🌀 【回程挑釁】背景底層流動自定義彈幕 + 藍色魔法火焰 + 滿版神祕藍色月相魔法陣 + 強力向內吸聚水流 + 半罩式清透大泡泡
                 case 'disco':
                     if (!document.getElementById('recallStyle')) {
                         const style = document.createElement('style');
@@ -1357,7 +1375,7 @@
                             @keyframes bubbleBreathe { 0%, 100% { transform: translate(-50%, -50%) scale(1); } 50% { transform: translate(-50%, -52%) scale(1.02); } }
                             @keyframes bubbleWobble { 0%, 100% { border-radius: 50%; } 25% { border-radius: 51% 49% 52% 48% / 48% 52% 49% 51%; } 50% { border-radius: 49% 51% 48% 52% / 52% 48% 51% 49%; } 75% { border-radius: 52% 48% 51% 49% / 49% 51% 48% 52%; } }
 
-                            /* 🌟 位於最底層背景的流動嘲諷彈幕層（由左向右在背景飄動） */
+                            /* 🌟 位於最底層背景的流動嘲諷彈幕層 */
                             .background-taunt-layer {
                                 position: absolute;
                                 width: 100%;
@@ -1365,7 +1383,7 @@
                                 top: 0;
                                 left: 0;
                                 pointer-events: none;
-                                z-index: 0; /* 在魔法陣與煙霧的最底層背景後面 */
+                                z-index: 0;
                                 overflow: hidden;
                             }
                             .floating-taunt-text {
@@ -1373,7 +1391,7 @@
                                 font-family: 'Nunito', 'Microsoft JhengHei', sans-serif;
                                 font-size: 1.4rem;
                                 font-weight: 900;
-                                color: rgba(186, 230, 253, 0.6); /* 半透明冰晶藍，製造在深處的飄動感 */
+                                color: rgba(186, 230, 253, 0.6);
                                 text-shadow: 0 0 12px rgba(56, 189, 248, 0.8), 2px 2px 0px rgba(15, 23, 42, 0.9);
                                 white-space: nowrap;
                                 animation: floatLeftToRight linear infinite;
@@ -1478,26 +1496,6 @@
                                 80% { opacity: 0.9; }
                                 100% { transform: translate(-50%, -50%) rotate(var(--angle)) scale(0.2); opacity: 0; }
                             }
-
-                           /* 🌟 畫面右下角的自定義彈幕設定按鈕（乾淨安全、絕對不擋按鈕） */
-                            #customTauntBtn {
-                                position: absolute;
-                                bottom: 25px;
-                                right: 25px;
-                                z-index: 99999; /* 最高層級，確保絕對點得到 */
-                                background: linear-gradient(135deg, #38bdf8, #0284c7);
-                                color: white;
-                                border: 3px solid #e0f2fe;
-                                padding: 12px 20px;
-                                border-radius: 25px;
-                                font-weight: 900;
-                                font-size: 0.95rem;
-                                cursor: pointer;
-                                box-shadow: 0 6px 20px rgba(56, 189, 248, 0.6);
-                                transition: 0.1s;
-                                pointer-events: auto !important;
-                            }
-                            #customTauntBtn:active { transform: scale(0.95); }
                         `;
                         document.head.appendChild(style);
                     }
@@ -1520,7 +1518,7 @@
                     `;
                     layer.appendChild(ripple);
 
-                    // 2. 🌟 建立背景底層的流動自定義彈幕層（讀取玩家存的句子，由左向右無限飄動）
+                    // 2. 🌟 建立背景底層的流動自定義彈幕層
                     const tauntLayer = document.createElement('div');
                     tauntLayer.className = 'background-taunt-layer';
                     
@@ -1530,99 +1528,16 @@
                         let tEl = document.createElement('div');
                         tEl.className = 'floating-taunt-text';
                         tEl.innerText = text;
-                        tEl.style.top = (15 + (i * 15)) + '%'; // 錯開每一條的高度
-                        tEl.style.animationDuration = (Math.random() * 4 + 7) + 's'; // 7秒到11秒不等的飄動速度
+                        tEl.style.top = (15 + (i * 15)) + '%';
+                        tEl.style.animationDuration = (Math.random() * 4 + 7) + 's';
                         tEl.style.animationDelay = (Math.random() * 5) + 's';
                         tauntLayer.appendChild(tEl);
                     });
                     layer.appendChild(tauntLayer);
 
-                    // 3. 🌟 在舞台左上角加入「設定彈幕」按鈕
-                    // 🌟 【自定義彈幕設定彈窗邏輯（已修復輸入焦點）】
-    function openCustomTauntModal(currentTaunts) {
-        // 如果畫面上已經有彈窗就先移除
-        let oldModal = document.getElementById('customTauntModal');
-        if (oldModal) oldModal.remove();
-
-        const modalOverlay = document.createElement('div');
-        modalOverlay.id = 'customTauntModal';
-        modalOverlay.style.cssText = `
-            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-            background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(6px);
-            z-index: 999999; display: flex; align-items: center; justify-content: center;
-            pointer-events: auto !important;
-        `;
-
-        modalOverlay.innerHTML = `
-            <div style="background: #fff; width: 90%; max-width: 380px; border-radius: 30px; border: 4px solid #38bdf8; padding: 25px; text-align: center; box-shadow: 0 20px 40px rgba(56, 189, 248, 0.4);">
-                <h3 style="margin-top:0; color: #0284c7; font-weight: 900;">✨ 自定義嘲諷彈幕設定</h3>
-                <p style="font-size: 0.85rem; color: #64748b; margin-bottom: 15px;">輸入你想在背景飄動的嘲諷字句！<br>（最多 4 句，每句限 15 字內）</p>
-                <div id="tauntInputsContainer" style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px;"></div>
-                <div style="display: flex; gap: 10px;">
-                    <button id="closeTauntModalBtn" style="flex: 1; padding: 12px; border: none; border-radius: 18px; background: #f1f5f9; color: #64748b; font-weight: 900; cursor: pointer;">取消</button>
-                    <button id="saveTauntModalBtn" style="flex: 1; padding: 12px; border: none; border-radius: 18px; background: #0284c7; color: white; font-weight: 900; cursor: pointer;">儲存套用</button>
-                </div>
-            </div>
-        `;
-        document.body.appendChild(modalOverlay);
-
-        const container = document.getElementById('tauntInputsContainer');
-        let firstInput = null;
-        
-        // 限制最多 4 句
-        for (let i = 0; i < 4; i++) {
-            let input = document.createElement('input');
-            input.type = 'text';
-            input.maxLength = 15; // 限制每句最多 15 個字
-            input.value = currentTaunts[i] || '';
-            input.placeholder = `嘲諷句子 ${i + 1} (最多15字)...`;
-            input.style.cssText = `
-                width: 100%; padding: 10px 12px; border: 2px solid #cbd5e1; border-radius: 15px;
-                font-weight: 900; color: #1e293b; outline: none; background: #f8fafc; font-size: 0.95rem;
-                pointer-events: auto !important; z-index: 1000000;
-            `;
-            
-            // 阻止點擊輸入框時被遊戲背景事件攔截
-            input.onclick = (e) => e.stopPropagation();
-            input.onkeydown = (e) => e.stopPropagation();
-            
-            container.appendChild(input);
-            if (i === 0) firstInput = input;
-        }
-
-        // 🌟 強制讓第一個輸入框自動取得焦點，這樣彈窗跳出來就能直接打字！
-        if (firstInput) {
-            setTimeout(() => { firstInput.focus(); }, 100);
-        }
-
-        document.getElementById('closeTauntModalBtn').onclick = (e) => {
-            e.stopPropagation();
-            modalOverlay.remove();
-        };
-
-        document.getElementById('saveTauntModalBtn').onclick = (e) => {
-            e.stopPropagation();
-            const inputs = container.querySelectorAll('input');
-            let newTaunts = [];
-            inputs.forEach(input => {
-                let val = input.value.trim();
-                if (val.length > 0) newTaunts.push(val);
-            });
-
-            if (newTaunts.length === 0) {
-                alert('至少要輸入一句嘲諷字句哦！');
-                return;
-            }
-
-            // 儲存到 localStorage
-            localStorage.setItem('nudi_custom_taunts', JSON.stringify(newTaunts));
-            modalOverlay.remove();
-            showFloatText('✨ 彈幕設定成功！');
-            
-            // 重新整理特效讓彈幕立刻生效
-            refreshAll();
-        };
-    }
+                    // 3. 🌟 顯示外層的自定義彈幕按鈕
+                    const btn = document.getElementById('customTauntBtn');
+                    if (btn) btn.style.display = 'block';
 
                     // 4. 建立佔滿背景板的滿版神祕藍色月相魔法陣 + 藍色火焰外環
                     const magicCircle = document.createElement('div');
@@ -1707,14 +1622,12 @@
                     pureBubble.className = 'recall-bubble';
                     layer.appendChild(pureBubble);
 
-                   // 即時追蹤海兔位置，讓水流與泡泡完美置中
+                    // 即時追蹤海兔位置，讓水流與泡泡完美置中
                     function renderRecall() {
                         if (gameState.currentEffect !== 'disco' && trialState.effect !== 'disco') {
                             if (window.recallAnimFrame) cancelAnimationFrame(window.recallAnimFrame);
-                            if (window.tauntBubbleInterval) clearInterval(window.tauntBubbleInterval);
-                            // 🌟 當離開這個特效時，把自定義按鈕主動移除，避免殘留
-                            const oldBtn = document.getElementById('customTauntBtn');
-                            if (oldBtn) oldBtn.remove();
+                            const btn = document.getElementById('customTauntBtn');
+                            if (btn) btn.style.display = 'none';
                             return;
                         }
                         window.recallAnimFrame = requestAnimationFrame(renderRecall);
@@ -1734,7 +1647,6 @@
 
                     renderRecall();
                     break;
-
                 // ⛩️ 【BUG 退散】超酷的賽博龐克符咒
                 case 'bugFree':
                     if (!document.getElementById('talismanStyle')) {
@@ -2190,7 +2102,84 @@
                 count++;
             }, 150); 
         }
+        // 🌟 【自定義彈幕設定彈窗邏輯】
+    function openCustomTauntModal() {
+        let currentTaunts = JSON.parse(localStorage.getItem('nudi_custom_taunts') || '["MISS! 打不到我~", "就這點傷害？我已經逃囉！", "哈哈，你抓不到我！"]');
         
+        let oldModal = document.getElementById('customTauntModal');
+        if (oldModal) oldModal.remove();
+
+        const modalOverlay = document.createElement('div');
+        modalOverlay.id = 'customTauntModal';
+        modalOverlay.style.cssText = `
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(6px);
+            z-index: 999999; display: flex; align-items: center; justify-content: center;
+            pointer-events: auto !important;
+        `;
+
+        modalOverlay.innerHTML = `
+            <div style="background: #fff; width: 90%; max-width: 380px; border-radius: 30px; border: 4px solid #38bdf8; padding: 25px; text-align: center; box-shadow: 0 20px 40px rgba(56, 189, 248, 0.4);">
+                <h3 style="margin-top:0; color: #0284c7; font-weight: 900;">✨ 自定義嘲諷彈幕設定</h3>
+                <p style="font-size: 0.85rem; color: #64748b; margin-bottom: 15px;">輸入你想在背景飄動的嘲諷字句！<br>（最多 4 句，每句限 15 字內）</p>
+                <div id="tauntInputsContainer" style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px;"></div>
+                <div style="display: flex; gap: 10px;">
+                    <button id="closeTauntModalBtn" style="flex: 1; padding: 12px; border: none; border-radius: 18px; background: #f1f5f9; color: #64748b; font-weight: 900; cursor: pointer;">取消</button>
+                    <button id="saveTauntModalBtn" style="flex: 1; padding: 12px; border: none; border-radius: 18px; background: #0284c7; color: white; font-weight: 900; cursor: pointer;">儲存套用</button>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(modalOverlay);
+
+        const container = document.getElementById('tauntInputsContainer');
+        let firstInput = null;
+        
+        for (let i = 0; i < 4; i++) {
+            let input = document.createElement('input');
+            input.type = 'text';
+            input.maxLength = 15;
+            input.value = currentTaunts[i] || '';
+            input.placeholder = `嘲諷句子 ${i + 1} (最多15字)...`;
+            input.style.cssText = `
+                width: 100%; padding: 10px 12px; border: 2px solid #cbd5e1; border-radius: 15px;
+                font-weight: 900; color: #1e293b; outline: none; background: #f8fafc; font-size: 0.95rem;
+                pointer-events: auto !important; z-index: 1000000;
+            `;
+            input.onclick = (e) => e.stopPropagation();
+            input.onkeydown = (e) => e.stopPropagation();
+            container.appendChild(input);
+            if (i === 0) firstInput = input;
+        }
+
+        if (firstInput) {
+            setTimeout(() => { firstInput.focus(); }, 100);
+        }
+
+        document.getElementById('closeTauntModalBtn').onclick = (e) => {
+            e.stopPropagation();
+            modalOverlay.remove();
+        };
+
+        document.getElementById('saveTauntModalBtn').onclick = (e) => {
+            e.stopPropagation();
+            const inputs = container.querySelectorAll('input');
+            let newTaunts = [];
+            inputs.forEach(input => {
+                let val = input.value.trim();
+                if (val.length > 0) newTaunts.push(val);
+            });
+
+            if (newTaunts.length === 0) {
+                alert('至少要輸入一句嘲諷字句哦！');
+                return;
+            }
+
+            localStorage.setItem('nudi_custom_taunts', JSON.stringify(newTaunts));
+            modalOverlay.remove();
+            showFloatText('✨ 彈幕設定成功！');
+            refreshAll();
+        };
+    }
     </script>
 </body>
 </html>
