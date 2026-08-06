@@ -244,7 +244,48 @@
         /* 只有沒領獎時，小紅點才會出現並跳動 */
         .btn-pure-gift.needs-attention .gift-noti-dot { display: block; animation: pulseDay 1.5s infinite; }
         @keyframes floatUp { 0% { opacity: 1; transform: translate(-50%, 0) scale(0.5); } 50% { transform: translate(-50%, -50px) scale(1.2); } 100% { opacity: 0; transform: translate(-50%, -90px) scale(1); } }
-
+/* 🌟 隱蔽在左下角角落的精緻色系小方塊列 */
+    #paintPalettePanel {
+        position: absolute;
+        bottom: 47%;
+        left: 20px;
+        display: none;
+        gap: 8px;
+        z-index: 9999;
+        background: rgba(255, 255, 255, 0.75);
+        padding: 8px;
+        border-radius: 15px;
+        border: 2px solid var(--border-color);
+        box-shadow: 0 4px 12px var(--shadow-color);
+        backdrop-filter: blur(4px);
+    }
+    .palette-btn {
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
+        border: 2px solid #ffffff;
+        cursor: pointer;
+        transition: 0.2s;
+        padding: 0;
+        box-shadow: 0 0 10px rgba(255, 255, 255, 0.9), 0 2px 5px rgba(0,0,0,0.15);
+    }
+    .palette-btn:hover {
+        transform: scale(1.12);
+    }
+    .palette-btn.active {
+        border-color: var(--text-dark);
+        transform: scale(1.18);
+        box-shadow: 0 0 15px var(--accent-color), 0 0 5px rgba(0,0,0,0.3);
+    }
+    .palette-btn:nth-child(1) {
+        background: linear-gradient(135deg, #ff3b30, #ffcc00);
+    }
+    .palette-btn:nth-child(2) {
+        background: linear-gradient(135deg, #007aff, #38bdf8);
+    }
+    .palette-btn:nth-child(3) {
+        background: linear-gradient(135deg, #ec4899, #c084fc);
+    }
         /* 🌟 【寵物名字標籤與命名彈窗】 */
         .pet-name-tag { position: absolute; top: -45px; left: 50%; transform: translateX(-50%); background: transparent; border: none; padding: 0; font-weight: 900; color: var(--text-dark); font-size: 1.35rem; letter-spacing: 2px; text-shadow: 2px 2px 0 #fff, -2px -2px 0 #fff, 2px -2px 0 #fff, -2px 2px 0 #fff, 0px 2px 0 #fff, 0px -2px 0 #fff, 2px 0px 0 #fff, -2px 0px 0 #fff, 0px 5px 10px rgba(0,0,0,0.2); white-space: nowrap; pointer-events: auto; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: 0.3s cubic-bezier(0.18, 0.89, 0.32, 1.28); z-index: 20; }
         .pet-name-tag.named { cursor: default; pointer-events: none; }
@@ -435,7 +476,12 @@
 
         <!-- 懸浮挑釁按鈕 (迴旋踢準備) -->
         <button id="floatingRecallBtn" onclick="triggerRecallTaunt()">🌀 挑釁！</button>
-        
+        <!-- 🎨 揮灑顏料色系選擇小方塊列（預設隱藏，只有在啟用 paint 特效時才出現） -->
+    <div id="paintPalettePanel" style="display: none;">
+        <button class="palette-btn active" onclick="setPaintPalette(0)"></button>
+        <button class="palette-btn" onclick="setPaintPalette(1)"></button>
+        <button class="palette-btn" onclick="setPaintPalette(2)"></button>
+    </div>
         <!-- 🐰 【海兔本體圖層】 -->
         <div class="slug-container" id="slugContainer">
             <div class="pet-name-tag" id="petNameTag" onclick="openNameModal()">
@@ -1461,6 +1507,17 @@ let trialTimeLeft = 10; // 全域記錄試用剩餘時間
             applyEffect();
             renderShop();
             updateRecallButtonVisibility(); // 確保浮動挑釁按鈕顯示正確
+
+            // 🎨 檢查目前是否為 paint 特效，來決定左下角按鈕要不要顯示
+            const palettePanel = document.getElementById('paintPalettePanel');
+            if (palettePanel) {
+                const activeEffect = trialState.effect || gameState.currentEffect;
+                if (activeEffect === 'paint') {
+                    palettePanel.style.display = 'flex';
+                } else {
+                    palettePanel.style.display = 'none';
+                }
+            }
         }
 
         // 把海兔塗上你選的顏色
@@ -2006,7 +2063,187 @@ let trialTimeLeft = 10; // 全域記錄試用剩餘時間
                     }
                     randomLaunch(); setTimeout(randomLaunch, 800); 
                     break;
+// 🎨 【揮灑顏料】從後方砸上來、固定靜止帶拉絲與左下角色系切換
+                case 'paint':
+                    if (window.paintAnimFrame) cancelAnimationFrame(window.paintAnimFrame);
+                    if (window.paintTimeout) clearTimeout(window.paintTimeout);
 
+                    let paintCanvas = document.getElementById('paintCanvas');
+                    if (!paintCanvas) {
+                        paintCanvas = document.createElement('canvas');
+                        paintCanvas.id = 'paintCanvas';
+                        paintCanvas.style.cssText = 'position:absolute; top:0; left:0; width:100%; height:100%; pointer-events:none; z-index:99;';
+                        layer.appendChild(paintCanvas);
+                    }
+
+                    // 顯示左下角按鈕面板
+                    const palettePanel = document.getElementById('paintPalettePanel');
+                    if (palettePanel) palettePanel.style.display = 'flex';
+
+                    const pCtx = paintCanvas.getContext('2d');
+                    let splatters = [];
+                    let flyingDrops = [];
+
+                    function resizePaintCanvas() {
+                        paintCanvas.width = paintCanvas.offsetWidth;
+                        paintCanvas.height = paintCanvas.offsetHeight;
+                    }
+                    resizePaintCanvas();
+
+                    function shootPaint() {
+                        if (gameState.currentEffect !== 'paint' && trialState.effect !== 'paint') return;
+                        
+                        const w = paintCanvas.width;
+                        const h = paintCanvas.height;
+                        const targetX = w * (0.2 + Math.random() * 0.6);
+                        const targetY = h * (0.2 + Math.random() * 0.6);
+                        
+                        const activeColors = paintPalettes[currentPaintPalette] || paintPalettes[0];
+                        const color = activeColors[Math.floor(Math.random() * activeColors.length)];
+                        
+                        const maxRadius = Math.random() * 35 + 40;
+                        const startX = w / 2;
+                        const startY = h / 2;
+
+                        flyingDrops.push({
+                            x: startX, y: startY,
+                            tx: targetX, ty: targetY,
+                            color: color,
+                            radius: maxRadius,
+                            progress: 0,
+                            speed: 0.12 + Math.random() * 0.08
+                        });
+                    }
+
+                    function renderPaint() {
+                        if (gameState.currentEffect !== 'paint' && trialState.effect !== 'paint') {
+                            if (paintCanvas.parentNode) paintCanvas.parentNode.removeChild(paintCanvas);
+                            const panel = document.getElementById('paintPalettePanel');
+                            if (panel) panel.style.display = 'none';
+                            return;
+                        }
+                        window.paintAnimFrame = requestAnimationFrame(renderPaint);
+
+                        pCtx.clearRect(0, 0, paintCanvas.width, paintCanvas.height);
+
+                        pCtx.save();
+                        splatters.forEach(s => {
+                            drawFixedSplatter(pCtx, s);
+                        });
+                        pCtx.restore();
+
+                        for (let i = flyingDrops.length - 1; i >= 0; i--) {
+                            let drop = flyingDrops[i];
+                            drop.progress += drop.speed;
+                            if (drop.progress >= 1) {
+                                splatters.push({
+                                    x: drop.tx,
+                                    y: drop.ty,
+                                    radius: drop.radius,
+                                    color: drop.color,
+                                    points: generatePoints(12),
+                                    splashes: generateStaticSplashes(drop.radius)
+                                });
+                                if (splatters.length > 25) splatters.shift();
+                                flyingDrops.splice(i, 1);
+                                continue;
+                            }
+
+                            let ease = Math.pow(drop.progress, 1.5);
+                            let curX = drop.x + (drop.tx - drop.x) * ease;
+                            let curY = drop.y + (drop.ty - drop.y) * ease;
+                            let curScale = 0.15 + 0.85 * drop.progress;
+
+                            pCtx.save();
+                            pCtx.globalAlpha = 0.95;
+                            pCtx.fillStyle = drop.color;
+                            pCtx.beginPath();
+                            let stretch = 1 + (1 - drop.progress) * 0.5;
+                            pCtx.ellipse(curX, curY, drop.radius * curScale * stretch, drop.radius * curScale, 0, 0, Math.PI * 2);
+                            pCtx.fill();
+                            pCtx.restore();
+                        }
+                    }
+
+                    function generatePoints(count) {
+                        let pts = [];
+                        for (let i = 0; i < count; i++) {
+                            pts.push(0.6 + Math.random() * 0.5);
+                        }
+                        return pts;
+                    }
+
+                    function generateStaticSplashes(radius) {
+                        let list = [];
+                        const count = 8;
+                        for (let i = 0; i < count; i++) {
+                            const angle = Math.random() * Math.PI * 2;
+                            const dist = radius * (1.0 + Math.random() * 0.8);
+                            list.push({
+                                x: Math.cos(angle) * dist,
+                                y: Math.sin(angle) * dist,
+                                r: radius * (0.05 + Math.random() * 0.1),
+                                connected: Math.random() > 0.3
+                            });
+                        }
+                        return list;
+                    }
+
+                    function drawFixedSplatter(ctx, s) {
+                        ctx.save();
+                        ctx.globalAlpha = 0.85;
+                        ctx.fillStyle = s.color;
+                        ctx.strokeStyle = s.color;
+                        ctx.globalCompositeOperation = 'multiply';
+
+                        ctx.lineWidth = 1.8;
+                        s.splashes.forEach(sp => {
+                            if (sp.connected) {
+                                ctx.beginPath();
+                                ctx.moveTo(0, 0);
+                                ctx.quadraticCurveTo(sp.x * 0.4, sp.y * 0.4, sp.x, sp.y);
+                                ctx.stroke();
+                            }
+                        });
+
+                        ctx.beginPath();
+                        const len = s.points.length;
+                        for (let i = 0; i < len; i++) {
+                            const angle = (i / len) * Math.PI * 2;
+                            const r = s.radius * s.points[i];
+                            const px = s.x + Math.cos(angle) * r;
+                            const py = s.y + Math.sin(angle) * r;
+                            if (i === 0) ctx.moveTo(px, py);
+                            else ctx.quadraticCurveTo(s.x + Math.cos(angle - 0.25) * (r * 1.2), s.y + Math.sin(angle - 0.25) * (r * 1.2), px, py);
+                        }
+                        ctx.closePath();
+                        ctx.fill();
+
+                        ctx.beginPath();
+                        s.splashes.forEach(sp => {
+                            const dotX = s.x + sp.x;
+                            const dotY = s.y + sp.y;
+                            ctx.moveTo(dotX + sp.r, dotY);
+                            ctx.arc(dotX, dotY, sp.r, 0, Math.PI * 2);
+                        });
+                        ctx.fill();
+
+                        ctx.restore();
+                    }
+
+                    renderPaint();
+
+                    function scheduleNextPaint() {
+                        if (gameState.currentEffect !== 'paint' && trialState.effect !== 'paint') return;
+                        shootPaint();
+                        let nextTime = 400 + Math.random() * 600;
+                        window.paintTimeout = setTimeout(scheduleNextPaint, nextTime);
+                    }
+
+                    shootPaint();
+                    setTimeout(shootPaint, 200);
+                    window.paintTimeout = setTimeout(scheduleNextPaint, 500);
+                    break;
                 // 🛠️ 其他通用的純 SVG 特效飄落
                 default:
                     let count = effect.count || 15;
@@ -2540,6 +2777,22 @@ function playGiftAnimation(btnElement) {
         }, 300);
     }, 400); 
 }
+let currentPaintPalette = 0;
+
+        const paintPalettes = [
+            ['#ff3b30', '#ff9500', '#ffcc00', '#ff2d55'], // 色系 1
+            ['#007aff', '#00c7be', '#38bdf8', '#818cf8'], // 色系 2
+            ['#ec4899', '#c084fc', '#f472b6', '#fbcfe8']  // 色系 3
+        ];
+
+        function setPaintPalette(index) {
+            currentPaintPalette = index;
+            const btns = document.querySelectorAll('.palette-btn');
+            btns.forEach((btn, idx) => {
+                btn.className = idx === index ? 'palette-btn active' : 'palette-btn';
+            });
+            showFloatText(`✨ 已切換色系`);
+        }
     </script>
 </body>
 </html>
