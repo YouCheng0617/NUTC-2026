@@ -259,7 +259,33 @@
             </div>
         </div>
     </div>
-
+    <!-- 🌟 【每日任務彈窗】 -->
+    <div class="name-modal-overlay" id="dailyModalOverlay">
+        <div class="name-modal" style="width: 90%; max-width: 350px;">
+            <h2 style="margin-top:0; font-weight:900; color: var(--text-dark);">📅 每日任務</h2>
+            <div style="font-size: 0.9rem; color: var(--text-dim); margin-bottom: 15px;">完成任務領取豐厚獎勵！</div>
+            
+            <div id="dailyTaskList" style="display: flex; flex-direction: column; gap: 10px;">
+                <!-- 任務會由 JS 自動生成在這裡 -->
+            </div>
+            
+            <div class="modal-btns" style="margin-top: 20px;">
+                <button class="modal-btn btn-confirm" onclick="document.getElementById('dailyModalOverlay').style.display='none'" style="width: 100%;">關閉</button>
+            </div>
+        </div>
+    </div>
+<!-- 🌟 【命名彈窗】把海兔寶寶的名字寫下來！ -->
+<div class="name-modal-overlay" id="nameModalOverlay">
+    <div class="name-modal">
+        <h2 style="margin-top:0; font-weight:900; color: var(--text-dark);" id="txtModalTitle">給海兔寶寶取名</h2>
+        <input type="text" class="name-input" id="petNameInput" placeholder="輸入可愛的名字..." maxlength="12">
+        <button class="modal-btn btn-random" id="btnRandomName" onclick="generateRandomName()">🎲 幫我隨機想一個</button>
+        <div class="modal-btns">
+            <button class="modal-btn btn-cancel" id="btnCancelName" onclick="closeNameModal()">取消</button>
+            <button class="modal-btn btn-confirm" id="btnConfirmName" onclick="confirmName()">確定</button>
+        </div>
+    </div>
+</div>
     <!-- 🌟 【試用倒數計時器】點擊尚未解鎖的商品時會出現 -->
     <div id="trialTimerDisplay" style="display:none; position: absolute; top: 15%; left: 50%; transform: translateX(-50%); font-size: 1.2rem; font-weight: 900; color: var(--text-dark); background: rgba(255, 255, 255, 0.85); border: 3px solid var(--accent-color); padding: 8px 24px; border-radius: 30px; box-shadow: 0 5px 15px var(--shadow-color); backdrop-filter: blur(4px); z-index: 100; pointer-events: none;">
         ⏱️ 試用中 <span id="trialCountdownNum" style="color: var(--accent-color); font-size: 1.4rem;">10</span>s
@@ -275,6 +301,7 @@
 <!-- 🌟 【最上層的選單列】(正式上線版：乾淨俐落) -->
     <div class="top-bar">
         <button class="lang-btn" onclick="location.href='games.html'" id="btnBack">🏠 返回</button>
+    
         <div class="points-display"><span id="txtPts">積分</span>: <span id="pointDisplay">0</span></div>
         <button class="lang-btn" onclick="toggleLang()" id="btnLang">EN</button>
     </div>
@@ -373,6 +400,11 @@
                 <span class="btn-title" id="txtPetTitle">溫柔撫摸</span>
                 <span class="btn-desc" id="txtPetDesc">冷卻 0s</span>
             </button>
+            <!-- 🌟任務按鈕 -->
+            <button class="btn-interact" onclick="openDailyModal()" style="background: #fefce8; border-color: #fde047; box-shadow: 0 5px 0 #fde047; color: #a16207;">
+                <span class="btn-title">📅 任務</span>
+                <span class="btn-desc" style="color: #ca8a04;">點我領錢</span>
+            </button>
             <button class="btn-interact" id="btnCatalog" onclick="openCatalog()" style="display: none; background: var(--text-dark); color: white; border-color: var(--text-dark); box-shadow: 0 5px 0 rgba(0,0,0,0.15);">
                 <span class="btn-title" id="txtCatalogBtn">🎒 百寶袋</span>
                 <span class="btn-desc" id="txtCatalogDesc" style="color: #cbd5e1;">我的收藏</span>
@@ -393,7 +425,7 @@
          🌟 ========================================== -->
     <script>
         // 🌟 【後台與網路連線資料】
-        const API_BASE = 'https://163.17.135.120:3000'; // 伺服器網址
+        const API_BASE = 'http://163.17.135.120:3000'; // 伺服器網址
         
         // 🌟 正式上線邏輯：直接去拿真實登入系統發的通行證
         let GAME_TOKEN = localStorage.getItem('nudi_token');
@@ -888,7 +920,7 @@
         async function initGameData() {
             // 1. 先第一時間讀取本地存檔，讓畫面瞬間恢復！
             loadGame();
-
+checkDaily();
             // 2. 判斷要不要顯示抽獎畫面，並且更新全部的按鈕與圖案
             checkFirstTime();
             updateLangUI();
@@ -1892,7 +1924,7 @@ let trialTimeLeft = 10; // 全域記錄試用剩餘時間
 
             gameState.points += reward;
             gameState.cooldowns[type] = cdSeconds; // 設定冷卻時間
-
+addDailyProgress(type);
             showFloatText(`+${reward}`);
             saveGame();
             updateUI();
@@ -2213,6 +2245,94 @@ let trialTimeLeft = 10; // 全域記錄試用剩餘時間
             refreshAll();
         };
     }
+    // 🌟 ==========================================
+// 🌟 每日任務系統大腦
+// 🌟 ==========================================
+
+const DAILY_TARGETS = { pet: 3, feed: 2, clean: 1 };
+const DAILY_REWARD = 500; 
+
+// 檢查今天是不是新的一天，並發放 100 積分
+function checkDaily() {
+    const today = new Date().toLocaleDateString();
+    
+    if (!gameState.daily || gameState.daily.date !== today) {
+        gameState.daily = {
+            date: today,
+            loginBonusClaimed: false,
+            progress: { pet: 0, feed: 0, clean: 0 },
+            claimed: { pet: false, feed: false, clean: false }
+        };
+        saveGame();
+    }
+
+    if (!gameState.daily.loginBonusClaimed) {
+        gameState.points += 100;
+        gameState.daily.loginBonusClaimed = true;
+        saveGame();
+        updateUI();
+        setTimeout(() => { showFloatText('✨ 每日登入 +100 ✨', 3000); }, 1500); 
+    }
+}
+
+// 記錄任務做了幾次
+function addDailyProgress(type) {
+    if (!gameState.daily) return;
+    if (gameState.daily.progress[type] !== undefined) {
+        gameState.daily.progress[type]++;
+        saveGame();
+    }
+}
+
+// 打開任務面板
+function openDailyModal() {
+    const modal = document.getElementById('dailyModalOverlay');
+    const list = document.getElementById('dailyTaskList');
+    list.innerHTML = ''; 
+
+    const tasksInfo = [
+        { id: 'pet', name: '溫柔撫摸海兔', icon: '🖐️' },
+        { id: 'feed', name: '餵食美味海藻', icon: '🌿' },
+        { id: 'clean', name: '淨化水質環境', icon: '✨' }
+    ];
+
+    tasksInfo.forEach(t => {
+        let current = gameState.daily.progress[t.id] || 0;
+        let target = DAILY_TARGETS[t.id];
+        let isClaimed = gameState.daily.claimed[t.id];
+        let isDone = current >= target;
+
+        let btnHtml = '';
+        if (isClaimed) {
+            btnHtml = `<button disabled style="padding: 6px 12px; border-radius: 12px; border: none; background: #e2e8f0; color: #94a3b8; font-weight: 900;">已領取</button>`;
+        } else if (isDone) {
+            btnHtml = `<button onclick="claimDaily('${t.id}')" style="padding: 6px 12px; border-radius: 12px; border: none; background: #4ade80; color: white; font-weight: 900; cursor: pointer; box-shadow: 0 4px 0 #16a34a;">領取 +${DAILY_REWARD}</button>`;
+        } else {
+            btnHtml = `<div style="font-weight: 900; color: var(--text-dim); padding: 5px;">${current} / ${target}</div>`;
+        }
+
+        list.innerHTML += `
+            <div style="display: flex; justify-content: space-between; align-items: center; background: var(--card-bg); padding: 12px 15px; border-radius: 15px; border: 2px solid var(--border-color);">
+                <div style="font-weight: 900; color: var(--text-dark);">${t.icon} ${t.name}</div>
+                ${btnHtml}
+            </div>
+        `;
+    });
+
+    modal.style.display = 'flex';
+}
+
+// 領取任務獎勵
+function claimDaily(type) {
+    if (!gameState.daily.claimed[type] && gameState.daily.progress[type] >= DAILY_TARGETS[type]) {
+        gameState.points += DAILY_REWARD;
+        gameState.daily.claimed[type] = true;
+        saveGame();
+        updateUI();
+        openDailyModal(); // 刷新面板
+        showFloatText(`✨ 任務完成 +${DAILY_REWARD} ✨`);
+    }
+}
     </script>
 </body>
 </html>
