@@ -136,7 +136,30 @@
         @keyframes rainFall { to { transform: translateY(60vh); } }
         .bubble { position: absolute; border-radius: 50%; border: 1.5px solid rgba(255, 255, 255, 0.7); background: rgba(255, 255, 255, 0.2); bottom: -20px; animation: bubbleRise ease-in infinite; }
         @keyframes bubbleRise { to { transform: translateY(-60vh) scale(1.5); opacity: 0; } }
-
+/* 🌟 愛心由下往上飄動與破掉的動畫 */
+@keyframes heartFloatAndPop {
+    0% {
+        transform: translateY(0vh) scale(0.3);
+        opacity: 0;
+    }
+    15% {
+        opacity: 0.9;
+        transform: translateY(-10vh) scale(1);
+    }
+    85% {
+        opacity: 0.9;
+        transform: translateY(-50vh) scale(1.1);
+    }
+    92% {
+        opacity: 1;
+        transform: translateY(-55vh) scale(1.3); /* 破裂前瞬間放大 */
+        filter: brightness(2) drop-shadow(0 0 10px #fff);
+    }
+    100% {
+        transform: translateY(-58vh) scale(0.2); /* 啵！縮小炸開消失 */
+        opacity: 0;
+    }
+}
         /* 🌟 【海兔本體的容器與動畫】 */
         .slug-container {
             position: absolute !important;
@@ -964,7 +987,7 @@
             neonCity: { name: {zh: '霓虹不夜城', en: 'Neon City'}, cost: 5200, preview: '#8b5cf6', style: 'linear-gradient(to right, #1e1b4b 0%, #5b21b6 30%, #be185d 70%, #0f172a 100%)', hasDots: false },
             rainbowBridge: { name: {zh: '彩虹樂園', en: 'Rainbow Bridge'}, cost: 7777, preview: '#38bdf8', style: 'linear-gradient(90deg, #f87171 0%, #fb923c 20%, #facc15 40%, #4ade80 60%, #38bdf8 80%, #a855f7 100%)', hasDots: true },
             tvStatic: { name: {zh: '阿嬤的舊電視', en: 'Old TV'}, cost: 1000, preview: '#94a3b8', style: 'repeating-linear-gradient(0deg, #334155, #334155 2px, #cbd5e1 2px, #cbd5e1 4px)', hasDots: false },
-            heartbeat: { name: {zh: '心動小鎮', en: 'Heartbeat Town'}, cost: 6666, preview: '#f43f5e', style: 'radial-gradient(circle at 50% 50%, #ffe4e6 0%, #fda4af 40%, #e11d48 100%)', hasDots: false },
+          heartbeat: { name: {zh: '心動幻境', en: 'Heartbeat Dream'}, cost: 6666, preview: '#f43f5e', svg: [{s: 'heartbeat'}], dir: 'up', count: 15 },
             movieTheater: { name: {zh: '午夜電影院', en: 'Midnight Cinema'}, cost: 3000, preview: '#1e293b', style: 'linear-gradient(to top, #0f172a 0%, #1e293b 80%, #3b82f6 100%)', hasDots: false },
             catCafe: { name: {zh: '貓咪咖啡廳', en: 'Cat Cafe'}, cost: 2800, preview: '#d6d3d1', style: 'linear-gradient(135deg, #fafaf9 0%, #e7e5e4 50%, #a8a29e 100%)', hasDots: true },
             bathhouse: { name: {zh: '溫泉澡堂', en: 'Bathhouse'}, cost: 3400, preview: '#7dd3fc', style: 'linear-gradient(to bottom, #e0f2fe 0%, #7dd3fc 60%, #1d4ed8 100%)', hasDots: false }
@@ -993,8 +1016,33 @@
             crown: `<svg viewBox="0 0 100 100"><polygon points="20 80, 80 80, 90 30, 70 50, 50 20, 30 50, 10 30" fill="#facc15"/><circle cx="10" cy="30" r="5" fill="#ef4444"/><circle cx="50" cy="20" r="5" fill="#38bdf8"/><circle cx="90" cy="30" r="5" fill="#ef4444"/></svg>`,
             tvStatic: `<svg viewBox="0 0 100 100"><rect x="15" y="25" width="70" height="55" rx="5" fill="#475569"/><rect x="25" y="35" width="40" height="35" fill="#cbd5e1"/><circle cx="75" cy="45" r="4" fill="#1e293b"/><circle cx="75" cy="60" r="4" fill="#1e293b"/><line x1="30" y1="10" x2="50" y2="25" stroke="#94a3b8" stroke-width="3"/><line x1="70" y1="10" x2="50" y2="25" stroke="#94a3b8" stroke-width="3"/></svg>`,
             money: `<svg viewBox="0 0 100 100"><rect x="15" y="35" width="70" height="35" fill="#86efac" stroke="#166534" stroke-width="4" rx="2"/><circle cx="50" cy="52.5" r="10" fill="#166534"/><line x1="25" y1="52.5" x2="35" y2="52.5" stroke="#166534" stroke-width="4"/><line x1="65" y1="52.5" x2="75" y2="52.5" stroke="#166534" stroke-width="4"/></svg>`,
-            bugFree: `<svg viewBox="0 0 100 100"><ellipse cx="50" cy="50" rx="20" ry="30" fill="#65a30d"/><line x1="20" y1="20" x2="80" y2="80" stroke="#ef4444" stroke-width="10"/><line x1="80" y1="20" x2="20" y2="80" stroke="#ef4444" stroke-width="10"/></svg>`,
             heart: `<svg viewBox="0 0 100 100"><path d="M50 85 C10 50 10 20 30 10 C45 0 50 15 50 15 C50 15 55 0 70 10 C90 20 90 50 50 85Z" fill="#f43f5e"/></svg>`,
+            bugFree: `<svg viewBox="0 0 100 100"><ellipse cx="50" cy="50" rx="20" ry="30" fill="#65a30d"/><line x1="20" y1="20" x2="80" y2="80" stroke="#ef4444" stroke-width="10"/><line x1="80" y1="20" x2="20" y2="80" stroke="#ef4444" stroke-width="10"/></svg>`,
+          heartbeat: `<svg viewBox="0 0 100 100">
+    <defs>
+        <!-- 晶透粉紅漸層與光影 -->
+        <radialGradient id="crystalHeartGrad" cx="35%" cy="35%" r="65%">
+            <stop offset="0%" stop-color="#ffffff" stop-opacity="0.95"/>
+            <stop offset="35%" stop-color="#fbcfe8" stop-opacity="0.4"/>
+            <stop offset="75%" stop-color="#f43f5e" stop-opacity="0.2"/>
+            <stop offset="100%" stop-color="#be123c" stop-opacity="0.7"/>
+        </radialGradient>
+        <!-- 邊緣彩虹光暈 -->
+        <linearGradient id="heartRainbowRing" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#f43f5e"/>
+            <stop offset="40%" stop-color="#f472b6"/>
+            <stop offset="80%" stop-color="#c084fc"/>
+            <stop offset="100%" stop-color="#38bdf8"/>
+        </linearGradient>
+    </defs>
+    <!-- 愛心主體 -->
+    <path d="M50 85 C15 55 5 35 15 20 C25 5 45 15 50 25 C55 15 75 5 85 20 C95 35 85 55 50 85 Z" 
+          fill="url(#crystalHeartGrad)" stroke="url(#heartRainbowRing)" stroke-width="3" stroke-linejoin="round"/>
+    <!-- 立體高光 1 (左上角大反光) -->
+    <path d="M22 25 C20 16 32 10 40 15 C35 12 25 15 22 25 Z" fill="rgba(255,255,255,0.95)"/>
+    <!-- 立體高光 2 (右肩小反光) -->
+    <circle cx="72" cy="22" r="2.5" fill="rgba(255,255,255,0.9)"/>
+</svg>`,
             drop: `<svg viewBox="0 0 100 100"><polygon points="48,0 52,0 50,100" fill="rgba(255, 255, 255, 0.3)"/><polygon points="49.5,0 50.5,0 50,80" fill="rgba(255, 255, 255, 0.9)"/></svg>`,
             star: `<svg viewBox="0 0 100 100"><polygon points="50,5 61,35 95,35 68,55 79,85 50,65 21,85 32,55 5,35 39,35" fill="#facc15"/></svg>`,
             sparkle: `<svg viewBox="0 0 100 100"><path d="M50 5 Q50 50 95 50 Q50 50 50 95 Q50 50 5 50 Q50 50 5 50 Z" fill="#fef08a"/></svg>`,
@@ -1018,7 +1066,7 @@
             bugFree: { name: {zh: 'Bug退散', en: 'No More Bugs'}, cost: 8888, preview: '#4ade80', svg: [{s: 'bugFree'}], dir: 'up', count: 15 },
            disco: { name: {zh: '回程挑釁', en: 'Recall Taunt'}, cost: 2500, preview: '#c084fc', svg: [{s: 'star'}, {s: 'music'}], dir: 'up', count: 10 },
             paint: { name: {zh: '揮灑顏料', en: 'Paint Splash'}, cost: 2000, preview: '#f472b6', svg: [{s: 'drop'}], dir: 'down', count: 15 },
-            heartbeat: { name: {zh: '心動滿滿', en: 'Heartbeat'}, cost: 1800, preview: '#f43f5e', svg: [{s: 'heart'}], dir: 'up', count: 18 },
+            heartbeat: { name: {zh: '心動幻境', en: 'Heartbeat Dream'}, cost: 6666, preview: '#f43f5e', svg: [{s: 'heart'}], dir: 'up', count: 18 },
             noClass: { name: {zh: '不想上課', en: 'Skip Class'}, cost: 1600, preview: '#94a3b8', svg: [{s: 'book'}, {s: 'moon'}], dir: 'down', count: 12 },
             money: { name: {zh: '財富自由', en: 'Money Rain'}, cost: 9999, preview: '#facc15', svg: [{s: 'money'}], dir: 'down', count: 20 },
             zzz: { name: {zh: '強烈睡意', en: 'Sleepy'}, cost: 1000, preview: '#cbd5e1', svg: [{s: 'moon'}], dir: 'up', count: 8 },
@@ -1064,7 +1112,7 @@
             gear: { name: {zh: '齒輪運轉', en: 'Gears Turning'}, cost: 2600, preview: '#64748b', svg: [{s: 'gear'}], dir: 'down', count: 12 },
             music: { name: {zh: '跳動音符', en: 'Musical Notes'}, cost: 2200, preview: '#3b82f6', svg: [{s: 'music'}], dir: 'up', count: 15 },
             tvStatic: { name: {zh: '阿嬤的舊電視', en: 'Old TV'}, cost: 1000, preview: '#94a3b8', svg: [{s: 'tvStatic'}], dir: 'down', count: 12 },
-            heartbeat: { name: {zh: '心動小鎮', en: 'Heartbeat Town'}, cost: 6666, preview: '#f43f5e', svg: [{s: 'heart'}], dir: 'up', count: 15 }
+            heartbeat: { name: {zh: '心動幻想', en: 'Heartbeat Fantasy'}, cost: 6666, preview: '#f43f5e', svg: [{s: 'heart'}], dir: 'up', count: 15 }
         };
 
         let currentTab = 'species';
@@ -2244,24 +2292,189 @@ let trialTimeLeft = 10; // 全域記錄試用剩餘時間
                     setTimeout(shootPaint, 200);
                     window.paintTimeout = setTimeout(scheduleNextPaint, 500);
                     break;
+// 💖 【心動幻境】水晶愛心由下往上飄、帶有朦朧透光感，支援滑鼠互動與左下角正方形色系切換
+case 'heartbeat':
+    if (window.heartbeatAnimFrame) cancelAnimationFrame(window.heartbeatAnimFrame);
+    if (window.heartbeatTimeout) clearTimeout(window.heartbeatTimeout);
+
+    let hbCanvas = document.getElementById('heartbeatCanvas');
+    if (!hbCanvas) {
+        hbCanvas = document.createElement('canvas');
+        hbCanvas.id = 'heartbeatCanvas';
+        hbCanvas.style.cssText = 'position:absolute; top:0; left:0; width:100%; height:100%; pointer-events:none; z-index:99;';
+        layer.appendChild(hbCanvas);
+    }
+
+    // 💖 【心動幻境】左下角愛心色系面板（正方形純色塊切換）
+    const heartPalettePanel = document.getElementById('paintPalettePanel');
+    if (heartPalettePanel) {
+        heartPalettePanel.style.display = 'flex';
+        const paletteBtns = heartPalettePanel.querySelectorAll('.palette-btn');
+        
+        // 設定三個正方形色塊的顏色：粉色、紅色、橘色
+        if (paletteBtns.length >= 3) {
+            paletteBtns[0].style.background = '#ff85a1'; // 粉色
+            paletteBtns[1].style.background = '#ff4d6d'; // 紅色
+            paletteBtns[2].style.background = '#fb923c'; // 橘色
+            
+            paletteBtns.forEach((b, idx) => {
+                b.onclick = () => {
+                    currentHeartColor = ['#ff85a1', '#ff4d6d', '#fb923c'][idx];
+                    paletteBtns.forEach(btn => btn.classList.remove('active'));
+                    b.classList.add('active');
+                    showFloatText('💖 已切換愛心色系');
+                };
+            });
+        }
+    }
+
+    const hbCtx = hbCanvas.getContext('2d');
+    let projectorHearts = [];
+    let currentHeartColor = '#ff85a1'; // 預設愛心顏色為粉色
+
+    function resizeHbCanvas() {
+        hbCanvas.width = hbCanvas.offsetWidth;
+        hbCanvas.height = hbCanvas.offsetHeight;
+    }
+    resizeHbCanvas();
+
+    function spawnProjectorHeart() {
+        if (gameState.currentEffect !== 'heartbeat' && trialState.effect !== 'heartbeat') return;
+
+        const w = hbCanvas.width;
+        const h = hbCanvas.height;
+        
+        projectorHearts.push({
+            startX: w * (0.1 + Math.random() * 0.8),
+            startY: h + 30, // 從畫面底部出發
+            endY: h * (0.1 + Math.random() * 0.3), // 飄到上方
+            maxScale: 0.6 + Math.random() * 0.5,
+            progress: 0,
+            speed: 0.006 + Math.random() * 0.006,
+            color: currentHeartColor, // 使用目前選定的顏色
+            alpha: 0,
+            isMouseHeart: false
+        });
+
+        if (projectorHearts.length > 14) projectorHearts.shift();
+
+        let nextTime = 400 + Math.random() * 500;
+        window.heartbeatTimeout = setTimeout(spawnProjectorHeart, nextTime);
+    }
+
+    // 💖 【心動幻境】滑鼠互動愛心監聽器：滑鼠滑過時在指標位置生成小愛心
+    const mouseHeartHandler = (e) => {
+        if (gameState.currentEffect !== 'heartbeat' && trialState.effect !== 'heartbeat') return;
+        
+        const rect = hbCanvas.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+
+        projectorHearts.push({
+            startX: x,
+            startY: y,
+            endY: y - 100, // 往上飄一小段距離
+            maxScale: 0.35,
+            progress: 0,
+            speed: 0.02,
+            color: currentHeartColor, // 同步使用當前選定顏色
+            alpha: 0,
+            isMouseHeart: true
+        });
+    };
+    
+    hbCanvas.style.pointerEvents = 'auto';
+    hbCanvas.addEventListener('mousemove', mouseHeartHandler);
+
+    function drawHeartPath(ctx, x, y, size) {
+        ctx.save();
+        ctx.translate(x, y);
+        ctx.scale(size, size);
+        ctx.beginPath();
+        ctx.moveTo(0, -15);
+        ctx.bezierCurveTo(-25, -45, -65, -5, 0, 45);
+        ctx.bezierCurveTo(65, -5, 25, -45, 0, -15);
+        ctx.closePath();
+        ctx.restore();
+    }
+
+    function renderHeartbeat() {
+        if (gameState.currentEffect !== 'heartbeat' && trialState.effect !== 'heartbeat') {
+            if (hbCanvas.parentNode) hbCanvas.parentNode.removeChild(hbCanvas);
+            if (heartPalettePanel) heartPalettePanel.style.display = 'none'; // 離開時隱藏色票面板
+            return;
+        }
+        window.heartbeatAnimFrame = requestAnimationFrame(renderHeartbeat);
+
+        hbCtx.clearRect(0, 0, hbCanvas.width, hbCanvas.height);
+
+        hbCtx.save();
+        projectorHearts.forEach(h => {
+            h.progress += h.speed;
+            
+            let currentY = h.startY + (h.endY - h.startY) * h.progress;
+            let currentX = h.startX + (h.isMouseHeart ? Math.sin(h.progress * 10) * 15 : Math.sin(h.progress * Math.PI * 3) * 15);
+
+            let peakAlpha = 0.35; 
+            if (h.isMouseHeart) {
+                peakAlpha = 0.6;
+                if (h.progress > 0.7) h.alpha = ((1 - h.progress) / 0.3) * peakAlpha;
+                else h.alpha = peakAlpha;
+            } else {
+                if (h.progress < 0.2) h.alpha = (h.progress / 0.2) * peakAlpha; 
+                else if (h.progress > 0.8) h.alpha = ((1 - h.progress) / 0.2) * peakAlpha; 
+                else h.alpha = peakAlpha;
+            }
+
+            if (h.progress >= 1) h.progress = 1;
+
+            let currentScale = h.maxScale * (0.7 + 0.3 * (h.progress / 1));
+
+            hbCtx.save();
+            hbCtx.globalAlpha = h.alpha * 0.6;
+            hbCtx.fillStyle = h.color;
+            hbCtx.shadowColor = '#ffd1dc';
+            hbCtx.shadowBlur = 10;
+
+            drawHeartPath(hbCtx, currentX, currentY, currentScale);
+            hbCtx.fill();
+
+            hbCtx.restore();
+        });
+        hbCtx.restore();
+    }
+
+    renderHeartbeat();
+    spawnProjectorHeart();
+    setTimeout(spawnProjectorHeart, 500);
+    break;
                 // 🛠️ 其他通用的純 SVG 特效飄落
-                default:
-                    let count = effect.count || 15;
-                    for (let i = 0; i < count; i++) {
-                        let el = document.createElement('div');
-                        el.style.position = 'absolute'; el.style.left = Math.random() * 100 + '%'; el.style.opacity = Math.random() * 0.5 + 0.5;
-                        let svgItem = effect.svg[Math.floor(Math.random() * effect.svg.length)]; let rawSVG = svgLib[svgItem.s] || svgLib['circle']; 
-                        el.innerHTML = rawSVG; if (svgItem.c) el.style.color = svgItem.c; 
-                        let size = Math.random() * 30 + 30; el.style.width = size + 'px'; el.style.height = size + 'px';
-                        if (effect.dir === 'up') {
-                            el.style.bottom = '-60px'; el.style.animation = `bubbleRise ${Math.random() * 3 + 3}s ease-in infinite`;
-                        } else {
-                            el.style.top = '-60px'; el.style.animation = `rainFall ${Math.random() * 3 + 3}s linear infinite`;
-                        }
-                        el.style.animationDelay = (Math.random() * 2) + 's';
-                        layer.appendChild(el);
-                    }
-                    break;
+default:
+    let count = effect.count || 15;
+    for (let i = 0; i < count; i++) {
+        let el = document.createElement('div');
+        el.style.position = 'absolute'; el.style.left = Math.random() * 100 + '%'; el.style.opacity = Math.random() * 0.5 + 0.5;
+        let svgItem = effect.svg[Math.floor(Math.random() * effect.svg.length)]; 
+        let rawSVG = svgLib[svgItem.s] || svgLib['circle']; 
+        el.innerHTML = rawSVG; if (svgItem.c) el.style.color = svgItem.c; 
+        let size = Math.random() * 30 + 30; el.style.width = size + 'px'; el.style.height = size + 'px';
+        
+        if (effect.dir === 'up') {
+            el.style.bottom = '-60px';
+            
+            // 🌟 【關鍵修改】：只有心動幻想(heartbeat)使用新的破掉動畫
+            let animName = (effectKey === 'heartbeat') ? 'heartFloatAndPop' : 'bubbleRise';
+            let duration = Math.random() * 2 + 3;
+            el.style.animation = `${animName} ${duration}s ease-in-out infinite`;
+            
+        } else {
+            el.style.top = '-60px'; 
+            el.style.animation = `rainFall ${Math.random() * 3 + 3}s linear infinite`;
+        }
+        el.style.animationDelay = (Math.random() * 2) + 's';
+        layer.appendChild(el);
+    }
+    break;
             }
         }
         
