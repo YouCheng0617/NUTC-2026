@@ -1160,7 +1160,7 @@ body, html { height: 100vh !important; overflow: hidden !important; background-c
 .rules-list li strong { color: #ffffff; font-size: 1.05rem; display: inline-block; margin-bottom: 2px; }
 .rules-footer { margin-top: 18px; text-align: center; font-size: 0.85rem; color: #88bbff; font-weight: bold; font-style: italic; }
 
-@media screen and (max-width: 1100px) { .ocean-rules-board { display: none !important; } }
+
 /* =========================================
    🔥 左側懸浮熱門貼文抽屜 (終極開關必勝版)
    ========================================= */
@@ -1336,9 +1336,12 @@ body, html { height: 100vh !important; overflow: hidden !important; background-c
 .rules-list li::before { content: "🫧"; position: absolute; left: -5px; top: 2px; font-size: 0.9rem; }
 .rules-list li strong { color: #ffffff; font-size: 1.05rem; display: inline-block; margin-bottom: 2px; }
 .rules-footer { margin-top: 18px; text-align: center; font-size: 0.85rem; color: #88bbff; font-weight: bold; font-style: italic; }
-
+/* ✨ 解除手機與平板的隱形封印，讓抽屜霸氣回歸！ */
 @media screen and (max-width: 1100px) {
-  .ocean-popular-board, .ocean-rules-board { display: none !important; }
+    .ocean-popular-board, .ocean-rules-board { 
+        display: block !important; 
+        z-index: 1005 !important; /* 確保抽屜打開時在最上層，絕對不會被海浪或瓶子蓋住喔 */
+    }
 }
 /* =========================================
    💬 留言與回覆專區 (泡泡玻璃美化版)
