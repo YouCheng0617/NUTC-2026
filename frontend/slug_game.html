@@ -160,6 +160,66 @@
         opacity: 0;
     }
 }
+/* 📺 【阿嬤的舊電視】CRT 舊電視掃描線 + 噪點濾鏡 + 畫面閃爍效果 (清晰且柔和緩慢版) */
+    .tv-filter-overlay {
+        position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+        pointer-events: none; z-index: 99;
+        /* 加深掃描線的對比與網格感，讓濾鏡更清晰明顯 */
+        background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.45) 50%), 
+                    linear-gradient(90deg, rgba(255, 0, 0, 0.12), rgba(0, 255, 0, 0.04), rgba(0, 0, 255, 0.12));
+        background-size: 100% 4px, 3px 100%;
+        /* 提高不透明度，並將閃爍動畫時間拉長、採用柔和的呼吸漸變，避免太快造成不舒服 */
+        opacity: 0.5;
+        animation: flicker 0.8s infinite alternate ease-in-out;
+    }
+    @keyframes flicker {
+        0% { opacity: 0.45; } 
+        100% { opacity: 0.55; }
+    }
+/* 📐 【數學當機】清晰、正確且緩慢移動的數學公式與發光叉叉 */
+    .math-formula {
+        position: absolute; 
+        color: #ffffff; /* 使用純白色，並加上深色陰影確保在任何背景都絕對清晰 */
+        background: rgba(107, 76, 74, 0.85); /* 加上深色半透明膠囊底色，讓公式像教科書一樣超好辨識 */
+        padding: 6px 14px;
+        border-radius: 12px;
+        border: 2px solid #ffd1dc;
+        font-family: 'Courier New', monospace;
+        font-weight: 900; 
+        font-size: 1.4rem; 
+        pointer-events: none; 
+        z-index: 6;
+        white-space: nowrap;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.25);
+        animation: mathSprintVerySlow linear infinite;
+    }
+    @keyframes mathSprintVerySlow { 
+        0% { transform: translateX(-300px) translateY(var(--start-y)); opacity: 0; }
+        15% { opacity: 1; }
+        85% { opacity: 1; }
+        100% { transform: translateX(calc(100vw + 300px)) translateY(var(--end-y)); opacity: 0; }
+    }
+
+    .wrong-mark {
+        position: absolute; 
+        top: 0; left: 0; 
+        width: 100%; height: 100%;
+        display: flex; align-items: center; justify-content: center;
+        color: rgba(244, 63, 94, 0.65); 
+        font-size: 35vw; 
+        font-weight: 900;
+        z-index: 7; 
+        pointer-events: none;
+        /* 散發柔和光芒的滿版叉叉 */
+        filter: drop-shadow(0 0 30px rgba(244, 63, 94, 0.9)) blur(0.5px);
+        mix-blend-mode: overlay;
+        animation: glowingMarkPulse 2s ease-in-out infinite;
+    }
+    @keyframes glowingMarkPulse {
+        0% { transform: scale(1.05) rotate(-3deg); opacity: 0.5; filter: drop-shadow(0 0 20px rgba(244,63,94,0.6)) blur(1px); }
+        50% { transform: scale(1) rotate(0deg); opacity: 0.9; filter: drop-shadow(0 0 50px rgba(244, 63, 94, 1)) blur(0px); }
+        100% { transform: scale(1.05) rotate(3deg); opacity: 0.5; filter: drop-shadow(0 0 20px rgba(244,63,94,0.6)) blur(1px); }
+    }
         /* 🌟 【海兔本體的容器與動畫】 */
         .slug-container {
             position: absolute !important;
@@ -1014,7 +1074,18 @@
             coffee: `<svg viewBox="0 0 100 100"><path d="M25 35 L25 70 Q25 85 50 85 Q75 85 75 70 L75 35 Z" fill="#f8fafc"/><path d="M75 45 Q90 45 90 60 Q90 70 75 70" fill="none" stroke="#f8fafc" stroke-width="8"/><path d="M40 15 Q45 25 40 30 M60 10 Q65 20 60 25" fill="none" stroke="#d4d4d8" stroke-width="4"/></svg>`,
             gift: `<svg viewBox="0 0 100 100"><rect x="25" y="45" width="50" height="40" fill="#ef4444"/><rect x="20" y="35" width="60" height="10" fill="#ef4444"/><rect x="45" y="35" width="10" height="50" fill="#facc15"/><path d="M50 35 Q30 10 45 25 L50 35 M50 35 Q70 10 55 25 L50 35" fill="none" stroke="#facc15" stroke-width="6"/></svg>`,
             crown: `<svg viewBox="0 0 100 100"><polygon points="20 80, 80 80, 90 30, 70 50, 50 20, 30 50, 10 30" fill="#facc15"/><circle cx="10" cy="30" r="5" fill="#ef4444"/><circle cx="50" cy="20" r="5" fill="#38bdf8"/><circle cx="90" cy="30" r="5" fill="#ef4444"/></svg>`,
-            tvStatic: `<svg viewBox="0 0 100 100"><rect x="15" y="25" width="70" height="55" rx="5" fill="#475569"/><rect x="25" y="35" width="40" height="35" fill="#cbd5e1"/><circle cx="75" cy="45" r="4" fill="#1e293b"/><circle cx="75" cy="60" r="4" fill="#1e293b"/><line x1="30" y1="10" x2="50" y2="25" stroke="#94a3b8" stroke-width="3"/><line x1="70" y1="10" x2="50" y2="25" stroke="#94a3b8" stroke-width="3"/></svg>`,
+           tvStatic: `<svg viewBox="0 0 100 100" preserveAspectRatio="none">
+    <!-- 移除原本的線條與圓圈，只保留一個滿版的雜訊遮罩 -->
+    <rect width="100" height="100" fill="url(#noisePattern)" />
+    <defs>
+        <filter id="noiseFilter">
+            <feTurbulence type="fractalNoise" baseFrequency="0.6" numOctaves="3" stitchTiles="stitch"/>
+        </filter>
+        <pattern id="noisePattern" width="100" height="100" patternUnits="userSpaceOnUse">
+            <rect width="100" height="100" filter="url(#noiseFilter)" opacity="0.2"/>
+        </pattern>
+    </defs>
+</svg>`,
             money: `<svg viewBox="0 0 100 100"><rect x="15" y="35" width="70" height="35" fill="#86efac" stroke="#166534" stroke-width="4" rx="2"/><circle cx="50" cy="52.5" r="10" fill="#166534"/><line x1="25" y1="52.5" x2="35" y2="52.5" stroke="#166534" stroke-width="4"/><line x1="65" y1="52.5" x2="75" y2="52.5" stroke="#166534" stroke-width="4"/></svg>`,
             heart: `<svg viewBox="0 0 100 100"><path d="M50 85 C10 50 10 20 30 10 C45 0 50 15 50 15 C50 15 55 0 70 10 C90 20 90 50 50 85Z" fill="#f43f5e"/></svg>`,
             bugFree: `<svg viewBox="0 0 100 100"><ellipse cx="50" cy="50" rx="20" ry="30" fill="#65a30d"/><line x1="20" y1="20" x2="80" y2="80" stroke="#ef4444" stroke-width="10"/><line x1="80" y1="20" x2="20" y2="80" stroke="#ef4444" stroke-width="10"/></svg>`,
@@ -1750,6 +1821,42 @@ let trialTimeLeft = 10; // 全域記錄試用剩餘時間
                         });
                     }
                     renderCats();
+                    break;
+                   // 📺 【阿嬤的舊電視】CRT 舊電視掃描線 + 噪點濾鏡 + 畫面閃爍效果
+                case 'tvStatic':
+                    const tvFilter = document.createElement('div');
+                    tvFilter.className = 'tv-filter-overlay';
+                    layer.appendChild(tvFilter);
+                    break;
+// 📐 【數學當機】正確數學公式（帶清晰背景框） + 發光滿版叉叉
+                case 'math':
+                    // 確保全部都是 100% 嚴謹正確的數學公式
+                    const formulas = [
+                        "E = mc²", 
+                        "ax² + bx + c = 0", 
+                        "x = (-b ± √(b² - 4ac)) / 2a", 
+                        "sin²θ + cos²θ = 1", 
+                        "A = πr²", 
+                        "V = (4/3)πr³", 
+                        "a² + b² = c²", 
+                        "log_b(xy) = log_b(x) + log_b(y)"
+                    ];
+                    for(let i=0; i<6; i++) { // 維持 6 個，數量適中、清晰不雜亂
+                        let el = document.createElement('div');
+                        el.className = 'math-formula';
+                        el.innerText = formulas[Math.floor(Math.random()*formulas.length)];
+                        el.style.setProperty('--start-y', (Math.random() * 40 - 20) + 'vh');
+                        el.style.setProperty('--end-y', (Math.random() * 40 - 20) + 'vh');
+                        el.style.top = (Math.random() * 60 + 20) + '%';
+                        el.style.animationDuration = (Math.random() * 4 + 8) + 's'; // 速度放慢至 8~12 秒，保證看得一清二楚
+                        el.style.animationDelay = (Math.random() * 4) + 's';
+                        layer.appendChild(el);
+                    }
+                    // 確保發光滿版叉叉再次出現
+                    const mark = document.createElement('div');
+                    mark.className = 'wrong-mark';
+                    mark.innerText = '✕';
+                    layer.appendChild(mark);
                     break;
 // 🌀 【回程挑釁】背景底層流動自定義彈幕 + 藍色魔法火焰 + 滿版神祕藍色月相魔法陣 + 強力向內吸聚水流 + 半罩式清透大泡泡
                 case 'disco':
