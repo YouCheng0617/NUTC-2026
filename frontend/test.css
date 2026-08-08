@@ -1532,39 +1532,6 @@ body:has(.ocean-popular-board:not(.collapsed)) #mascot-home {
     transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1) !important;
 }
 /* =========================================
-   ✨ 終極修復：文字不直排，且按鈕絕對按得到！
-   ========================================= */
-/* 1. 鎖死文字不准換行，保持美美的橫排 */
-.user-name-text, 
-.header-game-btn {
-    white-space: nowrap !important;
-}
-
-/* 2. 讓中間的搜尋框稍微退讓，不要霸佔太多空間 */
-.search-container {
-    flex: 1 1 auto !important;
-    padding: 0 15px !important;
-}
-
-/* 3. 🌟 關鍵魔法：當使用平板 (螢幕小於 992px) 太擁擠時，
-   讓搜尋框自動掉到第二行，把第一排空間還給鈴鐺和發文按鈕！ */
-@media screen and (max-width: 992px) {
-    .light-header {
-        flex-wrap: wrap !important; /* 允許換行 */
-    }
-    .logo {
-        flex: 1 1 auto !important;
-    }
-    .nav-actions {
-        flex: 1 1 auto !important;
-    }
-    .search-container {
-        flex: 0 0 100% !important; /* 搜尋框佔滿整行 */
-        order: 3 !important; /* 排到最下面 */
-        margin-top: 15px !important; /* 往下推一點點留呼吸空間 */
-    }
-}
-/* =========================================
    ✨ 終極平板與全螢幕防擋魔法 (寶寶專屬修正版)
    ========================================= */
 /* 1. 讓小窩在所有螢幕上平常都乖乖半透明，不擋視線 */
