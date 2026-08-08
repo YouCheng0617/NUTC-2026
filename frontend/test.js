@@ -1469,6 +1469,9 @@ document.addEventListener('DOMContentLoaded', () => {
     let dialogueTimer;
 
     function showRandomDialogue() {
+        // ✨ 新增這行：如果小助理已經在小窩裡睡覺了，就不准說夢話！
+        if (window.isMascotSleeping) return; 
+
         if (dialogueBox.classList.contains('show-dialogue')) return;
         dialogueBox.innerText = randomPhrases[Math.floor(Math.random() * randomPhrases.length)];
         dialogueBox.classList.add('show-dialogue');

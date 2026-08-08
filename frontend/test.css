@@ -1476,13 +1476,28 @@ body, html { height: 100vh !important; overflow: hidden !important; background-c
     overflow: hidden; 
 }
 
-/* 手機版稍微縮小一點才不會擋住畫面 */
+/* 📱 手機版小窩優化：縮小體積 + 智慧半透明防擋視線 */
 @media screen and (max-width: 600px) {
     #mascot-home {
-        width: 130px;
-        height: 130px;
-        left: 15px;
-        bottom: 90px;
+        width: 75px !important;    /* ✨ 縮小體積，變得精緻可愛 */
+        height: 75px !important;
+        left: 10px !important;     /* 更貼邊一點 */
+        bottom: 85px !important;
+        opacity: 0.55 !important;  /* ✨ 變成半透明，讓後面的字透出來 */
+        transition: all 0.3s ease-in-out !important;
+    }
+
+    /* 🌟 魔法連動：當小助理在睡覺，點擊小窩時，立刻發光變清晰！ */
+    body:has(#svg-mermecat-mascot.mascot-sleeping) #mascot-home,
+    #mascot-home:active {
+        opacity: 1 !important;
+        transform: scale(1.15) translateY(-3px) !important;
+        box-shadow: 0 0 25px rgba(77, 166, 255, 0.9) !important;
+        border-color: rgba(255, 255, 255, 0.9) !important;
+    }
+    #svg-mermecat-mascot.mascot-sleeping {
+        transform: scale(0.35) !important; /* 從 0.65 縮小到 0.35，讓牠完美塞進 75px 的小窩 */
+        margin-top: -5px !important; /* 稍微往上提一點點，避免下巴掉出水族箱 */
     }
 }
 
@@ -1493,4 +1508,20 @@ body, html { height: 100vh !important; overflow: hidden !important; background-c
 
 #mascot-home::after {
     content: "";
+}
+/* =========================================
+   ✨ 修復：小助理的家與熱門榜重疊問題
+   ========================================= */
+
+/* 1. 確保左右兩側的抽屜層級絕對高於小窩 */
+.ocean-popular-board, .ocean-rules-board {
+    z-index: 10000 !important; 
+}
+
+/* 2. 當熱門榜展開時，小窩自動「潛水」躲起來，避免擋住視線 */
+body:has(.ocean-popular-board:not(.collapsed)) #mascot-home {
+    transform: scale(0) !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1) !important;
 }
