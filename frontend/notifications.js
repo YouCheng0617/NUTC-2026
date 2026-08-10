@@ -1,15 +1,20 @@
-// 寶寶，記得在這裡填入後端主機位置和你的 Token 喔！
-const API_BASE_URL = 'https://your-api-domain.com'; 
-const USER_TOKEN = 'YOUR_BEARER_TOKEN_HERE'; 
+// 🌟 替換成你真實的後端 API 網址
+const API_BASE_URL = 'https://api.drift-bottles.xyz'; 
 
 // 幫 API 請求建立一個通用設定，節省程式碼
-const getFetchOptions = (method = 'GET') => ({
-  method: method,
-  headers: {
-    'Authorization': `Bearer ${USER_TOKEN}`,
-    'Content-Type': 'application/json'
-  }
-});
+const getFetchOptions = (method = 'GET') => {
+  // 🌟 動態從 localStorage 抓取使用者真正的登入 Token
+  const token = localStorage.getItem("authToken"); 
+  
+  return {
+    method: method,
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json',
+      'ngrok-skip-browser-warning': 'true' // 加上這行確保不會被 ngrok 畫面阻擋
+    }
+  };
+};
 
 // 當網頁載入完成後，馬上跟後端要通知資料！
 document.addEventListener('DOMContentLoaded', fetchNotifications);
@@ -17,12 +22,24 @@ document.addEventListener('DOMContentLoaded', fetchNotifications);
 // === 1. 取得當前登入使用者的通知列表 ===
 async function fetchNotifications() {
   try {
-    // 呼叫 GET /notifications
     const response = await fetch(`${API_BASE_URL}/notifications`, getFetchOptions('GET'));
     if (!response.ok) throw new Error('伺服器傲嬌了，抓不到資料');
     
     const data = await response.json();
-    renderNotifications(data); // 拿到資料後，交給渲染函數畫出畫面
+    
+    // 🌟 防呆拆包機制：確保抓出真正的「陣列」
+    let notifArray = [];
+    if (Array.isArray(data)) {
+        notifArray = data; // 直接就是陣列
+    } else if (data && Array.isArray(data.data)) {
+        notifArray = data.data; // 包在 data 裡面
+    } else if (data && Array.isArray(data.notifications)) {
+        notifArray = data.notifications; // 包在 notifications 裡面
+    } else if (data && Array.isArray(data.result)) {
+        notifArray = data.result; // 包在 result 裡面
+    }
+
+    renderNotifications(notifArray); // 把確定的陣列交給渲染函數
   } catch (error) {
     console.error("抓取通知失敗：", error);
   }
@@ -33,6 +50,12 @@ function renderNotifications(notifications) {
   const container = document.getElementById('notif-list-container');
   container.innerHTML = ''; // 清空原本的載入中狀態
 
+  // 🌟 貼心小設計：如果完全沒有通知，顯示個溫馨提示
+  if (!notifications || notifications.length === 0) {
+      container.innerHTML = '<div style="text-align: center; color: #88bbff; padding: 40px 0;">目前還沒有收到任何通知喔！🌊</div>';
+      return;
+  }
+
   notifications.forEach(notif => {
     // 判斷通知類型來決定 icon 的樣式 (假設後端會傳 type)
     let iconClass = 'system';
@@ -40,6 +63,9 @@ function renderNotifications(notifications) {
     if (notif.type === 'like') { iconClass = 'heart'; iconEmoji = '❤️'; }
     else if (notif.type === 'reply') { iconClass = 'reply'; iconEmoji = '💬'; }
     else if (notif.type === 'follow') { iconClass = 'user'; iconEmoji = '👤'; }
+
+    // 判斷是否未讀，決定有沒有亮藍色的 class 和藍點
+    // ... 下方的程式碼維持不變，繼續你的卡片生成邏輯 ...
 
     // 判斷是否未讀，決定有沒有亮藍色的 class 和藍點
     const unreadClass = notif.isRead ? '' : 'unread';
