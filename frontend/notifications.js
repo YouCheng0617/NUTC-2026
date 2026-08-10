@@ -1,11 +1,11 @@
 // 🌟 替換成你真實的後端 API 網址
-const API_BASE_URL = 'https://api.drift-bottles.xyz'; 
+const API_BASE_URL = 'https://api.drift-bottles.xyz';
 
 // 幫 API 請求建立一個通用設定，節省程式碼
 const getFetchOptions = (method = 'GET') => {
   // 🌟 動態從 localStorage 抓取使用者真正的登入 Token
-  const token = localStorage.getItem("authToken"); 
-  
+  const token = localStorage.getItem("authToken");
+
   return {
     method: method,
     headers: {
@@ -24,19 +24,19 @@ async function fetchNotifications() {
   try {
     const response = await fetch(`${API_BASE_URL}/notifications`, getFetchOptions('GET'));
     if (!response.ok) throw new Error('伺服器傲嬌了，抓不到資料');
-    
+
     const data = await response.json();
-    
+
     // 🌟 防呆拆包機制：確保抓出真正的「陣列」
     let notifArray = [];
     if (Array.isArray(data)) {
-        notifArray = data; // 直接就是陣列
+      notifArray = data; // 直接就是陣列
     } else if (data && Array.isArray(data.data)) {
-        notifArray = data.data; // 包在 data 裡面
+      notifArray = data.data; // 包在 data 裡面
     } else if (data && Array.isArray(data.notifications)) {
-        notifArray = data.notifications; // 包在 notifications 裡面
+      notifArray = data.notifications; // 包在 notifications 裡面
     } else if (data && Array.isArray(data.result)) {
-        notifArray = data.result; // 包在 result 裡面
+      notifArray = data.result; // 包在 result 裡面
     }
 
     renderNotifications(notifArray); // 把確定的陣列交給渲染函數
@@ -52,8 +52,8 @@ function renderNotifications(notifications) {
 
   // 🌟 貼心小設計：如果完全沒有通知，顯示個溫馨提示
   if (!notifications || notifications.length === 0) {
-      container.innerHTML = '<div style="text-align: center; color: #88bbff; padding: 40px 0;">目前還沒有收到任何通知喔！🌊</div>';
-      return;
+    container.innerHTML = '<div style="text-align: center; color: #88bbff; padding: 40px 0;">目前還沒有收到任何通知喔！🌊</div>';
+    return;
   }
 
   notifications.forEach(notif => {
@@ -68,22 +68,29 @@ function renderNotifications(notifications) {
     // ... 下方的程式碼維持不變，繼續你的卡片生成邏輯 ...
 
     // 判斷是否未讀，決定有沒有亮藍色的 class 和藍點
-    const unreadClass = notif.isRead ? '' : 'unread';
-    const dotHtml = notif.isRead ? '' : '<div class="unread-dot"></div>';
+    const isRead = notif.is_read ?? notif.isRead;
+    const unreadClass = isRead ? '' : 'unread';
+    const dotHtml = isRead ? '' : '<div class="unread-dot"></div>';
+
+    // 格式化時間與內容 (後端傳回的欄位為 created_at 與 content)
+    const timeStr = notif.created_at 
+      ? new Date(notif.created_at).toLocaleString() 
+      : (notif.time || '');
+    const notificationText = notif.content || notif.message || '';
 
     // 產生專屬卡片 HTML
     const card = document.createElement('div');
     card.className = `notif-card ${unreadClass}`;
     // 如果是未讀，點擊時就呼叫單筆已讀 API
-    if (!notif.isRead) {
+    if (!isRead) {
       card.onclick = () => markSingleAsReadAPI(notif.id, card);
     }
 
     card.innerHTML = `
       <div class="icon-box ${iconClass}">${iconEmoji}</div>
       <div class="text-box">
-        <p><strong>${notif.senderName}</strong> ${notif.message}</p>
-        <span class="time">${notif.time}</span>
+        <p>${notificationText}</p>
+        <span class="time">${timeStr}</span>
       </div>
       ${dotHtml}
     `;
@@ -97,14 +104,14 @@ async function markSingleAsReadAPI(id, cardElement) {
   try {
     // 呼叫 PATCH /notifications/:id/read
     const response = await fetch(`${API_BASE_URL}/notifications/${id}/read`, getFetchOptions('PATCH'));
-    
+
     if (response.ok) {
       // 成功後，在畫面上拔掉未讀狀態
       cardElement.classList.remove('unread');
       const dot = cardElement.querySelector('.unread-dot');
       if (dot) dot.style.display = 'none';
       // 移除點擊事件，避免重複發送請求
-      cardElement.onclick = null; 
+      cardElement.onclick = null;
     }
   } catch (error) {
     console.error(`標記通知 ${id} 失敗：`, error);
@@ -115,7 +122,7 @@ async function markSingleAsReadAPI(id, cardElement) {
 async function markAllAsReadAPI() {
   // 先選取所有帶有 'unread' 類別的卡片[cite: 3]
   const unreadCards = document.querySelectorAll('.notif-card.unread'); //[cite: 3]
-  
+
   // 如果長度等於 0，跳出提醒[cite: 3]
   if (unreadCards.length === 0) { //[cite: 3]
     alert("目前沒有未讀通知喔！🌊"); //[cite: 3]
@@ -125,7 +132,7 @@ async function markAllAsReadAPI() {
   try {
     // 呼叫 PATCH /notifications/read-all
     const response = await fetch(`${API_BASE_URL}/notifications/read-all`, getFetchOptions('PATCH'));
-    
+
     if (response.ok) {
       // 成功後，將每一張卡片的未讀狀態移除[cite: 3]
       unreadCards.forEach(card => { //[cite: 3]
