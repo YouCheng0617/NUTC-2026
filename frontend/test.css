@@ -1659,3 +1659,209 @@ body:has(#svg-mermecat-mascot.mascot-sleeping) #mascot-home,
     .user-info-trigger { padding: 2px 5px !important; }
     .user-menu-wrapper { gap: 4px !important; }
 }
+/* =========================================
+   🚀 最終手機版完美淨化 (請貼在 test.css 最底層)
+   ========================================= */
+
+@media screen and (max-width: 768px) {
+    /* 1. 頂部選單淨化 */
+    .hamburger-btn, .sidebar-overlay, .menu-arrow { display: none !important; }
+    .light-header {
+        display: flex !important;
+        flex-wrap: wrap !important;
+        justify-content: space-between !important;
+        align-items: center !important;
+        padding: 8px 10px !important;
+    }
+    .logo { flex: 0 0 auto !important; font-size: 1.15rem !important; margin-right: auto !important; }
+    .logo img { width: 22px !important; margin-right: 4px !important; }
+    .header-game-btn { padding: 4px 8px !important; font-size: 0.85rem !important; margin-left: 2px !important; }
+    .nav-actions { flex: 0 0 auto !important; margin: 0 !important; }
+    .user-menu-wrapper { display: flex !important; gap: 8px !important; align-items: center !important; }
+    .notification-bell, .avatar-img { width: 30px !important; height: 30px !important; font-size: 1rem !important; }
+    .btn-post { padding: 6px 12px !important; font-size: 0.9rem !important; margin-left: 0 !important; }
+    .search-container { order: 99 !important; flex: 0 0 100% !important; margin-top: 8px !important; }
+
+    /* 2. 主海域排版 */
+    .main-feed { padding-bottom: 220px !important; }
+    #post-container {
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 15px 10px !important;
+        padding: 15px 15px 220px 15px !important;
+        justify-items: center !important;
+    }
+    .post-card { width: 110px !important; height: 110px !important; margin-top: 0 !important; }
+
+    /* 3. 底部海域膠囊完美歸位 */
+    aside.sidebar.light-sidebar {
+        display: flex !important;
+        position: fixed !important;
+        bottom: 12px !important;
+        left: 50% !important;
+        transform: translateX(-50%) !important;
+        width: 95% !important;
+        max-width: 500px !important;
+        height: 55px !important;
+        min-height: 55px !important;
+        max-height: 55px !important;
+        background: rgba(10, 35, 65, 0.95) !important;
+        backdrop-filter: blur(15px) !important;
+        border-radius: 35px !important;
+        border: 1px solid rgba(255, 255, 255, 0.25) !important;
+        padding: 0 10px !important;
+        z-index: 9999 !important;
+        overflow: hidden !important;
+        align-items: center !important;
+    }
+    aside.sidebar.light-sidebar h3 { display: none !important; }
+    aside.sidebar.light-sidebar ul {
+        display: flex !important; flex-direction: row !important;
+        overflow-x: auto !important; white-space: nowrap !important;
+        gap: 8px !important; padding: 0 !important; width: 100% !important;
+        align-items: center !important;
+    }
+    aside.sidebar.light-sidebar li {
+        flex: 0 0 auto !important; padding: 6px 14px !important;
+        font-size: 0.85rem !important; border-radius: 20px !important;
+        transform: none !important; margin: 0 !important;
+    }
+
+    /* 4. 左下角小窩 & 右下角海流按鈕 */
+    #mascot-home {
+        bottom: 75px !important; left: 10px !important;
+        width: 48px !important; height: 48px !important;
+        transform: scale(1) !important; z-index: 9998 !important;
+    }
+    #svg-mermecat-mascot { bottom: 75px !important; transform: scale(0.65) !important; left: -5px !important; }
+    .ocean-refresh-btn { bottom: 75px !important; right: 10px !important; padding: 8px 12px !important; font-size: 0.8rem !important; z-index: 9998 !important; }
+
+    /* 5. 🌟 抽屜與把手終極修復 (絕對不裁切) */
+    div#ocean-popular-board, div#ocean-rules-board {
+        width: 280px !important; 
+        height: auto !important;
+        position: fixed !important;
+        top: 50% !important;
+        transform: translateY(-50%) !important;
+        overflow: visible !important; /* 絕對不能有 hidden */
+        transition: left 0.4s ease, right 0.4s ease !important;
+        opacity: 1 !important;
+        z-index: 10000 !important;
+    }
+    
+    /* 展開：滑入螢幕 */
+    div#ocean-popular-board:not(.collapsed) { left: 0 !important; }
+    div#ocean-rules-board:not(.collapsed) { right: 0 !important; }
+
+    /* 收合：退到剛好藏住內容，露出把手的位置！ */
+    div#ocean-popular-board.collapsed { left: -280px !important; }
+    div#ocean-rules-board.collapsed { right: -280px !important; }
+
+    /* 確保抽屜內容區有獨立背景，不會影響外圍 */
+    .popular-content-wrapper, .rules-content-wrapper {
+        position: relative !important;
+        width: 100% !important;
+        height: 100% !important;
+        overflow: hidden !important; /* 只有內容可以被裁切 */
+    }
+
+    /* 完美半圓形把手：絕對不准消失！ */
+    .popular-drawer-handle, .rules-drawer-handle {
+        display: flex !important; position: absolute !important;
+        top: 50% !important; transform: translateY(-50%) !important;
+        width: 45px !important; height: 60px !important;
+        align-items: center !important; justify-content: center !important;
+        pointer-events: auto !important; z-index: 10001 !important;
+        padding: 0 !important; color: transparent !important;
+        opacity: 1 !important; visibility: visible !important;
+    }
+    
+    .popular-drawer-handle {
+        right: -45px !important; /* 強制凸出本體 45px */
+        border-radius: 0 30px 30px 0 !important;
+        background: linear-gradient(135deg, #201040, #0055a5) !important;
+        border: 2px solid #ffcc00 !important; border-left: none !important;
+    }
+    .rules-drawer-handle {
+        left: -45px !important; /* 強制凸出本體 45px */
+        border-radius: 30px 0 0 30px !important;
+        background: linear-gradient(135deg, #0a2341, #0055a5) !important;
+        border: 2px solid #4da6ff !important; border-right: none !important;
+    }
+    
+    /* 清除舊文字，置入大圖示 */
+    .popular-drawer-handle span, .popular-drawer-handle i, .rules-drawer-handle span, .rules-drawer-handle i { display: none !important; }
+    .popular-drawer-handle::before { content: "🔥" !important; font-size: 1.5rem !important; color: white !important; display: block !important;}
+    .rules-drawer-handle::before { content: "📜" !important; font-size: 1.5rem !important; color: white !important; display: block !important;}
+
+    /* 展開時顯示超大 X 按鈕，並隱藏外面的把手 */
+    div#ocean-popular-board:not(.collapsed) .popular-drawer-handle,
+    div#ocean-rules-board:not(.collapsed) .rules-drawer-handle { display: none !important; }
+    
+    div#ocean-popular-board:not(.collapsed) .popular-content-wrapper::after,
+    div#ocean-rules-board:not(.collapsed) .rules-content-wrapper::after {
+        content: "✖"; position: absolute; top: 15px; right: 15px;
+        width: 36px; height: 36px; background: rgba(255, 255, 255, 0.2);
+        color: #fff; font-size: 1.2rem; font-weight: bold;
+        display: flex; justify-content: center; align-items: center;
+        border-radius: 50%; cursor: pointer; z-index: 1000;
+        border: 1px solid rgba(255, 255, 255, 0.5);
+    }
+}
+
+/* 極限窄螢幕微調 */
+@media screen and (max-width: 390px) {
+    .logo { font-size: 1.05rem !important; }
+    .logo img { width: 18px !important; }
+    .header-game-btn { font-size: 0.8rem !important; padding: 4px 6px !important; }
+    .notification-bell, .avatar-img { width: 28px !important; height: 28px !important; }
+    .btn-post { padding: 4px 8px !important; font-size: 0.85rem !important; }
+    #post-container { padding: 15px 15px 220px 15px !important; gap: 15px 5px !important; }
+}
+/* =========================================
+   🚀 最終定位救援包：把海域釘死在底部
+   ========================================= */
+@media screen and (max-width: 768px) {
+    /* 使用最強的 HTML 結構路徑，確保權重最高，強迫定位在底部 */
+    html body div#forum-view div.container aside.sidebar.light-sidebar {
+        position: fixed !important;
+        top: auto !important; /* 解除可能殘留的上方定位 */
+        bottom: 15px !important; /* 死死釘在距離底部 15px 的位置 */
+        left: 50% !important;
+        transform: translateX(-50%) !important;
+        z-index: 9999 !important;
+    }
+}
+
+/* =========================================
+   🚀 最終核彈級修復：強制定位與點擊解鎖
+   ========================================= */
+@media screen and (max-width: 768px) {
+    /* 1. 消滅所有隱形遮罩，釋放點擊權！ */
+    .sidebar-overlay { 
+        display: none !important; 
+        pointer-events: none !important; 
+        z-index: -1 !important; 
+    }
+
+    /* 2. 強制把底部海域選單釘在正下方 */
+    html body div#forum-view div.container aside.sidebar.light-sidebar,
+    .sidebar.light-sidebar {
+        position: fixed !important;
+        top: auto !important;
+        bottom: 12px !important;
+        left: 50% !important;
+        transform: translateX(-50%) !important;
+        z-index: 9999 !important;
+        display: flex !important;
+    }
+
+    /* 3. 確保抽屜把手的層級最高，絕對點得到 */
+    .popular-drawer-handle, .rules-drawer-handle {
+        pointer-events: auto !important;
+        z-index: 10005 !important;
+    }
+}
+/* 確保抽屜在最上層，絕對不會被任何隱形元素擋住點擊 */
+.ocean-popular-board, .ocean-rules-board {
+    z-index: 99999 !important;
+}
