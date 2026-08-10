@@ -7,9 +7,9 @@ const notificationController = new NotificationController();
 
 export function notificationRouter() {
     const router = Router();
-    router.get('/notifications', authCheck, (req, res) => notificationController.getMyNotifications(req, res));
-    router.patch('/notifications/read-all', authCheck, (req, res) => notificationController.readAllNotifications(req, res));
-    router.patch('/notifications/:id/read', authCheck, (req, res) => notificationController.readNotification(req, res));
+    router.get('/', authCheck, (req, res) => notificationController.getMyNotifications(req, res));
+    router.patch('/read-all', authCheck, (req, res) => notificationController.readAllNotifications(req, res));
+    router.patch('/:id/read', authCheck, (req, res) => notificationController.readNotification(req, res));
     return router;
 }
 

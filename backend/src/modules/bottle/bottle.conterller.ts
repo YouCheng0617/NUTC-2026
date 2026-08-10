@@ -30,7 +30,7 @@ export const bottleController = {
     /* 丟出瓶子 */
     async throwBottle(req: AuthRequest, res: Response) {
         try {
-            // 👇 1. 解構出 pollOptions
+
             const { title, content, isAnonymous, category_id, pollOptions } = req.body;
             const memberId = req.user?.member_id;
             const role = req.user?.role;
@@ -81,11 +81,13 @@ export const bottleController = {
                             category_id: id
                         }))
                     },
-                    pollOptions: pollOptions && pollOptions.length > 0 ? {
-                        create: pollOptions.map((text: string) => ({
-                            text: text.trim()
-                        }))
-                    } : undefined
+                    ...(pollOptions && pollOptions.length > 0 && {
+                        PollOption: {
+                            create: pollOptions.map((text: string) => ({
+                                text: text.trim() // ⚠️ 如果這行報錯，請確認你 prisma schema 裡面的欄位是 text 還是 option_text
+                            }))
+                        }
+                    })
                 },
                 include: {
                     categories: {
@@ -94,7 +96,7 @@ export const bottleController = {
                         }
                     },
                     // 👇 7. 讓新建好的瓶子順便回傳投票選項給前端
-                    pollOptions: true
+                    PollOption: true
                 }
             });
 

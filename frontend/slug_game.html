@@ -1117,14 +1117,29 @@
             drop: `<svg viewBox="0 0 100 100"><polygon points="48,0 52,0 50,100" fill="rgba(255, 255, 255, 0.3)"/><polygon points="49.5,0 50.5,0 50,80" fill="rgba(255, 255, 255, 0.9)"/></svg>`,
             star: `<svg viewBox="0 0 100 100"><polygon points="50,5 61,35 95,35 68,55 79,85 50,65 21,85 32,55 5,35 39,35" fill="#facc15"/></svg>`,
             sparkle: `<svg viewBox="0 0 100 100"><path d="M50 5 Q50 50 95 50 Q50 50 50 95 Q50 50 5 50 Q50 50 5 50 Z" fill="#fef08a"/></svg>`,
-            leaf: `<svg viewBox="0 0 100 100"><path d="M50 10 C80 10 90 40 90 60 C90 80 50 90 50 90 C20 90 10 60 10 40 C10 20 50 10 50 10 Z" fill="#ea580c"/></svg>`,
-            moon: `<svg viewBox="0 0 100 100"><path d="M65 15 A 40 40 0 1 1 25 85 A 50 50 0 1 0 65 15 Z" fill="#fef08a"/></svg>`,
-            snow: `<svg viewBox="0 0 100 100"><path d="M50 10 L50 90 M10 50 L90 50 M20 20 L80 80 M20 80 L80 20" stroke="#ffffff" stroke-width="10" stroke-linecap="round"/></svg>`,
-           bubble: `<svg viewBox="0 0 100 100"><defs><radialGradient id="pureCrystal" cx="35%" cy="35%" r="65%"><stop offset="0%" stop-color="#ffffff" stop-opacity="0.95"/><stop offset="30%" stop-color="#bae6fd" stop-opacity="0.15"/><stop offset="70%" stop-color="#38bdf8" stop-opacity="0.05"/><stop offset="90%" stop-color="#0284c7" stop-opacity="0.3"/><stop offset="100%" stop-color="#ffffff" stop-opacity="0.8"/></radialGradient><linearGradient id="rainbowRing" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#38bdf8"/><stop offset="30%" stop-color="#facc15"/><stop offset="65%" stop-color="#ec4899"/><stop offset="100%" stop-color="#a855f7"/></linearGradient></defs><circle cx="50" cy="50" r="45" fill="url(#pureCrystal)" stroke="url(#rainbowRing)" stroke-width="3"/><ellipse cx="33" cy="30" rx="18" ry="6" transform="rotate(-35 33 30)" fill="rgba(255,255,255,0.95)"/><circle cx="70" cy="35" r="3" fill="rgba(255,255,255,0.9)"/></svg>`,
+            // 🌟 櫸樹秋葉：雙色漸層與葉脈細節
+leaf: `<svg viewBox="0 0 100 100"><g stroke="#7c2d12" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M 50 90 L 50 15 M 50 15 C 20 25, 10 50, 25 75 C 35 85, 45 88, 50 90 Z" fill="#ea580c"/><path d="M 50 15 C 80 25, 90 50, 75 75 C 65 85, 55 88, 50 90 Z" fill="#f97316"/><path d="M 50 35 Q 35 45 25 50 M 50 50 Q 30 60 22 68 M 50 65 Q 38 72 32 78"/><path d="M 50 35 Q 65 45 75 50 M 50 50 Q 70 60 78 68 M 50 65 Q 62 72 68 78"/></g></svg>`,
+
+// 🌟 楓葉：經典鋸齒邊緣與鮮紅葉脈
+leaf_maple: `<svg viewBox="0 0 100 100"><g fill="#dc2626" stroke="#7f1d1d" stroke-width="1.5" stroke-linejoin="round"><path d="M 50 88 L 50 72 Q 40 70 30 78 L 35 60 Q 20 62 10 52 L 25 42 Q 12 28 22 25 L 38 35 Q 35 18 50 8 Q 65 18 62 35 L 78 25 Q 88 28 75 42 L 90 52 Q 80 62 65 60 L 70 78 Q 60 70 50 72 L 50 88 Z"/><path d="M 50 72 L 50 25 M 50 55 L 28 40 M 50 55 L 72 40 M 50 65 L 20 55 M 50 65 L 80 55" stroke="#7f1d1d" stroke-width="1.5" fill="none"/></g></svg>`,
+
+// 🌟 銀杏葉：金黃扇形葉片與細緻脈紋
+leaf_ginkgo: `<svg viewBox="0 0 100 100"><g stroke="#ca8a04" stroke-width="1.5" stroke-linejoin="round"><path d="M 50 90 Q 48 65 50 55 C 20 50, 10 25, 35 15 C 45 10, 48 18, 50 22 C 52 18, 55 10, 65 15 C 90 25, 80 50, 50 55 Q 52 65 50 90 Z" fill="#facc15"/><path d="M 50 55 Q 35 32 25 22 M 50 55 Q 42 30 38 18 M 50 55 Q 50 30 50 18 M 50 55 Q 58 30 62 18 M 50 55 Q 65 32 75 22" fill="none" opacity="0.6"/></g></svg>`,
+            // 🌟 1. 夢幻大月亮：帶有立體漸層與銀白色柔焦光暈
+moon: `<svg viewBox="0 0 160 160" style="width:100%; height:100%; filter: drop-shadow(0 0 20px rgba(224, 242, 254, 0.8));"><defs><radialGradient id="moonGlow" cx="40%" cy="40%" r="60%"><stop offset="0%" stop-color="#ffffff"/><stop offset="40%" stop-color="#e0f2fe"/><stop offset="80%" stop-color="#bae6fd"/><stop offset="100%" stop-color="#7dd3fc" stop-opacity="0"/></radialGradient></defs><circle cx="80" cy="80" r="70" fill="url(#moonGlow)"/><circle cx="65" cy="55" r="14" fill="rgba(186, 230, 253, 0.35)" filter="blur(2px)"/><circle cx="110" cy="95" r="18" fill="rgba(186, 230, 253, 0.25)" filter="blur(3px)"/><circle cx="75" cy="115" r="10" fill="rgba(186, 230, 253, 0.2)" filter="blur(2px)"/></svg>`,
+
+// 🌟 2. 閃爍星光特效粒子
+moon_star: `<svg viewBox="0 0 100 100" style="width:100%; height:100%; filter: drop-shadow(0 0 6px #fef08a);"><path d="M50 5 Q50 50 95 50 Q50 50 50 95 Q50 50 5 50 Q50 50 5 50 Z" fill="#fef08a"/></svg>`,
+            // 🌟 1. 8 分支發光精緻雪花
+            snow: `<svg viewBox="0 0 100 100" style="width:100%; height:100%; filter: drop-shadow(0 0 5px #ffffff);"><g stroke="#ffffff" stroke-width="3" stroke-linecap="round" fill="none"><path d="M50 8 L50 92 M8 50 L92 50 M20 20 L80 80 M20 80 L80 20"/><path d="M50 22 L40 12 M50 22 L60 12 M50 78 L40 88 M50 78 L60 88 M22 50 L12 40 M22 50 L12 60 M78 50 L88 40 M78 50 L88 60"/><circle cx="50" cy="50" r="8" stroke="#bae6fd" stroke-width="2.5"/><circle cx="50" cy="50" r="3" fill="#ffffff"/></g></svg>`,
+            // 🌟 2. 替換為發光小雪點
+            snow_dot: `<svg viewBox="0 0 100 100" style="width:100%; height:100%; filter: drop-shadow(0 0 6px #ffffff);"><circle cx="50" cy="50" r="30" fill="#ffffff" opacity="0.95"/><circle cx="50" cy="50" r="18" fill="#ffffff"/></svg>`,
+            bubble: `<svg viewBox="0 0 100 100"><defs><radialGradient id="pureCrystal" cx="35%" cy="35%" r="65%"><stop offset="0%" stop-color="#ffffff" stop-opacity="0.95"/><stop offset="30%" stop-color="#bae6fd" stop-opacity="0.15"/><stop offset="70%" stop-color="#38bdf8" stop-opacity="0.05"/><stop offset="90%" stop-color="#0284c7" stop-opacity="0.3"/><stop offset="100%" stop-color="#ffffff" stop-opacity="0.8"/></radialGradient><linearGradient id="rainbowRing" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#38bdf8"/><stop offset="30%" stop-color="#facc15"/><stop offset="65%" stop-color="#ec4899"/><stop offset="100%" stop-color="#a855f7"/></linearGradient></defs><circle cx="50" cy="50" r="45" fill="url(#pureCrystal)" stroke="url(#rainbowRing)" stroke-width="3"/><ellipse cx="33" cy="30" rx="18" ry="6" transform="rotate(-35 33 30)" fill="rgba(255,255,255,0.95)"/><circle cx="70" cy="35" r="3" fill="rgba(255,255,255,0.9)"/></svg>`,
             cross: `<svg viewBox="0 0 100 100"><path d="M20 20 L80 80 M80 20 L20 80" stroke="#ef4444" stroke-width="15" stroke-linecap="round"/></svg>`,
             lightning: `<svg viewBox="0 0 100 100"><polygon points="55,5 15,55 50,55 45,95 85,45 50,45" fill="#facc15"/></svg>`,
             book: `<svg viewBox="0 0 100 100"><path d="M10 20 L45 30 L45 90 L10 80 Z" fill="#cbd5e1"/><path d="M90 20 L55 30 L55 90 L90 80 Z" fill="#f8fafc"/></svg>`,
-            sun: `<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="25" fill="#facc15"/><path d="M50 10 L50 20 M50 80 L50 90 M10 50 L20 50 M80 50 L90 50 M22 22 L29 29 M71 71 L78 78 M22 78 L29 71 M71 22 L78 29" stroke="#f59e0b" stroke-width="6" stroke-linecap="round"/></svg>`,
+            // 🌟 重新繪製：層次日光漸層、燦爛光芒與核心透亮高光的夏日太陽
+sun: `<svg viewBox="0 0 200 200" style="width:100%; height:100%; filter: drop-shadow(0 0 25px #fde047);"><defs><radialGradient id="sunCoreGlow" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#ffffff" stop-opacity="1"/><stop offset="35%" stop-color="#fef08a" stop-opacity="0.95"/><stop offset="70%" stop-color="#f59e0b" stop-opacity="0.6"/><stop offset="100%" stop-color="#ea580c" stop-opacity="0"/></radialGradient><linearGradient id="sunRayBeam" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" stop-color="#ffffff" stop-opacity="0.9"/><stop offset="100%" stop-color="#fbbf24" stop-opacity="0.2"/></linearGradient></defs><circle cx="100" cy="100" r="90" fill="url(#sunCoreGlow)"/><g stroke="url(#sunRayBeam)" stroke-width="3.5" stroke-linecap="round"><line x1="100" y1="5" x2="100" y2="35"/><line x1="100" y1="165" x2="100" y2="195"/><line x1="5" y1="100" x2="35" y2="100"/><line x1="165" y1="100" x2="195" y2="100"/><line x1="33" y1="33" x2="55" y2="55"/><line x1="145" y1="145" x2="167" y2="167"/><line x1="33" y1="167" x2="55" y2="145"/><line x1="145" y1="55" x2="167" y2="33"/></g><circle cx="100" cy="100" r="35" fill="#ffffff" filter="drop-shadow(0 0 12px #ffffff)"/><circle cx="100" cy="100" r="24" fill="#fef08a"/></svg>`,
             gear: `<svg viewBox="0 0 100 100"><path d="M50 15 A 35 35 0 1 0 85 50 A 35 35 0 0 0 50 15 Z" fill="none" stroke="#94a3b8" stroke-width="12" stroke-dasharray="10 10"/><circle cx="50" cy="50" r="15" fill="none" stroke="#cbd5e1" stroke-width="8"/></svg>`,
             sweat: `<svg viewBox="0 0 100 100"><defs><linearGradient id="animeSweat" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="rgba(255,255,255,0.95)"/><stop offset="40%" stop-color="rgba(186,230,253,0.8)"/><stop offset="100%" stop-color="rgba(56,189,248,0.3)"/></linearGradient><filter id="animeSweatShadow"><feDropShadow dx="1" dy="4" stdDeviation="2" flood-color="#0284c7" flood-opacity="0.25"/></filter></defs><g filter="url(#animeSweatShadow)"><!-- 最大顆的汗滴 (右側) --><g transform="translate(45, 5) rotate(15 25 40)"><path d="M 25 0 C 40 30, 50 45, 50 60 C 50 73.8, 38.8 85, 25 85 C 11.2 85, 0 73.8, 0 60 C 0 45, 10 30, 25 0 Z" fill="url(#animeSweat)"/><path d="M 8 55 C 8 45, 13 30, 20 15" fill="none" stroke="#ffffff" stroke-width="4" stroke-linecap="round"/></g><!-- 中等汗滴 (左上) --><g transform="translate(15, 30) rotate(-10 15 25) scale(0.6)"><path d="M 25 0 C 40 30, 50 45, 50 60 C 50 73.8, 38.8 85, 25 85 C 11.2 85, 0 73.8, 0 60 C 0 45, 10 30, 25 0 Z" fill="url(#animeSweat)"/><path d="M 8 55 C 8 45, 13 30, 20 15" fill="none" stroke="#ffffff" stroke-width="4" stroke-linecap="round"/></g><!-- 小汗滴 (左下) --><g transform="translate(25, 70) rotate(-5 10 15) scale(0.4)"><path d="M 25 0 C 40 30, 50 45, 50 60 C 50 73.8, 38.8 85, 25 85 C 11.2 85, 0 73.8, 0 60 C 0 45, 10 30, 25 0 Z" fill="url(#animeSweat)"/><path d="M 8 55 C 8 45, 13 30, 20 15" fill="none" stroke="#ffffff" stroke-width="4" stroke-linecap="round"/></g></g></svg>`,
             cat: `<svg viewBox="0 0 100 100"><polygon points="15,40 10,10 40,25" fill="#f8fafc" stroke="#475569" stroke-width="4" stroke-linejoin="round"/><polygon points="85,40 90,10 60,25" fill="#f8fafc" stroke="#475569" stroke-width="4" stroke-linejoin="round"/><polygon points="18,35 15,18 32,25" fill="#fbcfe8"/><polygon points="82,35 85,18 68,25" fill="#fbcfe8"/><ellipse cx="50" cy="55" rx="40" ry="30" fill="#f8fafc" stroke="#475569" stroke-width="4"/><circle cx="35" cy="50" r="5" fill="#0f172a"/><circle cx="65" cy="50" r="5" fill="#0f172a"/><ellipse cx="25" cy="58" rx="6" ry="3" fill="#fca5a5" opacity="0.6"/><ellipse cx="75" cy="58" rx="6" ry="3" fill="#fca5a5" opacity="0.6"/><path d="M 45 62 Q 50 67 55 62" fill="none" stroke="#475569" stroke-width="3" stroke-linecap="round"/><circle cx="50" cy="57" r="2" fill="#f43f5e"/><line x1="5" y1="50" x2="15" y2="52" stroke="#475569" stroke-width="3" stroke-linecap="round"/><line x1="2" y1="60" x2="13" y2="58" stroke="#475569" stroke-width="3" stroke-linecap="round"/><line x1="95" y1="50" x2="85" y2="52" stroke="#475569" stroke-width="3" stroke-linecap="round"/><line x1="98" y1="60" x2="87" y2="58" stroke="#475569" stroke-width="3" stroke-linecap="round"/></svg>`,
@@ -1145,11 +1160,11 @@ const effectData = {
             tvStatic: { name: {zh: '阿嬤的舊電視', en: 'Old TV'}, cost: 1000, preview: '#94a3b8', svg: [{s: 'tvStatic'}], dir: 'down', count: 12 },
             bubble: { name: {zh: '夢幻泡泡', en: 'Bubbles'}, cost: 1200, preview: '#67e8f9', svg: [{s: 'bubble'}], dir: 'up', count: 15 },
             math: { name: {zh: '數學當機', en: 'Math Error'}, cost: 1200, preview: '#0f172a', svg: [{s: 'cross'}, {s: 'book'}], dir: 'down', count: 20 },
-            leaf: { name: {zh: '落葉紛飛', en: 'Falling Leaves'}, cost: 1400, preview: '#ea580c', svg: [{s: 'leaf'}], dir: 'down', count: 15 },
+            leaf: { name: {zh: '落葉紛飛', en: 'Falling Leaves'}, cost: 1400, preview: '#ea580c', svg: [{s: 'leaf'}, {s: 'leaf_maple'}, {s: 'leaf_ginkgo'}], dir: 'down', count: 20 },
             tomato: { name: {zh: '小番茄煙火', en: 'Tomato Fireworks'}, cost: 1500, preview: '#fca5a5', svg: [{s: 'tomato'}], dir: 'down', count: 12 },
-            snow: { name: {zh: '初雪飄落', en: 'Snowfall'}, cost: 1500, preview: '#e0f2fe', svg: [{s: 'snow'}], dir: 'down', count: 25 },
-            sun: { name: {zh: '陽光普照', en: 'Sunny'}, cost: 1500, preview: '#fb923c', svg: [{s: 'sun'}], dir: 'up', count: 10 },
-            moon: { name: {zh: '月光灑落', en: 'Moonlight'}, cost: 1500, preview: '#1e293b', svg: [{s: 'moon'}], dir: 'down', count: 8 },
+           snow: { name: {zh: '初雪飄落', en: 'Snowfall'}, cost: 1500, preview: '#e0f2fe', svg: [{s: 'snow'}, {s: 'snow_dot'}], dir: 'down', count: 28 },
+            sun: { name: {zh: '陽光普照', en: 'Sunny'}, cost: 1500, preview: '#fb923c', svg: [{s: 'sparkle'}], dir: 'up', count: 20 },
+            moon: { name: {zh: '月光灑落', en: 'Moonlight'}, cost: 1500, preview: '#1e293b', svg: [{s: 'moon_star'}], dir: 'down', count: 18 },
             noClass: { name: {zh: '不想上課', en: 'Skip Class'}, cost: 1600, preview: '#94a3b8', svg: [{s: 'book'}, {s: 'moon'}], dir: 'down', count: 12 },
             sheep: { name: {zh: '數羊羊', en: 'Counting Sheep'}, cost: 1600, preview: '#e2e8f0', svg: [{s: 'moon'}], dir: 'up', count: 8 },
             cookie: { name: {zh: '餅干碎屑', en: 'Cookies'}, cost: 1600, preview: '#b45309', svg: [{s: 'cookie'}], dir: 'down', count: 12 },
@@ -1858,6 +1873,102 @@ let trialTimeLeft = 10; // 全域記錄試用剩餘時間
                     mark.innerText = '✕';
                     layer.appendChild(mark);
                     break;
+// 🍂 【落葉紛飛】逼真 SVG 葉子飄落效果：帶有暖黃色秋日氛圍濾鏡、柔美隨風搖擺與自然翻轉
+                case 'leaf':
+                    if (!document.getElementById('leafStyle')) {
+                        const style = document.createElement('style');
+                        style.id = 'leafStyle';
+                        style.innerHTML = `
+                            /* 🌟 僅落葉特效專屬：全畫面淡黃色秋日暖光濾鏡圖層 */
+                            .leaf-warm-yellow-overlay {
+                                position: absolute;
+                                top: 0;
+                                left: 0;
+                                width: 100%;
+                                height: 100%;
+                                background: radial-gradient(circle at 50% 30%, rgba(254, 243, 199, 0.35) 0%, rgba(253, 224, 71, 0.2) 60%, rgba(234, 179, 8, 0.15) 100%);
+                                pointer-events: none;
+                                z-index: 1;
+                                mix-blend-mode: multiply;
+                                animation: yellowGlowBreathe 8s ease-in-out infinite alternate;
+                            }
+                            @keyframes yellowGlowBreathe {
+                                0% { opacity: 0.8; }
+                                100% { opacity: 1.0; }
+                            }
+
+                            /* 🌟 微風輕撫版落葉：加入柔和的空氣浮力、慢速擺動與靈動的微幅傾斜 */
+                            .falling-leaf {
+                                position: absolute;
+                                top: -60px;
+                                pointer-events: none;
+                                z-index: 8;
+                                transform-origin: center center;
+                                animation: leafSwayAndFall linear infinite;
+                            }
+                            @keyframes leafSwayAndFall {
+                                0% {
+                                    transform: translateY(-5vh) translateX(0px) rotate(0deg) rotateX(0deg) rotateY(0deg);
+                                    opacity: 0;
+                                }
+                                15% {
+                                    opacity: 0.85;
+                                }
+                                30% {
+                                    transform: translateY(28vh) translateX(var(--sway-distance)) rotate(25deg) rotateX(30deg) rotateY(120deg);
+                                }
+                                55% {
+                                    transform: translateY(55vh) translateX(calc(var(--sway-distance) * -0.7)) rotate(-15deg) rotateX(-20deg) rotateY(240deg);
+                                }
+                                80% {
+                                    transform: translateY(80vh) translateX(calc(var(--sway-distance) * 0.8)) rotate(30deg) rotateX(25deg) rotateY(360deg);
+                                    opacity: 0.85;
+                                }
+                                100% {
+                                    transform: translateY(108vh) translateX(calc(var(--sway-distance) * -0.3)) rotate(10deg) rotateX(0deg) rotateY(480deg);
+                                    opacity: 0;
+                                }
+                            }`;
+                        document.head.appendChild(style);
+                    }
+
+                    // 🌟 1. 建立僅落葉特效專屬的全畫面淡黃色暖光濾鏡
+                    const yellowOverlay = document.createElement('div');
+                    yellowOverlay.className = 'leaf-warm-yellow-overlay';
+                    layer.appendChild(yellowOverlay);
+
+                    // 🌟 2. 建立隨微風漂浮的落葉
+                    const leafTypes = ['leaf', 'leaf_maple', 'leaf_ginkgo'];
+                    const leafCount = 20;
+
+                    for (let i = 0; i < leafCount; i++) {
+                        let el = document.createElement('div');
+                        el.className = 'falling-leaf';
+                        
+                        // 隨機挑選楓葉、銀杏或經典葉子 SVG
+                        let typeKey = leafTypes[Math.floor(Math.random() * leafTypes.length)];
+                        el.innerHTML = svgLib[typeKey] || svgLib['leaf'];
+
+                        // 隨機尺寸與初始左右位置
+                        let size = Math.random() * 26 + 24; // 24px ~ 50px
+                        el.style.width = size + 'px';
+                        el.style.height = size + 'px';
+                        el.style.left = (Math.random() * 100) + '%';
+
+                        // 隨機風吹左右搖擺幅度 (70px ~ 150px)
+                        let swayDist = (Math.random() * 80 + 70) * (Math.random() > 0.5 ? 1 : -1);
+                        el.style.setProperty('--sway-distance', swayDist + 'px');
+
+                        // 隨機飄落速度 (8s ~ 14s) 與延遲時間
+                        let duration = Math.random() * 6 + 8;
+                        let delay = Math.random() * 6;
+                        el.style.animationDuration = duration + 's';
+                        el.style.animationDelay = delay + 's';
+                        el.style.animationTimingFunction = 'ease-in-out';
+
+                        layer.appendChild(el);
+                    }
+                    break;
 // 🌀 【回程挑釁】背景底層流動自定義彈幕 + 藍色魔法火焰 + 滿版神祕藍色月相魔法陣 + 強力向內吸聚水流 + 半罩式清透大泡泡
                 case 'disco':
                     if (!document.getElementById('recallStyle')) {
@@ -2295,8 +2406,32 @@ let trialTimeLeft = 10; // 全域記錄試用剩餘時間
                     }
                     break;
 
-                // 🎆 【小番茄煙火】護眼護機流暢版
+                // 🎆 【小番茄煙火】護眼護機流暢版：附帶黑色暗沉夜空濾鏡圖層
                 case 'tomato':
+                    if (!document.getElementById('tomatoStyle')) {
+                        const style = document.createElement('style');
+                        style.id = 'tomatoStyle';
+                        style.innerHTML = `
+                            /* 🌟 僅小番茄煙火特效專屬：全畫面黑色半透明夜空濾鏡圖層 */
+                            .tomato-dark-overlay {
+                                position: absolute;
+                                top: 0;
+                                left: 0;
+                                width: 100%;
+                                height: 100%;
+                                background: rgba(15, 23, 42, 0.55); /* 柔和深沉夜空黑藍色 */
+                                pointer-events: none;
+                                z-index: 1;
+                                transition: opacity 0.5s ease;
+                            }`;
+                        document.head.appendChild(style);
+                    }
+
+                    // 🌟 1. 建立僅小番茄煙火特效專屬的全畫面黑色濾鏡圖層
+                    const darkOverlay = document.createElement('div');
+                    darkOverlay.className = 'tomato-dark-overlay';
+                    layer.appendChild(darkOverlay);
+
                     if (window.tomatoFwInterval) clearInterval(window.tomatoFwInterval);
                     if (window.tomatoFwTimeout) clearTimeout(window.tomatoFwTimeout);
                     if (window.tomatoAnimFrame) cancelAnimationFrame(window.tomatoAnimFrame);
@@ -2367,6 +2502,90 @@ let trialTimeLeft = 10; // 全域記錄試用剩餘時間
                         window.tomatoFwTimeout = setTimeout(randomLaunch, nextLaunchTime);
                     }
                     randomLaunch(); setTimeout(randomLaunch, 800); 
+                    break;
+                    // ❄️ 【初雪飄落】精緻 8 臂雪花與小雪點：附帶冬日冰藍冷色調濾鏡與飄逸搖擺效果
+                case 'snow':
+                    if (!document.getElementById('snowStyle')) {
+                        const style = document.createElement('style');
+                        style.id = 'snowStyle';
+                        style.innerHTML = `
+                            /* 🌟 僅初雪飄落特效專屬：全畫面冬日冷色調冰藍濾鏡圖層 */
+                            .snow-cool-blue-overlay {
+                                position: absolute;
+                                top: 0;
+                                left: 0;
+                                width: 100%;
+                                height: 100%;
+                                background: linear-gradient(180deg, rgba(224, 242, 254, 0.3) 0%, rgba(186, 230, 253, 0.2) 50%, rgba(147, 197, 253, 0.25) 100%);
+                                backdrop-filter: contrast(1.02) brightness(1.03);
+                                pointer-events: none;
+                                z-index: 1;
+                                animation: snowFrostBreathe 6s ease-in-out infinite alternate;
+                            }
+                            @keyframes snowFrostBreathe {
+                                0% { opacity: 0.85; }
+                                100% { opacity: 1.0; }
+                            }
+
+                            /* 🌟 精緻雪花慢速飄落與輕柔搖擺動畫 */
+                            .falling-snowflake {
+                                position: absolute;
+                                top: -60px;
+                                pointer-events: none;
+                                z-index: 8;
+                                transform-origin: center center;
+                                animation: snowSwayAndFall linear infinite;
+                            }
+                            @keyframes snowSwayAndFall {
+                                0% {
+                                    transform: translateY(-5vh) translateX(0px) rotate(0deg) scale(0.9);
+                                    opacity: 0;
+                                }
+                                15% { opacity: 0.95; }
+                                50% { transform: translateY(50vh) translateX(var(--snow-sway)) rotate(180deg) scale(1.05); }
+                                85% { opacity: 0.95; }
+                                100% {
+                                    transform: translateY(108vh) translateX(calc(var(--snow-sway) * -0.5)) rotate(360deg) scale(0.85);
+                                    opacity: 0;
+                                }
+                            }`;
+                        document.head.appendChild(style);
+                    }
+
+                    // 🌟 1. 建立僅初雪特效專屬的全畫面冬日冷色調濾鏡
+                    const coolOverlay = document.createElement('div');
+                    coolOverlay.className = 'snow-cool-blue-overlay';
+                    layer.appendChild(coolOverlay);
+
+                    // 🌟 2. 建立隨風舞動的精緻結晶雪花與小雪點
+                    const snowTypes = ['snow', 'snow_dot'];
+                    const snowCount = 28;
+
+                    for (let i = 0; i < snowCount; i++) {
+                        let el = document.createElement('div');
+                        el.className = 'falling-snowflake';
+
+                        let typeKey = snowTypes[Math.floor(Math.random() * snowTypes.length)];
+                        el.innerHTML = svgLib[typeKey] || svgLib['snow'];
+
+                        // 隨機大小：精緻雪花為 22px~42px，小雪點為 10px~18px
+                        let size = typeKey === 'snow_dot' ? (Math.random() * 8 + 10) : (Math.random() * 20 + 22);
+                        el.style.width = size + 'px';
+                        el.style.height = size + 'px';
+                        el.style.left = (Math.random() * 100) + '%';
+
+                        // 隨機搖擺幅度
+                        let swayDist = (Math.random() * 60 + 30) * (Math.random() > 0.5 ? 1 : -1);
+                        el.style.setProperty('--snow-sway', swayDist + 'px');
+
+                        // 隨機飄落時間 (6s ~ 11s) 與延遲
+                        let duration = Math.random() * 5 + 6;
+                        let delay = Math.random() * 5;
+                        el.style.animationDuration = duration + 's';
+                        el.style.animationDelay = delay + 's';
+
+                        layer.appendChild(el);
+                    }
                     break;
 // 🎨 【揮灑顏料】從後方砸上來、固定靜止帶拉絲與左下角色系切換
                 case 'paint':
@@ -2549,6 +2768,135 @@ let trialTimeLeft = 10; // 全域記錄試用剩餘時間
                     setTimeout(shootPaint, 200);
                     window.paintTimeout = setTimeout(scheduleNextPaint, 500);
                     break;
+                    // 🌙 【月光灑落】真實感美學：雪兔正後方超大朦朧月亮 + 圍繞在月亮四周、漸漸變白又變成透明散掉的定點雲霧 + 星光閃爍
+                case 'moon':
+                    if (!document.getElementById('moonStyle')) {
+                        const style = document.createElement('style');
+                        style.id = 'moonStyle';
+                        style.innerHTML = `
+                            /* 🌟 1. 夜空深邃冷藍紫色朦朧濾鏡 */
+                            .moon-misty-overlay {
+                                position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+                                background: radial-gradient(circle at 50% 35%, rgba(147, 197, 253, 0.2) 0%, rgba(79, 70, 229, 0.25) 50%, rgba(15, 23, 42, 0.65) 100%);
+                                backdrop-filter: blur(2px) brightness(0.9);
+                                pointer-events: none; z-index: 1;
+                            }
+
+                            /* 🌟 2. 位於畫面正中央（雪兔正後方）的超大真實感月亮與環繞光暈 */
+                            .moon-large-fixture {
+                                position: absolute; top: 28%; left: 50%; transform: translate(-50%, -50%);
+                                width: 320px; height: 320px; pointer-events: none; z-index: 2;
+                                background: radial-gradient(circle, rgba(255, 255, 255, 0.95) 0%, rgba(224, 242, 254, 0.8) 35%, rgba(186, 230, 253, 0.4) 65%, transparent 100%);
+                                border-radius: 50%;
+                                box-shadow: 0 0 60px rgba(224, 242, 254, 0.6), 0 0 120px rgba(147, 197, 253, 0.3);
+                                filter: blur(4px);
+                                animation: moonBreathe 6s ease-in-out infinite alternate;
+                            }
+                            @keyframes moonBreathe { 0% { transform: translate(-50%, -50%) scale(0.98); opacity: 0.9; } 100% { transform: translate(-50%, -50%) scale(1.02); opacity: 1; } }
+
+                            /* 🌟 3. 圍繞在月亮四周、漸漸變白又變成透明散掉的夢幻雲霧 */
+                            .surrounding-cloud {
+                                position: absolute;
+                                top: 28%; left: 50%;
+                                pointer-events: none;
+                                z-index: 3;
+                                background: radial-gradient(ellipse at center, rgba(255, 255, 255, 0.85) 0%, rgba(224, 242, 254, 0.4) 50%, transparent 80%);
+                                filter: blur(18px);
+                                border-radius: 50%;
+                                transform: translate(-50%, -50%);
+                                animation: cloudFadeAndDissolve ease-in-out infinite;
+                            }
+                            @keyframes cloudFadeAndDissolve {
+                                0% {
+                                    transform: translate(-50%, -50%) translate(var(--dx), var(--dy)) scale(0.7);
+                                    opacity: 0;
+                                }
+                                30% {
+                                    opacity: 0.7; /* 變成白色明顯的雲霧 */
+                                }
+                                70% {
+                                    opacity: 0.7; /* 保持質感 */
+                                }
+                                100% {
+                                    transform: translate(-50%, -50%) translate(calc(var(--dx) * 1.5), calc(var(--dy) * 1.5)) scale(1.4);
+                                    opacity: 0; /* 變成透明散掉 */
+                                }
+                            }
+
+                            /* 🌟 4. 閃爍的星光粒子特效 */
+                            .moon-twinkle-star {
+                                position: absolute; pointer-events: none; z-index: 8;
+                                animation: starTwinkle ease-in-out infinite;
+                            }
+                            @keyframes starTwinkle {
+                                0% { transform: scale(0.4); opacity: 0.2; }
+                                50% { transform: scale(1.2); opacity: 1; filter: drop-shadow(0 0 8px #fef08a); }
+                                100% { transform: scale(0.4); opacity: 0.2; }
+                            }
+                        `;
+                        document.head.appendChild(style);
+                    }
+
+                    // 1. 建立夜空冷藍紫朦朧濾鏡
+                    const mistyOverlay = document.createElement('div');
+                    mistyOverlay.className = 'moon-misty-overlay';
+                    layer.appendChild(mistyOverlay);
+
+                    // 2. 建立正中央超大月亮
+                    const moonFixture = document.createElement('div');
+                    moonFixture.className = 'moon-large-fixture';
+                    layer.appendChild(moonFixture);
+
+                    // 3. 在月亮四周產生原地呼吸、變白並漸漸透明散掉的雲霧群
+                    const cloudCount = 7;
+                    for (let c = 0; c < cloudCount; c++) {
+                        let cloudEl = document.createElement('div');
+                        cloudEl.className = 'surrounding-cloud';
+
+                        // 隨機雲朵大小 (寬 160px ~ 260px，高 90px ~ 150px)
+                        let cWidth = Math.random() * 100 + 160;
+                        let cHeight = Math.random() * 60 + 90;
+                        cloudEl.style.width = cWidth + 'px';
+                        cloudEl.style.height = cHeight + 'px';
+
+                        // 圍繞在月亮中心周圍的隨機偏移量
+                        let angle = (c / cloudCount) * Math.PI * 2 + (Math.random() * 0.5);
+                        let distance = Math.random() * 60 + 20; // 距離月亮中心不遠處
+                        let dx = Math.cos(angle) * distance;
+                        let dy = Math.sin(angle) * (distance * 0.6);
+
+                        cloudEl.style.setProperty('--dx', dx + 'px');
+                        cloudEl.style.setProperty('--dy', dy + 'px');
+
+                        // 隨機循環時間 (6s ~ 10s) 與延遲
+                        let duration = Math.random() * 4 + 6;
+                        let delay = Math.random() * 5;
+                        cloudEl.style.animationDuration = duration + 's';
+                        cloudEl.style.animationDelay = delay + 's';
+
+                        layer.appendChild(cloudEl);
+                    }
+
+                    // 4. 產生四周閃爍的星星
+                    const starCount = 20;
+                    for (let i = 0; i < starCount; i++) {
+                        let el = document.createElement('div');
+                        el.className = 'moon-twinkle-star';
+                        el.innerHTML = svgLib['moon_star'];
+
+                        let size = Math.random() * 16 + 10; // 10px ~ 26px
+                        el.style.width = size + 'px'; el.style.height = size + 'px';
+                        el.style.left = (Math.random() * 100) + '%';
+                        el.style.top = (Math.random() * 80) + '%';
+
+                        let duration = Math.random() * 3 + 2; // 2s ~ 5s
+                        let delay = Math.random() * 3;
+                        el.style.animationDuration = duration + 's';
+                        el.style.animationDelay = delay + 's';
+
+                        layer.appendChild(el);
+                    }
+                    break;
 // 💖 【心動幻境】水晶愛心由下往上飄、帶有朦朧透光感，支援滑鼠互動與左下角正方形色系切換
 case 'heartbeat':
     if (window.heartbeatAnimFrame) cancelAnimationFrame(window.heartbeatAnimFrame);
@@ -2618,7 +2966,115 @@ case 'heartbeat':
         let nextTime = 400 + Math.random() * 500;
         window.heartbeatTimeout = setTimeout(spawnProjectorHeart, nextTime);
     }
+// ☀️ 【陽光普照】電影級特效：自然發光丁達爾光束 + 柔和角落暖光暈 + 夢幻彩虹漏光與散景光斑
+                case 'sun':
+                    if (!document.getElementById('sunStyle')) {
+                        const style = document.createElement('style');
+                        style.id = 'sunStyle';
+                        style.innerHTML = `
+                            /* 🌟 1. 電影級暖黃色陽光濾鏡 */
+                            .sun-cinematic-overlay {
+                                position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+                                background: radial-gradient(circle at 85% 15%, rgba(255, 253, 230, 0.5) 0%, rgba(251, 146, 60, 0.2) 50%, transparent 100%);
+                                mix-blend-mode: color-dodge;
+                                pointer-events: none; z-index: 1;
+                                animation: sunBreathe 6s ease-in-out infinite alternate;
+                            }
+                            @keyframes sunBreathe { 0% { opacity: 0.7; } 100% { opacity: 1; } }
 
+                            /* 🌟 2. 透亮發光的丁達爾光束 (透明漸層與強烈發光) */
+                            .sun-god-rays {
+                                position: absolute; top: -40%; right: -30%; width: 180%; height: 180%;
+                                background: radial-gradient(circle at 90% 10%, rgba(255, 255, 255, 0.9) 0%, rgba(254, 240, 138, 0.45) 25%, transparent 65%),
+                                            repeating-linear-gradient(
+                                                135deg,
+                                                rgba(255, 255, 255, 0.35) 0%,
+                                                rgba(255, 251, 235, 0.15) 10%,
+                                                transparent 25%,
+                                                transparent 45%
+                                            );
+                                filter: blur(25px) brightness(1.3);
+                                mix-blend-mode: screen;
+                                pointer-events: none; z-index: 2;
+                                animation: rayShift 12s ease-in-out infinite alternate;
+                            }
+                            @keyframes rayShift { 0% { transform: rotate(-1deg) scale(1); opacity: 0.8; } 100% { transform: rotate(1.5deg) scale(1.06); opacity: 1; } }
+
+                            /* 🌟 3. 彩虹漏光 (Prism / Aurora) */
+                            .sun-prism-arc {
+                                position: absolute; top: -20%; right: -10%; width: 80%; height: 120%;
+                                border-radius: 50%;
+                                box-shadow: -40px 40px 60px 20px rgba(96, 165, 250, 0.25),
+                                            -80px 80px 80px 30px rgba(52, 211, 153, 0.2),
+                                            -120px 120px 100px 40px rgba(250, 204, 21, 0.2),
+                                            -160px 160px 120px 50px rgba(244, 63, 94, 0.15);
+                                filter: blur(30px); pointer-events: none; z-index: 3;
+                                mix-blend-mode: screen;
+                                animation: auroraShift 8s ease-in-out infinite alternate;
+                            }
+                            @keyframes auroraShift { 0% { transform: scale(1) rotate(0deg); opacity: 0.6; } 100% { transform: scale(1.1) rotate(5deg); opacity: 0.9; } }
+
+                            /* 🌟 4. 柔和光暈核心 (去除死板的十字線，改為自然溫暖的光暈) */
+                            .sun-lens-flare { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 4; overflow: hidden; }
+                            .sun-starburst { position: absolute; top: -10px; right: -10px; width: 200px; height: 200px; background: radial-gradient(circle, rgba(255, 255, 255, 0.95) 0%, rgba(254, 240, 138, 0.6) 30%, rgba(251, 146, 60, 0.2) 70%, transparent 100%); mix-blend-mode: screen; filter: blur(8px); animation: starburstPulse 5s ease-in-out infinite alternate; }
+                            @keyframes starburstPulse { 0% { transform: scale(0.95); opacity: 0.85; } 100% { transform: scale(1.05); opacity: 1; } }
+
+                            /* 🌟 4b. 夢幻柔焦光斑與光圈 (Bokeh & Lens Flares) */
+                            .flare-ghost {
+                                position: absolute;
+                                border-radius: 50%;
+                                mix-blend-mode: screen;
+                                pointer-events: none;
+                                transform: translate(-50%, -50%);
+                                filter: blur(8px);
+                            }
+                            .ghost-1 {
+                                top: 28%; left: 70%; width: 70px; height: 70px;
+                                background: radial-gradient(circle, rgba(254, 240, 138, 0.35) 0%, rgba(251, 191, 36, 0.1) 60%, transparent 80%);
+                            }
+                            .ghost-2 {
+                                top: 45%; left: 55%; width: 110px; height: 110px;
+                                background: radial-gradient(circle, rgba(147, 197, 253, 0.3) 0%, rgba(56, 189, 248, 0.1) 60%, transparent 80%);
+                            }
+                            .ghost-3 {
+                                top: 62%; left: 40%; width: 160px; height: 160px;
+                                background: radial-gradient(circle, rgba(196, 181, 253, 0.25) 0%, rgba(139, 92, 246, 0.08) 60%, transparent 80%);
+                            }
+                            .ghost-4 {
+                                top: 80%; left: 22%; width: 220px; height: 220px;
+                                background: radial-gradient(circle, rgba(252, 165, 165, 0.2) 0%, transparent 70%);
+                            }
+                        `;
+                        document.head.appendChild(style);
+                    }
+
+                    // 1. 建立夏日金黃暖光濾鏡
+                    const goldenOverlay = document.createElement('div');
+                    goldenOverlay.className = 'sun-cinematic-overlay';
+                    layer.appendChild(goldenOverlay);
+
+                    // 2. 建立透光、發光的丁達爾光束
+                    const tyndallRays = document.createElement('div');
+                    tyndallRays.className = 'sun-god-rays';
+                    layer.appendChild(tyndallRays);
+
+                    // 3. 建立彩虹漏光
+                    const prismArc = document.createElement('div');
+                    prismArc.className = 'sun-prism-arc';
+                    layer.appendChild(prismArc);
+
+                    // 4. 建立光暈與散景光斑
+                    const flareContainer = document.createElement('div');
+                    flareContainer.className = 'sun-lens-flare';
+                    flareContainer.innerHTML = `
+                        <div class="sun-starburst"></div>
+                        <div class="flare-ghost ghost-1"></div>
+                        <div class="flare-ghost ghost-2"></div>
+                        <div class="flare-ghost ghost-3"></div>
+                        <div class="flare-ghost ghost-4"></div>
+                    `;
+                    layer.appendChild(flareContainer);
+                    break;
     // 💖 【心動幻境】滑鼠互動愛心監聽器：滑鼠滑過時在指標位置生成小愛心
     const mouseHeartHandler = (e) => {
         if (gameState.currentEffect !== 'heartbeat' && trialState.effect !== 'heartbeat') return;
