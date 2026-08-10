@@ -1,5 +1,5 @@
 import prisma from "../../lib/prisma.js";
-
+import { createNotification } from "../notification/notification.service.js";
 /*新增留言*/
 export const createComment = async (bottleId: number, memberId: number, content: string, isAnonymous: boolean = false) => {
     // 防呆：確認瓶子存不存在，以及狀態是不是可以被留言的 (例如: 1 通過)
@@ -97,11 +97,21 @@ export const getCommentsByBottleId = async (bottleId: number, memberId: number |
 export const likeComment = async (commentId: number, memberId: number) => {
     const commentHad = await prisma.comment.findUnique({
         where: { id: commentId },
+        select: {
+            id: true,
+            member_id: true,
+            bottle_id: true,
+        }
     });
 
     if (!commentHad) {
         throw new Error("留言不存在");
     }
+
+    const liker = await prisma.member.findUnique({
+        where: { member_id: memberId },
+        select: { name: true }
+    });
 
     const commentLiked = await prisma.commentLike.findUnique({
         where: {
@@ -124,6 +134,22 @@ export const likeComment = async (commentId: number, memberId: number) => {
                 comment_id: commentId
             }
         });
+
+        if (commentHad.member_id) {
+            const likerName = liker?.name || "未知使用者";
+
+
+            const targetId = commentHad.bottle_id || commentId;
+
+            await createNotification(
+                commentHad.member_id,
+                'COMMENT_LIKE',
+                `${likerName} 按了你的留言讚！`,
+                memberId,
+                targetId
+            ).catch(err => console.error("留言按讚通知發送失敗:", err));
+        }
+
         return { isLiked: true, message: "已按讚" }
     }
 };
@@ -160,6 +186,19 @@ export const createReply = async (bottleId: number, memberId: number, content: s
             member: { select: { name: true } }
         }
     });
+
+    if (parentComment.member_id && parentComment.member_id !== memberId) {
+        // 根據是否匿名決定文案
+        const replierName = isAnonymous ? "有人" : (newReply.member?.name || "未知使用者");
+
+        await createNotification(
+            parentComment.member_id,
+            'COMMENT_REPLY',
+            `${replierName} 回覆了你的留言！`,
+            isAnonymous ? undefined : memberId,
+            bottleId
+        ).catch(err => console.error("留言回覆通知發送失敗:", err));
+    }
 
     return {
         ...newReply,

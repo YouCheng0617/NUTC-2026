@@ -381,7 +381,7 @@ body, html { height: 100vh !important; overflow: hidden !important; background-c
         font-size: 0.95rem !important; color: white !important; position: fixed !important;
         z-index: 90 !important; display: flex !important; align-items: center !important; gap: 8px !important;
     }
-    .ocean-refresh-btn::before { content: "🌊"; font-size: 1.2rem !important; position: static !important; transform: none !important; }
+    .ocean-refresh-btn::before { content: ""; font-size: 1.2rem !important; position: static !important; transform: none !important; display: none !important; }
 
     /* 🏠 手機版回到主頁按鈕 */
     .back-to-home-btn {
@@ -1160,7 +1160,7 @@ body, html { height: 100vh !important; overflow: hidden !important; background-c
 .rules-list li strong { color: #ffffff; font-size: 1.05rem; display: inline-block; margin-bottom: 2px; }
 .rules-footer { margin-top: 18px; text-align: center; font-size: 0.85rem; color: #88bbff; font-weight: bold; font-style: italic; }
 
-@media screen and (max-width: 1100px) { .ocean-rules-board { display: none !important; } }
+
 /* =========================================
    🔥 左側懸浮熱門貼文抽屜 (終極開關必勝版)
    ========================================= */
@@ -1336,9 +1336,12 @@ body, html { height: 100vh !important; overflow: hidden !important; background-c
 .rules-list li::before { content: "🫧"; position: absolute; left: -5px; top: 2px; font-size: 0.9rem; }
 .rules-list li strong { color: #ffffff; font-size: 1.05rem; display: inline-block; margin-bottom: 2px; }
 .rules-footer { margin-top: 18px; text-align: center; font-size: 0.85rem; color: #88bbff; font-weight: bold; font-style: italic; }
-
+/* ✨ 解除手機與平板的隱形封印，讓抽屜霸氣回歸！ */
 @media screen and (max-width: 1100px) {
-  .ocean-popular-board, .ocean-rules-board { display: none !important; }
+    .ocean-popular-board, .ocean-rules-board { 
+        display: block !important; 
+        z-index: 1005 !important; /* 確保抽屜打開時在最上層，絕對不會被海浪或瓶子蓋住喔 */
+    }
 }
 /* =========================================
    💬 留言與回覆專區 (泡泡玻璃美化版)
@@ -1473,13 +1476,34 @@ body, html { height: 100vh !important; overflow: hidden !important; background-c
     overflow: hidden; 
 }
 
-/* 手機版稍微縮小一點才不會擋住畫面 */
+/* 📱 手機版小窩優化：縮小體積 + 智慧半透明防擋視線 + 貼文防擋魔法 */
 @media screen and (max-width: 600px) {
     #mascot-home {
-        width: 130px;
-        height: 130px;
-        left: 15px;
-        bottom: 90px;
+        width: 75px !important;    
+        height: 75px !important;
+        left: 10px !important;     
+        bottom: 85px !important;
+        opacity: 0.55 !important;  
+        transition: all 0.3s ease-in-out !important;
+    }
+
+    body:has(#svg-mermecat-mascot.mascot-sleeping) #mascot-home,
+    #mascot-home:active {
+        opacity: 1 !important;
+        transform: scale(1.15) translateY(-3px) !important;
+        box-shadow: 0 0 25px rgba(77, 166, 255, 0.9) !important;
+        border-color: rgba(255, 255, 255, 0.9) !important;
+    }
+    
+    #svg-mermecat-mascot.mascot-sleeping {
+        transform: scale(0.35) !important; 
+        margin-top: -5px !important; 
+    }
+
+    /* 👇 ✨ 這是最新加的：整體移動主海域，留出小窩的空位！ ✨ 👇 */
+    .main-feed {
+        padding-left: 90px !important; 
+        padding-bottom: 220px !important; 
     }
 }
 
@@ -1490,4 +1514,148 @@ body, html { height: 100vh !important; overflow: hidden !important; background-c
 
 #mascot-home::after {
     content: "";
+}
+/* =========================================
+   ✨ 修復：小助理的家與熱門榜重疊問題
+   ========================================= */
+
+/* 1. 確保左右兩側的抽屜層級絕對高於小窩 */
+.ocean-popular-board, .ocean-rules-board {
+    z-index: 10000 !important; 
+}
+
+/* 2. 當熱門榜展開時，小窩自動「潛水」躲起來，避免擋住視線 */
+body:has(.ocean-popular-board:not(.collapsed)) #mascot-home {
+    transform: scale(0) !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1) !important;
+}
+/* =========================================
+   ✨ 終極平板與全螢幕防擋魔法 (寶寶專屬修正版)
+   ========================================= */
+/* 1. 讓小窩在所有螢幕上平常都乖乖半透明，不擋視線 */
+#mascot-home {
+    opacity: 0.55 !important;
+    transition: all 0.3s ease-in-out !important;
+}
+
+/* 🌟 滑鼠滑過去、點擊、或是小助理睡覺時，才會發光變清晰 */
+body:has(#svg-mermecat-mascot.mascot-sleeping) #mascot-home,
+#mascot-home:hover,
+#mascot-home:active {
+    opacity: 1 !important;
+    transform: scale(1.05) translateY(-3px) !important;
+    box-shadow: 0 15px 35px rgba(0, 20, 40, 0.9) !important;
+    border-color: rgba(255, 255, 255, 0.9) !important;
+}
+
+/* 2. 把主海域的底部空間墊高！滑到底的時候貼文就不會被壓在下面！ */
+.main-feed {
+    padding-bottom: 350px !important; 
+    padding-left: 0 !important; /* 🌟 修復這裡！把之前錯誤的左邊硬推魔法取消，讓畫面恢復置中！ */
+}
+
+/* 3. 專門為平板 (1024px 以下) 調整小窩大小 */
+@media screen and (max-width: 1024px) {
+    #mascot-home {
+        width: 110px !important;
+        height: 110px !important;
+        bottom: 90px !important;
+        left: 20px !important;
+    }
+    
+    #svg-mermecat-mascot.mascot-sleeping {
+        transform: scale(0.5) !important; /* 配合平板小窩縮小 */
+        margin-top: -5px !important;
+    }
+}
+
+/* 4. 專門為手機 (600px 以下) 調整小窩大小 */
+@media screen and (max-width: 600px) {
+    #mascot-home {
+        width: 75px !important;    
+        height: 75px !important;
+        left: 10px !important;     
+        bottom: 85px !important;
+    }
+    
+    #svg-mermecat-mascot.mascot-sleeping {
+        transform: scale(0.35) !important; /* 配合手機小窩縮小 */
+        margin-top: -5px !important; 
+    }
+}
+/* =========================================
+   ✨ 終極防直排與平板完美排版 (寶寶專屬)
+   ========================================= */
+/* 1. 🌟 全域鎖死！絕對不准字體變成直排！不管什麼螢幕都不准擠扁！ */
+.logo, .user-name-text, .header-game-btn {
+    white-space: nowrap !important;
+}
+
+/* 2. 🌟 擴大魔法範圍：把兩行排版的觸發寬度拉大到 1100px，讓所有平板都能完美雙排！ */
+@media screen and (max-width: 1100px) {
+    .light-header {
+        display: flex !important;
+        flex-wrap: wrap !important;
+        padding: 10px 10px !important; 
+        align-items: center !important;
+        justify-content: flex-start !important;
+    }
+    
+    /* 漢堡選單 */
+    .hamburger-btn {
+        order: 1 !important;
+        flex: 0 0 auto !important;
+        margin-right: 8px !important;
+        display: block !important;
+    }
+    
+    /* Logo與遊樂場 */
+    .logo {
+        order: 2 !important;
+        flex: 0 1 auto !important; 
+        margin: 0 !important;
+        display: flex !important;
+        align-items: center !important;
+    }
+    
+    /* 右側按鈕區 (自動推到最右邊) */
+    .nav-actions {
+        order: 3 !important;
+        flex: 0 0 auto !important;
+        margin: 0 0 0 auto !important; 
+        display: flex !important;
+        align-items: center !important;
+    }
+    
+    /* 搜尋框霸佔第二行 */
+    .search-container {
+        order: 4 !important;
+        flex: 0 0 100% !important;
+        margin-top: 12px !important;
+    }
+
+    /* 隱藏名字讓出空間 */
+    .user-name-text {
+        display: none !important;
+    }
+}
+/* =========================================
+   📱 手機版專屬極限瘦身魔法：保證絕不變三層漢堡！
+   ========================================= */
+@media screen and (max-width: 600px) {
+    /* 1. 稍微縮小 Logo 與圖示，讓出寶貴空間 */
+    .logo { font-size: 1.15rem !important; } 
+    .logo img { width: 24px !important; margin-right: 5px !important; } 
+    
+    /* 2. 🌟 關鍵魔法：隱藏遊樂場三個字，只留可愛的搖桿圖示！ */
+    .header-game-btn span { display: none !important; } 
+    .header-game-btn { padding: 5px 10px !important; margin-left: 5px !important; }
+    
+    /* 3. 右邊按鈕群跟著微縮身，榨出完美比例 */
+    .btn-post { padding: 5px 12px !important; font-size: 0.85rem !important; margin-left: 5px !important; }
+    .notification-bell { width: 34px !important; height: 34px !important; font-size: 1.1rem !important; } 
+    .user-info-trigger { padding: 2px 5px !important; }
+    .user-menu-wrapper { gap: 4px !important; }
 }

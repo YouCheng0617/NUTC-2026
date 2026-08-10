@@ -3,6 +3,7 @@ import { signHelper } from "../../lib/signHelper.js";   /*星座計算的工具�
 import { hashPassword, comparePassword } from "../../lib/passWord.js"; /*密碼加密與比對的工具函式*/
 import { generateToken } from "../../lib/LogIn.js"; /*JWT的工具函式*/
 import { sendEmailResetPassword } from "../../lib/mailer.js";
+import { createNotification } from "../notification/notification.service.js";
 const crypto = await import("crypto");
 
 interface MemberData {
@@ -64,7 +65,16 @@ export const createMember = async (memberData: MemberData) => {
             constellation: true,
             bio: true,
         }
-    })
+    });
+
+    await createNotification(
+        newMember.member_id,
+        'SYSTEM',
+        `歡迎來到瓶中信，${newMember.name}！快去投擲你的第一個漂流瓶吧！🌊`
+        // actorId 預設為 undefined，代表系統
+        // targetId 預設為 undefined
+    ).catch(err => console.error("新手通知發送失敗:", err));
+
     return newMember;
 };
 
@@ -200,23 +210,28 @@ export const resetPassword = async (token: string, newPassword: string) => {
 /*更改使用者自己資料*/
 export const updateMember = async (memberId: number, updateData: Partial<MemberData>) => {
     const dataToUpdate: any = {};
-
+    const updatedFields: string[] = [];
     if (updateData.name !== undefined) {
         dataToUpdate.name = updateData.name;
+        updatedFields.push("姓名");
     }
     if (updateData.blood_type !== undefined) {
         dataToUpdate.blood_type = updateData.blood_type;
+        updatedFields.push("血型");
     }
     if (updateData.gender !== undefined) {
         dataToUpdate.gender = updateData.gender || null;
+        updatedFields.push("性別");
     }
     if (updateData.bio !== undefined) {
         dataToUpdate.bio = updateData.bio;
+        updatedFields.push("個人簡介");
     }
     if (updateData.birthday !== undefined) {
         if (updateData.birthday === null || updateData.birthday === "") {
             dataToUpdate.birthday = null;
             dataToUpdate.constellation = "";
+            updatedFields.push("生日與星座");
         } else {
             const birthday = new Date(updateData.birthday);
             if (isNaN(birthday.getTime())) {
@@ -224,6 +239,7 @@ export const updateMember = async (memberId: number, updateData: Partial<MemberD
             } else {
                 dataToUpdate.birthday = birthday;
                 dataToUpdate.constellation = signHelper(birthday);
+                updatedFields.push("生日與星座");
             }
         }
     }
@@ -242,6 +258,15 @@ export const updateMember = async (memberId: number, updateData: Partial<MemberD
                 bio: true,
             }
         });
+
+        const fieldsText = updatedFields.join("、");
+        const notificationContent = `你的個人資料已成功更新（異動項目：${fieldsText}）。`;
+        await createNotification(
+            memberId,
+            'SYSTEM',
+            notificationContent
+        ).catch(err => console.error("更新資料通知發送失敗:", err));
+
         return updatedMember;
     } catch (error: any) {
         if (error.code === "P2025") {
@@ -251,6 +276,7 @@ export const updateMember = async (memberId: number, updateData: Partial<MemberD
     }
 };
 
+/* 追蹤會員 */
 export const followMember = async (followerId: number, followedId: number) => {
 
     if (followerId === followedId) {
@@ -258,12 +284,16 @@ export const followMember = async (followerId: number, followedId: number) => {
     }
 
     const targetMember = await prisma.member.findUnique({
-        where: { member_id: followerId },
+        where: { member_id: followedId },
     })
 
     if (!targetMember) {
         throw new Error("TARGET_NOT_FOUND");
     }
+    const follower = await prisma.member.findUnique({
+        where: { member_id: followerId },
+        select: { name: true }
+    });
 
     const existingFollow = await prisma.follow.findFirst({
         where: {
@@ -288,6 +318,17 @@ export const followMember = async (followerId: number, followedId: number) => {
                 following_id: followedId
             }
         });
+
+        if (follower) {
+            await createNotification(
+                followedId,
+                'NEW_FOLLOWER',
+                `${follower.name} 開始追蹤你了！`,
+                followerId,
+                followerId
+            ).catch(err => console.error("追蹤通知發送失敗:", err));
+        }
+
         return { isFollowing: true, message: "追蹤成功" };
     }
 

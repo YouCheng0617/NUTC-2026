@@ -1,6 +1,7 @@
 import { count } from "node:console";
 import prisma from "../../lib/prisma.js";
 import dotenv from "dotenv";
+import { createNotification } from "../notification/notification.service.js";
 
 /*獲取我丟的瓶子清單*/
 export const getMybottles = async (memberId: number) => {
@@ -35,6 +36,20 @@ export const getMybottles = async (memberId: number) => {
 
 /*按讚/取消按讚瓶子*/
 export const likeBottles = async (bottleId: number, memberId: number) => {
+    const bottle = await prisma.bottle.findUnique({
+        where: { bottle_id: bottleId },
+        select: { member_id: true }
+    });
+
+    const liker = await prisma.member.findUnique({
+        where: { member_id: memberId },
+        select: { name: true }
+    });
+
+    if (!bottle) {
+        throw new Error("找不到該漂流瓶");
+    }
+
     // 1. 先查有沒有按過讚
     const existingLike = await prisma.bottleLike.findUnique({
         where: {
@@ -68,7 +83,19 @@ export const likeBottles = async (bottleId: number, memberId: number) => {
             }
         });
         isLiked = true;
+        if (bottle.member_id) {
+            const likerName = liker?.name || "未知使用者";
+
+            await createNotification(
+                bottle.member_id,
+                'BOTTLE_LIKE',
+                `${likerName} 按了你的漂流瓶讚！`,
+                memberId,
+                bottleId
+            ).catch(err => console.error("按讚通知發送失敗:", err));
+        }
     }
+
 
     // 3. 計算最新總讚數並回傳
     const totalLikes = await prisma.bottleLike.count({
@@ -118,6 +145,20 @@ export const getMyLikedBottles = async (memberId: number) => {
 
 /*儲存/取消儲存瓶子*/
 export const saveBottles = async (bottleId: number, memberId: number) => {
+    const bottle = await prisma.bottle.findUnique({
+        where: { bottle_id: bottleId },
+        select: { member_id: true }
+    });
+
+    const saver = await prisma.member.findUnique({
+        where: { member_id: memberId },
+        select: { name: true }
+    });
+
+    if (!bottle) {
+        throw new Error("找不到該漂流瓶");
+    }
+
     // 1. 先查有沒有儲存
     const existingSave = await prisma.bottleSave.findUnique({
         where: {
@@ -149,6 +190,18 @@ export const saveBottles = async (bottleId: number, memberId: number) => {
             }
         });
         isSaved = true;
+
+        if (bottle.member_id) {
+            const saverName = saver?.name || "未知使用者";
+
+            await createNotification(
+                bottle.member_id,
+                'BOTTLE_SAVE',
+                `${saverName} 收藏了你的漂流瓶！`,
+                memberId,
+                bottleId
+            ).catch(err => console.error("收藏通知發送失敗:", err));
+        }
     }
 
     // 3. 計算最新總讚數並回傳
@@ -313,6 +366,7 @@ export const reportBottle = async (bottleId: number, memberId: number, reason: s
 
     const bottle = await prisma.bottle.findUnique({
         where: { bottle_id: bottleId },
+        select: { member_id: true }
     });
     if (!bottle) {
         throw new Error("BOTTLE_NOT_FOUND");
@@ -326,6 +380,25 @@ export const reportBottle = async (bottleId: number, memberId: number, reason: s
                 reason: trimmedReason,
             }
         });
+
+        if (bottle.member_id) {
+            await createNotification(
+                bottle.member_id,
+                'SYSTEM_ALERT',
+                '你的漂流瓶收到了一次檢舉，請確保內容符合規範。若查核違規，系統將會直接進行下架處理。',
+                undefined,
+                bottleId
+            ).catch(err => console.error("檢舉通知發送失敗:", err));
+        }
+
+        await createNotification(
+            memberId,
+            'SYSTEM',
+            '我們已收到你的檢舉，審查團隊會盡快核實處理，感謝你協助維護社群環境！',
+            undefined,
+            bottleId
+        ).catch(err => console.error("檢舉回饋通知發送失敗:", err));
+
         return newReport;
     } catch (error: any) {
         if (error.code === 'P2002') {
@@ -426,7 +499,6 @@ export const getPopularBottles = async (limit: number = 10) => {
     });
 };
 
-
 export const votePoll = async (bottleId: number, memberId: number, optionId: number) => {
     const option = await prisma.pollOption.findUnique({
         where: { id: optionId },
@@ -461,4 +533,4 @@ export const votePoll = async (bottleId: number, memberId: number, optionId: num
     }
 
     return voteRecord;
-}
+};

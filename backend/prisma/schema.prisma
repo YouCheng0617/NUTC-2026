@@ -56,6 +56,7 @@ model Member {
   followers    Follow[]       @relation("UserFollowedBy") // 哪些人追蹤了這個會員 (我的粉絲)
   PollVote     PollVote[]
   Notification Notification[]
+  Pet          Pet?
 }
 
 model BlacklistedToken {
@@ -271,4 +272,38 @@ model Notification {
   created_at DateTime @default(now())
 
   member Member @relation(fields: [member_id], references: [member_id], onDelete: Cascade)
+}
+
+model Pet {
+  pet_id             Int      @id @default(autoincrement())
+  member_id          Int      @unique
+  coin               Int      @default(0)
+  pet_name           String   @default("神秘雪兔")
+  is_named           Boolean  @default(false)
+  pet_color          String   @default("經典雪兔")
+  background_color   String   @default("基礎藍")
+  background_effects String   @default("none")
+  x                  Int      @default(0)
+  y                  Int      @default(0)
+  created_at         DateTime @default(now())
+  updated_at         DateTime @updatedAt
+
+  last_feed_time   DateTime @default("2000-01-01T00:00:00Z")
+  last_purify_time DateTime @default("2000-01-01T00:00:00Z")
+  last_pet_time    DateTime @default("2000-01-01T00:00:00Z")
+
+  member       Member         @relation(fields: [member_id], references: [member_id], onDelete: Cascade)
+  PetInventory PetInventory[]
+}
+
+model PetInventory {
+  inventory_id Int      @id @default(autoincrement())
+  pet_id       Int
+  category     String
+  item_name    String
+  created_at   DateTime @default(now())
+
+  pet Pet @relation(fields: [pet_id], references: [pet_id], onDelete: Cascade)
+
+  @@unique([pet_id, category, item_name])
 }

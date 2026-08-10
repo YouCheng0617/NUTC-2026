@@ -4,65 +4,29 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>通知中心 - 心情漂流瓶</title>
+    <!-- 引入你的超美 CSS -->
     <link rel="stylesheet" href="notifications.css" />
   </head>
   <body>
     <!-- 全局背景 (沿用你們的深海背景) -->
-    <div class="ocean-bg"></div>
+    <div class="ocean-bg"></div> <!--[cite: 2] -->
 
     <!-- 通知頁面主容器 -->
-    <main class="notif-page-container">
+    <main class="notif-page-container"> <!--[cite: 2] -->
       <!-- 頂部導覽列 -->
-      <header class="notif-header">
-        <button class="back-btn" onclick="history.back()">🔙 返回</button>
-        <h2>通知中心</h2>
-        <button class="mark-all-btn" onclick="markAllAsRead()">全部已讀</button>
+      <header class="notif-header"> <!--[cite: 2] -->
+        <button class="back-btn" onclick="history.back()">🔙 返回</button> <!--[cite: 2] -->
+        <h2>通知中心</h2> <!--[cite: 2] -->
+        <button class="mark-all-btn" onclick="markAllAsReadAPI()">全部已讀</button> <!--[cite: 2] -->
       </header>
 
-      <!-- 通知列表區塊 -->
-      <div class="notif-list">
-        <!-- 類型 1：按讚/收藏 (未讀狀態) -->
-        <div class="notif-card unread">
-          <div class="icon-box heart">❤️</div>
-          <div class="text-box">
-            <p>
-              <strong>海龜寶寶</strong> 喜歡了你的漂流瓶：「今天天氣真好...」
-            </p>
-            <span class="time">10 分鐘前</span>
-          </div>
-          <div class="unread-dot"></div>
-        </div>
-
-        <!-- 類型 2：回覆/留言 (未讀狀態) -->
-        <div class="notif-card unread">
-          <div class="icon-box reply">💬</div>
-          <div class="text-box">
-            <p><strong>神秘客</strong> 回覆了你：「我也這麼覺得！」</p>
-            <span class="time">2 小時前</span>
-          </div>
-          <div class="unread-dot"></div>
-        </div>
-
-        <!-- 類型 3：系統通知 (已讀狀態) -->
-        <div class="notif-card">
-          <div class="icon-box system">🌊</div>
-          <div class="text-box">
-            <p><strong>系統公告</strong> 恭喜你解鎖「深海探險家」專屬成就！</p>
-            <span class="time">昨天 14:30</span>
-          </div>
-        </div>
-
-        <!-- 類型 4：一般追蹤/互動 (已讀狀態) -->
-        <div class="notif-card">
-          <div class="icon-box user">👤</div>
-          <div class="text-box">
-            <p><strong>小海豚</strong> 撿起了你的漂流瓶</p>
-            <span class="time">2026/07/28</span>
-          </div>
-        </div>
+      <!-- 通知列表區塊 (這邊留空，讓 JS 來動態生成！) -->
+      <div class="notif-list" id="notif-list-container">
+        <!-- JS 會在這裡塞入卡片 -->
       </div>
     </main>
 
+    <!-- 引入魔法 JS -->
     <script src="notifications.js"></script>
   </body>
 </html>
