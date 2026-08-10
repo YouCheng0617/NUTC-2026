@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>心情漂流瓶 - 論壇</title>
-    <link rel="stylesheet" href="test.css?v=21" />
+    <link rel="stylesheet" href="test.css?v=22" />
   </head>
 
   <body>
@@ -84,12 +84,18 @@
           <div
             id="user-profile"
             class="user-menu-wrapper"
-            style="display: none; align-items: center; gap: 15px;"
+            style="display: none; align-items: center; gap: 15px"
           >
             <!-- 🔔 鈴鐺區塊 (記得要有 </div> 關閉它！) -->
-            <div class="notification-bell" onclick="window.location.href='notifications.html'" title="查看最新通知">
+            <div
+              class="notification-bell"
+              onclick="window.location.href = 'notifications.html'"
+              title="查看最新通知"
+            >
               🔔
-              <span id="notification-badge" class="badge" style="display: none;">0</span>
+              <span id="notification-badge" class="badge" style="display: none"
+                >0</span
+              >
             </div>
 
             <!-- 👤 這是原本的使用者大頭貼與名字區塊 -->
@@ -228,8 +234,19 @@
                 class="comment-input"
                 autocomplete="off"
               />
-              <label style="font-size: 0.9rem; color: #6688aa; display: flex; align-items: center; gap: 4px; cursor: pointer; user-select: none; white-space: nowrap;">
-                  <input type="checkbox" id="main-comment-anon"> 🎭 匿名
+              <label
+                style="
+                  font-size: 0.9rem;
+                  color: #6688aa;
+                  display: flex;
+                  align-items: center;
+                  gap: 4px;
+                  cursor: pointer;
+                  user-select: none;
+                  white-space: nowrap;
+                "
+              >
+                <input type="checkbox" id="main-comment-anon" /> 🎭 匿名
               </label>
               <button type="button" onclick="submitComment()" class="send-btn">
                 送出
@@ -526,17 +543,20 @@
       </div>
     </div>
 
-    <!-- 🔥 左側懸浮：熱門漂流瓶抽屜 (唯一正牌單把手版) -->
+    <!-- 🔥 左側懸浮：熱門漂流瓶抽屜 -->
     <div class="ocean-popular-board collapsed" id="ocean-popular-board">
       <div
         class="popular-drawer-handle"
-        onclick="document.getElementById('ocean-popular-board').classList.toggle('collapsed')"
+        onclick="
+          document
+            .getElementById('ocean-popular-board')
+            .classList.toggle('collapsed')
+        "
         title="點擊收起/展開熱門貼文"
       >
         <span>🔥 熱門</span>
         <i id="popular-arrow">▶</i>
       </div>
-
       <div class="popular-content-wrapper">
         <div class="popular-header">
           <span class="popular-icon">🔥</span> 熱門海域
@@ -549,7 +569,8 @@
         <div class="popular-footer">✨ 大家都在討論的心事</div>
       </div>
     </div>
-    <!-- 🌊 右側懸浮：深海公約抽屜 (終極乾淨單把手版) -->
+
+    <!-- 🌊 右側懸浮：深海公約抽屜 -->
     <div class="ocean-rules-board collapsed" id="ocean-rules-board">
       <div
         class="rules-drawer-handle"
@@ -563,7 +584,6 @@
         <span>📜 殿規</span>
         <i id="rules-arrow">▶</i>
       </div>
-
       <div class="rules-content-wrapper">
         <div class="rules-header">
           <span class="rules-icon">📜</span> 海神殿規
