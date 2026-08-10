@@ -639,5 +639,52 @@
         });
       });
     </script>
+    <!-- 🌟 1. 手機版專屬：海域選擇彈出選單的黑色半透明遮罩 -->
+    <div id="board-sheet-overlay" class="board-sheet-overlay" onclick="toggleBoardSheet()"></div>
+    
+    <!-- 🌟 2. 手機版專屬：常駐在底部的海域選擇按鈕 -->
+    <div id="mobile-board-btn" class="mobile-board-trigger" onclick="toggleBoardSheet()">
+      <span id="mobile-board-name">🌊 全海域</span>
+      <span class="board-arrow">▲</span>
+    </div>
+
+<!-- 🌟 3. 專屬的抽屜開關邏輯 (請確保這段一定要貼上！) -->
+    <script>
+        // 控制抽屜開關
+        window.toggleBoardSheet = function() {
+            const sidebar = document.querySelector('.sidebar.light-sidebar');
+            const overlay = document.getElementById('board-sheet-overlay');
+            const btn = document.getElementById('mobile-board-btn');
+            
+            if (sidebar && overlay && btn) {
+                sidebar.classList.toggle('sheet-open');
+                overlay.classList.toggle('sheet-open');
+                btn.classList.toggle('sheet-open');
+            }
+        };
+
+        // 自動更新按鈕文字與點擊收合
+        document.addEventListener('DOMContentLoaded', () => {
+            const boardItems = document.querySelectorAll('.sidebar li');
+            const mobileNameDisplay = document.getElementById('mobile-board-name');
+
+            if (mobileNameDisplay) {
+                const activeLi = document.querySelector('.sidebar li.active');
+                if (activeLi) mobileNameDisplay.innerText = activeLi.innerText.trim();
+            }
+
+            boardItems.forEach(li => {
+                li.addEventListener('click', (e) => {
+                    // 把按鈕文字換成點選的海域
+                    if (mobileNameDisplay) mobileNameDisplay.innerText = e.target.innerText.trim();
+                    
+                    // 點選後自動收起抽屜
+                    if (window.innerWidth <= 768) {
+                        window.toggleBoardSheet();
+                    }
+                });
+            });
+        });
+    </script>
   </body>
 </html>

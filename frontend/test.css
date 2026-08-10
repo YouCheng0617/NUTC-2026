@@ -1736,63 +1736,89 @@ body:has(#svg-mermecat-mascot.mascot-sleeping) #mascot-home,
     .ocean-refresh-btn { bottom: 75px !important; right: 10px !important; padding: 8px 12px !important; font-size: 0.8rem !important; z-index: 9998 !important; }
 
     /* 5. 🌟 抽屜與把手終極修復 (絕對不裁切) */
-    div#ocean-popular-board, div#ocean-rules-board {
-        width: 280px !important; 
-        height: auto !important;
-        position: fixed !important;
-        top: 50% !important;
-        transform: translateY(-50%) !important;
-        overflow: visible !important; /* 絕對不能有 hidden */
-        transition: left 0.4s ease, right 0.4s ease !important;
-        opacity: 1 !important;
-        z-index: 10000 !important;
-    }
-    
-    /* 展開：滑入螢幕 */
-    div#ocean-popular-board:not(.collapsed) { left: 0 !important; }
-    div#ocean-rules-board:not(.collapsed) { right: 0 !important; }
+   /* =========================================
+   🚨 終極核彈級修復：抽屜把手防消失 & 完美自適應
+   (請將這段貼在 test.css 的【最底層】)
+   ========================================= */
 
-    /* 收合：退到剛好藏住內容，露出把手的位置！ */
-    div#ocean-popular-board.collapsed { left: -280px !important; }
-    div#ocean-rules-board.collapsed { right: -280px !important; }
+/* 1. 確保抽屜主體尺寸與定位，絕不超出螢幕 */
+div#ocean-popular-board, div#ocean-rules-board {
+    position: fixed !important;
+    top: 50% !important;
+    transform: translateY(-50%) !important;
+    width: 300px !important;
+    max-width: 80vw !important; /* 🌟 保護小手機，最多佔 80% 寬度 */
+    height: auto !important;
+    z-index: 100000 !important;
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    overflow: visible !important; /* 🌟 確保把手能露出來 */
+    transition: left 0.4s ease, right 0.4s ease !important;
+}
 
-    /* 確保抽屜內容區有獨立背景，不會影響外圍 */
-    .popular-content-wrapper, .rules-content-wrapper {
-        position: relative !important;
-        width: 100% !important;
-        height: 100% !important;
-        overflow: hidden !important; /* 只有內容可以被裁切 */
-    }
+/* 2. 精準收合定位 */
+div#ocean-popular-board.collapsed { left: -300px !important; }
+div#ocean-rules-board.collapsed { right: -300px !important; }
+div#ocean-popular-board:not(.collapsed) { left: 0 !important; }
+div#ocean-rules-board:not(.collapsed) { right: 0 !important; }
 
-    /* 完美半圓形把手：絕對不准消失！ */
-    .popular-drawer-handle, .rules-drawer-handle {
-        display: flex !important; position: absolute !important;
-        top: 50% !important; transform: translateY(-50%) !important;
-        width: 45px !important; height: 60px !important;
-        align-items: center !important; justify-content: center !important;
-        pointer-events: auto !important; z-index: 10001 !important;
-        padding: 0 !important; color: transparent !important;
-        opacity: 1 !important; visibility: visible !important;
-    }
-    
-    .popular-drawer-handle {
-        right: -45px !important; /* 強制凸出本體 45px */
-        border-radius: 0 30px 30px 0 !important;
-        background: linear-gradient(135deg, #201040, #0055a5) !important;
-        border: 2px solid #ffcc00 !important; border-left: none !important;
-    }
-    .rules-drawer-handle {
-        left: -45px !important; /* 強制凸出本體 45px */
-        border-radius: 30px 0 0 30px !important;
-        background: linear-gradient(135deg, #0a2341, #0055a5) !important;
-        border: 2px solid #4da6ff !important; border-right: none !important;
-    }
-    
-    /* 清除舊文字，置入大圖示 */
-    .popular-drawer-handle span, .popular-drawer-handle i, .rules-drawer-handle span, .rules-drawer-handle i { display: none !important; }
-    .popular-drawer-handle::before { content: "🔥" !important; font-size: 1.5rem !important; color: white !important; display: block !important;}
-    .rules-drawer-handle::before { content: "📜" !important; font-size: 1.5rem !important; color: white !important; display: block !important;}
+/* 針對超小手機的極限收合修正 */
+@media screen and (max-width: 375px) {
+    div#ocean-popular-board.collapsed { left: -100vw !important; }
+    div#ocean-rules-board.collapsed { right: -100vw !important; }
+}
 
+/* 3. 殺掉所有干擾的隱藏設定，強制無論何時都顯示把手！ */
+div#ocean-popular-board .popular-drawer-handle,
+div#ocean-rules-board .rules-drawer-handle,
+div#ocean-popular-board:not(.collapsed) .popular-drawer-handle,
+div#ocean-rules-board:not(.collapsed) .rules-drawer-handle {
+    display: flex !important; 
+    position: absolute !important;
+    top: 50% !important; 
+    transform: translateY(-50%) !important;
+    width: 42px !important;  
+    height: 65px !important; 
+    padding: 0 !important;
+    align-items: center !important; 
+    justify-content: center !important;
+    cursor: pointer !important; 
+    z-index: 100001 !important;
+    pointer-events: auto !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+}
+
+/* 4. 把手突出定位與造型 */
+.popular-drawer-handle {
+    right: -42px !important; 
+    border-radius: 0 16px 16px 0 !important;
+    background: linear-gradient(135deg, #201040, #0055a5) !important;
+    border: 2px solid #ffcc00 !important; 
+    border-left: none !important;
+}
+.rules-drawer-handle {
+    left: -42px !important; 
+    border-radius: 16px 0 0 16px !important;
+    background: linear-gradient(135deg, #0a2341, #0055a5) !important;
+    border: 2px solid #4da6ff !important; 
+    border-right: none !important;
+}
+
+/* 5. 確保只顯示圖示，不顯示多餘文字與假按鈕 */
+.popular-drawer-handle span, .rules-drawer-handle span,
+.popular-drawer-handle i, .rules-drawer-handle i { display: none !important; }
+
+.popular-drawer-handle::before { content: "🔥" !important; font-size: 1.5rem !important; color: white !important; display: block !important; }
+.rules-drawer-handle::before { content: "📜" !important; font-size: 1.5rem !important; color: white !important; display: block !important; }
+
+/* 徹底消滅導致衝突的隱形 X 按鈕 */
+div#ocean-popular-board .popular-content-wrapper::after,
+div#ocean-rules-board .rules-content-wrapper::after { 
+    display: none !important; 
+    content: none !important; 
+}
     /* 展開時顯示超大 X 按鈕，並隱藏外面的把手 */
     div#ocean-popular-board:not(.collapsed) .popular-drawer-handle,
     div#ocean-rules-board:not(.collapsed) .rules-drawer-handle { display: none !important; }
@@ -1864,4 +1890,436 @@ body:has(#svg-mermecat-mascot.mascot-sleeping) #mascot-home,
 /* 確保抽屜在最上層，絕對不會被任何隱形元素擋住點擊 */
 .ocean-popular-board, .ocean-rules-board {
     z-index: 99999 !important;
+}
+/* =========================================
+   🚨 拯救把手大作戰：確保打開後依然能點擊收回
+   ========================================= */
+@media screen and (max-width: 768px) {
+    /* 1. 絕對不准隱藏把手！展開時也要乖乖露在外面讓你點 */
+    div#ocean-popular-board:not(.collapsed) .popular-drawer-handle,
+    div#ocean-rules-board:not(.collapsed) .rules-drawer-handle { 
+        display: flex !important; 
+    }
+    
+    /* 2. 徹底殺掉沒用又點不到的假 X 關閉按鈕 */
+    div#ocean-popular-board .popular-content-wrapper::after,
+    div#ocean-rules-board .rules-content-wrapper::after { 
+        display: none !important; 
+        content: none !important; 
+    }
+
+    /* 3. 確保抽屜寬度與藏邊距離完美吻合 (避免小手機爆版) */
+    div#ocean-popular-board, div#ocean-rules-board {
+        width: 280px !important;
+        max-width: 280px !important;
+    }
+    
+    /* 4. 精準的收合定位，保證藏得乾淨 */
+    div#ocean-popular-board.collapsed { left: -280px !important; }
+    div#ocean-rules-board.collapsed { right: -280px !important; }
+}
+/* =========================================
+   🚨 終極防擋修復：分離把手位置 & 動態圖層高度
+   ========================================= */
+@media screen and (max-width: 768px) {
+    /* 1. 將兩個把手在垂直方向徹底錯開，絕對不重疊！ */
+    .popular-drawer-handle {
+        top: 35% !important; /* 熱門把手稍微往上移 */
+    }
+    .rules-drawer-handle {
+        top: 65% !important; /* 殿規把手稍微往下移 */
+    }
+
+    /* 2. 抽屜展開時，將整個抽屜的圖層拉到最高！ */
+    /* 這樣打開左邊時，右邊的把手就不會浮在上面擋住文字了！ */
+    div#ocean-popular-board:not(.collapsed) {
+        z-index: 100010 !important;
+    }
+    div#ocean-rules-board:not(.collapsed) {
+        z-index: 100010 !important;
+    }
+
+    /* 3. 確保展開的把手也是最高圖層，保證絕對點得到來收回 */
+    div#ocean-popular-board:not(.collapsed) .popular-drawer-handle,
+    div#ocean-rules-board:not(.collapsed) .rules-drawer-handle {
+        z-index: 100011 !important;
+    }
+}
+/* =========================================
+   🚨 修復：手機版海域瓶子重疊與交錯排版
+   ========================================= */
+@media screen and (max-width: 768px) {
+    #post-container {
+        /* 🌟 把上下間距拉大到 60px，讓瓶子有呼吸空間 */
+        gap: 60px 15px !important; 
+        padding: 40px 15px 220px 15px !important;
+        align-items: start !important; 
+    }
+
+    /* 統一設定瓶子尺寸，先將個別邊距歸零 */
+    #post-container .post-card { 
+        width: 120px !important; 
+        height: 120px !important; 
+        margin-top: 0 !important; 
+    }
+    
+    /* 🌟 核心魔法：讓右邊那排 (偶數) 往下沉 60px，形成完美的錯落感！ */
+    #post-container .post-card:nth-child(even) { 
+        margin-top: 60px !important; 
+    }
+}
+
+/* 針對極限小螢幕 (如 iPhone SE) 的安全微調 */
+@media screen and (max-width: 390px) {
+    #post-container { 
+        gap: 50px 5px !important; 
+    }
+    #post-container .post-card { 
+        width: 105px !important; 
+        height: 105px !important; 
+    }
+    #post-container .post-card:nth-child(even) { 
+        margin-top: 50px !important; 
+    }
+}
+/* =========================================
+   🚀 終極手機版：由下往上彈出的「海域選擇選單 (Bottom Sheet)」
+   ========================================= */
+@media screen and (max-width: 768px) {
+    /* 1. 將原本的底部橫向膠囊改造成「隱藏在畫面底部的抽屜」 */
+    html body div#forum-view div.container aside.sidebar.light-sidebar,
+    .sidebar.light-sidebar {
+        display: flex !important;
+        flex-direction: column !important;
+        position: fixed !important;
+        top: auto !important;
+        bottom: -100% !important; /* 🌟 預設藏在畫面最下方外側 */
+        left: 0 !important;
+        transform: none !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        height: auto !important;
+        min-height: 0 !important;
+        max-height: 70vh !important; /* 最高佔螢幕 70% */
+        background: rgba(10, 35, 65, 0.98) !important;
+        backdrop-filter: blur(20px) !important;
+        border-radius: 30px 30px 0 0 !important;
+        border: 1px solid rgba(77, 166, 255, 0.3) !important;
+        border-bottom: none !important;
+        padding: 35px 20px 40px 20px !important;
+        z-index: 100000 !important;
+        /* 🌟 絲滑的從下往上滑出動畫 */
+        transition: bottom 0.4s cubic-bezier(0.25, 0.8, 0.25, 1) !important;
+        align-items: center !important;
+    }
+
+    /* 抽屜頂部可愛的灰色小拉把提示 */
+    aside.sidebar.light-sidebar::before {
+        content: "";
+        position: absolute;
+        top: 12px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 50px;
+        height: 6px;
+        background: rgba(255, 255, 255, 0.3);
+        border-radius: 10px;
+    }
+
+    /* 🌟 當觸發彈出的動畫 class 時，選單升起！ */
+    aside.sidebar.light-sidebar.sheet-open {
+        bottom: 0 !important;
+    }
+
+    /* 2. 抽屜內部的選項變成直排獨立的大按鈕 */
+    aside.sidebar.light-sidebar ul {
+        display: flex !important;
+        flex-direction: column !important;
+        overflow-y: auto !important;
+        overflow-x: hidden !important;
+        white-space: normal !important;
+        gap: 12px !important;
+        padding: 10px 0 !important;
+        width: 100% !important;
+        align-items: stretch !important;
+    }
+
+    aside.sidebar.light-sidebar li {
+        flex: none !important;
+        padding: 16px 20px !important;
+        font-size: 1.15rem !important;
+        border-radius: 16px !important;
+        text-align: center !important;
+        background: rgba(255, 255, 255, 0.08) !important;
+        color: #d1e8ff !important;
+        border: 1px solid rgba(255, 255, 255, 0.1) !important;
+        margin: 0 !important;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.2) !important;
+    }
+
+    aside.sidebar.light-sidebar li.active,
+    aside.sidebar.light-sidebar li:hover {
+        background: linear-gradient(135deg, #4da6ff, #0055a5) !important;
+        color: white !important;
+        border-color: #7abfff !important;
+        box-shadow: 0 6px 15px rgba(77, 166, 255, 0.4) !important;
+        transform: scale(1.02) !important;
+    }
+
+    /* 3. 取代原本膠囊的「常駐底部觸發按鈕」 */
+    .mobile-board-trigger {
+        display: flex !important;
+        position: fixed !important;
+        bottom: 20px !important;
+        left: 50% !important;
+        transform: translateX(-50%) !important;
+        background: linear-gradient(135deg, #0a2341, #0055a5) !important;
+        border: 2px solid #4da6ff !important;
+        box-shadow: 0 8px 25px rgba(0, 30, 70, 0.8), inset 0 0 10px rgba(77, 166, 255, 0.3) !important;
+        color: white !important;
+        padding: 14px 28px !important;
+        border-radius: 35px !important;
+        font-weight: 900 !important;
+        font-size: 1.1rem !important;
+        z-index: 9999 !important; /* 在抽屜下面 */
+        align-items: center !important;
+        gap: 15px !important;
+        cursor: pointer !important;
+        min-width: 180px !important;
+        justify-content: space-between !important;
+        transition: all 0.2s ease !important;
+    }
+
+    .mobile-board-trigger:active {
+        transform: translateX(-50%) scale(0.95) !important;
+    }
+
+    /* 箭頭動畫：打開選單時箭頭會翻轉 */
+    .board-arrow {
+        font-size: 0.8rem;
+        color: #7abfff;
+        transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+    }
+    .mobile-board-trigger.sheet-open .board-arrow {
+        transform: rotate(180deg);
+    }
+
+    /* 4. 彈出時背後的黑色半透明遮罩 */
+    .board-sheet-overlay {
+        display: block !important;
+        position: fixed !important;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background: rgba(0, 0, 0, 0.6) !important;
+        backdrop-filter: blur(4px) !important;
+        z-index: 99999 !important; /* 在選單之下，按鈕之上 */
+        opacity: 0;
+        visibility: hidden;
+        transition: all 0.3s ease !important;
+        pointer-events: none; 
+    }
+    .board-sheet-overlay.sheet-open {
+        opacity: 1;
+        visibility: visible;
+        pointer-events: auto; /* 打開時攔截點擊 */
+    }
+    
+    /* 5. 確保小窩和海流按鈕稍微往上推，完美避開新的選單按鈕 */
+    #mascot-home { bottom: 95px !important; }
+    .ocean-refresh-btn { bottom: 95px !important; }
+    .back-to-home-btn { bottom: 95px !important; }
+}
+/* =========================================
+   🚀 完美版：手機版底部海域選單 (Bottom Sheet)
+   ========================================= */
+@media screen and (max-width: 768px) {
+    /* 1. 徹底改造舊的底部橫向膠囊，變成隱藏在畫面底部的抽屜 */
+    html body div#forum-view div.container aside.sidebar.light-sidebar,
+    .sidebar.light-sidebar {
+        display: flex !important;
+        flex-direction: column !important;
+        position: fixed !important;
+        top: auto !important;
+        bottom: -100% !important; /* 🌟 預設藏在畫面最下方外側 */
+        left: 0 !important;
+        transform: none !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        height: auto !important;
+        min-height: 0 !important;
+        max-height: 70vh !important; /* 最高佔螢幕 70% */
+        background: rgba(10, 35, 65, 0.98) !important;
+        backdrop-filter: blur(20px) !important;
+        border-radius: 30px 30px 0 0 !important;
+        border: 1px solid rgba(77, 166, 255, 0.3) !important;
+        border-bottom: none !important;
+        padding: 35px 20px 40px 20px !important;
+        z-index: 100000 !important;
+        transition: bottom 0.4s cubic-bezier(0.25, 0.8, 0.25, 1) !important;
+        align-items: center !important;
+    }
+
+    /* 抽屜頂部小拉把提示 */
+    aside.sidebar.light-sidebar::before {
+        content: ""; position: absolute; top: 12px; left: 50%; transform: translateX(-50%);
+        width: 50px; height: 6px; background: rgba(255, 255, 255, 0.3); border-radius: 10px;
+    }
+
+    /* 🌟 當觸發打開時，選單升起！ */
+    aside.sidebar.light-sidebar.sheet-open {
+        bottom: 0 !important;
+    }
+
+    /* 2. 抽屜內部的選項變成直排大按鈕 */
+    aside.sidebar.light-sidebar ul {
+        display: flex !important; flex-direction: column !important;
+        overflow-y: auto !important; overflow-x: hidden !important;
+        white-space: normal !important; gap: 12px !important;
+        padding: 10px 0 !important; width: 100% !important; align-items: stretch !important;
+    }
+
+    aside.sidebar.light-sidebar li {
+        flex: none !important; padding: 16px 20px !important; font-size: 1.15rem !important;
+        border-radius: 16px !important; text-align: center !important;
+        background: rgba(255, 255, 255, 0.08) !important; color: #d1e8ff !important;
+        border: 1px solid rgba(255, 255, 255, 0.1) !important; margin: 0 !important;
+    }
+
+    aside.sidebar.light-sidebar li.active,
+    aside.sidebar.light-sidebar li:hover {
+        background: linear-gradient(135deg, #4da6ff, #0055a5) !important;
+        color: white !important; border-color: #7abfff !important;
+        box-shadow: 0 6px 15px rgba(77, 166, 255, 0.4) !important; transform: scale(1.02) !important;
+    }
+
+    /* 3. 手機版底部觸發主按鈕 */
+    .mobile-board-trigger {
+        display: flex !important; position: fixed !important;
+        bottom: 20px !important; left: 50% !important; transform: translateX(-50%) !important;
+        background: linear-gradient(135deg, #0a2341, #0055a5) !important;
+        border: 2px solid #4da6ff !important;
+        box-shadow: 0 8px 25px rgba(0, 30, 70, 0.8), inset 0 0 10px rgba(77, 166, 255, 0.3) !important;
+        color: white !important; padding: 14px 28px !important; border-radius: 35px !important;
+        font-weight: 900 !important; font-size: 1.1rem !important;
+        z-index: 9999 !important; align-items: center !important; gap: 15px !important;
+        cursor: pointer !important; min-width: 180px !important; justify-content: space-between !important;
+    }
+
+    .board-arrow { transition: transform 0.3s ease; }
+    .mobile-board-trigger.sheet-open .board-arrow { transform: rotate(180deg); }
+
+    /* 4. 黑底遮罩 */
+    .board-sheet-overlay {
+        display: block !important; position: fixed !important;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background: rgba(0, 0, 0, 0.6) !important; backdrop-filter: blur(4px) !important;
+        z-index: 99999 !important; opacity: 0; visibility: hidden;
+        transition: all 0.3s ease !important; pointer-events: none; 
+    }
+    .board-sheet-overlay.sheet-open { opacity: 1; visibility: visible; pointer-events: auto; }
+    
+    /* 5. 確保小窩往上推，不擋住按鈕 */
+    #mascot-home { bottom: 95px !important; }
+}
+/* =========================================
+   🚀 終極手機版：從下往上的大抽屜 (完美顯示 6 個選項)
+   ========================================= */
+@media screen and (max-width: 768px) {
+    /* 1. 改造側邊欄，變成藏在畫面底部的抽屜 */
+    html body div#forum-view div.container aside.sidebar.light-sidebar {
+        display: flex !important;
+        flex-direction: column !important;
+        position: fixed !important;
+        top: auto !important;
+        bottom: -120% !important; /* 🌟 預設藏在最下方 */
+        left: 0 !important;
+        transform: none !important;
+        width: 100vw !important;
+        max-width: 100vw !important;
+        height: auto !important;
+        min-height: 50vh !important; /* 確保有足夠空間顯示選項 */
+        max-height: 80vh !important;
+        background: rgba(10, 35, 65, 0.98) !important;
+        backdrop-filter: blur(20px) !important;
+        border-radius: 30px 30px 0 0 !important;
+        border: 1px solid rgba(77, 166, 255, 0.3) !important;
+        border-bottom: none !important;
+        padding: 40px 20px 90px 20px !important;
+        z-index: 100000 !important;
+        transition: bottom 0.4s cubic-bezier(0.25, 0.8, 0.25, 1) !important;
+        overflow: visible !important;
+        align-items: center !important;
+    }
+
+    /* 🌟 當點擊按鈕時，抽屜升起！ */
+    html body div#forum-view div.container aside.sidebar.light-sidebar.sheet-open {
+        bottom: 0 !important;
+    }
+
+    /* 抽屜頂部的小把手裝飾 */
+    html body div#forum-view div.container aside.sidebar.light-sidebar::before {
+        content: "" !important; display: block !important; position: absolute !important;
+        top: 15px !important; left: 50% !important; transform: translateX(-50%) !important;
+        width: 50px !important; height: 6px !important;
+        background: rgba(255, 255, 255, 0.4) !important; border-radius: 10px !important;
+    }
+
+    /* 2. 強制裡面的 6 個選項變成直排的大按鈕 */
+    html body div#forum-view div.container aside.sidebar.light-sidebar ul {
+        display: flex !important; flex-direction: column !important;
+        width: 100% !important; height: 100% !important;
+        overflow-y: auto !important; overflow-x: hidden !important;
+        white-space: normal !important; gap: 15px !important; 
+        padding: 0 !important; margin: 0 !important; align-items: stretch !important;
+    }
+
+    /* 單個選項按鈕設計 */
+    html body div#forum-view div.container aside.sidebar.light-sidebar li {
+        display: block !important; flex: none !important;
+        width: 100% !important; padding: 18px 20px !important;
+        font-size: 1.15rem !important; border-radius: 16px !important;
+        text-align: center !important; background: rgba(255, 255, 255, 0.08) !important;
+        color: #d1e8ff !important; border: 1px solid rgba(255, 255, 255, 0.1) !important;
+        margin: 0 !important; box-sizing: border-box !important;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.2) !important;
+    }
+
+    /* 選中的選項會發光 */
+    html body div#forum-view div.container aside.sidebar.light-sidebar li.active,
+    html body div#forum-view div.container aside.sidebar.light-sidebar li:hover {
+        background: linear-gradient(135deg, #4da6ff, #0055a5) !important;
+        color: white !important; border-color: #7abfff !important;
+        box-shadow: 0 6px 15px rgba(77, 166, 255, 0.4) !important;
+        transform: scale(1.02) !important;
+    }
+
+    /* 3. 底部觸發主按鈕 */
+    .mobile-board-trigger {
+        display: flex !important; position: fixed !important;
+        bottom: 20px !important; left: 50% !important; transform: translateX(-50%) !important;
+        background: linear-gradient(135deg, #0a2341, #0055a5) !important;
+        border: 2px solid #4da6ff !important;
+        box-shadow: 0 8px 25px rgba(0, 30, 70, 0.8), inset 0 0 10px rgba(77, 166, 255, 0.3) !important;
+        color: white !important; padding: 14px 28px !important; border-radius: 35px !important;
+        font-weight: 900 !important; font-size: 1.1rem !important;
+        z-index: 9999 !important; align-items: center !important; gap: 15px !important;
+        cursor: pointer !important; min-width: 200px !important; justify-content: space-between !important;
+        transition: all 0.2s ease !important;
+    }
+
+    .mobile-board-trigger:active { transform: translateX(-50%) scale(0.95) !important; }
+    .mobile-board-trigger.sheet-open .board-arrow { transform: rotate(180deg); }
+    .board-arrow { font-size: 0.8rem; color: #7abfff; transition: transform 0.3s ease; }
+
+    /* 4. 黑底遮罩 */
+    .board-sheet-overlay {
+        display: block !important; position: fixed !important; top: 0; left: 0; right: 0; bottom: 0;
+        background: rgba(0, 0, 0, 0.6) !important; backdrop-filter: blur(4px) !important;
+        z-index: 99999 !important; opacity: 0; visibility: hidden; transition: all 0.3s ease !important; pointer-events: none; 
+    }
+    .board-sheet-overlay.sheet-open { opacity: 1; visibility: visible; pointer-events: auto; }
+    
+    /* 5. 小窩和按鈕往上避開 */
+    #mascot-home { bottom: 95px !important; }
+    .ocean-refresh-btn { bottom: 95px !important; }
+    .back-to-home-btn { bottom: 95px !important; }
 }

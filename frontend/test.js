@@ -2017,3 +2017,47 @@ async function fetchNotificationCount() {
         console.error("撈取通知數量失敗:", error);
     }
 }
+/* =========================================
+   🚀 手機版海域選單 (Bottom Sheet) 專屬邏輯
+   ========================================= */
+window.toggleBoardSheet = function() {
+    const sidebar = document.querySelector('.sidebar.light-sidebar');
+    const overlay = document.getElementById('board-sheet-overlay');
+    const btn = document.getElementById('mobile-board-btn');
+    
+    if (sidebar && overlay && btn) {
+        sidebar.classList.toggle('sheet-open');
+        overlay.classList.toggle('sheet-open');
+        btn.classList.toggle('sheet-open');
+    }
+};
+
+// 自動更新按鈕文字與點擊收合
+document.addEventListener('DOMContentLoaded', () => {
+    const mobileNameDisplay = document.getElementById('mobile-board-name');
+
+    // 初始載入時，設定好目前的海域文字
+    if (mobileNameDisplay) {
+        const activeLi = document.querySelector('.sidebar li.active');
+        if (activeLi) mobileNameDisplay.innerText = activeLi.innerText.trim();
+    }
+
+    // 綁定點擊事件
+    document.querySelectorAll('.sidebar li').forEach(li => {
+        li.addEventListener('click', (e) => {
+            // 1. 把按鈕文字換成點選的海域
+            if (mobileNameDisplay) {
+                mobileNameDisplay.innerText = e.target.innerText.trim();
+            }
+            
+            // 2. 點選後自動收起抽屜
+            if (window.innerWidth <= 768) {
+                const sidebar = document.querySelector('.sidebar.light-sidebar');
+                // 判斷如果抽屜是打開的狀態，就執行收起
+                if (sidebar && sidebar.classList.contains('sheet-open')) {
+                    window.toggleBoardSheet();
+                }
+            }
+        });
+    });
+});
