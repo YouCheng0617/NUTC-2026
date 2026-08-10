@@ -57,12 +57,27 @@ function renderNotifications(notifications) {
   }
 
   notifications.forEach(notif => {
-    // 判斷通知類型來決定 icon 的樣式 (假設後端會傳 type)
+    // 判斷通知類型來決定 icon 的樣式與 Emoji (匹配後端傳回的 type)
     let iconClass = 'system';
     let iconEmoji = '🌊';
-    if (notif.type === 'like') { iconClass = 'heart'; iconEmoji = '❤️'; }
-    else if (notif.type === 'reply') { iconClass = 'reply'; iconEmoji = '💬'; }
-    else if (notif.type === 'follow') { iconClass = 'user'; iconEmoji = '👤'; }
+    const typeUpper = (notif.type || '').toUpperCase();
+
+    if (typeUpper.includes('LIKE')) {
+      iconClass = 'heart';
+      iconEmoji = '❤️';
+    } else if (typeUpper.includes('REPLY') || typeUpper.includes('COMMENT')) {
+      iconClass = 'reply';
+      iconEmoji = '💬';
+    } else if (typeUpper.includes('SAVE') || typeUpper.includes('BOOKMARK')) {
+      iconClass = 'save';
+      iconEmoji = '⭐';
+    } else if (typeUpper.includes('SYSTEM') || typeUpper.includes('ALERT') || typeUpper.includes('NOTICE')) {
+      iconClass = 'system';
+      iconEmoji = '⚠️';
+    } else if (typeUpper.includes('WELCOME') || typeUpper.includes('USER') || typeUpper.includes('BONUS')) {
+      iconClass = 'user';
+      iconEmoji = '🎉';
+    }
 
     // 判斷是否未讀，決定有沒有亮藍色的 class 和藍點
     // ... 下方的程式碼維持不變，繼續你的卡片生成邏輯 ...
