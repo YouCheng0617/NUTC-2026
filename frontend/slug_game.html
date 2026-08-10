@@ -1134,7 +1134,8 @@ leaf_ginkgo: `<svg viewBox="0 0 100 100"><g stroke="#ca8a04" stroke-width="1.5" 
             cross: `<svg viewBox="0 0 100 100"><path d="M20 20 L80 80 M80 20 L20 80" stroke="#ef4444" stroke-width="15" stroke-linecap="round"/></svg>`,
             lightning: `<svg viewBox="0 0 100 100"><polygon points="55,5 15,55 50,55 45,95 85,45 50,45" fill="#facc15"/></svg>`,
             book: `<svg viewBox="0 0 100 100"><path d="M10 20 L45 30 L45 90 L10 80 Z" fill="#cbd5e1"/><path d="M90 20 L55 30 L55 90 L90 80 Z" fill="#f8fafc"/></svg>`,
-            sun: `<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="25" fill="#facc15"/><path d="M50 10 L50 20 M50 80 L50 90 M10 50 L20 50 M80 50 L90 50 M22 22 L29 29 M71 71 L78 78 M22 78 L29 71 M71 22 L78 29" stroke="#f59e0b" stroke-width="6" stroke-linecap="round"/></svg>`,
+            // 🌟 重新繪製：層次日光漸層、燦爛光芒與核心透亮高光的夏日太陽
+sun: `<svg viewBox="0 0 200 200" style="width:100%; height:100%; filter: drop-shadow(0 0 25px #fde047);"><defs><radialGradient id="sunCoreGlow" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#ffffff" stop-opacity="1"/><stop offset="35%" stop-color="#fef08a" stop-opacity="0.95"/><stop offset="70%" stop-color="#f59e0b" stop-opacity="0.6"/><stop offset="100%" stop-color="#ea580c" stop-opacity="0"/></radialGradient><linearGradient id="sunRayBeam" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" stop-color="#ffffff" stop-opacity="0.9"/><stop offset="100%" stop-color="#fbbf24" stop-opacity="0.2"/></linearGradient></defs><circle cx="100" cy="100" r="90" fill="url(#sunCoreGlow)"/><g stroke="url(#sunRayBeam)" stroke-width="3.5" stroke-linecap="round"><line x1="100" y1="5" x2="100" y2="35"/><line x1="100" y1="165" x2="100" y2="195"/><line x1="5" y1="100" x2="35" y2="100"/><line x1="165" y1="100" x2="195" y2="100"/><line x1="33" y1="33" x2="55" y2="55"/><line x1="145" y1="145" x2="167" y2="167"/><line x1="33" y1="167" x2="55" y2="145"/><line x1="145" y1="55" x2="167" y2="33"/></g><circle cx="100" cy="100" r="35" fill="#ffffff" filter="drop-shadow(0 0 12px #ffffff)"/><circle cx="100" cy="100" r="24" fill="#fef08a"/></svg>`,
             gear: `<svg viewBox="0 0 100 100"><path d="M50 15 A 35 35 0 1 0 85 50 A 35 35 0 0 0 50 15 Z" fill="none" stroke="#94a3b8" stroke-width="12" stroke-dasharray="10 10"/><circle cx="50" cy="50" r="15" fill="none" stroke="#cbd5e1" stroke-width="8"/></svg>`,
             sweat: `<svg viewBox="0 0 100 100"><defs><linearGradient id="animeSweat" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="rgba(255,255,255,0.95)"/><stop offset="40%" stop-color="rgba(186,230,253,0.8)"/><stop offset="100%" stop-color="rgba(56,189,248,0.3)"/></linearGradient><filter id="animeSweatShadow"><feDropShadow dx="1" dy="4" stdDeviation="2" flood-color="#0284c7" flood-opacity="0.25"/></filter></defs><g filter="url(#animeSweatShadow)"><!-- 最大顆的汗滴 (右側) --><g transform="translate(45, 5) rotate(15 25 40)"><path d="M 25 0 C 40 30, 50 45, 50 60 C 50 73.8, 38.8 85, 25 85 C 11.2 85, 0 73.8, 0 60 C 0 45, 10 30, 25 0 Z" fill="url(#animeSweat)"/><path d="M 8 55 C 8 45, 13 30, 20 15" fill="none" stroke="#ffffff" stroke-width="4" stroke-linecap="round"/></g><!-- 中等汗滴 (左上) --><g transform="translate(15, 30) rotate(-10 15 25) scale(0.6)"><path d="M 25 0 C 40 30, 50 45, 50 60 C 50 73.8, 38.8 85, 25 85 C 11.2 85, 0 73.8, 0 60 C 0 45, 10 30, 25 0 Z" fill="url(#animeSweat)"/><path d="M 8 55 C 8 45, 13 30, 20 15" fill="none" stroke="#ffffff" stroke-width="4" stroke-linecap="round"/></g><!-- 小汗滴 (左下) --><g transform="translate(25, 70) rotate(-5 10 15) scale(0.4)"><path d="M 25 0 C 40 30, 50 45, 50 60 C 50 73.8, 38.8 85, 25 85 C 11.2 85, 0 73.8, 0 60 C 0 45, 10 30, 25 0 Z" fill="url(#animeSweat)"/><path d="M 8 55 C 8 45, 13 30, 20 15" fill="none" stroke="#ffffff" stroke-width="4" stroke-linecap="round"/></g></g></svg>`,
             cat: `<svg viewBox="0 0 100 100"><polygon points="15,40 10,10 40,25" fill="#f8fafc" stroke="#475569" stroke-width="4" stroke-linejoin="round"/><polygon points="85,40 90,10 60,25" fill="#f8fafc" stroke="#475569" stroke-width="4" stroke-linejoin="round"/><polygon points="18,35 15,18 32,25" fill="#fbcfe8"/><polygon points="82,35 85,18 68,25" fill="#fbcfe8"/><ellipse cx="50" cy="55" rx="40" ry="30" fill="#f8fafc" stroke="#475569" stroke-width="4"/><circle cx="35" cy="50" r="5" fill="#0f172a"/><circle cx="65" cy="50" r="5" fill="#0f172a"/><ellipse cx="25" cy="58" rx="6" ry="3" fill="#fca5a5" opacity="0.6"/><ellipse cx="75" cy="58" rx="6" ry="3" fill="#fca5a5" opacity="0.6"/><path d="M 45 62 Q 50 67 55 62" fill="none" stroke="#475569" stroke-width="3" stroke-linecap="round"/><circle cx="50" cy="57" r="2" fill="#f43f5e"/><line x1="5" y1="50" x2="15" y2="52" stroke="#475569" stroke-width="3" stroke-linecap="round"/><line x1="2" y1="60" x2="13" y2="58" stroke="#475569" stroke-width="3" stroke-linecap="round"/><line x1="95" y1="50" x2="85" y2="52" stroke="#475569" stroke-width="3" stroke-linecap="round"/><line x1="98" y1="60" x2="87" y2="58" stroke="#475569" stroke-width="3" stroke-linecap="round"/></svg>`,
@@ -1158,7 +1159,7 @@ const effectData = {
             leaf: { name: {zh: '落葉紛飛', en: 'Falling Leaves'}, cost: 1400, preview: '#ea580c', svg: [{s: 'leaf'}, {s: 'leaf_maple'}, {s: 'leaf_ginkgo'}], dir: 'down', count: 20 },
             tomato: { name: {zh: '小番茄煙火', en: 'Tomato Fireworks'}, cost: 1500, preview: '#fca5a5', svg: [{s: 'tomato'}], dir: 'down', count: 12 },
            snow: { name: {zh: '初雪飄落', en: 'Snowfall'}, cost: 1500, preview: '#e0f2fe', svg: [{s: 'snow'}, {s: 'snow_dot'}], dir: 'down', count: 28 },
-            sun: { name: {zh: '陽光普照', en: 'Sunny'}, cost: 1500, preview: '#fb923c', svg: [{s: 'sun'}], dir: 'up', count: 10 },
+            sun: { name: {zh: '陽光普照', en: 'Sunny'}, cost: 1500, preview: '#fb923c', svg: [{s: 'sparkle'}], dir: 'up', count: 20 },
             moon: { name: {zh: '月光灑落', en: 'Moonlight'}, cost: 1500, preview: '#1e293b', svg: [{s: 'moon'}], dir: 'down', count: 8 },
             noClass: { name: {zh: '不想上課', en: 'Skip Class'}, cost: 1600, preview: '#94a3b8', svg: [{s: 'book'}, {s: 'moon'}], dir: 'down', count: 12 },
             sheep: { name: {zh: '數羊羊', en: 'Counting Sheep'}, cost: 1600, preview: '#e2e8f0', svg: [{s: 'moon'}], dir: 'up', count: 8 },
@@ -2832,7 +2833,115 @@ case 'heartbeat':
         let nextTime = 400 + Math.random() * 500;
         window.heartbeatTimeout = setTimeout(spawnProjectorHeart, nextTime);
     }
+// ☀️ 【陽光普照】電影級特效：自然發光丁達爾光束 + 柔和角落暖光暈 + 夢幻彩虹漏光與散景光斑
+                case 'sun':
+                    if (!document.getElementById('sunStyle')) {
+                        const style = document.createElement('style');
+                        style.id = 'sunStyle';
+                        style.innerHTML = `
+                            /* 🌟 1. 電影級暖黃色陽光濾鏡 */
+                            .sun-cinematic-overlay {
+                                position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+                                background: radial-gradient(circle at 85% 15%, rgba(255, 253, 230, 0.5) 0%, rgba(251, 146, 60, 0.2) 50%, transparent 100%);
+                                mix-blend-mode: color-dodge;
+                                pointer-events: none; z-index: 1;
+                                animation: sunBreathe 6s ease-in-out infinite alternate;
+                            }
+                            @keyframes sunBreathe { 0% { opacity: 0.7; } 100% { opacity: 1; } }
 
+                            /* 🌟 2. 透亮發光的丁達爾光束 (透明漸層與強烈發光) */
+                            .sun-god-rays {
+                                position: absolute; top: -40%; right: -30%; width: 180%; height: 180%;
+                                background: radial-gradient(circle at 90% 10%, rgba(255, 255, 255, 0.9) 0%, rgba(254, 240, 138, 0.45) 25%, transparent 65%),
+                                            repeating-linear-gradient(
+                                                135deg,
+                                                rgba(255, 255, 255, 0.35) 0%,
+                                                rgba(255, 251, 235, 0.15) 10%,
+                                                transparent 25%,
+                                                transparent 45%
+                                            );
+                                filter: blur(25px) brightness(1.3);
+                                mix-blend-mode: screen;
+                                pointer-events: none; z-index: 2;
+                                animation: rayShift 12s ease-in-out infinite alternate;
+                            }
+                            @keyframes rayShift { 0% { transform: rotate(-1deg) scale(1); opacity: 0.8; } 100% { transform: rotate(1.5deg) scale(1.06); opacity: 1; } }
+
+                            /* 🌟 3. 彩虹漏光 (Prism / Aurora) */
+                            .sun-prism-arc {
+                                position: absolute; top: -20%; right: -10%; width: 80%; height: 120%;
+                                border-radius: 50%;
+                                box-shadow: -40px 40px 60px 20px rgba(96, 165, 250, 0.25),
+                                            -80px 80px 80px 30px rgba(52, 211, 153, 0.2),
+                                            -120px 120px 100px 40px rgba(250, 204, 21, 0.2),
+                                            -160px 160px 120px 50px rgba(244, 63, 94, 0.15);
+                                filter: blur(30px); pointer-events: none; z-index: 3;
+                                mix-blend-mode: screen;
+                                animation: auroraShift 8s ease-in-out infinite alternate;
+                            }
+                            @keyframes auroraShift { 0% { transform: scale(1) rotate(0deg); opacity: 0.6; } 100% { transform: scale(1.1) rotate(5deg); opacity: 0.9; } }
+
+                            /* 🌟 4. 柔和光暈核心 (去除死板的十字線，改為自然溫暖的光暈) */
+                            .sun-lens-flare { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 4; overflow: hidden; }
+                            .sun-starburst { position: absolute; top: -10px; right: -10px; width: 200px; height: 200px; background: radial-gradient(circle, rgba(255, 255, 255, 0.95) 0%, rgba(254, 240, 138, 0.6) 30%, rgba(251, 146, 60, 0.2) 70%, transparent 100%); mix-blend-mode: screen; filter: blur(8px); animation: starburstPulse 5s ease-in-out infinite alternate; }
+                            @keyframes starburstPulse { 0% { transform: scale(0.95); opacity: 0.85; } 100% { transform: scale(1.05); opacity: 1; } }
+
+                            /* 🌟 4b. 夢幻柔焦光斑與光圈 (Bokeh & Lens Flares) */
+                            .flare-ghost {
+                                position: absolute;
+                                border-radius: 50%;
+                                mix-blend-mode: screen;
+                                pointer-events: none;
+                                transform: translate(-50%, -50%);
+                                filter: blur(8px);
+                            }
+                            .ghost-1 {
+                                top: 28%; left: 70%; width: 70px; height: 70px;
+                                background: radial-gradient(circle, rgba(254, 240, 138, 0.35) 0%, rgba(251, 191, 36, 0.1) 60%, transparent 80%);
+                            }
+                            .ghost-2 {
+                                top: 45%; left: 55%; width: 110px; height: 110px;
+                                background: radial-gradient(circle, rgba(147, 197, 253, 0.3) 0%, rgba(56, 189, 248, 0.1) 60%, transparent 80%);
+                            }
+                            .ghost-3 {
+                                top: 62%; left: 40%; width: 160px; height: 160px;
+                                background: radial-gradient(circle, rgba(196, 181, 253, 0.25) 0%, rgba(139, 92, 246, 0.08) 60%, transparent 80%);
+                            }
+                            .ghost-4 {
+                                top: 80%; left: 22%; width: 220px; height: 220px;
+                                background: radial-gradient(circle, rgba(252, 165, 165, 0.2) 0%, transparent 70%);
+                            }
+                        `;
+                        document.head.appendChild(style);
+                    }
+
+                    // 1. 建立夏日金黃暖光濾鏡
+                    const goldenOverlay = document.createElement('div');
+                    goldenOverlay.className = 'sun-cinematic-overlay';
+                    layer.appendChild(goldenOverlay);
+
+                    // 2. 建立透光、發光的丁達爾光束
+                    const tyndallRays = document.createElement('div');
+                    tyndallRays.className = 'sun-god-rays';
+                    layer.appendChild(tyndallRays);
+
+                    // 3. 建立彩虹漏光
+                    const prismArc = document.createElement('div');
+                    prismArc.className = 'sun-prism-arc';
+                    layer.appendChild(prismArc);
+
+                    // 4. 建立光暈與散景光斑
+                    const flareContainer = document.createElement('div');
+                    flareContainer.className = 'sun-lens-flare';
+                    flareContainer.innerHTML = `
+                        <div class="sun-starburst"></div>
+                        <div class="flare-ghost ghost-1"></div>
+                        <div class="flare-ghost ghost-2"></div>
+                        <div class="flare-ghost ghost-3"></div>
+                        <div class="flare-ghost ghost-4"></div>
+                    `;
+                    layer.appendChild(flareContainer);
+                    break;
     // 💖 【心動幻境】滑鼠互動愛心監聽器：滑鼠滑過時在指標位置生成小愛心
     const mouseHeartHandler = (e) => {
         if (gameState.currentEffect !== 'heartbeat' && trialState.effect !== 'heartbeat') return;
