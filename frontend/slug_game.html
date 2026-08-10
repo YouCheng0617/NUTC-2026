@@ -1126,8 +1126,11 @@ leaf_maple: `<svg viewBox="0 0 100 100"><g fill="#dc2626" stroke="#7f1d1d" strok
 // 🌟 銀杏葉：金黃扇形葉片與細緻脈紋
 leaf_ginkgo: `<svg viewBox="0 0 100 100"><g stroke="#ca8a04" stroke-width="1.5" stroke-linejoin="round"><path d="M 50 90 Q 48 65 50 55 C 20 50, 10 25, 35 15 C 45 10, 48 18, 50 22 C 52 18, 55 10, 65 15 C 90 25, 80 50, 50 55 Q 52 65 50 90 Z" fill="#facc15"/><path d="M 50 55 Q 35 32 25 22 M 50 55 Q 42 30 38 18 M 50 55 Q 50 30 50 18 M 50 55 Q 58 30 62 18 M 50 55 Q 65 32 75 22" fill="none" opacity="0.6"/></g></svg>`,
             moon: `<svg viewBox="0 0 100 100"><path d="M65 15 A 40 40 0 1 1 25 85 A 50 50 0 1 0 65 15 Z" fill="#fef08a"/></svg>`,
-            snow: `<svg viewBox="0 0 100 100"><path d="M50 10 L50 90 M10 50 L90 50 M20 20 L80 80 M20 80 L80 20" stroke="#ffffff" stroke-width="10" stroke-linecap="round"/></svg>`,
-           bubble: `<svg viewBox="0 0 100 100"><defs><radialGradient id="pureCrystal" cx="35%" cy="35%" r="65%"><stop offset="0%" stop-color="#ffffff" stop-opacity="0.95"/><stop offset="30%" stop-color="#bae6fd" stop-opacity="0.15"/><stop offset="70%" stop-color="#38bdf8" stop-opacity="0.05"/><stop offset="90%" stop-color="#0284c7" stop-opacity="0.3"/><stop offset="100%" stop-color="#ffffff" stop-opacity="0.8"/></radialGradient><linearGradient id="rainbowRing" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#38bdf8"/><stop offset="30%" stop-color="#facc15"/><stop offset="65%" stop-color="#ec4899"/><stop offset="100%" stop-color="#a855f7"/></linearGradient></defs><circle cx="50" cy="50" r="45" fill="url(#pureCrystal)" stroke="url(#rainbowRing)" stroke-width="3"/><ellipse cx="33" cy="30" rx="18" ry="6" transform="rotate(-35 33 30)" fill="rgba(255,255,255,0.95)"/><circle cx="70" cy="35" r="3" fill="rgba(255,255,255,0.9)"/></svg>`,
+            // 🌟 1. 8 分支發光精緻雪花
+            snow: `<svg viewBox="0 0 100 100" style="width:100%; height:100%; filter: drop-shadow(0 0 5px #ffffff);"><g stroke="#ffffff" stroke-width="3" stroke-linecap="round" fill="none"><path d="M50 8 L50 92 M8 50 L92 50 M20 20 L80 80 M20 80 L80 20"/><path d="M50 22 L40 12 M50 22 L60 12 M50 78 L40 88 M50 78 L60 88 M22 50 L12 40 M22 50 L12 60 M78 50 L88 40 M78 50 L88 60"/><circle cx="50" cy="50" r="8" stroke="#bae6fd" stroke-width="2.5"/><circle cx="50" cy="50" r="3" fill="#ffffff"/></g></svg>`,
+            // 🌟 2. 替換為發光小雪點
+            snow_dot: `<svg viewBox="0 0 100 100" style="width:100%; height:100%; filter: drop-shadow(0 0 6px #ffffff);"><circle cx="50" cy="50" r="30" fill="#ffffff" opacity="0.95"/><circle cx="50" cy="50" r="18" fill="#ffffff"/></svg>`,
+            bubble: `<svg viewBox="0 0 100 100"><defs><radialGradient id="pureCrystal" cx="35%" cy="35%" r="65%"><stop offset="0%" stop-color="#ffffff" stop-opacity="0.95"/><stop offset="30%" stop-color="#bae6fd" stop-opacity="0.15"/><stop offset="70%" stop-color="#38bdf8" stop-opacity="0.05"/><stop offset="90%" stop-color="#0284c7" stop-opacity="0.3"/><stop offset="100%" stop-color="#ffffff" stop-opacity="0.8"/></radialGradient><linearGradient id="rainbowRing" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#38bdf8"/><stop offset="30%" stop-color="#facc15"/><stop offset="65%" stop-color="#ec4899"/><stop offset="100%" stop-color="#a855f7"/></linearGradient></defs><circle cx="50" cy="50" r="45" fill="url(#pureCrystal)" stroke="url(#rainbowRing)" stroke-width="3"/><ellipse cx="33" cy="30" rx="18" ry="6" transform="rotate(-35 33 30)" fill="rgba(255,255,255,0.95)"/><circle cx="70" cy="35" r="3" fill="rgba(255,255,255,0.9)"/></svg>`,
             cross: `<svg viewBox="0 0 100 100"><path d="M20 20 L80 80 M80 20 L20 80" stroke="#ef4444" stroke-width="15" stroke-linecap="round"/></svg>`,
             lightning: `<svg viewBox="0 0 100 100"><polygon points="55,5 15,55 50,55 45,95 85,45 50,45" fill="#facc15"/></svg>`,
             book: `<svg viewBox="0 0 100 100"><path d="M10 20 L45 30 L45 90 L10 80 Z" fill="#cbd5e1"/><path d="M90 20 L55 30 L55 90 L90 80 Z" fill="#f8fafc"/></svg>`,
@@ -1154,7 +1157,7 @@ const effectData = {
             math: { name: {zh: '數學當機', en: 'Math Error'}, cost: 1200, preview: '#0f172a', svg: [{s: 'cross'}, {s: 'book'}], dir: 'down', count: 20 },
             leaf: { name: {zh: '落葉紛飛', en: 'Falling Leaves'}, cost: 1400, preview: '#ea580c', svg: [{s: 'leaf'}, {s: 'leaf_maple'}, {s: 'leaf_ginkgo'}], dir: 'down', count: 20 },
             tomato: { name: {zh: '小番茄煙火', en: 'Tomato Fireworks'}, cost: 1500, preview: '#fca5a5', svg: [{s: 'tomato'}], dir: 'down', count: 12 },
-            snow: { name: {zh: '初雪飄落', en: 'Snowfall'}, cost: 1500, preview: '#e0f2fe', svg: [{s: 'snow'}], dir: 'down', count: 25 },
+           snow: { name: {zh: '初雪飄落', en: 'Snowfall'}, cost: 1500, preview: '#e0f2fe', svg: [{s: 'snow'}, {s: 'snow_dot'}], dir: 'down', count: 28 },
             sun: { name: {zh: '陽光普照', en: 'Sunny'}, cost: 1500, preview: '#fb923c', svg: [{s: 'sun'}], dir: 'up', count: 10 },
             moon: { name: {zh: '月光灑落', en: 'Moonlight'}, cost: 1500, preview: '#1e293b', svg: [{s: 'moon'}], dir: 'down', count: 8 },
             noClass: { name: {zh: '不想上課', en: 'Skip Class'}, cost: 1600, preview: '#94a3b8', svg: [{s: 'book'}, {s: 'moon'}], dir: 'down', count: 12 },
@@ -2494,6 +2497,90 @@ let trialTimeLeft = 10; // 全域記錄試用剩餘時間
                         window.tomatoFwTimeout = setTimeout(randomLaunch, nextLaunchTime);
                     }
                     randomLaunch(); setTimeout(randomLaunch, 800); 
+                    break;
+                    // ❄️ 【初雪飄落】精緻 8 臂雪花與小雪點：附帶冬日冰藍冷色調濾鏡與飄逸搖擺效果
+                case 'snow':
+                    if (!document.getElementById('snowStyle')) {
+                        const style = document.createElement('style');
+                        style.id = 'snowStyle';
+                        style.innerHTML = `
+                            /* 🌟 僅初雪飄落特效專屬：全畫面冬日冷色調冰藍濾鏡圖層 */
+                            .snow-cool-blue-overlay {
+                                position: absolute;
+                                top: 0;
+                                left: 0;
+                                width: 100%;
+                                height: 100%;
+                                background: linear-gradient(180deg, rgba(224, 242, 254, 0.3) 0%, rgba(186, 230, 253, 0.2) 50%, rgba(147, 197, 253, 0.25) 100%);
+                                backdrop-filter: contrast(1.02) brightness(1.03);
+                                pointer-events: none;
+                                z-index: 1;
+                                animation: snowFrostBreathe 6s ease-in-out infinite alternate;
+                            }
+                            @keyframes snowFrostBreathe {
+                                0% { opacity: 0.85; }
+                                100% { opacity: 1.0; }
+                            }
+
+                            /* 🌟 精緻雪花慢速飄落與輕柔搖擺動畫 */
+                            .falling-snowflake {
+                                position: absolute;
+                                top: -60px;
+                                pointer-events: none;
+                                z-index: 8;
+                                transform-origin: center center;
+                                animation: snowSwayAndFall linear infinite;
+                            }
+                            @keyframes snowSwayAndFall {
+                                0% {
+                                    transform: translateY(-5vh) translateX(0px) rotate(0deg) scale(0.9);
+                                    opacity: 0;
+                                }
+                                15% { opacity: 0.95; }
+                                50% { transform: translateY(50vh) translateX(var(--snow-sway)) rotate(180deg) scale(1.05); }
+                                85% { opacity: 0.95; }
+                                100% {
+                                    transform: translateY(108vh) translateX(calc(var(--snow-sway) * -0.5)) rotate(360deg) scale(0.85);
+                                    opacity: 0;
+                                }
+                            }`;
+                        document.head.appendChild(style);
+                    }
+
+                    // 🌟 1. 建立僅初雪特效專屬的全畫面冬日冷色調濾鏡
+                    const coolOverlay = document.createElement('div');
+                    coolOverlay.className = 'snow-cool-blue-overlay';
+                    layer.appendChild(coolOverlay);
+
+                    // 🌟 2. 建立隨風舞動的精緻結晶雪花與小雪點
+                    const snowTypes = ['snow', 'snow_dot'];
+                    const snowCount = 28;
+
+                    for (let i = 0; i < snowCount; i++) {
+                        let el = document.createElement('div');
+                        el.className = 'falling-snowflake';
+
+                        let typeKey = snowTypes[Math.floor(Math.random() * snowTypes.length)];
+                        el.innerHTML = svgLib[typeKey] || svgLib['snow'];
+
+                        // 隨機大小：精緻雪花為 22px~42px，小雪點為 10px~18px
+                        let size = typeKey === 'snow_dot' ? (Math.random() * 8 + 10) : (Math.random() * 20 + 22);
+                        el.style.width = size + 'px';
+                        el.style.height = size + 'px';
+                        el.style.left = (Math.random() * 100) + '%';
+
+                        // 隨機搖擺幅度
+                        let swayDist = (Math.random() * 60 + 30) * (Math.random() > 0.5 ? 1 : -1);
+                        el.style.setProperty('--snow-sway', swayDist + 'px');
+
+                        // 隨機飄落時間 (6s ~ 11s) 與延遲
+                        let duration = Math.random() * 5 + 6;
+                        let delay = Math.random() * 5;
+                        el.style.animationDuration = duration + 's';
+                        el.style.animationDelay = delay + 's';
+
+                        layer.appendChild(el);
+                    }
                     break;
 // 🎨 【揮灑顏料】從後方砸上來、固定靜止帶拉絲與左下角色系切換
                 case 'paint':
