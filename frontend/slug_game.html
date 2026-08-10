@@ -1117,7 +1117,14 @@
             drop: `<svg viewBox="0 0 100 100"><polygon points="48,0 52,0 50,100" fill="rgba(255, 255, 255, 0.3)"/><polygon points="49.5,0 50.5,0 50,80" fill="rgba(255, 255, 255, 0.9)"/></svg>`,
             star: `<svg viewBox="0 0 100 100"><polygon points="50,5 61,35 95,35 68,55 79,85 50,65 21,85 32,55 5,35 39,35" fill="#facc15"/></svg>`,
             sparkle: `<svg viewBox="0 0 100 100"><path d="M50 5 Q50 50 95 50 Q50 50 50 95 Q50 50 5 50 Q50 50 5 50 Z" fill="#fef08a"/></svg>`,
-            leaf: `<svg viewBox="0 0 100 100"><path d="M50 10 C80 10 90 40 90 60 C90 80 50 90 50 90 C20 90 10 60 10 40 C10 20 50 10 50 10 Z" fill="#ea580c"/></svg>`,
+            // 🌟 櫸樹秋葉：雙色漸層與葉脈細節
+leaf: `<svg viewBox="0 0 100 100"><g stroke="#7c2d12" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M 50 90 L 50 15 M 50 15 C 20 25, 10 50, 25 75 C 35 85, 45 88, 50 90 Z" fill="#ea580c"/><path d="M 50 15 C 80 25, 90 50, 75 75 C 65 85, 55 88, 50 90 Z" fill="#f97316"/><path d="M 50 35 Q 35 45 25 50 M 50 50 Q 30 60 22 68 M 50 65 Q 38 72 32 78"/><path d="M 50 35 Q 65 45 75 50 M 50 50 Q 70 60 78 68 M 50 65 Q 62 72 68 78"/></g></svg>`,
+
+// 🌟 楓葉：經典鋸齒邊緣與鮮紅葉脈
+leaf_maple: `<svg viewBox="0 0 100 100"><g fill="#dc2626" stroke="#7f1d1d" stroke-width="1.5" stroke-linejoin="round"><path d="M 50 88 L 50 72 Q 40 70 30 78 L 35 60 Q 20 62 10 52 L 25 42 Q 12 28 22 25 L 38 35 Q 35 18 50 8 Q 65 18 62 35 L 78 25 Q 88 28 75 42 L 90 52 Q 80 62 65 60 L 70 78 Q 60 70 50 72 L 50 88 Z"/><path d="M 50 72 L 50 25 M 50 55 L 28 40 M 50 55 L 72 40 M 50 65 L 20 55 M 50 65 L 80 55" stroke="#7f1d1d" stroke-width="1.5" fill="none"/></g></svg>`,
+
+// 🌟 銀杏葉：金黃扇形葉片與細緻脈紋
+leaf_ginkgo: `<svg viewBox="0 0 100 100"><g stroke="#ca8a04" stroke-width="1.5" stroke-linejoin="round"><path d="M 50 90 Q 48 65 50 55 C 20 50, 10 25, 35 15 C 45 10, 48 18, 50 22 C 52 18, 55 10, 65 15 C 90 25, 80 50, 50 55 Q 52 65 50 90 Z" fill="#facc15"/><path d="M 50 55 Q 35 32 25 22 M 50 55 Q 42 30 38 18 M 50 55 Q 50 30 50 18 M 50 55 Q 58 30 62 18 M 50 55 Q 65 32 75 22" fill="none" opacity="0.6"/></g></svg>`,
             moon: `<svg viewBox="0 0 100 100"><path d="M65 15 A 40 40 0 1 1 25 85 A 50 50 0 1 0 65 15 Z" fill="#fef08a"/></svg>`,
             snow: `<svg viewBox="0 0 100 100"><path d="M50 10 L50 90 M10 50 L90 50 M20 20 L80 80 M20 80 L80 20" stroke="#ffffff" stroke-width="10" stroke-linecap="round"/></svg>`,
            bubble: `<svg viewBox="0 0 100 100"><defs><radialGradient id="pureCrystal" cx="35%" cy="35%" r="65%"><stop offset="0%" stop-color="#ffffff" stop-opacity="0.95"/><stop offset="30%" stop-color="#bae6fd" stop-opacity="0.15"/><stop offset="70%" stop-color="#38bdf8" stop-opacity="0.05"/><stop offset="90%" stop-color="#0284c7" stop-opacity="0.3"/><stop offset="100%" stop-color="#ffffff" stop-opacity="0.8"/></radialGradient><linearGradient id="rainbowRing" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#38bdf8"/><stop offset="30%" stop-color="#facc15"/><stop offset="65%" stop-color="#ec4899"/><stop offset="100%" stop-color="#a855f7"/></linearGradient></defs><circle cx="50" cy="50" r="45" fill="url(#pureCrystal)" stroke="url(#rainbowRing)" stroke-width="3"/><ellipse cx="33" cy="30" rx="18" ry="6" transform="rotate(-35 33 30)" fill="rgba(255,255,255,0.95)"/><circle cx="70" cy="35" r="3" fill="rgba(255,255,255,0.9)"/></svg>`,
@@ -1145,7 +1152,7 @@ const effectData = {
             tvStatic: { name: {zh: '阿嬤的舊電視', en: 'Old TV'}, cost: 1000, preview: '#94a3b8', svg: [{s: 'tvStatic'}], dir: 'down', count: 12 },
             bubble: { name: {zh: '夢幻泡泡', en: 'Bubbles'}, cost: 1200, preview: '#67e8f9', svg: [{s: 'bubble'}], dir: 'up', count: 15 },
             math: { name: {zh: '數學當機', en: 'Math Error'}, cost: 1200, preview: '#0f172a', svg: [{s: 'cross'}, {s: 'book'}], dir: 'down', count: 20 },
-            leaf: { name: {zh: '落葉紛飛', en: 'Falling Leaves'}, cost: 1400, preview: '#ea580c', svg: [{s: 'leaf'}], dir: 'down', count: 15 },
+            leaf: { name: {zh: '落葉紛飛', en: 'Falling Leaves'}, cost: 1400, preview: '#ea580c', svg: [{s: 'leaf'}, {s: 'leaf_maple'}, {s: 'leaf_ginkgo'}], dir: 'down', count: 20 },
             tomato: { name: {zh: '小番茄煙火', en: 'Tomato Fireworks'}, cost: 1500, preview: '#fca5a5', svg: [{s: 'tomato'}], dir: 'down', count: 12 },
             snow: { name: {zh: '初雪飄落', en: 'Snowfall'}, cost: 1500, preview: '#e0f2fe', svg: [{s: 'snow'}], dir: 'down', count: 25 },
             sun: { name: {zh: '陽光普照', en: 'Sunny'}, cost: 1500, preview: '#fb923c', svg: [{s: 'sun'}], dir: 'up', count: 10 },
@@ -1857,6 +1864,102 @@ let trialTimeLeft = 10; // 全域記錄試用剩餘時間
                     mark.className = 'wrong-mark';
                     mark.innerText = '✕';
                     layer.appendChild(mark);
+                    break;
+// 🍂 【落葉紛飛】逼真 SVG 葉子飄落效果：帶有暖黃色秋日氛圍濾鏡、柔美隨風搖擺與自然翻轉
+                case 'leaf':
+                    if (!document.getElementById('leafStyle')) {
+                        const style = document.createElement('style');
+                        style.id = 'leafStyle';
+                        style.innerHTML = `
+                            /* 🌟 僅落葉特效專屬：全畫面淡黃色秋日暖光濾鏡圖層 */
+                            .leaf-warm-yellow-overlay {
+                                position: absolute;
+                                top: 0;
+                                left: 0;
+                                width: 100%;
+                                height: 100%;
+                                background: radial-gradient(circle at 50% 30%, rgba(254, 243, 199, 0.35) 0%, rgba(253, 224, 71, 0.2) 60%, rgba(234, 179, 8, 0.15) 100%);
+                                pointer-events: none;
+                                z-index: 1;
+                                mix-blend-mode: multiply;
+                                animation: yellowGlowBreathe 8s ease-in-out infinite alternate;
+                            }
+                            @keyframes yellowGlowBreathe {
+                                0% { opacity: 0.8; }
+                                100% { opacity: 1.0; }
+                            }
+
+                            /* 🌟 微風輕撫版落葉：加入柔和的空氣浮力、慢速擺動與靈動的微幅傾斜 */
+                            .falling-leaf {
+                                position: absolute;
+                                top: -60px;
+                                pointer-events: none;
+                                z-index: 8;
+                                transform-origin: center center;
+                                animation: leafSwayAndFall linear infinite;
+                            }
+                            @keyframes leafSwayAndFall {
+                                0% {
+                                    transform: translateY(-5vh) translateX(0px) rotate(0deg) rotateX(0deg) rotateY(0deg);
+                                    opacity: 0;
+                                }
+                                15% {
+                                    opacity: 0.85;
+                                }
+                                30% {
+                                    transform: translateY(28vh) translateX(var(--sway-distance)) rotate(25deg) rotateX(30deg) rotateY(120deg);
+                                }
+                                55% {
+                                    transform: translateY(55vh) translateX(calc(var(--sway-distance) * -0.7)) rotate(-15deg) rotateX(-20deg) rotateY(240deg);
+                                }
+                                80% {
+                                    transform: translateY(80vh) translateX(calc(var(--sway-distance) * 0.8)) rotate(30deg) rotateX(25deg) rotateY(360deg);
+                                    opacity: 0.85;
+                                }
+                                100% {
+                                    transform: translateY(108vh) translateX(calc(var(--sway-distance) * -0.3)) rotate(10deg) rotateX(0deg) rotateY(480deg);
+                                    opacity: 0;
+                                }
+                            }`;
+                        document.head.appendChild(style);
+                    }
+
+                    // 🌟 1. 建立僅落葉特效專屬的全畫面淡黃色暖光濾鏡
+                    const yellowOverlay = document.createElement('div');
+                    yellowOverlay.className = 'leaf-warm-yellow-overlay';
+                    layer.appendChild(yellowOverlay);
+
+                    // 🌟 2. 建立隨微風漂浮的落葉
+                    const leafTypes = ['leaf', 'leaf_maple', 'leaf_ginkgo'];
+                    const leafCount = 20;
+
+                    for (let i = 0; i < leafCount; i++) {
+                        let el = document.createElement('div');
+                        el.className = 'falling-leaf';
+                        
+                        // 隨機挑選楓葉、銀杏或經典葉子 SVG
+                        let typeKey = leafTypes[Math.floor(Math.random() * leafTypes.length)];
+                        el.innerHTML = svgLib[typeKey] || svgLib['leaf'];
+
+                        // 隨機尺寸與初始左右位置
+                        let size = Math.random() * 26 + 24; // 24px ~ 50px
+                        el.style.width = size + 'px';
+                        el.style.height = size + 'px';
+                        el.style.left = (Math.random() * 100) + '%';
+
+                        // 隨機風吹左右搖擺幅度 (70px ~ 150px)
+                        let swayDist = (Math.random() * 80 + 70) * (Math.random() > 0.5 ? 1 : -1);
+                        el.style.setProperty('--sway-distance', swayDist + 'px');
+
+                        // 隨機飄落速度 (8s ~ 14s) 與延遲時間
+                        let duration = Math.random() * 6 + 8;
+                        let delay = Math.random() * 6;
+                        el.style.animationDuration = duration + 's';
+                        el.style.animationDelay = delay + 's';
+                        el.style.animationTimingFunction = 'ease-in-out';
+
+                        layer.appendChild(el);
+                    }
                     break;
 // 🌀 【回程挑釁】背景底層流動自定義彈幕 + 藍色魔法火焰 + 滿版神祕藍色月相魔法陣 + 強力向內吸聚水流 + 半罩式清透大泡泡
                 case 'disco':
