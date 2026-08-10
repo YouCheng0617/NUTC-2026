@@ -2323,3 +2323,22 @@ div#ocean-rules-board .rules-content-wrapper::after {
     .ocean-refresh-btn { bottom: 95px !important; }
     .back-to-home-btn { bottom: 95px !important; }
 }
+/* =========================================
+   🚨 終極修復：確保任何螢幕都能滑到全部選項
+   ========================================= */
+@media screen and (max-width: 768px) {
+    /* 1. 修正大抽屜的外框，縮小底部過大的留白，並限制最高高度 */
+    html body div#forum-view div.container aside.sidebar.light-sidebar,
+    .sidebar.light-sidebar {
+        max-height: 75vh !important; /* 最高只佔螢幕的 75% */
+        padding: 35px 15px 20px 15px !important; /* 🌟 底部留白縮小，把空間還給選項 */
+    }
+
+    /* 2. 🌟 核心魔法：讓選項列表變成「可獨立上下滑動」的區塊！ */
+    html body div#forum-view div.container aside.sidebar.light-sidebar ul {
+        flex: 1 1 auto !important; /* 讓選單自動填滿抽屜剩下的空間 */
+        overflow-y: auto !important; /* 🌟 裝不下的選項就允許上下滑動 */
+        padding-bottom: 10px !important; 
+        height: auto !important;
+    }
+}
