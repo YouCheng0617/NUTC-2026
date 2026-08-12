@@ -424,7 +424,20 @@ body, html { height: 100vh !important; overflow: hidden !important; background-c
     .user-name-text { display: none !important; }
     .logo { font-size: 1.25rem !important; }
 }
+@media screen and (max-width: 768px) {
+    /* 🌊 1. 修復發文框框爆版與置中問題 */
+    .ocean-post-modal {
+        box-sizing: border-box !important; /* 🌟 關鍵魔法：確保內距不會把寬度撐破 */
+        padding: 25px 20px !important;     /* 縮小手機版的內距，讓文字跟按鈕有舒適的呼吸空間 */
+        width: 95% !important;             /* 稍微加寬一點點，讓邊緣更好看 */
+    }
 
+    /* 🌊 2. 讓下拉選單在手機上乖乖上下排好 */
+    .ocean-post-form .form-row {
+        flex-direction: column !important; /* 從左右並排改為上下排列 */
+        gap: 12px !important;
+    }
+}
 /* =========================================
    💌 空狀態置中 
    ========================================= */
