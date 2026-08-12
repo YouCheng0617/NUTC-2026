@@ -2487,3 +2487,58 @@ div#ocean-rules-board .rules-content-wrapper::after {
         text-align: center;
     }
 }
+/* =========================================
+   📱💻 平板專屬放大魔法 (保持手機排版，但東西變大)
+   ========================================= */
+@media screen and (min-width: 769px) and (max-width: 1024px) {
+    /* 1. 瓶子等比例放大 */
+    #post-container .post-card {
+        width: 160px !important;
+        height: 160px !important;
+    }
+    
+    /* 瓶蓋跟軟木塞跟著變大 */
+    #post-container .post-card::before { width: 50px !important; height: 30px !important; top: -25px !important; }
+    #post-container .post-card::after { width: 65px !important; height: 14px !important; top: -5px !important; }
+    
+    /* 瓶子裡的字體也稍微放大 */
+    #post-container .post-card h2 { font-size: 1.25rem !important; margin-bottom: 10px !important; }
+    #post-container .post-card > div:first-child > div:nth-child(2) { font-size: 0.9rem !important; padding: 4px 12px !important; }
+
+    /* 2. 海域間距與下沉比例跟著撐開 */
+    #post-container {
+        gap: 80px 40px !important; /* 左右與上下間距拉大，填滿平板畫面 */
+        padding: 50px 40px 280px 40px !important;
+    }
+    
+    /* 右邊那排下沉的距離也要跟著加大，維持完美的 V 字錯落感 */
+    #post-container .post-card:nth-child(even) {
+        margin-top: 80px !important;
+    }
+
+    /* 3. 底部選單按鈕放大 */
+    .mobile-board-trigger {
+        font-size: 1.25rem !important;
+        padding: 18px 45px !important;
+        min-width: 260px !important;
+    }
+
+    /* 4. 左下角小窩與右下角按鈕放大 */
+    #mascot-home {
+        width: 85px !important;
+        height: 85px !important;
+        bottom: 110px !important;
+        left: 20px !important;
+    }
+    #svg-mermecat-mascot {
+        transform: scale(0.9) !important;
+        bottom: 110px !important;
+        left: 10px !important;
+    }
+    .ocean-refresh-btn {
+        font-size: 1.1rem !important;
+        padding: 14px 24px !important;
+        bottom: 110px !important;
+        right: 20px !important;
+    }
+}
