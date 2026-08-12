@@ -713,6 +713,9 @@ body, html { height: 100vh !important; overflow: hidden !important; background-c
     padding: 40px 35px !important;
     box-shadow: 0 20px 50px rgba(0, 30, 60, 0.2), inset 0 0 20px rgba(255, 255, 255, 0.8) !important;
     position: relative;
+    margin: 10vh auto !important;
+    max-height: 80vh !important; 
+    overflow-y: auto !important;
 }
 
 .ocean-post-modal .close-btn {
@@ -2443,4 +2446,44 @@ div#ocean-rules-board .rules-content-wrapper::after {
 .notif-unread-dot {
     width: 8px; height: 8px; background: #4da6ff; border-radius: 50%;
     margin-left: 8px; animation: pulseGlowMini 1.5s infinite alternate;
+}
+/* =========================================
+   🌊 深海泡泡提示 (取代醜醜的系統 alert)
+   ========================================= */
+.ocean-toast {
+    position: fixed;
+    top: 80px; /* 顯示在頂部導覽列下方一點點 */
+    left: 50%;
+    transform: translateX(-50%) translateY(-20px);
+    background: linear-gradient(135deg, rgba(10, 35, 65, 0.95), rgba(0, 85, 165, 0.85));
+    backdrop-filter: blur(15px);
+    border: 1px solid rgba(77, 166, 255, 0.5);
+    color: #fff;
+    padding: 12px 28px;
+    border-radius: 30px;
+    font-size: 1rem;
+    font-weight: bold;
+    box-shadow: 0 10px 30px rgba(0, 20, 40, 0.5), inset 0 0 12px rgba(77, 166, 255, 0.2);
+    z-index: 1000000; /* 絕對在最上層 */
+    opacity: 0;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    pointer-events: none; /* 讓滑鼠可以直接穿透，不干擾點擊 */
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+/* 泡泡浮出來的動畫狀態 */
+.ocean-toast.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+}
+
+/* 如果是小手機，讓它稍微窄一點 */
+@media screen and (max-width: 480px) {
+    .ocean-toast {
+        width: 85%;
+        justify-content: center;
+        text-align: center;
+    }
 }

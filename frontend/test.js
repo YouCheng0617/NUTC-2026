@@ -2184,11 +2184,12 @@ window.markSingleAsReadAPI = async function(id, cardElement) {
 
 // 4. 全部已讀
 window.markAllAsReadAPI = async function(e) {
-    if (e) e.stopPropagation(); // 避免點擊全部已讀時，視窗被關掉
+    if (e) e.stopPropagation(); 
     
     const unreadCards = document.querySelectorAll('.notif-mini-card.unread');
     if (unreadCards.length === 0) {
-        alert("目前沒有未讀通知喔！🌊");
+        // ✨ 把這裡的 alert 換掉
+        showOceanToast("目前沒有未讀通知喔！🌊");
         return;
     }
 
@@ -2210,9 +2211,44 @@ window.markAllAsReadAPI = async function(e) {
             if (typeof fetchNotificationCount === 'function') {
                 fetchNotificationCount(); 
             }
-            alert("全部都看過囉，寶寶真棒！✨");
+            // ✨ 把這裡最刺眼的稱讚 alert 也換掉！
+            showOceanToast("全部都看過囉，寶寶真棒！✨");
         }
     } catch (error) {
         console.error("全部標記已讀失敗：", error);
     }
+};
+// =========================================
+// 🫧 深海泡泡提示功能 (優雅地取代 alert)
+// =========================================
+window.showOceanToast = function(message) {
+    // 如果畫面上已經有舊的泡泡，先把它戳破
+    const oldToast = document.getElementById('ocean-toast');
+    if (oldToast) {
+        oldToast.remove();
+    }
+
+    // 吹一個新的泡泡
+    const toast = document.createElement('div');
+    toast.id = 'ocean-toast';
+    toast.className = 'ocean-toast';
+    
+    // 裡面放一顆小氣泡 emoji 加上你的文字
+    toast.innerHTML = `<span style="font-size: 1.2rem;">🫧</span> <span>${message}</span>`;
+    
+    document.body.appendChild(toast);
+
+    // 給瀏覽器一點時間準備，然後觸發浮出動畫
+    setTimeout(() => {
+        toast.classList.add('show');
+    }, 10);
+
+    // 3 秒後自動飄走消散
+    setTimeout(() => {
+        toast.classList.remove('show');
+        // 等待淡出動畫結束後，把元素從網頁上清掉
+        setTimeout(() => {
+            toast.remove();
+        }, 400); 
+    }, 3000);
 };
