@@ -2061,3 +2061,158 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 });
+// =========================================
+// 🔔 通知小視窗專屬魔法區
+// =========================================
+
+// 1. 開關通知小視窗
+window.toggleNotificationPopup = async function(e) {
+    e.stopPropagation(); // 防止點擊事件往外傳遞導致立刻關閉
+    const popup = document.getElementById('notif-popup');
+    
+    // 如果另一個使用者下拉選單是開著的，就先幫寶寶關掉它，避免畫面太擠
+    const userDropdown = document.getElementById('user-dropdown');
+    if (userDropdown) userDropdown.classList.remove('show-dropdown');
+
+    if (popup.style.display === 'none' || popup.style.display === '') {
+        popup.style.display = 'flex';
+        await fetchAndRenderNotifications(); // 每次打開就去後端拿最新資料
+    } else {
+        popup.style.display = 'none';
+    }
+};
+
+// 🌟 點擊畫面其他空白處，自動幫你把小視窗收起來
+window.addEventListener('click', (event) => {
+    const popup = document.getElementById('notif-popup');
+    // 如果點擊的地方不是視窗裡面，也不是鈴鐺按鈕，就關掉
+    if (popup && popup.style.display === 'flex' && !event.target.closest('#notif-popup') && !event.target.closest('#notification-bell-btn')) {
+        popup.style.display = 'none';
+    }
+});
+
+// 2. 抓取並渲染通知
+async function fetchAndRenderNotifications() {
+    const token = localStorage.getItem("authToken");
+    const container = document.getElementById('notif-list-container');
+    
+    if (!token) {
+        container.innerHTML = '<div style="text-align: center; color: #ff4d4d; padding: 20px 0;">寶寶，請先登入才能看通知喔！</div>';
+        return;
+    }
+
+    try {
+        const response = await fetch(`${API_BASE_URL}/notifications`, {
+            method: 'GET',
+            headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' }
+        });
+        
+        if (!response.ok) throw new Error('伺服器傲嬌了，抓不到資料');
+        
+        const data = await response.json();
+        
+        // 防呆拆包機制
+        let notifArray = [];
+        if (Array.isArray(data)) notifArray = data;
+        else if (data && Array.isArray(data.data)) notifArray = data.data;
+        else if (data && Array.isArray(data.notifications)) notifArray = data.notifications;
+        else if (data && Array.isArray(data.result)) notifArray = data.result;
+        
+        if (!notifArray || notifArray.length === 0) {
+            container.innerHTML = '<div style="text-align: center; color: #88bbff; padding: 30px 0;">目前還沒有收到任何通知喔！🌊</div>';
+            return;
+        }
+
+        container.innerHTML = notifArray.map(notif => {
+            let iconClass = 'system'; let iconEmoji = '⚠️';
+            const typeUpper = (notif.type || '').toUpperCase();
+
+            // 判斷通知類型
+            if (typeUpper.includes('LIKE')) { iconClass = 'heart'; iconEmoji = '❤️'; }
+            else if (typeUpper.includes('REPLY') || typeUpper.includes('COMMENT')) { iconClass = 'reply'; iconEmoji = '💬'; }
+            else if (typeUpper.includes('SAVE') || typeUpper.includes('BOOKMARK')) { iconClass = 'system'; iconEmoji = '⭐'; }
+            else if (typeUpper.includes('WELCOME') || typeUpper.includes('USER')) { iconClass = 'user'; iconEmoji = '🎉'; }
+            else { iconClass = 'system'; iconEmoji = '🌊'; }
+
+            const isRead = notif.is_read ?? notif.isRead;
+            const unreadClass = isRead ? '' : 'unread';
+            const dotHtml = isRead ? '' : '<div class="notif-unread-dot"></div>';
+            const timeStr = notif.created_at ? new Date(notif.created_at).toLocaleString() : (notif.time || '');
+            const notificationText = notif.content || notif.message || '';
+
+            return `
+                <div class="notif-mini-card ${unreadClass}" ${!isRead ? `onclick="markSingleAsReadAPI('${notif.id}', this)"` : ''}>
+                    <div class="notif-icon ${iconClass}">${iconEmoji}</div>
+                    <div class="notif-text-box">
+                        <p>${escapeHTML(notificationText)}</p>
+                        <span class="time">${timeStr}</span>
+                    </div>
+                    ${dotHtml}
+                </div>
+            `;
+        }).join('');
+    } catch (error) {
+        console.error("抓取通知失敗：", error);
+        container.innerHTML = '<div style="text-align: center; color: #ff4d4d; padding: 20px 0;">連線失敗，請稍後再試 😢</div>';
+    }
+}
+
+// 3. 單筆已讀
+window.markSingleAsReadAPI = async function(id, cardElement) {
+    const token = localStorage.getItem("authToken");
+    try {
+        const response = await fetch(`${API_BASE_URL}/notifications/${id}/read`, {
+            method: 'PATCH',
+            headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' }
+        });
+        
+        if (response.ok) {
+            cardElement.classList.remove('unread');
+            const dot = cardElement.querySelector('.notif-unread-dot');
+            if (dot) dot.style.display = 'none';
+            cardElement.onclick = null; // 拔掉點擊事件
+            
+            // 順便幫寶寶重新計算右上角的小紅點數量！
+            if (typeof fetchNotificationCount === 'function') {
+                fetchNotificationCount(); 
+            }
+        }
+    } catch (error) {
+        console.error(`標記通知 ${id} 失敗：`, error);
+    }
+};
+
+// 4. 全部已讀
+window.markAllAsReadAPI = async function(e) {
+    if (e) e.stopPropagation(); // 避免點擊全部已讀時，視窗被關掉
+    
+    const unreadCards = document.querySelectorAll('.notif-mini-card.unread');
+    if (unreadCards.length === 0) {
+        alert("目前沒有未讀通知喔！🌊");
+        return;
+    }
+
+    const token = localStorage.getItem("authToken");
+    try {
+        const response = await fetch(`${API_BASE_URL}/notifications/read-all`, {
+            method: 'PATCH',
+            headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' }
+        });
+        
+        if (response.ok) {
+            unreadCards.forEach(card => {
+                card.classList.remove('unread');
+                const dot = card.querySelector('.notif-unread-dot');
+                if (dot) dot.style.display = 'none';
+                card.onclick = null;
+            });
+            
+            if (typeof fetchNotificationCount === 'function') {
+                fetchNotificationCount(); 
+            }
+            alert("全部都看過囉，寶寶真棒！✨");
+        }
+    } catch (error) {
+        console.error("全部標記已讀失敗：", error);
+    }
+};
