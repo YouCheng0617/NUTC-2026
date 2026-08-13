@@ -87,29 +87,47 @@
             style="display: none; align-items: center; gap: 15px"
           >
             <!-- 🔔 鈴鐺與通知小視窗區塊 -->
-<div style="position: relative; display: flex; align-items: center;">
-  <div
-    class="notification-bell"
-    id="notification-bell-btn"
-    onclick="toggleNotificationPopup(event)"
-    title="查看最新通知"
-  >
-    🔔
-    <span id="notification-badge" class="badge" style="display: none">0</span>
-  </div>
+            <div style="position: relative; display: flex; align-items: center">
+              <div
+                class="notification-bell"
+                id="notification-bell-btn"
+                onclick="toggleNotificationPopup(event)"
+                title="查看最新通知"
+              >
+                🔔
+                <span
+                  id="notification-badge"
+                  class="badge"
+                  style="display: none"
+                  >0</span
+                >
+              </div>
 
-  <!-- 🌟 懸浮深海通知小視窗 (預設隱藏) -->
-  <div class="notif-popup-container" id="notif-popup" style="display: none;">
-    <div class="notif-popup-header">
-      <span class="title">通知中心</span>
-      <button class="mark-all-btn" onclick="markAllAsReadAPI(event)">全部已讀</button>
-    </div>
-    <div class="notif-popup-list" id="notif-list-container">
-      <!-- JS 會把通知卡片塞在這裡 -->
-      <div style="text-align: center; color: #88bbff; padding: 30px 0;">載入中...🌊</div>
-    </div>
-  </div>
-</div>
+              <!-- 🌟 懸浮深海通知小視窗 (預設隱藏) -->
+              <div
+                class="notif-popup-container"
+                id="notif-popup"
+                style="display: none"
+              >
+                <div class="notif-popup-header">
+                  <span class="title">通知中心</span>
+                  <button
+                    class="mark-all-btn"
+                    onclick="markAllAsReadAPI(event)"
+                  >
+                    全部已讀
+                  </button>
+                </div>
+                <div class="notif-popup-list" id="notif-list-container">
+                  <!-- JS 會把通知卡片塞在這裡 -->
+                  <div
+                    style="text-align: center; color: #88bbff; padding: 30px 0"
+                  >
+                    載入中...🌊
+                  </div>
+                </div>
+              </div>
+            </div>
 
             <!-- 👤 這是原本的使用者大頭貼與名字區塊 -->
             <div class="user-info-trigger" id="user-menu-btn">
@@ -653,51 +671,60 @@
       });
     </script>
     <!-- 🌟 1. 手機版專屬：海域選擇彈出選單的黑色半透明遮罩 -->
-    <div id="board-sheet-overlay" class="board-sheet-overlay" onclick="toggleBoardSheet()"></div>
-    
+    <div
+      id="board-sheet-overlay"
+      class="board-sheet-overlay"
+      onclick="toggleBoardSheet()"
+    ></div>
+
     <!-- 🌟 2. 手機版專屬：常駐在底部的海域選擇按鈕 -->
-    <div id="mobile-board-btn" class="mobile-board-trigger" onclick="toggleBoardSheet()">
+    <div
+      id="mobile-board-btn"
+      class="mobile-board-trigger"
+      onclick="toggleBoardSheet()"
+    >
       <span id="mobile-board-name">🌊 全海域</span>
       <span class="board-arrow">▲</span>
     </div>
 
-<!-- 🌟 3. 專屬的抽屜開關邏輯 (請確保這段一定要貼上！) -->
+    <!-- 🌟 3. 專屬的抽屜開關邏輯 (請確保這段一定要貼上！) -->
     <script>
-        // 控制抽屜開關
-        window.toggleBoardSheet = function() {
-            const sidebar = document.querySelector('.sidebar.light-sidebar');
-            const overlay = document.getElementById('board-sheet-overlay');
-            const btn = document.getElementById('mobile-board-btn');
-            
-            if (sidebar && overlay && btn) {
-                sidebar.classList.toggle('sheet-open');
-                overlay.classList.toggle('sheet-open');
-                btn.classList.toggle('sheet-open');
+      // 控制抽屜開關
+      window.toggleBoardSheet = function () {
+        const sidebar = document.querySelector(".sidebar.light-sidebar");
+        const overlay = document.getElementById("board-sheet-overlay");
+        const btn = document.getElementById("mobile-board-btn");
+
+        if (sidebar && overlay && btn) {
+          sidebar.classList.toggle("sheet-open");
+          overlay.classList.toggle("sheet-open");
+          btn.classList.toggle("sheet-open");
+        }
+      };
+
+      // 自動更新按鈕文字與點擊收合
+      document.addEventListener("DOMContentLoaded", () => {
+        const boardItems = document.querySelectorAll(".sidebar li");
+        const mobileNameDisplay = document.getElementById("mobile-board-name");
+
+        if (mobileNameDisplay) {
+          const activeLi = document.querySelector(".sidebar li.active");
+          if (activeLi) mobileNameDisplay.innerText = activeLi.innerText.trim();
+        }
+
+        boardItems.forEach((li) => {
+          li.addEventListener("click", (e) => {
+            // 把按鈕文字換成點選的海域
+            if (mobileNameDisplay)
+              mobileNameDisplay.innerText = e.target.innerText.trim();
+
+            // 點選後自動收起抽屜
+            if (window.innerWidth <= 768) {
+              window.toggleBoardSheet();
             }
-        };
-
-        // 自動更新按鈕文字與點擊收合
-        document.addEventListener('DOMContentLoaded', () => {
-            const boardItems = document.querySelectorAll('.sidebar li');
-            const mobileNameDisplay = document.getElementById('mobile-board-name');
-
-            if (mobileNameDisplay) {
-                const activeLi = document.querySelector('.sidebar li.active');
-                if (activeLi) mobileNameDisplay.innerText = activeLi.innerText.trim();
-            }
-
-            boardItems.forEach(li => {
-                li.addEventListener('click', (e) => {
-                    // 把按鈕文字換成點選的海域
-                    if (mobileNameDisplay) mobileNameDisplay.innerText = e.target.innerText.trim();
-                    
-                    // 點選後自動收起抽屜
-                    if (window.innerWidth <= 768) {
-                        window.toggleBoardSheet();
-                    }
-                });
-            });
+          });
         });
+      });
     </script>
   </body>
 </html>

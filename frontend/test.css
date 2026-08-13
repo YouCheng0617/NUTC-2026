@@ -2500,3 +2500,7 @@ div#ocean-rules-board .rules-content-wrapper::after {
         text-align: center;
     }
 }
+/* 徹底封印沒用的漢堡選單 */
+.hamburger-btn {
+    display: none !important;
+}
