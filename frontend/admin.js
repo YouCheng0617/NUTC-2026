@@ -268,13 +268,26 @@ function drawDoughnutChart(dataArray) {
     if (myDoughnutChart) myDoughnutChart.destroy();
     myDoughnutChart = new Chart(ctx, {
         type: 'doughnut',
+        plugins: [ChartDataLabels], // 🌟 1. 註冊外掛
         data: {
             labels: ['😡 憤怒', '🤫 秘密', '💔 破碎', '😑 厭世', '😁 開心'],
             datasets: [{
                 data: dataArray, backgroundColor: ['#fff1f0', '#f9f0ff', '#fff7e6', '#f6ffed', '#e6f7ff'], borderColor: ['#ffa39e', '#d3adf7', '#ffd591', '#b7eb8f', '#91d5ff'], borderWidth: 2, hoverOffset: 10
             }]
         },
-        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right', labels: { font: { size: 14 } } } } }
+        options: { 
+            responsive: true, 
+            maintainAspectRatio: false, 
+            plugins: { 
+                legend: { position: 'right', labels: { font: { size: 14 } } },
+                // 🌟 2. 加入數字標籤設定
+                datalabels: {
+                    color: '#475569', // 深色文字
+                    font: { weight: 'bold', size: 14 },
+                    formatter: (value) => value > 0 ? value : '' // 數值是 0 就自動隱藏，畫面更乾淨
+                }
+            } 
+        }
     });
 }
 
@@ -323,26 +336,39 @@ function drawGenderChart(dataArray) {
     if (myGenderChart) myGenderChart.destroy();
     myGenderChart = new Chart(ctx, {
         type: 'pie',
+        plugins: [ChartDataLabels], // 🌟 1. 註冊外掛
         data: {
             labels: ['👦 男生', '👧 女生', '👽 未知 / 其他'],
             datasets: [{ data: dataArray, backgroundColor: ['#60a5fa', '#f472b6', '#e2e8f0'], borderWidth: 1, borderColor: '#ffffff', hoverOffset: 10 }]
         },
-        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { font: { size: 14 }, padding: 10 } } } }
+        options: { 
+            responsive: true, 
+            maintainAspectRatio: false, 
+            plugins: { 
+                legend: { position: 'bottom', labels: { font: { size: 14 }, padding: 10 } },
+                // 🌟 2. 加入數字標籤設定
+                datalabels: {
+                    color: '#ffffff', // 白色文字
+                    font: { weight: 'bold', size: 14 },
+                    formatter: (value) => value > 0 ? value : '' // 數值是 0 就自動隱藏
+                }
+            } 
+        }
     });
 }
 
-// 🌟 修正版：繪製發文者男女比例圖 (顏色已與其他圖表統一)
+// 🌟 幫您加回被誤刪的發文者性別圖表，並補上數字標籤外掛
 function drawBottleGenderChart(dataArray) {
     const ctx = document.getElementById('bottleGenderChart');
     if (!ctx) return;
     if (myBottleGenderChart) myBottleGenderChart.destroy();
     myBottleGenderChart = new Chart(ctx, {
         type: 'pie',
+        plugins: [ChartDataLabels], // 🌟 1. 註冊外掛
         data: {
             labels: ['👦 發文男', '👧 發文女', '👽 未知 / 其他'],
             datasets: [{ 
                 data: dataArray, 
-                // ✨ 這裡把色碼改為與其他兩張圖表完全相同
                 backgroundColor: ['#60a5fa', '#f472b6', '#e2e8f0'], 
                 borderWidth: 1, 
                 borderColor: '#ffffff', 
@@ -352,12 +378,20 @@ function drawBottleGenderChart(dataArray) {
         options: { 
             responsive: true, 
             maintainAspectRatio: false, 
-            plugins: { legend: { position: 'bottom', labels: { font: { size: 14 }, padding: 10 } } } 
+            plugins: { 
+                legend: { position: 'bottom', labels: { font: { size: 14 }, padding: 10 } },
+                // 🌟 2. 加入數字標籤設定
+                datalabels: {
+                    color: '#ffffff',
+                    font: { weight: 'bold', size: 14 },
+                    formatter: (value) => value > 0 ? value : ''
+                }
+            } 
         }
     });
 }
 
-// 🌟 修正版：繪製留言身份比例圓餅圖 (顏色已與其他圖表統一)
+// 🌟 修正版：繪製留言身份比例圓餅圖
 function drawCommentTypeChart(dataArray) {
     const ctx = document.getElementById('commentTypeChart');
     if (!ctx) return;
@@ -368,11 +402,11 @@ function drawCommentTypeChart(dataArray) {
 
     myCommentTypeChart = new Chart(ctx, {
         type: 'pie',
+        plugins: [ChartDataLabels], // 🌟 1. 註冊外掛
         data: {
             labels: ['👤 實名留言', '🎭 匿名留言'],
             datasets: [{ 
                 data: dataArray, 
-                // ✨ 這裡把實名留言的藍色改為統一的淺藍 #60a5fa，匿名留言改為柔和的灰色 #cbd5e1
                 backgroundColor: ['#60a5fa', '#cbd5e1'], 
                 borderWidth: 1, 
                 borderColor: '#ffffff', 
@@ -383,12 +417,19 @@ function drawCommentTypeChart(dataArray) {
             responsive: true, 
             maintainAspectRatio: false, 
             plugins: { 
-                legend: { position: 'bottom', labels: { font: { size: 14 }, padding: 10 } } 
+                legend: { position: 'bottom', labels: { font: { size: 14 }, padding: 10 } },
+                // 🌟 2. 加入數字標籤設定
+                datalabels: {
+                    color: '#ffffff',
+                    font: { weight: 'bold', size: 14 },
+                    formatter: (value) => value > 0 ? value : ''
+                }
             } 
         }
     });
 }
-// 🌟 新增：繪製留言者男女比例圓餅圖 (放在這裡才是正確的位置)
+
+// 🌟 新增：繪製留言者男女比例圓餅圖
 function drawCommentGenderChart(dataArray) {
     const ctx = document.getElementById('commentGenderChart');
     if (!ctx) return;
@@ -398,6 +439,7 @@ function drawCommentGenderChart(dataArray) {
 
     myCommentGenderChart = new Chart(ctx, {
         type: 'pie',
+        plugins: [ChartDataLabels], // 🌟 1. 註冊外掛
         data: {
             labels: ['👦 留言男', '👧 留言女', '👽 未知 / 其他'],
             datasets: [{ 
@@ -412,7 +454,13 @@ function drawCommentGenderChart(dataArray) {
             responsive: true, 
             maintainAspectRatio: false, 
             plugins: { 
-                legend: { position: 'bottom', labels: { font: { size: 14 }, padding: 10 } } 
+                legend: { position: 'bottom', labels: { font: { size: 14 }, padding: 10 } },
+                // 🌟 2. 加入數字標籤設定
+                datalabels: {
+                    color: '#ffffff',
+                    font: { weight: 'bold', size: 14 },
+                    formatter: (value) => value > 0 ? value : ''
+                }
             } 
         }
     });

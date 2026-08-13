@@ -517,4 +517,4 @@
         lbButton.style.display = 'flex';
     }
 
-})();
+})(); 
