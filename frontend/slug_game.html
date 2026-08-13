@@ -1872,23 +1872,35 @@ let trialTimeLeft = 10; // 全域記錄試用剩餘時間
                     mark.innerText = '✕';
                     layer.appendChild(mark);
                     break;
-            // 🐑 【數羊羊】柵欄左移對齊 + 右下朝左上透視 + 跨越跳欄
+            // 🐑 【數羊羊】淡雅青草地地板 + 禮貌排隊 + 跨越跳欄 + 右下角控制按鈕
                 case 'sheep':
                     if (!document.getElementById('sheepStyle')) {
                         const style = document.createElement('style');
                         style.id = 'sheepStyle';
                         style.innerHTML = `
-                            /* 🌟 睡前專屬：深藍色好眠夜空濾鏡 */
+                            /* 🌟 睡前專屬：深藍色好眠夜空與淡淡青草地背景 */
                             .sheep-night-overlay {
                                 position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-                                background: linear-gradient(to bottom, rgba(15, 23, 42, 0.45) 0%, rgba(30, 41, 59, 0.3) 100%);
+                                background: linear-gradient(to bottom, rgba(15, 23, 42, 0.45) 0%, rgba(30, 41, 59, 0.35) 65%, rgba(20, 45, 35, 0.5) 100%);
                                 pointer-events: none; z-index: 1;
                                 backdrop-filter: blur(1px);
                                 animation: nightBreathe 4s ease-in-out infinite alternate;
                             }
                             @keyframes nightBreathe { 0% { opacity: 0.8; } 100% { opacity: 1; } }
                             
-                            /* 🌟 扎根地面的斜角立體原木柵欄 (已從 50% 微調至 42% 往左偏) */
+                            /* 🌟 底部淡綠色青草地裝飾條 */
+                            .sheep-grass-ground {
+                                position: absolute;
+                                bottom: 0;
+                                left: 0;
+                                width: 100%;
+                                height: 22%;
+                                background: linear-gradient(to top, rgba(34, 197, 94, 0.22) 0%, rgba(34, 197, 94, 0.08) 60%, transparent 100%);
+                                pointer-events: none;
+                                z-index: 2;
+                            }
+
+                            /* 🌟 扎根地面的斜角立體原木柵欄 (靠左偏中) */
                             .sheep-fence {
                                 position: absolute;
                                 bottom: 10%;
@@ -1959,10 +1971,14 @@ let trialTimeLeft = 10; // 全域記錄試用剩餘時間
                     if (window.sheepManagerFrame) cancelAnimationFrame(window.sheepManagerFrame);
                     if (window.sheepSpawnTimeout) clearTimeout(window.sheepSpawnTimeout);
 
-                    // 1. 夜空濾鏡
+                    // 1. 夜空與淡雅青草地濾鏡
                     const nightOverlay = document.createElement('div');
                     nightOverlay.className = 'sheep-night-overlay';
                     layer.appendChild(nightOverlay);
+
+                    const grassGround = document.createElement('div');
+                    grassGround.className = 'sheep-grass-ground';
+                    layer.appendChild(grassGround);
 
                     // 2. 右下朝左上角度的斜角立體原木柵欄 SVG
                     const fence = document.createElement('div');
@@ -2004,8 +2020,8 @@ let trialTimeLeft = 10; // 全域記錄試用剩餘時間
                         </g>
 
                         <!-- 小草點綴 -->
-                        <path d="M 190 115 Q 195 105 200 116 Q 206 102 212 118" fill="none" stroke="#15803d" stroke-width="3" stroke-linecap="round"/>
-                        <path d="M 10 85 Q 16 75 20 86 Q 26 73 32 88" fill="none" stroke="#15803d" stroke-width="3" stroke-linecap="round"/>
+                        <path d="M 190 115 Q 195 105 200 116 Q 206 102 212 118" fill="none" stroke="#22c55e" stroke-width="3" stroke-linecap="round"/>
+                        <path d="M 10 85 Q 16 75 20 86 Q 26 73 32 88" fill="none" stroke="#22c55e" stroke-width="3" stroke-linecap="round"/>
                     </svg>`;
                     layer.appendChild(fence);
 
@@ -2060,7 +2076,7 @@ let trialTimeLeft = 10; // 全域記錄試用剩餘時間
                     function spawnWaitingSheep() {
                         if (gameState.currentEffect !== 'sheep' && trialState.effect !== 'sheep') return;
                         
-                        let queueSheep = sheepList.filter(s => s.state !== 'jumping');
+                        let queueSheep = sheepList.filter(s => s.state !== 'jumping' && s.state !== 'running_away');
                         if (queueSheep.length < 5) {
                             let id = sheepIdCounter++;
                             let pal = sheepPalettes[id % sheepPalettes.length];
@@ -2077,7 +2093,7 @@ let trialTimeLeft = 10; // 全域記錄試用剩餘時間
                                 currentX: -15,
                                 targetX: getQueueX(targetSlot),
                                 baseY: 42,
-                                jumpProgress: 0,
+                                runX: 0,
                                 bobSeed: Math.random() * Math.PI * 2
                             };
                             sheepList.push(sheepObj);
@@ -2091,10 +2107,11 @@ let trialTimeLeft = 10; // 全域記錄試用剩餘時間
                         if (!readySheep) return;
 
                         readySheep.state = 'jumping';
+                        readySheep.jumpProgress = 0;
                         sheepJumpedCount++;
 
                         sheepList.forEach(s => {
-                            if (s.state !== 'jumping' && s.id !== readySheep.id) {
+                            if (s.state !== 'jumping' && s.state !== 'running_away' && s.id !== readySheep.id) {
                                 s.slotIndex--;
                                 s.targetX = getQueueX(s.slotIndex);
                                 s.state = 'walking';
@@ -2140,21 +2157,32 @@ let trialTimeLeft = 10; // 全域記錄試用剩餘時間
                                 s.dom.style.transform = 'scale(1) rotate(0deg)';
                             } 
                             else if (s.state === 'jumping') {
-                                s.jumpProgress += 0.018;
+                                s.jumpProgress += 0.02;
                                 
                                 let startX = s.currentX;
-                                let endX = 72;
+                                let endX = 70;
                                 let curX = startX + (endX - startX) * s.jumpProgress;
                                 
-                                let arcY = Math.sin(s.jumpProgress * Math.PI) * 155;
+                                let arcY = Math.sin(s.jumpProgress * Math.PI) * 140;
                                 let curY = s.baseY + arcY;
-                                let rot = -Math.sin(s.jumpProgress * Math.PI) * 12;
+                                let rot = -Math.sin(s.jumpProgress * Math.PI) * 10;
 
                                 s.dom.style.left = curX + '%';
                                 s.dom.style.bottom = curY + 'px';
                                 s.dom.style.transform = `scale(1.1) rotate(${rot}deg)`;
 
                                 if (s.jumpProgress >= 1) {
+                                    s.state = 'running_away';
+                                    s.runX = curX;
+                                }
+                            }
+                            else if (s.state === 'running_away') {
+                                s.runX += 0.65;
+                                s.dom.style.left = s.runX + '%';
+                                s.dom.style.bottom = s.baseY + 'px';
+                                s.dom.style.transform = 'scale(1) rotate(0deg)';
+
+                                if (s.runX > 115) {
                                     s.dom.remove();
                                     sheepList.splice(i, 1);
                                 }
@@ -2164,7 +2192,7 @@ let trialTimeLeft = 10; // 全域記錄試用剩餘時間
 
                     renderSheepEngine();
                     spawnWaitingSheep();
-                    break;        
+                    break;    
 // 🍂 【落葉紛飛】逼真 SVG 葉子飄落效果：帶有暖黃色秋日氛圍濾鏡、柔美隨風搖擺與自然翻轉
                 case 'leaf':
                     if (!document.getElementById('leafStyle')) {
