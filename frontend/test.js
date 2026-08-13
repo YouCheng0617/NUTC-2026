@@ -1409,7 +1409,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const mascotStyle = document.createElement('style');
     mascotStyle.innerHTML = `
         #svg-mermecat-mascot {
-            position: fixed; z-index: 99999; width: 130px; height: 140px; cursor: pointer; user-select: none; pointer-events: auto;
+            position: fixed; z-index: 99998; width: 130px; height: 140px; cursor: pointer; user-select: none; pointer-events: auto;
             transform: none;
             filter: drop-shadow(0 6px 15px rgba(0, 30, 60, 0.25)); transition: top 8s ease-in-out, left 8s ease-in-out;
         }
@@ -1470,7 +1470,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function showRandomDialogue() {
         // ✨ 新增這行：如果小助理已經在小窩裡睡覺了，就不准說夢話！
-        if (window.isMascotSleeping) return; 
+        if (window.isMascotSleeping) return;
 
         if (dialogueBox.classList.contains('show-dialogue')) return;
         dialogueBox.innerText = randomPhrases[Math.floor(Math.random() * randomPhrases.length)];
@@ -2020,11 +2020,11 @@ async function fetchNotificationCount() {
 /* =========================================
    🚀 手機版海域選單 (Bottom Sheet) 專屬邏輯
    ========================================= */
-window.toggleBoardSheet = function() {
+window.toggleBoardSheet = function () {
     const sidebar = document.querySelector('.sidebar.light-sidebar');
     const overlay = document.getElementById('board-sheet-overlay');
     const btn = document.getElementById('mobile-board-btn');
-    
+
     if (sidebar && overlay && btn) {
         sidebar.classList.toggle('sheet-open');
         overlay.classList.toggle('sheet-open');
@@ -2049,7 +2049,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (mobileNameDisplay) {
                 mobileNameDisplay.innerText = e.target.innerText.trim();
             }
-            
+
             // 2. 點選後自動收起抽屜
             if (window.innerWidth <= 768) {
                 const sidebar = document.querySelector('.sidebar.light-sidebar');
@@ -2066,10 +2066,10 @@ document.addEventListener('DOMContentLoaded', () => {
 // =========================================
 
 // 1. 開關通知小視窗
-window.toggleNotificationPopup = async function(e) {
+window.toggleNotificationPopup = async function (e) {
     e.stopPropagation(); // 防止點擊事件往外傳遞導致立刻關閉
     const popup = document.getElementById('notif-popup');
-    
+
     // 如果另一個使用者下拉選單是開著的，就先幫寶寶關掉它，避免畫面太擠
     const userDropdown = document.getElementById('user-dropdown');
     if (userDropdown) userDropdown.classList.remove('show-dropdown');
@@ -2095,7 +2095,7 @@ window.addEventListener('click', (event) => {
 async function fetchAndRenderNotifications() {
     const token = localStorage.getItem("authToken");
     const container = document.getElementById('notif-list-container');
-    
+
     if (!token) {
         container.innerHTML = '<div style="text-align: center; color: #ff4d4d; padding: 20px 0;">寶寶，請先登入才能看通知喔！</div>';
         return;
@@ -2106,18 +2106,18 @@ async function fetchAndRenderNotifications() {
             method: 'GET',
             headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' }
         });
-        
+
         if (!response.ok) throw new Error('伺服器傲嬌了，抓不到資料');
-        
+
         const data = await response.json();
-        
+
         // 防呆拆包機制
         let notifArray = [];
         if (Array.isArray(data)) notifArray = data;
         else if (data && Array.isArray(data.data)) notifArray = data.data;
         else if (data && Array.isArray(data.notifications)) notifArray = data.notifications;
         else if (data && Array.isArray(data.result)) notifArray = data.result;
-        
+
         if (!notifArray || notifArray.length === 0) {
             container.innerHTML = '<div style="text-align: center; color: #88bbff; padding: 30px 0;">目前還沒有收到任何通知喔！🌊</div>';
             return;
@@ -2158,23 +2158,23 @@ async function fetchAndRenderNotifications() {
 }
 
 // 3. 單筆已讀
-window.markSingleAsReadAPI = async function(id, cardElement) {
+window.markSingleAsReadAPI = async function (id, cardElement) {
     const token = localStorage.getItem("authToken");
     try {
         const response = await fetch(`${API_BASE_URL}/notifications/${id}/read`, {
             method: 'PATCH',
             headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' }
         });
-        
+
         if (response.ok) {
             cardElement.classList.remove('unread');
             const dot = cardElement.querySelector('.notif-unread-dot');
             if (dot) dot.style.display = 'none';
             cardElement.onclick = null; // 拔掉點擊事件
-            
+
             // 順便幫寶寶重新計算右上角的小紅點數量！
             if (typeof fetchNotificationCount === 'function') {
-                fetchNotificationCount(); 
+                fetchNotificationCount();
             }
         }
     } catch (error) {
@@ -2183,9 +2183,9 @@ window.markSingleAsReadAPI = async function(id, cardElement) {
 };
 
 // 4. 全部已讀
-window.markAllAsReadAPI = async function(e) {
-    if (e) e.stopPropagation(); 
-    
+window.markAllAsReadAPI = async function (e) {
+    if (e) e.stopPropagation();
+
     const unreadCards = document.querySelectorAll('.notif-mini-card.unread');
     if (unreadCards.length === 0) {
         // ✨ 把這裡的 alert 換掉
@@ -2199,7 +2199,7 @@ window.markAllAsReadAPI = async function(e) {
             method: 'PATCH',
             headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' }
         });
-        
+
         if (response.ok) {
             unreadCards.forEach(card => {
                 card.classList.remove('unread');
@@ -2207,9 +2207,9 @@ window.markAllAsReadAPI = async function(e) {
                 if (dot) dot.style.display = 'none';
                 card.onclick = null;
             });
-            
+
             if (typeof fetchNotificationCount === 'function') {
-                fetchNotificationCount(); 
+                fetchNotificationCount();
             }
             // ✨ 把這裡最刺眼的稱讚 alert 也換掉！
             showOceanToast("全部都看過囉，寶寶真棒！✨");
@@ -2221,7 +2221,7 @@ window.markAllAsReadAPI = async function(e) {
 // =========================================
 // 🫧 深海泡泡提示功能 (優雅地取代 alert)
 // =========================================
-window.showOceanToast = function(message) {
+window.showOceanToast = function (message) {
     // 如果畫面上已經有舊的泡泡，先把它戳破
     const oldToast = document.getElementById('ocean-toast');
     if (oldToast) {
@@ -2232,10 +2232,10 @@ window.showOceanToast = function(message) {
     const toast = document.createElement('div');
     toast.id = 'ocean-toast';
     toast.className = 'ocean-toast';
-    
+
     // 裡面放一顆小氣泡 emoji 加上你的文字
     toast.innerHTML = `<span style="font-size: 1.2rem;">🫧</span> <span>${message}</span>`;
-    
+
     document.body.appendChild(toast);
 
     // 給瀏覽器一點時間準備，然後觸發浮出動畫
@@ -2249,6 +2249,6 @@ window.showOceanToast = function(message) {
         // 等待淡出動畫結束後，把元素從網頁上清掉
         setTimeout(() => {
             toast.remove();
-        }, 400); 
+        }, 400);
     }, 3000);
 };
