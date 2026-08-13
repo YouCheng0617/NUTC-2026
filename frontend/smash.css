@@ -203,6 +203,30 @@ body::before {
     from { filter: drop-shadow(0 0 10px #00ffcc) scale(1); }
     to { filter: drop-shadow(0 0 35px #ffffff) scale(1.15); }
 }
+/* 👇 請在這裡加入這段「時間補給沙漏特效」 👇 */
+.time-bonus {
+    position: relative;
+    width: 100%; height: 100%;
+    display: flex; justify-content: center; align-items: center;
+    font-size: 2rem;
+    filter: drop-shadow(0 0 15px #facc15); /* 金黃色發光 */
+    animation: pulse-glow-time 0.8s infinite alternate;
+}
+
+.time-bonus::after {
+    content: attr(data-text);
+    position: absolute;
+    bottom: -15px;
+    font-size: 1.3rem;
+    color: #facc15;
+    font-weight: 900;
+    text-shadow: 0 0 8px rgba(0, 0, 0, 0.9);
+}
+
+@keyframes pulse-glow-time {
+    from { filter: drop-shadow(0 0 10px #facc15) scale(1); }
+    to { filter: drop-shadow(0 0 35px #ffffff) scale(1.15); }
+}
 
 /* ✨ 排行榜列表專屬樣式 */
 #leaderboard-list {
@@ -297,6 +321,10 @@ body::before {
         font-size: 0.85rem !important;
         padding: 5px 8px !important;
         gap: 5px !important;
+    }
+    /* 👇 找到這裡，把 .time-bonus 也加進去 */
+    .ammo-shell, .time-bonus {
+        font-size: 1.5rem !important; 
     }
     
     /* 彈藥補給貝殼特效縮小，增加手機版點擊難度 */

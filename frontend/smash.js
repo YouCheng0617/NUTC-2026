@@ -13,7 +13,7 @@
             lbErrLogin: "連線被拒絕，請確認是否已登入！",
             lbErrFail: "伺服器無回應，請稍後再試",
             startTitle: "🎯 極限狙擊戰",
-            startDesc: "狙擊隱藏在深海中的瓶子！<br>⚠️ 射空會中斷連擊，子彈耗盡將提前結束任務！<br>✨ <strong style='color:#00ffcc;'>發光貝殼🐚</strong> 藏有多發彈藥補給，千萬別錯過！",
+           startDesc: "狙擊隱藏在深海中的瓶子！<br>⚠️ 射空會中斷連擊，子彈耗盡將提前結束任務！<br>✨ <strong style='color:#00ffcc;'>發光貝殼 🐚</strong> 補充彈藥，<strong style='color:#facc15;'>發光沙漏 ⏳</strong> 延長時間！",
             btnStart: "開始任務", btnHome: "回到大廳",
             endDesc: "你的狙擊總得分為", btnRestart: "再次挑戰", btnBackHome: "返回遊樂場", btnLbBack: "返回"
         },
@@ -28,7 +28,7 @@
             lbErrLogin: "Connection refused. Please login first!",
             lbErrFail: "Server error. Try again later.",
             startTitle: "🎯 Bottle Sniper",
-            startDesc: "Snipe the hidden bottles in the deep sea!<br>⚠️ Missing a shot breaks your combo. Running out of ammo ends the mission!<br>✨ Don't miss the <strong style='color:#00ffcc;'>Glowing Shells 🐚</strong> for ammo resupplies!",
+            startDesc: "Snipe the hidden bottles in the deep sea!<br>⚠️ Missing a shot breaks your combo. Running out of ammo ends the mission!<br>✨ Hit <strong style='color:#00ffcc;'>Glowing Shells 🐚</strong> for ammo, and <strong style='color:#facc15;'>Hourglasses ⏳</strong> for extra time!",
             btnStart: "Start Mission", btnHome: "Back to Hub",
             endDesc: "Your total sniper score is", btnRestart: "Play Again", btnBackHome: "Back to Arcade", btnLbBack: "Back"
         }
@@ -262,7 +262,7 @@
             const type = target.dataset.type;
             const targetRect = target.getBoundingClientRect();
 
-            if (type === 'fish') {
+if (type === 'fish') {
                 ScoreManager.add(-20);
                 combo = 0;
                 createFloatingText(mouseX, mouseY, currLangSmash === 'zh' ? "-20分" : "-20 Pts", "#ff4d4d");
@@ -271,10 +271,20 @@
                 target.classList.add('swim-away');
             } else if (type === 'ammo') {
                 const ammoVal = parseInt(target.dataset.val);
-                currentAmmo += (ammoVal + 1);
+                currentAmmo += (ammoVal + 1); // 打中補給本身也花 1 發，所以 +1 補回來
                 playAmmoSound();
                 createShatterParticles(targetRect.left + targetRect.width / 2, targetRect.top + targetRect.height / 2, '#00ffcc');
                 createFloatingText(mouseX, mouseY, `+${ammoVal} ${i18nSmash[currLangSmash].ammoGained}`, "#00ffcc");
+                target.style.display = 'none';
+            } else if (type === 'time') {
+                // 🌟 加秒數的邏輯
+                const timeVal = parseInt(target.dataset.val);
+                timeLeft += timeVal; 
+                playAmmoSound(); // 借用補給的清脆音效
+                createShatterParticles(targetRect.left + targetRect.width / 2, targetRect.top + targetRect.height / 2, '#facc15');
+                const timeUnit = currLangSmash === 'zh' ? '秒' : 'Sec';
+                createFloatingText(mouseX, mouseY, `+${timeVal} ${timeUnit}`, "#facc15");
+                timeDisplay.innerText = timeLeft; // 立即更新畫面秒數
                 target.style.display = 'none';
             } else {
                 playShatterSound();
@@ -302,14 +312,15 @@
     gameArea.addEventListener('mousedown', handleShoot);
     gameArea.addEventListener('touchstart', handleShoot, { passive: false });
 
-    function spawnTarget() {
+function spawnTarget() {
         if (!isGameRunning) return;
         const conf = diffConfig[currentDifficulty];
         const rand = Math.random();
 
         let type = 'bottle';
         if (rand < conf.fishChance) type = 'fish';
-        else if (rand > 0.85) type = 'ammo';
+        else if (rand > 0.92) type = 'time'; // 🌟 8% 機率出現加秒沙漏
+        else if (rand > 0.80) type = 'ammo'; // 🌟 12% 機率出現彈藥貝殼
 
         const targetContainer = document.createElement('div');
         targetContainer.className = 'game-target';
@@ -324,6 +335,16 @@
             ammoDiv.innerText = '🐚';
             ammoDiv.dataset.text = `+${val}`;
             targetContainer.appendChild(ammoDiv);
+        } else if (type === 'time') {
+            // 🌟 處理沙漏元素的生成
+            const timeDiv = document.createElement('div');
+            timeDiv.className = 'time-bonus';
+            const valRand = Math.random();
+            const val = valRand < 0.2 ? 5 : 3; // 20% 機率加 5 秒，80% 加 3 秒
+            targetContainer.dataset.val = val;
+            timeDiv.innerText = '⏳';
+            timeDiv.dataset.text = `+${val}`;
+            targetContainer.appendChild(timeDiv);
         } else {
             const normalImg = document.createElement('img');
             normalImg.className = 'normal-img';
