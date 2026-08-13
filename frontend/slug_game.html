@@ -1872,7 +1872,7 @@ let trialTimeLeft = 10; // 全域記錄試用剩餘時間
                     mark.innerText = '✕';
                     layer.appendChild(mark);
                     break;
-            // 🐑 【數羊羊】淡雅青草地地板 + 禮貌排隊 + 跨越跳欄 + 右下角控制按鈕
+            // 🐑 【數羊羊】柵欄下移貼齊草地 + 質感右下角按鈕 + 跨越跳欄
                 case 'sheep':
                     if (!document.getElementById('sheepStyle')) {
                         const style = document.createElement('style');
@@ -1900,10 +1900,10 @@ let trialTimeLeft = 10; // 全域記錄試用剩餘時間
                                 z-index: 2;
                             }
 
-                            /* 🌟 扎根地面的斜角立體原木柵欄 (靠左偏中) */
+                            /* 🌟 扎根地面的斜角立體原木柵欄 (位置再往下調至 bottom: 4%) */
                             .sheep-fence {
                                 position: absolute;
-                                bottom: 10%;
+                                bottom: 4%;
                                 left: 42%;
                                 transform: translateX(-50%);
                                 width: 240px;
@@ -1911,10 +1911,10 @@ let trialTimeLeft = 10; // 全域記錄試用剩餘時間
                                 z-index: 4;
                             }
 
-                            /* 🌟 右下角控制按鈕面板 */
+                            /* 🌟 右下角質感升級控制按鈕面板 */
                             .sheep-control-panel {
                                 position: absolute;
-                                bottom: 5%;
+                                bottom: 25px;
                                 right: 25px;
                                 left: auto;
                                 transform: none;
@@ -1926,19 +1926,30 @@ let trialTimeLeft = 10; // 全域記錄試用剩餘時間
                             }
 
                             .sheep-count-btn {
-                                background: linear-gradient(135deg, #fef08a, #f59e0b);
+                                background: linear-gradient(135deg, #fffbeb 0%, #fde047 50%, #f59e0b 100%);
                                 border: 3px solid #78350f;
                                 color: #451a03;
+                                font-family: 'Nunito', 'Microsoft JhengHei', sans-serif;
                                 font-weight: 900;
                                 font-size: 1.05rem;
-                                padding: 10px 22px;
-                                border-radius: 25px;
+                                padding: 12px 24px;
+                                border-radius: 30px;
                                 cursor: pointer;
-                                box-shadow: 0 6px 15px rgba(0,0,0,0.3);
-                                transition: transform 0.1s;
+                                box-shadow: 0 6px 20px rgba(245, 158, 11, 0.4), inset 0 2px 4px rgba(255, 255, 255, 0.8);
+                                transition: all 0.15s cubic-bezier(0.18, 0.89, 0.32, 1.28);
                                 white-space: nowrap;
+                                display: flex;
+                                align-items: center;
+                                gap: 6px;
                             }
-                            .sheep-count-btn:active { transform: scale(0.92); }
+                            .sheep-count-btn:hover {
+                                transform: translateY(-2px) scale(1.03);
+                                box-shadow: 0 8px 25px rgba(245, 158, 11, 0.6), inset 0 2px 4px rgba(255, 255, 255, 0.9);
+                            }
+                            .sheep-count-btn:active {
+                                transform: translateY(3px) scale(0.97);
+                                box-shadow: 0 2px 8px rgba(245, 158, 11, 0.4);
+                            }
 
                             /* 🌟 綿羊容器 */
                             .interactive-sheep {
@@ -2020,8 +2031,8 @@ let trialTimeLeft = 10; // 全域記錄試用剩餘時間
                         </g>
 
                         <!-- 小草點綴 -->
-                        <path d="M 190 115 Q 195 105 200 116 Q 206 102 212 118" fill="none" stroke="#22c55e" stroke-width="3" stroke-linecap="round"/>
-                        <path d="M 10 85 Q 16 75 20 86 Q 26 73 32 88" fill="none" stroke="#22c55e" stroke-width="3" stroke-linecap="round"/>
+                        <path d="M 190 115 Q 195 105 200 116 Q 206 102 212 118" fill="none" stroke="#15803d" stroke-width="3" stroke-linecap="round"/>
+                        <path d="M 10 85 Q 16 75 20 86 Q 26 73 32 88" fill="none" stroke="#15803d" stroke-width="3" stroke-linecap="round"/>
                     </svg>`;
                     layer.appendChild(fence);
 
@@ -2032,7 +2043,7 @@ let trialTimeLeft = 10; // 全域記錄試用剩餘時間
                     
                     const jumpBtn = document.createElement('button');
                     jumpBtn.className = 'sheep-count-btn';
-                    jumpBtn.innerHTML = `🐑 讓羊跳躍！ (已數: 0 隻 💤)`;
+                    jumpBtn.innerHTML = `<span>🐑</span> <span>讓羊跳躍！ (已數: ${sheepJumpedCount} 隻 💤)</span>`;
                     panel.appendChild(jumpBtn);
                     layer.appendChild(panel);
 
@@ -2092,7 +2103,7 @@ let trialTimeLeft = 10; // 全域記錄試用剩餘時間
                                 slotIndex: targetSlot,
                                 currentX: -15,
                                 targetX: getQueueX(targetSlot),
-                                baseY: 42,
+                                baseY: 35, // 同步下移至草地高度
                                 runX: 0,
                                 bobSeed: Math.random() * Math.PI * 2
                             };
@@ -2118,7 +2129,7 @@ let trialTimeLeft = 10; // 全域記錄試用剩餘時間
                             }
                         });
 
-                        jumpBtn.innerText = `🐑 讓羊跳躍！ (已數: ${sheepJumpedCount} 隻 💤)`;
+                        jumpBtn.innerHTML = `<span>🐑</span> <span>讓羊跳躍！ (已數: ${sheepJumpedCount} 隻 💤)</span>`;
                         showFloatText(`第 ${sheepJumpedCount} 隻羊 💤`, 1200);
                     }
 
