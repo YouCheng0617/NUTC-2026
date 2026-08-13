@@ -1165,8 +1165,7 @@ const effectData = {
            snow: { name: {zh: '初雪飄落', en: 'Snowfall'}, cost: 1500, preview: '#e0f2fe', svg: [{s: 'snow'}, {s: 'snow_dot'}], dir: 'down', count: 28 },
             sun: { name: {zh: '陽光普照', en: 'Sunny'}, cost: 1500, preview: '#fb923c', svg: [{s: 'sparkle'}], dir: 'up', count: 20 },
             moon: { name: {zh: '月光灑落', en: 'Moonlight'}, cost: 1500, preview: '#1e293b', svg: [{s: 'moon_star'}], dir: 'down', count: 18 },
-            noClass: { name: {zh: '不想上課', en: 'Skip Class'}, cost: 1600, preview: '#94a3b8', svg: [{s: 'book'}, {s: 'moon'}], dir: 'down', count: 12 },
-            sheep: { name: {zh: '數羊羊', en: 'Counting Sheep'}, cost: 1600, preview: '#e2e8f0', svg: [{s: 'moon'}], dir: 'up', count: 8 },
+           sheep: { name: {zh: '數羊羊', en: 'Counting Sheep'}, cost: 1600, preview: '#e2e8f0', svg: [{s: 'moon'}], dir: 'up', count: 8 },
             cookie: { name: {zh: '餅干碎屑', en: 'Cookies'}, cost: 1600, preview: '#b45309', svg: [{s: 'cookie'}], dir: 'down', count: 12 },
             boba: { name: {zh: '珍奶珍珠', en: 'Boba Pearls'}, cost: 1700, preview: '#78350f', svg: [{s: 'boba'}], dir: 'down', count: 20 },
             star: { name: {zh: '繁星閃爍', en: 'Starry'}, cost: 1800, preview: '#fef08a', svg: [{s: 'star'}, {s: 'sparkle'}], dir: 'down', count: 20 },
@@ -1873,6 +1872,299 @@ let trialTimeLeft = 10; // 全域記錄試用剩餘時間
                     mark.innerText = '✕';
                     layer.appendChild(mark);
                     break;
+            // 🐑 【數羊羊】柵欄左移對齊 + 右下朝左上透視 + 跨越跳欄
+                case 'sheep':
+                    if (!document.getElementById('sheepStyle')) {
+                        const style = document.createElement('style');
+                        style.id = 'sheepStyle';
+                        style.innerHTML = `
+                            /* 🌟 睡前專屬：深藍色好眠夜空濾鏡 */
+                            .sheep-night-overlay {
+                                position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+                                background: linear-gradient(to bottom, rgba(15, 23, 42, 0.45) 0%, rgba(30, 41, 59, 0.3) 100%);
+                                pointer-events: none; z-index: 1;
+                                backdrop-filter: blur(1px);
+                                animation: nightBreathe 4s ease-in-out infinite alternate;
+                            }
+                            @keyframes nightBreathe { 0% { opacity: 0.8; } 100% { opacity: 1; } }
+                            
+                            /* 🌟 扎根地面的斜角立體原木柵欄 (已從 50% 微調至 42% 往左偏) */
+                            .sheep-fence {
+                                position: absolute;
+                                bottom: 10%;
+                                left: 42%;
+                                transform: translateX(-50%);
+                                width: 240px;
+                                height: 120px;
+                                z-index: 4;
+                            }
+
+                            /* 🌟 右下角控制按鈕面板 */
+                            .sheep-control-panel {
+                                position: absolute;
+                                bottom: 5%;
+                                right: 25px;
+                                left: auto;
+                                transform: none;
+                                z-index: 20;
+                                display: flex;
+                                flex-direction: column;
+                                align-items: flex-end;
+                                pointer-events: auto;
+                            }
+
+                            .sheep-count-btn {
+                                background: linear-gradient(135deg, #fef08a, #f59e0b);
+                                border: 3px solid #78350f;
+                                color: #451a03;
+                                font-weight: 900;
+                                font-size: 1.05rem;
+                                padding: 10px 22px;
+                                border-radius: 25px;
+                                cursor: pointer;
+                                box-shadow: 0 6px 15px rgba(0,0,0,0.3);
+                                transition: transform 0.1s;
+                                white-space: nowrap;
+                            }
+                            .sheep-count-btn:active { transform: scale(0.92); }
+
+                            /* 🌟 綿羊容器 */
+                            .interactive-sheep {
+                                position: absolute;
+                                width: 135px;
+                                height: 105px;
+                                z-index: 5;
+                                filter: drop-shadow(0 6px 8px rgba(0,0,0,0.2));
+                            }
+                            
+                            /* 四隻腳腳交替跑步 */
+                            .leg-back-1 { transform-origin: 50% 0%; animation: legRun1 0.28s infinite alternate ease-in-out; }
+                            .leg-back-2 { transform-origin: 50% 0%; animation: legRun2 0.28s infinite alternate ease-in-out; }
+                            .leg-front-1 { transform-origin: 50% 0%; animation: legRun2 0.28s infinite alternate ease-in-out; }
+                            .leg-front-2 { transform-origin: 50% 0%; animation: legRun1 0.28s infinite alternate ease-in-out; }
+
+                            @keyframes legRun1 {
+                                0% { transform: rotate(-22deg); }
+                                100% { transform: rotate(22deg); }
+                            }
+                            @keyframes legRun2 {
+                                0% { transform: rotate(22deg); }
+                                100% { transform: rotate(-22deg); }
+                            }
+                        `;
+                        document.head.appendChild(style);
+                    }
+
+                    // 清理舊定時器
+                    if (window.sheepManagerFrame) cancelAnimationFrame(window.sheepManagerFrame);
+                    if (window.sheepSpawnTimeout) clearTimeout(window.sheepSpawnTimeout);
+
+                    // 1. 夜空濾鏡
+                    const nightOverlay = document.createElement('div');
+                    nightOverlay.className = 'sheep-night-overlay';
+                    layer.appendChild(nightOverlay);
+
+                    // 2. 右下朝左上角度的斜角立體原木柵欄 SVG
+                    const fence = document.createElement('div');
+                    fence.className = 'sheep-fence';
+                    fence.innerHTML = `<svg viewBox="0 0 250 130" width="100%" height="100%">
+                        <defs>
+                            <linearGradient id="woodLogGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                                <stop offset="0%" stop-color="#7a421b"/><stop offset="45%" stop-color="#a35f29"/><stop offset="100%" stop-color="#542c0f"/>
+                            </linearGradient>
+                            <linearGradient id="woodPlankGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+                                <stop offset="0%" stop-color="#b0723d"/><stop offset="100%" stop-color="#6e3c17"/>
+                            </linearGradient>
+                        </defs>
+                        <!-- 地面影子 -->
+                        <ellipse cx="212" cy="118" rx="22" ry="7" fill="rgba(0,0,0,0.22)" filter="blur(2px)"/>
+                        <ellipse cx="30" cy="85" rx="18" ry="6" fill="rgba(0,0,0,0.22)" filter="blur(2px)"/>
+                        <path d="M 35 85 L 215 110" stroke="rgba(0,0,0,0.15)" stroke-width="8" filter="blur(3px)"/>
+
+                        <g stroke="#3d1e08" stroke-width="3.5" stroke-linejoin="round" stroke-linecap="round">
+                            <!-- 橫向斜木板 1 (下板) -->
+                            <polygon points="35,44 215,82 215,100 35,62" fill="url(#woodPlankGrad)"/>
+                            <polygon points="35,44 215,82 215,86 35,48" fill="#e3ab71" stroke="none"/>
+                            <path d="M 35 44 L 215 82" stroke="#3d1e08" stroke-width="3"/>
+
+                            <!-- 橫向斜木板 2 (上板) -->
+                            <polygon points="35,14 215,52 215,70 35,32" fill="url(#woodPlankGrad)"/>
+                            <polygon points="35,14 215,52 215,56 35,18" fill="#e3ab71" stroke="none"/>
+                            <path d="M 35 14 L 215 52" stroke="#3d1e08" stroke-width="3"/>
+
+                            <!-- 左側原木柱 (在後/左上) -->
+                            <path d="M 20 12 Q 18 40 22 78 Q 34 82 44 78 Q 46 40 44 12 Z" fill="url(#woodLogGrad)"/>
+                            <ellipse cx="32" cy="12" rx="12" ry="7" fill="#eed297" stroke="#3d1e08" stroke-width="3.5"/>
+                            <ellipse cx="32" cy="12" rx="6" ry="3.5" fill="none" stroke="#a67c43" stroke-width="2"/>
+
+                            <!-- 右側原木柱 (在前/右下) -->
+                            <path d="M 198 45 Q 196 75 200 112 Q 214 116 224 112 Q 228 75 226 45 Z" fill="url(#woodLogGrad)"/>
+                            <ellipse cx="212" cy="45" rx="14" ry="8" fill="#eed297" stroke="#3d1e08" stroke-width="3.5"/>
+                            <ellipse cx="212" cy="45" rx="7" ry="4" fill="none" stroke="#a67c43" stroke-width="2"/>
+                        </g>
+
+                        <!-- 小草點綴 -->
+                        <path d="M 190 115 Q 195 105 200 116 Q 206 102 212 118" fill="none" stroke="#15803d" stroke-width="3" stroke-linecap="round"/>
+                        <path d="M 10 85 Q 16 75 20 86 Q 26 73 32 88" fill="none" stroke="#15803d" stroke-width="3" stroke-linecap="round"/>
+                    </svg>`;
+                    layer.appendChild(fence);
+
+                    // 3. 控制面板按鈕
+                    let sheepJumpedCount = 0;
+                    const panel = document.createElement('div');
+                    panel.className = 'sheep-control-panel';
+                    
+                    const jumpBtn = document.createElement('button');
+                    jumpBtn.className = 'sheep-count-btn';
+                    jumpBtn.innerHTML = `🐑 讓羊跳躍！ (已數: 0 隻 💤)`;
+                    panel.appendChild(jumpBtn);
+                    layer.appendChild(panel);
+
+                    // 4. 綿羊色彩清單
+                    const sheepPalettes = [
+                        { wool: '#ffffff', face: '#8c8585', stroke: '#4d4a4d' }, // 經典白灰
+                        { wool: '#fce7f3', face: '#a89498', stroke: '#594549' }, // 櫻花粉羊
+                        { wool: '#fef08a', face: '#948a79', stroke: '#4d4436' }, // 奶油黃羊
+                        { wool: '#e0e7ff', face: '#8089a8', stroke: '#414861' }, // 薄荷藍羊
+                        { wool: '#f3e8ff', face: '#9786ab', stroke: '#4e3f5e' }  // 薰衣草紫羊
+                    ];
+
+                    let sheepList = [];
+                    let sheepIdCounter = 0;
+
+                    function createSheepDOM(pal) {
+                        const el = document.createElement('div');
+                        el.className = 'interactive-sheep';
+                        el.innerHTML = `<svg viewBox="0 0 180 140" width="100%" height="100%">
+                            <g stroke="${pal.stroke}" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M 28 48 C 14 42 6 54 15 68 C 22 72 30 62 28 48 Z" fill="${pal.face}" />
+                                <g class="leg-back-1"><rect x="52" y="96" width="20" height="26" rx="10" fill="${pal.stroke}" /></g>
+                                <g class="leg-back-2"><rect x="88" y="96" width="20" height="26" rx="10" fill="${pal.stroke}" /></g>
+                                <path d="M 105 88 C 118 90 120 74 118 62 C 125 50 115 36 102 34 C 94 22 78 20 66 26 C 54 18 38 22 30 32 C 18 38 14 52 20 64 C 12 76 22 90 34 92 C 44 102 62 102 70 94 C 82 102 98 98 105 88 Z" fill="${pal.wool}" />
+                                <g class="leg-front-1"><rect x="40" y="96" width="22" height="26" rx="11" fill="${pal.face}" /></g>
+                                <g class="leg-front-2"><rect x="80" y="96" width="22" height="26" rx="11" fill="${pal.face}" /></g>
+                                <path d="M 125 32 C 132 28 138 34 133 40 Z" fill="${pal.face}" />
+                                <path d="M 98 35 C 85 30 76 38 84 46 C 92 50 98 42 98 35 Z" fill="${pal.face}" />
+                                <path d="M 130 46 C 142 56 142 82 122 90 C 106 98 88 88 88 70 C 88 54 98 44 110 44 C 120 44 128 44 130 46 Z" fill="${pal.face}" />
+                                <path d="M 134 38 C 140 28 128 20 120 24 C 114 16 102 18 98 26 C 90 24 86 34 92 40 C 104 46 124 46 134 38 Z" fill="${pal.wool}" />
+                                <g fill="${pal.stroke}" stroke="none"><ellipse cx="120" cy="65" rx="4.5" ry="7" /><ellipse cx="106" cy="64" rx="4.5" ry="7" /><ellipse cx="115" cy="78" rx="4.5" ry="2.5" /></g>
+                            </g>
+                        </svg>`;
+                        return el;
+                    }
+
+                    function getQueueX(slotIndex) {
+                        return 28 - (slotIndex * 6);
+                    }
+
+                    function spawnWaitingSheep() {
+                        if (gameState.currentEffect !== 'sheep' && trialState.effect !== 'sheep') return;
+                        
+                        let queueSheep = sheepList.filter(s => s.state !== 'jumping');
+                        if (queueSheep.length < 5) {
+                            let id = sheepIdCounter++;
+                            let pal = sheepPalettes[id % sheepPalettes.length];
+                            let dom = createSheepDOM(pal);
+                            layer.appendChild(dom);
+
+                            let targetSlot = queueSheep.length;
+                            
+                            let sheepObj = {
+                                id: id,
+                                dom: dom,
+                                state: 'walking', 
+                                slotIndex: targetSlot,
+                                currentX: -15,
+                                targetX: getQueueX(targetSlot),
+                                baseY: 42,
+                                jumpProgress: 0,
+                                bobSeed: Math.random() * Math.PI * 2
+                            };
+                            sheepList.push(sheepObj);
+                        }
+
+                        window.sheepSpawnTimeout = setTimeout(spawnWaitingSheep, 1000);
+                    }
+
+                    function triggerJump() {
+                        let readySheep = sheepList.find(s => s.slotIndex === 0 && (s.state === 'waiting' || s.state === 'walking'));
+                        if (!readySheep) return;
+
+                        readySheep.state = 'jumping';
+                        sheepJumpedCount++;
+
+                        sheepList.forEach(s => {
+                            if (s.state !== 'jumping' && s.id !== readySheep.id) {
+                                s.slotIndex--;
+                                s.targetX = getQueueX(s.slotIndex);
+                                s.state = 'walking';
+                            }
+                        });
+
+                        jumpBtn.innerText = `🐑 讓羊跳躍！ (已數: ${sheepJumpedCount} 隻 💤)`;
+                        showFloatText(`第 ${sheepJumpedCount} 隻羊 💤`, 1200);
+                    }
+
+                    jumpBtn.onclick = (e) => {
+                        e.stopPropagation();
+                        triggerJump();
+                    };
+
+                    function renderSheepEngine() {
+                        if (gameState.currentEffect !== 'sheep' && trialState.effect !== 'sheep') {
+                            if (window.sheepManagerFrame) cancelAnimationFrame(window.sheepManagerFrame);
+                            sheepList.forEach(s => s.dom.remove());
+                            sheepList = [];
+                            return;
+                        }
+                        window.sheepManagerFrame = requestAnimationFrame(renderSheepEngine);
+
+                        for (let i = sheepList.length - 1; i >= 0; i--) {
+                            let s = sheepList[i];
+
+                            if (s.state === 'walking') {
+                                s.currentX += 0.35;
+                                if (s.currentX >= s.targetX) {
+                                    s.currentX = s.targetX;
+                                    s.state = 'waiting';
+                                }
+                                s.dom.style.left = s.currentX + '%';
+                                s.dom.style.bottom = s.baseY + 'px';
+                                s.dom.style.transform = 'scale(1) rotate(0deg)';
+                            } 
+                            else if (s.state === 'waiting') {
+                                s.bobSeed += 0.04;
+                                let gentleBob = Math.sin(s.bobSeed) * 2; 
+                                s.dom.style.left = s.currentX + '%';
+                                s.dom.style.bottom = (s.baseY + gentleBob) + 'px';
+                                s.dom.style.transform = 'scale(1) rotate(0deg)';
+                            } 
+                            else if (s.state === 'jumping') {
+                                s.jumpProgress += 0.018;
+                                
+                                let startX = s.currentX;
+                                let endX = 72;
+                                let curX = startX + (endX - startX) * s.jumpProgress;
+                                
+                                let arcY = Math.sin(s.jumpProgress * Math.PI) * 155;
+                                let curY = s.baseY + arcY;
+                                let rot = -Math.sin(s.jumpProgress * Math.PI) * 12;
+
+                                s.dom.style.left = curX + '%';
+                                s.dom.style.bottom = curY + 'px';
+                                s.dom.style.transform = `scale(1.1) rotate(${rot}deg)`;
+
+                                if (s.jumpProgress >= 1) {
+                                    s.dom.remove();
+                                    sheepList.splice(i, 1);
+                                }
+                            }
+                        }
+                    }
+
+                    renderSheepEngine();
+                    spawnWaitingSheep();
+                    break;        
 // 🍂 【落葉紛飛】逼真 SVG 葉子飄落效果：帶有暖黃色秋日氛圍濾鏡、柔美隨風搖擺與自然翻轉
                 case 'leaf':
                     if (!document.getElementById('leafStyle')) {
