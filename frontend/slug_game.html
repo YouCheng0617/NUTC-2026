@@ -2163,161 +2163,111 @@ if (typeof layer !== 'undefined' && layer) {
                     renderSheepEngine();
                     spawnWaitingSheep();
                     break;
-                    // 🍪 【餅乾碎屑】3D 飛向螢幕砸碎 + 碎屑飛散 + 點擊還原特效
+                // 🍪 【餅乾碎屑】真實蜘蛛網螢幕碎裂＋餅乾卡在螢幕上＋點擊往下掉落還原
                 case 'cookie':
-                    if (!document.getElementById('cookieFlySmashStyle')) {
+                    if (typeof layer !== 'undefined' && layer) {
+                        layer.innerHTML = '';
+                    }
+
+                    if (!document.getElementById('cookieScreenStickyStyle')) {
                         const style = document.createElement('style');
-                        style.id = 'cookieFlySmashStyle';
+                        style.id = 'cookieScreenStickyStyle';
                         style.innerHTML = `
                             .cookie-smash-overlay {
                                 position: absolute; top: 0; left: 0; width: 100%; height: 100%;
                                 pointer-events: auto; z-index: 99; overflow: hidden;
                             }
                             
-                            /* 🌟 螢幕裂痕與掉落屑屑容器 */
-                            .screen-crack {
+                            /* 🌟 真實蜘蛛網螢幕碎裂紋路 */
+                            .screen-real-crack {
                                 position: absolute; top: 0; left: 0; width: 100%; height: 100%;
                                 pointer-events: none; opacity: 0;
-                                animation: crackAppear 0.15s 0.65s forwards ease-out;
+                                animation: realCrackAppear 0.12s 0.42s forwards cubic-bezier(0.1, 0.9, 0.2, 1);
                             }
-                            @keyframes crackAppear {
-                                0% { opacity: 0; transform: scale(0.95); }
+                            @keyframes realCrackAppear {
+                                0% { opacity: 0; transform: scale(0.92); }
                                 100% { opacity: 0.95; transform: scale(1); }
                             }
 
-                            /* 🌟 主餅乾：從遠處飛向螢幕砸過來 */
-                            .flying-main-cookie {
+                            /* 🌟 主餅乾：飛過來砸在螢幕上並「卡在上面」 */
+                            .sticky-screen-cookie {
                                 position: absolute;
                                 top: 50%; left: 50%;
-                                width: 140px; height: 140px;
-                                margin-top: -70px; margin-left: -70px;
+                                width: 200px; height: 200px;
+                                margin-top: -100px; margin-left: -100px;
                                 z-index: 101;
-                                filter: drop-shadow(0 15px 25px rgba(0,0,0,0.6));
-                                animation: flyToScreen 0.65s cubic-bezier(0.36, 0.07, 0.19, 0.97) forwards;
+                                cursor: pointer;
+                                filter: drop-shadow(0 15px 25px rgba(0,0,0,0.8));
+                                animation: smashAndStick 0.42s cubic-bezier(0.25, 1, 0.5, 1) forwards;
                             }
-                            @keyframes flyToScreen {
-                                0% { transform: scale(0.05) translate(0, -200vh) rotate(-720deg); opacity: 0; }
-                                70% { opacity: 1; }
-                                100% { transform: scale(1) translate(0, 0) rotate(15deg); opacity: 1; }
-                            }
-
-                            /* 🌟 撞擊瞬間四處飛散的小餅乾屑屑 */
-                            .flying-crumb {
-                                position: absolute;
-                                top: 50%; left: 50%;
-                                width: 24px; height: 24px;
-                                z-index: 102;
-                                pointer-events: none;
-                                filter: drop-shadow(0 4px 6px rgba(0,0,0,0.4));
-                                animation: crumbSplash 0.7s 0.62s forwards cubic-bezier(0.1, 0.82, 0.16, 1);
+                            @keyframes smashAndStick {
+                                0% { transform: scale(0.02) rotate(-360deg); opacity: 0; }
+                                65% { opacity: 1; transform: scale(1.1) rotate(8deg); }
+                                100% { transform: scale(1) rotate(0deg); opacity: 1; } /* 停在正中央卡住 */
                             }
 
-                            /* 🌟 點擊後全部掉落與還原動畫 */
-                            @keyframes dropOff {
+                            /* 🌟 點擊後餅乾從螢幕上往下滑落消失 */
+                            @keyframes cookieSlideDown {
                                 0% { transform: translateY(0) rotate(0deg) scale(1); opacity: 1; }
-                                100% { transform: translateY(120vh) rotate(360deg) scale(0.8); opacity: 0; }
+                                100% { transform: translateY(110vh) rotate(180deg) scale(0.9); opacity: 0; }
                             }
-                            @keyframes crackDisappear {
+                            @keyframes crackFadeOut {
                                 0% { opacity: 0.95; transform: scale(1); }
-                                100% { opacity: 0; transform: scale(1.02); }
+                                100% { opacity: 0; transform: scale(1.03); }
                             }
                         `;
                         document.head.appendChild(style);
                     }
 
-                    // 清理舊容器
-                    const oldCookieOverlay = document.getElementById('cookieSmashContainer');
-                    if (oldCookieOverlay) oldCookieOverlay.remove();
-
-                    // 1. 建立滿版互動容器
+                    // 1. 建立容器
                     const smashContainer = document.createElement('div');
                     smashContainer.id = 'cookieSmashContainer';
                     smashContainer.className = 'cookie-smash-overlay';
                     layer.appendChild(smashContainer);
 
-                    // 2. 建立螢幕碎裂紋路 SVG (延遲在撞擊瞬間出現)
+                    // 2. 建立蜘蛛網中心碎裂 SVG
                     const crackSvg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-                    crackSvg.setAttribute('class', 'screen-crack');
+                    crackSvg.setAttribute('class', 'screen-real-crack');
                     crackSvg.setAttribute('viewBox', '0 0 1000 1000');
                     crackSvg.setAttribute('preserveAspectRatio', 'none');
                     crackSvg.innerHTML = `
-                        <g stroke="#ffffff" stroke-width="2.8" fill="none" opacity="0.95" filter="drop-shadow(0 0 4px rgba(0,0,0,0.9))">
-                            <!-- 中心點撞擊裂痕 -->
-                            <path d="M500,450 L260,190 M500,450 L740,150 M500,450 L890,380 M500,450 L790,750 M500,450 L410,840 M500,450 L170,640 M500,450 L120,350" />
-                            <path d="M380,290 L210,310 M630,250 L710,340 M760,520 L910,540 M570,680 L650,840 M430,690 L310,820 M270,490 L130,510" />
-                            <path d="M310,220 L280,90 M670,200 L760,80 M820,390 L960,270 M470,770 L500,930 M330,750 L210,910 M160,410 L40,440" />
-                            <circle cx="500" cy="450" r="22" fill="#ffffff" opacity="0.6"/>
+                        <g stroke="#f0fdf4" stroke-width="2.2" fill="none" opacity="0.92" filter="drop-shadow(0 0 4px rgba(0,0,0,0.95))">
+                            <circle cx="500" cy="500" r="40" fill="rgba(255,255,255,0.35)" stroke="#ffffff" stroke-width="2"/>
+                            <circle cx="500" cy="500" r="18" fill="#ffffff" opacity="0.8"/>
+                            <path d="M480,490 L520,510 M510,485 L490,515 M485,510 L515,490" stroke="#000000" stroke-width="2"/>
+                            <path d="M500,500 L180,80 M500,500 L535,40 M500,500 L880,100 M500,500 L950,450 M500,500 L890,910 M500,500 L520,960 M500,500 L150,880 M500,500 L60,420" stroke-width="3.5"/>
+                            <path d="M340,280 Q450,320 620,250 Q760,350 820,550 Q750,780 580,840 Q350,800 240,600 Z" stroke-width="1.8" opacity="0.85"/>
+                            <path d="M260,160 Q480,220 740,170 Q880,380 910,680 Q780,890 500,920 Q220,850 120,580 Q150,280 260,160 Z" stroke-width="1.2" opacity="0.6"/>
+                            <path d="M420,100 L560,70 M840,250 L930,380 M920,720 L830,860 M440,940 L280,920 M110,680 L80,510 M110,310 L210,120" stroke-width="2.5"/>
                         </g>
                     `;
                     smashContainer.appendChild(crackSvg);
 
-                    // 3. 建立飛過來的主餅乾（砸在正中央裂痕上）
+                    // 3. 建立黏在螢幕上的主餅乾
                     const mainCookie = document.createElement('div');
-                    mainCookie.className = 'flying-main-cookie';
+                    mainCookie.className = 'sticky-screen-cookie';
                     mainCookie.innerHTML = svgLib['cookie'];
                     smashContainer.appendChild(mainCookie);
 
-                    // 4. 建立撞擊瞬間四處飛散的小餅乾屑屑 (多顆不同方向與角度)
-                    const crumbsCount = 8;
-                    let crumbsElements = [mainCookie];
-
-                    for (let i = 0; i < crumbsCount; i++) {
-                        const crumb = document.createElement('div');
-                        crumb.className = 'flying-crumb';
-                        crumb.innerHTML = svgLib['cookie'];
-                        
-                        // 計算放射狀飛散的隨機終點距離與角度
-                        const angle = (i / crumbsCount) * Math.PI * 2 + (Math.random() * 0.5);
-                        const distance = 180 + Math.random() * 220;
-                        const destX = Math.cos(angle) * distance;
-                        const destY = Math.sin(angle) * distance;
-                        const rot = Math.random() * 720 - 360;
-
-                        crumb.style.setProperty('--dx', destX + 'px');
-                        crumb.style.setProperty('--dy', destY + 'px');
-                        
-                        // 動態寫入對應的飛散動畫
-                        crumb.style.animation = `crumbSplash 0.65s 0.65s forwards cubic-bezier(0.08, 0.82, 0.17, 1)`;
-                        
-                        // 定義自訂的飛散關鍵格
-                        const styleSheet = document.getElementById('cookieFlySmashStyle');
-                        // 動態插入專屬此屑屑的軌跡
-                        const animName = `splash_${i}`;
-                        styleSheet.innerHTML += `
-                            @keyframes ${animName} {
-                                0% { transform: translate(0, 0) scale(0.2) rotate(0deg); opacity: 0; }
-                                20% { opacity: 1; }
-                                100% { transform: translate(${destX}px, ${destY}px) scale(0.8) rotate(${rot}deg); opacity: 0; }
-                            }
-                        `;
-                        crumb.style.animationName = animName;
-
-                        smashContainer.appendChild(crumb);
-                        crumbsElements.push(crumb);
-                    }
-
-                    // 5. 點擊任何地方：全部碎片掉落、裂痕消失恢復原狀
+                    // 4. 點擊餅乾：餅乾從螢幕上往下滑落消失，裂痕同步還原
                     let isCleared = false;
                     const triggerClear = (e) => {
                         e.stopPropagation();
                         if (isCleared) return;
                         isCleared = true;
 
-                        // 所有餅乾碎片（主餅乾＋屑屑）往下掉落
-                        crumbsElements.forEach((el, idx) => {
-                            el.style.animation = `dropOff 0.7s forwards cubic-bezier(0.55, 0.08, 0.68, 0.53) ${idx * 0.03}s`;
-                        });
+                        // 餅乾從螢幕上往下滑落
+                        mainCookie.style.animation = `cookieSlideDown 0.55s forwards cubic-bezier(0.55, 0.08, 0.68, 0.53)`;
 
-                        // 螢幕裂痕淡出
-                        crackSvg.style.animation = 'crackDisappear 0.5s forwards ease';
+                        // 螢幕裂痕同步淡出還原
+                        crackSvg.style.animation = 'crackFadeOut 0.35s forwards ease';
 
-                        // 動畫結束後移除容器
                         setTimeout(() => {
                             if (smashContainer.parentNode) smashContainer.remove();
-                        }, 850);
+                        }, 600);
                     };
 
-                    smashContainer.addEventListener('click', triggerClear);
+                    mainCookie.addEventListener('click', triggerClear);
                     break;
 // 🍂 【落葉紛飛】逼真 SVG 葉子飄落效果：帶有暖黃色秋日氛圍濾鏡、柔美隨風搖擺與自然翻轉
                 case 'leaf':
