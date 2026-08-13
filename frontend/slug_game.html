@@ -716,6 +716,7 @@
                 
                 // 加入別人的房間 -> 代表我是作客的
                 socket.on('room_joined', (data) => {
+                    console.log("偷看後端傳來的房間資料：", data); // 👈 加上這行！132
                     isRoomHost = false; 
                     currentRoomId = data.roomId; 
                     updateRoomUI(`已加入房間: ${currentRoomId}`); 
@@ -775,7 +776,19 @@
             otherPlayersData = {}; 
             updateRoomUI("尚未連線"); 
         }
+// 🌟 【貼心小工具：一鍵複製房間代碼】
+function copyRoomId() {
+    if (!currentRoomId) return; // 防呆：如果沒有代碼就不做事
 
+    // 呼叫瀏覽器內建的剪貼簿 API 來複製
+    navigator.clipboard.writeText(currentRoomId).then(() => {
+        // 複製成功，觸發畫面上飄起可愛的提示字！
+        showFloatText('📋 代碼複製成功！', 2000);
+    }).catch(err => {
+        // 萬一遇到某些舊版瀏覽器擋住，就跳出傳統的框框讓玩家自己複製
+        prompt("請手動複製代碼：", currentRoomId);
+    });
+}
         function sendChatPrompt() { 
             const msg = prompt("想說些什麼呀？"); 
             if(msg) {
@@ -841,51 +854,57 @@
             updateFriendsPosition(); // 呼叫排隊系統
         }
 
-        // 🌟 【切換介面顯示狀態】進入房間後，把商店收起來，只有房主能開百寶袋
-        function updateRoomUI(text) {
-            document.getElementById('roomStatusText').innerText = text;
-            
-            const btnFeed = document.getElementById('btnFeed');
-            const btnClean = document.getElementById('btnClean');
-            const btnPet = document.getElementById('btnPet');
-            const tabs = document.querySelector('.ui-panel .tabs');
-            const shopGrid = document.getElementById('shopGrid');
-            const btnCatalog = document.getElementById('btnCatalog');
+// 🌟 【切換介面顯示狀態】進入房間後，把商店收起來，只有房主能開百寶袋
+function updateRoomUI(text) {
+    const statusEl = document.getElementById('roomStatusText');
+    
+    if (currentRoomId && text !== "尚未連線") {
+        statusEl.innerHTML = text + ` <button onclick="copyRoomId()" style="background: var(--accent-color); border: none; border-radius: 8px; cursor: pointer; padding: 4px 8px; font-size: 0.85rem; color: white; font-weight: 900; margin-left: 8px; box-shadow: 0 3px 0 rgba(255, 182, 193, 0.8); vertical-align: middle;" onmousedown="this.style.transform='translateY(3px)'; this.style.boxShadow='none';" onmouseup="this.style.transform='none'; this.style.boxShadow='0 3px 0 rgba(255, 182, 193, 0.8)';">📋 複製</button>`;
+    } else {
+        statusEl.innerText = text;
+    }
 
-            if (currentRoomId) {
-                // 已連線：隱藏大廳按鈕，顯示房間按鈕
-                document.getElementById('btnCreateRoom').style.display = 'none'; 
-                document.getElementById('btnJoinRoom').style.display = 'none'; 
-                document.getElementById('btnChat').style.display = 'block'; 
-                document.getElementById('btnLeaveRoom').style.display = 'block';
-                
-                // 隱藏互動按鈕與商店區塊
-                if (btnFeed) btnFeed.style.display = 'none';
-                if (btnClean) btnClean.style.display = 'none';
-                if (btnPet) btnPet.style.display = 'none';
-                if (tabs) tabs.style.display = 'none';
-                if (shopGrid) shopGrid.style.display = 'none';
-                
-                // 🌟 房主專屬特權：如果是房主就顯示百寶袋，不然就隱藏
-                if (btnCatalog) {
-                    btnCatalog.style.display = isRoomHost ? 'flex' : 'none';
-                }
-            } else {
-                // 未連線：顯示大廳按鈕
-                document.getElementById('btnCreateRoom').style.display = 'block'; 
-                document.getElementById('btnJoinRoom').style.display = 'block'; 
-                document.getElementById('btnChat').style.display = 'none'; 
-                document.getElementById('btnLeaveRoom').style.display = 'none';
-                
-                // 恢復原狀，顯示互動按鈕與商店
-                if (btnFeed) btnFeed.style.display = 'flex';
-                if (btnClean) btnClean.style.display = 'flex';
-                if (btnPet) btnPet.style.display = 'flex';
-                if (tabs) tabs.style.display = 'flex';
-                if (shopGrid) shopGrid.style.display = 'grid';
-                if (btnCatalog) btnCatalog.style.display = 'none';
-            }
+    const btnFeed = document.getElementById('btnFeed');
+    const btnClean = document.getElementById('btnClean');
+    const btnPet = document.getElementById('btnPet');
+    const tabs = document.querySelector('.ui-panel .tabs');
+    const shopGrid = document.getElementById('shopGrid');
+    const btnCatalog = document.getElementById('btnCatalog');
+
+    if (currentRoomId) {
+        // 已連線：隱藏大廳按鈕，顯示房間按鈕
+        document.getElementById('btnCreateRoom').style.display = 'none'; 
+        document.getElementById('btnJoinRoom').style.display = 'none'; 
+        document.getElementById('btnChat').style.display = 'block'; 
+        document.getElementById('btnLeaveRoom').style.display = 'block';
+        
+        // 隱藏互動按鈕與商店區塊
+        if (btnFeed) btnFeed.style.display = 'none';
+        if (btnClean) btnClean.style.display = 'none';
+        if (btnPet) btnPet.style.display = 'none';
+        if (tabs) tabs.style.display = 'none';
+        if (shopGrid) shopGrid.style.display = 'none';
+        
+        // 🌟 房主專屬特權：如果是房主就顯示百寶袋，不然就隱藏
+        if (btnCatalog) {
+            btnCatalog.style.display = isRoomHost ? 'flex' : 'none';
         }
+    } else {
+        // 未連線：顯示大廳按鈕
+        document.getElementById('btnCreateRoom').style.display = 'block'; 
+        document.getElementById('btnJoinRoom').style.display = 'block'; 
+        document.getElementById('btnChat').style.display = 'none'; 
+        document.getElementById('btnLeaveRoom').style.display = 'none';
+        
+        // 恢復原狀，顯示互動按鈕與商店
+        if (btnFeed) btnFeed.style.display = 'flex';
+        if (btnClean) btnClean.style.display = 'flex';
+        if (btnPet) btnPet.style.display = 'flex';
+        if (tabs) tabs.style.display = 'flex';
+        if (shopGrid) shopGrid.style.display = 'grid';
+        if (btnCatalog) btnCatalog.style.display = 'none';
+    }
+}
 
         // 🌟 產生對話泡泡
         function showChatBubble(name, message) {
