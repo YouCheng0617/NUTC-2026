@@ -220,6 +220,78 @@
         50% { transform: scale(1) rotate(0deg); opacity: 0.9; filter: drop-shadow(0 0 50px rgba(244, 63, 94, 1)) blur(0px); }
         100% { transform: scale(1.05) rotate(3deg); opacity: 0.5; filter: drop-shadow(0 0 20px rgba(244,63,94,0.6)) blur(1px); }
     }
+/* 🌟 【繁星閃爍專屬】四周淡淡金黃色光暈 + 背景明暗呼吸閃爍 */
+.star-golden-vignette-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0) 30%, rgba(254, 240, 138, 0.22) 65%, rgba(245, 158, 11, 0.38) 100%);
+    pointer-events: none;
+    z-index: 1;
+    animation: goldenShimmerPulse 4s ease-in-out infinite alternate;
+}
+@keyframes goldenShimmerPulse {
+    0% { opacity: 0.55; filter: brightness(0.95); }
+    50% { opacity: 0.85; filter: brightness(1.15) drop-shadow(0 0 15px rgba(254, 240, 138, 0.4)); }
+    100% { opacity: 0.65; filter: brightness(1.0); }
+}
+
+/* 🌟 背景定點一閃一閃的微光星芒 */
+.background-twinkle-sparkle {
+    position: absolute;
+    pointer-events: none;
+    z-index: 2;
+    transform-origin: center center;
+    animation: backgroundTwinkleBlink ease-in-out infinite;
+}
+@keyframes backgroundTwinkleBlink {
+    0% { transform: scale(0.2); opacity: 0; filter: drop-shadow(0 0 0px #fff); }
+    50% { transform: scale(1.15); opacity: 0.95; filter: drop-shadow(0 0 8px #fef08a); }
+    100% { transform: scale(0.2); opacity: 0; filter: drop-shadow(0 0 0px #fff); }
+}
+
+/* 🌟 飄落流星與星星的滑落動畫 */
+.twinkling-golden-star {
+    position: absolute;
+    pointer-events: none;
+    z-index: 8;
+    transform-origin: center center;
+    animation: starGlissando linear infinite;
+}
+@keyframes starGlissando {
+    0% { transform: translateY(-5vh) translateX(0px) rotate(0deg) scale(0.3); opacity: 0; }
+    15% { opacity: 1; }
+    85% { opacity: 1; }
+    100% { transform: translateY(108vh) translateX(var(--star-drift)) rotate(360deg) scale(0.9); opacity: 0; }
+}
+
+/* 🌟 滑鼠劃過殘留的流星與星星粒子動畫 */
+.star-cursor-trail {
+    position: absolute;
+    pointer-events: none;
+    z-index: 100;
+    transform-origin: center center;
+    animation: cursorStarPop 0.8s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+}
+@keyframes cursorStarPop {
+    0% {
+        transform: translate(-50%, -50%) translate(0, 0) scale(0.4) rotate(0deg);
+        opacity: 1;
+        filter: drop-shadow(0 0 8px #fff);
+    }
+    40% {
+        transform: translate(-50%, -50%) translate(var(--tx), var(--ty)) scale(1.1) rotate(45deg);
+        opacity: 0.95;
+        filter: drop-shadow(0 0 10px #fef08a);
+    }
+    100% {
+        transform: translate(-50%, -50%) translate(calc(var(--tx) * 1.6), calc(var(--ty) * 1.6 + 15px)) scale(0.1) rotate(90deg);
+        opacity: 0;
+        filter: drop-shadow(0 0 0px transparent);
+    }
+}
         /* 🌟 【海兔本體的容器與動畫】 */
         .slug-container {
             position: absolute !important;
@@ -2953,6 +3025,126 @@ let trialTimeLeft = 10; // 全域記錄試用剩餘時間
                         layer.appendChild(el);
                     }
                     break;
+// 🌟 【繁星閃爍】四周淡金光暈 + 背景一閃一閃 + 金燦流星 + 滑鼠星塵拖尾
+                case 'star': {
+                    // 1. 建立四周淡金黃色呼吸光暈圖層
+                    const goldenOverlay = document.createElement('div');
+                    goldenOverlay.className = 'star-golden-vignette-overlay';
+                    layer.appendChild(goldenOverlay);
+
+                    // 2. 建立背景一閃一閃的定點微光星芒
+                    const bgTwinkleCount = 18;
+                    for (let j = 0; j < bgTwinkleCount; j++) {
+                        let bgSpark = document.createElement('div');
+                        bgSpark.className = 'background-twinkle-sparkle';
+                        bgSpark.innerHTML = svgLib['sparkle'];
+
+                        let spSize = Math.random() * 12 + 10;
+                        bgSpark.style.width = spSize + 'px';
+                        bgSpark.style.height = spSize + 'px';
+                        bgSpark.style.left = (Math.random() * 92 + 4) + '%';
+                        bgSpark.style.top = (Math.random() * 85 + 5) + '%';
+
+                        const shimmerColors = ['#ffffff', '#fef08a', '#fde047', '#fffbeb'];
+                        bgSpark.style.color = shimmerColors[Math.floor(Math.random() * shimmerColors.length)];
+
+                        let blinkDuration = Math.random() * 2 + 1.5;
+                        let blinkDelay = Math.random() * 3;
+                        bgSpark.style.animationDuration = blinkDuration + 's';
+                        bgSpark.style.animationDelay = blinkDelay + 's';
+
+                        layer.appendChild(bgSpark);
+                    }
+
+                    // 3. 飄落的金黃與暖白流星
+                    const starTypes = ['star', 'sparkle'];
+                    const totalStars = 28;
+
+                    for (let i = 0; i < totalStars; i++) {
+                        let el = document.createElement('div');
+                        el.className = 'twinkling-golden-star';
+
+                        let typeKey = starTypes[Math.floor(Math.random() * starTypes.length)];
+                        el.innerHTML = svgLib[typeKey];
+
+                        let isSparkle = typeKey === 'sparkle';
+                        let size = isSparkle ? (Math.random() * 14 + 14) : (Math.random() * 18 + 22);
+                        el.style.width = size + 'px';
+                        el.style.height = size + 'px';
+                        el.style.left = (Math.random() * 100) + '%';
+                        el.style.top = '-50px';
+
+                        let drift = (Math.random() * 80 + 20) * (Math.random() > 0.5 ? 1 : -1);
+                        el.style.setProperty('--star-drift', drift + 'px');
+
+                        const goldenColors = ['#ffffff', '#fef08a', '#fde047', '#fef9c3', '#fed7aa'];
+                        let pickedColor = goldenColors[Math.floor(Math.random() * goldenColors.length)];
+                        el.style.color = pickedColor;
+                        el.style.filter = `drop-shadow(0 0 ${Math.random() * 5 + 3}px ${pickedColor})`;
+
+                        let duration = Math.random() * 4 + 3.5;
+                        let delay = Math.random() * 4;
+                        el.style.animationDuration = duration + 's';
+                        el.style.animationDelay = delay + 's';
+
+                        layer.appendChild(el);
+                    }
+
+                    // 4. 🌟 滑鼠劃過留下流星/星星殘留粒子
+                    const stage = document.getElementById('mainStage');
+                    if (window.starTrailHandler) {
+                        stage.removeEventListener('mousemove', window.starTrailHandler);
+                    }
+
+                    let lastSpawnTime = 0;
+                    window.starTrailHandler = (e) => {
+                        const activeEffect = trialState.effect || gameState.currentEffect;
+                        if (activeEffect !== 'star') {
+                            stage.removeEventListener('mousemove', window.starTrailHandler);
+                            return;
+                        }
+
+                        // 節流控制：每 40ms 最多產生一次，保證流暢不卡頓
+                        const now = Date.now();
+                        if (now - lastSpawnTime < 40) return;
+                        lastSpawnTime = now;
+
+                        const rect = stage.getBoundingClientRect();
+                        const x = e.clientX - rect.left;
+                        const y = e.clientY - rect.top;
+
+                        // 每次滑過生成 1~2 個微型星塵粒子
+                        const count = Math.random() > 0.5 ? 2 : 1;
+                        for (let k = 0; k < count; k++) {
+                            const trailStar = document.createElement('div');
+                            trailStar.className = 'star-cursor-trail';
+                            const trailTypes = ['sparkle', 'star'];
+                            const pType = trailTypes[Math.floor(Math.random() * trailTypes.length)];
+                            trailStar.innerHTML = svgLib[pType];
+
+                            const pSize = pType === 'sparkle' ? (Math.random() * 12 + 10) : (Math.random() * 14 + 12);
+                            trailStar.style.width = pSize + 'px';
+                            trailStar.style.height = pSize + 'px';
+                            trailStar.style.left = x + 'px';
+                            trailStar.style.top = y + 'px';
+
+                            // 隨機向四周微幅擴散
+                            const angle = Math.random() * Math.PI * 2;
+                            const dist = Math.random() * 25 + 10;
+                            trailStar.style.setProperty('--tx', Math.cos(angle) * dist + 'px');
+                            trailStar.style.setProperty('--ty', Math.sin(angle) * dist + 'px');
+
+                            const trailColors = ['#ffffff', '#fef08a', '#fde047', '#fffbeb'];
+                            trailStar.style.color = trailColors[Math.floor(Math.random() * trailColors.length)];
+
+                            layer.appendChild(trailStar);
+                            setTimeout(() => { trailStar.remove(); }, 800);
+                        }
+                    };
+
+                    stage.addEventListener('mousemove', window.starTrailHandler);
+                    break;
+                }
 // 🎨 【揮灑顏料】從後方砸上來、固定靜止帶拉絲與左下角色系切換
                 case 'paint':
                     if (window.paintAnimFrame) cancelAnimationFrame(window.paintAnimFrame);
