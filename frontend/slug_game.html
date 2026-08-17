@@ -668,8 +668,8 @@
         
         // 🌟 1. 嚴格綁定帳號！直接去拿你真實登入系統存下來的 Token
         // 💡 寶寶注意：請把裡面的 'token' 換成你主程式登入時存進 localStorage 的名稱 
-        // （通常叫 'token'、'accessToken' 或 'auth_token'）
-        let GAME_TOKEN = localStorage.getItem('token'); 
+        // 💡 把括號裡的字，換成你在 F12 裡面找到的一模一樣的真實名字！
+let GAME_TOKEN = localStorage.getItem('access_token');
         
         // 🌟 2. 殺掉單機測試防呆！如果沒抓到真實帳號，就不准他玩！
         if (!GAME_TOKEN) {
