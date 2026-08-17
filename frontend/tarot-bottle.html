@@ -871,8 +871,7 @@
 
       try {
         const token = localStorage.getItem("authToken");
-        const response = await fetch(`${API_BASE_URL}/tarot/reading`, {
-          method: "POST",
+const response = await fetch(`http://127.0.0.1:5000/api/tarot`, { // 本機測試用這個          method: "POST",
           headers: {
             "Content-Type": "application/json",
             Authorization: `Bearer ${token}`,
@@ -932,8 +931,7 @@
 
       try {
         const token = localStorage.getItem("authToken");
-        const response = await fetch(`${API_BASE_URL}/tarot/ask`, {
-          method: "POST",
+const response = await fetch(`http://127.0.0.1:5000/api/chat`, { // 本機測試用這個          method: "POST",
           headers: {
             "Content-Type": "application/json",
             Authorization: `Bearer ${token}`,
