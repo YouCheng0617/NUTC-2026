@@ -839,7 +839,7 @@ function copyRoomId() {
             });
         }
 
-        // 把其他玩家畫到畫面上
+// 把其他玩家畫到畫面上（完整全配版！）
         function addOtherPlayer(p) {
             otherPlayersData[p.socketId] = p;
             const spec = speciesData[p.petColor] || speciesData['snow'];
@@ -847,8 +847,56 @@ function copyRoomId() {
             el.className = 'other-player'; 
             el.id = `player-${p.socketId}`; 
             
-            // 放大比例 scale(0.9) 讓好友看起來更清楚
-            el.innerHTML = `<div class="other-player-name">${p.petName}</div><svg viewBox="0 0 340 240" style="width: 100%; height: 100%; transform: scale(0.9); transform-origin: top left; filter: drop-shadow(0 10px 10px rgba(0,0,0,0.1));"><ellipse cx="170" cy="205" rx="120" ry="15" fill="rgba(0,0,0,0.12)" /><path d="M 70 190 C 20 180, 30 120, 90 110 C 160 100, 220 105, 260 130 C 290 150, 280 200, 200 210 C 130 220, 90 200, 70 190 Z" fill="${spec.body}" stroke="${spec.outline}" stroke-width="5" stroke-linejoin="round"/><g stroke="${spec.outline}" stroke-width="4" stroke-linejoin="round"><path d="M 100 105 C 80 50, 95 20, 110 25 C 125 30, 120 90, 115 105 Z" fill="${spec.earTop}"/><path d="M 145 100 C 135 45, 160 15, 175 25 C 190 35, 165 85, 160 100 Z" fill="${spec.earTop}"/></g><g transform="translate(130, 150)"><circle cx="-20" cy="0" r="7" fill="#2c3e50" /><circle cx="20" cy="0" r="7" fill="#2c3e50" /><path d="M -7 5 Q 0 12 7 5" fill="none" stroke="#2c3e50" stroke-width="3.5" stroke-linecap="round"/></g></svg>`;
+            // 🌟 幫每個朋友生出完整的 SVG 結構，包含尾巴、斑點跟專屬漸層！
+            el.innerHTML = `
+                <div class="other-player-name">${p.petName}</div>
+                <svg viewBox="0 0 340 240" style="width: 100%; height: 100%; transform: scale(0.9); transform-origin: top left; filter: drop-shadow(0 10px 10px rgba(0,0,0,0.1));">
+                    <defs>
+                        <!-- 替每個朋友建立專屬的耳朵漸層 ID，才不會大家都共用到同一個顏色 -->
+                        <linearGradient id="earGrad-${p.socketId}" x1="0%" y1="0%" x2="0%" y2="100%">
+                            <stop offset="0%" stop-color="${spec.earTop}" />
+                            <stop offset="60%" stop-color="${spec.earTop}" />
+                            <stop offset="100%" stop-color="${spec.body}" />
+                        </linearGradient>
+                    </defs>
+                    <g filter="url(#handDrawn)">
+                        <ellipse cx="170" cy="205" rx="120" ry="15" fill="rgba(0,0,0,0.12)" />
+
+                        <!-- 🌟 補回毛茸茸的尾巴 -->
+                        <g class="anim-tail" stroke="${spec.outline}" stroke-width="4" stroke-linejoin="round">
+                            <path d="M 250 170 C 270 180, 300 190, 290 140 C 280 100, 250 140, 240 170 Z" fill="${spec.tail}"/>
+                            <path d="M 260 150 C 290 160, 320 120, 280 80 C 260 60, 230 110, 250 150 Z" fill="${spec.tail}"/>
+                            <path d="M 240 130 C 260 100, 270 70, 240 50 C 210 30, 200 90, 230 120 Z" fill="${spec.tail}"/>
+                        </g>
+
+                        <!-- 身體主體 -->
+                        <path d="M 70 190 C 20 180, 30 120, 90 110 C 160 100, 220 105, 260 130 C 290 150, 280 200, 200 210 C 130 220, 90 200, 70 190 Z" fill="${spec.body}" stroke="${spec.outline}" stroke-width="5" stroke-linejoin="round"/>
+
+                        <!-- 🌟 補回靈魂小斑點 -->
+                        <g fill="${spec.spot}">
+                            <circle cx="90" cy="135" r="4"/><circle cx="125" cy="125" r="5"/><circle cx="170" cy="130" r="3.5"/><circle cx="210" cy="140" r="5.5"/><circle cx="245" cy="155" r="4"/>
+                            <circle cx="75" cy="160" r="4.5"/><circle cx="110" cy="165" r="3"/><circle cx="145" cy="180" r="5.5"/><circle cx="190" cy="185" r="4"/><circle cx="230" cy="175" r="4.5"/>
+                            <circle cx="100" cy="190" r="4"/><circle cx="160" cy="200" r="4.5"/><circle cx="205" cy="195" r="3.5"/>
+                        </g>
+
+                        <!-- 補回帶有漸層的耳朵 -->
+                        <g stroke="${spec.outline}" stroke-width="4" stroke-linejoin="round">
+                            <path class="anim-earL" d="M 100 105 C 80 50, 95 20, 110 25 C 125 30, 120 90, 115 105 Z" fill="url(#earGrad-${p.socketId})"/>
+                            <path class="anim-earR" d="M 145 100 C 135 45, 160 15, 175 25 C 190 35, 165 85, 160 100 Z" fill="url(#earGrad-${p.socketId})"/>
+                        </g>
+
+                        <!-- 五官與 🌟 補回可愛腮紅 -->
+                        <g transform="translate(130, 150)">
+                            <ellipse cx="-35" cy="12" rx="14" ry="8" fill="${spec.blush}" opacity="0.85"/>
+                            <ellipse cx="35" cy="12" rx="14" ry="8" fill="${spec.blush}" opacity="0.85"/>
+                            <circle cx="-20" cy="0" r="7" fill="#2c3e50" />
+                            <circle cx="20" cy="0" r="7" fill="#2c3e50" />
+                            <circle cx="-18" cy="-2" r="2.5" fill="#ffffff" />
+                            <circle cx="22" cy="-2" r="2.5" fill="#ffffff" />
+                            <path d="M -7 5 Q 0 12 7 5" fill="none" stroke="#2c3e50" stroke-width="3.5" stroke-linecap="round"/>
+                        </g>
+                    </g>
+                </svg>`;
             document.getElementById('otherPlayersLayer').appendChild(el);
             
             updateFriendsPosition(); // 呼叫排隊系統
