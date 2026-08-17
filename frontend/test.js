@@ -1,6 +1,41 @@
 // ✨ 統一設定後端網址
 const API_BASE_URL = "https://api.drift-bottles.xyz";
 
+// 🌟 自動登出與 JWT 解析檢查
+function checkTokenExpired() {
+    const token = localStorage.getItem("authToken");
+    if (!token) return;
+    try {
+        const payload = JSON.parse(atob(token.split('.')[1]));
+        const now = Math.floor(Date.now() / 1000);
+        if (payload.exp && payload.exp < now) {
+            handleAutoLogout("登入憑證已過期，請重新登入！");
+        }
+    } catch (e) {
+        handleAutoLogout("憑證格式無效，請重新登入！");
+    }
+}
+
+function handleAutoLogout(message) {
+    localStorage.removeItem("authToken");
+    localStorage.removeItem("currentUser");
+    alert(message || "登入已逾時，請重新登入！");
+    window.location.href = "login.html";
+}
+
+// 頁面載入時先主動檢查一次 Token 是否逾時
+checkTokenExpired();
+
+// 🌟 全域單向攔截 fetch 401 逾時回應
+const originalFetch = window.fetch;
+window.fetch = async function (...args) {
+    const response = await originalFetch.apply(this, args);
+    if (response.status === 401) {
+        handleAutoLogout("登入憑證已過期，請重新登入！");
+    }
+    return response;
+};
+
 let posts = [];
 let currentKeyword = '';
 let currentAuthorId = null; // 🌟 新增：用來記住目前正在看哪位作者的文章！
