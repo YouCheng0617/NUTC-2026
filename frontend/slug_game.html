@@ -663,16 +663,18 @@
          🌟 JavaScript 遊戲程式邏輯開始
          🌟 ========================================== -->
     <script>
-        // 🌟 【後台與網路連線資料】
+// 🌟 【後台與網路連線資料】
         const API_BASE = 'https://api.drift-bottles.xyz'; // 伺服器網址
         
-        // 🌟 正式上線邏輯：直接去拿真實登入系統發的通行證
-        let GAME_TOKEN = localStorage.getItem('nudi_token');
+        // 🌟 1. 嚴格綁定帳號！直接去拿你真實登入系統存下來的 Token
+        // 💡 寶寶注意：請把裡面的 'token' 換成你主程式登入時存進 localStorage 的名稱 
+        // 💡 把括號裡的字，換成你在 F12 裡面找到的一模一樣的真實名字！
+let GAME_TOKEN = localStorage.getItem('authToken') || localStorage.getItem('access_token');
         
-        // 🌟 離線測試防呆：如果還沒接上真實登入，就自動幫這個瀏覽器發一張「永久專屬號碼牌」
+        // 🌟 2. 殺掉單機測試防呆！如果沒抓到真實帳號，就不准他玩！
         if (!GAME_TOKEN) {
-            GAME_TOKEN = 'real_user_' + Math.floor(Math.random() * 10000000);
-            localStorage.setItem('nudi_token', GAME_TOKEN); // 永遠記在這個瀏覽器裡，不會再變了！
+            alert("請先登入帳號才能看見您的海兔喔！");
+            // window.location.href = "login.html"; // 如果需要，可以把這行打開，自動踢回登入頁
         }
         
         let socket = null;
@@ -1766,21 +1768,33 @@ let trialTimeLeft = 10; // 全域記錄試用剩餘時間
             }
         }
 
-        // 🌟 【好萊塢特效組】負責放煙火、下雨、丟符咒等華麗效果
         function applyEffect() {
-            const layer = document.getElementById('effectLayer');
-            layer.innerHTML = ''; 
-            const effectKey = trialState.effect || gameState.currentEffect;
-            const effect = effectData[effectKey];
-            
-            if (!effect || effectKey === 'none') return;
-// 🛑 【全域特效切換清道夫】不管按到什麼特效，進來第一件事就是把舊的羊群與畫面全部清空！
-if (window.sheepManagerFrame) cancelAnimationFrame(window.sheepManagerFrame);
-if (window.sheepSpawnTimeout) clearTimeout(window.sheepSpawnTimeout);
-window.currentSheepSession = null; // 作廢數羊羊工作證
-if (typeof layer !== 'undefined' && layer) {
-    layer.innerHTML = ''; // 徹底清空畫面容器，讓殘留的羊瞬間蒸發
-}
+    const layer = document.getElementById('effectLayer');
+    layer.innerHTML = ''; 
+    
+    // 🛑 1. 【全域特效切換清道夫】搬到最上面！確保取消試用時也會執行！
+    if (window.sheepManagerFrame) cancelAnimationFrame(window.sheepManagerFrame);
+    if (window.sheepSpawnTimeout) clearTimeout(window.sheepSpawnTimeout);
+    window.currentSheepSession = null; // 作廢數羊羊工作證
+    
+    // （寶寶如果想更保險，其他特效的計時器也可以一起放在這清乾淨）
+    if (window.catAnimFrame) cancelAnimationFrame(window.catAnimFrame);
+    if (window.meowTimeout) clearTimeout(window.meowTimeout);
+    if (window.paintAnimFrame) cancelAnimationFrame(window.paintAnimFrame);
+    if (window.paintTimeout) clearTimeout(window.paintTimeout);
+    if (window.tomatoAnimFrame) cancelAnimationFrame(window.tomatoAnimFrame);
+    if (window.tomatoFwTimeout) clearTimeout(window.tomatoFwTimeout);
+    if (window.bugFreeAnimFrame) cancelAnimationFrame(window.bugFreeAnimFrame);
+    if (window.bugFreeInterval) clearInterval(window.bugFreeInterval);
+    if (window.heartbeatAnimFrame) cancelAnimationFrame(window.heartbeatAnimFrame);
+    if (window.heartbeatTimeout) clearTimeout(window.heartbeatTimeout);
+    if (window.recallAnimFrame) cancelAnimationFrame(window.recallAnimFrame);
+
+    const effectKey = trialState.effect || gameState.currentEffect;
+    const effect = effectData[effectKey];
+    
+    // 🛑 2. 然後才檢查是不是無特效，如果是就提早結束
+    if (!effect || effectKey === 'none') return;
             switch (effectKey) {
 
 
@@ -3695,9 +3709,15 @@ addDailyProgress(type);
             }, 1000);
         }
 
-        // 🌟 【防撞衫專屬鑰匙】拿每個人的專屬 Token 當保險箱密碼，確保大家的存檔不會混在一起
+        // 🌟 【防撞衫專屬鑰匙】拿每個人的專屬帳號/Token 當保險箱密碼，確保大家的存檔不會混在一起
         function getSaveKey() {
-            return 'nudi_save_' + (GAME_TOKEN ? GAME_TOKEN.substring(0, 20) : 'guest');
+            try {
+                const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
+                if (currentUser && (currentUser.email || currentUser.name)) {
+                    return 'nudi_save_' + (currentUser.email || currentUser.name);
+                }
+            } catch(e) {}
+            return 'nudi_save_' + (GAME_TOKEN ? (GAME_TOKEN.length > 30 ? GAME_TOKEN.slice(-24) : GAME_TOKEN) : 'guest');
         }
 
         // 🌟 【記憶吐司：儲存進度】

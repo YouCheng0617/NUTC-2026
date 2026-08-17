@@ -63,8 +63,8 @@ export const authCheck = async (req: AuthRequest, res: Response, next: NextFunct
 
         next();
     } catch (error: any) {
-        return res.status(403).json({
-            message: "憑證無效或過期!?",
+        return res.status(401).json({
+            message: "憑證無效或過期，請重新登入",
             real_error_name: error.name,
             real_error_message: error.message
         });
