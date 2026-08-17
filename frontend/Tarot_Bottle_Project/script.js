@@ -311,25 +311,25 @@ async function generateReading() {
         右邊第三張（未來）：${drawnCards['future'].name} (${drawnCards['future'].isReversed ? '逆位' : '正位'})
     `;
 
-    const prompt = `你現在是一位溫柔、充滿智慧的星空魔法塔羅占卜師。玩家想問的問題是關於【${selectedTopic}】。玩家抽到了一個三牌陣：\n\n${cardsInfo}\n\n請根據牌面與正逆位，給出一份語氣溫柔、帶有魔法與星空隱喻的解牌報告。請務必包含以下四個段落，並且【請直接使用括號內的文字作為標題，絕對不要在標題前面加上 1. 2. 3. 4. 等數字標號】：\n- 【過去的指引】\n- 【現在的狀態】\n- 【未來的展現】\n- 【整體建議】\n\n排版要清晰，字數請控制在 400 字以內。\nIMPORTANT: You MUST write your ENTIRE response in ${t.aiLang}. If replying in English, please translate the Tarot card names and sections (Past, Present, Future, Overall Advice) into English in your response, and DO NOT use numbers for the section titles.`;
-
-    const API_KEY = 'AQ.Ab8RN6IGWQbxp0f3fIpWV7c0qk5rY6NfvwHzHsEgdmFAXM-ufQ'; 
-    const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${API_KEY}`;
-
-    try {
-        const response = await fetch(API_URL, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+try {
+        // 確保這裡有包含 method: "POST", 
+        const response = await fetch("https://api.drift-bottles.xyz/api/tarot", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                card_name: `${drawnCards['past'].name}、${drawnCards['present'].name}、${drawnCards['future'].name}`,
+                orientation: `${drawnCards['past'].isReversed ? '逆位' : '正位'}、${drawnCards['present'].isReversed ? '逆位' : '正位'}、${drawnCards['future'].isReversed ? '逆位' : '正位'}`,
+                question: selectedTopic
+            })
         });
         
         if (!response.ok) {
-            const errData = await response.json();
-            throw new Error(errData.error?.message || `HTTP 錯誤碼: ${response.status}`);
+            throw new Error(`HTTP 錯誤碼: ${response.status}`);
         }
         
         const data = await response.json();
-        const aiReply = data.candidates[0].content.parts[0].text;
         
         const now = new Date();
         const timeStr = `${now.getFullYear()}/${(now.getMonth()+1).toString().padStart(2, '0')}/${now.getDate().toString().padStart(2, '0')} ${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
@@ -338,10 +338,10 @@ async function generateReading() {
             topic: selectedTopic,
             time: timeStr,
             cards: cardsInfo.trim(),
-            reading: aiReply
+            reading: data.analysis || "無法取得解讀"
         };
         
-        const formattedReply = aiReply.replace(/\n/g, '<br>');
+        const formattedReply = (data.analysis || "無法取得解讀").replace(/\n/g, '<br>');
         
         resultText.innerHTML = `<div class="reading-time">占卜時間：${timeStr}</div>${formattedReply}`;
         
