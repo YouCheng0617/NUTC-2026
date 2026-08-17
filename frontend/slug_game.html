@@ -669,7 +669,7 @@
         // 🌟 1. 嚴格綁定帳號！直接去拿你真實登入系統存下來的 Token
         // 💡 寶寶注意：請把裡面的 'token' 換成你主程式登入時存進 localStorage 的名稱 
         // 💡 把括號裡的字，換成你在 F12 裡面找到的一模一樣的真實名字！
-let GAME_TOKEN = localStorage.getItem('access_token');
+let GAME_TOKEN = localStorage.getItem('authToken') || localStorage.getItem('access_token');
         
         // 🌟 2. 殺掉單機測試防呆！如果沒抓到真實帳號，就不准他玩！
         if (!GAME_TOKEN) {
@@ -3697,9 +3697,15 @@ addDailyProgress(type);
             }, 1000);
         }
 
-        // 🌟 【防撞衫專屬鑰匙】拿每個人的專屬 Token 當保險箱密碼，確保大家的存檔不會混在一起
+        // 🌟 【防撞衫專屬鑰匙】拿每個人的專屬帳號/Token 當保險箱密碼，確保大家的存檔不會混在一起
         function getSaveKey() {
-            return 'nudi_save_' + (GAME_TOKEN ? GAME_TOKEN.substring(0, 20) : 'guest');
+            try {
+                const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
+                if (currentUser && (currentUser.email || currentUser.name)) {
+                    return 'nudi_save_' + (currentUser.email || currentUser.name);
+                }
+            } catch(e) {}
+            return 'nudi_save_' + (GAME_TOKEN ? (GAME_TOKEN.length > 30 ? GAME_TOKEN.slice(-24) : GAME_TOKEN) : 'guest');
         }
 
         // 🌟 【記憶吐司：儲存進度】
