@@ -1235,18 +1235,12 @@ const effectData = {
             sun: { name: {zh: '陽光普照', en: 'Sunny'}, cost: 1500, preview: '#fb923c', svg: [{s: 'sparkle'}], dir: 'up', count: 20 },
             moon: { name: {zh: '月光灑落', en: 'Moonlight'}, cost: 1500, preview: '#1e293b', svg: [{s: 'moon_star'}], dir: 'down', count: 18 },
            sheep: { name: {zh: '數羊羊', en: 'Counting Sheep'}, cost: 1600, preview: '#e2e8f0', svg: [{s: 'moon'}], dir: 'up', count: 8 },
-            cookie: { name: {zh: '餅干碎屑', en: 'Cookies'}, cost: 1600, preview: '#b45309', svg: [{s: 'cookie'}], dir: 'down', count: 12 },
-            boba: { name: {zh: '珍奶珍珠', en: 'Boba Pearls'}, cost: 1700, preview: '#78350f', svg: [{s: 'boba'}], dir: 'down', count: 20 },
             star: { name: {zh: '繁星閃爍', en: 'Starry'}, cost: 1800, preview: '#fef08a', svg: [{s: 'star'}, {s: 'sparkle'}], dir: 'down', count: 20 },
             duck: { name: {zh: '黃色小鴨', en: 'Rubber Ducks'}, cost: 1800, preview: '#fde047', svg: [{s: 'duck'}], dir: 'down', count: 15 },
-            coffee: { name: {zh: '咖啡續命', en: 'Coffee Refill'}, cost: 1800, preview: '#451a03', svg: [{s: 'coffee'}], dir: 'up', count: 10 },
             fish: { name: {zh: '深海魚群', en: 'School of Fish'}, cost: 1900, preview: '#0284c7', svg: [{s: 'fish'}], dir: 'up', count: 18 },
             fries: { name: {zh: '薯條雨', en: 'French Fries'}, cost: 1900, preview: '#facc15', svg: [{s: 'fries'}], dir: 'down', count: 15 },
             paint: { name: {zh: '揮灑顏料', en: 'Paint Splash'}, cost: 2000, preview: '#f472b6', svg: [{s: 'drop'}], dir: 'down', count: 15 },
             firefly: { name: {zh: '螢火蟲', en: 'Fireflies'}, cost: 2000, preview: '#84cc16', svg: [{s: 'sparkle'}], dir: 'up', count: 15 },
-            balloon: { name: {zh: '彩色氣球', en: 'Balloons'}, cost: 2000, preview: '#ef4444', svg: [{s: 'drop'}], dir: 'up', count: 10 },
-            sparkle: { name: {zh: 'Bling閃光', en: 'Sparkles'}, cost: 2000, preview: '#fef08a', svg: [{s: 'sparkle'}], dir: 'up', count: 25 },
-            pizza: { name: {zh: '披薩派對', en: 'Pizza Party'}, cost: 2000, preview: '#ea580c', svg: [{s: 'pizza'}], dir: 'down', count: 10 },
             butterfly: { name: {zh: '蝴蝶翩翩', en: 'Butterflies'}, cost: 2100, preview: '#c084fc', svg: [{s: 'butterfly'}], dir: 'up', count: 10 },
             cake: { name: {zh: '甜點時間', en: 'Dessert Time'}, cost: 2100, preview: '#fbcfe8', svg: [{s: 'cake'}], dir: 'down', count: 12 },
             sakura: { name: {zh: '櫻花飛舞', en: 'Sakura'}, cost: 2200, preview: '#fbcfe8', svg: [{s: 'leaf'}], dir: 'down', count: 20 },
@@ -2244,112 +2238,7 @@ let trialTimeLeft = 10; // 全域記錄試用剩餘時間
                     renderSheepEngine();
                     spawnWaitingSheep();
                     break;
-                // 🍪 【餅乾碎屑】真實蜘蛛網螢幕碎裂＋餅乾卡在螢幕上＋點擊往下掉落還原
-                case 'cookie':
-                    if (typeof layer !== 'undefined' && layer) {
-                        layer.innerHTML = '';
-                    }
-
-                    if (!document.getElementById('cookieScreenStickyStyle')) {
-                        const style = document.createElement('style');
-                        style.id = 'cookieScreenStickyStyle';
-                        style.innerHTML = `
-                            .cookie-smash-overlay {
-                                position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-                                pointer-events: auto; z-index: 99; overflow: hidden;
-                            }
-                            
-                            /* 🌟 真實蜘蛛網螢幕碎裂紋路 */
-                            .screen-real-crack {
-                                position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-                                pointer-events: none; opacity: 0;
-                                animation: realCrackAppear 0.12s 0.42s forwards cubic-bezier(0.1, 0.9, 0.2, 1);
-                            }
-                            @keyframes realCrackAppear {
-                                0% { opacity: 0; transform: scale(0.92); }
-                                100% { opacity: 0.95; transform: scale(1); }
-                            }
-
-                            /* 🌟 主餅乾：飛過來砸在螢幕上並「卡在上面」 */
-                            .sticky-screen-cookie {
-                                position: absolute;
-                                top: 50%; left: 50%;
-                                width: 200px; height: 200px;
-                                margin-top: -100px; margin-left: -100px;
-                                z-index: 101;
-                                cursor: pointer;
-                                filter: drop-shadow(0 15px 25px rgba(0,0,0,0.8));
-                                animation: smashAndStick 0.42s cubic-bezier(0.25, 1, 0.5, 1) forwards;
-                            }
-                            @keyframes smashAndStick {
-                                0% { transform: scale(0.02) rotate(-360deg); opacity: 0; }
-                                65% { opacity: 1; transform: scale(1.1) rotate(8deg); }
-                                100% { transform: scale(1) rotate(0deg); opacity: 1; } /* 停在正中央卡住 */
-                            }
-
-                            /* 🌟 點擊後餅乾從螢幕上往下滑落消失 */
-                            @keyframes cookieSlideDown {
-                                0% { transform: translateY(0) rotate(0deg) scale(1); opacity: 1; }
-                                100% { transform: translateY(110vh) rotate(180deg) scale(0.9); opacity: 0; }
-                            }
-                            @keyframes crackFadeOut {
-                                0% { opacity: 0.95; transform: scale(1); }
-                                100% { opacity: 0; transform: scale(1.03); }
-                            }
-                        `;
-                        document.head.appendChild(style);
-                    }
-
-                    // 1. 建立容器
-                    const smashContainer = document.createElement('div');
-                    smashContainer.id = 'cookieSmashContainer';
-                    smashContainer.className = 'cookie-smash-overlay';
-                    layer.appendChild(smashContainer);
-
-                    // 2. 建立蜘蛛網中心碎裂 SVG
-                    const crackSvg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-                    crackSvg.setAttribute('class', 'screen-real-crack');
-                    crackSvg.setAttribute('viewBox', '0 0 1000 1000');
-                    crackSvg.setAttribute('preserveAspectRatio', 'none');
-                    crackSvg.innerHTML = `
-                        <g stroke="#f0fdf4" stroke-width="2.2" fill="none" opacity="0.92" filter="drop-shadow(0 0 4px rgba(0,0,0,0.95))">
-                            <circle cx="500" cy="500" r="40" fill="rgba(255,255,255,0.35)" stroke="#ffffff" stroke-width="2"/>
-                            <circle cx="500" cy="500" r="18" fill="#ffffff" opacity="0.8"/>
-                            <path d="M480,490 L520,510 M510,485 L490,515 M485,510 L515,490" stroke="#000000" stroke-width="2"/>
-                            <path d="M500,500 L180,80 M500,500 L535,40 M500,500 L880,100 M500,500 L950,450 M500,500 L890,910 M500,500 L520,960 M500,500 L150,880 M500,500 L60,420" stroke-width="3.5"/>
-                            <path d="M340,280 Q450,320 620,250 Q760,350 820,550 Q750,780 580,840 Q350,800 240,600 Z" stroke-width="1.8" opacity="0.85"/>
-                            <path d="M260,160 Q480,220 740,170 Q880,380 910,680 Q780,890 500,920 Q220,850 120,580 Q150,280 260,160 Z" stroke-width="1.2" opacity="0.6"/>
-                            <path d="M420,100 L560,70 M840,250 L930,380 M920,720 L830,860 M440,940 L280,920 M110,680 L80,510 M110,310 L210,120" stroke-width="2.5"/>
-                        </g>
-                    `;
-                    smashContainer.appendChild(crackSvg);
-
-                    // 3. 建立黏在螢幕上的主餅乾
-                    const mainCookie = document.createElement('div');
-                    mainCookie.className = 'sticky-screen-cookie';
-                    mainCookie.innerHTML = svgLib['cookie'];
-                    smashContainer.appendChild(mainCookie);
-
-                    // 4. 點擊餅乾：餅乾從螢幕上往下滑落消失，裂痕同步還原
-                    let isCleared = false;
-                    const triggerClear = (e) => {
-                        e.stopPropagation();
-                        if (isCleared) return;
-                        isCleared = true;
-
-                        // 餅乾從螢幕上往下滑落
-                        mainCookie.style.animation = `cookieSlideDown 0.55s forwards cubic-bezier(0.55, 0.08, 0.68, 0.53)`;
-
-                        // 螢幕裂痕同步淡出還原
-                        crackSvg.style.animation = 'crackFadeOut 0.35s forwards ease';
-
-                        setTimeout(() => {
-                            if (smashContainer.parentNode) smashContainer.remove();
-                        }, 600);
-                    };
-
-                    mainCookie.addEventListener('click', triggerClear);
-                    break;
+            
 // 🍂 【落葉紛飛】逼真 SVG 葉子飄落效果：帶有暖黃色秋日氛圍濾鏡、柔美隨風搖擺與自然翻轉
                 case 'leaf':
                     if (!document.getElementById('leafStyle')) {
