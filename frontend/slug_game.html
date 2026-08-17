@@ -663,16 +663,18 @@
          🌟 JavaScript 遊戲程式邏輯開始
          🌟 ========================================== -->
     <script>
-        // 🌟 【後台與網路連線資料】
+// 🌟 【後台與網路連線資料】
         const API_BASE = 'https://api.drift-bottles.xyz'; // 伺服器網址
         
-        // 🌟 正式上線邏輯：直接去拿真實登入系統發的通行證
-        let GAME_TOKEN = localStorage.getItem('nudi_token');
+        // 🌟 1. 嚴格綁定帳號！直接去拿你真實登入系統存下來的 Token
+        // 💡 寶寶注意：請把裡面的 'token' 換成你主程式登入時存進 localStorage 的名稱 
+        // （通常叫 'token'、'accessToken' 或 'auth_token'）
+        let GAME_TOKEN = localStorage.getItem('token'); 
         
-        // 🌟 離線測試防呆：如果還沒接上真實登入，就自動幫這個瀏覽器發一張「永久專屬號碼牌」
+        // 🌟 2. 殺掉單機測試防呆！如果沒抓到真實帳號，就不准他玩！
         if (!GAME_TOKEN) {
-            GAME_TOKEN = 'real_user_' + Math.floor(Math.random() * 10000000);
-            localStorage.setItem('nudi_token', GAME_TOKEN); // 永遠記在這個瀏覽器裡，不會再變了！
+            alert("請先登入帳號才能看見您的海兔喔！");
+            // window.location.href = "login.html"; // 如果需要，可以把這行打開，自動踢回登入頁
         }
         
         let socket = null;
