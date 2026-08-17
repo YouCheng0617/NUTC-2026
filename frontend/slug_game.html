@@ -1768,21 +1768,33 @@ let trialTimeLeft = 10; // 全域記錄試用剩餘時間
             }
         }
 
-        // 🌟 【好萊塢特效組】負責放煙火、下雨、丟符咒等華麗效果
         function applyEffect() {
-            const layer = document.getElementById('effectLayer');
-            layer.innerHTML = ''; 
-            const effectKey = trialState.effect || gameState.currentEffect;
-            const effect = effectData[effectKey];
-            
-            if (!effect || effectKey === 'none') return;
-// 🛑 【全域特效切換清道夫】不管按到什麼特效，進來第一件事就是把舊的羊群與畫面全部清空！
-if (window.sheepManagerFrame) cancelAnimationFrame(window.sheepManagerFrame);
-if (window.sheepSpawnTimeout) clearTimeout(window.sheepSpawnTimeout);
-window.currentSheepSession = null; // 作廢數羊羊工作證
-if (typeof layer !== 'undefined' && layer) {
-    layer.innerHTML = ''; // 徹底清空畫面容器，讓殘留的羊瞬間蒸發
-}
+    const layer = document.getElementById('effectLayer');
+    layer.innerHTML = ''; 
+    
+    // 🛑 1. 【全域特效切換清道夫】搬到最上面！確保取消試用時也會執行！
+    if (window.sheepManagerFrame) cancelAnimationFrame(window.sheepManagerFrame);
+    if (window.sheepSpawnTimeout) clearTimeout(window.sheepSpawnTimeout);
+    window.currentSheepSession = null; // 作廢數羊羊工作證
+    
+    // （寶寶如果想更保險，其他特效的計時器也可以一起放在這清乾淨）
+    if (window.catAnimFrame) cancelAnimationFrame(window.catAnimFrame);
+    if (window.meowTimeout) clearTimeout(window.meowTimeout);
+    if (window.paintAnimFrame) cancelAnimationFrame(window.paintAnimFrame);
+    if (window.paintTimeout) clearTimeout(window.paintTimeout);
+    if (window.tomatoAnimFrame) cancelAnimationFrame(window.tomatoAnimFrame);
+    if (window.tomatoFwTimeout) clearTimeout(window.tomatoFwTimeout);
+    if (window.bugFreeAnimFrame) cancelAnimationFrame(window.bugFreeAnimFrame);
+    if (window.bugFreeInterval) clearInterval(window.bugFreeInterval);
+    if (window.heartbeatAnimFrame) cancelAnimationFrame(window.heartbeatAnimFrame);
+    if (window.heartbeatTimeout) clearTimeout(window.heartbeatTimeout);
+    if (window.recallAnimFrame) cancelAnimationFrame(window.recallAnimFrame);
+
+    const effectKey = trialState.effect || gameState.currentEffect;
+    const effect = effectData[effectKey];
+    
+    // 🛑 2. 然後才檢查是不是無特效，如果是就提早結束
+    if (!effect || effectKey === 'none') return;
             switch (effectKey) {
 
 
