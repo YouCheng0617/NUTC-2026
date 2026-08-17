@@ -311,8 +311,10 @@ async function generateReading() {
         右邊第三張（未來）：${drawnCards['future'].name} (${drawnCards['future'].isReversed ? '逆位' : '正位'})
     `;
 
-    try {
-const response = await fetch("https://api.drift-bottles.xyz/tarot/reading", {    method: "POST",
+try {
+        // 確保這裡有包含 method: "POST", 
+        const response = await fetch("https://api.drift-bottles.xyz/api/tarot", {
+            method: "POST",
             headers: {
                 "Content-Type": "application/json"
             },
