@@ -39,6 +39,34 @@ def analyze_content():
         }
     })
 
+@app.route('/api/chat', methods=['POST'])
+def chat_endpoint():
+    """AI 小助理聊天接口"""
+    data = request.get_json() or {}
+    message = data.get('message', '')
+    if not message.strip():
+        return jsonify({"error": "訊息不能為空"}), 400
+
+    reply = ai.chat_assistant(message)
+    return jsonify({
+        "status": "success",
+        "reply": reply
+    })
+
+@app.route('/api/tarot', methods=['POST'])
+def tarot_endpoint():
+    """AI 塔羅牌解牌接口"""
+    data = request.get_json() or {}
+    card_name = data.get('card_name', '愚者')
+    orientation = data.get('orientation', '正位')
+    question = data.get('question', '今日運勢')
+
+    analysis = ai.analyze_tarot(card_name, orientation, question)
+    return jsonify({
+        "status": "success",
+        "analysis": analysis
+    })
+
 if __name__ == '__main__':
     # 啟動 API 伺服器，監聽 5000 埠口
     print("🚀 AI API Server 啟動中...")

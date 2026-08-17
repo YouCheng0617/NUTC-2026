@@ -20,7 +20,7 @@ else:
 class LocalStickyNoteAI:
     """
     資管系專題：校園 AI 模組 (Google GenAI 最新版 SDK)
-    功能：內容審核、自動分類、標籤生成
+    功能：內容審核、自動分類、標籤生成、聊天小助理、塔羅牌解析
     """
     
     def __init__(self, model_name="gemini-3.0-flash"):
@@ -110,6 +110,54 @@ class LocalStickyNoteAI:
             return response.text.strip()
         except Exception as e:
             return "熱情, 友善, 學習者"
+
+    def chat_assistant(self, message, history=None):
+        """功能 4：AI 小助理 (溫暖療癒的深海漂流瓶助理)"""
+        if not client:
+            return "（深海訊號微弱）你好呀！我在這裡傾聽你的心聲。"
+
+        prompt = f"""
+        你現在是「心情漂流瓶」平台的專屬 AI 暖心陪伴小助理「海豚小瓶」。
+        你的性格：溫柔、善解人意、充滿共情力、語言輕柔且富有療癒感。
+        任務：請針對使用者的訊息進行溫暖的回應，給予鼓勵或建議，字數約 100~200 字。
+
+        使用者訊息：『{message}』
+        """
+        try:
+            response = client.models.generate_content(
+                model=self.model_name,
+                contents=prompt,
+            )
+            return response.text.strip()
+        except Exception as e:
+            print(f"⚠️ Gemini 聊天異常: {e}")
+            return "海浪帶來了微風，我隨時在這裡陪伴你。"
+
+    def analyze_tarot(self, card_name, orientation, question="今日運勢與指引"):
+        """功能 5：AI 塔羅牌 (深度占卜與指引分析)"""
+        if not client:
+            return f"抽到了【{card_name} ({orientation})】，這代表生命中正在經歷轉變，保持心靈平靜。"
+
+        prompt = f"""
+        你是一位充滿智慧與神秘感的深海塔羅占卜師。
+        使用者抽取的牌卡為：【{card_name}】
+        牌位方向：【{orientation}】（正位或逆位）
+        使用者詢問或主題：【{question}】
+
+        請根據塔羅牌義與深海意象，輸出一段富有啟發性與指引力的占卜解析，結構包含：
+        1. 🔮 牌義象徵
+        2. 🌊 深海啟示（針對主題的具體建議）
+        3. ✨ 祝福語句
+        """
+        try:
+            response = client.models.generate_content(
+                model=self.model_name,
+                contents=prompt,
+            )
+            return response.text.strip()
+        except Exception as e:
+            print(f"⚠️ Gemini 塔羅解析異常: {e}")
+            return f"抽到了【{card_name}】，象徵新的起點，順應海流前行吧。"
 
 
 # --- 專題測試區 ---
