@@ -23,7 +23,7 @@ class LocalStickyNoteAI:
     功能：內容審核、自動分類、標籤生成、聊天小助理、塔羅牌解析
     """
     
-    def __init__(self, model_name="gemini-3.0-flash"):
+def __init__(self, model_name="gemini-1.5-flash"):
         self.model_name = model_name
         print(f"✨ Gemini AI 引擎初始化：使用模型 {self.model_name}")
 
