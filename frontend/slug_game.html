@@ -483,6 +483,102 @@
         pointer-events: auto !important;
     }
     #customTauntBtn:active { transform: scale(0.95); }
+/* 🌟 【抱花漫步鴨專屬】清透水藍池塘背景 */
+.duck-pond-overlay {
+    position: absolute;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: radial-gradient(circle at 50% 60%, rgba(186, 230, 253, 0.25) 0%, rgba(56, 189, 248, 0.15) 60%, rgba(2, 132, 199, 0.2) 100%);
+    pointer-events: none; z-index: 1;
+}
+
+/* 🌟 踩水生成的水波漣漪（留在原地擴散） */
+.duck-step-ripple {
+    position: absolute;
+    width: 75px; height: 32px;
+    transform: translate(-50%, -50%);
+    border-radius: 50%;
+    border: 2.5px solid rgba(255, 255, 255, 0.95);
+    box-shadow: 0 0 12px rgba(56, 189, 248, 0.6), inset 0 0 8px rgba(56, 189, 248, 0.4);
+    pointer-events: none;
+    z-index: 3;
+    animation: stepRippleExpand 1.1s cubic-bezier(0.1, 0.7, 0.3, 1) forwards;
+}
+@keyframes stepRippleExpand {
+    0% { transform: translate(-50%, -50%) scale(0.25); opacity: 0.95; border-width: 3px; }
+    60% { opacity: 0.55; }
+    100% { transform: translate(-50%, -50%) scale(2.4); opacity: 0; border-width: 1px; }
+}
+
+/* 🌟 抱花小鴨本體容器 */
+.giant-roaming-duck {
+    position: absolute;
+    width: 165px; height: 165px;
+    pointer-events: auto;
+    cursor: pointer;
+    z-index: 12;
+    transform-origin: center bottom;
+    transition: transform 0.15s ease-out;
+}
+.giant-roaming-duck:active {
+    transform: scale(1.25) rotate(-12deg) !important;
+}
+
+/* 🌟 經典小鴨呆萌搖擺走姿 (身體大幅度左右搖晃 + 上下 Q 彈跳動) */
+.duck-waddle-body {
+    width: 100%; height: 100%;
+    transform-origin: 50% 90%;
+    animation: duckCuteWaddle 0.6s infinite alternate ease-in-out;
+}
+@keyframes duckCuteWaddle {
+    0% { transform: rotate(-9deg) translateY(-8px) scale(0.97, 1.03); }
+    50% { transform: rotate(0deg) translateY(0px) scale(1.04, 0.96); }
+    100% { transform: rotate(9deg) translateY(-8px) scale(0.97, 1.03); }
+}
+
+/* 🌟 左右橘色腳蹼一上一下交替抬起與踩地 */
+.duck-foot-left {
+    transform-origin: 50% 10%;
+    animation: duckStepL 0.6s infinite alternate ease-in-out;
+}
+.duck-foot-right {
+    transform-origin: 50% 10%;
+    animation: duckStepR 0.6s infinite alternate ease-in-out;
+}
+@keyframes duckStepL {
+    0% { transform: translateY(-14px) rotate(-22deg) scale(0.9); }
+    50% { transform: translateY(0px) rotate(0deg) scale(1); }
+    100% { transform: translateY(3px) rotate(8deg) scale(1.05); }
+}
+@keyframes duckStepR {
+    0% { transform: translateY(3px) rotate(-8deg) scale(1.05); }
+    50% { transform: translateY(0px) rotate(0deg) scale(1); }
+    100% { transform: translateY(-14px) rotate(22deg) scale(0.9); }
+}
+
+/* 鴨子兩側手繪動態搖擺線微震動 */
+.duck-vibe-lines {
+    animation: duckVibeShake 0.3s infinite alternate ease-in-out;
+}
+@keyframes duckVibeShake {
+    0% { opacity: 0.3; transform: scale(0.95); }
+    100% { opacity: 0.9; transform: scale(1.05); }
+}
+
+/* 🌟 鴨子身邊到處飄落的浪漫小花瓣 */
+.duck-flower-petal {
+    position: absolute;
+    font-size: 1.5rem;
+    font-weight: 900;
+    pointer-events: none;
+    z-index: 20;
+    animation: petalFloatUp 1.4s ease-out forwards;
+}
+@keyframes petalFloatUp {
+    0% { transform: translate(0, 0) scale(0.4) rotate(0deg); opacity: 0; }
+    20% { opacity: 1; transform: translate(var(--ndx), -15px) scale(1.2) rotate(15deg); }
+    80% { opacity: 0.9; }
+    100% { transform: translate(calc(var(--ndx) * 1.8), -65px) scale(0.8) rotate(-20deg); opacity: 0; }
+}
     </style>
 </head>
 <body>
@@ -1204,7 +1300,65 @@ function updateRoomUI(text) {
             cookie: `<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="35" fill="#d97706"/><circle cx="35" cy="40" r="4" fill="#451a03"/><circle cx="65" cy="45" r="5" fill="#451a03"/><circle cx="50" cy="65" r="4" fill="#451a03"/><circle cx="45" cy="25" r="3" fill="#451a03"/><circle cx="70" cy="60" r="3" fill="#451a03"/></svg>`,
             ghost: `<svg viewBox="0 0 100 100"><path d="M25 50 C25 15 75 15 75 50 L75 90 L62.5 80 L50 90 L37.5 80 L25 90 Z" fill="#f8fafc"/><circle cx="40" cy="45" r="5" fill="#0f172a"/><circle cx="60" cy="45" r="5" fill="#0f172a"/><ellipse cx="50" cy="55" rx="4" ry="6" fill="#0f172a"/></svg>`,
             bat: `<svg viewBox="0 0 100 100"><path d="M50 70 L30 40 C20 20 5 15 5 15 C15 35 30 35 40 45 L50 55 L60 45 C70 35 85 35 95 15 C95 15 80 20 70 40 L50 70 Z" fill="#1e293b"/><polygon points="45 25, 50 35, 55 25" fill="#1e293b"/><circle cx="45" cy="35" r="2" fill="#ef4444"/><circle cx="55" cy="35" r="2" fill="#ef4444"/></svg>`,
-            duck: `<svg viewBox="0 0 100 100"><circle cx="65" cy="40" r="15" fill="#facc15"/><ellipse cx="45" cy="65" rx="25" ry="15" fill="#facc15"/><circle cx="70" cy="35" r="2" fill="#0f172a"/><path d="M80 40 L95 42 L80 45 Z" fill="#ea580c"/></svg>`,
+duck: `<svg viewBox="0 0 200 200" style="width:100%; height:100%; filter: drop-shadow(0 6px 10px rgba(0,0,0,0.12));">
+    <g stroke="#18181b" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round" fill="none">
+        <!-- 🌟 兩側手繪動態線（隨著搖擺步伐震動） -->
+        <g class="duck-vibe-lines">
+            <path d="M 20 148 C 12 154 14 162 18 168" stroke-width="4"/>
+            <path d="M 28 156 C 24 161 26 166 30 170" stroke-width="3"/>
+            <path d="M 180 144 C 188 150 188 158 182 166" stroke-width="4"/>
+            <path d="M 174 152 C 178 157 178 162 174 166" stroke-width="3"/>
+        </g>
+
+        <!-- 🌟 鮮豔橘色左腳蹼（一上一下節點 1） -->
+        <g class="duck-foot-left">
+            <path d="M 44 166 L 68 158 L 65 184 L 46 182 Z" fill="#f97316" stroke="#c2410c" stroke-width="4"/>
+        </g>
+        <!-- 🌟 鮮豔橘色右腳蹼（一上一下節點 2） -->
+        <g class="duck-foot-right">
+            <g transform="translate(48, 0)">
+                <path d="M 48 166 L 72 158 L 69 184 L 50 182 Z" fill="#f97316" stroke="#c2410c" stroke-width="4"/>
+            </g>
+        </g>
+
+        <!-- 🌟 圓滾滾白鴨身軀與小翹尾巴 -->
+        <path d="M 64 80 C 52 92 42 116 40 138 C 38 162 60 178 98 178 C 140 178 168 162 166 138 C 164 128 156 128 164 120 C 146 124 130 110 124 92 C 118 72 98 64 78 68 C 68 72 64 76 64 80 Z" fill="#ffffff" stroke-width="4.8"/>
+
+        <!-- 🌟 鮮豔橘色扁扁小嘴巴 -->
+        <path d="M 64 82 C 48 80 40 88 44 96 C 50 102 64 102 72 93 C 75 88 72 84 64 82 Z" fill="#f97316" stroke="#c2410c" stroke-width="4"/>
+
+        <!-- 呆萌小黑豆眼 -->
+        <circle cx="86" cy="80" r="3.5" fill="#18181b" stroke="none"/>
+
+        <!-- 🌟 頭頂別的小朵粉紅小花 -->
+        <g transform="translate(108, 62)">
+            <circle cx="-5" cy="0" r="4.5" fill="#fbcfe8" stroke="#f43f5e" stroke-width="2"/>
+            <circle cx="5" cy="0" r="4.5" fill="#fbcfe8" stroke="#f43f5e" stroke-width="2"/>
+            <circle cx="0" cy="-5" r="4.5" fill="#fbcfe8" stroke="#f43f5e" stroke-width="2"/>
+            <circle cx="0" cy="5" r="4.5" fill="#fbcfe8" stroke="#f43f5e" stroke-width="2"/>
+            <circle cx="0" cy="0" r="3.5" fill="#fde047" stroke="#ca8a04" stroke-width="1.8"/>
+        </g>
+
+        <!-- 🌟 翅膀拿著的大大花朵 (綠色花莖 + 盛開大花花) -->
+        <path d="M 96 138 Q 72 124 38 112" stroke="#16a34a" stroke-width="5" stroke-linecap="round"/>
+        <path d="M 62 126 Q 52 114 64 118 Z" fill="#4ade80" stroke="#15803d" stroke-width="2.5"/>
+
+        <g transform="translate(28, 106)">
+            <circle cx="-10" cy="0" r="9" fill="#fda4af" stroke="#e11d48" stroke-width="3"/>
+            <circle cx="10" cy="0" r="9" fill="#fda4af" stroke="#e11d48" stroke-width="3"/>
+            <circle cx="0" cy="-10" r="9" fill="#fda4af" stroke="#e11d48" stroke-width="3"/>
+            <circle cx="0" cy="10" r="9" fill="#fda4af" stroke="#e11d48" stroke-width="3"/>
+            <circle cx="-7" cy="-7" r="8" fill="#fda4af" stroke="#e11d48" stroke-width="2.5"/>
+            <circle cx="7" cy="-7" r="8" fill="#fda4af" stroke="#e11d48" stroke-width="2.5"/>
+            <circle cx="-7" cy="7" r="8" fill="#fda4af" stroke="#e11d48" stroke-width="2.5"/>
+            <circle cx="7" cy="7" r="8" fill="#fda4af" stroke="#e11d48" stroke-width="2.5"/>
+            <circle cx="0" cy="0" r="7.5" fill="#fde047" stroke="#ca8a04" stroke-width="2.5"/>
+        </g>
+
+        <!-- 🌟 抱著花莖的小翅膀手手 -->
+        <path d="M 108 126 C 98 136 86 142 76 136 C 70 132 74 122 84 122 C 96 122 104 120 108 126 Z" fill="#ffffff" stroke="#18181b" stroke-width="4.2"/>
+    </g>
+</svg>`,
             fish: `<svg viewBox="0 0 100 100"><path d="M70 50 C70 25 30 25 30 50 C30 75 70 75 70 50 Z" fill="#0284c7"/><polygon points="35 50, 10 30, 10 70" fill="#0284c7"/><circle cx="60" cy="45" r="3" fill="#ffffff"/><circle cx="61" cy="45" r="1" fill="#0f172a"/></svg>`,
             potion: `<svg viewBox="0 0 100 100"><path d="M40 20 L60 20 L60 40 L80 80 L20 80 L40 40 Z" fill="rgba(255,255,255,0.4)" stroke="#94a3b8" stroke-width="4"/><path d="M25 70 L75 70 L65 50 L35 50 Z" fill="#22c55e"/><rect x="35" y="10" width="30" height="10" fill="#78350f" rx="3"/></svg>`,
             sword: `<svg viewBox="0 0 100 100"><path d="M45 65 L15 95 M35 75 L25 85" stroke="#78350f" stroke-width="8" stroke-linecap="round"/><path d="M40 60 L85 15 L90 10 L80 20 L45 65 Z" fill="#cbd5e1"/><polygon points="30 70, 50 50, 45 45, 25 65" fill="#facc15"/></svg>`,
@@ -2709,6 +2863,142 @@ let trialTimeLeft = 10; // 全域記錄試用剩餘時間
 
                     renderRecall();
                     break;
+// 🐥 【抱花漫步鴨】全螢幕自由漫步 + 每走一步踩出水波 + 四周冒花花（靜音散步版）
+case 'duck': {
+    if (window.duckAnimFrame) cancelAnimationFrame(window.duckAnimFrame);
+    if (window.duckPetalInterval) clearInterval(window.duckPetalInterval);
+    if (window.duckStepInterval) clearInterval(window.duckStepInterval);
+
+    // 1. 水池背景底層
+    const pondOverlay = document.createElement('div');
+    pondOverlay.className = 'duck-pond-overlay';
+    layer.appendChild(pondOverlay);
+
+    // 水波圖層（裝走過去留在原地的水波）
+    const rippleContainer = document.createElement('div');
+    rippleContainer.id = 'duckRippleLayer';
+    rippleContainer.style.cssText = 'position:absolute; top:0; left:0; width:100%; height:100%; pointer-events:none; z-index:2;';
+    layer.appendChild(rippleContainer);
+
+    // 2. 建立抱花漫步鴨 DOM
+    const duckEl = document.createElement('div');
+    duckEl.className = 'giant-roaming-duck';
+    duckEl.innerHTML = `
+        <div class="duck-waddle-body">
+            ${svgLib['duck']}
+        </div>
+    `;
+    layer.appendChild(duckEl);
+
+    // 3. 漫步運動狀態控制 (AI 漫步大腦：全畫面自由遊走)
+    const duckState = {
+        x: 50,
+        y: 60,
+        vx: 0.16,
+        vy: 0.08,
+        flip: 1,
+        changeTimer: 0,
+        stepFoot: 0 // 0: 左腳, 1: 右腳
+    };
+
+    function renderRoamingDuck() {
+        const activeEffect = trialState.effect || gameState.currentEffect;
+        if (activeEffect !== 'duck') {
+            if (window.duckAnimFrame) cancelAnimationFrame(window.duckAnimFrame);
+            if (window.duckPetalInterval) clearInterval(window.duckPetalInterval);
+            if (window.duckStepInterval) clearInterval(window.duckStepInterval);
+            if (duckEl.parentNode) duckEl.remove();
+            return;
+        }
+        window.duckAnimFrame = requestAnimationFrame(renderRoamingDuck);
+
+        duckState.changeTimer--;
+        if (duckState.changeTimer <= 0) {
+            // 隨機在畫面上四處變換前進方向
+            duckState.vx = (Math.random() - 0.5) * 0.28;
+            duckState.vy = (Math.random() - 0.5) * 0.2;
+            duckState.changeTimer = 80 + Math.random() * 100;
+        }
+
+        duckState.x += duckState.vx;
+        duckState.y += duckState.vy;
+
+        // 全螢幕邊界碰撞彈回保護 (保持在可視範圍內自由漫步)
+        if (duckState.x <= 8) { duckState.x = 8; duckState.vx = Math.abs(duckState.vx); }
+        if (duckState.x >= 92) { duckState.x = 92; duckState.vx = -Math.abs(duckState.vx); }
+        if (duckState.y <= 25) { duckState.y = 25; duckState.vy = Math.abs(duckState.vy); }
+        if (duckState.y >= 88) { duckState.y = 88; duckState.vy = -Math.abs(duckState.vy); }
+
+        // 依照水平前進方向自動鏡像翻轉
+        if (duckState.flip === 1 && duckState.vx > 0.02) duckState.flip = -1;
+        else if (duckState.flip === -1 && duckState.vx < -0.02) duckState.flip = 1;
+
+        duckEl.style.left = duckState.x + '%';
+        duckEl.style.top = duckState.y + '%';
+        duckEl.style.transform = `translate(-50%, -50%) scaleX(${duckState.flip})`;
+    }
+
+    renderRoamingDuck();
+
+    // 🌟 4. 每走一步在腳下精準生成一個原地擴散的水波 (300ms 與搖擺步伐節奏同步)
+    window.duckStepInterval = setInterval(() => {
+        const activeEffect = trialState.effect || gameState.currentEffect;
+        if (activeEffect !== 'duck') {
+            clearInterval(window.duckStepInterval);
+            return;
+        }
+
+        const ripple = document.createElement('div');
+        ripple.className = 'duck-step-ripple';
+
+        // 根據左腳或右腳踩下，產生精準的腳蹼位置偏移
+        duckState.stepFoot = 1 - duckState.stepFoot;
+        const footOffset = (duckState.stepFoot === 0 ? -22 : 22) * duckState.flip;
+
+        const stageW = layer.offsetWidth || window.innerWidth;
+        const stageH = layer.offsetHeight || (window.innerHeight * 0.58);
+        const posX = (duckState.x / 100) * stageW + footOffset;
+        const posY = (duckState.y / 100) * stageH + 54;
+
+        ripple.style.left = posX + 'px';
+        ripple.style.top = posY + 'px';
+
+        rippleContainer.appendChild(ripple);
+        setTimeout(() => { if (ripple.parentNode) ripple.remove(); }, 1100);
+    }, 300);
+
+    // 🌟 5. 四周隨機冒出浪漫花瓣粒子
+    const flowerPetals = ['🌸', '💮', '🍃', '✨', '🌺'];
+    window.duckPetalInterval = setInterval(() => {
+        const activeEffect = trialState.effect || gameState.currentEffect;
+        if (activeEffect !== 'duck') {
+            clearInterval(window.duckPetalInterval);
+            return;
+        }
+
+        const petal = document.createElement('div');
+        petal.className = 'duck-flower-petal';
+        petal.innerText = flowerPetals[Math.floor(Math.random() * flowerPetals.length)];
+        
+        // 隨機在小鴨周圍冒出花瓣
+        let offsetX = (duckState.x + (Math.random() * 20 - 10));
+        let offsetY = (duckState.y + (Math.random() * 20 - 10));
+        petal.style.left = offsetX + '%';
+        petal.style.top = offsetY + '%';
+        petal.style.setProperty('--ndx', (Math.random() * 60 - 30) + 'px');
+
+        layer.appendChild(petal);
+        setTimeout(() => { if (petal.parentNode) petal.remove(); }, 1400);
+    }, 450);
+
+    // 點擊抱花小鴨（只冒出輕快叮叮聲，不跳對話框）
+    duckEl.onclick = (e) => {
+        e.stopPropagation();
+        playDingSound(2);
+    };
+
+    break;
+}
                 // ⛩️ 【BUG 退散】超酷的賽博龐克符咒
                 case 'bugFree':
                     if (!document.getElementById('talismanStyle')) {
