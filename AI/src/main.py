@@ -23,11 +23,11 @@ class LocalStickyNoteAI:
     功能：內容審核、自動分類、標籤生成、聊天小助理、塔羅牌解析
     """
     
-def __init__(self, model_name="gemini-1.5-flash"):
+    def __init__(self, model_name="gemini-1.5-flash"):
         self.model_name = model_name
         print(f"✨ Gemini AI 引擎初始化：使用模型 {self.model_name}")
 
-def check_content(self, text):
+    def check_content(self, text):
         """功能 1：自動審核貼文內容（使用官方 JSON 模式）"""
         if not client: return {"ai_status": "通過", "ai_reason": "無 API Key 防護"}
         
@@ -61,7 +61,7 @@ def check_content(self, text):
             print(f"⚠️ Gemini 審核異常: {e}")
             return {"ai_status": "通過", "ai_reason": "AI回應異常防護"}
 
-def get_category(self, text):
+    def get_category(self, text):
         """功能 2：自動分類便利貼 (回傳前端指定的數字代號 1~4)"""
         if not client: return 2
         
@@ -97,7 +97,7 @@ def get_category(self, text):
             
         return 2  # 防呆預設值
 
-def get_user_tags(self, intro, interests):
+    def get_user_tags(self, intro, interests):
         """功能 3：分析會員特質標籤"""
         if not client: return "熱情, 友善, 學習者"
         
@@ -111,7 +111,7 @@ def get_user_tags(self, intro, interests):
         except Exception as e:
             return "熱情, 友善, 學習者"
 
-def chat_assistant(self, message, history=None):
+    def chat_assistant(self, message, history=None):
         """功能 4：AI 小助理 (溫暖療癒的深海漂流瓶助理)"""
         if not client:
             return "（深海訊號微弱）你好呀！我在這裡傾聽你的心聲。"
@@ -133,7 +133,7 @@ def chat_assistant(self, message, history=None):
             print(f"⚠️ Gemini 聊天異常: {e}")
             return "海浪帶來了微風，我隨時在這裡陪伴你。"
 
-def analyze_tarot(self, card_name, orientation, question="今日運勢與指引"):
+    def analyze_tarot(self, card_name, orientation, question="今日運勢與指引"):
         """功能 5：AI 塔羅牌 (深度占卜與指引分析)"""
         if not client:
             return f"抽到了【{card_name} ({orientation})】，這代表生命中正在經歷轉變，保持心靈平靜。"
