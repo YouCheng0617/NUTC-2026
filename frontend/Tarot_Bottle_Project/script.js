@@ -313,9 +313,9 @@ async function generateReading() {
 
 try {
         // 確保這裡有包含 method: "POST", 
-        const response = await fetch("https://api.drift-bottles.xyz/api/tarot", {
-            method: "POST",
-            headers: {
+const response = await fetch("https://api.drift-bottles.xyz/api/tarot", {    
+    method: "POST",       
+     headers: {
                 "Content-Type": "application/json"
             },
             body: JSON.stringify({
