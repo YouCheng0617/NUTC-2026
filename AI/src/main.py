@@ -27,7 +27,7 @@ def __init__(self, model_name="gemini-1.5-flash"):
         self.model_name = model_name
         print(f"✨ Gemini AI 引擎初始化：使用模型 {self.model_name}")
 
-    def check_content(self, text):
+def check_content(self, text):
         """功能 1：自動審核貼文內容（使用官方 JSON 模式）"""
         if not client: return {"ai_status": "通過", "ai_reason": "無 API Key 防護"}
         
