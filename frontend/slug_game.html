@@ -120,7 +120,8 @@
         /* 🌟 【主要遊戲舞台】包含背景底色、網點、還有特效圖層 */
         .stage {
             position: absolute;
-            top: 0; left: 0; width: 100%; height: 58%;
+            top: 0; left: 0; 
+            width: 100%; height: 58%; 
             background: #dbeafe; overflow: hidden; transition: background 1s ease;
         }
         .dot-pattern {
@@ -454,11 +455,18 @@
         .anim-earR { animation: earTwitchR 3.5s infinite ease-in-out; transform-origin: 145px 90px; }
         .anim-tail { animation: tailFluff 4s infinite ease-in-out; transform-origin: 240px 120px; }
 
-        /* 🌟 【底部操作面板】餵食互動、切換商店與圖鑑 */
+       /* 🌟 【底部操作面板】餵食互動、切換商店與圖鑑 */
         .ui-panel {
             position: absolute; bottom: 0; left: 0; width: 100%; height: 45%;
             background: var(--panel-bg); border-top: 3px solid white; display: flex; flex-direction: column;
-            padding: 30px 20px 20px 20px; z-index: 20; border-radius: 40px 40px 0 0; box-shadow: 0 -10px 40px var(--shadow-color);
+            padding: 30px 20px 20px 20px; z-index: 80; border-radius: 40px 40px 0 0; box-shadow: 0 -10px 40px var(--shadow-color);
+            /* 🪄 以下是新增的抽屜動畫魔法 */
+            transition: transform 0.4s cubic-bezier(0.18, 0.89, 0.32, 1.28); 
+        }
+        
+        /* 🌟 當面板被呼叫展開時的樣式 */
+        .ui-panel.open {
+            transform: translateY(0); /* 回到原位 */
         }
         .interaction-group { display: flex; gap: 15px; margin-bottom: 25px; }
         .btn-interact { flex: 1; background: var(--card-bg); border: 3px solid var(--border-color); border-radius: 22px; padding: 16px 0; color: var(--text-dark); cursor: pointer; display: flex; flex-direction: column; align-items: center; transition: 0.1s; box-shadow: 0 5px 0 var(--border-color); }
@@ -765,6 +773,50 @@
                 grid-template-columns: repeat(auto-fill, minmax(90px, 1fr)); 
             }
         }
+        /* ========================================= */
+        /* 🌟 手機版與電腦版的分水嶺魔法開始 */
+        /* ========================================= */
+
+        /* 1. 預設電腦版：隱藏那兩顆召喚抽屜的按鈕 */
+        #btnOpenShop, 
+        #uiPanel > button[onclick="toggleShopPanel()"] {
+            display: none !important;
+        }
+
+        /* 2. 手機版專屬魔法 (螢幕寬度小於 768px 時自動發動) */
+        @media screen and (max-width: 768px) {
+            
+            /* 秀出開關按鈕 */
+            #btnOpenShop, 
+            #uiPanel > button[onclick="toggleShopPanel()"] {
+                display: block !important;
+            }
+
+            /* 手機版背景拉滿 100% */
+            .stage {
+                height: 100%;
+            }
+
+            /* 手機版面板：預設收起到螢幕下方 */
+            .ui-panel {
+                height: 55%; 
+                padding: 20px 15px 15px 15px; 
+                border-radius: 30px 30px 0 0; 
+                transform: translateY(120%); 
+                z-index: 80;
+            }
+
+            /* 手機版面板：展開時回到原位 */
+            .ui-panel.open {
+                transform: translateY(0);
+            }
+
+            /* 讓手機版的互動按鈕與商品網格變緊湊，更好滑動 */
+            .interaction-group { margin-bottom: 15px; gap: 10px; }
+            .btn-interact { padding: 12px 0; border-radius: 18px; }
+            .btn-title { font-size: 0.95rem; margin-bottom: 4px; }
+            .shop-grid { gap: 10px; grid-template-columns: repeat(auto-fill, minmax(90px, 1fr)); }
+        }
     </style>
 </head>
 <body>
@@ -981,8 +1033,14 @@
         </div>
     </div>
 
-    <!-- 🌟 【底部的操作商店面板】 -->
-    <div class="ui-panel">
+<!-- 🌟 【新增：懸浮召喚商城按鈕】平常待在螢幕正下方 -->
+    <button id="btnOpenShop" onclick="toggleShopPanel()" style="position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%); z-index: 70; background: var(--text-dark); color: white; padding: 14px 32px; border-radius: 30px; border: none; font-size: 1.1rem; font-weight: 900; box-shadow: 0 5px 15px var(--shadow-color); cursor: pointer; white-space: nowrap; transition: 0.2s;">🛍️ 裝扮與互動</button>
+
+    <!-- 🌟 【底部的操作商店面板】幫它加上 id="uiPanel" -->
+    <div class="ui-panel" id="uiPanel">
+        <!-- 🌟 【新增：收起面板按鈕】像個小耳朵一樣長在面板正上方 -->
+        <button onclick="toggleShopPanel()" style="position: absolute; top: -20px; left: 50%; transform: translateX(-50%); background: white; color: var(--text-dark); border: 3px solid var(--border-color); padding: 5px 20px; border-radius: 20px; font-weight: 900; cursor: pointer; box-shadow: 0 4px 10px var(--shadow-color); z-index: 85;">⬇️ 收起</button>
+
         <div class="interaction-group">
             <button class="btn-interact" id="btnFeed" onclick="interact('feed', 80, 8)">
                 <span class="btn-title" id="txtFeedTitle">餵食海藻</span>
@@ -5348,6 +5406,21 @@ let currentPaintPalette = 0;
                 btn.className = idx === index ? 'palette-btn active' : 'palette-btn';
             });
             showFloatText(`✨ 已切換色系`);
+        }
+        // 🌟 開關底部商城與互動面板的魔法
+        function toggleShopPanel() {
+            const panel = document.getElementById('uiPanel');
+            const openBtn = document.getElementById('btnOpenShop');
+            
+            if (panel.classList.contains('open')) {
+                // 如果是打開的，就收起來，並秀出召喚按鈕
+                panel.classList.remove('open');
+                openBtn.style.transform = 'translateX(-50%) scale(1)';
+            } else {
+                // 如果是收起的，就展開它，並把召喚按鈕藏起來
+                panel.classList.add('open');
+                openBtn.style.transform = 'translateX(-50%) scale(0)';
+            }
         }
     </script>
 </body>
