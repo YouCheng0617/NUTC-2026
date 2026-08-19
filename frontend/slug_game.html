@@ -263,6 +263,60 @@
         opacity: 0;
     }
 }
+/* 🌟 【蝴蝶翩翩專屬】微光幽境柔霧圖層 */
+.butterfly-mist-overlay {
+    position: absolute;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: radial-gradient(circle at 50% 50%, rgba(192, 132, 252, 0.12) 0%, rgba(76, 29, 149, 0.18) 60%, transparent 100%);
+    pointer-events: none;
+    z-index: 1;
+}
+
+/* 🌟 影子蝴蝶本體容器 (自帶柔和發光與深色剪影) */
+.shadow-butterfly {
+    position: absolute;
+    width: 32px; height: 32px;
+    pointer-events: none;
+    z-index: 4;
+    perspective: 400px;
+    transform-origin: center center;
+}
+
+/* 🌟 翅膀拍動（以 50px 中脊為軸心自然呼吸扇動） */
+.butterfly-wing-l {
+    transform-origin: 50px center;
+    animation: wingFlapPureL 1.1s infinite alternate ease-in-out;
+}
+.butterfly-wing-r {
+    transform-origin: 50px center;
+    animation: wingFlapPureR 1.1s infinite alternate ease-in-out;
+}
+
+@keyframes wingFlapPureL {
+    0% { transform: scaleX(1); }
+    100% { transform: scaleX(0.72) skewY(-3deg); }
+}
+@keyframes wingFlapPureR {
+    0% { transform: scaleX(1); }
+    100% { transform: scaleX(0.72) skewY(3deg); }
+}
+/* 🌟 蝴蝶飛行時身後留下的微光星塵粒子 */
+.butterfly-spark-trail {
+    position: absolute;
+    width: 4px; height: 4px;
+    background: #e9d5ff;
+    border-radius: 50%;
+    box-shadow: 0 0 6px #c084fc, 0 0 10px #fbcfe8;
+    pointer-events: none;
+    z-index: 3;
+    animation: sparkFade 1.2s ease-out forwards;
+}
+
+@keyframes sparkFade {
+    0% { transform: translate(-50%, -50%) scale(1.2); opacity: 0.9; }
+    50% { opacity: 0.6; }
+    100% { transform: translate(-50%, -50%) translateY(12px) scale(0.2); opacity: 0; }
+}
 /* 📐 【數學當機】清晰、正確且緩慢移動的數學公式與發光叉叉 */
     .math-formula {
         position: absolute; 
@@ -3542,6 +3596,235 @@ case 'duck': {
                         layer.appendChild(el);
                     }
                     break;
+// 🦋 【蝴蝶翩翩】水彩翅脈 ＋ 滑鼠引蝶追隨 ＋ 空中浮空滑翔漫舞版！
+case 'butterfly': {
+    if (window.butterflyAnimFrame) cancelAnimationFrame(window.butterflyAnimFrame);
+
+    // 1. 微光幽境柔霧圖層
+    const mistOverlay = document.createElement('div');
+    mistOverlay.className = 'butterfly-mist-overlay';
+    layer.appendChild(mistOverlay);
+
+    // 2. 100% 水彩暈染翅脈 SVG
+    const uniqueButterflySVG = (flapDuration, flapDelay) => `
+        <svg viewBox="0 0 100 100" width="100%" height="100%" style="overflow: visible; filter: drop-shadow(0 0 12px rgba(168, 85, 247, 0.85));">
+            <defs>
+                <linearGradient id="bfGradFore" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stop-color="#2e1065"/>
+                    <stop offset="35%" stop-color="#581c87"/>
+                    <stop offset="70%" stop-color="#c084fc"/>
+                    <stop offset="100%" stop-color="#bae6fd"/>
+                </linearGradient>
+                <linearGradient id="bfGradHind" x1="0%" y1="100%" x2="100%" y2="0%">
+                    <stop offset="0%" stop-color="#3b0764"/>
+                    <stop offset="50%" stop-color="#a855f7"/>
+                    <stop offset="100%" stop-color="#e0e7ff"/>
+                </linearGradient>
+            </defs>
+            <g class="butterfly-wing-l" style="animation-duration: ${flapDuration}s !important; animation-delay: ${flapDelay}s !important;">
+                <path d="M 50 35 C 30 10, 4 18, 8 45 C 11 60, 32 58, 50 48 Z" fill="url(#bfGradFore)" stroke="#1e0847" stroke-width="1"/>
+                <path d="M 50 42 C 34 32, 20 25, 12 28" stroke="#1e0847" stroke-width="0.9" fill="none" opacity="0.75"/>
+                <path d="M 50 42 C 32 38, 18 36, 10 40" stroke="#1e0847" stroke-width="0.8" fill="none" opacity="0.75"/>
+                <path d="M 50 42 C 35 46, 24 48, 15 54" stroke="#1e0847" stroke-width="0.8" fill="none" opacity="0.75"/>
+                <ellipse cx="14" cy="22" rx="2.5" ry="1.2" transform="rotate(-30 14 22)" fill="#f5f3ff" opacity="0.85"/>
+                <ellipse cx="9" cy="32" rx="2.2" ry="1" transform="rotate(-15 9 32)" fill="#f5f3ff" opacity="0.8"/>
+                <ellipse cx="10" cy="44" rx="2" ry="1" transform="rotate(10 10 44)" fill="#f5f3ff" opacity="0.8"/>
+                <path d="M 50 48 C 28 50, 15 68, 25 82 C 38 88, 46 70, 50 56 Z" fill="url(#bfGradHind)" stroke="#1e0847" stroke-width="1"/>
+                <path d="M 50 52 C 38 60, 26 70, 24 76" stroke="#1e0847" stroke-width="0.8" fill="none" opacity="0.75"/>
+                <path d="M 50 52 C 42 66, 36 78, 34 82" stroke="#1e0847" stroke-width="0.7" fill="none" opacity="0.75"/>
+                <circle cx="21" cy="74" r="1.3" fill="#f5f3ff" opacity="0.8"/>
+                <circle cx="28" cy="82" r="1.4" fill="#f5f3ff" opacity="0.8"/>
+            </g>
+            <g class="butterfly-wing-r" style="animation-duration: ${flapDuration}s !important; animation-delay: ${flapDelay}s !important;">
+                <path d="M 50 35 C 70 10, 96 18, 92 45 C 89 60, 68 58, 50 48 Z" fill="url(#bfGradFore)" stroke="#1e0847" stroke-width="1"/>
+                <path d="M 50 42 C 66 32, 80 25, 88 28" stroke="#1e0847" stroke-width="0.9" fill="none" opacity="0.75"/>
+                <path d="M 50 42 C 68 38, 82 36, 90 40" stroke="#1e0847" stroke-width="0.8" fill="none" opacity="0.75"/>
+                <path d="M 50 42 C 65 46, 76 48, 85 54" stroke="#1e0847" stroke-width="0.8" fill="none" opacity="0.75"/>
+                <ellipse cx="86" cy="22" rx="2.5" ry="1.2" transform="rotate(30 86 22)" fill="#f5f3ff" opacity="0.85"/>
+                <ellipse cx="91" cy="32" rx="2.2" ry="1" transform="rotate(15 91 32)" fill="#f5f3ff" opacity="0.8"/>
+                <ellipse cx="90" cy="44" rx="2" ry="1" transform="rotate(-10 90 44)" fill="#f5f3ff" opacity="0.8"/>
+                <path d="M 50 48 C 72 50, 85 68, 75 82 C 62 88, 54 70, 50 56 Z" fill="url(#bfGradHind)" stroke="#1e0847" stroke-width="1"/>
+                <path d="M 50 52 C 62 60, 74 70, 76 76" stroke="#1e0847" stroke-width="0.8" fill="none" opacity="0.75"/>
+                <path d="M 50 52 C 58 66, 64 78, 66 82" stroke="#1e0847" stroke-width="0.7" fill="none" opacity="0.75"/>
+                <circle cx="79" cy="74" r="1.3" fill="#f5f3ff" opacity="0.8"/>
+                <circle cx="72" cy="82" r="1.4" fill="#f5f3ff" opacity="0.8"/>
+            </g>
+            <path d="M 50 26 L 50 68" stroke="#1e0847" stroke-width="3" stroke-linecap="round"/>
+            <path d="M 50 28 Q 36 18 32 8 M 50 28 Q 64 18 68 8" stroke="#c084fc" stroke-width="0.85" stroke-linecap="round" fill="none"/>
+        </svg>
+    `;
+
+    // 🌟 3. 滑鼠追隨座標監聽器
+    window.butterflyMouse = { x: 50, y: 50, active: false, idleTimer: null };
+    const stageEl = document.getElementById('mainStage');
+
+    if (window.bfMouseMoveHandler) {
+        stageEl.removeEventListener('pointermove', window.bfMouseMoveHandler);
+        stageEl.removeEventListener('pointerleave', window.bfMouseLeaveHandler);
+    }
+
+    window.bfMouseMoveHandler = (e) => {
+        const rect = stageEl.getBoundingClientRect();
+        window.butterflyMouse.x = ((e.clientX - rect.left) / rect.width) * 100;
+        window.butterflyMouse.y = ((e.clientY - rect.top) / rect.height) * 100;
+        window.butterflyMouse.active = true;
+
+        clearTimeout(window.butterflyMouse.idleTimer);
+        window.butterflyMouse.idleTimer = setTimeout(() => {
+            window.butterflyMouse.active = false;
+        }, 3500); // 滑鼠靜止 3.5 秒後恢復自由漫舞
+    };
+
+    window.bfMouseLeaveHandler = () => {
+        window.butterflyMouse.active = false;
+    };
+
+    stageEl.addEventListener('pointermove', window.bfMouseMoveHandler);
+    stageEl.addEventListener('pointerleave', window.bfMouseLeaveHandler);
+
+    // 🌟 4. 建立 5 隻大蝴蝶
+    const butterflyCount = 5;
+    const butterflies = [];
+    const spawnPositions = [
+        { x: 20, y: 25 }, { x: 75, y: 25 }, { x: 50, y: 50 }, { x: 25, y: 70 }, { x: 75, y: 70 }
+    ];
+
+    for (let i = 0; i < butterflyCount; i++) {
+        const flapDur = Math.random() * 0.4 + 0.9;
+        const flapDel = -(Math.random() * 1.5);
+
+        const bEl = document.createElement('div');
+        bEl.className = 'shadow-butterfly';
+        bEl.innerHTML = uniqueButterflySVG(flapDur.toFixed(2), flapDel.toFixed(2));
+
+        const size = Math.random() * 18 + 72; // 72px ~ 90px
+        bEl.style.width = size + 'px';
+        bEl.style.height = size + 'px';
+        layer.appendChild(bEl);
+
+        const initPos = spawnPositions[i];
+
+        butterflies.push({
+            id: i,
+            el: bEl,
+            x: initPos.x,
+            y: initPos.y,
+            vx: (Math.random() - 0.5) * 0.1,
+            vy: (Math.random() - 0.5) * 0.1,
+            targetX: Math.random() * 70 + 15,
+            targetY: Math.random() * 60 + 20,
+            angle: Math.random() * 360,
+            speed: Math.random() * 0.08 + 0.12,
+            flapTime: Math.random() * 100,
+            flapFrequency: flapDur,
+            targetChangeTimer: Math.random() * 120 + 80,
+            // 每隻蝴蝶各自圍繞滑鼠的專屬角度與花圈半徑（防止大家疊在一塊）
+            orbitAngle: (i / butterflyCount) * Math.PI * 2,
+            orbitRadius: Math.random() * 10 + 8, // 8% ~ 18% 舞台半徑
+            trailTimer: 0
+        });
+    }
+
+    // 🌟 5. 滑鼠追隨 ＋ 空氣動力學浮空漫舞引擎
+    function renderButterflies() {
+        const activeEffect = trialState.effect || gameState.currentEffect;
+        if (activeEffect !== 'butterfly') {
+            if (window.butterflyAnimFrame) cancelAnimationFrame(window.butterflyAnimFrame);
+            if (window.bfMouseMoveHandler) {
+                stageEl.removeEventListener('pointermove', window.bfMouseMoveHandler);
+                stageEl.removeEventListener('pointerleave', window.bfMouseLeaveHandler);
+            }
+            butterflies.forEach(b => { if (b.el.parentNode) b.el.remove(); });
+            return;
+        }
+        window.butterflyAnimFrame = requestAnimationFrame(renderButterflies);
+
+        const stageW = layer.offsetWidth || window.innerWidth;
+        const stageH = layer.offsetHeight || (window.innerHeight * 0.58);
+        const mouse = window.butterflyMouse;
+
+        butterflies.forEach(b => {
+            // 🌟 判斷：若滑鼠在畫面中移動，目標自動設定為滑鼠周圍的優雅花圈點
+            if (mouse && mouse.active) {
+                b.orbitAngle += 0.015; // 圍繞滑鼠緩慢盤旋
+                b.targetX = mouse.x + Math.cos(b.orbitAngle) * b.orbitRadius;
+                b.targetY = mouse.y + Math.sin(b.orbitAngle) * (b.orbitRadius * 0.7);
+            } else {
+                // 自由悠哉漫遊
+                b.targetChangeTimer--;
+                if (b.targetChangeTimer <= 0) {
+                    b.targetX = Math.random() * 72 + 14;
+                    b.targetY = Math.random() * 62 + 18;
+                    b.targetChangeTimer = Math.random() * 200 + 150;
+                }
+            }
+
+            // 向量牽引力學
+            const dx = b.targetX - b.x;
+            const dy = b.targetY - b.y;
+            const dist = Math.sqrt(dx * dx + dy * dy);
+
+            if (dist > 1) {
+                const curSpeed = mouse && mouse.active ? (b.speed * 1.35) : b.speed;
+                const desiredVx = (dx / dist) * curSpeed;
+                const desiredVy = (dy / dist) * curSpeed;
+                b.vx += (desiredVx - b.vx) * 0.03;
+                b.vy += (desiredVy - b.vy) * 0.03;
+            }
+
+            // 拍翅垂直浮空律動
+            b.flapTime += 0.04;
+            const floatLift = Math.sin(b.flapTime * (Math.PI * 2 / b.flapFrequency)) * 0.06;
+
+            // 蝴蝶間防聚排斥避讓（只擦肩、不重疊）
+            butterflies.forEach(other => {
+                if (other.id === b.id) return;
+                const sepX = b.x - other.x;
+                const sepY = b.y - other.y;
+                const d = Math.sqrt(sepX * sepX + sepY * sepY);
+                if (d > 0 && d < 18) {
+                    const repel = (18 - d) / 18;
+                    b.vx += (sepX / d) * repel * 0.018;
+                    b.vy += (sepY / d) * repel * 0.018;
+                }
+            });
+
+            b.x += b.vx;
+            b.y += b.vy + floatLift;
+
+            // 邊界防護
+            b.x = Math.max(8, Math.min(92, b.x));
+            b.y = Math.max(12, Math.min(88, b.y));
+
+            // 平滑朝向
+            const moveAngle = Math.atan2(b.vy, b.vx) * (180 / Math.PI) + 90;
+            let diff = (moveAngle - b.angle) % 360;
+            if (diff > 180) diff -= 360;
+            if (diff < -180) diff += 360;
+            b.angle += diff * 0.07;
+
+            b.el.style.left = b.x + '%';
+            b.el.style.top = b.y + '%';
+            b.el.style.transform = `translate(-50%, -50%) rotate(${b.angle}deg)`;
+
+            // 拖曳微光星塵
+            b.trailTimer++;
+            if (b.trailTimer % 8 === 0) {
+                const spark = document.createElement('div');
+                spark.className = 'butterfly-spark-trail';
+                const px = (b.x / 100) * stageW;
+                const py = (b.y / 100) * stageH;
+                spark.style.left = (px + (Math.random() * 6 - 3)) + 'px';
+                spark.style.top = (py + (Math.random() * 6 - 3)) + 'px';
+                layer.appendChild(spark);
+                setTimeout(() => { if (spark.parentNode) spark.remove(); }, 1200);
+            }
+        });
+    }
+
+    renderButterflies();
+    break;
+}
 // 🌟 【繁星閃爍】四周淡金光暈 + 背景一閃一閃 + 金燦流星 + 滑鼠星塵拖尾
                 case 'star': {
                     // 1. 建立四周淡金黃色呼吸光暈圖層
