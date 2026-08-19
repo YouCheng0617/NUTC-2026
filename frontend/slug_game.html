@@ -45,7 +45,7 @@
             margin: 0;
             padding: 0;
             width: 100vw;
-            height: 100vh;
+            height: 100dvh;
             overflow: hidden;
             background-color: var(--primary-bg);
             color: var(--text-dark);
@@ -725,6 +725,46 @@
     80% { opacity: 0.9; }
     100% { transform: translate(calc(var(--ndx) * 1.8), -65px) scale(0.8) rotate(-20deg); opacity: 0; }
 }
+/* 🌟 魔法 2：手機版專屬響應式排版 (當螢幕寬度小於 768px 時自動發動) */
+        @media screen and (max-width: 768px) {
+            /* 讓底板在手機上長高一點，才裝得下滿滿的特效商品 */
+            .ui-panel {
+                height: 55%; 
+                padding: 20px 15px 15px 15px; /* 把留白縮小，擠出更多實用空間 */
+                border-radius: 30px 30px 0 0; 
+            }
+            
+            /* 上半部舞台稍微縮小一點點，把空間讓給下面的面板 */
+            .stage {
+                height: 50%;
+            }
+
+            /* 讓上方的互動按鈕變緊湊一點 */
+            .interaction-group {
+                margin-bottom: 15px; 
+                gap: 10px;
+            }
+            .btn-interact {
+                padding: 12px 0;
+                border-radius: 18px;
+            }
+            .btn-title {
+                font-size: 0.95rem;
+                margin-bottom: 4px;
+            }
+
+            /* 讓海兔稍微縮小、往上站一點，才不會被長高的面板遮住可愛的臉 */
+            .slug-container {
+                transform: scale(0.85); 
+                top: calc(45% - 120px); 
+            }
+
+            /* 商店網格縮小間距，一排可以塞下更多商品，滑動更順暢 */
+            .shop-grid {
+                gap: 10px;
+                grid-template-columns: repeat(auto-fill, minmax(90px, 1fr)); 
+            }
+        }
     </style>
 </head>
 <body>
