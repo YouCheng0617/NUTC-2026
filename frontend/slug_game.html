@@ -897,8 +897,14 @@
   <!-- 🌟 【新增：連線小按鈕】點擊才展開，畫面更乾淨！ -->
     <button id="btnToggleMp" onclick="toggleMpPanel()" class="lang-btn" style="position: absolute; top: 75px; right: 20px; z-index: 60;">📡 連線</button>
 
-    <!-- 🌟 【多人連線控制面板】加上預設隱藏 (display: none) 與往下移動 (top: 130px) -->
+    <!-- 🌟 【多人連線控制面板】加上預設隱藏與位置調整 -->
     <div class="mp-panel" id="mpPanel" style="display: none; top: 130px;">
+        <div class="mp-info" id="roomStatusText">尚未連線</div>
+        <button class="mp-btn" onclick="createSocketRoom()" id="btnCreateRoom">創立房間</button>
+        <button class="mp-btn secondary" onclick="joinSocketRoom()" id="btnJoinRoom">加入房間</button>
+        <button class="mp-btn" onclick="sendChatPrompt()" id="btnChat" style="display:none; background: var(--accent-color);">💬 聊天</button>
+        <button class="mp-btn secondary" onclick="leaveSocketRoom()" id="btnLeaveRoom" style="display:none; border-color: #ef4444; color: #ef4444;">離開房間</button>
+    </div>
 
     <!-- 🌟 【遊戲的主要背景舞台】 -->
     <div class="stage" id="mainStage">
@@ -1014,16 +1020,7 @@
          🌟 JavaScript 遊戲程式邏輯開始
          🌟 ========================================== -->
     <script>
-        // 🌟 展開或收合連線面板的小魔法
-        function toggleMpPanel() {
-            const panel = document.getElementById('mpPanel');
-            // 如果是隱藏的，就讓它彈出來；如果已經打開了，就把它收回去
-            if (panel.style.display === 'none') {
-                panel.style.display = 'flex';
-            } else {
-                panel.style.display = 'none';
-            }
-        }
+
 // 🌟 【後台與網路連線資料】
         const API_BASE = 'https://api.drift-bottles.xyz'; // 伺服器網址
         
@@ -1138,6 +1135,16 @@ let GAME_TOKEN = localStorage.getItem('authToken') || localStorage.getItem('acce
             document.getElementById('otherPlayersLayer').innerHTML = ''; 
             otherPlayersData = {}; 
             updateRoomUI("尚未連線"); 
+        }
+        // 🌟 展開或收合連線面板的小魔法
+        function toggleMpPanel() {
+            const panel = document.getElementById('mpPanel');
+            // 如果是隱藏的，就讓它彈出來；如果已經打開了，就把它收回去
+            if (panel.style.display === 'none') {
+                panel.style.display = 'flex';
+            } else {
+                panel.style.display = 'none';
+            }
         }
 // 🌟 【貼心小工具：一鍵複製房間代碼】
 function copyRoomId() {
