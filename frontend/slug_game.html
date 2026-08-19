@@ -2180,7 +2180,7 @@ let trialTimeLeft = 10; // 全域記錄試用剩餘時間
             }
         }
 
-        function applyEffect() {
+ function applyEffect() {
     const layer = document.getElementById('effectLayer');
     layer.innerHTML = ''; 
     
@@ -2201,6 +2201,11 @@ let trialTimeLeft = 10; // 全域記錄試用剩餘時間
     if (window.heartbeatAnimFrame) cancelAnimationFrame(window.heartbeatAnimFrame);
     if (window.heartbeatTimeout) clearTimeout(window.heartbeatTimeout);
     if (window.recallAnimFrame) cancelAnimationFrame(window.recallAnimFrame);
+
+    // 👇👇👇 寶寶看這裡！這兩行是我們新加的魔法陣 👇👇👇
+    const customTauntBtn = document.getElementById('customTauntBtn');
+    if (customTauntBtn) customTauntBtn.style.display = 'none';
+    // 👆👆👆 魔法陣結束 👆👆👆
 
     const effectKey = trialState.effect || gameState.currentEffect;
     const effect = effectData[effectKey];
@@ -3030,12 +3035,11 @@ let trialTimeLeft = 10; // 全域記錄試用剩餘時間
                     pureBubble.className = 'recall-bubble';
                     layer.appendChild(pureBubble);
 
-                    // 即時追蹤海兔位置，讓水流與泡泡完美置中
+// 即時追蹤海兔位置，讓水流與泡泡完美置中
                     function renderRecall() {
                         if (gameState.currentEffect !== 'disco' && trialState.effect !== 'disco') {
                             if (window.recallAnimFrame) cancelAnimationFrame(window.recallAnimFrame);
-                            const btn = document.getElementById('customTauntBtn');
-                            if (btn) btn.style.display = 'none';
+                            // 👻 這裡原本有兩行隱藏按鈕的「幽靈程式碼」，我們已經把它拔掉啦！
                             return;
                         }
                         window.recallAnimFrame = requestAnimationFrame(renderRecall);
