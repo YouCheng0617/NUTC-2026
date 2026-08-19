@@ -176,6 +176,93 @@
         0% { opacity: 0.45; } 
         100% { opacity: 0.55; }
     }
+    /* 🌟 【深海魚群專屬】中心透光深淵 ＋ 鯊魚漩渦風暴全域背景 */
+.shark-vortex-bg {
+    position: absolute;
+    top: 0; left: 0; width: 100%; height: 100%;
+    /* 100% 還原圖片：中心亮青藍透光，四周極致深海暗藍黑 */
+    background: radial-gradient(circle at 50% 50%, rgba(56, 189, 248, 0.45) 0%, rgba(2, 132, 199, 0.3) 25%, rgba(15, 23, 42, 0.75) 60%, rgba(2, 6, 23, 0.92) 100%);
+    pointer-events: none;
+    z-index: 1;
+    overflow: hidden;
+}
+
+/* 🌟 中心發光光柱核心 */
+.shark-center-glow {
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    width: 220px; height: 220px;
+    background: radial-gradient(circle, rgba(224, 242, 254, 0.8) 0%, rgba(56, 189, 248, 0.4) 45%, transparent 75%);
+    filter: blur(15px);
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 2;
+    animation: centerGlowPulse 4s ease-in-out infinite alternate;
+}
+@keyframes centerGlowPulse {
+    0% { transform: translate(-50%, -50%) scale(0.9); opacity: 0.7; }
+    100% { transform: translate(-50%, -50%) scale(1.15); opacity: 1.0; }
+}
+
+/* 🌟 旋轉軌道環容器（同心圓旋轉） */
+.shark-ring-track {
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+    border-radius: 50%;
+    transform-origin: center center;
+}
+
+/* 🌟 鯊魚本體：依照切線方向朝著圓周前方游動 */
+.vortex-shark {
+    position: absolute;
+    pointer-events: none;
+    transform-origin: center center;
+}
+
+/* 各層軌道旋轉動畫 */
+@keyframes ringSpinClockwise {
+    0% { transform: translate(-50%, -50%) rotate(0deg); }
+    100% { transform: translate(-50%, -50%) rotate(360deg); }
+}
+@keyframes ringSpinCounter {
+    0% { transform: translate(-50%, -50%) rotate(360deg); }
+    100% { transform: translate(-50%, -50%) rotate(0deg); }
+}
+/* 🌟 【深海點擊泡泡】晶瑩透亮反光 ＋ 自然左右搖曳慢速上升 */
+.deep-sea-click-bubble {
+    position: absolute;
+    pointer-events: none;
+    z-index: 25;
+    border-radius: 50%;
+    /* 水晶泡泡高光與透光水藍漸層 */
+    background: radial-gradient(circle at 32% 30%, rgba(255, 255, 255, 0.95) 0%, rgba(224, 242, 254, 0.45) 25%, rgba(56, 189, 248, 0.15) 65%, rgba(255, 255, 255, 0.7) 100%);
+    border: 1.2px solid rgba(255, 255, 255, 0.85);
+    box-shadow: 0 0 10px rgba(56, 189, 248, 0.7), inset 0 0 5px rgba(255, 255, 255, 0.9);
+    transform: translate(-50%, -50%);
+    animation: clickBubbleRise 2.8s cubic-bezier(0.2, 0.6, 0.35, 1) forwards;
+}
+
+@keyframes clickBubbleRise {
+    0% {
+        transform: translate(-50%, -50%) translate(0, 0) scale(0.3);
+        opacity: 0;
+    }
+    12% {
+        opacity: 0.95;
+        transform: translate(-50%, -50%) translate(var(--drift-x), -25px) scale(1);
+    }
+    60% {
+        opacity: 0.85;
+        transform: translate(-50%, -50%) translate(calc(var(--drift-x) * -0.6), -90px) scale(1.08);
+    }
+    100% {
+        transform: translate(-50%, -50%) translate(calc(var(--drift-x) * 1.4), -180px) scale(1.2);
+        opacity: 0;
+    }
+}
 /* 📐 【數學當機】清晰、正確且緩慢移動的數學公式與發光叉叉 */
     .math-formula {
         position: absolute; 
@@ -3954,6 +4041,135 @@ case 'heartbeat':
         let nextTime = 400 + Math.random() * 500;
         window.heartbeatTimeout = setTimeout(spawnProjectorHeart, nextTime);
     }
+    // 🦈 【深海魚群】鯊魚風暴 ＋ 滑鼠點擊冒出晶瑩上升泡泡版！
+case 'fish': {
+    // 1. 全域深海透光暗藍背景
+    const seaBg = document.createElement('div');
+    seaBg.className = 'shark-vortex-bg';
+    layer.appendChild(seaBg);
+
+    // 2. 中心發光光柱
+    const glow = document.createElement('div');
+    glow.className = 'shark-center-glow';
+    layer.appendChild(glow);
+
+    // 3. 真實流線魚形 SVG：大胸鰭在前、小鰭在後、月牙形流線尾巴！
+    const sharkSVG = `<svg viewBox="0 0 160 70" width="100%" height="100%">
+        <path d="M 155 35 C 130 18, 85 16, 45 28 C 30 31, 15 33, 5 35 C 15 37, 30 39, 45 42 C 85 54, 130 52, 155 35 Z" fill="currentColor"/>
+        <path d="M 100 24 C 92 8, 80 0, 72 2 C 75 12, 78 20, 80 27 Z" fill="currentColor"/>
+        <path d="M 105 32 C 96 14, 82 5, 75 8 C 78 18, 85 28, 92 34 Z" fill="currentColor"/>
+        <path d="M 105 38 C 96 56, 82 65, 75 62 C 78 52, 85 42, 92 36 Z" fill="currentColor"/>
+        <path d="M 40 30 C 35 24, 30 22, 26 23 C 28 27, 30 30, 32 32 Z" fill="currentColor"/>
+        <path d="M 40 40 C 35 46, 30 48, 26 47 C 28 43, 30 40, 32 38 Z" fill="currentColor"/>
+        <path d="M 12 35 C 6 22, 0 10, -2 8 C 2 18, 5 28, 4 35 C 5 42, 2 52, -2 62 C 0 60, 6 48, 12 35 Z" fill="currentColor"/>
+    </svg>`;
+
+    // 4. 建立 5 層密集深海同心風暴軌道（共 44 隻魚！）
+    const ringLayers = [
+        { radius: 85, count: 10, sharkSize: 32, color: '#7dd3fc', opacity: 0.85, blur: 0.2, duration: 14, zIndex: 3 },
+        { radius: 155, count: 9, sharkSize: 50, color: '#38bdf8', opacity: 0.78, blur: 0.6, duration: 22, zIndex: 4 },
+        { radius: 235, count: 9, sharkSize: 75, color: '#0284c7', opacity: 0.82, blur: 1.2, duration: 32, zIndex: 5 },
+        { radius: 325, count: 8, sharkSize: 105, color: '#0f172a', opacity: 0.90, blur: 2.0, duration: 45, zIndex: 6 },
+        { radius: 425, count: 8, sharkSize: 145, color: '#020617', opacity: 0.96, blur: 3.0, duration: 60, zIndex: 7 }
+    ];
+
+    ringLayers.forEach((r) => {
+        const ringTrack = document.createElement('div');
+        ringTrack.className = 'shark-ring-track';
+        const diameter = r.radius * 2;
+        ringTrack.style.width = diameter + 'px';
+        ringTrack.style.height = diameter + 'px';
+        ringTrack.style.zIndex = r.zIndex;
+        ringTrack.style.animation = `ringSpinClockwise ${r.duration}s linear infinite`;
+
+        for (let i = 0; i < r.count; i++) {
+            const angleDeg = (i / r.count) * 360;
+            const angleRad = (angleDeg * Math.PI) / 180;
+            const x = r.radius + Math.cos(angleRad) * r.radius;
+            const y = r.radius + Math.sin(angleRad) * r.radius;
+
+            const sharkEl = document.createElement('div');
+            sharkEl.className = 'vortex-shark';
+            sharkEl.innerHTML = sharkSVG;
+            sharkEl.style.color = r.color;
+            sharkEl.style.width = r.sharkSize + 'px';
+            sharkEl.style.height = (r.sharkSize * 0.44) + 'px';
+            sharkEl.style.opacity = r.opacity;
+            if (r.blur > 0) sharkEl.style.filter = `blur(${r.blur}px)`;
+
+            const tangentDeg = angleDeg + 90;
+            sharkEl.style.left = x + 'px';
+            sharkEl.style.top = y + 'px';
+            sharkEl.style.transform = `translate(-50%, -50%) rotate(${tangentDeg}deg)`;
+
+            ringTrack.appendChild(sharkEl);
+        }
+
+        layer.appendChild(ringTrack);
+    });
+
+    // 🌟 5. 滑鼠點擊生成「晶瑩深海上浮泡泡串」
+    const stageEl = document.getElementById('mainStage');
+    if (window.fishBubbleClickHandler) {
+        stageEl.removeEventListener('pointerdown', window.fishBubbleClickHandler);
+    }
+
+    window.fishBubbleClickHandler = (e) => {
+        const activeEffect = trialState.effect || gameState.currentEffect;
+        if (activeEffect !== 'fish') {
+            stageEl.removeEventListener('pointerdown', window.fishBubbleClickHandler);
+            return;
+        }
+
+        // 如果點到海兔本體或按鈕就不冒泡，保持操作乾淨
+        if (e.target.closest('#slugContainer') || e.target.closest('#floatingRecallBtn') || e.target.closest('#customTauntBtn')) {
+            return;
+        }
+
+        const rect = layer.getBoundingClientRect();
+        const clickX = e.clientX - rect.left;
+        const clickY = e.clientY - rect.top;
+
+        // 每次點擊噴出 4 ~ 6 顆大小不一的晶瑩氣泡
+        const bubbleCount = Math.floor(Math.random() * 3) + 4;
+        for (let b = 0; b < bubbleCount; b++) {
+            const bubble = document.createElement('div');
+            bubble.className = 'deep-sea-click-bubble';
+
+            // 隨機大小 (10px ~ 28px)
+            const size = Math.random() * 18 + 10;
+            bubble.style.width = size + 'px';
+            bubble.style.height = size + 'px';
+
+            // 稍微在點擊點周圍隨機擴散 (半徑 20px 內)
+            const offsetX = (Math.random() * 30 - 15);
+            const offsetY = (Math.random() * 20 - 10);
+            bubble.style.left = (clickX + offsetX) + 'px';
+            bubble.style.top = (clickY + offsetY) + 'px';
+
+            // 左右搖擺浮動幅度 (20px ~ 50px)
+            const driftX = (Math.random() * 35 + 15) * (Math.random() > 0.5 ? 1 : -1);
+            bubble.style.setProperty('--drift-x', driftX + 'px');
+
+            // 隨機慢速飄動時間 (2.2s ~ 3.2s) 與錯開微小延遲
+            const duration = Math.random() * 1.0 + 2.2;
+            const delay = b * 0.06;
+            bubble.style.animationDuration = duration + 's';
+            bubble.style.animationDelay = delay + 's';
+
+            layer.appendChild(bubble);
+
+            // 動畫結束後自動清除 DOM
+            setTimeout(() => {
+                if (bubble.parentNode) bubble.remove();
+            }, (duration + delay) * 1000 + 100);
+        }
+    };
+
+    stageEl.addEventListener('pointerdown', window.fishBubbleClickHandler);
+
+    break;
+}
 // ☀️ 【陽光普照】電影級特效：自然發光丁達爾光束 + 柔和角落暖光暈 + 夢幻彩虹漏光與散景光斑
                 case 'sun':
                     if (!document.getElementById('sunStyle')) {
