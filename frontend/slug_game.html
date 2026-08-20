@@ -4917,24 +4917,24 @@ case 'fish': {
                     `;
                     layer.appendChild(flareContainer);
                     break;
-// 🎼 【跳動音符】滿版五線譜創作 ＋ 點擊音符單獨刪除 ＋ 追焦循環
+// 🎼 【跳動音符】手機版避開頂部 UI ＋ 滿版動態五線譜 ＋ 試用防刷分
                 case 'music':
                     if (!document.getElementById('staffMusicStyle')) {
                         const style = document.createElement('style');
                         style.id = 'staffMusicStyle';
                         style.innerHTML = `
-                            /* 🌟 1. 滿版背景大五線譜圖層 */
+                            /* 🌟 1. 滿版背景大五線譜圖層 (電腦版在頂部 95px) */
                             .grand-bg-staff {
                                 position: absolute;
-                                top: 10%;
+                                top: 95px;
                                 left: 0;
                                 width: 100%;
-                                height: 150px;
+                                height: 130px;
                                 z-index: 30;
                                 display: flex;
                                 flex-direction: column;
                                 justify-content: space-between;
-                                padding: 12px 0;
+                                padding: 10px 0;
                                 background: linear-gradient(180deg, rgba(255, 255, 255, 0.88) 0%, rgba(250, 245, 255, 0.94) 50%, rgba(255, 255, 255, 0.88) 100%);
                                 backdrop-filter: blur(5px);
                                 box-shadow: 0 4px 20px rgba(168, 85, 247, 0.2);
@@ -4953,7 +4953,7 @@ case 'fish': {
                                 left: 12px;
                                 top: 50%;
                                 transform: translateY(-50%);
-                                font-size: 4.5rem;
+                                font-size: 4.2rem;
                                 color: rgba(147, 51, 234, 0.75);
                                 font-weight: 900;
                                 line-height: 1;
@@ -4964,12 +4964,12 @@ case 'fish': {
                             .grand-notes-track {
                                 position: absolute;
                                 top: 0;
-                                left: 75px;
+                                left: 70px;
                                 right: 15px;
                                 height: 100%;
                                 display: flex;
                                 align-items: center;
-                                gap: 14px;
+                                gap: 12px;
                                 overflow-x: scroll !important;
                                 pointer-events: auto !important;
                                 touch-action: pan-x !important;
@@ -4978,15 +4978,14 @@ case 'fish': {
                             }
                             .grand-notes-track::-webkit-scrollbar { display: none; }
 
-                            /* 釘在背景五線譜上的音符 (支援點擊刪除) */
                             .pinned-grand-note {
                                 position: relative;
                                 flex-shrink: 0;
-                                width: 32px;
-                                height: 32px;
+                                width: 30px;
+                                height: 30px;
                                 border-radius: 50%;
                                 font-weight: 900;
-                                font-size: 0.9rem;
+                                font-size: 0.85rem;
                                 color: #fff;
                                 display: flex;
                                 align-items: center;
@@ -4998,26 +4997,18 @@ case 'fish': {
                                 cursor: pointer !important;
                                 pointer-events: auto !important;
                             }
-                            .pinned-grand-note:hover {
-                                transform: scale(1.15);
-                                filter: brightness(1.1);
-                            }
-                            .pinned-grand-note:active {
-                                transform: scale(0.85);
-                            }
-                            .pinned-grand-note.is-rest {
-                                border-radius: 10px;
-                                font-size: 1.15rem;
-                            }
+                            .pinned-grand-note:hover { transform: scale(1.15); filter: brightness(1.1); }
+                            .pinned-grand-note:active { transform: scale(0.85); }
+                            .pinned-grand-note.is-rest { border-radius: 10px; font-size: 1.1rem; }
                             .pinned-grand-note.playing-active {
-                                transform: scale(1.45) !important;
+                                transform: scale(1.4) !important;
                                 filter: brightness(1.3) drop-shadow(0 0 12px #fde047);
                             }
 
                             /* 🌟 2. 懸浮音樂中控台 */
                             .staff-bottom-console {
                                 position: absolute;
-                                bottom: 48%;
+                                bottom: 46%;
                                 right: 12px;
                                 z-index: 65;
                                 display: flex;
@@ -5048,15 +5039,10 @@ case 'fish': {
                             }
                             .console-btn:active { transform: translateY(2px); box-shadow: none; }
                             .console-btn.btn-clear { background: #f43f5e; box-shadow: 0 3px 0 #be123c; }
-                            .console-btn.active-toggle {
-                                background: #10b981;
-                                box-shadow: 0 3px 0 #059669;
-                            }
+                            .console-btn.active-toggle { background: #10b981; box-shadow: 0 3px 0 #059669; }
 
-                            /* 🛒 音符商店區域 */
-                            .note-shop-container {
-                                position: relative;
-                            }
+                            /* 🛒 音符商店 */
+                            .note-shop-container { position: relative; }
                             .note-shop-grid {
                                 display: grid;
                                 grid-template-columns: repeat(5, 1fr);
@@ -5129,31 +5115,31 @@ case 'fish': {
                                 100% { transform: translateY(-115vh) translateX(calc(var(--drift-x) * 1.5)) scale(0.8); opacity: 0; }
                             }
 
-                            /* 📱 4. 手機版專屬響應式 */
+                            /* 📱 4. 手機版專屬響應式安全區 (完全避開頂部返回鍵、積分與提示欄) */
                             @media screen and (max-width: 768px) {
                                 .grand-bg-staff {
-                                    top: 60px;
-                                    height: 120px;
-                                    padding: 8px 0;
+                                    top: 115px !important; /* 往下移至 115px，完全避開頂部 UI */
+                                    height: 100px !important;
+                                    padding: 6px 0 !important;
                                 }
                                 .grand-clef-symbol {
-                                    font-size: 3.6rem;
-                                    left: 8px;
+                                    font-size: 3.2rem !important;
+                                    left: 6px !important;
                                 }
                                 .grand-notes-track {
-                                    left: 55px;
-                                    gap: 10px;
+                                    left: 45px !important;
+                                    gap: 8px !important;
                                 }
                                 .pinned-grand-note {
-                                    width: 26px;
-                                    height: 26px;
-                                    font-size: 0.75rem;
+                                    width: 24px !important;
+                                    height: 24px !important;
+                                    font-size: 0.72rem !important;
                                 }
                                 .staff-bottom-console {
-                                    bottom: 45%;
-                                    right: 8px;
-                                    max-width: 230px;
-                                    padding: 6px 8px;
+                                    bottom: 40% !important;
+                                    right: 6px !important;
+                                    max-width: 220px !important;
+                                    padding: 6px 8px !important;
                                 }
                                 #btnToggleNoteShop {
                                     display: block !important;
@@ -5162,7 +5148,7 @@ case 'fish': {
                                     position: absolute;
                                     bottom: 105%;
                                     right: 0;
-                                    width: 220px;
+                                    width: 210px;
                                     background: rgba(255, 255, 255, 0.98);
                                     border: 2px solid #c084fc;
                                     box-shadow: 0 8px 20px rgba(0,0,0,0.2);
@@ -5173,8 +5159,8 @@ case 'fish': {
                                     display: grid !important;
                                 }
                                 .floating-staff-bubble {
-                                    width: 48px !important;
-                                    height: 48px !important;
+                                    width: 46px !important;
+                                    height: 46px !important;
                                 }
                             }
                         `;
@@ -5204,14 +5190,14 @@ case 'fish': {
 
                     // 2. 音符音階資料庫
                     const staffScaleNotes = [
-                        { name: 'Do', note: 'C5', freq: 523.25, color: '#ef4444', offsetY: 40, isRest: false },
-                        { name: 'Re', note: 'D5', freq: 587.33, color: '#f97316', offsetY: 29, isRest: false },
-                        { name: 'Mi', note: 'E5', freq: 659.25, color: '#eab308', offsetY: 18, isRest: false },
-                        { name: 'Fa', note: 'F5', freq: 698.46, color: '#22c55e', offsetY: 7, isRest: false },
+                        { name: 'Do', note: 'C5', freq: 523.25, color: '#ef4444', offsetY: 36, isRest: false },
+                        { name: 'Re', note: 'D5', freq: 587.33, color: '#f97316', offsetY: 26, isRest: false },
+                        { name: 'Mi', note: 'E5', freq: 659.25, color: '#eab308', offsetY: 16, isRest: false },
+                        { name: 'Fa', note: 'F5', freq: 698.46, color: '#22c55e', offsetY: 6, isRest: false },
                         { name: 'Sol', note: 'G5', freq: 783.99, color: '#06b6d4', offsetY: -4, isRest: false },
-                        { name: 'La', note: 'A5', freq: 880.00, color: '#3b82f6', offsetY: -15, isRest: false },
-                        { name: 'Si', note: 'B5', freq: 987.77, color: '#8b5cf6', offsetY: -26, isRest: false },
-                        { name: 'Dȯ', note: 'C6', freq: 1046.50, color: '#ec4899', offsetY: -37, isRest: false },
+                        { name: 'La', note: 'A5', freq: 880.00, color: '#3b82f6', offsetY: -14, isRest: false },
+                        { name: 'Si', note: 'B5', freq: 987.77, color: '#8b5cf6', offsetY: -24, isRest: false },
+                        { name: 'Dȯ', note: 'C6', freq: 1046.50, color: '#ec4899', offsetY: -34, isRest: false },
                         { name: '𝄽', label: '休止', note: 'REST', freq: 0, color: '#475569', offsetY: 0, isRest: true }
                     ];
 
@@ -5261,22 +5247,25 @@ case 'fish': {
                         toggleShopBtn.innerText = shopGrid.classList.contains('is-open') ? '🛒 收起商店 ▴' : '🛒 買音符 (1分/個) ▾';
                     };
 
-                    // 🌟 4. 重繪五線譜上的音符與綁定「單擊刪除」事件
+                    // 4. 重繪五線譜上的音符與單擊刪除
                     function renderStaffTrack(autoScrollToEnd = false) {
                         const track = document.getElementById('staffNotesTrack');
                         if (!track) return;
                         track.innerHTML = '';
 
+                        // 依據螢幕寬度微調偏移比例
+                        const isMobile = window.innerWidth <= 768;
+                        const scaleFactor = isMobile ? 0.72 : 1;
+
                         window.collectedStaffNotes.forEach((noteData, index) => {
                             const pinnedNote = document.createElement('div');
                             pinnedNote.className = `pinned-grand-note ${noteData.isRest ? 'is-rest' : ''}`;
                             pinnedNote.style.background = noteData.color;
-                            pinnedNote.style.top = noteData.offsetY + 'px';
+                            pinnedNote.style.top = (noteData.offsetY * scaleFactor) + 'px';
                             pinnedNote.innerText = noteData.name;
                             pinnedNote.id = `staff-note-${index}`;
                             pinnedNote.title = '點擊刪除此音符';
 
-                            // 🌟 單擊五線譜上的音符直接刪除
                             pinnedNote.onclick = (e) => {
                                 e.stopPropagation();
                                 removeNoteFromStaff(index);
@@ -5295,9 +5284,8 @@ case 'fish': {
                         }
                     }
 
-                    // 🌟 單個音符刪除邏輯
                     function removeNoteFromStaff(index) {
-                        if (isPlayingStaff) return; // 播放中暫停刪除操作
+                        if (isPlayingStaff) return;
                         if (index < 0 || index >= window.collectedStaffNotes.length) return;
 
                         const removed = window.collectedStaffNotes.splice(index, 1)[0];
@@ -5305,14 +5293,13 @@ case 'fish': {
                         showFloatText(`🗑️ 已刪除 ${removed.label || removed.name}`);
                     }
 
-                    // 5. 🛒 商店購買音符（試用模式免扣分，正式裝備扣 1 積分）
+                    // 5. 🛒 商店購買音符（試用模式不扣分）
                     function buyNoteDirectly(noteData) {
                         if (window.collectedStaffNotes.length >= 32) {
                             showFloatText('樂譜已經放滿 32 個音囉！🎶');
                             return;
                         }
 
-                        // 非試用狀態才檢查並扣除積分
                         if (!trialState.effect) {
                             if (gameState.points < 1) {
                                 showFloatText('積分不足 1 分 😢');
@@ -5335,7 +5322,8 @@ case 'fish': {
                         window.collectedStaffNotes.push(noteData);
                         renderStaffTrack(true);
                     }
-                    // 6. 飄浮氣泡點擊收集（正式裝備加 15 分，試用模式不加分）
+
+                    // 6. 飄浮氣泡點擊收集（試用模式不加分）
                     function collectNoteToStaff(noteData, bubbleEl) {
                         if (window.collectedStaffNotes.length >= 32) {
                             showFloatText('樂譜已經放滿 32 個音囉！按播放欣賞吧 🎶');
@@ -5351,7 +5339,6 @@ case 'fish': {
                         window.collectedStaffNotes.push(noteData);
                         renderStaffTrack(true);
 
-                        // 判斷是否為試用模式
                         if (!trialState.effect) {
                             gameState.points += 15;
                             saveGame();
@@ -5363,6 +5350,7 @@ case 'fish': {
 
                         bubbleEl.remove();
                     }
+
                     // 7. 速度切換邏輯
                     const speedBtn = document.getElementById('btnStaffSpeed');
                     const speeds = [
