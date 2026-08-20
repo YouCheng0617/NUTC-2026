@@ -1557,7 +1557,6 @@ function updateRoomUI(text) {
            
             cookie: `<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="35" fill="#d97706"/><circle cx="35" cy="40" r="4" fill="#451a03"/><circle cx="65" cy="45" r="5" fill="#451a03"/><circle cx="50" cy="65" r="4" fill="#451a03"/><circle cx="45" cy="25" r="3" fill="#451a03"/><circle cx="70" cy="60" r="3" fill="#451a03"/></svg>`,
             ghost: `<svg viewBox="0 0 100 100"><path d="M25 50 C25 15 75 15 75 50 L75 90 L62.5 80 L50 90 L37.5 80 L25 90 Z" fill="#f8fafc"/><circle cx="40" cy="45" r="5" fill="#0f172a"/><circle cx="60" cy="45" r="5" fill="#0f172a"/><ellipse cx="50" cy="55" rx="4" ry="6" fill="#0f172a"/></svg>`,
-            bat: `<svg viewBox="0 0 100 100"><path d="M50 70 L30 40 C20 20 5 15 5 15 C15 35 30 35 40 45 L50 55 L60 45 C70 35 85 35 95 15 C95 15 80 20 70 40 L50 70 Z" fill="#1e293b"/><polygon points="45 25, 50 35, 55 25" fill="#1e293b"/><circle cx="45" cy="35" r="2" fill="#ef4444"/><circle cx="55" cy="35" r="2" fill="#ef4444"/></svg>`,
 // 🌟 1. 原版大姊：經典白鴨＋頭戴小粉花＋懷抱大花花＋粉嫩腮紅
             duck: `<svg viewBox="0 0 200 200" style="width:100%; height:100%; filter: drop-shadow(0 6px 10px rgba(0,0,0,0.12));">
     <g stroke="#18181b" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round" fill="none">
@@ -1664,11 +1663,7 @@ function updateRoomUI(text) {
     </g>
 </svg>`,
             fish: `<svg viewBox="0 0 100 100"><path d="M70 50 C70 25 30 25 30 50 C30 75 70 75 70 50 Z" fill="#0284c7"/><polygon points="35 50, 10 30, 10 70" fill="#0284c7"/><circle cx="60" cy="45" r="3" fill="#ffffff"/><circle cx="61" cy="45" r="1" fill="#0f172a"/></svg>`,
-          
-            sword: `<svg viewBox="0 0 100 100"><path d="M45 65 L15 95 M35 75 L25 85" stroke="#78350f" stroke-width="8" stroke-linecap="round"/><path d="M40 60 L85 15 L90 10 L80 20 L45 65 Z" fill="#cbd5e1"/><polygon points="30 70, 50 50, 45 45, 25 65" fill="#facc15"/></svg>`,
-            ufo: `<svg viewBox="0 0 100 100"><ellipse cx="50" cy="45" rx="20" ry="20" fill="#67e8f9"/><ellipse cx="50" cy="55" rx="40" ry="12" fill="#94a3b8"/><circle cx="30" cy="55" r="3" fill="#fef08a"/><circle cx="50" cy="58" r="3" fill="#fef08a"/><circle cx="70" cy="55" r="3" fill="#fef08a"/></svg>`,
             planet: `<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="25" fill="#6366f1"/><ellipse cx="50" cy="50" rx="45" ry="10" fill="none" stroke="#facc15" stroke-width="6" transform="rotate(-20 50 50)"/></svg>`,
-            clock: `<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="35" fill="#f8fafc" stroke="#94a3b8" stroke-width="8"/><line x1="50" y1="50" x2="50" y2="25" stroke="#ef4444" stroke-width="4" stroke-linecap="round"/><line x1="50" y1="50" x2="70" y2="50" stroke="#0f172a" stroke-width="4" stroke-linecap="round"/></svg>`,
             // 🎵 1. 連音雙八分音符
             music_double: `<svg viewBox="0 0 100 100" style="width:100%; height:100%; overflow:visible;"><circle cx="28" cy="72" r="14" fill="currentColor"/><circle cx="72" cy="58" r="14" fill="currentColor"/><rect x="36" y="16" width="7" height="56" fill="currentColor"/><rect x="80" y="2" width="7" height="56" fill="currentColor"/><polygon points="36,16 87,2 87,16 36,30" fill="currentColor"/></svg>`,
             // 🎵 2. 單八分音符
@@ -1676,8 +1671,6 @@ function updateRoomUI(text) {
             // 🎵 3. 高音譜號
             music_clef: `<svg viewBox="0 0 100 120" style="width:100%; height:100%; overflow:visible;"><path d="M 52 10 C 52 10 46 28 46 45 C 46 62 68 62 68 76 C 68 88 56 96 44 94 C 32 92 26 80 30 70 C 34 60 48 62 48 70 C 48 76 42 78 38 74 C 40 84 56 86 58 76 C 60 64 42 56 42 42 C 42 30 50 18 52 10 Z M 48 8 L 48 106 C 48 114 40 118 34 114 C 28 110 32 102 38 104" fill="none" stroke="currentColor" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
             coffee: `<svg viewBox="0 0 100 100"><path d="M25 35 L25 70 Q25 85 50 85 Q75 85 75 70 L75 35 Z" fill="#f8fafc"/><path d="M75 45 Q90 45 90 60 Q90 70 75 70" fill="none" stroke="#f8fafc" stroke-width="8"/><path d="M40 15 Q45 25 40 30 M60 10 Q65 20 60 25" fill="none" stroke="#d4d4d8" stroke-width="4"/></svg>`,
-           
-            crown: `<svg viewBox="0 0 100 100"><polygon points="20 80, 80 80, 90 30, 70 50, 50 20, 30 50, 10 30" fill="#facc15"/><circle cx="10" cy="30" r="5" fill="#ef4444"/><circle cx="50" cy="20" r="5" fill="#38bdf8"/><circle cx="90" cy="30" r="5" fill="#ef4444"/></svg>`,
            tvStatic: `<svg viewBox="0 0 100 100" preserveAspectRatio="none">
     <!-- 移除原本的線條與圓圈，只保留一個滿版的雜訊遮罩 -->
     <rect width="100" height="100" fill="url(#noisePattern)" />
@@ -1829,29 +1822,16 @@ const effectData = {
             butterfly: { name: {zh: '蝴蝶翩翩', en: 'Butterflies'}, cost: 2100, preview: '#c084fc', svg: [{s: 'butterfly'}], dir: 'up', count: 10 },
        
            sakura: { name: {zh: '櫻花飛舞', en: 'Sakura'}, cost: 2200, preview: '#fbcfe8' },
-          
-           
-            bat: { name: {zh: '吸血蝙蝠', en: 'Vampire Bats'}, cost: 2300, preview: '#334155', svg: [{s: 'bat'}], dir: 'down', count: 12 },
             lightning: { name: {zh: '閃電交加', en: 'Lightning'}, cost: 2400, preview: '#fde047', svg: [{s: 'lightning'}], dir: 'down', count: 12 },
-            feather: { name: {zh: '天使羽毛', en: 'Angel Feathers'}, cost: 2400, preview: '#ffffff', svg: [{s: 'leaf'}], dir: 'down', count: 15 },
             disco: { name: {zh: '回程挑釁', en: 'Recall Taunt'}, cost: 2500, preview: '#c084fc', svg: [{s: 'star'}, {s: 'music'}], dir: 'up', count: 10 },
             ghost: { name: {zh: '小幽靈', en: 'Little Ghosts'}, cost: 2500, preview: '#f8fafc', svg: [{s: 'ghost'}], dir: 'up', count: 10 },
             confetti: { name: {zh: '派對拉炮', en: 'Confetti'}, cost: 2500, preview: '#f472b6', svg: [{s: 'star'}, {s: 'sparkle'}], dir: 'down', count: 20 },
             gear: { name: {zh: '齒輪運轉', en: 'Gears Turning'}, cost: 2600, preview: '#64748b', svg: [{s: 'gear'}], dir: 'down', count: 12 },
             card: { name: {zh: '魔術撲克', en: 'Magic Cards'}, cost: 2700, preview: '#ef4444', svg: [{s: 'heart'}, {s: 'leaf'}], dir: 'down', count: 18 },
             rainbowStars: { name: {zh: '彩虹星塵', en: 'Rainbow Dust'}, cost: 2800, preview: '#a855f7', svg: [{s: 'star'}], dir: 'up', count: 12 },
-         
-            meteor: { name: {zh: '流星雨', en: 'Meteor Shower'}, cost: 3000, preview: '#818cf8', svg: [{s: 'star'}], dir: 'down', count: 8 },
-            potion: { name: {zh: '煉金藥水', en: 'Alchemy Potions'}, cost: 3200, preview: '#22c55e', svg: [{s: 'potion'}], dir: 'up', count: 12 },
             magic: { name: {zh: '魔法詠唱', en: 'Magic Spell'}, cost: 3500, preview: '#a855f7', svg: [{s: 'sparkle'}, {s: 'star'}], dir: 'up', count: 15 },
-            clock: { name: {zh: '時光倒流', en: 'Time Reversal'}, cost: 3600, preview: '#d4d4d8', svg: [{s: 'clock'}], dir: 'up', count: 10 },
-            sword: { name: {zh: '勇者之劍', en: 'Hero Swords'}, cost: 3800, preview: '#94a3b8', svg: [{s: 'sword'}], dir: 'down', count: 8 },
-            ufo: { name: {zh: '外星綁架', en: 'UFO Abduction'}, cost: 4000, preview: '#4ade80', svg: [{s: 'ufo'}], dir: 'up', count: 6 },
-            planet: { name: {zh: '行星軌道', en: 'Planets'}, cost: 4200, preview: '#312e81', svg: [{s: 'planet'}], dir: 'up', count: 8 },
-            crown: { name: {zh: '加冕皇冠', en: 'Royal Crown'}, cost: 5000, preview: '#eab308', svg: [{s: 'crown'}], dir: 'down', count: 8 },
+            planet: { name: {zh: '行星軌道', en: 'Planets'}, cost: 4200, preview: '#312e81', svg: [{s: 'planet'}], dir: 'up', count: 8 },     
             music: { name: {zh: '跳動音符', en: 'Musical Notes'}, cost: 5200, preview: '#3b82f6' },
-            heartbeat: { name: {zh: '心動幻境', en: 'Heartbeat Dream'}, cost: 6666, preview: '#f43f5e', svg: [{s: 'heart'}], dir: 'up', count: 18 },
-            heartbeatFantasy: { name: {zh: '心動幻想', en: 'Heartbeat Fantasy'}, cost: 6666, preview: '#f43f5e', svg: [{s: 'heart'}], dir: 'up', count: 15 },
             bugFree: { name: {zh: 'Bug退散', en: 'No More Bugs'}, cost: 8888, preview: '#4ade80', svg: [{s: 'bugFree'}], dir: 'up', count: 15 },
             money: { name: {zh: '財富自由', en: 'Money Rain'}, cost: 9999, preview: '#facc15', svg: [{s: 'money'}], dir: 'down', count: 20 }
         };
