@@ -232,16 +232,127 @@ Query 參數 (必填)：?keyword=你要找的字
 
 ---
 
+### 🐠 圖片收集/圖鑑遊戲 API (`/game/collect`)
+
+#### 1. 隨機解鎖圖片 (抽卡/任務領取)
+* **方法與路徑**：`POST /game/collect/unlock`
+* **身份驗證**：需要帶 Token (`Bearer Token`)
+* **機率規則**：普通 (NORMAL) 80%、高級 (PREMIUM) 20%
+* **Request Body** (選填)：
+```json
+{
+  "obtained_from": "DAILY_TASK" /* 獲得管道說明 (選填，預設為 "TASK") */
+}
+```
+
+* **Response 範例**：
+
+```json
+{
+  "message": "🎉 恭喜解鎖新圖鑑！",
+  "data": {
+    "isNew": true, // 是否為首次解鎖 (false 代表先前已擁有)
+    "picture": {
+      "id": 1,
+      "title": "clown fish",
+      "description": "探索海洋所獲得的 clown fish 圖鑑卡片！",
+      "image_url": "/uploads/marine-creatures/fish/clown_fish.webp",
+      "rarity": "NORMAL", // "NORMAL" (普通) 或 "PREMIUM" (高級)
+      "category": "海洋生物",
+      "task_requirement": "完成每日海洋任務或基礎活動獲得"
+    },
+    "stats": {
+      "totalCollected": 5, // 當前使用者已收集總數
+      "totalPictures": 20, // 全圖鑑總數
+      "collectionRate": "25.0%" // 收集進度百分比
+    }
+  }
+}
+```
+
+#### 2. 獲取全圖圖鑑列表 (圖鑑總覽)
+
+* **方法與路徑**：`GET /game/collect/gallery`
+* **身份驗證**：非必要 (若有帶 Token 會標註該使用者是否已解鎖 `is_unlocked: true/false` 與解鎖時間)
+* **Query 參數** (選填)：`?category=海洋生物`
+
+* **Response 範例**：
+
+```json
+{
+  "message": "取得圖鑑清單成功",
+  "data": {
+    "stats": {
+      "total": 20, // 總圖片數
+      "normalCount": 16, // 普通數量
+      "premiumCount": 4, // 高級數量
+      "unlockedCount": 5, // 當前使用者解鎖數量 (未登入時為 0)
+      "lockedCount": 15,
+      "collectionRate": "25.0%"
+    },
+    "pictures": [
+      {
+        "id": 1,
+        "title": "clown fish",
+        "description": "...",
+        "image_url": "/uploads/marine-creatures/fish/clown_fish.webp",
+        "rarity": "NORMAL",
+        "category": "海洋生物",
+        "task_requirement": "...",
+        "is_unlocked": true, // 是否已擁有
+        "obtained_at": "2026-08-20T12:00:00.000Z",
+        "obtained_from": "DAILY_TASK"
+      }
+    ]
+  }
+}
+```
+
+#### 3. 獲取個人已解鎖圖片清單 (我的圖鑑)
+
+* **方法與路徑**：`GET /game/collect/my`
+* **身份驗證**：需要帶 Token (`Bearer Token`)
+* **Query 參數** (選填)：
+  * `?rarity=NORMAL` 或 `?rarity=PREMIUM` (依稀有度篩選)
+  * `?category=海洋生物` (依主題分類篩選)
+* **Response 範例**：
+
+```json
+{
+  "message": "取得已解鎖圖片成功",
+  "data": {
+    "total": 5,
+    "pictures": [
+      {
+        "id": 1,
+        "title": "clown fish",
+        "description": "探索海洋所獲得的 clown fish 圖鑑卡片！",
+        "image_url": "/uploads/marine-creatures/fish/clown_fish.webp",
+        "rarity": "NORMAL",
+        "category": "海洋生物",
+        "task_requirement": "完成每日海洋任務或基礎活動獲得",
+        "obtained_at": "2026-08-20T12:00:00.000Z",
+        "obtained_from": "DAILY_TASK"
+      }
+    ]
+  }
+}
+```
+
+---
+
 ## 🐾 寵物多人連線 WebSocket (Socket.IO) 使用說明
 
 ### 🔌 連線位址
-- **WebSocket 伺服器端點:** 同 HTTP Server 網址及 Port（預設 `https://163.17.135.120:3000`）
+
+* **WebSocket 伺服器端點:** 同 HTTP Server 網址及 Port（預設 `https://163.17.135.120:3000`）
 
 ---
 
 ### 📤 前端發送事件 (Client -> Server)
 
 #### 1. 創立房間 (`create_room`)
+
 ```json
 // Event: "create_room"
 {
