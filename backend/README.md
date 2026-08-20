@@ -462,11 +462,9 @@ Query 參數 (必填)：?keyword=你要找的字
 ```
 
 #### 6. 查詢個人碎片與寶箱庫存
-
 * **方法與路徑**：`GET /game/collect/inventory`
 * **身份驗證**：需要帶 Token (`Bearer Token`)
 * **Response 範例**：
-
 ```json
 {
   "message": "取得庫存成功",
@@ -476,6 +474,54 @@ Query 參數 (必填)：?keyword=你要找的字
     "normal_chests": 2, // 普通寶箱數量
     "premium_chests": 1 // 高級寶箱數量
   }
+}
+```
+
+#### 7. 拼圖每日簽到 (30 天循環)
+* **方法與路徑**：`POST /game/collect/sign-in`
+* **身份驗證**：需要帶 Token (`Bearer Token`)
+* **規則與獎勵**：
+  * 每日限簽到 1 次（以 30 天為一週期循環）
+  * **第 1 ~ 29 天**：每天獲得 **1 個普通寶箱** 🎁
+  * **第 30 天（滿簽大獎）**：獲得 **1 個高級寶箱** 🌟
+* **Response 範例**：
+```json
+{
+  "message": "✨ 今日拼圖簽到成功！獲得 1 個普通寶箱 🎁 (第 1/30 天)",
+  "reward": {
+    "chest_type": "NORMAL", // "NORMAL" 或 "PREMIUM"
+    "chest_name": "普通寶箱",
+    "count": 1
+  },
+  "streak": 1, // 當前第幾天 (1~30)
+  "totalSignInDays": 5, // 累計簽到天數
+  "isDay30Bonus": false,
+  "inventory": {
+    "normal_fragments": 25,
+    "premium_fragments": 6,
+    "normal_chests": 3, // +1
+    "premium_chests": 1
+  }
+}
+```
+
+#### 8. 查詢拼圖簽到狀態與 30 天獎勵清單
+* **方法與路徑**：`GET /game/collect/sign-in-status`
+* **身份驗證**：需要帶 Token (`Bearer Token`)
+* **Response 範例**：
+```json
+{
+  "is_signed_in_today": false, // 今日是否已簽到
+  "current_streak": 2, // 當前連續天數 (0~30)
+  "total_sign_in_days": 15, // 累計總天數
+  "last_sign_in_date": "2026-08-19T14:00:00.000Z",
+  "today_date": "2026-08-20",
+  "schedule": [
+    { "day": 1, "chest_type": "NORMAL", "chest_name": "普通寶箱", "count": 1, "status": "COMPLETED" },
+    { "day": 2, "chest_type": "NORMAL", "chest_name": "普通寶箱", "count": 1, "status": "COMPLETED" },
+    { "day": 3, "chest_type": "NORMAL", "chest_name": "普通寶箱", "count": 1, "status": "AVAILABLE_TODAY" },
+    { "day": 30, "chest_type": "PREMIUM", "chest_name": "高級寶箱", "count": 1, "status": "UPCOMING" }
+  ]
 }
 ```
 

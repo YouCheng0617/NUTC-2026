@@ -576,3 +576,170 @@ export async function getUserUnlockedPicturesService(
         pictures
     };
 }
+
+/**
+ * 輔助函式：取得台北時區 YYYY-MM-DD 日期字串
+ */
+function getTodayDateStr(date: Date = new Date()): string {
+    const formatter = new Intl.DateTimeFormat('zh-TW', {
+        timeZone: 'Asia/Taipei',
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit'
+    });
+    return formatter.format(date).replace(/\//g, '-');
+}
+
+/**
+ * 輔助函式：計算兩個 YYYY-MM-DD 字串相差天數 (date2 - date1)
+ */
+function getDayDiff(dateStr1: string, dateStr2: string): number {
+    const d1 = new Date(`${dateStr1}T00:00:00+08:00`).getTime();
+    const d2 = new Date(`${dateStr2}T00:00:00+08:00`).getTime();
+    return Math.round((d2 - d1) / (1000 * 60 * 60 * 24));
+}
+
+/**
+ * 7. 拼圖每日簽到服務 (30 天循環：第 1~29 天送 1 個普通寶箱，第 30 天送 1 個高級寶箱)
+ */
+export async function puzzleSignInService(memberId: number) {
+    const member = await prisma.member.findUnique({
+        where: { member_id: memberId }
+    });
+    if (!member) {
+        throw new Error("找不到此會員");
+    }
+
+    const now = new Date();
+    const todayStr = getTodayDateStr(now);
+    const lastSignInStr = member.puzzle_last_sign_in_date ? getTodayDateStr(member.puzzle_last_sign_in_date) : null;
+
+    // 1. 檢查今日是否已簽到
+    if (lastSignInStr === todayStr) {
+        throw new Error("今天已經領取過拼圖簽到寶箱囉！明天再來吧～");
+    }
+
+    // 2. 計算連續簽到天數 (30 天一週期循環)
+    let newStreak = 1;
+    if (lastSignInStr) {
+        const diffDays = getDayDiff(lastSignInStr, todayStr);
+        if (diffDays === 1) {
+            newStreak = (member.puzzle_sign_in_streak % 30) + 1;
+        } else {
+            newStreak = 1; // 斷簽重置
+        }
+    }
+
+    // 3. 判定獎勵 (第 30 天 1 個高級寶箱，其餘 1~29 天 1 個普通寶箱)
+    const isDay30Bonus = newStreak === 30;
+    const gainNormalChest = isDay30Bonus ? 0 : 1;
+    const gainPremiumChest = isDay30Bonus ? 1 : 0;
+
+    const updateData: Record<string, any> = {
+        puzzle_last_sign_in_date: now,
+        puzzle_sign_in_streak: newStreak,
+        puzzle_total_sign_in_days: { increment: 1 }
+    };
+    if (gainNormalChest > 0) updateData.normal_chests = { increment: gainNormalChest };
+    if (gainPremiumChest > 0) updateData.premium_chests = { increment: gainPremiumChest };
+
+    const updatedMember = await prisma.member.update({
+        where: { member_id: memberId },
+        data: updateData,
+        select: {
+            normal_fragments: true,
+            premium_fragments: true,
+            normal_chests: true,
+            premium_chests: true,
+            puzzle_sign_in_streak: true,
+            puzzle_total_sign_in_days: true
+        }
+    });
+
+    const rewardDesc = isDay30Bonus ? "1 個高級寶箱 🌟" : "1 個普通寶箱 🎁";
+    const message = isDay30Bonus 
+        ? "🎉 恭喜達成第 30 天滿簽大獎！獲得 1 個高級寶箱！" 
+        : `✨ 今日拼圖簽到成功！獲得 ${rewardDesc} (第 ${newStreak}/30 天)`;
+
+    return {
+        message,
+        reward: {
+            chest_type: isDay30Bonus ? "PREMIUM" : "NORMAL",
+            chest_name: isDay30Bonus ? "高級寶箱" : "普通寶箱",
+            count: 1
+        },
+        streak: newStreak,
+        totalSignInDays: updatedMember.puzzle_total_sign_in_days,
+        isDay30Bonus,
+        inventory: {
+            normal_fragments: updatedMember.normal_fragments,
+            premium_fragments: updatedMember.premium_fragments,
+            normal_chests: updatedMember.normal_chests,
+            premium_chests: updatedMember.premium_chests
+        }
+    };
+}
+
+/**
+ * 8. 查詢拼圖簽到狀態與 30 天獎勵進度預覽
+ */
+export async function getPuzzleSignInStatusService(memberId: number) {
+    const member = await prisma.member.findUnique({
+        where: { member_id: memberId },
+        select: {
+            puzzle_last_sign_in_date: true,
+            puzzle_sign_in_streak: true,
+            puzzle_total_sign_in_days: true
+        }
+    });
+    if (!member) {
+        throw new Error("找不到此會員");
+    }
+
+    const now = new Date();
+    const todayStr = getTodayDateStr(now);
+    const lastSignInStr = member.puzzle_last_sign_in_date ? getTodayDateStr(member.puzzle_last_sign_in_date) : null;
+    const is_signed_in_today = lastSignInStr === todayStr;
+
+    let currentStreak = member.puzzle_sign_in_streak;
+    if (lastSignInStr && !is_signed_in_today) {
+        const diffDays = getDayDiff(lastSignInStr, todayStr);
+        if (diffDays > 1) {
+            currentStreak = 0; // 斷簽
+        }
+    }
+
+    // 組裝 30 天簽到清單
+    const schedule = Array.from({ length: 30 }, (_, index) => {
+        const day = index + 1;
+        const isDay30 = day === 30;
+        const chestType = isDay30 ? "PREMIUM" : "NORMAL";
+        const chestName = isDay30 ? "高級寶箱" : "普通寶箱";
+
+        let status: 'COMPLETED' | 'AVAILABLE_TODAY' | 'UPCOMING' = 'UPCOMING';
+        if (is_signed_in_today) {
+            if (day <= currentStreak) status = 'COMPLETED';
+        } else {
+            if (day <= currentStreak) status = 'COMPLETED';
+            else if (day === (currentStreak % 30) + 1) status = 'AVAILABLE_TODAY';
+        }
+
+        return {
+            day,
+            chest_type: chestType,
+            chest_name: chestName,
+            count: 1,
+            status
+        };
+    });
+
+    return {
+        is_signed_in_today,
+        current_streak: currentStreak,
+        total_sign_in_days: member.puzzle_total_sign_in_days,
+        last_sign_in_date: member.puzzle_last_sign_in_date,
+        today_date: todayStr,
+        schedule
+    };
+}
+

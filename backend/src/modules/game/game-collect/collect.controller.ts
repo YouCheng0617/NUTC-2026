@@ -6,7 +6,9 @@ import {
     openChestService,
     getUserInventoryService,
     getAllGalleryService,
-    getUserUnlockedPicturesService
+    getUserUnlockedPicturesService,
+    puzzleSignInService,
+    getPuzzleSignInStatusService
 } from "./collect.service.js";
 
 export class CollectController {
@@ -192,6 +194,48 @@ export class CollectController {
             console.error("Get user unlocked pictures error:", error);
             return res.status(500).json({
                 message: "取得我的拼圖清單失敗"
+            });
+        }
+    }
+
+    /**
+     * POST /game/collect/sign-in
+     * 拼圖每日簽到 (1~29 天送 1 個普通寶箱，第 30 天送 1 個高級寶箱)
+     */
+    async puzzleSignIn(req: AuthRequest, res: Response) {
+        try {
+            const memberId = req.user?.member_id;
+            if (!memberId) {
+                return res.status(401).json({ message: "尚未登入" });
+            }
+
+            const result = await puzzleSignInService(memberId);
+            return res.status(200).json(result);
+        } catch (error: any) {
+            console.error("Puzzle sign-in error:", error);
+            return res.status(400).json({
+                message: error.message || "拼圖簽到失敗"
+            });
+        }
+    }
+
+    /**
+     * GET /game/collect/sign-in-status
+     * 查詢拼圖簽到狀態與 30 天獎勵清單進度預覽
+     */
+    async getPuzzleSignInStatus(req: AuthRequest, res: Response) {
+        try {
+            const memberId = req.user?.member_id;
+            if (!memberId) {
+                return res.status(401).json({ message: "尚未登入" });
+            }
+
+            const status = await getPuzzleSignInStatusService(memberId);
+            return res.status(200).json(status);
+        } catch (error: any) {
+            console.error("Get puzzle sign-in status error:", error);
+            return res.status(500).json({
+                message: "取得拼圖簽到狀態失敗"
             });
         }
     }

@@ -69,6 +69,11 @@ model Member {
   premium_fragments Int @default(0) // 高級碎片數量 (可累積兌換)
   normal_chests     Int @default(0) // 普通寶箱數量
   premium_chests    Int @default(0) // 高級寶箱數量
+
+  // 拼圖每日簽到
+  puzzle_last_sign_in_date  DateTime? // 上次拼圖簽到日期
+  puzzle_sign_in_streak     Int       @default(0) // 當前連續簽到天數 (1~30 循環)
+  puzzle_total_sign_in_days Int       @default(0) // 累計簽到總天數
 }
 
 model BlacklistedToken {

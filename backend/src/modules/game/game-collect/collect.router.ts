@@ -25,5 +25,11 @@ export function collectRouter() {
     // 6. 使用者已收集的拼圖清單 - 需登入
     router.get("/my", authCheck, collectController.getUserUnlockedPictures.bind(collectController));
 
+    // 7. 拼圖每日簽到 (1~29 天送普通寶箱，第 30 天送高級寶箱) - 需登入
+    router.post("/sign-in", authCheck, collectController.puzzleSignIn.bind(collectController));
+
+    // 8. 查詢拼圖簽到狀態與 30 天獎勵清單 - 需登入
+    router.get("/sign-in-status", authCheck, collectController.getPuzzleSignInStatus.bind(collectController));
+
     return router;
 }
