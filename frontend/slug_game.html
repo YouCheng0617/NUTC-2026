@@ -2359,7 +2359,15 @@ let trialTimeLeft = 10; // 全域記錄試用剩餘時間
     // 🛑 閃電定時器清道夫
     if (window.lightningInterval) clearInterval(window.lightningInterval);
     if (window.lightningCloudTimeout) clearTimeout(window.lightningCloudTimeout);
-
+// 🛑 暴雨音效與閃電定時器清道夫
+    if (window.lightningInterval) clearTimeout(window.lightningInterval);
+    if (window.lightningCloudTimeout) clearTimeout(window.lightningCloudTimeout);
+    if (window.synthStormRain) {
+        try {
+            window.synthStormRain.stop();
+        } catch(e) {}
+        window.synthStormRain = null;
+    }
     // 👇👇👇 寶寶看這裡！這兩行是我們新加的魔法陣 👇👇👇
     const customTauntBtn = document.getElementById('customTauntBtn');
     if (customTauntBtn) customTauntBtn.style.display = 'none';
@@ -4586,460 +4594,591 @@ case 'butterfly': {
                         layer.appendChild(el);
                     }
                     break;
-                    // ⚡ 【閃電交加】多層次立體積雨雲 ＋ 雲內透光破空雷 ＋ 真實雷鳴
+// ⚡ 【閃電交加】完整雷神之鎚 ＋ 圓滾滾蛋形索爾版（修復左側被裁切問題）
                 case 'lightning':
                     if (!document.getElementById('stormLightningStyle')) {
                         const style = document.createElement('style');
                         style.id = 'stormLightningStyle';
                         style.innerHTML = `
-                            /* 🌟 1. 三層立體烏雲容器 */
-                            .storm-sky-wrapper {
+                            /* 🌟 1. 粒子雲畫布（極致輕透） */
+                            .cloud-particle-canvas {
                                 position: absolute;
-                                top: -20px;
-                                left: -10%;
-                                width: 120%;
-                                height: 260px;
+                                top: 0; left: 0;
+                                width: 100%; height: 100%;
+                                pointer-events: none;
                                 z-index: 12;
+                                opacity: 0.28;
+                                mix-blend-mode: normal;
+                            }
+
+                            /* 🌟 2. 索爾召喚本體（擴展寬高確保左側完整露出） */
+                            .thor-spawn {
+                                position: absolute;
+                                width: 84px; height: 84px;
+                                transform: translate(-50%, -65%);
                                 pointer-events: none;
-                                overflow: visible;
+                                z-index: 20;
                             }
-
-                            /* (A) 遠景深邃烏雲層 (模糊度最高、顏色最深) */
-                            .cloud-layer-back {
-                                position: absolute;
-                                inset: 0;
-                                filter: blur(30px);
-                                opacity: 0.85;
+                            .thor-character {
+                                width: 100%; height: 100%;
+                                filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.35));
+                                animation: thorEggPop 1.05s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
                             }
-                            .cloud-blob-deep {
+                            /* 精準鎖定在完整錘頭頂端的雷光爆擊光圈 */
+                            .thor-energy-ring {
                                 position: absolute;
+                                top: 18px; left: 8px;
+                                width: 10px; height: 10px;
+                                border: 2px solid #00f0ff;
                                 border-radius: 50%;
-                                background: radial-gradient(ellipse at center, rgba(15, 23, 42, 0.95) 0%, rgba(30, 27, 75, 0.8) 60%, transparent 85%);
-                                transition: filter 0.08s ease-out, background 0.08s ease-out;
-                            }
-
-                            /* (B) 中景厚重積雨雲層 (核心雲團、主要蓄電區) */
-                            .cloud-layer-mid {
-                                position: absolute;
-                                inset: 0;
-                                filter: blur(16px);
-                                opacity: 0.9;
-                            }
-                            .cloud-blob-mid {
-                                position: absolute;
-                                border-radius: 50%;
-                                background: radial-gradient(ellipse at center, rgba(30, 41, 59, 0.95) 0%, rgba(15, 23, 42, 0.75) 65%, transparent 85%);
-                                transition: filter 0.06s ease-out, transform 0.1s ease-out;
-                            }
-
-                            /* (C) 前景飄逸低雲層 (層次最豐富、邊緣清晰) */
-                            .cloud-layer-front {
-                                position: absolute;
-                                inset: 0;
-                                filter: blur(10px);
-                                opacity: 0.75;
-                            }
-                            .cloud-blob-front {
-                                position: absolute;
-                                border-radius: 50%;
-                                background: radial-gradient(ellipse at center, rgba(51, 65, 85, 0.85) 0%, rgba(30, 41, 59, 0.4) 60%, transparent 80%);
-                                transition: filter 0.06s ease-out;
-                            }
-
-                            /* 🌟 雲層內部被電光打亮的立體透光狀態 */
-                            .cloud-lit-core {
-                                background: radial-gradient(ellipse at center, rgba(224, 242, 254, 0.98) 0%, rgba(96, 165, 250, 0.8) 45%, rgba(15, 23, 42, 0.6) 80%) !important;
-                                filter: blur(12px) brightness(2.2) !important;
-                            }
-                            .cloud-lit-edge {
-                                background: radial-gradient(ellipse at center, rgba(147, 197, 253, 0.8) 0%, rgba(59, 130, 246, 0.4) 55%, transparent 80%) !important;
-                                filter: blur(8px) brightness(1.6) !important;
-                            }
-
-                            /* 🌟 2. 全螢幕電光爆閃 */
-                            .lightning-screen-flash {
-                                position: absolute;
-                                inset: 0;
-                                background: radial-gradient(circle at 50% 20%, rgba(248, 250, 252, 0.4) 0%, rgba(147, 197, 253, 0.18) 55%, transparent 100%);
-                                z-index: 11;
-                                pointer-events: none;
+                                transform: translate(-50%, -50%) scale(0);
                                 opacity: 0;
-                                transition: opacity 0.05s ease-out;
-                            }
-                            .lightning-screen-flash.active-flash {
-                                opacity: 1 !important;
+                                animation: shockwave 0.45s ease-out 0.2s forwards;
                             }
 
-                            /* 🌟 3. SVG 閃電畫布 */
-                            .lightning-svg-canvas {
-                                position: absolute;
-                                inset: 0;
-                                width: 100%;
-                                height: 100%;
-                                z-index: 15;
-                                pointer-events: none;
-                                overflow: visible;
+                            @keyframes thorEggPop {
+                                0% { transform: scale(0) translateY(25px) rotate(-12deg); opacity: 0; }
+                                25% { transform: scale(1.15) translateY(0) rotate(0deg); opacity: 1; }
+                                35% { transform: scale(0.95, 1.05) translateY(-3px); }
+                                75% { transform: scale(1) translateY(0); opacity: 1; filter: drop-shadow(0 0 10px #00d2ff); }
+                                100% { transform: scale(0.4) translateY(15px); opacity: 0; filter: none; }
                             }
+                            @keyframes shockwave {
+                                0% { opacity: 1; transform: translate(-50%, -50%) scale(0.5); }
+                                100% { opacity: 0; transform: translate(-50%, -50%) scale(4); box-shadow: 0 0 10px #00f0ff; }
+                            }
+
+                            /* 🌟 3. 全螢幕柔光微閃 */
+                            .lightning-screen-flash {
+                                position: absolute; inset: 0;
+                                background: radial-gradient(circle at 50% 30%, rgba(255, 255, 255, 0.15) 0%, rgba(186, 230, 253, 0.04) 60%, transparent 100%);
+                                z-index: 14; pointer-events: none; opacity: 0; transition: opacity 0.04s ease-out;
+                            }
+                            .lightning-screen-flash.active-flash { opacity: 0.6 !important; }
+
+                            /* 🌟 4. SVG 輕透光芒畫布 */
+                            .lightning-svg-canvas {
+                                position: absolute; inset: 0; width: 100%; height: 100%;
+                                z-index: 16; pointer-events: none; overflow: visible;
+                                mix-blend-mode: screen;
+                            }
+
+                            /* 🌟 5. 一閃而過的輕微物理震動 */
+                            @keyframes epicThunderShake {
+                                0% { transform: translate(0, 0) rotate(0deg); }
+                                15% { transform: translate(-2px, -1px) rotate(-0.4deg); }
+                                30% { transform: translate(2px, 1px) rotate(0.4deg); }
+                                60% { transform: translate(-1px, 0.5px) rotate(-0.2deg); }
+                                100% { transform: translate(0, 0) rotate(0deg); }
+                            }
+                            .active-shake { animation: epicThunderShake 0.25s ease-out forwards; }
                         `;
                         document.head.appendChild(style);
                     }
 
-                    // 1. 建立立體多層次烏雲天幕
                     const stormId = Math.random();
                     window.stormSessionId = stormId;
+
+                    // 🌧️ 【雙聲道空氣雨霧背景音】
+                    function startTorrentialRainSound() {
+                        try {
+                            if (!window.sharedAudioCtx) window.sharedAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                            const ctx = window.sharedAudioCtx;
+                            if (ctx.state === 'suspended') ctx.resume();
+
+                            if (window.synthStormRain) return;
+
+                            const sampleRate = ctx.sampleRate;
+                            const bufferLen = sampleRate * 3;
+                            const buffer = ctx.createBuffer(2, bufferLen, sampleRate);
+                            const leftData = buffer.getChannelData(0);
+                            const rightData = buffer.getChannelData(1);
+
+                            let b0L = 0, b1L = 0, b2L = 0;
+                            let b0R = 0, b1R = 0, b2R = 0;
+
+                            for (let i = 0; i < bufferLen; i++) {
+                                const whiteL = Math.random() * 2 - 1;
+                                const whiteR = Math.random() * 2 - 1;
+
+                                b0L = 0.99 * b0L + whiteL * 0.03;
+                                b1L = 0.95 * b1L + whiteL * 0.08;
+                                b2L = 0.85 * b2L + whiteL * 0.18;
+                                const rainStreamL = (b0L + b1L + b2L) * 0.18;
+
+                                b0R = 0.99 * b0R + whiteR * 0.03;
+                                b1R = 0.95 * b1R + whiteR * 0.08;
+                                b2R = 0.85 * b2R + whiteR * 0.18;
+                                const rainStreamR = (b0R + b1R + b2R) * 0.18;
+
+                                const splatterL = Math.random() > 0.96 ? (Math.random() * 0.3 - 0.15) : 0;
+                                const splatterR = Math.random() > 0.96 ? (Math.random() * 0.3 - 0.15) : 0;
+
+                                leftData[i] = rainStreamL + splatterL;
+                                rightData[i] = rainStreamR + splatterR;
+                            }
+
+                            const rainSource = ctx.createBufferSource();
+                            rainSource.buffer = buffer;
+                            rainSource.loop = true;
+
+                            const rainFilter = ctx.createBiquadFilter();
+                            rainFilter.type = 'lowpass';
+                            rainFilter.frequency.setValueAtTime(1800, ctx.currentTime);
+
+                            const highpass = ctx.createBiquadFilter();
+                            highpass.type = 'highpass';
+                            highpass.frequency.setValueAtTime(280, ctx.currentTime);
+
+                            const rainGain = ctx.createGain();
+                            rainGain.gain.setValueAtTime(0.005, ctx.currentTime);
+                            rainGain.gain.linearRampToValueAtTime(0.12, ctx.currentTime + 1.5);
+
+                            rainSource.connect(highpass);
+                            highpass.connect(rainFilter);
+                            rainFilter.connect(rainGain);
+                            rainGain.connect(ctx.destination);
+                            rainSource.start();
+
+                            window.synthStormRain = {
+                                stop: function() {
+                                    rainGain.gain.linearRampToValueAtTime(0.001, ctx.currentTime + 0.5);
+                                    setTimeout(() => {
+                                        try { rainSource.stop(); rainSource.disconnect(); } catch(e) {}
+                                    }, 550);
+                                }
+                            };
+                        } catch (e) {
+                            console.error('Ambient rain sound error:', e);
+                        }
+                    }
+
+                    // 🌩️ 【三階段逼真雷鳴】
+                    function playApproachingThunderSound() {
+                        try {
+                            if (!window.sharedAudioCtx) window.sharedAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                            const ctx = window.sharedAudioCtx;
+                            if (ctx.state === 'suspended') ctx.resume();
+
+                            const now = ctx.currentTime;
+                            const sampleRate = ctx.sampleRate;
+
+                            const buildLen = Math.floor(sampleRate * 0.85);
+                            const buildBuf = ctx.createBuffer(1, buildLen, sampleRate);
+                            const bData = buildBuf.getChannelData(0);
+                            let bLast = 0.0;
+                            for (let i = 0; i < buildLen; i++) {
+                                const white = Math.random() * 2 - 1;
+                                bLast = (bLast + 0.02 * white) / 1.02;
+                                const t = i / sampleRate;
+                                const buildEnvelope = Math.pow(t / 0.85, 2.2) * (1 + 0.3 * Math.sin(t * 18));
+                                bData[i] = bLast * 3.5 * buildEnvelope;
+                            }
+                            const buildSrc = ctx.createBufferSource();
+                            buildSrc.buffer = buildBuf;
+                            const buildFilter = ctx.createBiquadFilter();
+                            buildFilter.type = 'lowpass';
+                            buildFilter.frequency.setValueAtTime(90, now);
+                            buildFilter.frequency.exponentialRampToValueAtTime(320, now + 0.75);
+
+                            const buildGain = ctx.createGain();
+                            buildGain.gain.setValueAtTime(0.04, now);
+                            buildGain.gain.linearRampToValueAtTime(0.95, now + 0.75);
+
+                            buildSrc.connect(buildFilter);
+                            buildFilter.connect(buildGain);
+                            buildGain.connect(ctx.destination);
+                            buildSrc.start(now);
+
+                            const strikeTime = now + 0.2;
+                            const snapLen = Math.floor(sampleRate * 0.15);
+                            const snapBuf = ctx.createBuffer(1, snapLen, sampleRate);
+                            const snapData = snapBuf.getChannelData(0);
+                            for (let i = 0; i < snapLen; i++) {
+                                snapData[i] = (Math.random() * 2 - 1) * Math.exp(-i / (sampleRate * 0.025));
+                            }
+                            const snapSrc = ctx.createBufferSource();
+                            snapSrc.buffer = snapBuf;
+                            const snapFilter = ctx.createBiquadFilter();
+                            snapFilter.type = 'bandpass';
+                            snapFilter.frequency.setValueAtTime(1900, strikeTime);
+                            snapFilter.Q.setValueAtTime(1.3, strikeTime);
+                            const snapGain = ctx.createGain();
+                            snapGain.gain.setValueAtTime(1.4, strikeTime);
+                            snapGain.gain.exponentialRampToValueAtTime(0.01, strikeTime + 0.12);
+
+                            snapSrc.connect(snapFilter);
+                            snapFilter.connect(snapGain);
+                            snapGain.connect(ctx.destination);
+                            snapSrc.start(strikeTime);
+
+                            const boomOsc = ctx.createOscillator();
+                            boomOsc.type = 'triangle';
+                            boomOsc.frequency.setValueAtTime(120, strikeTime);
+                            boomOsc.frequency.exponentialRampToValueAtTime(22, strikeTime + 0.85);
+                            const boomGain = ctx.createGain();
+                            boomGain.gain.setValueAtTime(1.8, strikeTime);
+                            boomGain.gain.exponentialRampToValueAtTime(0.001, strikeTime + 0.85);
+
+                            boomOsc.connect(boomGain);
+                            boomGain.connect(ctx.destination);
+                            boomOsc.start(strikeTime);
+                            boomOsc.stop(strikeTime + 0.9);
+
+                            const rumbleLen = Math.floor(sampleRate * 3.6);
+                            const rumbleBuf = ctx.createBuffer(1, rumbleLen, sampleRate);
+                            const rData = rumbleBuf.getChannelData(0);
+                            let rLast = 0.0;
+                            for (let i = 0; i < rumbleLen; i++) {
+                                const white = Math.random() * 2 - 1;
+                                rLast = (rLast + 0.02 * white) / 1.02;
+                                const t = i / sampleRate;
+                                const envelope = Math.exp(-t * 0.72) * (1 + 0.4 * Math.sin(t * 10) + 0.25 * Math.sin(t * 6));
+                                rData[i] = rLast * 4.4 * envelope;
+                            }
+                            const rumbleSrc = ctx.createBufferSource();
+                            rumbleSrc.buffer = rumbleBuf;
+                            const rumbleFilter = ctx.createBiquadFilter();
+                            rumbleFilter.type = 'lowpass';
+                            rumbleFilter.frequency.setValueAtTime(400, strikeTime);
+                            rumbleFilter.frequency.linearRampToValueAtTime(40, strikeTime + 3.4);
+
+                            const rumbleGain = ctx.createGain();
+                            rumbleGain.gain.setValueAtTime(1.4, strikeTime);
+                            rumbleGain.gain.exponentialRampToValueAtTime(0.001, strikeTime + 3.5);
+
+                            rumbleSrc.connect(rumbleFilter);
+                            rumbleFilter.connect(rumbleGain);
+                            rumbleGain.connect(ctx.destination);
+                            rumbleSrc.start(strikeTime + 0.02);
+
+                        } catch (e) {
+                            console.error('Approaching Thunder error:', e);
+                        }
+                    }
+
+                    startTorrentialRainSound();
+
+                    // ☁️ 【Canvas 粒子柔焦雲海系統】
+                    const cloudCanvas = document.createElement('canvas');
+                    cloudCanvas.className = 'cloud-particle-canvas';
+                    layer.appendChild(cloudCanvas);
+                    const cCtx = cloudCanvas.getContext('2d');
+
+                    function resizeCloudCanvas() {
+                        cloudCanvas.width = layer.offsetWidth || window.innerWidth;
+                        cloudCanvas.height = layer.offsetHeight || window.innerHeight;
+                    }
+                    resizeCloudCanvas();
+
+                    let cloudPuffs = [];
+                    function initCloudParticles() {
+                        cloudPuffs = [];
+                        const w = cloudCanvas.width;
+                        const h = cloudCanvas.height;
+
+                        for (let i = 0; i < 28; i++) {
+                            cloudPuffs.push({
+                                x: Math.random() * (w * 0.45) - 30,
+                                y: Math.random() * (h * 0.5) - 20,
+                                r: Math.random() * 70 + 60,
+                                baseAlpha: Math.random() * 0.16 + 0.1,
+                                color: i % 2 === 0 ? '71, 85, 105' : '30, 41, 59',
+                                litAlpha: 0
+                            });
+                        }
+
+                        for (let i = 0; i < 28; i++) {
+                            cloudPuffs.push({
+                                x: w * 0.55 + Math.random() * (w * 0.5),
+                                y: Math.random() * (h * 0.55) - 20,
+                                r: Math.random() * 75 + 65,
+                                baseAlpha: Math.random() * 0.16 + 0.1,
+                                color: i % 2 === 0 ? '100, 116, 139' : '15, 23, 42',
+                                litAlpha: 0
+                            });
+                        }
+                    }
+                    initCloudParticles();
+
+                    function renderCloudPuffs() {
+                        cCtx.clearRect(0, 0, cloudCanvas.width, cloudCanvas.height);
+
+                        cloudPuffs.forEach(p => {
+                            const grad = cCtx.createRadialGradient(p.x, p.y, p.r * 0.1, p.x, p.y, p.r);
+                            const currentAlpha = p.baseAlpha + p.litAlpha;
+
+                            if (p.litAlpha > 0.05) {
+                                grad.addColorStop(0, `rgba(240, 248, 255, ${currentAlpha * 1.8})`);
+                                grad.addColorStop(0.4, `rgba(186, 230, 253, ${currentAlpha * 1.2})`);
+                                grad.addColorStop(1, `rgba(${p.color}, 0)`);
+                            } else {
+                                grad.addColorStop(0, `rgba(${p.color}, ${currentAlpha})`);
+                                grad.addColorStop(0.6, `rgba(${p.color}, ${currentAlpha * 0.6})`);
+                                grad.addColorStop(1, `rgba(${p.color}, 0)`);
+                            }
+
+                            cCtx.fillStyle = grad;
+                            cCtx.beginPath();
+                            cCtx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+                            cCtx.fill();
+                        });
+                    }
+                    renderCloudPuffs();
 
                     const flashLayer = document.createElement('div');
                     flashLayer.className = 'lightning-screen-flash';
                     layer.appendChild(flashLayer);
 
-                    const skyWrapper = document.createElement('div');
-                    skyWrapper.className = 'storm-sky-wrapper';
-
-                    // (A) 遠景層 DOM
-                    const layerBack = document.createElement('div');
-                    layerBack.className = 'cloud-layer-back';
-                    const backConfigs = [
-                        { w: 450, h: 220, l: '-8%', t: '-40px' },
-                        { w: 500, h: 240, l: '30%', t: '-50px' },
-                        { w: 420, h: 200, l: '65%', t: '-30px' }
-                    ];
-                    backConfigs.forEach(cfg => {
-                        const b = document.createElement('div');
-                        b.className = 'cloud-blob-deep';
-                        b.style.width = cfg.w + 'px'; b.style.height = cfg.h + 'px';
-                        b.style.left = cfg.l; b.style.top = cfg.t;
-                        layerBack.appendChild(b);
-                    });
-
-                    // (B) 中景層 DOM
-                    const layerMid = document.createElement('div');
-                    layerMid.className = 'cloud-layer-mid';
-                    const midConfigs = [
-                        { w: 320, h: 160, l: '5%', t: '-15px' },
-                        { w: 360, h: 180, l: '28%', t: '-25px' },
-                        { w: 380, h: 190, l: '52%', t: '-20px' },
-                        { w: 300, h: 150, l: '78%', t: '-10px' }
-                    ];
-                    midConfigs.forEach(cfg => {
-                        const m = document.createElement('div');
-                        m.className = 'cloud-blob-mid';
-                        m.style.width = cfg.w + 'px'; m.style.height = cfg.h + 'px';
-                        m.style.left = cfg.l; m.style.top = cfg.t;
-                        layerMid.appendChild(m);
-                    });
-
-                    // (C) 前景層 DOM
-                    const layerFront = document.createElement('div');
-                    layerFront.className = 'cloud-layer-front';
-                    const frontConfigs = [
-                        { w: 240, h: 120, l: '0%', t: '25px' },
-                        { w: 260, h: 130, l: '22%', t: '15px' },
-                        { w: 280, h: 140, l: '45%', t: '30px' },
-                        { w: 250, h: 125, l: '70%', t: '20px' }
-                    ];
-                    frontConfigs.forEach(cfg => {
-                        const f = document.createElement('div');
-                        f.className = 'cloud-blob-front';
-                        f.style.width = cfg.w + 'px'; f.style.height = cfg.h + 'px';
-                        f.style.left = cfg.l; f.style.top = cfg.t;
-                        layerFront.appendChild(f);
-                    });
-
-                    skyWrapper.appendChild(layerBack);
-                    skyWrapper.appendChild(layerMid);
-                    skyWrapper.appendChild(layerFront);
-                    layer.appendChild(skyWrapper);
-
                     const svgCanvas = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
                     svgCanvas.setAttribute('class', 'lightning-svg-canvas');
+                    svgCanvas.innerHTML = `
+                        <defs>
+                            <filter id="softPureLightGlow" x="-60%" y="-60%" width="220%" height="220%">
+                                <feGaussianBlur in="SourceGraphic" stdDeviation="2.0" result="softBlur1"/>
+                                <feGaussianBlur in="SourceGraphic" stdDeviation="6.0" result="softBlur2"/>
+                                <feGaussianBlur in="SourceGraphic" stdDeviation="14.0" result="softBlur3"/>
+                                <feMerge>
+                                    <feMergeNode in="softBlur3"/>
+                                    <feMergeNode in="softBlur2"/>
+                                    <feMergeNode in="softBlur1"/>
+                                    <feMergeNode in="SourceGraphic"/>
+                                </feMerge>
+                            </filter>
+                            <linearGradient id="pureLightBeamGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+                                <stop offset="0%" stop-color="#ffffff" stop-opacity="0.95"/>
+                                <stop offset="25%" stop-color="#e0f2fe" stop-opacity="0.8"/>
+                                <stop offset="70%" stop-color="#00f0ff" stop-opacity="0.75"/>
+                                <stop offset="100%" stop-color="#0284c7" stop-opacity="0.6"/>
+                            </linearGradient>
+                            <linearGradient id="pureLightHaloGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+                                <stop offset="0%" stop-color="#38bdf8" stop-opacity="0.45"/>
+                                <stop offset="50%" stop-color="#60a5fa" stop-opacity="0.3"/>
+                                <stop offset="85%" stop-color="#f59e0b" stop-opacity="0.35"/>
+                                <stop offset="100%" stop-color="#ea580c" stop-opacity="0.2"/>
+                            </linearGradient>
+                        </defs>
+                    `;
                     layer.appendChild(svgCanvas);
 
-                    // 2. ⚡ 雷鳴音效引擎（無版權真實錄音 ＋ 立體層次備用合成）
-                    const thunderAudio = new Audio('https://upload.wikimedia.org/wikipedia/commons/transcoded/f/f6/Thunder.ogg/Thunder.ogg.mp3');
-                    thunderAudio.preload = 'auto';
+                    // 🔨 【召喚蛋形索爾（超寬視界畫布，保證左側錘頭 100% 完整無切邊）】
+                    function spawnThor(x, y) {
+                        const thorEl = document.createElement('div');
+                        thorEl.className = 'thor-spawn';
+                        thorEl.style.left = `${x}px`;
+                        thorEl.style.top = `${y}px`;
+                        thorEl.innerHTML = `
+                            <div class="thor-energy-ring"></div>
+                            <div class="thor-character">
+                                <svg viewBox="-25 -10 140 120" width="100%" height="100%">
+                                    <g stroke="#1a1a1a" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round">
+                                        <!-- 1. 圓萌小披風 -->
+                                        <path d="M 22 56 Q 10 74 16 86 Q 50 80 84 86 Q 90 74 78 56 Z" fill="#e50914" />
 
-                   // ⚡ 真實層次感雷鳴音效合成器 (免外部檔案、保證有聲、無版權問題)
-function playThunderSound() {
-    try {
-        const ctx = getAudioCtx();
-        if (!ctx) return;
-        if (ctx.state === 'suspended') ctx.resume();
+                                        <!-- 2. 蛋形圓潤軀幹底色 -->
+                                        <ellipse cx="50" cy="52" rx="30" ry="28" fill="#fed7aa" />
 
-        const now = ctx.currentTime;
+                                        <!-- 3. 下半身圓滾滾盔甲 -->
+                                        <path d="M 22 55 C 21 75 32 82 50 82 C 68 82 79 75 78 55 C 68 59 32 59 22 55 Z" fill="#262626" />
 
-        // 1. 【高頻電弧炸裂聲】(Sharp Crack)
-        const crackBuffer = ctx.createBuffer(1, Math.floor(ctx.sampleRate * 0.2), ctx.sampleRate);
-        const cData = crackBuffer.getChannelData(0);
-        for (let i = 0; i < cData.length; i++) {
-            cData[i] = (Math.random() * 2 - 1) * Math.exp(-i / (ctx.sampleRate * 0.04));
-        }
-        const crackSrc = ctx.createBufferSource();
-        crackSrc.buffer = crackBuffer;
+                                        <!-- 4. 盔甲金屬銀釦與黃色幾何線 -->
+                                        <circle cx="41" cy="64" r="2.6" fill="#cbd5e1" stroke="none" />
+                                        <circle cx="59" cy="64" r="2.6" fill="#cbd5e1" stroke="none" />
+                                        <circle cx="43" cy="73" r="2.2" fill="#cbd5e1" stroke="none" />
+                                        <circle cx="57" cy="73" r="2.2" fill="#cbd5e1" stroke="none" />
+                                        <path d="M 33 65 L 30 70 L 33 74" fill="none" stroke="#facc15" stroke-width="1.8" />
+                                        <path d="M 67 65 L 70 70 L 67 74" fill="none" stroke="#facc15" stroke-width="1.8" />
 
-        const crackFilter = ctx.createBiquadFilter();
-        crackFilter.type = 'highpass';
-        crackFilter.frequency.setValueAtTime(1000, now);
+                                        <!-- 5. 可愛小圓短腳 -->
+                                        <ellipse cx="40" cy="83" rx="5" ry="3.5" fill="#262626" />
+                                        <ellipse cx="60" cy="83" rx="5" ry="3.5" fill="#262626" />
 
-        const crackGain = ctx.createGain();
-        crackGain.gain.setValueAtTime(0.85, now);
-        crackGain.gain.exponentialRampToValueAtTime(0.01, now + 0.18);
+                                        <!-- 6. 兩側金黃頭髮 -->
+                                        <path d="M 19 44 Q 14 58 22 66 Q 24 53 23 44 Z" fill="#fde047" />
+                                        <path d="M 81 44 Q 86 58 78 66 Q 76 53 77 44 Z" fill="#fde047" />
 
-        crackSrc.connect(crackFilter);
-        crackFilter.connect(crackGain);
-        crackGain.connect(ctx.destination);
-        crackSrc.start(now);
+                                        <!-- 7. 招牌大圓眼 ＋ 腮紅 ＋ 一字嘴 -->
+                                        <ellipse cx="38" cy="46" rx="3.5" ry="4.2" fill="#1a1a1a" stroke="none" />
+                                        <circle cx="37" cy="44.5" r="1.2" fill="#ffffff" stroke="none" />
+                                        <ellipse cx="62" cy="46" rx="3.5" ry="4.2" fill="#1a1a1a" stroke="none" />
+                                        <circle cx="61" cy="44.5" r="1.2" fill="#ffffff" stroke="none" />
+                                        <ellipse cx="32" cy="51" rx="3.5" ry="2" fill="#f87171" opacity="0.65" stroke="none" />
+                                        <ellipse cx="68" cy="51" rx="3.5" ry="2" fill="#f87171" opacity="0.65" stroke="none" />
+                                        <line x1="47" y1="52" x2="53" y2="52" stroke="#1a1a1a" stroke-width="2.2" />
 
-        // 2. 【中低頻雷擊爆炸聲】(Boom Impact)
-        const osc = ctx.createOscillator();
-        const oscGain = ctx.createGain();
-        osc.type = 'triangle';
-        osc.frequency.setValueAtTime(180, now);
-        osc.frequency.exponentialRampToValueAtTime(40, now + 0.45);
+                                        <!-- 8. 經典三層金屬大羽翼頭盔 -->
+                                        <path d="M 22 38 L 8 18 L 18 10 L 25 32 Z" fill="#cbd5e1" />
+                                        <line x1="12" y1="20" x2="22" y2="28" stroke="#94a3b8" stroke-width="1.8" />
+                                        <path d="M 78 38 L 92 18 L 82 10 L 75 32 Z" fill="#cbd5e1" />
+                                        <line x1="88" y1="20" x2="78" y2="28" stroke="#94a3b8" stroke-width="1.8" />
+                                        <path d="M 20 42 C 20 18 80 18 80 42 Z" fill="#cbd5e1" />
+                                        <path d="M 22 34 L 38 34 L 50 40 L 62 34 L 78 34 L 76 40 L 62 40 L 50 46 L 38 40 L 24 40 Z" fill="#e2e8f0" />
+                                        <path d="M 24 40 L 38 40 L 50 46 L 62 40 L 76 40 L 75 44 L 62 44 L 50 50 L 38 44 L 25 44 Z" fill="#94a3b8" />
 
-        oscGain.gain.setValueAtTime(0.75, now);
-        oscGain.gain.exponentialRampToValueAtTime(0.001, now + 0.48);
+                                        <!-- 9. 左小圓手 -->
+                                        <circle cx="78" cy="58" r="4.5" fill="#fed7aa" />
 
-        osc.connect(oscGain);
-        oscGain.connect(ctx.destination);
-        osc.start(now);
-        osc.stop(now + 0.5);
+                                        <!-- 10. ⚡ 完整八角金屬雷神之鎚 Mjölnir（左右對稱完整不裁切） ⚡ -->
+                                        <g transform="translate(10, 24) rotate(-35)">
+                                            <!-- (A) 皮革握柄 ＋ 螺旋綁帶 ＋ 尾部皮繩 -->
+                                            <line x1="0" y1="7" x2="0" y2="26" stroke="#5c3a21" stroke-width="3.6" />
+                                            <line x1="-1.6" y1="12" x2="1.6" y2="14" stroke="#8d6e63" stroke-width="1.4" />
+                                            <line x1="-1.6" y1="18" x2="1.6" y2="20" stroke="#8d6e63" stroke-width="1.4" />
+                                            <circle cx="0" cy="26" r="2.2" fill="#94a3b8" />
+                                            <path d="M 0 27 Q 4 31 2 35" stroke="#5c3a21" stroke-width="1.6" fill="none" />
 
-        // 3. 【深沉滾動回音】(Rolling Thunder Rumble)
-        const rumbleBuffer = ctx.createBuffer(1, Math.floor(ctx.sampleRate * 1.8), ctx.sampleRate);
-        const rData = rumbleBuffer.getChannelData(0);
-        for (let i = 0; i < rData.length; i++) {
-            rData[i] = (Math.random() * 2 - 1) * Math.exp(-i / (ctx.sampleRate * 0.7));
-        }
-        const rumbleSrc = ctx.createBufferSource();
-        rumbleSrc.buffer = rumbleBuffer;
+                                            <!-- (B) 完整八角切邊錘頭外框 -->
+                                            <path d="M -15 -14 L 15 -14 L 17 -10 L 17 0 L 15 4 L -15 4 L -17 0 L -17 -10 Z" fill="#94a3b8" />
+                                            <!-- 錘頭正面內凹受光面 -->
+                                            <polygon points="-12,-11 12,-11 14,-8 14,-2 12,1 -12,1 -14,-2 -14,-8" fill="#cbd5e1" stroke="none" />
+                                            <!-- 錘頭頂部引雷金屬護板 -->
+                                            <rect x="-12" y="-16.5" width="24" height="2.8" rx="1" fill="#64748b" stroke="none" />
+                                            <!-- 正面圓形符文金屬扣 -->
+                                            <circle cx="0" cy="-5" r="2.5" fill="#64748b" stroke="none" />
+                                            <!-- 左右兩側對稱立體斜切邊倒角線 -->
+                                            <line x1="-15" y1="-14" x2="-12" y2="-11" stroke="#64748b" stroke-width="1.4" />
+                                            <line x1="15" y1="-14" x2="12" y2="-11" stroke="#64748b" stroke-width="1.4" />
+                                            <line x1="-15" y1="4" x2="-12" y2="1" stroke="#64748b" stroke-width="1.4" />
+                                            <line x1="15" y1="4" x2="12" y2="1" stroke="#64748b" stroke-width="1.4" />
+                                        </g>
 
-        const rumbleFilter = ctx.createBiquadFilter();
-        rumbleFilter.type = 'lowpass';
-        rumbleFilter.frequency.setValueAtTime(320, now);
-        rumbleFilter.frequency.linearRampToValueAtTime(70, now + 1.6);
-
-        const rumbleGain = ctx.createGain();
-        rumbleGain.gain.setValueAtTime(0.0, now);
-        rumbleGain.gain.linearRampToValueAtTime(0.9, now + 0.05);
-        rumbleGain.gain.exponentialRampToValueAtTime(0.001, now + 1.7);
-
-        rumbleSrc.connect(rumbleFilter);
-        rumbleFilter.connect(rumbleGain);
-        rumbleGain.connect(ctx.destination);
-        rumbleSrc.start(now + 0.02);
-
-    } catch (e) {
-        console.error('Thunder sound error:', e);
-    }
-}
-
-                    function fallbackSynthesizeThunder() {
-                        try {
-                            const ctx = getAudioCtx();
-                            if (!ctx) return;
-                            if (ctx.state === 'suspended') ctx.resume();
-                            const now = ctx.currentTime;
-
-                            // (1) 近處電弧爆裂聲
-                            const cLen = Math.floor(ctx.sampleRate * 0.25);
-                            const cBuf = ctx.createBuffer(1, cLen, ctx.sampleRate);
-                            const cData = cBuf.getChannelData(0);
-                            for (let i = 0; i < cLen; i++) cData[i] = (Math.random() * 2 - 1) * Math.exp(-i / (ctx.sampleRate * 0.06));
-                            const cSrc = ctx.createBufferSource();
-                            cSrc.buffer = cBuf;
-                            const cFilt = ctx.createBiquadFilter();
-                            cFilt.type = 'highpass';
-                            cFilt.frequency.setValueAtTime(800, now);
-                            const cGain = ctx.createGain();
-                            cGain.gain.setValueAtTime(0.7, now);
-                            cGain.gain.exponentialRampToValueAtTime(0.01, now + 0.22);
-                            cSrc.connect(cFilt); cFilt.connect(cGain); cGain.connect(ctx.destination);
-                            cSrc.start(now);
-
-                            // (2) 遠處沉悶回響滾雷
-                            const rLen = Math.floor(ctx.sampleRate * 1.6);
-                            const rBuf = ctx.createBuffer(1, rLen, ctx.sampleRate);
-                            const rData = rBuf.getChannelData(0);
-                            for (let i = 0; i < rLen; i++) rData[i] = (Math.random() * 2 - 1) * Math.exp(-i / (ctx.sampleRate * 0.65));
-                            const rSrc = ctx.createBufferSource();
-                            rSrc.buffer = rBuf;
-                            const rFilt = ctx.createBiquadFilter();
-                            rFilt.type = 'lowpass';
-                            rFilt.frequency.setValueAtTime(280, now);
-                            rFilt.frequency.linearRampToValueAtTime(70, now + 1.5);
-                            const rGain = ctx.createGain();
-                            rGain.gain.setValueAtTime(0.0, now);
-                            rGain.gain.linearRampToValueAtTime(0.85, now + 0.06);
-                            rGain.gain.exponentialRampToValueAtTime(0.001, now + 1.55);
-                            rSrc.connect(rFilt); rFilt.connect(rGain); rGain.connect(ctx.destination);
-                            rSrc.start(now + 0.03);
-                        } catch(err) {}
+                                        <!-- 11. 抓著錘柄的小圓手 -->
+                                        <circle cx="18" cy="40" r="4.6" fill="#fed7aa" />
+                                    </g>
+                                </svg>
+                            </div>
+                        `;
+                        layer.appendChild(thorEl);
+                        setTimeout(() => { if (thorEl.parentNode) thorEl.remove(); }, 1050);
                     }
 
-                    // 3. ⚡ 遞迴生成穿透雲層的自然蜿蜒閃電路徑
-                    function createLightningPath(startX, startY, endX, endY, maxDisplacement = 48) {
-                        let segments = [{ x1: startX, y1: startY, x2: endX, y2: endY }];
-                        let branches = [];
-                        const iterations = 5;
+                    // ⚡ 【自然碎形光跡生成器】
+                    function generateLightBeamPoints(startX, startY, endX, endY) {
+                        const mainPoints = [{ x: startX, y: startY }];
+                        const steps = 18 + Math.floor(Math.random() * 6);
+                        const dx = (endX - startX) / steps;
+                        const dy = (endY - startY) / steps;
 
-                        for (let i = 0; i < iterations; i++) {
-                            const newSegments = [];
-                            const currentDisp = maxDisplacement / Math.pow(1.65, i);
+                        let curX = startX;
+                        let curY = startY;
 
-                            segments.forEach(seg => {
-                                const midX = (seg.x1 + seg.x2) / 2 + (Math.random() * 2 - 1) * currentDisp;
-                                const midY = (seg.y1 + seg.y2) / 2 + (Math.random() * 2 - 1) * (currentDisp * 0.55);
-
-                                newSegments.push({ x1: seg.x1, y1: seg.y1, x2: midX, y2: midY });
-                                newSegments.push({ x1: midX, y1: midY, x2: seg.x2, y2: seg.y2 });
-
-                                // 生成多道側向分岔電弧
-                                if (i === 2 && Math.random() < 0.7) {
-                                    const branchLength = 75 + Math.random() * 85;
-                                    const angle = Math.atan2(seg.y2 - seg.y1, seg.x2 - seg.x1) + (Math.random() * 1.3 - 0.65);
-                                    branches.push({
-                                        x1: midX,
-                                        y1: midY,
-                                        x2: midX + Math.cos(angle) * branchLength,
-                                        y2: midY + Math.sin(angle) * branchLength
-                                    });
-                                }
-                            });
-                            segments = newSegments;
+                        for (let i = 1; i < steps; i++) {
+                            const progress = i / steps;
+                            const maxJitter = 24 * Math.sin(progress * Math.PI) + 5;
+                            curX += dx + (Math.random() * 2 - 1) * maxJitter;
+                            curY += dy + (Math.random() * 2 - 1) * (maxJitter * 0.3);
+                            mainPoints.push({ x: curX, y: curY });
                         }
+                        mainPoints.push({ x: endX, y: endY });
 
-                        let pathD = `M ${startX} ${startY}`;
-                        segments.forEach(s => { pathD += ` L ${s.x2} ${s.y2}`; });
-
-                        let branchD = '';
-                        branches.forEach(b => {
-                            branchD += ` M ${b.x1} ${b.y1} L ${b.x2} ${b.y2}`;
-                        });
-
-                        return { main: pathD, branch: branchD };
+                        let mainPath = `M ${mainPoints[0].x.toFixed(1)} ${mainPoints[0].y.toFixed(1)}`;
+                        for (let i = 1; i < mainPoints.length; i++) {
+                            const pt = mainPoints[i];
+                            const prev = mainPoints[i - 1];
+                            const midX = (prev.x + pt.x) / 2 + (Math.random() * 8 - 4);
+                            const midY = (prev.y + pt.y) / 2 + (Math.random() * 6 - 3);
+                            mainPath += ` L ${midX.toFixed(1)} ${midY.toFixed(1)} L ${pt.x.toFixed(1)} ${pt.y.toFixed(1)}`;
+                        }
+                        return mainPath;
                     }
 
-                    // 4. ⚡ 發動「雲內蓄光 ➔ 破雲劈下」落雷打擊
-                    function triggerLightningStrike(targetX = null, targetY = null) {
+                    // ⚡ 發動索爾引雷（精準擊中完整錘頂）
+                    function triggerLightningStrike(targetX, targetY) {
                         if (window.stormSessionId !== stormId) return;
 
-                        const rect = layer.getBoundingClientRect();
-                        
-                        // 🌟 起點嚴格設定在「中層雲團核心深處」
-                        const startX = Math.random() * (rect.width * 0.65) + (rect.width * 0.18);
-                        const startY = Math.random() * 35 + 20; 
+                        // 1. 召喚蛋形索爾
+                        spawnThor(targetX, targetY);
 
-                        const endX = targetX !== null ? targetX : startX + (Math.random() * 180 - 90);
-                        const endY = targetY !== null ? targetY : rect.height * (0.65 + Math.random() * 0.25);
-
-                        const paths = createLightningPath(startX, startY, endX, endY);
-
-                        // (A) 最外層青藍強烈電光暈
-                        const outerGlow = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-                        outerGlow.setAttribute('d', paths.main);
-                        outerGlow.setAttribute('stroke', '#38bdf8');
-                        outerGlow.setAttribute('stroke-width', '11');
-                        outerGlow.setAttribute('fill', 'none');
-                        outerGlow.setAttribute('stroke-linecap', 'round');
-                        outerGlow.setAttribute('style', 'filter: drop-shadow(0 0 16px #0284c7); opacity: 0.8;');
-
-                        // (B) 次外層電光金白暈
-                        const midGlow = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-                        midGlow.setAttribute('d', paths.main);
-                        midGlow.setAttribute('stroke', '#93c5fd');
-                        midGlow.setAttribute('stroke-width', '5.5');
-                        midGlow.setAttribute('fill', 'none');
-                        midGlow.setAttribute('stroke-linecap', 'round');
-
-                        // (C) 核心極亮純白主雷柱 (保證穿透雲層清晰無比)
-                        const mainBolt = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-                        mainBolt.setAttribute('d', paths.main);
-                        mainBolt.setAttribute('stroke', '#ffffff');
-                        mainBolt.setAttribute('stroke-width', '3');
-                        mainBolt.setAttribute('fill', 'none');
-                        mainBolt.setAttribute('stroke-linecap', 'round');
-                        mainBolt.setAttribute('style', 'filter: drop-shadow(0 0 8px #ffffff);');
-
-                        // (D) 分岔細電弧
-                        let branchBolt = null;
-                        if (paths.branch) {
-                            branchBolt = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-                            branchBolt.setAttribute('d', paths.branch);
-                            branchBolt.setAttribute('stroke', '#bfdbfe');
-                            branchBolt.setAttribute('stroke-width', '2');
-                            branchBolt.setAttribute('fill', 'none');
-                            branchBolt.setAttribute('style', 'filter: drop-shadow(0 0 6px #60a5fa); opacity: 0.85;');
-                            svgCanvas.appendChild(branchBolt);
-                        }
-
-                        svgCanvas.appendChild(outerGlow);
-                        svgCanvas.appendChild(midGlow);
-                        svgCanvas.appendChild(mainBolt);
-
-                        // 🌟 雲層層次透光：中景與遠景核心亮起，前景邊緣泛光
-                        flashLayer.classList.add('active-flash');
-                        layerMid.querySelectorAll('.cloud-blob-mid').forEach(c => c.classList.add('cloud-lit-core'));
-                        layerBack.querySelectorAll('.cloud-blob-deep').forEach(c => c.classList.add('cloud-lit-edge'));
-                        layerFront.querySelectorAll('.cloud-blob-front').forEach(c => c.classList.add('cloud-lit-edge'));
-                        
-                        playThunderSound();
-
-                        // 真實頻閃兩次，模擬雲間雷光跳動
+                        // 2. 0.2 秒後閃電直擊完整錘頭正上方
                         setTimeout(() => {
-                            flashLayer.classList.remove('active-flash');
-                            mainBolt.style.opacity = '0.25';
-                            midGlow.style.opacity = '0.25';
-                            outerGlow.style.opacity = '0.25';
-                        }, 50);
+                            if (window.stormSessionId !== stormId) return;
 
-                        setTimeout(() => {
+                            playApproachingThunderSound();
+
+                            const rect = layer.getBoundingClientRect();
+                            const startX = rect.width * (0.47 + Math.random() * 0.06);
+                            const startY = rect.height * 0.05;
+
+                            // 依照擴展後視野精準計算錘頭座標
+                            const hammerX = targetX - 34;
+                            const hammerY = targetY - 40;
+
+                            const beamPath = generateLightBeamPoints(startX, startY, hammerX, hammerY);
+                            const lightGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+                            lightGroup.setAttribute('filter', 'url(#softPureLightGlow)');
+
+                            const sheerBeam = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                            sheerBeam.setAttribute('d', beamPath);
+                            sheerBeam.setAttribute('stroke', 'url(#pureLightBeamGrad)');
+                            sheerBeam.setAttribute('stroke-width', '3.2');
+                            sheerBeam.setAttribute('fill', 'none');
+
+                            const thinCore = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                            thinCore.setAttribute('d', beamPath);
+                            thinCore.setAttribute('stroke', '#ffffff');
+                            thinCore.setAttribute('stroke-width', '1.1');
+                            thinCore.setAttribute('fill', 'none');
+
+                            lightGroup.appendChild(sheerBeam);
+                            lightGroup.appendChild(thinCore);
+                            svgCanvas.appendChild(lightGroup);
+
+                            // 照亮粒子雲輪廓
+                            cloudPuffs.forEach(p => {
+                                const dist = Math.hypot(p.x - startX, p.y - startY);
+                                p.litAlpha = Math.max(0, (1 - dist / (rect.width * 0.6)) * 0.35);
+                            });
+                            renderCloudPuffs();
+
                             flashLayer.classList.add('active-flash');
-                            mainBolt.style.opacity = '1';
-                            midGlow.style.opacity = '1';
-                            outerGlow.style.opacity = '0.85';
-                        }, 85);
+                            layer.classList.remove('active-shake');
+                            void layer.offsetWidth;
+                            layer.classList.add('active-shake');
 
-                        setTimeout(() => {
-                            flashLayer.classList.remove('active-flash');
-                            layerMid.querySelectorAll('.cloud-blob-mid').forEach(c => c.classList.remove('cloud-lit-core'));
-                            layerBack.querySelectorAll('.cloud-blob-deep').forEach(c => c.classList.remove('cloud-lit-edge'));
-                            layerFront.querySelectorAll('.cloud-blob-front').forEach(c => c.classList.remove('cloud-lit-edge'));
-                            outerGlow.remove();
-                            midGlow.remove();
-                            mainBolt.remove();
-                            if (branchBolt) branchBolt.remove();
-                        }, 260);
+                            setTimeout(() => {
+                                flashLayer.classList.remove('active-flash');
+                                cloudPuffs.forEach(p => p.litAlpha = 0);
+                                renderCloudPuffs();
+                                lightGroup.remove();
+                            }, 220);
+                        }, 200);
                     }
 
-                    // 5. 點擊畫面任意處立即召喚雷擊
                     layer.style.pointerEvents = 'auto';
                     layer.onpointerdown = (e) => {
+                        if (window.sharedAudioCtx && window.sharedAudioCtx.state === 'suspended') {
+                            window.sharedAudioCtx.resume();
+                        }
+                        startTorrentialRainSound();
+
                         const rect = layer.getBoundingClientRect();
                         const clickX = e.clientX - rect.left;
                         const clickY = e.clientY - rect.top;
+
                         triggerLightningStrike(clickX, clickY);
 
                         if (!trialState.effect) {
-                            gameState.points += 5;
-                            saveGame();
-                            updateUI();
-                            showFloatText('⚡ 雷鳴召喚 +5');
+                            gameState.points += 5; saveGame(); updateUI(); showFloatText('⚡ 索爾引雷 +5');
                         }
                     };
 
-                    // 6. 自動隨機落雷循環
                     function loopRandomStorm() {
                         if (window.stormSessionId !== stormId) return;
                         const activeEffect = trialState.effect || gameState.currentEffect;
-                        if (activeEffect !== 'lightning') return;
+                        if (activeEffect !== 'lightning') {
+                            layer.classList.remove('active-shake');
+                            return;
+                        }
 
-                        triggerLightningStrike();
+                        const rect = layer.getBoundingClientRect();
+                        const randX = rect.width * (0.25 + Math.random() * 0.5);
+                        const randY = rect.height * (0.6 + Math.random() * 0.25);
+                        triggerLightningStrike(randX, randY);
 
-                        const nextDelay = Math.random() * 2200 + 2600;
-                        window.lightningInterval = setTimeout(loopRandomStorm, nextDelay);
+                        window.lightningInterval = setTimeout(loopRandomStorm, Math.random() * 3200 + 4200);
                     }
 
-                    setTimeout(loopRandomStorm, 600);
+                    setTimeout(loopRandomStorm, 1200);
                     break;
 // 💖 【心動幻境】水晶愛心由下往上飄、帶有朦朧透光感，支援滑鼠互動與左下角正方形色系切換
 case 'heartbeat':
