@@ -3,6 +3,7 @@ import express from 'express';
 import cors from 'cors';
 import { createServer } from 'http';
 import { Server } from 'socket.io';
+import path from 'path';
 
 /*Router引用區*/
 import { initCron } from './lib/cron.js';
@@ -35,6 +36,8 @@ export const io = new Server(httpServer, {
 
 app.use(cors()); /*允許跨域請求(ngrok)*/
 app.use(express.json());
+
+app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));/*圖片處裡*/
 
 app.use('/auth', authRouter());
 app.use('/bottles', bottleRouter());
