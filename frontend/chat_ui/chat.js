@@ -87,10 +87,9 @@ document.addEventListener('DOMContentLoaded', () => {
         scrollToBottom();
         const contentDiv = row.querySelector('.content');
 
-        // ✨ 真實連線：呼叫你寫好的 Python 後端 API
+        // ✨ 真實連線：呼叫 Python 後端 API
         async function fetchRealAIResponse() {
             try {
-                // 將網址改成正式的伺服器路徑
                 const response = await fetch('https://api.drift-bottles.xyz/api/chat', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -100,7 +99,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (!response.ok) throw new Error('API 連線失敗');
                 const data = await response.json();
                 
-                // 從後端接收 reply (在 api.py 裡定義的)
                 const realResponse = data.reply || "抱歉，系統目前有些忙碌... 🤖";
 
                 contentDiv.innerHTML = '';
@@ -171,21 +169,29 @@ document.addEventListener('DOMContentLoaded', () => {
         setTimeout(() => { toast.classList.remove("show"); }, 2500);
     }
 
-    // --- 主題、字體與語言 ---
+    // --- 主題、字體與語言 (加上 localStorage 記憶功能) ---
+
+    // 1. 深淺色記憶
+    const savedTheme = localStorage.getItem('chat_theme') || 'light';
+    document.documentElement.setAttribute('data-theme', savedTheme);
+    themeToggle.innerHTML = savedTheme === 'light' ? '<i class="fa-solid fa-moon"></i>' : '<i class="fa-solid fa-sun"></i>';
+
     themeToggle.addEventListener('click', () => {
         const currentTheme = document.documentElement.getAttribute('data-theme');
         const newTheme = currentTheme === 'light' ? 'dark' : 'light';
         document.documentElement.setAttribute('data-theme', newTheme);
+        localStorage.setItem('chat_theme', newTheme); // 寫入記憶
         themeToggle.innerHTML = newTheme === 'light' ? '<i class="fa-solid fa-moon"></i>' : '<i class="fa-solid fa-sun"></i>';
     });
 
+    // 2. 字體大小切換
     let isLargeFont = false;
     fontToggle.addEventListener('click', () => {
         isLargeFont = !isLargeFont;
         document.documentElement.style.setProperty('--base-font-size', isLargeFont ? '18px' : '16px');
     });
 
-    // ✨ 恢復為原本的 AI 特助字典
+    // 3. 語言記憶與字典
     const uiTranslations = {
         "zh-TW": {
             appTitle: "✨ AI 特助",
@@ -233,7 +239,39 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-    let currentLang = "zh-TW";
+    // ✨ 讀取記憶中的語言，如果沒有則預設繁體中文
+    let currentLang = localStorage.getItem('chat_lang') || "zh-TW";
+
+    // 建立一個更新 UI 語言的函式
+    function updateLanguageUI(langCode, langName = null) {
+        currentLang = langCode;
+        localStorage.setItem('chat_lang', langCode); // 寫入記憶
+        const t = uiTranslations[langCode];
+        
+        document.querySelector('.chat-header .title').innerHTML = t.appTitle;
+        const welcomeH2 = document.querySelector('#welcome-screen h2');
+        if (welcomeH2) welcomeH2.innerText = t.welcomeH2;
+        const welcomeP = document.querySelector('#welcome-screen p');
+        if (welcomeP) welcomeP.innerText = t.welcomeP;
+        
+        const chips = document.querySelectorAll('.suggestion-chips .chip');
+        if (chips.length === 3) {
+            chips[0].innerText = t.chip1;
+            chips[1].innerText = t.chip2;
+            chips[2].innerText = t.chip3;
+        }
+        document.getElementById('message-input').placeholder = t.placeholder;
+        document.querySelector('.input-footer-text').innerText = t.footer;
+        
+        if (langName) {
+            showToast(`${t.toastPrefix}${langName}`);
+        }
+    }
+
+    // 網頁剛載入時，直接套用記憶裡的語言
+    updateLanguageUI(currentLang);
+
+    // 下拉選單控制
     langToggle.addEventListener('click', (e) => {
         e.stopPropagation();
         langMenu.classList.toggle('show');
@@ -246,24 +284,7 @@ document.addEventListener('DOMContentLoaded', () => {
         option.addEventListener('click', () => {
             const langName = option.innerText;
             const langCode = option.getAttribute('data-lang');
-            currentLang = langCode;
-            const t = uiTranslations[langCode];
-            
-            document.querySelector('.chat-header .title').innerHTML = t.appTitle;
-            const welcomeH2 = document.querySelector('#welcome-screen h2');
-            if (welcomeH2) welcomeH2.innerText = t.welcomeH2;
-            const welcomeP = document.querySelector('#welcome-screen p');
-            if (welcomeP) welcomeP.innerText = t.welcomeP;
-            
-            const chips = document.querySelectorAll('.suggestion-chips .chip');
-            if (chips.length === 3) {
-                chips[0].innerText = t.chip1;
-                chips[1].innerText = t.chip2;
-                chips[2].innerText = t.chip3;
-            }
-            document.getElementById('message-input').placeholder = t.placeholder;
-            document.querySelector('.input-footer-text').innerText = t.footer;
-            showToast(`${t.toastPrefix}${langName}`);
+            updateLanguageUI(langCode, langName);
             langMenu.classList.remove('show');
         });
     });
