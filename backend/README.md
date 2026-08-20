@@ -232,12 +232,16 @@ Query 參數 (必填)：?keyword=你要找的字
 
 ---
 
-### 🐠 圖片收集/圖鑑遊戲 API (`/game/collect`)
+### 🧩 拼圖收集/圖鑑遊戲 API (`/game/collect`)
 
-#### 1. 隨機解鎖圖片 (抽卡/任務領取)
+> **遊戲機制說明**：
+> 每張圖片代表一個拼圖（預設分為 **1 ~ 9 號碎片**，前端可以 3x3 九宮格形式呈現）。
+> 使用者抽卡時會隨機獲得某張圖的其中一塊碎片（1~9），收集齊全 1~9 塊碎片即代表完成該張拼圖 (`is_completed: true`)。
+
+#### 1. 隨機抽取拼圖碎片 (抽卡/任務領取)
 * **方法與路徑**：`POST /game/collect/unlock`
 * **身份驗證**：需要帶 Token (`Bearer Token`)
-* **機率規則**：普通 (NORMAL) 80%、高級 (PREMIUM) 20%
+* **機率規則**：普通 (NORMAL) 95%、高級 (PREMIUM) 5%，並隨機獲得該圖 **1~9 號** 其中一塊碎片
 * **Request Body** (選填)：
 ```json
 {
@@ -249,46 +253,56 @@ Query 參數 (必填)：?keyword=你要找的字
 
 ```json
 {
-  "message": "🎉 恭喜解鎖新圖鑑！",
+  "message": "✨ 恭喜獲得【clown fish】的第 3 號碎片！(4/9)",
   "data": {
-    "isNew": true, // 是否為首次解鎖 (false 代表先前已擁有)
+    "isNewPiece": true, // 是否為新碎片 (false 代表抽到已擁有的重複碎片)
+    "drawnPiece": 3, // 本次抽到的碎片編號 (1~9)
+    "isCompleted": false, // 該拼圖目前是否已全部集齊
+    "isCompletedNow": false, // 是否在本次抽卡剛好集齊第 9 片完成拼圖
     "picture": {
       "id": 1,
       "title": "clown fish",
-      "description": "探索海洋所獲得的 clown fish 圖鑑卡片！",
+      "description": "探索海洋所獲得的 clown fish 拼圖！",
       "image_url": "/uploads/marine-creatures/fish/clown_fish.webp",
+      "total_pieces": 9,
       "rarity": "NORMAL", // "NORMAL" (普通) 或 "PREMIUM" (高級)
       "category": "海洋生物",
       "task_requirement": "完成每日海洋任務或基礎活動獲得"
     },
+    "puzzleProgress": {
+      "unlocked_pieces": [1, 3, 5, 8], // 當前已獲得的碎片編號清單
+      "piece_count": 4, // 當前碎片總數
+      "total_pieces": 9,
+      "progressRate": "44.4%" // 單圖完成進度
+    },
     "stats": {
-      "totalCollected": 5, // 當前使用者已收集總數
-      "totalPictures": 20, // 全圖鑑總數
-      "collectionRate": "25.0%" // 收集進度百分比
+      "completedPuzzles": 2, // 使用者已完整拼出的圖鑑總數
+      "totalPuzzles": 20, // 全系統拼圖總數
+      "overallCompletionRate": "10.0%" // 全圖鑑總體完成率
     }
   }
 }
 ```
 
-#### 2. 獲取全圖圖鑑列表 (圖鑑總覽)
+#### 2. 獲取全圖拼圖圖鑑列表 (圖鑑總覽)
 
 * **方法與路徑**：`GET /game/collect/gallery`
-* **身份驗證**：非必要 (若有帶 Token 會標註該使用者是否已解鎖 `is_unlocked: true/false` 與解鎖時間)
+* **身份驗證**：非必要 (若有帶 Token 會包含使用者每張圖的 1~9 碎片收集清單)
 * **Query 參數** (選填)：`?category=海洋生物`
-
 * **Response 範例**：
 
 ```json
 {
-  "message": "取得圖鑑清單成功",
+  "message": "取得拼圖圖鑑清單成功",
   "data": {
     "stats": {
-      "total": 20, // 總圖片數
-      "normalCount": 16, // 普通數量
-      "premiumCount": 4, // 高級數量
-      "unlockedCount": 5, // 當前使用者解鎖數量 (未登入時為 0)
-      "lockedCount": 15,
-      "collectionRate": "25.0%"
+      "total": 20, // 全系統拼圖總數
+      "normalCount": 16,
+      "premiumCount": 4,
+      "completedCount": 2, // 已完整集齊 9 片的拼圖數
+      "inProgressCount": 5, // 拼圖收集中的數量
+      "unstartedCount": 13, // 尚未獲得任何碎片的數量
+      "completionRate": "10.0%"
     },
     "pictures": [
       {
@@ -296,45 +310,166 @@ Query 參數 (必填)：?keyword=你要找的字
         "title": "clown fish",
         "description": "...",
         "image_url": "/uploads/marine-creatures/fish/clown_fish.webp",
+        "total_pieces": 9,
         "rarity": "NORMAL",
         "category": "海洋生物",
         "task_requirement": "...",
-        "is_unlocked": true, // 是否已擁有
-        "obtained_at": "2026-08-20T12:00:00.000Z",
-        "obtained_from": "DAILY_TASK"
+        "user_progress": {
+          "unlocked_pieces": [1, 3, 5, 8], // 已擁有的碎片編號
+          "piece_count": 4, // 已解鎖碎片數 (0~9)
+          "total_pieces": 9,
+          "is_completed": false, // 是否 9 片全齊
+          "progress_rate": "44.4%",
+          "completed_at": null,
+          "obtained_from": "DAILY_TASK"
+        }
       }
     ]
   }
 }
 ```
 
-#### 3. 獲取個人已解鎖圖片清單 (我的圖鑑)
+#### 3. 獲取個人拼圖清單 (我的拼圖)
 
 * **方法與路徑**：`GET /game/collect/my`
 * **身份驗證**：需要帶 Token (`Bearer Token`)
 * **Query 參數** (選填)：
+  * `?status=ALL` (預設，回傳全部有進度的拼圖) / `?status=COMPLETED` (僅完整集齊) / `?status=IN_PROGRESS` (僅拼圖中)
   * `?rarity=NORMAL` 或 `?rarity=PREMIUM` (依稀有度篩選)
   * `?category=海洋生物` (依主題分類篩選)
 * **Response 範例**：
 
 ```json
 {
-  "message": "取得已解鎖圖片成功",
+  "message": "取得我的拼圖清單成功",
   "data": {
-    "total": 5,
+    "total": 7,
+    "completedCount": 2,
+    "inProgressCount": 5,
     "pictures": [
       {
         "id": 1,
         "title": "clown fish",
-        "description": "探索海洋所獲得的 clown fish 圖鑑卡片！",
+        "description": "探索海洋所獲得的 clown fish 拼圖！",
         "image_url": "/uploads/marine-creatures/fish/clown_fish.webp",
         "rarity": "NORMAL",
         "category": "海洋生物",
         "task_requirement": "完成每日海洋任務或基礎活動獲得",
-        "obtained_at": "2026-08-20T12:00:00.000Z",
-        "obtained_from": "DAILY_TASK"
+        "unlocked_pieces": [1, 2, 3, 4, 5, 6, 7, 8, 9],
+        "piece_count": 9,
+        "total_pieces": 9,
+        "is_completed": true,
+        "progress_rate": "100.0%",
+        "completed_at": "2026-08-20T12:00:00.000Z",
+        "obtained_from": "DAILY_TASK",
+        "updated_at": "2026-08-20T12:30:00.000Z"
       }
     ]
+  }
+}
+```
+
+#### 4. 碎片兌換寶箱 (4 種兌換規則)
+
+* **方法與路徑**：`POST /game/collect/exchange`
+* **身份驗證**：需要帶 Token (`Bearer Token`)
+* **兌換規則對照表**：
+  * `1`：`10 個普通碎片` 換 `1 個普通寶箱`
+  * `2`：`30 個普通碎片` 換 `1 個高級寶箱`
+  * `3`：`1 個高級碎片` 換 `10 個普通寶箱`
+  * `4`：`5 個高級碎片` 換 `1 個高級寶箱`
+* **Request Body**：
+
+```json
+{
+  "exchange_type": 1, /* 兌換類型: 1, 2, 3 或 4 */
+  "times": 1 /* 兌換次數 (預設 1 次) */
+}
+```
+
+* **Response 範例**：
+
+```json
+{
+  "message": "🎉 兌換成功！消耗 10 個普通碎片，兌換 1 個普通寶箱",
+  "data": {
+    "exchangeType": 1,
+    "times": 1,
+    "exchangeDesc": "消耗 10 個普通碎片，兌換 1 個普通寶箱",
+    "inventory": {
+      "normal_fragments": 5, // 扣除後的普通碎片餘額
+      "premium_fragments": 2, // 高級碎片餘額
+      "normal_chests": 3, // 普通寶箱餘額
+      "premium_chests": 1 // 高級寶箱餘額
+    }
+  }
+}
+```
+
+#### 5. 開啟寶箱 (開出必定為該稀有度的拼圖碎片)
+
+* **方法與路徑**：`POST /game/collect/open-chest`
+* **身份驗證**：需要帶 Token (`Bearer Token`)
+* **說明**：普通寶箱必定抽中普通拼圖碎片，高級寶箱必定抽中高級拼圖碎片。
+* **Request Body**：
+
+```json
+{
+  "chest_type": "NORMAL", /* "NORMAL" (普通寶箱) 或 "PREMIUM" (高級寶箱) */
+  "count": 1 /* 開啟數量 (選填，預設 1 個，單次最多 50 個) */
+}
+```
+
+* **Response 範例**：
+
+```json
+{
+  "message": "🎁 成功開啟 1 個普通寶箱！",
+  "data": {
+    "chestType": "NORMAL",
+    "count": 1,
+    "results": [
+      {
+        "isNewPiece": true,
+        "drawnPiece": 5,
+        "isCompleted": false,
+        "picture": {
+          "id": 2,
+          "title": "turtle",
+          "rarity": "NORMAL",
+          "image_url": "/uploads/marine-creatures/fish/turtle.webp"
+        },
+        "puzzleProgress": {
+          "unlocked_pieces": [2, 5],
+          "piece_count": 2,
+          "total_pieces": 9
+        }
+      }
+    ],
+    "inventory": {
+      "normal_fragments": 6,
+      "premium_fragments": 2,
+      "normal_chests": 2,
+      "premium_chests": 1
+    }
+  }
+}
+```
+
+#### 6. 查詢個人碎片與寶箱庫存
+
+* **方法與路徑**：`GET /game/collect/inventory`
+* **身份驗證**：需要帶 Token (`Bearer Token`)
+* **Response 範例**：
+
+```json
+{
+  "message": "取得庫存成功",
+  "data": {
+    "normal_fragments": 25, // 普通碎片數量
+    "premium_fragments": 6, // 高級碎片數量
+    "normal_chests": 2, // 普通寶箱數量
+    "premium_chests": 1 // 高級寶箱數量
   }
 }
 ```

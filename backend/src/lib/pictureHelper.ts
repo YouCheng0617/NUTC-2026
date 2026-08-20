@@ -100,12 +100,14 @@ export async function syncPicturesToDatabase(targetDir: string = DEFAULT_UPLOADS
         update: {
           rarity,
           category,
-          task_requirement: taskRequirement
+          task_requirement: taskRequirement,
+          total_pieces: 9
         },
         create: {
           title: formattedTitle || '未命名生物',
-          description: `${rarity === 'PREMIUM' ? '【稀有】' : ''}探索海洋所獲得的 ${formattedTitle} 圖鑑卡片！`,
+          description: `${rarity === 'PREMIUM' ? '【稀有】' : ''}探索海洋所獲得的 ${formattedTitle} 拼圖！`,
           image_url: imageUrl,
+          total_pieces: 9, // 預設 9 片碎片 (1~9)
           rarity: rarity, // NORMAL: 普通, PREMIUM: 高級
           category: category,
           task_requirement: taskRequirement,
