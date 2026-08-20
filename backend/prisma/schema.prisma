@@ -24,6 +24,11 @@ enum Role {
   ADMIN
 }
 
+enum PictureRarity {
+  NORMAL  // 普通
+  PREMIUM // 高級
+}
+
 // 會員
 model Member {
   member_id     Int        @id @default(autoincrement())
@@ -57,6 +62,7 @@ model Member {
   PollVote     PollVote[]
   Notification Notification[]
   Pet          Pet?
+  pictures     MemberPicture[]
 }
 
 model BlacklistedToken {
@@ -307,3 +313,36 @@ model PetInventory {
 
   @@unique([pet_id, category, item_name])
 }
+
+// 圖片收集/圖鑑表 (主表：圖片資訊、稀有度、任務條件)
+model Picture {
+  id               Int           @id @default(autoincrement())
+  title            String        // 圖片名稱 (例如: "神秘海灘", "夏日祭典")
+  description      String?       @db.Text // 圖片介紹 / 背後故事
+  image_url        String        @unique // 圖片路徑 (例如: /uploads/pictures/beach.png)
+  rarity           PictureRarity @default(NORMAL) // 稀有度: NORMAL(普通), PREMIUM(高級)
+  category         String?       @default("DEFAULT") // 分類/系列 (例如: "海洋系列", "節慶系列")
+  task_requirement String?       // 任務獲取條件說明 (例如: "完成 3 次每日簽到")
+  is_active        Boolean       @default(true) // 是否開放收集
+  created_at       DateTime      @default(now())
+
+  // 關聯
+  memberPictures   MemberPicture[]
+}
+
+// 使用者收集到的圖片 (擁有清單)
+model MemberPicture {
+  id            Int      @id @default(autoincrement())
+  member_id     Int      // 會員 ID
+  picture_id    Int      // 圖片 ID
+  obtained_from String?  @default("TASK") // 獲得管道 (例如: "DAILY_TASK", "EVENT", "ACHIEVEMENT")
+  obtained_at   DateTime @default(now()) // 獲得時間
+
+  // 關聯定義
+  member  Member  @relation(fields: [member_id], references: [member_id], onDelete: Cascade)
+  picture Picture @relation(fields: [picture_id], references: [id], onDelete: Cascade)
+
+  // 確保同一位會員對同一張圖片只會有一筆擁有紀錄 (避免重複擁有)
+  @@unique([member_id, picture_id])
+}
+
