@@ -155,12 +155,16 @@ export async function unlockRandomPicturePieceService(
     }
 
     // 5. 碎片庫存累計 (+1 個普通或高級碎片)
+    const updateData: Record<string, any> = {};
+    if (selectedPicture.rarity === "NORMAL") {
+        updateData.normal_fragments = { increment: 1 };
+    } else if (selectedPicture.rarity === "PREMIUM") {
+        updateData.premium_fragments = { increment: 1 };
+    }
+
     const updatedMember = await prisma.member.update({
         where: { member_id: memberId },
-        data: {
-            normal_fragments: selectedPicture.rarity === "NORMAL" ? { increment: 1 } : undefined,
-            premium_fragments: selectedPicture.rarity === "PREMIUM" ? { increment: 1 } : undefined
-        },
+        data: updateData,
         select: {
             normal_fragments: true,
             premium_fragments: true,
@@ -292,14 +296,15 @@ export async function exchangeChestService(
     }
 
     // 扣除碎片並增加寶箱
+    const exchangeUpdateData: Record<string, any> = {};
+    if (costNormal > 0) exchangeUpdateData.normal_fragments = { decrement: costNormal };
+    if (costPremium > 0) exchangeUpdateData.premium_fragments = { decrement: costPremium };
+    if (gainNormalChest > 0) exchangeUpdateData.normal_chests = { increment: gainNormalChest };
+    if (gainPremiumChest > 0) exchangeUpdateData.premium_chests = { increment: gainPremiumChest };
+
     const updatedMember = await prisma.member.update({
         where: { member_id: memberId },
-        data: {
-            normal_fragments: costNormal > 0 ? { decrement: costNormal } : undefined,
-            premium_fragments: costPremium > 0 ? { decrement: costPremium } : undefined,
-            normal_chests: gainNormalChest > 0 ? { increment: gainNormalChest } : undefined,
-            premium_chests: gainPremiumChest > 0 ? { increment: gainPremiumChest } : undefined
-        },
+        data: exchangeUpdateData,
         select: {
             normal_fragments: true,
             premium_fragments: true,
@@ -353,12 +358,16 @@ export async function openChestService(
     }
 
     // 先扣除寶箱
+    const chestDeductData: Record<string, any> = {};
+    if (chestType === "NORMAL") {
+        chestDeductData.normal_chests = { decrement: count };
+    } else if (chestType === "PREMIUM") {
+        chestDeductData.premium_chests = { decrement: count };
+    }
+
     await prisma.member.update({
         where: { member_id: memberId },
-        data: {
-            normal_chests: chestType === "NORMAL" ? { decrement: count } : undefined,
-            premium_chests: chestType === "PREMIUM" ? { decrement: count } : undefined
-        }
+        data: chestDeductData
     });
 
     // 依序抽取碎片 (必定開出對應稀有度)
