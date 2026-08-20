@@ -34,6 +34,9 @@
         </div>
 
         <div id="tarot-area" class="hidden">
+            <!-- ✨ 修正：補上完整的 button 標籤 -->
+            <button id="back-to-menu-btn" onclick="resetGame()">⬅ 重新選擇領域</button>
+            
             <p id="current-topic-display" class="topic-display"></p>
             <p class="instruction-text">請從下方的扇形牌陣中，憑直覺抽出 <span style="color:#d4b5ff; font-size:1.3em;">3</span> 張牌</p>
             
@@ -84,7 +87,8 @@
             <h3 class="result-title">✨ 占卜結果 ✨</h3>
             <p id="ai-reading-result">命運的魔法陣正在啟動，請稍候...</p>
             <div class="action-buttons">
-                <button id="restart-btn" class="hidden action-btn" onclick="resetGame()">✨ 再問一次</button>
+                <!-- 注意：這裡依然綁定 resetGame()，但我們在 JS 裡會把它攔截換成 restartSameTopic -->
+                <button id="restart-btn" class="hidden action-btn">✨ 再問一次</button>
                 <button id="save-btn" class="hidden action-btn save-btn-style" onclick="saveCurrentReading()">💾 收藏此占卜</button>
             </div>
         </div>
