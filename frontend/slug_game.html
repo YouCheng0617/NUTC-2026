@@ -2542,19 +2542,17 @@ if (window.gearClockInterval) clearInterval(window.gearClockInterval);
                     tvFilter.className = 'tv-filter-overlay';
                     layer.appendChild(tvFilter);
                     break;
-                    // ⚙️ 【齒輪運轉】無限時間漩渦 ＋ 歐式指針 ＋ 世紀老舊仿舊濾鏡 ＋ 四周淡齒輪 ＋ 逼真機械鐘錶滴答聲（Tick-Tock）
+                   // ⚙️ 【齒輪運轉】時間漩渦 ＋ 仿舊濾鏡 ＋ 鐘錶滴答聲 ＋「自然立耳・愛麗絲水藍裙白兔」
                 case 'gear':
                     if (!document.getElementById('gearEffectStyle')) {
                         const style = document.createElement('style');
                         style.id = 'gearEffectStyle';
                         style.innerHTML = `
-                            /* 🌟 1. 舞台容器 */
                             .pure-vortex-stage {
                                 position: absolute; inset: 0; width: 100%; height: 100%;
                                 pointer-events: none; z-index: 11; overflow: hidden;
                             }
 
-                            /* 🌟 2. 泛黃羊皮紙老舊濾鏡 */
                             .vintage-sepia-overlay {
                                 position: absolute; inset: 0; width: 100%; height: 100%;
                                 pointer-events: none; z-index: 1;
@@ -2563,7 +2561,6 @@ if (window.gearClockInterval) clearInterval(window.gearClockInterval);
                                 animation: vintageFilmFlicker 8s ease-in-out infinite alternate;
                             }
 
-                            /* 🌟 3. 世紀老舊噪點微粒 */
                             .vintage-dust-film {
                                 position: absolute; inset: 0; width: 100%; height: 100%;
                                 pointer-events: none; z-index: 2;
@@ -2577,7 +2574,6 @@ if (window.gearClockInterval) clearInterval(window.gearClockInterval);
                                 100% { opacity: 0.9; filter: contrast(1.08) brightness(0.96); }
                             }
 
-                            /* 🌟 4. 中央羅馬時鐘時間漩渦浮水印 */
                             .vortex-pure-watermark {
                                 position: absolute; top: 50%; left: 50%;
                                 width: 145vmin; height: 145vmin;
@@ -2591,7 +2587,6 @@ if (window.gearClockInterval) clearInterval(window.gearClockInterval);
                                 mask-image: radial-gradient(circle at 50% 50%, rgba(0,0,0,1) 25%, rgba(0,0,0,0.7) 50%, rgba(0,0,0,0) 75%);
                             }
 
-                            /* 🌟 5. 四周淡淡浮水印齒輪 */
                             .faint-corner-gear {
                                 position: absolute;
                                 transform-origin: center center;
@@ -2602,7 +2597,6 @@ if (window.gearClockInterval) clearInterval(window.gearClockInterval);
                                 filter: sepia(0.8) blur(0.3px);
                             }
 
-                            /* 刻度環、指針與齒輪旋轉動畫 */
                             .vortex-spin-cw { animation: spinVortexCW linear infinite; transform-origin: 500px 500px; }
                             .vortex-spin-ccw { animation: spinVortexCCW linear infinite; transform-origin: 500px 500px; }
                             
@@ -2615,9 +2609,69 @@ if (window.gearClockInterval) clearInterval(window.gearClockInterval);
 
                             @keyframes spinVortexCW { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
                             @keyframes spinVortexCCW { 0% { transform: rotate(0deg); } 100% { transform: rotate(-360deg); } }
-                            
                             @keyframes faintGearSpinCW { 0% { transform: translate(-50%, -50%) rotate(0deg); } 100% { transform: translate(-50%, -50%) rotate(360deg); } }
                             @keyframes faintGearSpinCCW { 0% { transform: translate(-50%, -50%) rotate(0deg); } 100% { transform: translate(-50%, -50%) rotate(-360deg); } }
+
+                            .rabbit-journey-actor {
+                                position: absolute;
+                                pointer-events: none;
+                                z-index: 25;
+                                will-change: transform;
+                            }
+
+                            /* 🐇 自然流暢的小跳步 */
+                            @keyframes naturalRabbitHop {
+                                0% { transform: translate(0, 0) scale(0.75); opacity: 0; }
+                                8% { opacity: 1; }
+                                16% { transform: translate(45px, -8px) scale(0.75); }
+                                32% { transform: translate(90px, 0px) scale(0.75); }
+                                48% { transform: translate(135px, -8px) scale(0.75); }
+                                64% { transform: translate(180px, 0px) scale(0.75); }
+                                80% { transform: translate(225px, -6px) scale(0.75); opacity: 1; }
+                                92% { transform: translate(255px, -8px) scale(0.4); opacity: 0.85; }
+                                100% { transform: translate(265px, -10px) scale(0.05); opacity: 0; }
+                            }
+
+                            /* 懷錶微幅晃動 */
+                            @keyframes softWatchSway {
+                                0% { transform: rotate(-8deg); }
+                                100% { transform: rotate(10deg); }
+                            }
+                            .watch-pendulum {
+                                transform-origin: 58px 56px;
+                                animation: softWatchSway 0.35s ease-in-out infinite alternate;
+                            }
+
+                            @keyframes magicDoorLife {
+                                0% { transform: scale(0); opacity: 0; }
+                                15% { transform: scale(1); opacity: 1; }
+                                70% { transform: scale(1); opacity: 1; }
+                                88% { transform: scale(1); opacity: 1; }
+                                95% { transform: scale(1); opacity: 0.8; }
+                                100% { transform: scale(0.2); opacity: 0; }
+                            }
+                            .magic-portal-door {
+                                position: absolute;
+                                width: 85px; height: 120px;
+                                transform-origin: bottom center;
+                                pointer-events: none;
+                                z-index: 24;
+                                filter: drop-shadow(0 0 6px rgba(253, 224, 71, 0.45)) drop-shadow(0 4px 10px rgba(0,0,0,0.35));
+                                animation: magicDoorLife 3.6s cubic-bezier(0.175, 0.885, 0.32, 1.2) forwards;
+                            }
+
+                            @keyframes doorSwingOpen {
+                                0% { transform: rotateY(0deg); }
+                                35% { transform: rotateY(0deg); }
+                                55% { transform: rotateY(-80deg); }
+                                88% { transform: rotateY(-80deg); }
+                                95% { transform: rotateY(0deg); }
+                                100% { transform: rotateY(0deg); }
+                            }
+                            .door-panel-swing {
+                                transform-origin: left center;
+                                animation: doorSwingOpen 3.6s ease-in-out forwards;
+                            }
                         `;
                         document.head.appendChild(style);
                     }
@@ -2627,7 +2681,6 @@ if (window.gearClockInterval) clearInterval(window.gearClockInterval);
                     const gearSessionId = Math.random();
                     window.gearSessionId = gearSessionId;
 
-                    // 🕰️ 【Web Audio 精密機械時鐘「滴（Tick）- 答（Tock）」聲】
                     function playClockTick(isTick = true) {
                         try {
                             if (!window.sharedAudioCtx) window.sharedAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -2635,8 +2688,6 @@ if (window.gearClockInterval) clearInterval(window.gearClockInterval);
                             if (ctx.state === 'suspended') ctx.resume();
 
                             const now = ctx.currentTime;
-
-                            // 1. 齒輪金屬碰擊撞針高頻微聲
                             const snapLen = Math.floor(ctx.sampleRate * 0.025);
                             const snapBuf = ctx.createBuffer(1, snapLen, ctx.sampleRate);
                             const snapData = snapBuf.getChannelData(0);
@@ -2659,7 +2710,6 @@ if (window.gearClockInterval) clearInterval(window.gearClockInterval);
                             snapGain.connect(ctx.destination);
                             snapSrc.start(now);
 
-                            // 2. 木質/黃銅鐘身共鳴腔音（Tick 偏清脆高亢，Tock 偏沉穩厚實）
                             const toneOsc = ctx.createOscillator();
                             toneOsc.type = 'triangle';
                             const baseFreq = isTick ? 1200 : 820;
@@ -2674,13 +2724,31 @@ if (window.gearClockInterval) clearInterval(window.gearClockInterval);
                             toneGain.connect(ctx.destination);
                             toneOsc.start(now);
                             toneOsc.stop(now + 0.05);
-
-                        } catch (e) {
-                            console.error('Clock tick audio error:', e);
-                        }
+                        } catch (e) {}
                     }
 
-                    // 🕰️ 生成羅馬數字時鐘環
+                    function playPortalSound() {
+                        try {
+                            if (!window.sharedAudioCtx) window.sharedAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                            const ctx = window.sharedAudioCtx;
+                            if (ctx.state === 'suspended') ctx.resume();
+                            const now = ctx.currentTime;
+
+                            [523.25, 659.25, 783.99, 1046.50].forEach((freq, idx) => {
+                                const osc = ctx.createOscillator();
+                                const gain = ctx.createGain();
+                                osc.type = 'sine';
+                                osc.frequency.setValueAtTime(freq, now + idx * 0.08);
+                                gain.gain.setValueAtTime(0.12, now + idx * 0.08);
+                                gain.gain.exponentialRampToValueAtTime(0.0001, now + idx * 0.08 + 0.4);
+                                osc.connect(gain);
+                                gain.connect(ctx.destination);
+                                osc.start(now + idx * 0.08);
+                                osc.stop(now + idx * 0.08 + 0.45);
+                            });
+                        } catch(e) {}
+                    }
+
                     const numerals = ['XII', 'I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X', 'XI'];
                     function createCleanClockRing(radius, fontSize, duration, isCW, hasTicks) {
                         let g = `<g class="${isCW ? 'vortex-spin-cw' : 'vortex-spin-ccw'}" style="animation-duration: ${duration}s;">`;
@@ -2705,7 +2773,6 @@ if (window.gearClockInterval) clearInterval(window.gearClockInterval);
                         return g;
                     }
 
-                    // 🌟 6 層同心深度漩渦環
                     let rings = '';
                     rings += createCleanClockRing(440, 70, 130, true, true);
                     rings += createCleanClockRing(330, 52, 95, false, true);
@@ -2714,30 +2781,25 @@ if (window.gearClockInterval) clearInterval(window.gearClockInterval);
                     rings += createCleanClockRing(90, 18, 28, true, false);
                     rings += createCleanClockRing(50, 10, 18, false, false);
 
-                    // 🗡️ 復古歐式時鐘雕花指針
                     const handsHTML = `
                         <g class="clock-hand-hour">
                             <path d="M 500 530 L 493 500 L 495 320 L 485 300 L 500 240 L 515 300 L 505 320 L 507 500 Z" fill="currentColor" opacity="0.85"/>
                             <circle cx="500" cy="300" r="8" fill="none" stroke="currentColor" stroke-width="2.5" opacity="0.9"/>
                         </g>
-
                         <g class="clock-hand-minute">
                             <path d="M 500 545 L 495 500 L 497 210 L 488 190 L 500 130 L 512 190 L 503 210 L 505 500 Z" fill="currentColor" opacity="0.8"/>
                             <circle cx="500" cy="190" r="7" fill="none" stroke="currentColor" stroke-width="2" opacity="0.85"/>
                         </g>
-
                         <g class="clock-hand-second">
                             <line x1="500" y1="570" x2="500" y2="80" stroke="currentColor" stroke-width="2.2" opacity="0.75"/>
                             <circle cx="500" cy="140" r="5" fill="currentColor" opacity="0.8"/>
                             <polygon points="500,70 496,85 504,85" fill="currentColor" opacity="0.9"/>
                         </g>
-
                         <circle cx="500" cy="500" r="22" fill="none" stroke="currentColor" stroke-width="2.5" opacity="0.6"/>
                         <circle cx="500" cy="500" r="12" fill="currentColor" opacity="0.9"/>
                         <circle cx="500" cy="500" r="4" fill="#ffffff" opacity="0.8"/>
                     `;
 
-                    // ⚙️ 四周淡雅浮水印齒輪
                     function getFaintGearSVG(spokes) {
                         let spokeLines = '';
                         const count = spokes || 6;
@@ -2801,7 +2863,6 @@ if (window.gearClockInterval) clearInterval(window.gearClockInterval);
 
                     layer.appendChild(gearStage);
 
-                    // ⏱️ 定時精確每秒「滴・答」循環
                     let isTickState = true;
                     if (window.gearClockInterval) clearInterval(window.gearClockInterval);
                     window.gearClockInterval = setInterval(() => {
@@ -2815,7 +2876,135 @@ if (window.gearClockInterval) clearInterval(window.gearClockInterval);
                         isTickState = !isTickState;
                     }, 1000);
 
-                    // 互動點擊：撥快指針並觸發一次清脆敲擊
+                    // 🐇🚪 【自然直立長耳 ＋ 水藍愛麗絲洋裝 ＋ 豆豆眼 ＋ 金懷錶軟萌白兔】
+                    function spawnPocketWatchRabbit(startX, startY) {
+                        const journeyDuration = 3.5;
+                        
+                        const doorEl = document.createElement('div');
+                        doorEl.className = 'magic-portal-door';
+                        doorEl.style.left = `${startX + 275}px`;
+                        doorEl.style.top = `${startY - 45}px`;
+                        doorEl.innerHTML = `
+                            <svg viewBox="0 0 80 120" width="100%" height="100%" style="overflow:visible;">
+                                <defs>
+                                    <radialGradient id="portalTransLight" cx="50%" cy="55%" r="50%">
+                                        <stop offset="0%" stop-color="#ffffff" stop-opacity="0.65"/>
+                                        <stop offset="45%" stop-color="#fde047" stop-opacity="0.35"/>
+                                        <stop offset="85%" stop-color="#ca8a04" stop-opacity="0.18"/>
+                                        <stop offset="100%" stop-color="#2d1b0d" stop-opacity="0.1"/>
+                                    </radialGradient>
+                                </defs>
+                                <path d="M 10 115 L 10 40 A 30 30 0 0 1 70 40 L 70 115 Z" fill="#2d1b0d" stroke="#b45309" stroke-width="2.5"/>
+                                <path d="M 15 112 L 15 42 A 25 25 0 0 1 65 42 L 65 112 Z" fill="url(#portalTransLight)"/>
+                                <circle cx="40" cy="65" r="14" fill="#ffffff" opacity="0.25"/>
+                                <g class="door-panel-swing">
+                                    <path d="M 15 112 L 15 42 A 25 25 0 0 1 65 42 L 65 112 Z" fill="#5c2c16" stroke="#2d1b0d" stroke-width="2"/>
+                                    <line x1="40" y1="20" x2="40" y2="112" stroke="#3e1a0a" stroke-width="2"/>
+                                    <line x1="16" y1="70" x2="64" y2="70" stroke="#3e1a0a" stroke-width="2"/>
+                                    <circle cx="58" cy="72" r="3.5" fill="#facc15" stroke="#78350f" stroke-width="1"/>
+                                </g>
+                            </svg>
+                        `;
+                        layer.appendChild(doorEl);
+
+                        const rabbitEl = document.createElement('div');
+                        rabbitEl.className = 'rabbit-journey-actor';
+                        rabbitEl.style.left = `${startX}px`;
+                        rabbitEl.style.top = `${startY}px`;
+                        rabbitEl.style.animation = `naturalRabbitHop ${journeyDuration}s cubic-bezier(0.25, 0.1, 0.25, 1) forwards`;
+
+                        rabbitEl.innerHTML = `
+                            <svg viewBox="0 0 80 100" width="85px" height="106px" style="overflow:visible; filter: drop-shadow(0 6px 12px rgba(0,0,0,0.22));">
+                                <defs>
+                                    <linearGradient id="aliceBlueClean" x1="0%" y1="0%" x2="0%" y2="100%">
+                                        <stop offset="0%" stop-color="#b6d8fb"/>
+                                        <stop offset="100%" stop-color="#90c3fa"/>
+                                    </linearGradient>
+                                    <radialGradient id="pocketWatchGoldClean" cx="35%" cy="35%" r="65%">
+                                        <stop offset="0%" stop-color="#fffbeb"/>
+                                        <stop offset="45%" stop-color="#fcd34d"/>
+                                        <stop offset="90%" stop-color="#d97706"/>
+                                    </radialGradient>
+                                </defs>
+
+                                <g stroke="#262626" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                                    <!-- 1. 小棉花糖尾巴 -->
+                                    <circle cx="12" cy="74" r="6.5" fill="#ffffff"/>
+
+                                    <!-- 2. 小巧圓肉腳 -->
+                                    <ellipse cx="28" cy="88" rx="6.5" ry="4" fill="#ffffff"/>
+                                    <line x1="26" y1="87" x2="26" y2="90" stroke="#262626" stroke-width="1.1"/>
+                                    <line x1="30" y1="87" x2="30" y2="90" stroke="#262626" stroke-width="1.1"/>
+
+                                    <ellipse cx="50" cy="88" rx="6.5" ry="4" fill="#ffffff"/>
+                                    <line x1="48" y1="87" x2="48" y2="90" stroke="#262626" stroke-width="1.1"/>
+                                    <line x1="52" y1="87" x2="52" y2="90" stroke="#262626" stroke-width="1.1"/>
+
+                                    <!-- 3. 水藍色連身裙 -->
+                                    <path d="M 26 52 C 24 52 16 64 14 78 C 20 84 58 84 64 78 C 62 64 54 52 52 52 Z" fill="url(#aliceBlueClean)"/>
+                                    <path d="M 14 78 Q 39 84 64 78" fill="none" stroke="#60a5fa" stroke-width="1.4"/>
+
+                                    <!-- 4. 白色小圍裙與小花邊領 -->
+                                    <path d="M 28 52 L 24 77 Q 39 81 54 77 L 50 52 Z" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.2"/>
+                                    <path d="M 27 46 C 22 50 27 54 39 54 C 51 54 56 50 51 46 Z" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.2"/>
+                                    <polygon points="15,62 20,57 19,66" fill="#ffffff" stroke="#cbd5e1" stroke-width="1"/>
+                                    <circle cx="19" cy="62" r="1.3" fill="#e2e8f0" stroke="none"/>
+
+                                    <!-- 5. 直立自然雙耳（頂端圓潤、內耳微粉） -->
+                                    <!-- 左立耳 -->
+                                    <path d="M 30 24 C 25 8 16 6 13 13 C 16 20 25 22 28 26 Z" fill="#ffffff"/>
+                                    <path d="M 27 22 C 24 10 18 9 16 13 C 18 18 23 20 25 23 Z" fill="#ffd1dc" stroke="none"/>
+                                    <!-- 右立耳 -->
+                                    <path d="M 48 24 C 53 8 62 6 65 13 C 62 20 53 22 50 26 Z" fill="#ffffff"/>
+                                    <path d="M 51 22 C 54 10 60 9 62 13 C 60 18 55 20 53 23 Z" fill="#ffd1dc" stroke="none"/>
+
+                                    <!-- 6. 圓潤軟萌大頭部 -->
+                                    <ellipse cx="39" cy="36" rx="19" ry="16" fill="#ffffff"/>
+
+                                    <!-- 7. 雙耳間小巧黑色蝴蝶結髮飾 -->
+                                    <path d="M 28 25 Q 39 21 50 25" fill="none" stroke="#1f2937" stroke-width="2"/>
+                                    <path d="M 39 23 C 33 17 28 19 30 25 C 32 28 37 26 39 24 Z" fill="#1f2937"/>
+                                    <path d="M 39 23 C 45 17 50 19 48 25 C 46 28 41 26 39 24 Z" fill="#1f2937"/>
+                                    <circle cx="39" cy="23.5" r="2" fill="#374151"/>
+
+                                    <!-- 8. 清爽豆豆眼 ＋ 柔粉腮紅 ＋ 萌嘴 -->
+                                    <circle cx="32" cy="36" r="2.2" fill="#1f2937" stroke="none"/>
+                                    <circle cx="46" cy="36" r="2.2" fill="#1f2937" stroke="none"/>
+
+                                    <ellipse cx="26" cy="40" rx="3" ry="1.8" fill="#fca5a5" opacity="0.6" stroke="none"/>
+                                    <ellipse cx="52" cy="40" rx="3" ry="1.8" fill="#fca5a5" opacity="0.6" stroke="none"/>
+
+                                    <polygon points="39,37 38,38.2 40,38.2" fill="#fb923c" stroke="none"/>
+                                    <path d="M 37.8 39.8 Q 39 40.6 40.2 39.8" fill="none" stroke="#262626" stroke-width="1.1"/>
+
+                                    <!-- 9. 兩隻小手自然抱著懷錶 -->
+                                    <ellipse cx="32" cy="56" rx="3.8" ry="3" fill="#ffffff" transform="rotate(15 32 56)"/>
+                                    <ellipse cx="46" cy="56" rx="3.8" ry="3" fill="#ffffff" transform="rotate(-15 46 56)"/>
+
+                                    <!-- 10. 精巧懷錶 -->
+                                    <g class="watch-pendulum">
+                                        <path d="M 39 57 Q 48 60 52 66" fill="none" stroke="#d97706" stroke-width="1.3" stroke-dasharray="1.8 1.2"/>
+                                        <circle cx="54" cy="69" r="8" fill="url(#pocketWatchGoldClean)" stroke="#b45309" stroke-width="1.5"/>
+                                        <circle cx="54" cy="69" r="6" fill="#ffffff" stroke="#78350f" stroke-width="0.9"/>
+                                        <line x1="54" y1="69" x2="54" y2="65" stroke="#1f2937" stroke-width="1.1"/>
+                                        <line x1="54" y1="69" x2="57" y2="69" stroke="#dc2626" stroke-width="0.9"/>
+                                        <circle cx="54" cy="61" r="1.3" fill="#d97706"/>
+                                    </g>
+                                </g>
+                            </svg>
+                        `;
+                        layer.appendChild(rabbitEl);
+
+                        setTimeout(() => {
+                            if (window.gearSessionId === gearSessionId) playPortalSound();
+                        }, 2100);
+
+                        setTimeout(() => {
+                            if (rabbitEl.parentNode) rabbitEl.remove();
+                            if (doorEl.parentNode) doorEl.remove();
+                        }, journeyDuration * 1000 + 200);
+                    }
+
                     layer.style.pointerEvents = 'auto';
                     layer.onpointerdown = (e) => {
                         if (window.sharedAudioCtx && window.sharedAudioCtx.state === 'suspended') {
@@ -2823,14 +3012,21 @@ if (window.gearClockInterval) clearInterval(window.gearClockInterval);
                         }
                         playClockTick(true);
 
+                        const rect = layer.getBoundingClientRect();
+                        const clickX = e.clientX - rect.left - 30;
+                        const clickY = e.clientY - rect.top - 20;
+
+                        spawnPocketWatchRabbit(clickX, clickY);
+
                         if (!trialState.effect) {
                             gameState.points += 5;
                             saveGame();
                             updateUI();
-                            showFloatText('⏳ 時間漩渦 +5');
+                            showFloatText('🐇 立耳愛麗絲小兔 +5');
                         }
                     };
                     break;
+                    
 // 📐 【數學當機】正確數學公式（帶清晰背景框） + 發光滿版叉叉
                 case 'math':
                     // 確保全部都是 100% 嚴謹正確的數學公式
