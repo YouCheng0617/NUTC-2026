@@ -5305,20 +5305,26 @@ case 'fish': {
                         showFloatText(`🗑️ 已刪除 ${removed.label || removed.name}`);
                     }
 
-                    // 5. 🛒 商店購買音符
+                    // 5. 🛒 商店購買音符（試用模式免扣分，正式裝備扣 1 積分）
                     function buyNoteDirectly(noteData) {
                         if (window.collectedStaffNotes.length >= 32) {
                             showFloatText('樂譜已經放滿 32 個音囉！🎶');
                             return;
                         }
-                        if (gameState.points < 1) {
-                            showFloatText('積分不足 1 分 😢');
-                            return;
-                        }
 
-                        gameState.points -= 1;
-                        saveGame();
-                        updateUI();
+                        // 非試用狀態才檢查並扣除積分
+                        if (!trialState.effect) {
+                            if (gameState.points < 1) {
+                                showFloatText('積分不足 1 分 😢');
+                                return;
+                            }
+                            gameState.points -= 1;
+                            saveGame();
+                            updateUI();
+                            showFloatText(`-1分 🛒 +${noteData.label || noteData.name}`);
+                        } else {
+                            showFloatText(`試用體驗 🛒 +${noteData.label || noteData.name}`);
+                        }
 
                         if (noteData.isRest) {
                             playSingleStaffTone(150, 0.05);
@@ -5328,10 +5334,8 @@ case 'fish': {
 
                         window.collectedStaffNotes.push(noteData);
                         renderStaffTrack(true);
-                        showFloatText(`-1分 🛒 +${noteData.label || noteData.name}`);
                     }
-
-                    // 6. 飄浮氣泡點擊收集
+                    // 6. 飄浮氣泡點擊收集（正式裝備加 15 分，試用模式不加分）
                     function collectNoteToStaff(noteData, bubbleEl) {
                         if (window.collectedStaffNotes.length >= 32) {
                             showFloatText('樂譜已經放滿 32 個音囉！按播放欣賞吧 🎶');
@@ -5347,14 +5351,18 @@ case 'fish': {
                         window.collectedStaffNotes.push(noteData);
                         renderStaffTrack(true);
 
-                        gameState.points += 15;
-                        saveGame();
-                        updateUI();
-                        showFloatText(`+15 ${noteData.label || noteData.name} 🎵`);
+                        // 判斷是否為試用模式
+                        if (!trialState.effect) {
+                            gameState.points += 15;
+                            saveGame();
+                            updateUI();
+                            showFloatText(`+15 ${noteData.label || noteData.name} 🎵`);
+                        } else {
+                            showFloatText(`試用體驗 🎵 ${noteData.label || noteData.name}`);
+                        }
 
                         bubbleEl.remove();
                     }
-
                     // 7. 速度切換邏輯
                     const speedBtn = document.getElementById('btnStaffSpeed');
                     const speeds = [
