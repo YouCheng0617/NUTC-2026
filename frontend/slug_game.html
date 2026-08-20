@@ -2376,7 +2376,23 @@ let trialTimeLeft = 10; // 全域記錄試用剩餘時間
             window.ghostSessionId = null;
             if (window.partyInterval) clearTimeout(window.partyInterval);
             window.partySessionId = null;
+// 👻 百鬼夜行清道夫 (把幽靈聲音、動畫跟工作證殺掉)
+            if (window.ghostInterval) clearTimeout(window.ghostInterval);
+            window.ghostSessionId = null;
+            if (window.synthGhostAmbience) {
+                try { window.synthGhostAmbience.stop(); } catch(e) {}
+                window.synthGhostAmbience = null;
+            }
 
+            // 🎉 歡樂派對拉炮清道夫
+            if (window.partyInterval) clearTimeout(window.partyInterval);
+            window.partySessionId = null;
+
+            // 🧹 拔除幽靈跟拉炮的專屬背景迷霧與樣式
+            ['ghostEffectStyle', 'partyEffectStyle', 'confettiEffectStyle'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.remove();
+            });
             // 🧹 移除舊特效殘留的 CSS 樣式表
             ['stormLightningStyle', 'ghostEffectStyle', 'partyEffectStyle'].forEach(id => {
                 const el = document.getElementById(id);
