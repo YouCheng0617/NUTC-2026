@@ -25,7 +25,7 @@ enum Role {
 }
 
 enum PictureRarity {
-  NORMAL  // 普通
+  NORMAL // 普通
   PREMIUM // 高級
 }
 
@@ -57,8 +57,8 @@ model Member {
   commentLikes     CommentLike[]
   DaliyNote        DaliyNote[]
 
-  following    Follow[]       @relation("UserFollows") // 這個會員追蹤了哪些人 (我追蹤的人)
-  followers    Follow[]       @relation("UserFollowedBy") // 哪些人追蹤了這個會員 (我的粉絲)
+  following    Follow[]        @relation("UserFollows") // 這個會員追蹤了哪些人 (我追蹤的人)
+  followers    Follow[]        @relation("UserFollowedBy") // 哪些人追蹤了這個會員 (我的粉絲)
   PollVote     PollVote[]
   Notification Notification[]
   Pet          Pet?
@@ -323,30 +323,31 @@ model PetInventory {
 // 圖片拼圖/圖鑑表 (主表：圖片資訊、稀有度、碎片總數)
 model Picture {
   id               Int           @id @default(autoincrement())
-  title            String        // 拼圖名稱 (例如: "小丑魚", "神秘海豚")
+  title            String // 拼圖名稱 (例如: "小丑魚", "神秘海豚")
   description      String?       @db.Text // 圖片介紹 / 背後故事
   image_url        String        @unique // 圖片完整路徑 (前端以 3x3 網格切九宮格顯示)
   total_pieces     Int           @default(9) // 碎片總數 (預設 9 片，編號 1~9)
   rarity           PictureRarity @default(NORMAL) // 稀有度: NORMAL(普通), PREMIUM(高級)
   category         String?       @default("DEFAULT") // 分類/系列 (例如: "海洋生物")
-  task_requirement String?       // 任務獲取條件說明
+  task_requirement String? // 任務獲取條件說明
   is_active        Boolean       @default(true) // 是否開放收集
   created_at       DateTime      @default(now())
 
   // 關聯
-  memberPictures   MemberPicture[]
+  memberPictures MemberPicture[]
 }
 
 // 使用者拼圖碎片進度與收集清單
 model MemberPicture {
   id              Int       @id @default(autoincrement())
-  member_id       Int       // 會員 ID
-  picture_id      Int       // 圖片 ID
+  member_id       Int // 會員 ID
+  picture_id      Int // 圖片 ID
   unlocked_pieces Int[]     @default([]) // 已獲得的碎片編號清單 (例如 [1, 3, 7])
   piece_count     Int       @default(0) // 已解鎖碎片數 (0~9)
   is_completed    Boolean   @default(false) // 是否 9 片已全部集齊
   completed_at    DateTime? // 拼圖全部集齊的時間
   obtained_from   String?   @default("TASK") // 獲得管道 (例如: "TASK", "DAILY_SIGNIN")
+  obtained_at     DateTime  @default(now()) // 最近獲得碎片時間
   updated_at      DateTime  @default(now()) @updatedAt // 最近獲得碎片時間
 
   // 關聯定義
@@ -356,5 +357,3 @@ model MemberPicture {
   // 確保同一位會員對同一張圖片只會有一筆拼圖進度紀錄
   @@unique([member_id, picture_id])
 }
-
-
