@@ -1669,7 +1669,12 @@ function updateRoomUI(text) {
             ufo: `<svg viewBox="0 0 100 100"><ellipse cx="50" cy="45" rx="20" ry="20" fill="#67e8f9"/><ellipse cx="50" cy="55" rx="40" ry="12" fill="#94a3b8"/><circle cx="30" cy="55" r="3" fill="#fef08a"/><circle cx="50" cy="58" r="3" fill="#fef08a"/><circle cx="70" cy="55" r="3" fill="#fef08a"/></svg>`,
             planet: `<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="25" fill="#6366f1"/><ellipse cx="50" cy="50" rx="45" ry="10" fill="none" stroke="#facc15" stroke-width="6" transform="rotate(-20 50 50)"/></svg>`,
             clock: `<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="35" fill="#f8fafc" stroke="#94a3b8" stroke-width="8"/><line x1="50" y1="50" x2="50" y2="25" stroke="#ef4444" stroke-width="4" stroke-linecap="round"/><line x1="50" y1="50" x2="70" y2="50" stroke="#0f172a" stroke-width="4" stroke-linecap="round"/></svg>`,
-            music: `<svg viewBox="0 0 100 100"><circle cx="30" cy="70" r="10" fill="#a855f7"/><circle cx="70" cy="60" r="10" fill="#a855f7"/><rect x="35" y="20" width="5" height="50" fill="#a855f7"/><rect x="75" y="10" width="5" height="50" fill="#a855f7"/><polygon points="35 20, 75 10, 75 25, 35 35" fill="#a855f7"/></svg>`,
+            // 🎵 1. 連音雙八分音符
+            music_double: `<svg viewBox="0 0 100 100" style="width:100%; height:100%; overflow:visible;"><circle cx="28" cy="72" r="14" fill="currentColor"/><circle cx="72" cy="58" r="14" fill="currentColor"/><rect x="36" y="16" width="7" height="56" fill="currentColor"/><rect x="80" y="2" width="7" height="56" fill="currentColor"/><polygon points="36,16 87,2 87,16 36,30" fill="currentColor"/></svg>`,
+            // 🎵 2. 單八分音符
+            music_single: `<svg viewBox="0 0 100 100" style="width:100%; height:100%; overflow:visible;"><circle cx="32" cy="70" r="15" fill="currentColor"/><rect x="42" y="14" width="7.5" height="56" fill="currentColor"/><path d="M 49.5 14 Q 72 20 70 48 Q 58 34 49.5 32 Z" fill="currentColor"/></svg>`,
+            // 🎵 3. 高音譜號
+            music_clef: `<svg viewBox="0 0 100 120" style="width:100%; height:100%; overflow:visible;"><path d="M 52 10 C 52 10 46 28 46 45 C 46 62 68 62 68 76 C 68 88 56 96 44 94 C 32 92 26 80 30 70 C 34 60 48 62 48 70 C 48 76 42 78 38 74 C 40 84 56 86 58 76 C 60 64 42 56 42 42 C 42 30 50 18 52 10 Z M 48 8 L 48 106 C 48 114 40 118 34 114 C 28 110 32 102 38 104" fill="none" stroke="currentColor" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
             coffee: `<svg viewBox="0 0 100 100"><path d="M25 35 L25 70 Q25 85 50 85 Q75 85 75 70 L75 35 Z" fill="#f8fafc"/><path d="M75 45 Q90 45 90 60 Q90 70 75 70" fill="none" stroke="#f8fafc" stroke-width="8"/><path d="M40 15 Q45 25 40 30 M60 10 Q65 20 60 25" fill="none" stroke="#d4d4d8" stroke-width="4"/></svg>`,
            
             crown: `<svg viewBox="0 0 100 100"><polygon points="20 80, 80 80, 90 30, 70 50, 50 20, 30 50, 10 30" fill="#facc15"/><circle cx="10" cy="30" r="5" fill="#ef4444"/><circle cx="50" cy="20" r="5" fill="#38bdf8"/><circle cx="90" cy="30" r="5" fill="#ef4444"/></svg>`,
@@ -1825,7 +1830,7 @@ const effectData = {
        
            sakura: { name: {zh: '櫻花飛舞', en: 'Sakura'}, cost: 2200, preview: '#fbcfe8' },
           
-            music: { name: {zh: '跳動音符', en: 'Musical Notes'}, cost: 2200, preview: '#3b82f6', svg: [{s: 'music'}], dir: 'up', count: 15 },
+           
             bat: { name: {zh: '吸血蝙蝠', en: 'Vampire Bats'}, cost: 2300, preview: '#334155', svg: [{s: 'bat'}], dir: 'down', count: 12 },
             lightning: { name: {zh: '閃電交加', en: 'Lightning'}, cost: 2400, preview: '#fde047', svg: [{s: 'lightning'}], dir: 'down', count: 12 },
             feather: { name: {zh: '天使羽毛', en: 'Angel Feathers'}, cost: 2400, preview: '#ffffff', svg: [{s: 'leaf'}], dir: 'down', count: 15 },
@@ -1844,6 +1849,7 @@ const effectData = {
             ufo: { name: {zh: '外星綁架', en: 'UFO Abduction'}, cost: 4000, preview: '#4ade80', svg: [{s: 'ufo'}], dir: 'up', count: 6 },
             planet: { name: {zh: '行星軌道', en: 'Planets'}, cost: 4200, preview: '#312e81', svg: [{s: 'planet'}], dir: 'up', count: 8 },
             crown: { name: {zh: '加冕皇冠', en: 'Royal Crown'}, cost: 5000, preview: '#eab308', svg: [{s: 'crown'}], dir: 'down', count: 8 },
+            music: { name: {zh: '跳動音符', en: 'Musical Notes'}, cost: 5200, preview: '#3b82f6' },
             heartbeat: { name: {zh: '心動幻境', en: 'Heartbeat Dream'}, cost: 6666, preview: '#f43f5e', svg: [{s: 'heart'}], dir: 'up', count: 18 },
             heartbeatFantasy: { name: {zh: '心動幻想', en: 'Heartbeat Fantasy'}, cost: 6666, preview: '#f43f5e', svg: [{s: 'heart'}], dir: 'up', count: 15 },
             bugFree: { name: {zh: 'Bug退散', en: 'No More Bugs'}, cost: 8888, preview: '#4ade80', svg: [{s: 'bugFree'}], dir: 'up', count: 15 },
@@ -2363,9 +2369,20 @@ let trialTimeLeft = 10; // 全域記錄試用剩餘時間
     if (window.heartbeatAnimFrame) cancelAnimationFrame(window.heartbeatAnimFrame);
     if (window.heartbeatTimeout) clearTimeout(window.heartbeatTimeout);
     if (window.recallAnimFrame) cancelAnimationFrame(window.recallAnimFrame);
-// 🛑 櫻花音樂停止清道夫
+// 🛑 櫻花音樂徹底停止清道夫（清除所有已排程音符）
     if (window.sakuraMusicTimer) clearTimeout(window.sakuraMusicTimer);
-    if (window.sakuraMusicActive) window.sakuraMusicActive = false;
+    if (window.sakuraNoteTimers && window.sakuraNoteTimers.length) {
+        window.sakuraNoteTimers.forEach(t => clearTimeout(t));
+        window.sakuraNoteTimers = [];
+    }
+    window.sakuraSessionId = null; // 作廢舊的櫻花工作證
+    window.sakuraMusicActive = false;
+// 🛑 音符樂譜小遊戲清道夫
+    if (window.staffPlayInterval) clearInterval(window.staffPlayInterval);
+    if (window.staffPlayTimeout) clearTimeout(window.staffPlayTimeout);
+    if (window.staffSpawnerInterval) clearInterval(window.staffSpawnerInterval);
+    window.staffIsLooping = false;
+    window.staffSessionId = null;
 
     // 👇👇👇 寶寶看這裡！這兩行是我們新加的魔法陣 👇👇👇
     const customTauntBtn = document.getElementById('customTauntBtn');
@@ -4900,6 +4917,619 @@ case 'fish': {
                     `;
                     layer.appendChild(flareContainer);
                     break;
+// 🎼 【跳動音符】滿版五線譜創作 ＋ 點擊音符單獨刪除 ＋ 追焦循環
+                case 'music':
+                    if (!document.getElementById('staffMusicStyle')) {
+                        const style = document.createElement('style');
+                        style.id = 'staffMusicStyle';
+                        style.innerHTML = `
+                            /* 🌟 1. 滿版背景大五線譜圖層 */
+                            .grand-bg-staff {
+                                position: absolute;
+                                top: 10%;
+                                left: 0;
+                                width: 100%;
+                                height: 150px;
+                                z-index: 30;
+                                display: flex;
+                                flex-direction: column;
+                                justify-content: space-between;
+                                padding: 12px 0;
+                                background: linear-gradient(180deg, rgba(255, 255, 255, 0.88) 0%, rgba(250, 245, 255, 0.94) 50%, rgba(255, 255, 255, 0.88) 100%);
+                                backdrop-filter: blur(5px);
+                                box-shadow: 0 4px 20px rgba(168, 85, 247, 0.2);
+                                pointer-events: none;
+                            }
+
+                            .grand-staff-line {
+                                width: 100%;
+                                height: 2px;
+                                background: rgba(147, 51, 234, 0.55);
+                                box-shadow: 0 1px 2px rgba(255, 255, 255, 0.8);
+                            }
+
+                            .grand-clef-symbol {
+                                position: absolute;
+                                left: 12px;
+                                top: 50%;
+                                transform: translateY(-50%);
+                                font-size: 4.5rem;
+                                color: rgba(147, 51, 234, 0.75);
+                                font-weight: 900;
+                                line-height: 1;
+                                user-select: none;
+                                text-shadow: 0 2px 8px rgba(255, 255, 255, 0.9);
+                            }
+
+                            .grand-notes-track {
+                                position: absolute;
+                                top: 0;
+                                left: 75px;
+                                right: 15px;
+                                height: 100%;
+                                display: flex;
+                                align-items: center;
+                                gap: 14px;
+                                overflow-x: scroll !important;
+                                pointer-events: auto !important;
+                                touch-action: pan-x !important;
+                                scroll-behavior: smooth;
+                                -webkit-overflow-scrolling: touch;
+                            }
+                            .grand-notes-track::-webkit-scrollbar { display: none; }
+
+                            /* 釘在背景五線譜上的音符 (支援點擊刪除) */
+                            .pinned-grand-note {
+                                position: relative;
+                                flex-shrink: 0;
+                                width: 32px;
+                                height: 32px;
+                                border-radius: 50%;
+                                font-weight: 900;
+                                font-size: 0.9rem;
+                                color: #fff;
+                                display: flex;
+                                align-items: center;
+                                justify-content: center;
+                                border: 2px solid #ffffff;
+                                box-shadow: 0 4px 10px rgba(0,0,0,0.22);
+                                transition: transform 0.15s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+                                animation: popIn 0.3s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+                                cursor: pointer !important;
+                                pointer-events: auto !important;
+                            }
+                            .pinned-grand-note:hover {
+                                transform: scale(1.15);
+                                filter: brightness(1.1);
+                            }
+                            .pinned-grand-note:active {
+                                transform: scale(0.85);
+                            }
+                            .pinned-grand-note.is-rest {
+                                border-radius: 10px;
+                                font-size: 1.15rem;
+                            }
+                            .pinned-grand-note.playing-active {
+                                transform: scale(1.45) !important;
+                                filter: brightness(1.3) drop-shadow(0 0 12px #fde047);
+                            }
+
+                            /* 🌟 2. 懸浮音樂中控台 */
+                            .staff-bottom-console {
+                                position: absolute;
+                                bottom: 48%;
+                                right: 12px;
+                                z-index: 65;
+                                display: flex;
+                                flex-direction: column;
+                                gap: 6px;
+                                background: rgba(255, 255, 255, 0.95);
+                                border: 2.5px solid #c084fc;
+                                border-radius: 20px;
+                                padding: 8px 10px;
+                                box-shadow: 0 8px 25px rgba(168, 85, 247, 0.35);
+                                backdrop-filter: blur(6px);
+                                pointer-events: auto !important;
+                                width: auto;
+                                max-width: 290px;
+                            }
+
+                            .console-btn {
+                                background: #9333ea;
+                                color: white;
+                                border: none;
+                                border-radius: 12px;
+                                padding: 6px 10px;
+                                font-weight: 900;
+                                font-size: 0.82rem;
+                                cursor: pointer !important;
+                                transition: 0.1s;
+                                box-shadow: 0 3px 0 #6b21a8;
+                            }
+                            .console-btn:active { transform: translateY(2px); box-shadow: none; }
+                            .console-btn.btn-clear { background: #f43f5e; box-shadow: 0 3px 0 #be123c; }
+                            .console-btn.active-toggle {
+                                background: #10b981;
+                                box-shadow: 0 3px 0 #059669;
+                            }
+
+                            /* 🛒 音符商店區域 */
+                            .note-shop-container {
+                                position: relative;
+                            }
+                            .note-shop-grid {
+                                display: grid;
+                                grid-template-columns: repeat(5, 1fr);
+                                gap: 4px;
+                                background: #faf5ff;
+                                border: 1.5px dashed #d8b4fe;
+                                border-radius: 12px;
+                                padding: 5px;
+                                transition: all 0.2s ease-out;
+                            }
+                            .shop-note-btn {
+                                border: 1.5px solid #ffffff;
+                                border-radius: 10px;
+                                padding: 4px 1px;
+                                color: white;
+                                font-weight: 900;
+                                font-size: 0.75rem;
+                                cursor: pointer;
+                                display: flex;
+                                flex-direction: column;
+                                align-items: center;
+                                justify-content: center;
+                                line-height: 1.1;
+                                box-shadow: 0 2px 4px rgba(0,0,0,0.12);
+                                transition: transform 0.1s;
+                            }
+                            .shop-note-btn:active { transform: scale(0.9); }
+                            .shop-price-tag {
+                                font-size: 0.6rem;
+                                background: rgba(0, 0, 0, 0.25);
+                                border-radius: 6px;
+                                padding: 1px 3px;
+                                margin-top: 1px;
+                            }
+
+                            #btnToggleNoteShop {
+                                display: none;
+                                width: 100%;
+                                background: linear-gradient(135deg, #a855f7, #ec4899);
+                                color: white;
+                                border: none;
+                                border-radius: 12px;
+                                padding: 6px 10px;
+                                font-weight: 900;
+                                font-size: 0.8rem;
+                                cursor: pointer;
+                                box-shadow: 0 2px 0 #7e22ce;
+                            }
+
+                            /* 🌟 3. 飄浮上升音符氣泡 */
+                            .floating-staff-bubble {
+                                position: absolute; bottom: -80px;
+                                z-index: 10 !important;
+                                cursor: pointer !important; pointer-events: auto !important;
+                                border-radius: 50%; padding: 6px;
+                                display: flex; flex-direction: column; align-items: center; justify-content: center;
+                                font-weight: 900; color: white;
+                                box-shadow: 0 6px 16px rgba(0,0,0,0.2);
+                                transition: transform 0.1s ease-out;
+                                user-select: none; -webkit-user-select: none;
+                                animation: staffNoteRise linear forwards;
+                            }
+                            .floating-staff-bubble:active { transform: scale(0.85) !important; }
+
+                            @keyframes staffNoteRise {
+                                0% { transform: translateY(0vh) translateX(0px) scale(0.8); opacity: 0; }
+                                10% { opacity: 0.95; }
+                                50% { transform: translateY(-55vh) translateX(var(--drift-x)) scale(1.05); }
+                                85% { opacity: 0.95; }
+                                100% { transform: translateY(-115vh) translateX(calc(var(--drift-x) * 1.5)) scale(0.8); opacity: 0; }
+                            }
+
+                            /* 📱 4. 手機版專屬響應式 */
+                            @media screen and (max-width: 768px) {
+                                .grand-bg-staff {
+                                    top: 60px;
+                                    height: 120px;
+                                    padding: 8px 0;
+                                }
+                                .grand-clef-symbol {
+                                    font-size: 3.6rem;
+                                    left: 8px;
+                                }
+                                .grand-notes-track {
+                                    left: 55px;
+                                    gap: 10px;
+                                }
+                                .pinned-grand-note {
+                                    width: 26px;
+                                    height: 26px;
+                                    font-size: 0.75rem;
+                                }
+                                .staff-bottom-console {
+                                    bottom: 45%;
+                                    right: 8px;
+                                    max-width: 230px;
+                                    padding: 6px 8px;
+                                }
+                                #btnToggleNoteShop {
+                                    display: block !important;
+                                }
+                                .note-shop-grid {
+                                    position: absolute;
+                                    bottom: 105%;
+                                    right: 0;
+                                    width: 220px;
+                                    background: rgba(255, 255, 255, 0.98);
+                                    border: 2px solid #c084fc;
+                                    box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+                                    display: none;
+                                    z-index: 100;
+                                }
+                                .note-shop-grid.is-open {
+                                    display: grid !important;
+                                }
+                                .floating-staff-bubble {
+                                    width: 48px !important;
+                                    height: 48px !important;
+                                }
+                            }
+                        `;
+                        document.head.appendChild(style);
+                    }
+
+                    // 1. 初始化全域狀態
+                    const currentSession = Math.random();
+                    window.staffSessionId = currentSession;
+                    window.collectedStaffNotes = [];
+                    window.staffPlaySpeed = 300;
+                    window.staffIsLooping = false;
+
+                    // 背景大五線譜
+                    const grandStaff = document.createElement('div');
+                    grandStaff.className = 'grand-bg-staff';
+                    grandStaff.innerHTML = `
+                        <div class="grand-clef-symbol">𝄞</div>
+                        <div class="grand-staff-line"></div>
+                        <div class="grand-staff-line"></div>
+                        <div class="grand-staff-line"></div>
+                        <div class="grand-staff-line"></div>
+                        <div class="grand-staff-line"></div>
+                        <div class="grand-notes-track" id="staffNotesTrack"></div>
+                    `;
+                    layer.appendChild(grandStaff);
+
+                    // 2. 音符音階資料庫
+                    const staffScaleNotes = [
+                        { name: 'Do', note: 'C5', freq: 523.25, color: '#ef4444', offsetY: 40, isRest: false },
+                        { name: 'Re', note: 'D5', freq: 587.33, color: '#f97316', offsetY: 29, isRest: false },
+                        { name: 'Mi', note: 'E5', freq: 659.25, color: '#eab308', offsetY: 18, isRest: false },
+                        { name: 'Fa', note: 'F5', freq: 698.46, color: '#22c55e', offsetY: 7, isRest: false },
+                        { name: 'Sol', note: 'G5', freq: 783.99, color: '#06b6d4', offsetY: -4, isRest: false },
+                        { name: 'La', note: 'A5', freq: 880.00, color: '#3b82f6', offsetY: -15, isRest: false },
+                        { name: 'Si', note: 'B5', freq: 987.77, color: '#8b5cf6', offsetY: -26, isRest: false },
+                        { name: 'Dȯ', note: 'C6', freq: 1046.50, color: '#ec4899', offsetY: -37, isRest: false },
+                        { name: '𝄽', label: '休止', note: 'REST', freq: 0, color: '#475569', offsetY: 0, isRest: true }
+                    ];
+
+                    // 懸浮中控台 ＆ 音符商店 DOM
+                    const controlConsole = document.createElement('div');
+                    controlConsole.className = 'staff-bottom-console';
+                    controlConsole.innerHTML = `
+                        <div style="display:flex; justify-content:space-between; align-items:center;">
+                            <span style="font-weight:900; font-size:0.82rem; color:#7e22ce;" id="txtStaffCount">🎼 樂譜 (0/32)</span>
+                            <button class="console-btn" id="btnStaffSpeed" style="padding:2px 6px; font-size:0.75rem; background:#6366f1; box-shadow:0 2px 0 #4338ca;">⚡ 1.0x</button>
+                        </div>
+                        
+                        <div class="note-shop-container">
+                            <button id="btnToggleNoteShop">🛒 買音符 (1分/個) ▾</button>
+                            <div class="note-shop-grid" id="noteShopGrid"></div>
+                        </div>
+
+                        <div style="display:flex; gap:5px; justify-content:space-between;">
+                            <button class="console-btn" id="btnPlayStaff" style="flex:1;">▶️ 播放</button>
+                            <button class="console-btn" id="btnLoopStaff" style="flex:1;">🔁 循環: 關</button>
+                            <button class="console-btn btn-clear" id="btnClearStaff">🗑️</button>
+                        </div>
+                    `;
+                    layer.appendChild(controlConsole);
+
+                    // 3. 渲染小商店的 9 個音符按鈕
+                    const shopGrid = controlConsole.querySelector('#noteShopGrid');
+                    staffScaleNotes.forEach(item => {
+                        const shopBtn = document.createElement('button');
+                        shopBtn.className = 'shop-note-btn';
+                        shopBtn.style.background = item.color;
+                        shopBtn.innerHTML = `
+                            <span>${item.name}</span>
+                            <span class="shop-price-tag">1分</span>
+                        `;
+                        shopBtn.onclick = (e) => {
+                            e.stopPropagation();
+                            buyNoteDirectly(item);
+                        };
+                        shopGrid.appendChild(shopBtn);
+                    });
+
+                    const toggleShopBtn = controlConsole.querySelector('#btnToggleNoteShop');
+                    toggleShopBtn.onclick = (e) => {
+                        e.stopPropagation();
+                        shopGrid.classList.toggle('is-open');
+                        toggleShopBtn.innerText = shopGrid.classList.contains('is-open') ? '🛒 收起商店 ▴' : '🛒 買音符 (1分/個) ▾';
+                    };
+
+                    // 🌟 4. 重繪五線譜上的音符與綁定「單擊刪除」事件
+                    function renderStaffTrack(autoScrollToEnd = false) {
+                        const track = document.getElementById('staffNotesTrack');
+                        if (!track) return;
+                        track.innerHTML = '';
+
+                        window.collectedStaffNotes.forEach((noteData, index) => {
+                            const pinnedNote = document.createElement('div');
+                            pinnedNote.className = `pinned-grand-note ${noteData.isRest ? 'is-rest' : ''}`;
+                            pinnedNote.style.background = noteData.color;
+                            pinnedNote.style.top = noteData.offsetY + 'px';
+                            pinnedNote.innerText = noteData.name;
+                            pinnedNote.id = `staff-note-${index}`;
+                            pinnedNote.title = '點擊刪除此音符';
+
+                            // 🌟 單擊五線譜上的音符直接刪除
+                            pinnedNote.onclick = (e) => {
+                                e.stopPropagation();
+                                removeNoteFromStaff(index);
+                            };
+
+                            track.appendChild(pinnedNote);
+                        });
+
+                        const countEl = document.getElementById('txtStaffCount');
+                        if (countEl) countEl.innerText = `🎼 樂譜 (${window.collectedStaffNotes.length}/32)`;
+
+                        if (autoScrollToEnd) {
+                            setTimeout(() => {
+                                track.scrollTo({ left: track.scrollWidth, behavior: 'smooth' });
+                            }, 50);
+                        }
+                    }
+
+                    // 🌟 單個音符刪除邏輯
+                    function removeNoteFromStaff(index) {
+                        if (isPlayingStaff) return; // 播放中暫停刪除操作
+                        if (index < 0 || index >= window.collectedStaffNotes.length) return;
+
+                        const removed = window.collectedStaffNotes.splice(index, 1)[0];
+                        renderStaffTrack(false);
+                        showFloatText(`🗑️ 已刪除 ${removed.label || removed.name}`);
+                    }
+
+                    // 5. 🛒 商店購買音符
+                    function buyNoteDirectly(noteData) {
+                        if (window.collectedStaffNotes.length >= 32) {
+                            showFloatText('樂譜已經放滿 32 個音囉！🎶');
+                            return;
+                        }
+                        if (gameState.points < 1) {
+                            showFloatText('積分不足 1 分 😢');
+                            return;
+                        }
+
+                        gameState.points -= 1;
+                        saveGame();
+                        updateUI();
+
+                        if (noteData.isRest) {
+                            playSingleStaffTone(150, 0.05);
+                        } else {
+                            playSingleStaffTone(noteData.freq, 0.25);
+                        }
+
+                        window.collectedStaffNotes.push(noteData);
+                        renderStaffTrack(true);
+                        showFloatText(`-1分 🛒 +${noteData.label || noteData.name}`);
+                    }
+
+                    // 6. 飄浮氣泡點擊收集
+                    function collectNoteToStaff(noteData, bubbleEl) {
+                        if (window.collectedStaffNotes.length >= 32) {
+                            showFloatText('樂譜已經放滿 32 個音囉！按播放欣賞吧 🎶');
+                            return;
+                        }
+
+                        if (noteData.isRest) {
+                            playSingleStaffTone(150, 0.05);
+                        } else {
+                            playSingleStaffTone(noteData.freq, 0.25);
+                        }
+
+                        window.collectedStaffNotes.push(noteData);
+                        renderStaffTrack(true);
+
+                        gameState.points += 15;
+                        saveGame();
+                        updateUI();
+                        showFloatText(`+15 ${noteData.label || noteData.name} 🎵`);
+
+                        bubbleEl.remove();
+                    }
+
+                    // 7. 速度切換邏輯
+                    const speedBtn = document.getElementById('btnStaffSpeed');
+                    const speeds = [
+                        { label: '⚡ 0.5x', ms: 500 },
+                        { label: '⚡ 1.0x', ms: 300 },
+                        { label: '⚡ 1.5x', ms: 200 },
+                        { label: '⚡ 2.0x', ms: 140 }
+                    ];
+                    let speedIdx = 1;
+
+                    speedBtn.onclick = (e) => {
+                        e.stopPropagation();
+                        speedIdx = (speedIdx + 1) % speeds.length;
+                        window.staffPlaySpeed = speeds[speedIdx].ms;
+                        speedBtn.innerText = speeds[speedIdx].label;
+                        showFloatText(`速度切換: ${speeds[speedIdx].label}`);
+                    };
+
+                    // 8. 循環播放開關
+                    const loopBtn = document.getElementById('btnLoopStaff');
+                    loopBtn.onclick = (e) => {
+                        e.stopPropagation();
+                        window.staffIsLooping = !window.staffIsLooping;
+                        if (window.staffIsLooping) {
+                            loopBtn.innerText = '🔁 循環: 開';
+                            loopBtn.classList.add('active-toggle');
+                        } else {
+                            loopBtn.innerText = '🔁 循環: 關';
+                            loopBtn.classList.remove('active-toggle');
+                        }
+                    };
+
+                    // 9. 播放引擎
+                    let isPlayingStaff = false;
+                    const playBtn = document.getElementById('btnPlayStaff');
+                    const clearBtn = document.getElementById('btnClearStaff');
+
+                    function playScoreSequence() {
+                        if (window.collectedStaffNotes.length === 0) return;
+                        isPlayingStaff = true;
+                        playBtn.innerText = '🎶 停止';
+                        playBtn.style.background = '#10b981';
+
+                        let step = 0;
+                        const track = document.getElementById('staffNotesTrack');
+
+                        function playStep() {
+                            if (!isPlayingStaff || window.staffSessionId !== currentSession) return;
+
+                            if (step >= window.collectedStaffNotes.length) {
+                                document.querySelectorAll('.pinned-grand-note').forEach(n => n.classList.remove('playing-active'));
+                                if (window.staffIsLooping) {
+                                    step = 0;
+                                    if (track) track.scrollTo({ left: 0, behavior: 'smooth' });
+                                    window.staffPlayTimeout = setTimeout(playStep, window.staffPlaySpeed * 1.5);
+                                    return;
+                                } else {
+                                    isPlayingStaff = false;
+                                    playBtn.innerText = '▶️ 播放';
+                                    playBtn.style.background = '#9333ea';
+                                    return;
+                                }
+                            }
+
+                            document.querySelectorAll('.pinned-grand-note').forEach(n => n.classList.remove('playing-active'));
+                            const curEl = document.getElementById(`staff-note-${step}`);
+                            if (curEl) {
+                                curEl.classList.add('playing-active');
+                                if (track) {
+                                    const targetLeft = curEl.offsetLeft - (track.clientWidth / 2) + 20;
+                                    track.scrollTo({ left: Math.max(0, targetLeft), behavior: 'smooth' });
+                                }
+                            }
+
+                            const curNote = window.collectedStaffNotes[step];
+                            if (!curNote.isRest) {
+                                playSingleStaffTone(curNote.freq, 0.28);
+                            }
+
+                            step++;
+                            window.staffPlayTimeout = setTimeout(playStep, window.staffPlaySpeed);
+                        }
+
+                        playStep();
+                    }
+
+                    playBtn.onclick = (e) => {
+                        e.stopPropagation();
+                        if (isPlayingStaff) {
+                            isPlayingStaff = false;
+                            if (window.staffPlayTimeout) clearTimeout(window.staffPlayTimeout);
+                            playBtn.innerText = '▶️ 播放';
+                            playBtn.style.background = '#9333ea';
+                            document.querySelectorAll('.pinned-grand-note').forEach(n => n.classList.remove('playing-active'));
+                        } else {
+                            if (window.collectedStaffNotes.length === 0) {
+                                showFloatText('還沒有音符喔！點擊音符或在商店購買 ✨');
+                                return;
+                            }
+                            playScoreSequence();
+                        }
+                    };
+
+                    clearBtn.onclick = (e) => {
+                        e.stopPropagation();
+                        isPlayingStaff = false;
+                        if (window.staffPlayTimeout) clearTimeout(window.staffPlayTimeout);
+                        window.collectedStaffNotes = [];
+                        renderStaffTrack(false);
+                        const track = document.getElementById('staffNotesTrack');
+                        if (track) track.scrollTo({ left: 0, behavior: 'smooth' });
+                        playBtn.innerText = '▶️ 播放';
+                        playBtn.style.background = '#9333ea';
+                        showFloatText('🧹 五線譜已清空');
+                    };
+
+                    // 10. 動態音符雨產生器
+                    let notePool = [];
+                    function getBalancedNote() {
+                        if (notePool.length === 0) {
+                            notePool = [...staffScaleNotes].sort(() => Math.random() - 0.5);
+                        }
+                        return notePool.pop();
+                    }
+
+                    function spawnSingleStaffBubble() {
+                        if (window.staffSessionId !== currentSession) return;
+                        const activeEffect = trialState.effect || gameState.currentEffect;
+                        if (activeEffect !== 'music') return;
+
+                        const currentBubbles = layer.querySelectorAll('.floating-staff-bubble');
+                        if (currentBubbles.length >= 25) return;
+
+                        const bubbleEl = document.createElement('div');
+                        bubbleEl.className = 'floating-staff-bubble';
+
+                        const noteData = getBalancedNote();
+
+                        bubbleEl.style.background = noteData.color;
+                        bubbleEl.style.border = '3px solid white';
+                        bubbleEl.style.width = '56px';
+                        bubbleEl.style.height = '56px';
+                        bubbleEl.style.left = (Math.random() * 84 + 8) + '%';
+                        bubbleEl.style.setProperty('--drift-x', (Math.random() * 70 - 35) + 'px');
+
+                        bubbleEl.innerHTML = `
+                            <div style="font-size:${noteData.isRest ? '1.3rem' : '1.05rem'}; line-height:1; opacity:0.95;">
+                                ${noteData.isRest ? '𝄽' : '♪'}
+                            </div>
+                            <div style="font-size:0.95rem; font-weight:900; line-height:1.1;">
+                                ${noteData.label || noteData.name}
+                            </div>
+                        `;
+
+                        const duration = Math.random() * 2.0 + 4.5;
+                        bubbleEl.style.animationDuration = duration + 's';
+
+                        bubbleEl.onpointerdown = (e) => {
+                            e.stopPropagation();
+                            collectNoteToStaff(noteData, bubbleEl);
+                        };
+
+                        layer.appendChild(bubbleEl);
+
+                        setTimeout(() => {
+                            if (bubbleEl.parentNode) bubbleEl.remove();
+                        }, duration * 1000 + 100);
+                    }
+
+                    for (let i = 0; i < 8; i++) {
+                        setTimeout(spawnSingleStaffBubble, i * 150);
+                    }
+
+                    window.staffSpawnerInterval = setInterval(spawnSingleStaffBubble, 380);
+                    break;
     // 💖 【心動幻境】滑鼠互動愛心監聽器：滑鼠滑過時在指標位置生成小愛心
     const mouseHeartHandler = (e) => {
         if (gameState.currentEffect !== 'heartbeat' && trialState.effect !== 'heartbeat') return;
@@ -5644,48 +6274,41 @@ let currentPaintPalette = 0;
                 openBtn.style.transform = 'translateX(-50%) scale(0)';
             }
         }
-        // 🌸 【日式浪漫櫻花八音盒】(慢速舒緩版、大調五聲治癒音階、溫暖夢幻)
+// 🌸 【日式浪漫櫻花八音盒】(防重疊 Session 驗證版)
         function startSakuraBGM() {
+            // 1. 產生本次播放的唯一工作證編號
+            const currentSession = Math.random();
+            window.sakuraSessionId = currentSession;
             window.sakuraMusicActive = true;
+            window.sakuraNoteTimers = [];
 
-            // 治癒系大調五聲音階 (溫暖甜美，無刺耳半音)
             const harpScale = [
-                261.63, // C4
-                293.66, // D4
-                329.63, // E4
-                392.00, // G4
-                440.00, // A4
-                523.25, // C5
-                587.33, // D5
-                659.25, // E5
-                783.99, // G5
-                880.00, // A5
-                1046.50 // C6
+                261.63, 293.66, 329.63, 392.00, 440.00, 
+                523.25, 587.33, 659.25, 783.99, 880.00, 1046.50
             ];
 
-            // 慢速放鬆的櫻花旋律 (拉長拍子與間距)
             const romanticMelody = [
-                { note: 0, delay: 0 },      // C4
-                { note: 2, delay: 650 },    // E4
-                { note: 3, delay: 1300 },   // G4
-                { note: 5, delay: 2100 },   // C5
-                { note: 7, delay: 3400 },   // E5
-                { note: 6, delay: 4500 },   // D5
-                { note: 5, delay: 5600 },   // C5
-                { note: 4, delay: 7000 },   // A4
-                
-                { note: 1, delay: 8800 },   // D4
-                { note: 3, delay: 9450 },   // G4
-                { note: 5, delay: 10100 },  // C5
-                { note: 6, delay: 11000 },  // D5
-                { note: 8, delay: 12400 },  // G5
-                { note: 7, delay: 13500 },  // E5
-                { note: 5, delay: 14800 },  // C5
-                { note: 10, delay: 16500 }  // C6 (晶瑩微光泛音)
+                { note: 0, delay: 0 },
+                { note: 2, delay: 650 },
+                { note: 3, delay: 1300 },
+                { note: 5, delay: 2100 },
+                { note: 7, delay: 3400 },
+                { note: 6, delay: 4500 },
+                { note: 5, delay: 5600 },
+                { note: 4, delay: 7000 },
+                { note: 1, delay: 8800 },
+                { note: 3, delay: 9450 },
+                { note: 5, delay: 10100 },
+                { note: 6, delay: 11000 },
+                { note: 8, delay: 12400 },
+                { note: 7, delay: 13500 },
+                { note: 5, delay: 14800 },
+                { note: 10, delay: 16500 }
             ];
 
             function playMusicBoxNote(freq, volume = 0.032) {
-                if (!window.sakuraMusicActive) return;
+                // 只有持有最新工作證且特效仍為 sakura 才發聲
+                if (window.sakuraSessionId !== currentSession || !window.sakuraMusicActive) return;
                 try {
                     if (!sharedAudioCtx || sharedAudioCtx.state === 'closed') {
                         sharedAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -5697,21 +6320,16 @@ let currentPaintPalette = 0;
                     const ctx = sharedAudioCtx;
                     const now = ctx.currentTime;
 
-                    // 1. 水晶八音盒主音（純正弦波）
                     const osc = ctx.createOscillator();
                     const gain = ctx.createGain();
-                    
-                    // 2. 溫暖泛音層
                     const shimmerOsc = ctx.createOscillator();
                     const shimmerGain = ctx.createGain();
 
                     osc.type = 'sine';
                     osc.frequency.setValueAtTime(freq, now);
-
                     shimmerOsc.type = 'triangle';
                     shimmerOsc.frequency.setValueAtTime(freq * 2, now);
 
-                    // 慢速加長餘音衰減 (延音拉長至 3 秒)
                     gain.gain.setValueAtTime(0.0001, now);
                     gain.gain.linearRampToValueAtTime(volume, now + 0.015);
                     gain.gain.exponentialRampToValueAtTime(0.0001, now + 3.0);
@@ -5722,7 +6340,6 @@ let currentPaintPalette = 0;
 
                     osc.connect(gain);
                     gain.connect(ctx.destination);
-
                     shimmerOsc.connect(shimmerGain);
                     shimmerGain.connect(ctx.destination);
 
@@ -5734,28 +6351,296 @@ let currentPaintPalette = 0;
             }
 
             function playRomanticLoop() {
-                if (!window.sakuraMusicActive) return;
+                if (window.sakuraSessionId !== currentSession || !window.sakuraMusicActive) return;
+
                 const activeEffect = trialState.effect || gameState.currentEffect;
                 if (activeEffect !== 'sakura') {
                     window.sakuraMusicActive = false;
                     return;
                 }
 
-                // 播放慢速浪漫旋律
+                // 將每個音符計時器存入陣列中管控
                 romanticMelody.forEach(item => {
-                    setTimeout(() => {
-                        if (window.sakuraMusicActive && (trialState.effect === 'sakura' || gameState.currentEffect === 'sakura')) {
+                    const t = setTimeout(() => {
+                        if (window.sakuraSessionId === currentSession && window.sakuraMusicActive) {
                             const freq = harpScale[item.note];
                             playMusicBoxNote(freq, 0.035);
                         }
                     }, item.delay);
+                    window.sakuraNoteTimers.push(t);
                 });
 
-                // 整首旋律放慢後，循環間隔調整為 19 秒
                 window.sakuraMusicTimer = setTimeout(playRomanticLoop, 19000);
             }
 
             playRomanticLoop();
+        }
+        // 🎵 【活潑動感 Pop 音符音樂引擎】(生動明亮、輕快律動、無版權、自動循環)
+        function startMusicBGM() {
+            window.musicNoteActive = true;
+
+            // 明亮活潑的 C 大調高八度音階頻率
+            const noteFreqs = {
+                'C4': 261.63, 'D4': 293.66, 'E4': 329.63, 'F4': 349.23, 'G4': 392.00, 'A4': 440.00, 'B4': 493.88,
+                'C5': 523.25, 'D5': 587.33, 'E5': 659.25, 'F5': 698.46, 'G5': 783.99, 'A5': 880.00, 'B5': 987.77,
+                'C6': 1046.50
+            };
+
+            // 輕快俏皮的彈跳旋律序列
+            const bounceMelody = [
+                { note: 'C5', time: 0 },
+                { note: 'E5', time: 160 },
+                { note: 'G5', time: 320 },
+                { note: 'C6', time: 480 },
+                { note: 'G5', time: 700 },
+                { note: 'A5', time: 920 },
+                { note: 'G5', time: 1140 },
+                { note: 'E5', time: 1360 },
+
+                { note: 'D5', time: 1680 },
+                { note: 'F5', time: 1840 },
+                { note: 'A5', time: 2000 },
+                { note: 'B5', time: 2160 },
+                { note: 'C6', time: 2400 },
+                { note: 'G5', time: 2650 },
+                { note: 'E5', time: 2900 },
+                { note: 'C5', time: 3150 }
+            ];
+
+            function playPopNote(freq, volume = 0.038) {
+                if (!window.musicNoteActive) return;
+                try {
+                    if (!sharedAudioCtx || sharedAudioCtx.state === 'closed') {
+                        sharedAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                    }
+                    if (sharedAudioCtx.state === 'suspended') {
+                        sharedAudioCtx.resume();
+                    }
+
+                    const ctx = sharedAudioCtx;
+                    const now = ctx.currentTime;
+
+                    // 主音合成器（明亮方波 + 柔和濾波）
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    const filter = ctx.createBiquadFilter();
+
+                    osc.type = 'square';
+                    osc.frequency.setValueAtTime(freq, now);
+
+                    // 低通濾波打造圓潤俏皮的 8-bit Pop 質感
+                    filter.type = 'lowpass';
+                    filter.frequency.setValueAtTime(2200, now);
+                    filter.frequency.exponentialRampToValueAtTime(600, now + 0.22);
+
+                    // 短促彈跳音量包絡
+                    gain.gain.setValueAtTime(0.0001, now);
+                    gain.gain.linearRampToValueAtTime(volume, now + 0.01);
+                    gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.24);
+
+                    osc.connect(filter);
+                    filter.connect(gain);
+                    gain.connect(ctx.destination);
+
+                    osc.start(now);
+                    osc.stop(now + 0.25);
+                } catch(e) {}
+            }
+
+            function playMusicLoop() {
+                if (!window.musicNoteActive) return;
+                const activeEffect = trialState.effect || gameState.currentEffect;
+                if (activeEffect !== 'music') {
+                    window.musicNoteActive = false;
+                    return;
+                }
+
+                bounceMelody.forEach(item => {
+                    setTimeout(() => {
+                        if (window.musicNoteActive && (trialState.effect === 'music' || gameState.currentEffect === 'music')) {
+                            playPopNote(noteFreqs[item.note], 0.035);
+                        }
+                    }, item.time);
+                });
+
+                // 每 4 秒循環一次活潑小樂段
+                window.musicNoteTimer = setTimeout(playMusicLoop, 4000);
+            }
+
+            playMusicLoop();
+        }
+        // 🎵 【音符打擊即時音效】(隨連擊音調遞增)
+        function playHitNoteSound(combo = 1) {
+            try {
+                if (!sharedAudioCtx || sharedAudioCtx.state === 'closed') {
+                    sharedAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                }
+                if (sharedAudioCtx.state === 'suspended') {
+                    sharedAudioCtx.resume();
+                }
+
+                const ctx = sharedAudioCtx;
+                const now = ctx.currentTime;
+
+                // 隨連擊步進的大調音階頻率
+                const scale = [523.25, 587.33, 659.25, 698.46, 783.99, 880.00, 987.77, 1046.50, 1174.66, 1318.51];
+                const freq = scale[(combo - 1) % scale.length];
+
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(freq, now);
+
+                gain.gain.setValueAtTime(0.0001, now);
+                gain.gain.linearRampToValueAtTime(0.065, now + 0.008);
+                gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.3);
+
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+
+                osc.start(now);
+                osc.stop(now + 0.32);
+            } catch(e) {}
+        }
+
+        // 🎵 【活潑動感 Pop 背景音樂引擎】(Session 驗證防重疊版)
+        function startMusicBGM() {
+            const currentSession = Math.random();
+            window.musicSessionId = currentSession;
+            window.musicNoteActive = true;
+            window.musicNoteTimers = [];
+
+            const noteFreqs = {
+                'C5': 523.25, 'D5': 587.33, 'E5': 659.25, 'F5': 698.46, 
+                'G5': 783.99, 'A5': 880.00, 'B5': 987.77, 'C6': 1046.50
+            };
+
+            const bounceMelody = [
+                { note: 'C5', time: 0 },
+                { note: 'E5', time: 160 },
+                { note: 'G5', time: 320 },
+                { note: 'C6', time: 480 },
+                { note: 'G5', time: 700 },
+                { note: 'A5', time: 920 },
+                { note: 'G5', time: 1140 },
+                { note: 'E5', time: 1360 },
+                { note: 'D5', time: 1680 },
+                { note: 'F5', time: 1840 },
+                { note: 'A5', time: 2000 },
+                { note: 'B5', time: 2160 },
+                { note: 'C6', time: 2400 },
+                { note: 'G5', time: 2650 },
+                { note: 'E5', time: 2900 },
+                { note: 'C5', time: 3150 }
+            ];
+
+            function playPopNote(freq, volume = 0.028) {
+                if (window.musicSessionId !== currentSession || !window.musicNoteActive) return;
+                try {
+                    if (!sharedAudioCtx || sharedAudioCtx.state === 'closed') {
+                        sharedAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                    }
+                    if (sharedAudioCtx.state === 'suspended') {
+                        sharedAudioCtx.resume();
+                    }
+
+                    const ctx = sharedAudioCtx;
+                    const now = ctx.currentTime;
+
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    const filter = ctx.createBiquadFilter();
+
+                    osc.type = 'square';
+                    osc.frequency.setValueAtTime(freq, now);
+
+                    filter.type = 'lowpass';
+                    filter.frequency.setValueAtTime(2200, now);
+                    filter.frequency.exponentialRampToValueAtTime(600, now + 0.22);
+
+                    gain.gain.setValueAtTime(0.0001, now);
+                    gain.gain.linearRampToValueAtTime(volume, now + 0.01);
+                    gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.22);
+
+                    osc.connect(filter);
+                    filter.connect(gain);
+                    gain.connect(ctx.destination);
+
+                    osc.start(now);
+                    osc.stop(now + 0.24);
+                } catch(e) {}
+            }
+
+            function playMusicLoop() {
+                if (window.musicSessionId !== currentSession || !window.musicNoteActive) return;
+
+                const activeEffect = trialState.effect || gameState.currentEffect;
+                if (activeEffect !== 'music') {
+                    window.musicNoteActive = false;
+                    return;
+                }
+
+                bounceMelody.forEach(item => {
+                    const t = setTimeout(() => {
+                        if (window.musicSessionId === currentSession && window.musicNoteActive) {
+                            playPopNote(noteFreqs[item.note], 0.028);
+                        }
+                    }, item.time);
+                    window.musicNoteTimers.push(t);
+                });
+
+                window.musicNoteTimer = setTimeout(playMusicLoop, 4000);
+            }
+
+            playMusicLoop();
+        }
+        // 🎼 【五線譜專屬清脆單音發聲器】(高音量清亮加強版)
+        function playSingleStaffTone(freq, volume = 0.22) {
+            try {
+                if (!sharedAudioCtx || sharedAudioCtx.state === 'closed') {
+                    sharedAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                }
+                if (sharedAudioCtx.state === 'suspended') {
+                    sharedAudioCtx.resume();
+                }
+
+                const ctx = sharedAudioCtx;
+                const now = ctx.currentTime;
+
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                
+                // 額外加入微弱泛音層，讓聲音大聲且更具穿透力
+                const shimmerOsc = ctx.createOscillator();
+                const shimmerGain = ctx.createGain();
+
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(freq, now);
+
+                shimmerOsc.type = 'triangle';
+                shimmerOsc.frequency.setValueAtTime(freq * 2, now);
+
+                // 主音量提升
+                gain.gain.setValueAtTime(0.0001, now);
+                gain.gain.linearRampToValueAtTime(volume, now + 0.008);
+                gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.55);
+
+                // 泛音層音量提升
+                shimmerGain.gain.setValueAtTime(0.0001, now);
+                shimmerGain.gain.linearRampToValueAtTime(volume * 0.4, now + 0.01);
+                shimmerGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.35);
+
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                shimmerOsc.connect(shimmerGain);
+                shimmerGain.connect(ctx.destination);
+
+                osc.start(now);
+                shimmerOsc.start(now);
+                osc.stop(now + 0.58);
+                shimmerOsc.stop(now + 0.38);
+            } catch(e) {}
         }
     </script>
 </body>
