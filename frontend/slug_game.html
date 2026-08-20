@@ -1496,56 +1496,49 @@ function updateRoomUI(text) {
         };
 
         const bgData = {
-            sky: { name: {zh: '基礎藍', en: 'Sky Blue'}, cost: 0, preview: '#dbeafe', style: '#dbeafe', hasDots: true },
-            ocean: { name: {zh: '神祕海洋', en: 'Deep Ocean'}, cost: 1000, preview: '#0284c7', style: 'radial-gradient(circle at 50% 0%, #38bdf8 0%, #0284c7 45%, #092b5a 100%)', hasDots: false },
-            tvStatic: { name: {zh: '阿嬤的舊電視', en: 'Old TV'}, cost: 1000, preview: '#94a3b8', style: 'repeating-linear-gradient(0deg, #334155, #334155 2px, #cbd5e1 2px, #cbd5e1 4px)', hasDots: false },
-            beach: { name: {zh: '陽光沙灘', en: 'Sunny Beach'}, cost: 1200, preview: '#fde047', style: 'linear-gradient(to bottom, #7dd3fc 0%, #bae6fd 40%, #38bdf8 45%, #fde047 60%, #fef08a 100%)', hasDots: false },
-            sunset: { name: {zh: '唯美落日', en: 'Sunset'}, cost: 1500, preview: '#fb923c', style: 'radial-gradient(circle at 50% 30%, #fef08a 0%, #f97316 40%, #be123c 80%, #4c1d95 100%)', hasDots: false },
-            midnight: { name: {zh: '靜謐星空', en: 'Midnight'}, cost: 1500, preview: '#1e293b', style: 'radial-gradient(circle at 80% 20%, #312e81 0%, #0f172a 60%, #020617 100%)', hasDots: false },
-            strawberryMilk: { name: {zh: '草莓牛奶', en: 'Strawberry Milk'}, cost: 1500, preview: '#ffe4e6', style: 'linear-gradient(to right, #fff1f2, #ffe4e6, #fecdd3)', hasDots: true },
-            desert: { name: {zh: '無垠沙海', en: 'Desert'}, cost: 1600, preview: '#d97706', style: 'linear-gradient(to bottom, #fdba74 0%, #f59e0b 50%, #b45309 100%)', hasDots: false },
-            matchaLatte: { name: {zh: '宇治抹茶', en: 'Matcha Latte'}, cost: 1600, preview: '#dcfce7', style: 'linear-gradient(45deg, #f0fdf4 0%, #dcfce7 50%, #bbf7d0 100%)', hasDots: true },
-            pudding: { name: {zh: '焦糖布丁', en: 'Pudding Pool'}, cost: 1700, preview: '#fef3c7', style: 'linear-gradient(to bottom, #fffbeb 0%, #fef3c7 60%, #b45309 100%)', hasDots: false },
-            forest: { name: {zh: '精靈森林', en: 'Elf Forest'}, cost: 1800, preview: '#22c55e', style: 'radial-gradient(circle at 50% 100%, #14532d 0%, #16a34a 40%, #86efac 100%)', hasDots: false },
-            snowfield: { name: {zh: '極地雪原', en: 'Snowfield'}, cost: 1800, preview: '#e0f2fe', style: 'linear-gradient(to bottom, #bae6fd 0%, #e0f2fe 50%, #ffffff 100%)', hasDots: true },
-            blueberryJam: { name: {zh: '藍莓果醬', en: 'Blueberry'}, cost: 1800, preview: '#c7d2fe', style: 'linear-gradient(to top right, #e0e7ff 0%, #c7d2fe 50%, #4f46e5 100%)', hasDots: false },
-            taroPaste: { name: {zh: '香芋泥泥', en: 'Taro Paste'}, cost: 1800, preview: '#e9d5ff', style: 'linear-gradient(135deg, #faf5ff 0%, #e9d5ff 50%, #a855f7 100%)', hasDots: true },
-            mintChoco: { name: {zh: '薄荷巧克', en: 'Mint Choco'}, cost: 1900, preview: '#ccfbf1', style: 'radial-gradient(circle at 30% 30%, #f0fdfa 0%, #ccfbf1 60%, #3f2a2a 100%)', hasDots: true },
-            aurora: { name: {zh: '極光祕境', en: 'Aurora'}, cost: 2000, preview: '#10b981', style: 'linear-gradient(135deg, #020617 0%, #064e3b 40%, #10b981 70%, #0284c7 100%)', hasDots: false },
-            coffeeShop: { name: {zh: '午後拿鐵', en: 'Cafe Latte'}, cost: 2000, preview: '#ffedd5', style: 'linear-gradient(to bottom, #fff7ed 0%, #ffedd5 40%, #9a3412 100%)', hasDots: false },
-            lavender: { name: {zh: '薰衣草田', en: 'Lavender'}, cost: 2100, preview: '#c084fc', style: 'linear-gradient(to top, #4c1d95 0%, #7c3aed 40%, #c084fc 80%, #f3e8ff 100%)', hasDots: false },
-            honeyPot: { name: {zh: '小熊蜜罐', en: 'Honey Pot'}, cost: 2100, preview: '#fde047', style: 'linear-gradient(to bottom, #fef08a 0%, #fde047 50%, #ca8a04 100%)', hasDots: false },
-            volcano: { name: {zh: '烈焰火山', en: 'Volcano'}, cost: 2200, preview: '#ef4444', style: 'linear-gradient(to top, #450a0a 0%, #991b1b 40%, #ef4444 80%, #f97316 100%)', hasDots: false },
-            tomatoGarden: { name: {zh: '番茄樂園', en: 'Tomato Garden'}, cost: 2200, preview: '#fca5a5', style: 'radial-gradient(circle at 70% 30%, #fef2f2 0%, #fca5a5 50%, #b91c1c 100%)', hasDots: true },
-            coralReef: { name: {zh: '七彩珊瑚', en: 'Coral Reef'}, cost: 2300, preview: '#fb7185', style: 'radial-gradient(circle at 50% 80%, #164e63 0%, #0891b2 40%, #fb7185 80%, #fda4af 100%)', hasDots: false },
-            autumnLeaves: { name: {zh: '楓葉深秋', en: 'Autumn'}, cost: 2400, preview: '#ea580c', style: 'radial-gradient(circle at 20% 20%, #ffedd5 0%, #fb923c 40%, #c2410c 100%)', hasDots: false },
-            peachOrchard: { name: {zh: '水蜜桃季', en: 'Peach Season'}, cost: 2400, preview: '#fbcfe8', style: 'radial-gradient(circle at 50% 50%, #fff1f2 0%, #fbcfe8 60%, #f43f5e 100%)', hasDots: false },
-            cherryBlossom: { name: {zh: '櫻花小徑', en: 'Sakura Path'}, cost: 2500, preview: '#fbcfe8', style: 'linear-gradient(120deg, #fdf2f8 0%, #fbcfe8 50%, #f472b6 100%)', hasDots: true },
-            toxicSwamp: { name: {zh: '史萊姆毒沼', en: 'Toxic Swamp'}, cost: 2500, preview: '#84cc16', style: 'radial-gradient(circle at 20% 80%, #3f6212 0%, #65a30d 50%, #14532d 100%)', hasDots: false },
-            catCafe: { name: {zh: '貓咪咖啡廳', en: 'Cat Cafe'}, cost: 2800, preview: '#d6d3d1', style: 'linear-gradient(135deg, #fafaf9 0%, #e7e5e4 50%, #a8a29e 100%)', hasDots: true },
-            abyss: { name: {zh: '無底深淵', en: 'The Abyss'}, cost: 3000, preview: '#000000', style: 'radial-gradient(circle at 50% 50%, #1e1b4b 0%, #000000 100%)', hasDots: false },
-            movieTheater: { name: {zh: '午夜電影院', en: 'Midnight Cinema'}, cost: 3000, preview: '#1e293b', style: 'linear-gradient(to top, #0f172a 0%, #1e293b 80%, #3b82f6 100%)', hasDots: false },
-            lunarBase: { name: {zh: '月球基地', en: 'Lunar Base'}, cost: 3200, preview: '#94a3b8', style: 'linear-gradient(to bottom, #020617 0%, #1e293b 50%, #cbd5e1 100%)', hasDots: false },
-            hauntedHouse: { name: {zh: '幽靈洋館', en: 'Haunted House'}, cost: 3300, preview: '#475569', style: 'linear-gradient(to bottom, #020617 0%, #334155 70%, #94a3b8 100%)', hasDots: false },
-            bathhouse: { name: {zh: '溫泉澡堂', en: 'Bathhouse'}, cost: 3400, preview: '#7dd3fc', style: 'linear-gradient(to bottom, #e0f2fe 0%, #7dd3fc 60%, #1d4ed8 100%)', hasDots: false },
-            galaxy: { name: {zh: '銀河星系', en: 'Galaxy'}, cost: 3500, preview: '#312e81', style: 'radial-gradient(circle at 20% 80%, #4c1d95 0%, #312e81 40%, #000000 100%)', hasDots: false },
-            candyLand: { name: {zh: '魔法糖果屋', en: 'Candy Land'}, cost: 3600, preview: '#f472b6', style: 'linear-gradient(45deg, #fbcfe8 0%, #a78bfa 50%, #67e8f9 100%)', hasDots: true },
-            nebula: { name: {zh: '粉紅星雲', en: 'Pink Nebula'}, cost: 3800, preview: '#d8b4fe', style: 'radial-gradient(circle at 80% 20%, #fbcfe8 0%, #d8b4fe 40%, #2e1065 100%)', hasDots: false },
-            cloudCastle: { name: {zh: '雲端城堡', en: 'Cloud Castle'}, cost: 3800, preview: '#f0f9ff', style: 'linear-gradient(to top, #bae6fd 0%, #f0f9ff 60%, #ffffff 100%)', hasDots: true },
-            crystalCave: { name: {zh: '水晶石洞', en: 'Crystal Cave'}, cost: 4000, preview: '#67e8f9', style: 'linear-gradient(135deg, #083344 0%, #06b6d4 50%, #cffafe 100%)', hasDots: false },
-            dragonNest: { name: {zh: '巨龍巢穴', en: 'Dragon Nest'}, cost: 4200, preview: '#7f1d1d', style: 'radial-gradient(circle at 50% 100%, #f59e0b 0%, #b91c1c 50%, #450a0a 100%)', hasDots: false },
-            bloodMoon: { name: {zh: '猩紅之月', en: 'Blood Moon'}, cost: 4400, preview: '#991b1b', style: 'radial-gradient(circle at 80% 20%, #f87171 0%, #991b1b 40%, #000000 100%)', hasDots: false },
-            supernova: { name: {zh: '超新星爆發', en: 'Supernova'}, cost: 4500, preview: '#fde047', style: 'radial-gradient(circle at 50% 50%, #ffffff 0%, #fde047 20%, #ea580c 60%, #4c1d95 100%)', hasDots: false },
-            artistCanvas: { name: {zh: '畫布上的塗鴉', en: 'Artist Canvas'}, cost: 4500, preview: '#f8fafc', style: 'linear-gradient(45deg, #f8fafc 0%, #e2e8f0 20%, #f8fafc 40%, #e2e8f0 60%, #f8fafc 80%, #e2e8f0 100%)', hasDots: true },
-            vaporwave: { name: {zh: '蒸氣波迷夢', en: 'Vaporwave'}, cost: 4800, preview: '#d8b4fe', style: 'linear-gradient(180deg, #f472b6 0%, #c084fc 40%, #2dd4bf 100%)', hasDots: false },
-            blackHole: { name: {zh: '黑洞視界', en: 'Black Hole'}, cost: 5000, preview: '#020617', style: 'radial-gradient(circle at 50% 50%, #000000 0%, #000000 60%, #eab308 90%, #ef4444 100%)', hasDots: false },
-            neonCity: { name: {zh: '霓虹不夜城', en: 'Neon City'}, cost: 5200, preview: '#8b5cf6', style: 'linear-gradient(to right, #1e1b4b 0%, #5b21b6 30%, #be185d 70%, #0f172a 100%)', hasDots: false },
-            cyberpunk: { name: {zh: '賽博龐克', en: 'Cyberpunk'}, cost: 5500, preview: '#ec4899', style: 'linear-gradient(135deg, #0f172a 0%, #4c1d95 40%, #db2777 80%, #22d3ee 100%)', hasDots: false },
-            matrix: { name: {zh: '母體數據流', en: 'The Matrix'}, cost: 6000, preview: '#15803d', style: 'linear-gradient(to bottom, #000000 0%, #14532d 50%, #22c55e 100%)', hasDots: false },
-            heartbeat: { name: {zh: '心動幻境', en: 'Heartbeat Dream'}, cost: 6666, preview: '#f43f5e', svg: [{s: 'heartbeat'}], dir: 'up', count: 15 },
-            rainbowBridge: { name: {zh: '彩虹樂園', en: 'Rainbow Bridge'}, cost: 7777, preview: '#38bdf8', style: 'linear-gradient(90deg, #f87171 0%, #fb923c 20%, #facc15 40%, #4ade80 60%, #38bdf8 80%, #a855f7 100%)', hasDots: true },
-            noCodeParadise: { name: {zh: '拒絕寫Code天堂', en: 'No Code Heaven'}, cost: 8888, preview: '#fed7aa', style: 'linear-gradient(120deg, #fff7ed 0%, #ffedd5 30%, #fed7aa 70%, #fdba74 100%)', hasDots: true },
-            goldenMine: { name: {zh: '暴富金礦', en: 'Golden Mine'}, cost: 9999, preview: '#f59e0b', style: 'radial-gradient(circle at 50% 50%, #fef08a 0%, #f59e0b 50%, #78350f 100%)', hasDots: false }
+            // 0 ~ 500 基礎入門系列
+            none: { name: {zh: '預設無背景', en: 'Default'}, cost: 0, preview: '#ffffff', class: 'bg-none' },
+            cozy_room: { name: {zh: '溫馨房間', en: 'Cozy Room'}, cost: 200, preview: '#fef3c7', class: 'bg-cozy-room' },
+            sunshine_grassland: { name: {zh: '陽光草原', en: 'Sunshine Grassland'}, cost: 400, preview: '#86efac', class: 'bg-sunshine-grassland' },
+            sunny_park: { name: {zh: '陽光公園', en: 'Sunny Park'}, cost: 500, preview: '#bbf7d0', class: 'bg-sunny-park' },
+
+            // 600 ~ 1200 自然與日常系列
+            misty_forest: { name: {zh: '迷霧森林', en: 'Misty Forest'}, cost: 600, preview: '#a7f3d0', class: 'bg-misty-forest' },
+            breeze_morning: { name: {zh: '微風晨曦', en: 'Breeze Morning'}, cost: 800, preview: '#bae6fd', class: 'bg-breeze-morning' },
+            afternoon_tea: { name: {zh: '午後茶會', en: 'Afternoon Tea'}, cost: 900, preview: '#fed7aa', class: 'bg-afternoon-tea' },
+            cherry_park: { name: {zh: '櫻花小徑', en: 'Cherry Park'}, cost: 1000, preview: '#fbcfe8', class: 'bg-cherry-park' },
+            bamboo_grove: { name: {zh: '翠綠竹林', en: 'Bamboo Grove'}, cost: 1100, preview: '#6ee7b7', class: 'bg-bamboo-grove' },
+            rainy_street: { name: {zh: '雨中街景', en: 'Rainy Street'}, cost: 1200, preview: '#94a3b8', class: 'bg-rainy-street' },
+
+            // 1400 ~ 2000 風景與探險系列
+            sunset_beach: { name: {zh: '夕陽海灘', en: 'Sunset Beach'}, cost: 1400, preview: '#fdba74', class: 'bg-sunset-beach' },
+            autumn_leaves: { name: {zh: '秋日楓紅', en: 'Autumn Leaves'}, cost: 1500, preview: '#f97316', class: 'bg-autumn-leaves' },
+            deep_sea: { name: {zh: '深海秘境', en: 'Deep Ocean'}, cost: 1600, preview: '#0284c7', class: 'bg-deep-sea' },
+            snowy_mountain: { name: {zh: '銀白雪山', en: 'Snow Mountain'}, cost: 1800, preview: '#e0f2fe', class: 'bg-snowy-mountain' },
+            starry_night: { name: {zh: '璀璨星空', en: 'Starry Night'}, cost: 2000, preview: '#312e81', class: 'bg-starry-night' },
+
+            // 2200 ~ 3000 奇幻異想系列
+            candy_land: { name: {zh: '糖果王國', en: 'Candy Land'}, cost: 2200, preview: '#f472b6', class: 'bg-candy-land' },
+            magic_academy: { name: {zh: '魔法學院', en: 'Magic Academy'}, cost: 2400, preview: '#c084fc', class: 'bg-magic-academy' },
+            lavender_field: { name: {zh: '薰衣草田', en: 'Lavender Field'}, cost: 2500, preview: '#ddd6fe', class: 'bg-lavender-field' },
+            aurora_sky: { name: {zh: '夢幻極光', en: 'Aurora Sky'}, cost: 2600, preview: '#2dd4bf', class: 'bg-aurora-sky' },
+            retro_arcade: { name: {zh: '復古街機', en: 'Retro Arcade'}, cost: 2800, preview: '#ec4899', class: 'bg-retro-arcade' },
+            neon_city: { name: {zh: '賽博霓虹', en: 'Cyber Neon'}, cost: 3000, preview: '#06b6d4', class: 'bg-neon-city' },
+
+            // 3200 ~ 4000 宇宙與奇境系列
+            crystal_cave: { name: {zh: '水晶洞穴', en: 'Crystal Cave'}, cost: 3200, preview: '#a855f7', class: 'bg-crystal-cave' },
+            galaxy_space: { name: {zh: '浩瀚銀河', en: 'Galaxy Space'}, cost: 3400, preview: '#1e1b4b', class: 'bg-galaxy-space' },
+            desert_oasis: { name: {zh: '沙漠綠洲', en: 'Desert Oasis'}, cost: 3500, preview: '#fde047', class: 'bg-desert-oasis' },
+            ancient_ruins: { name: {zh: '遠古遺跡', en: 'Ancient Ruins'}, cost: 3600, preview: '#78350f', class: 'bg-ancient-ruins' },
+            volcano_core: { name: {zh: '熔岩火山', en: 'Lava Volcano'}, cost: 3800, preview: '#ef4444', class: 'bg-volcano-core' },
+            floating_island: { name: {zh: '浮空島嶼', en: 'Floating Island'}, cost: 4000, preview: '#38bdf8', class: 'bg-floating-island' },
+
+            // 4200 ~ 5000 頂級壓軸殿堂系列
+            underwater_temple: { name: {zh: '亞特蘭提斯', en: 'Atlantis'}, cost: 4200, preview: '#0ea5e9', class: 'bg-underwater-temple' },
+            cyber_matrix: { name: {zh: '數位母體', en: 'Digital Matrix'}, cost: 4500, preview: '#10b981', class: 'bg-cyber-matrix' },
+            celestial_realm: { name: {zh: '雲端神域', en: 'Celestial Realm'}, cost: 4800, preview: '#fef08a', class: 'bg-celestial-realm' },
+            dream_wonderland: { name: {zh: '夢境仙境', en: 'Dreamland'}, cost: 5000, preview: '#e879f9', class: 'bg-dream-wonderland' },
+            royal_palace: { name: {zh: '皇家宮殿', en: 'Royal Palace'}, cost: 5200, preview: '#eab308', class: 'bg-royal-palace' }
         };
 
         const svgLib = {
@@ -1822,7 +1815,7 @@ const effectData = {
             butterfly: { name: {zh: '蝴蝶翩翩', en: 'Butterflies'}, cost: 2100, preview: '#c084fc', svg: [{s: 'butterfly'}], dir: 'up', count: 10 },
        
            sakura: { name: {zh: '櫻花飛舞', en: 'Sakura'}, cost: 2200, preview: '#fbcfe8' },
-            lightning: { name: {zh: '閃電交加', en: 'Lightning'}, cost: 2400, preview: '#fde047', svg: [{s: 'lightning'}], dir: 'down', count: 12 },
+            lightning: { name: {zh: '閃電交加', en: 'Lightning'}, cost: 2400, preview: '#fde047' },
             disco: { name: {zh: '回程挑釁', en: 'Recall Taunt'}, cost: 2500, preview: '#c084fc', svg: [{s: 'star'}, {s: 'music'}], dir: 'up', count: 10 },
             ghost: { name: {zh: '小幽靈', en: 'Little Ghosts'}, cost: 2500, preview: '#f8fafc', svg: [{s: 'ghost'}], dir: 'up', count: 10 },
             confetti: { name: {zh: '派對拉炮', en: 'Confetti'}, cost: 2500, preview: '#f472b6', svg: [{s: 'star'}, {s: 'sparkle'}], dir: 'down', count: 20 },
@@ -2363,6 +2356,9 @@ let trialTimeLeft = 10; // 全域記錄試用剩餘時間
     if (window.staffSpawnerInterval) clearInterval(window.staffSpawnerInterval);
     window.staffIsLooping = false;
     window.staffSessionId = null;
+    // 🛑 閃電定時器清道夫
+    if (window.lightningInterval) clearInterval(window.lightningInterval);
+    if (window.lightningCloudTimeout) clearTimeout(window.lightningCloudTimeout);
 
     // 👇👇👇 寶寶看這裡！這兩行是我們新加的魔法陣 👇👇👇
     const customTauntBtn = document.getElementById('customTauntBtn');
@@ -4589,6 +4585,461 @@ case 'butterfly': {
 
                         layer.appendChild(el);
                     }
+                    break;
+                    // ⚡ 【閃電交加】多層次立體積雨雲 ＋ 雲內透光破空雷 ＋ 真實雷鳴
+                case 'lightning':
+                    if (!document.getElementById('stormLightningStyle')) {
+                        const style = document.createElement('style');
+                        style.id = 'stormLightningStyle';
+                        style.innerHTML = `
+                            /* 🌟 1. 三層立體烏雲容器 */
+                            .storm-sky-wrapper {
+                                position: absolute;
+                                top: -20px;
+                                left: -10%;
+                                width: 120%;
+                                height: 260px;
+                                z-index: 12;
+                                pointer-events: none;
+                                overflow: visible;
+                            }
+
+                            /* (A) 遠景深邃烏雲層 (模糊度最高、顏色最深) */
+                            .cloud-layer-back {
+                                position: absolute;
+                                inset: 0;
+                                filter: blur(30px);
+                                opacity: 0.85;
+                            }
+                            .cloud-blob-deep {
+                                position: absolute;
+                                border-radius: 50%;
+                                background: radial-gradient(ellipse at center, rgba(15, 23, 42, 0.95) 0%, rgba(30, 27, 75, 0.8) 60%, transparent 85%);
+                                transition: filter 0.08s ease-out, background 0.08s ease-out;
+                            }
+
+                            /* (B) 中景厚重積雨雲層 (核心雲團、主要蓄電區) */
+                            .cloud-layer-mid {
+                                position: absolute;
+                                inset: 0;
+                                filter: blur(16px);
+                                opacity: 0.9;
+                            }
+                            .cloud-blob-mid {
+                                position: absolute;
+                                border-radius: 50%;
+                                background: radial-gradient(ellipse at center, rgba(30, 41, 59, 0.95) 0%, rgba(15, 23, 42, 0.75) 65%, transparent 85%);
+                                transition: filter 0.06s ease-out, transform 0.1s ease-out;
+                            }
+
+                            /* (C) 前景飄逸低雲層 (層次最豐富、邊緣清晰) */
+                            .cloud-layer-front {
+                                position: absolute;
+                                inset: 0;
+                                filter: blur(10px);
+                                opacity: 0.75;
+                            }
+                            .cloud-blob-front {
+                                position: absolute;
+                                border-radius: 50%;
+                                background: radial-gradient(ellipse at center, rgba(51, 65, 85, 0.85) 0%, rgba(30, 41, 59, 0.4) 60%, transparent 80%);
+                                transition: filter 0.06s ease-out;
+                            }
+
+                            /* 🌟 雲層內部被電光打亮的立體透光狀態 */
+                            .cloud-lit-core {
+                                background: radial-gradient(ellipse at center, rgba(224, 242, 254, 0.98) 0%, rgba(96, 165, 250, 0.8) 45%, rgba(15, 23, 42, 0.6) 80%) !important;
+                                filter: blur(12px) brightness(2.2) !important;
+                            }
+                            .cloud-lit-edge {
+                                background: radial-gradient(ellipse at center, rgba(147, 197, 253, 0.8) 0%, rgba(59, 130, 246, 0.4) 55%, transparent 80%) !important;
+                                filter: blur(8px) brightness(1.6) !important;
+                            }
+
+                            /* 🌟 2. 全螢幕電光爆閃 */
+                            .lightning-screen-flash {
+                                position: absolute;
+                                inset: 0;
+                                background: radial-gradient(circle at 50% 20%, rgba(248, 250, 252, 0.4) 0%, rgba(147, 197, 253, 0.18) 55%, transparent 100%);
+                                z-index: 11;
+                                pointer-events: none;
+                                opacity: 0;
+                                transition: opacity 0.05s ease-out;
+                            }
+                            .lightning-screen-flash.active-flash {
+                                opacity: 1 !important;
+                            }
+
+                            /* 🌟 3. SVG 閃電畫布 */
+                            .lightning-svg-canvas {
+                                position: absolute;
+                                inset: 0;
+                                width: 100%;
+                                height: 100%;
+                                z-index: 15;
+                                pointer-events: none;
+                                overflow: visible;
+                            }
+                        `;
+                        document.head.appendChild(style);
+                    }
+
+                    // 1. 建立立體多層次烏雲天幕
+                    const stormId = Math.random();
+                    window.stormSessionId = stormId;
+
+                    const flashLayer = document.createElement('div');
+                    flashLayer.className = 'lightning-screen-flash';
+                    layer.appendChild(flashLayer);
+
+                    const skyWrapper = document.createElement('div');
+                    skyWrapper.className = 'storm-sky-wrapper';
+
+                    // (A) 遠景層 DOM
+                    const layerBack = document.createElement('div');
+                    layerBack.className = 'cloud-layer-back';
+                    const backConfigs = [
+                        { w: 450, h: 220, l: '-8%', t: '-40px' },
+                        { w: 500, h: 240, l: '30%', t: '-50px' },
+                        { w: 420, h: 200, l: '65%', t: '-30px' }
+                    ];
+                    backConfigs.forEach(cfg => {
+                        const b = document.createElement('div');
+                        b.className = 'cloud-blob-deep';
+                        b.style.width = cfg.w + 'px'; b.style.height = cfg.h + 'px';
+                        b.style.left = cfg.l; b.style.top = cfg.t;
+                        layerBack.appendChild(b);
+                    });
+
+                    // (B) 中景層 DOM
+                    const layerMid = document.createElement('div');
+                    layerMid.className = 'cloud-layer-mid';
+                    const midConfigs = [
+                        { w: 320, h: 160, l: '5%', t: '-15px' },
+                        { w: 360, h: 180, l: '28%', t: '-25px' },
+                        { w: 380, h: 190, l: '52%', t: '-20px' },
+                        { w: 300, h: 150, l: '78%', t: '-10px' }
+                    ];
+                    midConfigs.forEach(cfg => {
+                        const m = document.createElement('div');
+                        m.className = 'cloud-blob-mid';
+                        m.style.width = cfg.w + 'px'; m.style.height = cfg.h + 'px';
+                        m.style.left = cfg.l; m.style.top = cfg.t;
+                        layerMid.appendChild(m);
+                    });
+
+                    // (C) 前景層 DOM
+                    const layerFront = document.createElement('div');
+                    layerFront.className = 'cloud-layer-front';
+                    const frontConfigs = [
+                        { w: 240, h: 120, l: '0%', t: '25px' },
+                        { w: 260, h: 130, l: '22%', t: '15px' },
+                        { w: 280, h: 140, l: '45%', t: '30px' },
+                        { w: 250, h: 125, l: '70%', t: '20px' }
+                    ];
+                    frontConfigs.forEach(cfg => {
+                        const f = document.createElement('div');
+                        f.className = 'cloud-blob-front';
+                        f.style.width = cfg.w + 'px'; f.style.height = cfg.h + 'px';
+                        f.style.left = cfg.l; f.style.top = cfg.t;
+                        layerFront.appendChild(f);
+                    });
+
+                    skyWrapper.appendChild(layerBack);
+                    skyWrapper.appendChild(layerMid);
+                    skyWrapper.appendChild(layerFront);
+                    layer.appendChild(skyWrapper);
+
+                    const svgCanvas = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+                    svgCanvas.setAttribute('class', 'lightning-svg-canvas');
+                    layer.appendChild(svgCanvas);
+
+                    // 2. ⚡ 雷鳴音效引擎（無版權真實錄音 ＋ 立體層次備用合成）
+                    const thunderAudio = new Audio('https://upload.wikimedia.org/wikipedia/commons/transcoded/f/f6/Thunder.ogg/Thunder.ogg.mp3');
+                    thunderAudio.preload = 'auto';
+
+                   // ⚡ 真實層次感雷鳴音效合成器 (免外部檔案、保證有聲、無版權問題)
+function playThunderSound() {
+    try {
+        const ctx = getAudioCtx();
+        if (!ctx) return;
+        if (ctx.state === 'suspended') ctx.resume();
+
+        const now = ctx.currentTime;
+
+        // 1. 【高頻電弧炸裂聲】(Sharp Crack)
+        const crackBuffer = ctx.createBuffer(1, Math.floor(ctx.sampleRate * 0.2), ctx.sampleRate);
+        const cData = crackBuffer.getChannelData(0);
+        for (let i = 0; i < cData.length; i++) {
+            cData[i] = (Math.random() * 2 - 1) * Math.exp(-i / (ctx.sampleRate * 0.04));
+        }
+        const crackSrc = ctx.createBufferSource();
+        crackSrc.buffer = crackBuffer;
+
+        const crackFilter = ctx.createBiquadFilter();
+        crackFilter.type = 'highpass';
+        crackFilter.frequency.setValueAtTime(1000, now);
+
+        const crackGain = ctx.createGain();
+        crackGain.gain.setValueAtTime(0.85, now);
+        crackGain.gain.exponentialRampToValueAtTime(0.01, now + 0.18);
+
+        crackSrc.connect(crackFilter);
+        crackFilter.connect(crackGain);
+        crackGain.connect(ctx.destination);
+        crackSrc.start(now);
+
+        // 2. 【中低頻雷擊爆炸聲】(Boom Impact)
+        const osc = ctx.createOscillator();
+        const oscGain = ctx.createGain();
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(180, now);
+        osc.frequency.exponentialRampToValueAtTime(40, now + 0.45);
+
+        oscGain.gain.setValueAtTime(0.75, now);
+        oscGain.gain.exponentialRampToValueAtTime(0.001, now + 0.48);
+
+        osc.connect(oscGain);
+        oscGain.connect(ctx.destination);
+        osc.start(now);
+        osc.stop(now + 0.5);
+
+        // 3. 【深沉滾動回音】(Rolling Thunder Rumble)
+        const rumbleBuffer = ctx.createBuffer(1, Math.floor(ctx.sampleRate * 1.8), ctx.sampleRate);
+        const rData = rumbleBuffer.getChannelData(0);
+        for (let i = 0; i < rData.length; i++) {
+            rData[i] = (Math.random() * 2 - 1) * Math.exp(-i / (ctx.sampleRate * 0.7));
+        }
+        const rumbleSrc = ctx.createBufferSource();
+        rumbleSrc.buffer = rumbleBuffer;
+
+        const rumbleFilter = ctx.createBiquadFilter();
+        rumbleFilter.type = 'lowpass';
+        rumbleFilter.frequency.setValueAtTime(320, now);
+        rumbleFilter.frequency.linearRampToValueAtTime(70, now + 1.6);
+
+        const rumbleGain = ctx.createGain();
+        rumbleGain.gain.setValueAtTime(0.0, now);
+        rumbleGain.gain.linearRampToValueAtTime(0.9, now + 0.05);
+        rumbleGain.gain.exponentialRampToValueAtTime(0.001, now + 1.7);
+
+        rumbleSrc.connect(rumbleFilter);
+        rumbleFilter.connect(rumbleGain);
+        rumbleGain.connect(ctx.destination);
+        rumbleSrc.start(now + 0.02);
+
+    } catch (e) {
+        console.error('Thunder sound error:', e);
+    }
+}
+
+                    function fallbackSynthesizeThunder() {
+                        try {
+                            const ctx = getAudioCtx();
+                            if (!ctx) return;
+                            if (ctx.state === 'suspended') ctx.resume();
+                            const now = ctx.currentTime;
+
+                            // (1) 近處電弧爆裂聲
+                            const cLen = Math.floor(ctx.sampleRate * 0.25);
+                            const cBuf = ctx.createBuffer(1, cLen, ctx.sampleRate);
+                            const cData = cBuf.getChannelData(0);
+                            for (let i = 0; i < cLen; i++) cData[i] = (Math.random() * 2 - 1) * Math.exp(-i / (ctx.sampleRate * 0.06));
+                            const cSrc = ctx.createBufferSource();
+                            cSrc.buffer = cBuf;
+                            const cFilt = ctx.createBiquadFilter();
+                            cFilt.type = 'highpass';
+                            cFilt.frequency.setValueAtTime(800, now);
+                            const cGain = ctx.createGain();
+                            cGain.gain.setValueAtTime(0.7, now);
+                            cGain.gain.exponentialRampToValueAtTime(0.01, now + 0.22);
+                            cSrc.connect(cFilt); cFilt.connect(cGain); cGain.connect(ctx.destination);
+                            cSrc.start(now);
+
+                            // (2) 遠處沉悶回響滾雷
+                            const rLen = Math.floor(ctx.sampleRate * 1.6);
+                            const rBuf = ctx.createBuffer(1, rLen, ctx.sampleRate);
+                            const rData = rBuf.getChannelData(0);
+                            for (let i = 0; i < rLen; i++) rData[i] = (Math.random() * 2 - 1) * Math.exp(-i / (ctx.sampleRate * 0.65));
+                            const rSrc = ctx.createBufferSource();
+                            rSrc.buffer = rBuf;
+                            const rFilt = ctx.createBiquadFilter();
+                            rFilt.type = 'lowpass';
+                            rFilt.frequency.setValueAtTime(280, now);
+                            rFilt.frequency.linearRampToValueAtTime(70, now + 1.5);
+                            const rGain = ctx.createGain();
+                            rGain.gain.setValueAtTime(0.0, now);
+                            rGain.gain.linearRampToValueAtTime(0.85, now + 0.06);
+                            rGain.gain.exponentialRampToValueAtTime(0.001, now + 1.55);
+                            rSrc.connect(rFilt); rFilt.connect(rGain); rGain.connect(ctx.destination);
+                            rSrc.start(now + 0.03);
+                        } catch(err) {}
+                    }
+
+                    // 3. ⚡ 遞迴生成穿透雲層的自然蜿蜒閃電路徑
+                    function createLightningPath(startX, startY, endX, endY, maxDisplacement = 48) {
+                        let segments = [{ x1: startX, y1: startY, x2: endX, y2: endY }];
+                        let branches = [];
+                        const iterations = 5;
+
+                        for (let i = 0; i < iterations; i++) {
+                            const newSegments = [];
+                            const currentDisp = maxDisplacement / Math.pow(1.65, i);
+
+                            segments.forEach(seg => {
+                                const midX = (seg.x1 + seg.x2) / 2 + (Math.random() * 2 - 1) * currentDisp;
+                                const midY = (seg.y1 + seg.y2) / 2 + (Math.random() * 2 - 1) * (currentDisp * 0.55);
+
+                                newSegments.push({ x1: seg.x1, y1: seg.y1, x2: midX, y2: midY });
+                                newSegments.push({ x1: midX, y1: midY, x2: seg.x2, y2: seg.y2 });
+
+                                // 生成多道側向分岔電弧
+                                if (i === 2 && Math.random() < 0.7) {
+                                    const branchLength = 75 + Math.random() * 85;
+                                    const angle = Math.atan2(seg.y2 - seg.y1, seg.x2 - seg.x1) + (Math.random() * 1.3 - 0.65);
+                                    branches.push({
+                                        x1: midX,
+                                        y1: midY,
+                                        x2: midX + Math.cos(angle) * branchLength,
+                                        y2: midY + Math.sin(angle) * branchLength
+                                    });
+                                }
+                            });
+                            segments = newSegments;
+                        }
+
+                        let pathD = `M ${startX} ${startY}`;
+                        segments.forEach(s => { pathD += ` L ${s.x2} ${s.y2}`; });
+
+                        let branchD = '';
+                        branches.forEach(b => {
+                            branchD += ` M ${b.x1} ${b.y1} L ${b.x2} ${b.y2}`;
+                        });
+
+                        return { main: pathD, branch: branchD };
+                    }
+
+                    // 4. ⚡ 發動「雲內蓄光 ➔ 破雲劈下」落雷打擊
+                    function triggerLightningStrike(targetX = null, targetY = null) {
+                        if (window.stormSessionId !== stormId) return;
+
+                        const rect = layer.getBoundingClientRect();
+                        
+                        // 🌟 起點嚴格設定在「中層雲團核心深處」
+                        const startX = Math.random() * (rect.width * 0.65) + (rect.width * 0.18);
+                        const startY = Math.random() * 35 + 20; 
+
+                        const endX = targetX !== null ? targetX : startX + (Math.random() * 180 - 90);
+                        const endY = targetY !== null ? targetY : rect.height * (0.65 + Math.random() * 0.25);
+
+                        const paths = createLightningPath(startX, startY, endX, endY);
+
+                        // (A) 最外層青藍強烈電光暈
+                        const outerGlow = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                        outerGlow.setAttribute('d', paths.main);
+                        outerGlow.setAttribute('stroke', '#38bdf8');
+                        outerGlow.setAttribute('stroke-width', '11');
+                        outerGlow.setAttribute('fill', 'none');
+                        outerGlow.setAttribute('stroke-linecap', 'round');
+                        outerGlow.setAttribute('style', 'filter: drop-shadow(0 0 16px #0284c7); opacity: 0.8;');
+
+                        // (B) 次外層電光金白暈
+                        const midGlow = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                        midGlow.setAttribute('d', paths.main);
+                        midGlow.setAttribute('stroke', '#93c5fd');
+                        midGlow.setAttribute('stroke-width', '5.5');
+                        midGlow.setAttribute('fill', 'none');
+                        midGlow.setAttribute('stroke-linecap', 'round');
+
+                        // (C) 核心極亮純白主雷柱 (保證穿透雲層清晰無比)
+                        const mainBolt = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                        mainBolt.setAttribute('d', paths.main);
+                        mainBolt.setAttribute('stroke', '#ffffff');
+                        mainBolt.setAttribute('stroke-width', '3');
+                        mainBolt.setAttribute('fill', 'none');
+                        mainBolt.setAttribute('stroke-linecap', 'round');
+                        mainBolt.setAttribute('style', 'filter: drop-shadow(0 0 8px #ffffff);');
+
+                        // (D) 分岔細電弧
+                        let branchBolt = null;
+                        if (paths.branch) {
+                            branchBolt = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                            branchBolt.setAttribute('d', paths.branch);
+                            branchBolt.setAttribute('stroke', '#bfdbfe');
+                            branchBolt.setAttribute('stroke-width', '2');
+                            branchBolt.setAttribute('fill', 'none');
+                            branchBolt.setAttribute('style', 'filter: drop-shadow(0 0 6px #60a5fa); opacity: 0.85;');
+                            svgCanvas.appendChild(branchBolt);
+                        }
+
+                        svgCanvas.appendChild(outerGlow);
+                        svgCanvas.appendChild(midGlow);
+                        svgCanvas.appendChild(mainBolt);
+
+                        // 🌟 雲層層次透光：中景與遠景核心亮起，前景邊緣泛光
+                        flashLayer.classList.add('active-flash');
+                        layerMid.querySelectorAll('.cloud-blob-mid').forEach(c => c.classList.add('cloud-lit-core'));
+                        layerBack.querySelectorAll('.cloud-blob-deep').forEach(c => c.classList.add('cloud-lit-edge'));
+                        layerFront.querySelectorAll('.cloud-blob-front').forEach(c => c.classList.add('cloud-lit-edge'));
+                        
+                        playThunderSound();
+
+                        // 真實頻閃兩次，模擬雲間雷光跳動
+                        setTimeout(() => {
+                            flashLayer.classList.remove('active-flash');
+                            mainBolt.style.opacity = '0.25';
+                            midGlow.style.opacity = '0.25';
+                            outerGlow.style.opacity = '0.25';
+                        }, 50);
+
+                        setTimeout(() => {
+                            flashLayer.classList.add('active-flash');
+                            mainBolt.style.opacity = '1';
+                            midGlow.style.opacity = '1';
+                            outerGlow.style.opacity = '0.85';
+                        }, 85);
+
+                        setTimeout(() => {
+                            flashLayer.classList.remove('active-flash');
+                            layerMid.querySelectorAll('.cloud-blob-mid').forEach(c => c.classList.remove('cloud-lit-core'));
+                            layerBack.querySelectorAll('.cloud-blob-deep').forEach(c => c.classList.remove('cloud-lit-edge'));
+                            layerFront.querySelectorAll('.cloud-blob-front').forEach(c => c.classList.remove('cloud-lit-edge'));
+                            outerGlow.remove();
+                            midGlow.remove();
+                            mainBolt.remove();
+                            if (branchBolt) branchBolt.remove();
+                        }, 260);
+                    }
+
+                    // 5. 點擊畫面任意處立即召喚雷擊
+                    layer.style.pointerEvents = 'auto';
+                    layer.onpointerdown = (e) => {
+                        const rect = layer.getBoundingClientRect();
+                        const clickX = e.clientX - rect.left;
+                        const clickY = e.clientY - rect.top;
+                        triggerLightningStrike(clickX, clickY);
+
+                        if (!trialState.effect) {
+                            gameState.points += 5;
+                            saveGame();
+                            updateUI();
+                            showFloatText('⚡ 雷鳴召喚 +5');
+                        }
+                    };
+
+                    // 6. 自動隨機落雷循環
+                    function loopRandomStorm() {
+                        if (window.stormSessionId !== stormId) return;
+                        const activeEffect = trialState.effect || gameState.currentEffect;
+                        if (activeEffect !== 'lightning') return;
+
+                        triggerLightningStrike();
+
+                        const nextDelay = Math.random() * 2200 + 2600;
+                        window.lightningInterval = setTimeout(loopRandomStorm, nextDelay);
+                    }
+
+                    setTimeout(loopRandomStorm, 600);
                     break;
 // 💖 【心動幻境】水晶愛心由下往上飄、帶有朦朧透光感，支援滑鼠互動與左下角正方形色系切換
 case 'heartbeat':
