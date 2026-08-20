@@ -2387,7 +2387,8 @@ let trialTimeLeft = 10; // 全域記錄試用剩餘時間
             // 🎉 歡樂派對拉炮清道夫
             if (window.partyInterval) clearTimeout(window.partyInterval);
             window.partySessionId = null;
-
+if (window.gearClockInterval) clearInterval(window.gearClockInterval);
+            window.gearSessionId = null;
             // 🧹 拔除幽靈跟拉炮的專屬背景迷霧與樣式
             ['ghostEffectStyle', 'partyEffectStyle', 'confettiEffectStyle'].forEach(id => {
                 const el = document.getElementById(id);
@@ -2540,6 +2541,295 @@ let trialTimeLeft = 10; // 全域記錄試用剩餘時間
                     const tvFilter = document.createElement('div');
                     tvFilter.className = 'tv-filter-overlay';
                     layer.appendChild(tvFilter);
+                    break;
+                    // ⚙️ 【齒輪運轉】無限時間漩渦 ＋ 歐式指針 ＋ 世紀老舊仿舊濾鏡 ＋ 四周淡齒輪 ＋ 逼真機械鐘錶滴答聲（Tick-Tock）
+                case 'gear':
+                    if (!document.getElementById('gearEffectStyle')) {
+                        const style = document.createElement('style');
+                        style.id = 'gearEffectStyle';
+                        style.innerHTML = `
+                            /* 🌟 1. 舞台容器 */
+                            .pure-vortex-stage {
+                                position: absolute; inset: 0; width: 100%; height: 100%;
+                                pointer-events: none; z-index: 11; overflow: hidden;
+                            }
+
+                            /* 🌟 2. 泛黃羊皮紙老舊濾鏡 */
+                            .vintage-sepia-overlay {
+                                position: absolute; inset: 0; width: 100%; height: 100%;
+                                pointer-events: none; z-index: 1;
+                                background: radial-gradient(circle at 50% 50%, rgba(254, 243, 199, 0.08) 30%, rgba(180, 83, 9, 0.16) 75%, rgba(69, 26, 3, 0.38) 100%);
+                                mix-blend-mode: multiply;
+                                animation: vintageFilmFlicker 8s ease-in-out infinite alternate;
+                            }
+
+                            /* 🌟 3. 世紀老舊噪點微粒 */
+                            .vintage-dust-film {
+                                position: absolute; inset: 0; width: 100%; height: 100%;
+                                pointer-events: none; z-index: 2;
+                                opacity: 0.22;
+                                mix-blend-mode: overlay;
+                            }
+
+                            @keyframes vintageFilmFlicker {
+                                0% { opacity: 0.85; filter: contrast(1.05) brightness(0.98); }
+                                50% { opacity: 1.0; filter: contrast(1.12) brightness(1.02); }
+                                100% { opacity: 0.9; filter: contrast(1.08) brightness(0.96); }
+                            }
+
+                            /* 🌟 4. 中央羅馬時鐘時間漩渦浮水印 */
+                            .vortex-pure-watermark {
+                                position: absolute; top: 50%; left: 50%;
+                                width: 145vmin; height: 145vmin;
+                                transform: translate(-50%, -50%);
+                                color: #451a03;
+                                opacity: 0.22;
+                                pointer-events: none;
+                                z-index: 3;
+                                filter: sepia(0.65) blur(0.4px);
+                                -webkit-mask-image: radial-gradient(circle at 50% 50%, rgba(0,0,0,1) 25%, rgba(0,0,0,0.7) 50%, rgba(0,0,0,0) 75%);
+                                mask-image: radial-gradient(circle at 50% 50%, rgba(0,0,0,1) 25%, rgba(0,0,0,0.7) 50%, rgba(0,0,0,0) 75%);
+                            }
+
+                            /* 🌟 5. 四周淡淡浮水印齒輪 */
+                            .faint-corner-gear {
+                                position: absolute;
+                                transform-origin: center center;
+                                color: #451a03;
+                                opacity: 0.13;
+                                pointer-events: none;
+                                z-index: 3;
+                                filter: sepia(0.8) blur(0.3px);
+                            }
+
+                            /* 刻度環、指針與齒輪旋轉動畫 */
+                            .vortex-spin-cw { animation: spinVortexCW linear infinite; transform-origin: 500px 500px; }
+                            .vortex-spin-ccw { animation: spinVortexCCW linear infinite; transform-origin: 500px 500px; }
+                            
+                            .clock-hand-hour { animation: spinVortexCW 45s linear infinite; transform-origin: 500px 500px; }
+                            .clock-hand-minute { animation: spinVortexCW 15s linear infinite; transform-origin: 500px 500px; }
+                            .clock-hand-second { animation: spinVortexCW 6s linear infinite; transform-origin: 500px 500px; }
+
+                            .faint-spin-cw { animation: faintGearSpinCW linear infinite; }
+                            .faint-spin-ccw { animation: faintGearSpinCCW linear infinite; }
+
+                            @keyframes spinVortexCW { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+                            @keyframes spinVortexCCW { 0% { transform: rotate(0deg); } 100% { transform: rotate(-360deg); } }
+                            
+                            @keyframes faintGearSpinCW { 0% { transform: translate(-50%, -50%) rotate(0deg); } 100% { transform: translate(-50%, -50%) rotate(360deg); } }
+                            @keyframes faintGearSpinCCW { 0% { transform: translate(-50%, -50%) rotate(0deg); } 100% { transform: translate(-50%, -50%) rotate(-360deg); } }
+                        `;
+                        document.head.appendChild(style);
+                    }
+
+                    const gearStage = document.createElement('div');
+                    gearStage.className = 'pure-vortex-stage';
+                    const gearSessionId = Math.random();
+                    window.gearSessionId = gearSessionId;
+
+                    // 🕰️ 【Web Audio 精密機械時鐘「滴（Tick）- 答（Tock）」聲】
+                    function playClockTick(isTick = true) {
+                        try {
+                            if (!window.sharedAudioCtx) window.sharedAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                            const ctx = window.sharedAudioCtx;
+                            if (ctx.state === 'suspended') ctx.resume();
+
+                            const now = ctx.currentTime;
+
+                            // 1. 齒輪金屬碰擊撞針高頻微聲
+                            const snapLen = Math.floor(ctx.sampleRate * 0.025);
+                            const snapBuf = ctx.createBuffer(1, snapLen, ctx.sampleRate);
+                            const snapData = snapBuf.getChannelData(0);
+                            for (let i = 0; i < snapLen; i++) {
+                                snapData[i] = (Math.random() * 2 - 1) * Math.exp(-i / (ctx.sampleRate * 0.003));
+                            }
+                            const snapSrc = ctx.createBufferSource();
+                            snapSrc.buffer = snapBuf;
+                            const snapFilter = ctx.createBiquadFilter();
+                            snapFilter.type = 'bandpass';
+                            snapFilter.frequency.setValueAtTime(isTick ? 2400 : 1800, now);
+                            snapFilter.Q.setValueAtTime(3.0, now);
+
+                            const snapGain = ctx.createGain();
+                            snapGain.gain.setValueAtTime(0.35, now);
+                            snapGain.gain.exponentialRampToValueAtTime(0.001, now + 0.025);
+
+                            snapSrc.connect(snapFilter);
+                            snapFilter.connect(snapGain);
+                            snapGain.connect(ctx.destination);
+                            snapSrc.start(now);
+
+                            // 2. 木質/黃銅鐘身共鳴腔音（Tick 偏清脆高亢，Tock 偏沉穩厚實）
+                            const toneOsc = ctx.createOscillator();
+                            toneOsc.type = 'triangle';
+                            const baseFreq = isTick ? 1200 : 820;
+                            toneOsc.frequency.setValueAtTime(baseFreq, now);
+                            toneOsc.frequency.exponentialRampToValueAtTime(baseFreq * 0.4, now + 0.045);
+
+                            const toneGain = ctx.createGain();
+                            toneGain.gain.setValueAtTime(0.28, now);
+                            toneGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.045);
+
+                            toneOsc.connect(toneGain);
+                            toneGain.connect(ctx.destination);
+                            toneOsc.start(now);
+                            toneOsc.stop(now + 0.05);
+
+                        } catch (e) {
+                            console.error('Clock tick audio error:', e);
+                        }
+                    }
+
+                    // 🕰️ 生成羅馬數字時鐘環
+                    const numerals = ['XII', 'I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X', 'XI'];
+                    function createCleanClockRing(radius, fontSize, duration, isCW, hasTicks) {
+                        let g = `<g class="${isCW ? 'vortex-spin-cw' : 'vortex-spin-ccw'}" style="animation-duration: ${duration}s;">`;
+                        g += `<circle cx="500" cy="500" r="${radius + fontSize * 0.22}" fill="none" stroke="currentColor" stroke-width="2.5" opacity="0.45"/>`;
+                        g += `<circle cx="500" cy="500" r="${radius - fontSize * 0.95}" fill="none" stroke="currentColor" stroke-width="1.5" opacity="0.35"/>`;
+                        
+                        if (hasTicks) {
+                            for (let i = 0; i < 60; i++) {
+                                let angle = i * 6;
+                                let isMajor = i % 5 === 0;
+                                let tickLen = isMajor ? fontSize * 0.35 : fontSize * 0.18;
+                                let y1 = 500 - radius + fontSize * 0.22;
+                                g += `<line x1="500" y1="${y1}" x2="500" y2="${y1 + tickLen}" transform="rotate(${angle} 500 500)" stroke="currentColor" stroke-width="${isMajor ? 2.5 : 1.2}" opacity="0.55"/>`;
+                            }
+                        }
+                        
+                        numerals.forEach((num, i) => {
+                            let angle = i * 30;
+                            g += `<text x="500" y="${500 - radius + fontSize * 0.88}" fill="currentColor" font-size="${fontSize}" font-family="Times New Roman, serif" font-weight="900" text-anchor="middle" transform="rotate(${angle} 500 500)">${num}</text>`;
+                        });
+                        g += `</g>`;
+                        return g;
+                    }
+
+                    // 🌟 6 層同心深度漩渦環
+                    let rings = '';
+                    rings += createCleanClockRing(440, 70, 130, true, true);
+                    rings += createCleanClockRing(330, 52, 95, false, true);
+                    rings += createCleanClockRing(230, 38, 70, true, true);
+                    rings += createCleanClockRing(150, 26, 45, false, true);
+                    rings += createCleanClockRing(90, 18, 28, true, false);
+                    rings += createCleanClockRing(50, 10, 18, false, false);
+
+                    // 🗡️ 復古歐式時鐘雕花指針
+                    const handsHTML = `
+                        <g class="clock-hand-hour">
+                            <path d="M 500 530 L 493 500 L 495 320 L 485 300 L 500 240 L 515 300 L 505 320 L 507 500 Z" fill="currentColor" opacity="0.85"/>
+                            <circle cx="500" cy="300" r="8" fill="none" stroke="currentColor" stroke-width="2.5" opacity="0.9"/>
+                        </g>
+
+                        <g class="clock-hand-minute">
+                            <path d="M 500 545 L 495 500 L 497 210 L 488 190 L 500 130 L 512 190 L 503 210 L 505 500 Z" fill="currentColor" opacity="0.8"/>
+                            <circle cx="500" cy="190" r="7" fill="none" stroke="currentColor" stroke-width="2" opacity="0.85"/>
+                        </g>
+
+                        <g class="clock-hand-second">
+                            <line x1="500" y1="570" x2="500" y2="80" stroke="currentColor" stroke-width="2.2" opacity="0.75"/>
+                            <circle cx="500" cy="140" r="5" fill="currentColor" opacity="0.8"/>
+                            <polygon points="500,70 496,85 504,85" fill="currentColor" opacity="0.9"/>
+                        </g>
+
+                        <circle cx="500" cy="500" r="22" fill="none" stroke="currentColor" stroke-width="2.5" opacity="0.6"/>
+                        <circle cx="500" cy="500" r="12" fill="currentColor" opacity="0.9"/>
+                        <circle cx="500" cy="500" r="4" fill="#ffffff" opacity="0.8"/>
+                    `;
+
+                    // ⚙️ 四周淡雅浮水印齒輪
+                    function getFaintGearSVG(spokes) {
+                        let spokeLines = '';
+                        const count = spokes || 6;
+                        for (let i = 0; i < count; i++) {
+                            const deg = (360 / count) * i;
+                            spokeLines += `<line x1="100" y1="28" x2="100" y2="172" stroke="currentColor" stroke-width="5" transform="rotate(${deg} 100 100)"/>`;
+                        }
+                        return `
+                            <svg viewBox="0 0 200 200" width="100%" height="100%">
+                                <circle cx="100" cy="100" r="86" fill="none" stroke="currentColor" stroke-width="18" stroke-dasharray="18 12" stroke-linecap="round"/>
+                                <circle cx="100" cy="100" r="74" fill="none" stroke="currentColor" stroke-width="8"/>
+                                <circle cx="100" cy="100" r="28" fill="none" stroke="currentColor" stroke-width="6"/>
+                                ${spokeLines}
+                                <circle cx="100" cy="100" r="12" fill="currentColor"/>
+                            </svg>
+                        `;
+                    }
+
+                    const faintGears = [
+                        { x: '-2%', y: '-2%', size: 210, spokes: 6, dir: 'cw', dur: 48 },
+                        { x: '16%', y: '-4%', size: 130, spokes: 8, dir: 'ccw', dur: 32 },
+                        { x: '-3%', y: '16%', size: 140, spokes: 4, dir: 'ccw', dur: 36 },
+                        { x: '102%', y: '-2%', size: 230, spokes: 8, dir: 'ccw', dur: 52 },
+                        { x: '84%', y: '-3%', size: 125, spokes: 6, dir: 'cw', dur: 30 },
+                        { x: '103%', y: '18%', size: 135, spokes: 4, dir: 'cw', dur: 35 },
+                        { x: '-3%', y: '102%', size: 220, spokes: 8, dir: 'ccw', dur: 50 },
+                        { x: '15%', y: '103%', size: 130, spokes: 4, dir: 'cw', dur: 34 },
+                        { x: '-4%', y: '82%', size: 135, spokes: 6, dir: 'cw', dur: 36 },
+                        { x: '102%', y: '102%', size: 240, spokes: 6, dir: 'cw', dur: 55 },
+                        { x: '85%', y: '103%', size: 120, spokes: 8, dir: 'ccw', dur: 30 },
+                        { x: '103%', y: '83%', size: 140, spokes: 4, dir: 'ccw', dur: 38 }
+                    ];
+
+                    let faintGearsHTML = '';
+                    faintGears.forEach(g => {
+                        faintGearsHTML += `
+                            <div class="faint-corner-gear ${g.dir === 'cw' ? 'faint-spin-cw' : 'faint-spin-ccw'}" 
+                                 style="left: ${g.x}; top: ${g.y}; width: ${g.size}px; height: ${g.size}px; animation-duration: ${g.dur}s;">
+                                ${getFaintGearSVG(g.spokes)}
+                            </div>
+                        `;
+                    });
+
+                    gearStage.innerHTML = `
+                        <div class="vintage-sepia-overlay"></div>
+                        <svg class="vintage-dust-film" viewBox="0 0 100 100" preserveAspectRatio="none">
+                            <defs>
+                                <filter id="vintagePaperGrain">
+                                    <feTurbulence type="fractalNoise" baseFrequency="0.8" numOctaves="4" stitchTiles="stitch"/>
+                                    <feColorMatrix type="matrix" values="0 0 0 0 0.4   0 0 0 0 0.25   0 0 0 0 0.1   0 0 0 0.35 0"/>
+                                </filter>
+                            </defs>
+                            <rect width="100%" height="100%" filter="url(#vintagePaperGrain)"/>
+                        </svg>
+                        ${faintGearsHTML}
+                        <svg class="vortex-pure-watermark" viewBox="0 0 1000 1000">
+                            ${rings}
+                            ${handsHTML}
+                        </svg>
+                    `;
+
+                    layer.appendChild(gearStage);
+
+                    // ⏱️ 定時精確每秒「滴・答」循環
+                    let isTickState = true;
+                    if (window.gearClockInterval) clearInterval(window.gearClockInterval);
+                    window.gearClockInterval = setInterval(() => {
+                        if (window.gearSessionId !== gearSessionId) return;
+                        const activeEffect = trialState.effect || gameState.currentEffect;
+                        if (activeEffect !== 'gear') {
+                            clearInterval(window.gearClockInterval);
+                            return;
+                        }
+                        playClockTick(isTickState);
+                        isTickState = !isTickState;
+                    }, 1000);
+
+                    // 互動點擊：撥快指針並觸發一次清脆敲擊
+                    layer.style.pointerEvents = 'auto';
+                    layer.onpointerdown = (e) => {
+                        if (window.sharedAudioCtx && window.sharedAudioCtx.state === 'suspended') {
+                            window.sharedAudioCtx.resume();
+                        }
+                        playClockTick(true);
+
+                        if (!trialState.effect) {
+                            gameState.points += 5;
+                            saveGame();
+                            updateUI();
+                            showFloatText('⏳ 時間漩渦 +5');
+                        }
+                    };
                     break;
 // 📐 【數學當機】正確數學公式（帶清晰背景框） + 發光滿版叉叉
                 case 'math':
