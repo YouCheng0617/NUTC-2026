@@ -13,6 +13,10 @@ export function petGameRouter() {
     router.post("/buy", authCheck, petGameController.buyShopItemController);
     router.get("/my-pet", authCheck, petGameController.getMyPetWithInventoryController);
 
+    // 每日簽到相關路由
+    router.post("/sign-in", authCheck, petGameController.signInPetController);
+    router.get("/sign-in-status", authCheck, petGameController.getSignInStatusController);
+
     return router;
 }
 

@@ -230,6 +230,11 @@ Query 參數 (必填)：?keyword=你要找的字
   "itemName": "snow"
 }
 
+每日簽到 POST 給Token /pet-games/sign-in
+(每日限簽到 1 次，14 天一週期循環：每滿 7 天即第 7、14 天獲得 200 金幣，其餘天數每天 100 金幣)
+
+查詢簽到狀態與 14 天獎勵預覽 GET 給Token /pet-games/sign-in-status
+
 ---
 
 ### 🧩 拼圖收集/圖鑑遊戲 API (`/game/collect`)

@@ -154,5 +154,156 @@ export const getMyPetWithInventory = async (memberId: number) => {
         });
     }
 
-    return pet;
+    const todayStr = getTodayDateStr(new Date());
+    const lastSignInStr = pet.last_sign_in_date ? getTodayDateStr(pet.last_sign_in_date) : null;
+    const is_signed_in_today = lastSignInStr === todayStr;
+
+    return {
+        ...pet,
+        is_signed_in_today
+    };
 };
+
+/**
+ * 輔助函式：取得台北時區 YYYY-MM-DD 日期字串
+ */
+function getTodayDateStr(date: Date = new Date()): string {
+    const formatter = new Intl.DateTimeFormat('zh-TW', {
+        timeZone: 'Asia/Taipei',
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit'
+    });
+    // formatted: "2026/08/20"
+    return formatter.format(date).replace(/\//g, '-');
+}
+
+/**
+ * 輔助函式：計算兩個 YYYY-MM-DD 字串相差天數 (date2 - date1)
+ */
+function getDayDiff(dateStr1: string, dateStr2: string): number {
+    const d1 = new Date(`${dateStr1}T00:00:00+08:00`).getTime();
+    const d2 = new Date(`${dateStr2}T00:00:00+08:00`).getTime();
+    return Math.round((d2 - d1) / (1000 * 60 * 60 * 24));
+}
+
+/**
+ * 每日簽到服務
+ */
+export const signInPetService = async (memberId: number) => {
+    let pet = await prisma.pet.findUnique({
+        where: { member_id: memberId }
+    });
+
+    if (!pet) {
+        pet = await prisma.pet.create({
+            data: { member_id: memberId }
+        });
+    }
+
+    const now = new Date();
+    const todayStr = getTodayDateStr(now);
+    const lastSignInStr = pet.last_sign_in_date ? getTodayDateStr(pet.last_sign_in_date) : null;
+
+    // 1. 檢查今日是否已簽到
+    if (lastSignInStr === todayStr) {
+        throw new Error("今天已經簽到過囉！明天再來領取獎勵吧～");
+    }
+
+    // 2. 計算連續簽到天數 (7天一週期循環)
+    let newStreak = 1;
+    if (lastSignInStr) {
+        const diffDays = getDayDiff(lastSignInStr, todayStr);
+        if (diffDays === 1) {
+            // 昨天有簽到 -> 連續簽到 +1 (若滿 7 天則回歸第 1 天)
+            newStreak = (pet.sign_in_streak % gameConfig.signIn.cycleDays) + 1;
+        } else {
+            // 斷簽 -> 重設為第 1 天
+            newStreak = 1;
+        }
+    }
+
+    // 3. 取得今日獎勵 (每滿 7 天即第 7、14 天為 200 金幣，其餘 100 金幣)
+    const isBonus = newStreak % 7 === 0;
+    const rewardConfig = gameConfig.signIn.rewards.find(r => r.day === newStreak) || {
+        day: newStreak,
+        coin: isBonus ? 200 : 100
+    };
+
+    // 4. 更新資料庫
+    const updatedPet = await prisma.pet.update({
+        where: { member_id: memberId },
+        data: {
+            coin: { increment: rewardConfig.coin },
+            last_sign_in_date: now,
+            sign_in_streak: newStreak,
+            total_sign_in_days: { increment: 1 }
+        },
+        include: { PetInventory: true }
+    });
+
+    return {
+        message: isBonus ? `🎉 恭喜達成第 ${newStreak} 天連續簽到！獲得大獎 200 金幣！` : `✨ 今日簽到成功！獲得 ${rewardConfig.coin} 金幣！`,
+        rewardCoin: rewardConfig.coin,
+        streak: newStreak,
+        totalSignInDays: updatedPet.total_sign_in_days,
+        isBonus,
+        pet: updatedPet
+    };
+};
+
+/**
+ * 取得簽到狀態與 14 天獎勵預覽
+ */
+export const getSignInStatusService = async (memberId: number) => {
+    let pet = await prisma.pet.findUnique({
+        where: { member_id: memberId }
+    });
+
+    if (!pet) {
+        pet = await prisma.pet.create({
+            data: { member_id: memberId }
+        });
+    }
+
+    const now = new Date();
+    const todayStr = getTodayDateStr(now);
+    const lastSignInStr = pet.last_sign_in_date ? getTodayDateStr(pet.last_sign_in_date) : null;
+    const is_signed_in_today = lastSignInStr === todayStr;
+
+    // 計算當前連續天數有效值
+    let currentStreak = pet.sign_in_streak;
+    if (lastSignInStr && !is_signed_in_today) {
+        const diffDays = getDayDiff(lastSignInStr, todayStr);
+        if (diffDays > 1) {
+            // 已斷簽，下次簽到將為第 1 天
+            currentStreak = 0;
+        }
+    }
+
+    // 組裝 14 天簽到清單
+    const schedule = gameConfig.signIn.rewards.map(item => {
+        let status: 'COMPLETED' | 'AVAILABLE_TODAY' | 'UPCOMING' = 'UPCOMING';
+        if (is_signed_in_today) {
+            if (item.day <= currentStreak) status = 'COMPLETED';
+        } else {
+            if (item.day <= currentStreak) status = 'COMPLETED';
+            else if (item.day === (currentStreak % gameConfig.signIn.cycleDays) + 1) status = 'AVAILABLE_TODAY';
+        }
+
+        return {
+            day: item.day,
+            coin: item.coin,
+            status
+        };
+    });
+
+    return {
+        is_signed_in_today,
+        current_streak: currentStreak,
+        total_sign_in_days: pet.total_sign_in_days,
+        last_sign_in_date: pet.last_sign_in_date,
+        today_date: todayStr,
+        schedule
+    };
+};

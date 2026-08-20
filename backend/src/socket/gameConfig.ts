@@ -1,4 +1,24 @@
 export const gameConfig = {
+    // 每日簽到設定 (14 天循環，第 7 天與第 14 天 200 金幣，其餘天數 100 金幣)
+    signIn: {
+        cycleDays: 14,
+        rewards: [
+            { day: 1, coin: 100 },
+            { day: 2, coin: 100 },
+            { day: 3, coin: 100 },
+            { day: 4, coin: 100 },
+            { day: 5, coin: 100 },
+            { day: 6, coin: 100 },
+            { day: 7, coin: 200 },
+            { day: 8, coin: 100 },
+            { day: 9, coin: 100 },
+            { day: 10, coin: 100 },
+            { day: 11, coin: 100 },
+            { day: 12, coin: 100 },
+            { day: 13, coin: 100 },
+            { day: 14, coin: 200 }
+        ]
+    },
     actions: {
         FEED: { reward: 80, cdSeconds: 8 },      // 餵食海藻
         PURIFY: { reward: 100, cdSeconds: 15 },   // 淨化水質

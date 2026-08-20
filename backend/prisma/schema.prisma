@@ -304,6 +304,11 @@ model Pet {
   last_purify_time DateTime @default("2000-01-01T00:00:00Z")
   last_pet_time    DateTime @default("2000-01-01T00:00:00Z")
 
+  // 每日簽到
+  last_sign_in_date  DateTime? // 上次簽到日期
+  sign_in_streak     Int       @default(0) // 當前連續簽到天數 (1~7 循環)
+  total_sign_in_days Int       @default(0) // 累計簽到總天數
+
   member       Member         @relation(fields: [member_id], references: [member_id], onDelete: Cascade)
   PetInventory PetInventory[]
 }

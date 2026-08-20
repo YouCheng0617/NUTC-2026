@@ -1,6 +1,13 @@
 import type { Request, Response } from "express";
 import type { AuthRequest } from "../modules/middleware/auth.middleware.js";
-import { renamePet, interactPet, buyShopItem, getMyPetWithInventory } from "./petGame.service.js";
+import {
+    renamePet,
+    interactPet,
+    buyShopItem,
+    getMyPetWithInventory,
+    signInPetService,
+    getSignInStatusService
+} from "./petGame.service.js";
 
 export class PetGameController {
 
@@ -61,6 +68,30 @@ export class PetGameController {
 
             const petWithInventory = await getMyPetWithInventory(Number(memberId));
             return res.status(200).json(petWithInventory);
+        } catch (error: any) {
+            return res.status(400).json({ error: error.message });
+        }
+    }
+
+    async signInPetController(req: AuthRequest, res: Response) {
+        try {
+            const memberId = req.user?.member_id;
+            if (!memberId) return res.status(401).json({ error: "尚未登入" });
+
+            const result = await signInPetService(Number(memberId));
+            return res.status(200).json(result);
+        } catch (error: any) {
+            return res.status(400).json({ error: error.message });
+        }
+    }
+
+    async getSignInStatusController(req: AuthRequest, res: Response) {
+        try {
+            const memberId = req.user?.member_id;
+            if (!memberId) return res.status(401).json({ error: "尚未登入" });
+
+            const status = await getSignInStatusService(Number(memberId));
+            return res.status(200).json(status);
         } catch (error: any) {
             return res.status(400).json({ error: error.message });
         }
