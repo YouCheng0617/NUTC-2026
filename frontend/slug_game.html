@@ -2322,64 +2322,78 @@ let trialTimeLeft = 10; // 全域記錄試用剩餘時間
         }
 
  function applyEffect() {
-    const layer = document.getElementById('effectLayer');
-    layer.innerHTML = ''; 
-    
-    // 🛑 1. 【全域特效切換清道夫】搬到最上面！確保取消試用時也會執行！
-    if (window.sheepManagerFrame) cancelAnimationFrame(window.sheepManagerFrame);
-    if (window.sheepSpawnTimeout) clearTimeout(window.sheepSpawnTimeout);
-    window.currentSheepSession = null; // 作廢數羊羊工作證
-    
-    // （寶寶如果想更保險，其他特效的計時器也可以一起放在這清乾淨）
-    if (window.catAnimFrame) cancelAnimationFrame(window.catAnimFrame);
-    if (window.meowTimeout) clearTimeout(window.meowTimeout);
-    if (window.paintAnimFrame) cancelAnimationFrame(window.paintAnimFrame);
-    if (window.paintTimeout) clearTimeout(window.paintTimeout);
-    if (window.tomatoAnimFrame) cancelAnimationFrame(window.tomatoAnimFrame);
-    if (window.tomatoFwTimeout) clearTimeout(window.tomatoFwTimeout);
-    if (window.bugFreeAnimFrame) cancelAnimationFrame(window.bugFreeAnimFrame);
-    if (window.bugFreeInterval) clearInterval(window.bugFreeInterval);
-    if (window.heartbeatAnimFrame) cancelAnimationFrame(window.heartbeatAnimFrame);
-    if (window.heartbeatTimeout) clearTimeout(window.heartbeatTimeout);
-    if (window.recallAnimFrame) cancelAnimationFrame(window.recallAnimFrame);
-// 🛑 櫻花音樂徹底停止清道夫（清除所有已排程音符）
-    if (window.sakuraMusicTimer) clearTimeout(window.sakuraMusicTimer);
-    if (window.sakuraNoteTimers && window.sakuraNoteTimers.length) {
-        window.sakuraNoteTimers.forEach(t => clearTimeout(t));
-        window.sakuraNoteTimers = [];
-    }
-    window.sakuraSessionId = null; // 作廢舊的櫻花工作證
-    window.sakuraMusicActive = false;
-// 🛑 音符樂譜小遊戲清道夫
-    if (window.staffPlayInterval) clearInterval(window.staffPlayInterval);
-    if (window.staffPlayTimeout) clearTimeout(window.staffPlayTimeout);
-    if (window.staffSpawnerInterval) clearInterval(window.staffSpawnerInterval);
-    window.staffIsLooping = false;
-    window.staffSessionId = null;
-    // 🛑 閃電定時器清道夫
-    if (window.lightningInterval) clearInterval(window.lightningInterval);
-    if (window.lightningCloudTimeout) clearTimeout(window.lightningCloudTimeout);
-// 🛑 暴雨音效與閃電定時器清道夫
-    if (window.lightningInterval) clearTimeout(window.lightningInterval);
-    if (window.lightningCloudTimeout) clearTimeout(window.lightningCloudTimeout);
-    if (window.synthStormRain) {
-        try {
-            window.synthStormRain.stop();
-        } catch(e) {}
-        window.synthStormRain = null;
-    }
-    // 👇👇👇 寶寶看這裡！這兩行是我們新加的魔法陣 👇👇👇
-    const customTauntBtn = document.getElementById('customTauntBtn');
-    if (customTauntBtn) customTauntBtn.style.display = 'none';
-    // 👆👆👆 魔法陣結束 👆👆👆
+            const layer = document.getElementById('effectLayer');
+            
+            // 🧹 1. 徹底清空圖層與「隱形滑鼠點擊事件」！(解決點擊螢幕還會落雷的關鍵)
+            layer.innerHTML = ''; 
+            layer.onpointerdown = null; 
+            layer.style.pointerEvents = 'none';
 
-    const effectKey = trialState.effect || gameState.currentEffect;
-    const effect = effectData[effectKey];
-    
-    // 🛑 2. 然後才檢查是不是無特效，如果是就提早結束
-    if (!effect || effectKey === 'none') return;
+            // 🛑 2. 【全域特效切換清道夫】所有特效的定時器與工作證都在這作廢
+            if (window.sheepManagerFrame) cancelAnimationFrame(window.sheepManagerFrame);
+            if (window.sheepSpawnTimeout) clearTimeout(window.sheepSpawnTimeout);
+            window.currentSheepSession = null; // 作廢數羊羊工作證
+
+            if (window.catAnimFrame) cancelAnimationFrame(window.catAnimFrame);
+            if (window.meowTimeout) clearTimeout(window.meowTimeout);
+            if (window.paintAnimFrame) cancelAnimationFrame(window.paintAnimFrame);
+            if (window.paintTimeout) clearTimeout(window.paintTimeout);
+            if (window.tomatoAnimFrame) cancelAnimationFrame(window.tomatoAnimFrame);
+            if (window.tomatoFwTimeout) clearTimeout(window.tomatoFwTimeout);
+            if (window.bugFreeAnimFrame) cancelAnimationFrame(window.bugFreeAnimFrame);
+            if (window.bugFreeInterval) clearInterval(window.bugFreeInterval);
+            if (window.heartbeatAnimFrame) cancelAnimationFrame(window.heartbeatAnimFrame);
+            if (window.heartbeatTimeout) clearTimeout(window.heartbeatTimeout);
+            if (window.recallAnimFrame) cancelAnimationFrame(window.recallAnimFrame);
+            
+            // 🛑 櫻花音樂徹底停止清道夫
+            if (window.sakuraMusicTimer) clearTimeout(window.sakuraMusicTimer);
+            if (window.sakuraNoteTimers && window.sakuraNoteTimers.length) {
+                window.sakuraNoteTimers.forEach(t => clearTimeout(t));
+                window.sakuraNoteTimers = [];
+            }
+            window.sakuraSessionId = null; 
+            window.sakuraMusicActive = false;
+
+            // 🛑 音符樂譜小遊戲清道夫
+            if (window.staffPlayInterval) clearInterval(window.staffPlayInterval);
+            if (window.staffPlayTimeout) clearTimeout(window.staffPlayTimeout);
+            if (window.staffSpawnerInterval) clearInterval(window.staffSpawnerInterval);
+            window.staffIsLooping = false;
+            window.staffSessionId = null;
+
+            // 🛑 閃電定時器與音效清道夫 (解決雷聲殘留的關鍵)
+            if (window.lightningInterval) clearTimeout(window.lightningInterval);
+            if (window.lightningCloudTimeout) clearTimeout(window.lightningCloudTimeout);
+            if (window.synthStormRain) {
+                try { window.synthStormRain.stop(); } catch(e) {}
+                window.synthStormRain = null;
+            }
+            window.stormSessionId = null; // 🌟 關鍵：作廢雷神的工作證！
+
+            // 🛑 幽靈與拉炮的工作證清道夫
+            if (window.ghostInterval) clearTimeout(window.ghostInterval);
+            window.ghostSessionId = null;
+            if (window.partyInterval) clearTimeout(window.partyInterval);
+            window.partySessionId = null;
+
+            // 🧹 移除舊特效殘留的 CSS 樣式表
+            ['stormLightningStyle', 'ghostEffectStyle', 'partyEffectStyle'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.remove();
+            });
+
+            // 隱藏自定義彈幕按鈕
+            const customTauntBtn = document.getElementById('customTauntBtn');
+            if (customTauntBtn) customTauntBtn.style.display = 'none';
+
+            const effectKey = trialState.effect || gameState.currentEffect;
+            const effect = effectData[effectKey];
+            
+            // 🛑 3. 檢查是不是無特效，如果是就提早結束
+            if (!effect || effectKey === 'none') return;
+            
             switch (effectKey) {
-
 
                 // 🐈 【貓貓降臨】巨大化主子、空中 360 度轉圈圈、落地自由漫步＋喵喵聲
                 case 'cat':
@@ -4594,7 +4608,7 @@ case 'butterfly': {
                         layer.appendChild(el);
                     }
                     break;
-// ⚡ 【閃電交加】完整雷神之鎚 ＋ 圓滾滾蛋形索爾版（修復左側被裁切問題）
+// ⚡ 【閃電交加】盲盒剪影試用 ＋ 完整雷神之鎚 ＋ 圓滾滾蛋形索爾版
                 case 'lightning':
                     if (!document.getElementById('stormLightningStyle')) {
                         const style = document.createElement('style');
@@ -4611,7 +4625,7 @@ case 'butterfly': {
                                 mix-blend-mode: normal;
                             }
 
-                            /* 🌟 2. 索爾召喚本體（擴展寬高確保左側完整露出） */
+                            /* 🌟 2. 索爾召喚本體 */
                             .thor-spawn {
                                 position: absolute;
                                 width: 84px; height: 84px;
@@ -4623,8 +4637,34 @@ case 'butterfly': {
                                 width: 100%; height: 100%;
                                 filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.35));
                                 animation: thorEggPop 1.05s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+                                position: relative;
                             }
-                            /* 精準鎖定在完整錘頭頂端的雷光爆擊光圈 */
+                            
+                            /* 🎭 神祕盲盒剪影模式（試用專屬魔法） */
+                            .mystery-shadow svg {
+                                /* 把所有顏色壓成純黑，並加上黃色發光輪廓 */
+                                filter: brightness(0) drop-shadow(0 0 6px #facc15) drop-shadow(0 0 12px #fef08a);
+                                transition: filter 0.3s;
+                            }
+                            /* ❓ 神祕跳動大問號 */
+                            .mystery-question-mark {
+                                position: absolute;
+                                top: 40%; left: 45%;
+                                transform: translate(-50%, -50%);
+                                font-size: 40px;
+                                font-weight: 900;
+                                color: #facc15;
+                                text-shadow: 0 0 10px #facc15, 0 0 20px #fef08a, 2px 2px 0px #000;
+                                pointer-events: none;
+                                z-index: 25;
+                                animation: mysteryPulse 1s infinite alternate;
+                            }
+                            @keyframes mysteryPulse {
+                                0% { transform: translate(-50%, -50%) scale(0.85); opacity: 0.8; }
+                                100% { transform: translate(-50%, -50%) scale(1.15); opacity: 1; }
+                            }
+
+                            /* 雷光爆擊光圈 */
                             .thor-energy-ring {
                                 position: absolute;
                                 top: 18px; left: 8px;
@@ -4961,26 +5001,28 @@ case 'butterfly': {
                     `;
                     layer.appendChild(svgCanvas);
 
-                    // 🔨 【召喚蛋形索爾（超寬視界畫布，保證左側錘頭 100% 完整無切邊）】
+                    // 🔨 【召喚蛋形索爾（如果是試用狀態，就會掛上神祕剪影的類別！）】
                     function spawnThor(x, y) {
+                        // 🎭 判斷是否為試用狀態
+                        const isTrial = (trialState.effect === 'lightning');
+                        const shadowClass = isTrial ? 'mystery-shadow' : '';
+                        const questionMarkHTML = isTrial ? '<div class="mystery-question-mark">?</div>' : '';
+
                         const thorEl = document.createElement('div');
                         thorEl.className = 'thor-spawn';
                         thorEl.style.left = `${x}px`;
                         thorEl.style.top = `${y}px`;
                         thorEl.innerHTML = `
                             <div class="thor-energy-ring"></div>
-                            <div class="thor-character">
+                            <div class="thor-character ${shadowClass}">
                                 <svg viewBox="-25 -10 140 120" width="100%" height="100%">
                                     <g stroke="#1a1a1a" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round">
                                         <!-- 1. 圓萌小披風 -->
                                         <path d="M 22 56 Q 10 74 16 86 Q 50 80 84 86 Q 90 74 78 56 Z" fill="#e50914" />
-
                                         <!-- 2. 蛋形圓潤軀幹底色 -->
                                         <ellipse cx="50" cy="52" rx="30" ry="28" fill="#fed7aa" />
-
                                         <!-- 3. 下半身圓滾滾盔甲 -->
                                         <path d="M 22 55 C 21 75 32 82 50 82 C 68 82 79 75 78 55 C 68 59 32 59 22 55 Z" fill="#262626" />
-
                                         <!-- 4. 盔甲金屬銀釦與黃色幾何線 -->
                                         <circle cx="41" cy="64" r="2.6" fill="#cbd5e1" stroke="none" />
                                         <circle cx="59" cy="64" r="2.6" fill="#cbd5e1" stroke="none" />
@@ -4988,15 +5030,12 @@ case 'butterfly': {
                                         <circle cx="57" cy="73" r="2.2" fill="#cbd5e1" stroke="none" />
                                         <path d="M 33 65 L 30 70 L 33 74" fill="none" stroke="#facc15" stroke-width="1.8" />
                                         <path d="M 67 65 L 70 70 L 67 74" fill="none" stroke="#facc15" stroke-width="1.8" />
-
                                         <!-- 5. 可愛小圓短腳 -->
                                         <ellipse cx="40" cy="83" rx="5" ry="3.5" fill="#262626" />
                                         <ellipse cx="60" cy="83" rx="5" ry="3.5" fill="#262626" />
-
                                         <!-- 6. 兩側金黃頭髮 -->
                                         <path d="M 19 44 Q 14 58 22 66 Q 24 53 23 44 Z" fill="#fde047" />
                                         <path d="M 81 44 Q 86 58 78 66 Q 76 53 77 44 Z" fill="#fde047" />
-
                                         <!-- 7. 招牌大圓眼 ＋ 腮紅 ＋ 一字嘴 -->
                                         <ellipse cx="38" cy="46" rx="3.5" ry="4.2" fill="#1a1a1a" stroke="none" />
                                         <circle cx="37" cy="44.5" r="1.2" fill="#ffffff" stroke="none" />
@@ -5005,7 +5044,6 @@ case 'butterfly': {
                                         <ellipse cx="32" cy="51" rx="3.5" ry="2" fill="#f87171" opacity="0.65" stroke="none" />
                                         <ellipse cx="68" cy="51" rx="3.5" ry="2" fill="#f87171" opacity="0.65" stroke="none" />
                                         <line x1="47" y1="52" x2="53" y2="52" stroke="#1a1a1a" stroke-width="2.2" />
-
                                         <!-- 8. 經典三層金屬大羽翼頭盔 -->
                                         <path d="M 22 38 L 8 18 L 18 10 L 25 32 Z" fill="#cbd5e1" />
                                         <line x1="12" y1="20" x2="22" y2="28" stroke="#94a3b8" stroke-width="1.8" />
@@ -5014,38 +5052,29 @@ case 'butterfly': {
                                         <path d="M 20 42 C 20 18 80 18 80 42 Z" fill="#cbd5e1" />
                                         <path d="M 22 34 L 38 34 L 50 40 L 62 34 L 78 34 L 76 40 L 62 40 L 50 46 L 38 40 L 24 40 Z" fill="#e2e8f0" />
                                         <path d="M 24 40 L 38 40 L 50 46 L 62 40 L 76 40 L 75 44 L 62 44 L 50 50 L 38 44 L 25 44 Z" fill="#94a3b8" />
-
                                         <!-- 9. 左小圓手 -->
                                         <circle cx="78" cy="58" r="4.5" fill="#fed7aa" />
-
-                                        <!-- 10. ⚡ 完整八角金屬雷神之鎚 Mjölnir（左右對稱完整不裁切） ⚡ -->
+                                        <!-- 10. ⚡ 完整八角金屬雷神之鎚 Mjölnir -->
                                         <g transform="translate(10, 24) rotate(-35)">
-                                            <!-- (A) 皮革握柄 ＋ 螺旋綁帶 ＋ 尾部皮繩 -->
                                             <line x1="0" y1="7" x2="0" y2="26" stroke="#5c3a21" stroke-width="3.6" />
                                             <line x1="-1.6" y1="12" x2="1.6" y2="14" stroke="#8d6e63" stroke-width="1.4" />
                                             <line x1="-1.6" y1="18" x2="1.6" y2="20" stroke="#8d6e63" stroke-width="1.4" />
                                             <circle cx="0" cy="26" r="2.2" fill="#94a3b8" />
                                             <path d="M 0 27 Q 4 31 2 35" stroke="#5c3a21" stroke-width="1.6" fill="none" />
-
-                                            <!-- (B) 完整八角切邊錘頭外框 -->
                                             <path d="M -15 -14 L 15 -14 L 17 -10 L 17 0 L 15 4 L -15 4 L -17 0 L -17 -10 Z" fill="#94a3b8" />
-                                            <!-- 錘頭正面內凹受光面 -->
                                             <polygon points="-12,-11 12,-11 14,-8 14,-2 12,1 -12,1 -14,-2 -14,-8" fill="#cbd5e1" stroke="none" />
-                                            <!-- 錘頭頂部引雷金屬護板 -->
                                             <rect x="-12" y="-16.5" width="24" height="2.8" rx="1" fill="#64748b" stroke="none" />
-                                            <!-- 正面圓形符文金屬扣 -->
                                             <circle cx="0" cy="-5" r="2.5" fill="#64748b" stroke="none" />
-                                            <!-- 左右兩側對稱立體斜切邊倒角線 -->
                                             <line x1="-15" y1="-14" x2="-12" y2="-11" stroke="#64748b" stroke-width="1.4" />
                                             <line x1="15" y1="-14" x2="12" y2="-11" stroke="#64748b" stroke-width="1.4" />
                                             <line x1="-15" y1="4" x2="-12" y2="1" stroke="#64748b" stroke-width="1.4" />
                                             <line x1="15" y1="4" x2="12" y2="1" stroke="#64748b" stroke-width="1.4" />
                                         </g>
-
                                         <!-- 11. 抓著錘柄的小圓手 -->
                                         <circle cx="18" cy="40" r="4.6" fill="#fed7aa" />
                                     </g>
                                 </svg>
+                                ${questionMarkHTML}
                             </div>
                         `;
                         layer.appendChild(thorEl);
@@ -5086,7 +5115,7 @@ case 'butterfly': {
                     function triggerLightningStrike(targetX, targetY) {
                         if (window.stormSessionId !== stormId) return;
 
-                        // 1. 召喚蛋形索爾
+                        // 1. 召喚神祕剪影/或現出原形的蛋形索爾
                         spawnThor(targetX, targetY);
 
                         // 2. 0.2 秒後閃電直擊完整錘頭正上方
@@ -5179,6 +5208,391 @@ case 'butterfly': {
                     }
 
                     setTimeout(loopRandomStorm, 1200);
+                    break;
+                    // 🎉 【歡樂派對拉炮】修正代號為 confetti，恢復全彩繽紛特效
+                case 'confetti':
+                    if (!document.getElementById('confettiEffectStyle')) {
+                        const style = document.createElement('style');
+                        style.id = 'confettiEffectStyle';
+                        style.innerHTML = `
+                            /* 🌟 1. 派對全景舞台（上方三角旗彩帶 ＋ 懸浮漂浮氣球） */
+                            .party-stage-container {
+                                position: absolute; inset: 0; width: 100%; height: 100%;
+                                pointer-events: none; z-index: 12; overflow: hidden;
+                            }
+
+                            /* 上方三角派對掛旗繩 */
+                            .party-bunting-svg {
+                                position: absolute; top: 0; left: 0; width: 100%; height: 75px;
+                                filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.15));
+                                animation: buntingSway 6s ease-in-out infinite alternate;
+                                transform-origin: top center;
+                            }
+                            @keyframes buntingSway {
+                                0% { transform: rotate(0deg) scaleY(1); }
+                                100% { transform: rotate(0.8deg) scaleY(1.04); }
+                            }
+
+                            /* 派對懸浮氣球群 */
+                            .party-balloon-item {
+                                position: absolute;
+                                will-change: transform;
+                                filter: drop-shadow(0 8px 16px rgba(0, 0, 0, 0.15));
+                            }
+                            @keyframes balloonFloatLeft {
+                                0% { transform: translate(0, 0) rotate(-3deg); }
+                                50% { transform: translate(12px, -20px) rotate(4deg); }
+                                100% { transform: translate(-8px, -40px) rotate(-2deg); }
+                            }
+                            @keyframes balloonFloatRight {
+                                0% { transform: translate(0, 0) rotate(4deg); }
+                                50% { transform: translate(-14px, -25px) rotate(-3deg); }
+                                100% { transform: translate(10px, -45px) rotate(5deg); }
+                            }
+
+                            /* 🌟 2. 實體拉炮開炮與後座力彈跳動畫 */
+                            .party-popper-gun {
+                                position: absolute;
+                                width: 70px; height: 70px;
+                                transform-origin: bottom center;
+                                pointer-events: none;
+                                z-index: 18;
+                                filter: drop-shadow(0 6px 12px rgba(0, 0, 0, 0.25));
+                            }
+                            @keyframes popperShootAction {
+                                0% { transform: translate(-50%, -50%) scale(0.2) rotate(var(--angle)); opacity: 0; }
+                                25% { transform: translate(-50%, -50%) scale(1.15) rotate(var(--angle)); opacity: 1; }
+                                40% { transform: translate(-50%, -50%) scale(0.9, 1.25) rotate(calc(var(--angle) - 15deg)); } /* 開炮後座力縮放 */
+                                65% { transform: translate(-50%, -50%) scale(1.0) rotate(var(--angle)); opacity: 1; }
+                                100% { transform: translate(-50%, -50%) scale(0.3) rotate(var(--angle)) translateY(30px); opacity: 0; }
+                            }
+
+                            /* 🌟 3. 彩帶與亮片粒子落下動畫 */
+                            .confetti-particle {
+                                position: absolute;
+                                pointer-events: none;
+                                z-index: 16;
+                                will-change: transform, opacity;
+                            }
+                            @keyframes confettiSlowDrift {
+                                0% {
+                                    transform: translate3d(0, 0, 0) rotateX(0deg) rotateY(0deg) rotateZ(0deg);
+                                    opacity: 1;
+                                }
+                                75% {
+                                    opacity: 0.95;
+                                }
+                                100% {
+                                    transform: translate3d(var(--tx), var(--ty), 0) rotateX(var(--rx)) rotateY(var(--ry)) rotateZ(var(--rz));
+                                    opacity: 0;
+                                }
+                            }
+                        `;
+                        document.head.appendChild(style);
+                    }
+
+                    const partySessionId = Math.random();
+                    window.partySessionId = partySessionId;
+
+                    // 🎈 【Web Audio 清脆拉炮「啵！（POP）」開炮聲 ＋ 歡樂哨音】
+                    function playPopperSound(pitchMult = 1.0) {
+                        try {
+                            if (!window.sharedAudioCtx) window.sharedAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                            const ctx = window.sharedAudioCtx;
+                            if (ctx.state === 'suspended') ctx.resume();
+
+                            const now = ctx.currentTime;
+
+                            // 1. 空氣爆破衝擊音 (Pop)
+                            const popOsc = ctx.createOscillator();
+                            popOsc.type = 'sine';
+                            popOsc.frequency.setValueAtTime(320 * pitchMult, now);
+                            popOsc.frequency.exponentialRampToValueAtTime(45, now + 0.08);
+
+                            const popGain = ctx.createGain();
+                            popGain.gain.setValueAtTime(1.2, now);
+                            popGain.gain.exponentialRampToValueAtTime(0.01, now + 0.08);
+
+                            popOsc.connect(popGain);
+                            popGain.connect(ctx.destination);
+                            popOsc.start(now);
+                            popOsc.stop(now + 0.09);
+
+                            // 2. 碎屑噴出氣流摩擦聲 (Snap Noise)
+                            const snapLen = Math.floor(ctx.sampleRate * 0.12);
+                            const snapBuf = ctx.createBuffer(1, snapLen, ctx.sampleRate);
+                            const snapData = snapBuf.getChannelData(0);
+                            for (let i = 0; i < snapLen; i++) {
+                                snapData[i] = (Math.random() * 2 - 1) * Math.exp(-i / (ctx.sampleRate * 0.02));
+                            }
+                            const snapSrc = ctx.createBufferSource();
+                            snapSrc.buffer = snapBuf;
+                            const snapFilter = ctx.createBiquadFilter();
+                            snapFilter.type = 'highpass';
+                            snapFilter.frequency.setValueAtTime(1200, now);
+                            const snapGain = ctx.createGain();
+                            snapGain.gain.setValueAtTime(0.6, now);
+                            snapGain.gain.exponentialRampToValueAtTime(0.01, now + 0.12);
+
+                            snapSrc.connect(snapFilter);
+                            snapFilter.connect(snapGain);
+                            snapGain.connect(ctx.destination);
+                            snapSrc.start(now);
+
+                            // 3. 歡樂金屬鈴音微響 (Party Sparkle Chime)
+                            const chimeOsc = ctx.createOscillator();
+                            chimeOsc.type = 'triangle';
+                            chimeOsc.frequency.setValueAtTime(880 * pitchMult, now);
+                            chimeOsc.frequency.exponentialRampToValueAtTime(1320 * pitchMult, now + 0.18);
+                            const chimeGain = ctx.createGain();
+                            chimeGain.gain.setValueAtTime(0.18, now);
+                            chimeGain.gain.exponentialRampToValueAtTime(0.001, now + 0.25);
+                            chimeOsc.connect(chimeGain);
+                            chimeGain.connect(ctx.destination);
+                            chimeOsc.start(now + 0.02);
+                            chimeOsc.stop(now + 0.26);
+
+                        } catch (e) {
+                            console.error('Popper pop sound error:', e);
+                        }
+                    }
+
+                    // 🎪 建立 SVG 派對裝飾背景（掛旗繩 ＋ 氣球群）
+                    const partyStage = document.createElement('div');
+                    partyStage.className = 'party-stage-container';
+                    partyStage.innerHTML = `
+                        <!-- 頂部波浪三角掛旗 -->
+                        <svg class="party-bunting-svg" viewBox="0 0 1000 80" preserveAspectRatio="none">
+                            <defs>
+                                <filter id="buntingShadow" x="-5%" y="-5%" width="110%" height="110%">
+                                    <feDropShadow dx="0" dy="2" stdDeviation="2" flood-color="#000" flood-opacity="0.15"/>
+                                </filter>
+                            </defs>
+                            <!-- 懸掛細繩 -->
+                            <path d="M 0 15 Q 250 45 500 20 Q 750 45 1000 15" stroke="#cbd5e1" stroke-width="2" fill="none"/>
+                            <!-- 彩色三角旗組 -->
+                            <g filter="url(#buntingShadow)">
+                                <polygon points="30,19 75,19 52,65" fill="#f43f5e" />
+                                <polygon points="90,23 135,23 112,68" fill="#38bdf8" />
+                                <polygon points="150,26 195,26 172,70" fill="#facc15" />
+                                <polygon points="210,28 255,28 232,71" fill="#a855f7" />
+                                <polygon points="270,28 315,28 292,69" fill="#10b981" />
+                                <polygon points="330,26 375,26 352,68" fill="#fb923c" />
+                                <polygon points="390,24 435,24 412,66" fill="#f43f5e" />
+                                <polygon points="450,21 495,21 472,64" fill="#38bdf8" />
+                                <polygon points="510,21 555,21 532,64" fill="#facc15" />
+                                <polygon points="570,24 615,24 592,67" fill="#a855f7" />
+                                <polygon points="630,26 675,26 652,69" fill="#10b981" />
+                                <polygon points="690,28 735,28 712,71" fill="#fb923c" />
+                                <polygon points="750,28 795,28 772,70" fill="#f43f5e" />
+                                <polygon points="810,26 855,26 832,68" fill="#38bdf8" />
+                                <polygon points="870,23 915,23 892,67" fill="#facc15" />
+                                <polygon points="930,19 975,19 952,65" fill="#a855f7" />
+                            </g>
+                        </svg>
+
+                        <!-- 左側漂浮派對氣球組 -->
+                        <div class="party-balloon-item" style="left: 4%; top: 18%; width: 65px; height: 95px; animation: balloonFloatLeft 8s ease-in-out infinite alternate;">
+                            <svg viewBox="0 0 70 100" width="100%" height="100%">
+                                <path d="M 35 10 C 15 10 10 32 10 48 C 10 65 28 75 33 78 L 31 82 L 39 82 L 37 78 C 42 75 60 65 60 48 C 60 32 55 10 35 10 Z" fill="#ec4899"/>
+                                <ellipse cx="25" cy="28" rx="6" ry="12" fill="#ffffff" opacity="0.4" transform="rotate(-20 25 28)"/>
+                                <path d="M 35 82 Q 25 90 40 98" stroke="#cbd5e1" stroke-width="1.8" fill="none"/>
+                            </svg>
+                        </div>
+                        <div class="party-balloon-item" style="left: 9%; top: 26%; width: 55px; height: 85px; animation: balloonFloatRight 7s ease-in-out infinite alternate;">
+                            <svg viewBox="0 0 70 100" width="100%" height="100%">
+                                <path d="M 35 10 C 15 10 10 32 10 48 C 10 65 28 75 33 78 L 31 82 L 39 82 L 37 78 C 42 75 60 65 60 48 C 60 32 55 10 35 10 Z" fill="#0ea5e9"/>
+                                <ellipse cx="25" cy="28" rx="5" ry="10" fill="#ffffff" opacity="0.4" transform="rotate(-20 25 28)"/>
+                                <path d="M 35 82 Q 45 90 30 98" stroke="#cbd5e1" stroke-width="1.8" fill="none"/>
+                            </svg>
+                        </div>
+
+                        <!-- 右側漂浮派對氣球組 -->
+                        <div class="party-balloon-item" style="right: 5%; top: 16%; width: 70px; height: 100px; animation: balloonFloatRight 9s ease-in-out infinite alternate;">
+                            <svg viewBox="0 0 70 100" width="100%" height="100%">
+                                <path d="M 35 10 C 15 10 10 32 10 48 C 10 65 28 75 33 78 L 31 82 L 39 82 L 37 78 C 42 75 60 65 60 48 C 60 32 55 10 35 10 Z" fill="#eab308"/>
+                                <ellipse cx="25" cy="28" rx="6" ry="12" fill="#ffffff" opacity="0.4" transform="rotate(-20 25 28)"/>
+                                <path d="M 35 82 Q 42 90 28 98" stroke="#cbd5e1" stroke-width="1.8" fill="none"/>
+                            </svg>
+                        </div>
+                        <div class="party-balloon-item" style="right: 11%; top: 25%; width: 58px; height: 88px; animation: balloonFloatLeft 7.5s ease-in-out infinite alternate;">
+                            <svg viewBox="0 0 70 100" width="100%" height="100%">
+                                <path d="M 35 10 C 15 10 10 32 10 48 C 10 65 28 75 33 78 L 31 82 L 39 82 L 37 78 C 42 75 60 65 60 48 C 60 32 55 10 35 10 Z" fill="#8b5cf6"/>
+                                <ellipse cx="25" cy="28" rx="5" ry="10" fill="#ffffff" opacity="0.4" transform="rotate(-20 25 28)"/>
+                                <path d="M 35 82 Q 26 90 38 98" stroke="#cbd5e1" stroke-width="1.8" fill="none"/>
+                            </svg>
+                        </div>
+                    `;
+                    layer.appendChild(partyStage);
+
+                    // 🎨 派對七彩調色盤
+                    const partyColors = ['#f43f5e', '#ec4899', '#3b82f6', '#06b6d4', '#10b981', '#facc15', '#fb923c', '#a855f7', '#ffffff'];
+
+                    // 🎊 【產生噴發碎屑與長捲彩帶】
+                    function createConfettiBurst(originX, originY, baseAngleDeg) {
+                        const count = 38 + Math.floor(Math.random() * 12);
+
+                        for (let i = 0; i < count; i++) {
+                            const p = document.createElement('div');
+                            p.className = 'confetti-particle';
+
+                            const color = partyColors[Math.floor(Math.random() * partyColors.length)];
+                            const isRibbon = Math.random() < 0.28; // 28% 機率產生長條螺旋彩帶
+
+                            p.style.left = `${originX}px`;
+                            p.style.top = `${originY}px`;
+
+                            // 扇形噴射角 ＋ 重力加速度位移
+                            const spreadAngle = (baseAngleDeg + (Math.random() * 70 - 35)) * Math.PI / 180;
+                            const velocity = Math.random() * 220 + 120;
+                            const throwX = Math.cos(spreadAngle) * velocity;
+                            const throwY = Math.sin(spreadAngle) * velocity;
+                            const dropY = throwY + (Math.random() * 320 + 260); // 緩慢重力落下距離
+
+                            p.style.setProperty('--tx', `${throwX}px`);
+                            p.style.setProperty('--ty', `${dropY}px`);
+                            p.style.setProperty('--rx', `${Math.random() * 1080 - 540}deg`);
+                            p.style.setProperty('--ry', `${Math.random() * 1080 - 540}deg`);
+                            p.style.setProperty('--rz', `${Math.random() * 720 - 360}deg`);
+
+                            const animDuration = (Math.random() * 1.0 + 2.2).toFixed(2); // 2.2s ~ 3.2s 慢慢飄落
+                            p.style.animation = `confettiSlowDrift ${animDuration}s cubic-bezier(0.12, 0.8, 0.32, 1) forwards`;
+
+                            if (isRibbon) {
+                                // 🌟 螺旋長條彩帶
+                                const rWidth = Math.floor(Math.random() * 6 + 7);
+                                const rHeight = Math.floor(Math.random() * 22 + 25);
+                                p.innerHTML = `
+                                    <svg viewBox="0 0 16 40" width="${rWidth}px" height="${rHeight}px">
+                                        <path d="M 2 2 Q 14 12 4 22 Q 14 32 3 40" stroke="${color}" stroke-width="4.5" fill="none" stroke-linecap="round"/>
+                                    </svg>
+                                `;
+                            } else {
+                                // 🌟 幾何亮片與星星
+                                const size = Math.floor(Math.random() * 7 + 6);
+                                if (Math.random() > 0.5) {
+                                    p.style.width = `${size}px`;
+                                    p.style.height = `${size * 0.7}px`;
+                                    p.style.backgroundColor = color;
+                                    p.style.borderRadius = '2px';
+                                } else {
+                                    p.style.width = `${size}px`;
+                                    p.style.height = `${size}px`;
+                                    p.style.backgroundColor = color;
+                                    p.style.borderRadius = '50%';
+                                }
+                            }
+
+                            layer.appendChild(p);
+                            setTimeout(() => { if (p.parentNode) p.remove(); }, animDuration * 1000 + 100);
+                        }
+                    }
+
+                    // 🎁 【執行一次開炮流程：拉炮彈出 ➔ 開炮 ➔ 噴出彩帶亮片 ➔ 退場】
+                    function firePartyPopper(targetX, targetY, angleDeg = -75) {
+                        if (window.partySessionId !== partySessionId) return;
+
+                        const popper = document.createElement('div');
+                        popper.className = 'party-popper-gun';
+                        popper.style.left = `${targetX}px`;
+                        popper.style.top = `${targetY}px`;
+                        popper.style.setProperty('--angle', `${angleDeg}deg`);
+                        popper.style.animation = 'popperShootAction 0.9s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards';
+
+                        // 經典圓錐條紋拉炮 SVG 造型
+                        popper.innerHTML = `
+                            <svg viewBox="0 0 80 80" width="100%" height="100%">
+                                <defs>
+                                    <linearGradient id="popperStripeGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                        <stop offset="0%" stop-color="#f43f5e"/>
+                                        <stop offset="30%" stop-color="#facc15"/>
+                                        <stop offset="60%" stop-color="#06b6d4"/>
+                                        <stop offset="100%" stop-color="#a855f7"/>
+                                    </linearGradient>
+                                </defs>
+                                <!-- 底部拉繩 -->
+                                <path d="M 40 68 Q 36 76 42 82" stroke="#e2e8f0" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+                                <circle cx="42" cy="82" r="2.5" fill="#f59e0b"/>
+                                <!-- 圓錐拉炮本體 -->
+                                <polygon points="40,68 18,22 62,22" fill="url(#popperStripeGrad)" stroke="#1e293b" stroke-width="2.5" stroke-linejoin="round"/>
+                                <!-- 頂部開口金邊與鋸齒彩花紙口 -->
+                                <ellipse cx="40" cy="22" rx="22" ry="7" fill="#f8fafc" stroke="#1e293b" stroke-width="2"/>
+                                <path d="M 20 22 Q 30 14 40 22 Q 50 14 60 22" fill="#fb923c"/>
+                            </svg>
+                        `;
+
+                        layer.appendChild(popper);
+
+                        // 0.25 秒後（拉炮頂點瞬間）觸發開炮聲與噴射彩帶
+                        setTimeout(() => {
+                            if (window.partySessionId !== partySessionId) return;
+
+                            playPopperSound(Math.random() * 0.3 + 0.9);
+
+                            // 依照拉炮角度計算開口發射座標
+                            const rad = (angleDeg - 90) * Math.PI / 180;
+                            const muzzleX = targetX + Math.cos(rad) * 28;
+                            const muzzleY = targetY + Math.sin(rad) * 28;
+
+                            createConfettiBurst(muzzleX, muzzleY, angleDeg);
+                        }, 250);
+
+                        setTimeout(() => {
+                            if (popper.parentNode) popper.remove();
+                        }, 950);
+                    }
+
+                    // 🌟 點擊互動：點擊哪裡就在哪裡開一個歡樂拉炮！
+                    layer.style.pointerEvents = 'auto';
+                    layer.onpointerdown = (e) => {
+                        if (window.sharedAudioCtx && window.sharedAudioCtx.state === 'suspended') {
+                            window.sharedAudioCtx.resume();
+                        }
+
+                        const rect = layer.getBoundingClientRect();
+                        const clickX = e.clientX - rect.left;
+                        const clickY = e.clientY - rect.top;
+
+                        const randomAngle = Math.random() * 40 - 110; // -110deg ~ -70deg 往斜上方噴發
+                        firePartyPopper(clickX, clickY, randomAngle);
+
+                        if (!trialState.effect) {
+                            gameState.points += 5;
+                            saveGame();
+                            updateUI();
+                            showFloatText('🎉 歡樂派對 +5');
+                        }
+                    };
+
+                    // 🔁 【自動輪替拉炮循環】：左右與下方換位置輪流開炮
+                    const popperSpawnSpots = [
+                        { xFactor: 0.2, yFactor: 0.82, angle: -65 },
+                        { xFactor: 0.8, yFactor: 0.82, angle: -115 },
+                        { xFactor: 0.5, yFactor: 0.75, angle: -90 },
+                        { xFactor: 0.32, yFactor: 0.85, angle: -75 },
+                        { xFactor: 0.68, yFactor: 0.85, angle: -105 }
+                    ];
+                    let currentSpotIdx = 0;
+
+                    function loopPartyPopperShow() {
+                        if (window.partySessionId !== partySessionId) return;
+                        const activeEffect = trialState.effect || gameState.currentEffect;
+                        if (activeEffect !== 'confetti') return; // 🌟 防護檢查一併改成 confetti！
+
+                        const rect = layer.getBoundingClientRect();
+                        const spot = popperSpawnSpots[currentSpotIdx];
+                        currentSpotIdx = (currentSpotIdx + 1) % popperSpawnSpots.length;
+
+                        const posX = rect.width * spot.xFactor + (Math.random() * 40 - 20);
+                        const posY = rect.height * spot.yFactor + (Math.random() * 30 - 15);
+
+                        firePartyPopper(posX, posY, spot.angle);
+
+                        // 每次等彩帶飄落時換下一個位置（約 2.5s ~ 3.5s 一發）
+                        window.partyInterval = setTimeout(loopPartyPopperShow, Math.random() * 1000 + 2600);
+                    }
+
+                    setTimeout(loopPartyPopperShow, 800);
                     break;
 // 👻 【百鬼夜行】輕透淡霧 ＋ 白透長尾大幽靈 ＋ 點擊三四隻小鬼成群飄升版
                 case 'ghost':
@@ -5516,6 +5930,7 @@ case 'butterfly': {
 
                     setTimeout(loopGhostSwarm, 600);
                     break;
+                    
 // 💖 【心動幻境】水晶愛心由下往上飄、帶有朦朧透光感，支援滑鼠互動與左下角正方形色系切換
 case 'heartbeat':
     if (window.heartbeatAnimFrame) cancelAnimationFrame(window.heartbeatAnimFrame);
