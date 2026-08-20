@@ -7,7 +7,7 @@
       content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
     />
     <title>突然想拼圖 - 秘密海域</title>
-    <link rel="stylesheet" href="puzzle.css?v=2026_ultra_v1" />
+    <link rel="stylesheet" href="puzzle.css?v=20260820_puzzle_v4" />
   </head>
   <body>
     <!-- 🌊 極致動態深海背景 -->
@@ -26,13 +26,18 @@
       </div>
     </div>
 
-    <!-- 頂部精緻導航按鈕 -->
+    <!-- 頂部導航按鈕 -->
     <a href="games.html" class="nav-btn back-btn">
       <span class="btn-icon">🔙</span> 回遊樂場
     </a>
-    <button class="nav-btn gallery-btn" onclick="openGallery()">
-      <span class="btn-icon">🖼️</span> 我的收藏
-    </button>
+    <div class="nav-right-group">
+      <button class="nav-btn workshop-btn" onclick="openWorkshop()">
+        <span class="btn-icon">📦</span> 碎片工坊
+      </button>
+      <button class="nav-btn gallery-btn" onclick="openGallery()">
+        <span class="btn-icon">🖼️</span> 我的收藏
+      </button>
+    </div>
 
     <!-- 🧩 主內容區 -->
     <div class="main-container">
@@ -53,7 +58,6 @@
           <!-- 水晶球主體 -->
           <div id="crystal-ball" class="crystal-ball">
             <div class="crystal-core"></div>
-            <div class="crystal-highlight"></div>
             <span class="idle-text">等待喚醒</span>
             <span class="idle-sub">TAP TO SUMMON</span>
           </div>
@@ -61,10 +65,17 @@
 
         <!-- 抽獎控制區 -->
         <div class="gacha-controls">
-          <div class="token-badge">
-            <span class="token-icon">💎</span>
-            <span class="token-label">持有喚醒石</span>
-            <span id="token-count" class="token-value">0</span>
+          <div class="token-badge-group">
+            <div class="token-badge">
+              <span class="token-icon">💎</span>
+              <span class="token-label">喚醒石</span>
+              <span id="token-count" class="token-value">0</span>
+            </div>
+            <div class="token-badge fragment-badge">
+              <span class="token-icon">🧩</span>
+              <span class="token-label">普通/高級</span>
+              <span id="fragment-counts" class="token-value">0 / 0</span>
+            </div>
           </div>
           <button
             id="draw-btn"
@@ -160,6 +171,91 @@
       </div>
     </div>
 
+    <!-- 📦 碎片工坊與寶箱彈窗 -->
+    <div id="workshop-modal" class="glass-modal">
+      <div class="glass-modal-content workshop-content">
+        <span class="close-gallery" onclick="closeWorkshop()">&times;</span>
+        <div class="panel-header">
+          <h2 class="panel-title modal-title">📦 碎片工坊與寶箱</h2>
+        </div>
+
+        <!-- 庫存總覽 -->
+        <div class="inventory-bar">
+          <div class="inv-item">
+            <span>🧩 普通碎片：</span><b id="inv-normal-frag">0</b>
+          </div>
+          <div class="inv-item">
+            <span>✨ 高級碎片：</span><b id="inv-premium-frag">0</b>
+          </div>
+          <div class="inv-item">
+            <span>🎁 普通寶箱：</span><b id="inv-normal-chest">0</b>
+          </div>
+          <div class="inv-item">
+            <span>👑 高級寶箱：</span><b id="inv-premium-chest">0</b>
+          </div>
+        </div>
+
+        <div class="workshop-sections">
+          <!-- 寶箱開啟區 -->
+          <div class="workshop-box">
+            <h3>🎁 開啟寶箱 (必得拼圖碎片)</h3>
+            <div class="chest-action-row">
+              <div class="chest-card">
+                <div class="chest-icon">📦</div>
+                <h4>普通寶箱</h4>
+                <p>必得普通稀有度碎片</p>
+                <button class="gacha-mini-btn" onclick="openChest('NORMAL')">
+                  開啟 1 個
+                </button>
+              </div>
+              <div class="chest-card premium">
+                <div class="chest-icon">👑</div>
+                <h4>高級寶箱</h4>
+                <p>必得高級稀有度碎片</p>
+                <button
+                  class="gacha-mini-btn gold"
+                  onclick="openChest('PREMIUM')"
+                >
+                  開啟 1 個
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- 碎片兌換區 -->
+          <div class="workshop-box">
+            <h3>🔄 碎片兌換工坊</h3>
+            <div class="exchange-grid">
+              <div class="exchange-item">
+                <span>10 普通碎片 ➔ 1 普通寶箱</span>
+                <button class="exchange-btn" onclick="exchangeFragments(1)">
+                  兌換
+                </button>
+              </div>
+              <div class="exchange-item">
+                <span>30 普通碎片 ➔ 1 高級寶箱</span>
+                <button class="exchange-btn" onclick="exchangeFragments(2)">
+                  兌換
+                </button>
+              </div>
+              <div class="exchange-item">
+                <span>1 高級碎片 ➔ 10 普通寶箱</span>
+                <button class="exchange-btn" onclick="exchangeFragments(3)">
+                  兌換
+                </button>
+              </div>
+              <div class="exchange-item">
+                <span>5 高級碎片 ➔ 1 高級寶箱</span>
+                <button class="exchange-btn" onclick="exchangeFragments(4)">
+                  兌換
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- 📚 收藏展示櫃 -->
     <div id="gallery-modal" class="glass-modal">
       <div class="glass-modal-content">
@@ -168,92 +264,12 @@
           <h2 class="panel-title modal-title">🖼️ 拼圖收藏展示櫃</h2>
         </div>
 
-        <div class="gallery-grid">
-          <div class="gallery-item unlocked">
-            <div class="img-frame">
-              <img
-                src="https://images.unsplash.com/photo-1551244072-5d12893278ab?ixlib=rb-4.0.3&auto=format&fit=crop&w=300&q=80"
-                alt="深海奇遇"
-              />
-              <div class="frame-shine"></div>
-            </div>
-            <p class="gallery-name">✨ 深海奇遇</p>
-            <span class="date">2026/07/25 達成</span>
-          </div>
+        <div class="gallery-grid"></div>
 
-          <div class="gallery-item locked">
-            <div class="img-frame">
-              <img
-                src="https://images.unsplash.com/photo-1582967788606-a171c1080cb0?ixlib=rb-4.0.3&auto=format&fit=crop&w=300&q=80"
-                alt="未解鎖"
-              />
-              <div class="lock-icon">🔒</div>
-            </div>
-            <p class="gallery-name">❓ 神秘海域</p>
-            <span class="date">進度: 3/9</span>
-          </div>
-
-          <div class="gallery-item locked">
-            <div class="img-frame">
-              <img
-                src="https://images.unsplash.com/photo-1682687982501-1e5898cb8f4b?ixlib=rb-4.0.3&auto=format&fit=crop&w=300&q=80"
-                alt="未解鎖"
-              />
-              <div class="lock-icon">🔒</div>
-            </div>
-            <p class="gallery-name">❓ 珊瑚秘境</p>
-            <span class="date">進度: 0/9</span>
-          </div>
-
-          <div class="gallery-item locked">
-            <div class="img-frame">
-              <img
-                src="https://images.unsplash.com/photo-1544551763-46a013bb70d5?ixlib=rb-4.0.3&auto=format&fit=crop&w=300&q=80"
-                alt="未解鎖"
-              />
-              <div class="lock-icon">🔒</div>
-            </div>
-            <p class="gallery-name">❓ 鯨魚低語</p>
-            <span class="date">進度: 1/9</span>
-          </div>
-
-          <div class="gallery-item locked">
-            <div class="img-frame">
-              <img
-                src="https://images.unsplash.com/photo-1559128010-7c1ad6e1b6a5?ixlib=rb-4.0.3&auto=format&fit=crop&w=300&q=80"
-                alt="未解鎖"
-              />
-              <div class="lock-icon">🔒</div>
-            </div>
-            <p class="gallery-name">❓ 海底遺跡</p>
-            <span class="date">進度: 0/9</span>
-          </div>
-
-          <div class="gallery-item locked">
-            <div class="img-frame">
-              <img
-                src="https://images.unsplash.com/photo-1606044738555-46b5a34e022b?ixlib=rb-4.0.3&auto=format&fit=crop&w=300&q=80"
-                alt="未解鎖"
-              />
-              <div class="lock-icon">🔒</div>
-            </div>
-            <p class="gallery-name">❓ 尋寶之旅</p>
-            <span class="date">進度: 0/9</span>
-          </div>
-        </div>
-
-        <div class="pagination-container">
-          <button class="page-btn prev-btn" disabled>&laquo; 上一頁</button>
-          <div class="page-numbers">
-            <button class="page-num active">1</button>
-            <button class="page-num">2</button>
-            <button class="page-num">3</button>
-          </div>
-          <button class="page-btn next-btn">下一頁 &raquo;</button>
-        </div>
+        <div class="pagination-container"></div>
       </div>
     </div>
 
-    <script src="puzzle.js?v=2026_ultra_v1"></script>
+    <script src="puzzle.js?v=20260820_puzzle_v4"></script>
   </body>
 </html>

@@ -1,5 +1,5 @@
 /* ==================================================
-   🌌 沉浸式深海遊戲 UI - 尊爵奢華版
+   🌌 沉浸式深海遊戲 UI - 拼圖九宮格與工坊尊爵版
    ================================================== */
 :root {
   --neon-blue: #00f2fe;
@@ -25,7 +25,7 @@ body, html {
   overflow-x: hidden;
 }
 
-/* 🌊 視差深海粒子背景 */
+/* 🌊 視差背景 */
 .ocean-bg {
   position: fixed;
   inset: 0;
@@ -78,9 +78,7 @@ body, html {
   100% { transform: translateY(-120vh) scale(1.3); opacity: 0; }
 }
 
-/* ==================================================
-   🔘 導航按鈕 (科技水晶質感)
-   ================================================== */
+/* 🔘 導航按鈕群 */
 .nav-btn {
   position: fixed;
   top: 22px;
@@ -93,7 +91,7 @@ body, html {
   border-top: 1.5px solid rgba(255, 255, 255, 0.6);
   backdrop-filter: blur(16px);
   color: #e2f1ff;
-  padding: 11px 25px;
+  padding: 10px 22px;
   border-radius: 30px;
   font-size: 0.95rem;
   font-weight: 700;
@@ -104,7 +102,8 @@ body, html {
 }
 
 .back-btn { left: 24px; }
-.gallery-btn { right: 24px; }
+.nav-right-group { position: fixed; top: 22px; right: 24px; display: flex; gap: 12px; z-index: 50; }
+.nav-right-group .nav-btn { position: static; }
 
 .nav-btn:hover {
   transform: translateY(-2px) scale(1.04);
@@ -114,9 +113,7 @@ body, html {
   color: #fff;
 }
 
-/* ==================================================
-   🧩 主排版容器
-   ================================================== */
+/* 🧩 主排版容器 */
 .main-container {
   display: flex;
   flex-direction: column;
@@ -129,7 +126,6 @@ body, html {
   gap: 28px;
 }
 
-/* 💎 頂級奢華玻璃面板 */
 .glass-panel {
   width: 100%;
   background: var(--panel-bg);
@@ -182,9 +178,7 @@ body, html {
   100% { transform: scale(1.3); opacity: 1; filter: drop-shadow(0 0 8px var(--neon-blue)); }
 }
 
-/* ==================================================
-   🔮 雙層旋轉召喚法陣與 3D 擬真水晶球
-   ================================================== */
+/* 🔮 召喚祭壇與水晶球 */
 .gacha-stage {
   width: 100%;
   height: 330px;
@@ -194,7 +188,6 @@ body, html {
   position: relative;
 }
 
-/* 外層金色科技法陣 */
 .magic-runes-outer {
   position: absolute;
   width: 310px;
@@ -206,7 +199,6 @@ body, html {
   pointer-events: none;
 }
 
-/* 內層霓虹藍科技法陣 */
 .magic-runes-inner {
   position: absolute;
   width: 255px;
@@ -237,12 +229,11 @@ body, html {
   filter: blur(8px);
 }
 
-/* 🔮 水晶球核心主體 (完美裁剪防溢出) */
 .crystal-ball {
   width: 200px;
   height: 200px;
   border-radius: 50% !important;
-  overflow: hidden !important; /* 🌟 確保裂痕永遠鎖在球體內 */
+  overflow: hidden !important;
   background: radial-gradient(circle at 35% 25%, rgba(255, 255, 255, 0.98) 0%, rgba(135, 215, 255, 0.65) 25%, rgba(10, 80, 160, 0.88) 60%, rgba(2, 25, 55, 0.98) 100%);
   box-shadow: 
     0 20px 45px rgba(0, 0, 0, 0.85),
@@ -302,9 +293,7 @@ body, html {
   z-index: 2;
 }
 
-/* ==================================================
-   💥 抽卡動畫系統 (蓄力震動、全域裂縫、神話獎牌)
-   ================================================== */
+/* 💥 抽卡動畫特效 */
 .crystal-ball.drawing {
   animation: chargingShake 0.15s ease-in-out infinite, chargingGlow 0.4s alternate infinite;
 }
@@ -320,7 +309,6 @@ body, html {
   100% { filter: brightness(2.2) drop-shadow(0 0 60px #ffffff); }
 }
 
-/* 裂縫 SVG (完美鎖死於圓形內) */
 .crack-svg {
   position: absolute;
   inset: 0;
@@ -354,7 +342,7 @@ body, html {
   100% { transform: scale(2.2); opacity: 0; visibility: hidden; }
 }
 
-/* 🌟 抽獎揭曉：手遊級光芒獎品卡 */
+/* 🌟 抽獎揭曉：九宮格拼圖卡牌 */
 .prize-stage {
   display: flex;
   flex-direction: column;
@@ -371,7 +359,6 @@ body, html {
   100% { transform: scale(1) translateY(0); opacity: 1; }
 }
 
-/* 神話金色射線旋轉光圈 */
 .prize-rays {
   position: absolute;
   width: 420px;
@@ -388,23 +375,63 @@ body, html {
   to { transform: rotate(360deg); }
 }
 
+/* 拼圖九宮格卡牌展示 */
+.prize-puzzle-box {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
 .prize-card {
-  width: 145px;
-  height: 145px;
-  border-radius: 30px;
+  width: 130px;
+  height: 130px;
+  border-radius: 20px;
   display: flex;
   justify-content: center;
   align-items: center;
-  font-size: 4.6rem;
-  margin-bottom: 16px;
-  border: 3.5px solid #fff;
+  border: 3px solid #fff;
   position: relative;
-  animation: floatPuzzleCard 3s ease-in-out infinite;
+  overflow: hidden;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.8);
 }
 
-@keyframes floatPuzzleCard {
-  0%, 100% { transform: translateY(0) rotate(0deg); }
-  50% { transform: translateY(-8px) rotate(2deg); }
+.mini-grid-9 {
+  width: 90px;
+  height: 90px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 3px;
+  background: rgba(0, 15, 30, 0.8);
+  padding: 4px;
+  border-radius: 12px;
+  border: 1px solid rgba(77, 166, 255, 0.4);
+}
+
+.grid-cell {
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 4px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 0.65rem;
+  color: #7abfff;
+  font-weight: 800;
+}
+
+.grid-cell.unlocked {
+  background: linear-gradient(135deg, #00f2fe, #4facfe);
+  color: #001222;
+  box-shadow: 0 0 6px #00f2fe;
+}
+
+.grid-cell.highlight {
+  animation: cellBlink 0.6s infinite alternate;
+}
+
+@keyframes cellBlink {
+  0% { transform: scale(0.9); filter: brightness(1); }
+  100% { transform: scale(1.1); filter: brightness(1.8); box-shadow: 0 0 10px #ffd200; }
 }
 
 .rarity-pill {
@@ -420,26 +447,31 @@ body, html {
 }
 
 .prize-title {
-  font-size: 1.65rem;
+  font-size: 1.55rem;
   font-weight: 900;
   letter-spacing: 2px;
   margin-bottom: 4px;
 }
 
 .prize-desc {
-  font-size: 1.1rem;
+  font-size: 1rem;
   color: #cde8ff;
   font-weight: 700;
 }
 
-/* ==================================================
-   🔘 喚醒控制與流光按鈕
-   ================================================== */
+/* 🔘 喚醒按鈕群與標籤 */
 .gacha-controls {
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 16px;
+}
+
+.token-badge-group {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  justify-content: center;
 }
 
 .token-badge {
@@ -448,24 +480,13 @@ body, html {
   gap: 8px;
   background: rgba(0, 15, 35, 0.75);
   border: 1px solid rgba(0, 242, 254, 0.35);
-  padding: 8px 26px;
+  padding: 8px 22px;
   border-radius: 40px;
   box-shadow: inset 0 0 12px rgba(0, 242, 254, 0.2);
 }
 
-.token-label {
-  font-size: 0.95rem;
-  color: #a4cded;
-  font-weight: 600;
-}
-
-.token-value {
-  font-size: 1.75rem;
-  font-weight: 900;
-  color: var(--cyber-gold);
-  text-shadow: 0 0 14px rgba(255, 210, 0, 0.85);
-  margin-left: 2px;
-}
+.token-label { font-size: 0.9rem; color: #a4cded; font-weight: 600; }
+.token-value { font-size: 1.6rem; font-weight: 900; color: var(--cyber-gold); text-shadow: 0 0 14px rgba(255, 210, 0, 0.85); margin-left: 2px; }
 
 .gacha-btn {
   width: 100%;
@@ -517,9 +538,7 @@ body, html {
 
 .gacha-btn:disabled .btn-shine { display: none; }
 
-/* ==================================================
-   📋 手遊風格任務卡片 (含進度條與發光獎勵)
-   ================================================== */
+/* 📋 任務卡片 */
 .task-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -547,12 +566,7 @@ body, html {
   background: linear-gradient(180deg, rgba(0, 242, 254, 0.15) 0%, rgba(6, 32, 65, 0.6) 100%);
 }
 
-.task-head {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
+.task-head { display: flex; align-items: center; gap: 10px; }
 .task-icon-box {
   width: 44px;
   height: 44px;
@@ -566,24 +580,10 @@ body, html {
   flex-shrink: 0;
 }
 
-.task-info h4 {
-  font-size: 0.95rem;
-  color: #fff;
-  font-weight: 800;
-  margin-bottom: 2px;
-}
+.task-info h4 { font-size: 0.95rem; color: #fff; font-weight: 800; margin-bottom: 2px; }
+.task-info p { font-size: 0.75rem; color: #8bbce0; }
 
-.task-info p {
-  font-size: 0.75rem;
-  color: #8bbce0;
-}
-
-.task-progress-wrap {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
+.task-progress-wrap { display: flex; align-items: center; gap: 8px; }
 .progress-bar-bg {
   flex: 1;
   height: 7px;
@@ -592,19 +592,13 @@ body, html {
   overflow: hidden;
   border: 1px solid rgba(255, 255, 255, 0.1);
 }
-
 .progress-bar-fill {
   height: 100%;
   background: linear-gradient(90deg, #00f2fe, #4facfe);
   border-radius: 10px;
   box-shadow: 0 0 8px #00f2fe;
 }
-
-.progress-num {
-  font-size: 0.75rem;
-  color: #cce9ff;
-  font-weight: 700;
-}
+.progress-num { font-size: 0.75rem; color: #cce9ff; font-weight: 700; }
 
 .claim-btn {
   background: rgba(255, 255, 255, 0.08);
@@ -633,7 +627,111 @@ body, html {
 }
 
 /* ==================================================
-   🖼️ 收藏畫廊模態窗 (展覽館立體光影)
+   📦 碎片工坊與寶箱彈窗樣式
+   ================================================== */
+.workshop-content {
+  max-width: 900px !important;
+}
+
+.inventory-bar {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  background: rgba(0, 15, 35, 0.7);
+  padding: 16px;
+  border-radius: 20px;
+  border: 1px solid rgba(77, 166, 255, 0.3);
+  margin-bottom: 25px;
+}
+
+.inv-item {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.95rem;
+}
+.inv-item b { color: var(--cyber-gold); font-size: 1.25rem; }
+
+.workshop-sections {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.workshop-box {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(77, 166, 255, 0.2);
+  padding: 20px;
+  border-radius: 20px;
+}
+.workshop-box h3 { margin-bottom: 15px; font-size: 1.15rem; color: #7abfff; }
+
+.chest-action-row {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px;
+}
+
+.chest-card {
+  background: rgba(0, 30, 60, 0.6);
+  border: 1px solid rgba(77, 166, 255, 0.3);
+  border-radius: 16px;
+  padding: 18px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+.chest-card.premium { border-color: rgba(255, 210, 0, 0.5); }
+.chest-icon { font-size: 2.5rem; }
+
+.gacha-mini-btn {
+  background: linear-gradient(135deg, #00f2fe, #0066cc);
+  border: 1px solid #fff;
+  color: #fff;
+  padding: 8px 24px;
+  border-radius: 20px;
+  font-weight: 800;
+  cursor: pointer;
+  margin-top: 6px;
+  transition: 0.25s;
+}
+.gacha-mini-btn.gold { background: linear-gradient(135deg, #ffd200, #ff7700); color: #001222; }
+.gacha-mini-btn:hover { transform: scale(1.06); filter: brightness(1.2); }
+
+.exchange-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+
+.exchange-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: rgba(0, 20, 45, 0.6);
+  padding: 12px 18px;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  font-size: 0.9rem;
+}
+
+.exchange-btn {
+  background: rgba(0, 242, 254, 0.2);
+  border: 1px solid var(--neon-blue);
+  color: #fff;
+  padding: 6px 14px;
+  border-radius: 15px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: 0.2s;
+}
+.exchange-btn:hover { background: var(--neon-blue); color: #001222; }
+
+/* ==================================================
+   🖼️ 收藏畫廊模態窗 (九宮格微縮展示)
    ================================================== */
 .glass-modal {
   display: none;
@@ -671,10 +769,7 @@ body, html {
   line-height: 1;
 }
 
-.close-gallery:hover {
-  color: #ff5252;
-  transform: rotate(90deg) scale(1.15);
-}
+.close-gallery:hover { color: #ff5252; transform: rotate(90deg) scale(1.15); }
 
 .gallery-grid {
   display: grid;
@@ -717,17 +812,9 @@ body, html {
   transition: 0.35s;
 }
 
-.img-frame img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
+.img-frame img { width: 100%; height: 100%; object-fit: cover; }
 .gallery-item:hover { transform: translateY(-8px); }
-.gallery-item:hover .img-frame {
-  box-shadow: 0 20px 40px rgba(0, 242, 254, 0.6);
-  border-color: var(--neon-blue);
-}
+.gallery-item:hover .img-frame { box-shadow: 0 20px 40px rgba(0, 242, 254, 0.6); border-color: var(--neon-blue); }
 
 .gallery-name {
   margin: 0 0 5px 0;
@@ -784,34 +871,151 @@ body, html {
 }
 
 .page-num { border-radius: 50%; padding: 6px 12px; }
-.page-btn:hover:not(:disabled), .page-num:hover:not(.active) {
-  background: rgba(0, 242, 254, 0.3);
-  color: #fff;
-  border-color: #fff;
-}
-
-.page-num.active {
-  background: linear-gradient(135deg, #00f2fe, #0066cc);
-  color: #fff;
-  border-color: #fff;
-  box-shadow: 0 0 15px rgba(0, 242, 254, 0.8);
-}
-
+.page-btn:hover:not(:disabled), .page-num:hover:not(.active) { background: rgba(0, 242, 254, 0.3); color: #fff; border-color: #fff; }
+.page-num.active { background: linear-gradient(135deg, #00f2fe, #0066cc); color: #fff; border-color: #fff; box-shadow: 0 0 15px rgba(0, 242, 254, 0.8); }
 .page-btn:disabled { opacity: 0.35; cursor: not-allowed; }
 
-/* ==================================================
-   📱 響應式排版 (RWD)
-   ================================================== */
+/* 📱 響應式排版 (RWD) */
 @media screen and (max-width: 900px) {
   .task-grid { grid-template-columns: repeat(2, 1fr); }
   .gallery-grid { grid-template-columns: repeat(2, 1fr); gap: 40px 20px; }
-  .glass-panel { padding: 25px 20px; }
+  .chest-action-row { grid-template-columns: 1fr; }
+  .exchange-grid { grid-template-columns: 1fr; }
+  .inventory-bar { grid-template-columns: repeat(2, 1fr); }
 }
 
 @media screen and (max-width: 550px) {
   .task-grid { grid-template-columns: 1fr; }
   .gallery-grid { grid-template-columns: 1fr; }
-  .nav-btn { padding: 8px 16px; font-size: 0.85rem; }
+  .nav-right-group { right: 12px; gap: 6px; }
+  .nav-btn { padding: 8px 14px; font-size: 0.82rem; }
   .glass-modal-content { padding: 25px 15px; width: 95vw; }
   .panel-title { font-size: 1.5rem; }
+}
+/* ==================================================
+   🧩 展示櫃 3x3 九宮格拼圖框修復版 (鎖定正方形與網格)
+   ================================================== */
+.img-frame {
+  width: 100% !important;
+  max-width: 220px !important;
+  aspect-ratio: 1 / 1 !important; /* 強制固定 1:1 正方形 */
+  border-radius: 16px;
+  overflow: hidden;
+  position: relative;
+  border: 3px solid rgba(255, 255, 255, 0.9);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.7);
+  background: #020d1c;
+  display: flex !important;
+}
+
+.puzzle-board-frame {
+  width: 100% !important;
+  height: 100% !important;
+  position: relative;
+  display: flex;
+}
+
+/* 0/9 未解鎖暗化圖 */
+.locked-preview-img {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover;
+  filter: grayscale(100%) blur(4px) brightness(0.25);
+}
+
+/* 9/9 完成大圖 */
+.completed-img {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover;
+}
+
+/* 1~8 進行中的 3x3 九宮格 (強制 3欄 x 3列) */
+.in-progress-grid {
+  display: grid !important;
+  grid-template-columns: repeat(3, 1fr) !important;
+  grid-template-rows: repeat(3, 1fr) !important;
+  gap: 2px !important;
+  background: rgba(0, 0, 0, 0.9) !important;
+  padding: 2px !important;
+  width: 100% !important;
+  height: 100% !important;
+  box-sizing: border-box !important;
+}
+
+/* 單個拼圖碎片 (已解鎖) */
+.puzzle-piece-cell.unlocked {
+  position: relative !important;
+  width: 100% !important;
+  height: 100% !important;
+  box-shadow: inset 0 0 6px rgba(0, 242, 254, 0.4);
+}
+
+.piece-num-tag {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  font-size: 0.55rem;
+  font-weight: 900;
+  color: #fff;
+  background: rgba(0, 0, 0, 0.65);
+  padding: 1px 4px;
+  border-radius: 3px;
+  line-height: 1;
+}
+
+/* 未解鎖的黑色空位 */
+.puzzle-piece-cell.locked-slot {
+  width: 100% !important;
+  height: 100% !important;
+  background: rgba(6, 25, 48, 0.85);
+  border: 1px dashed rgba(77, 166, 255, 0.25);
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+  font-size: 0.8rem;
+  font-weight: 800;
+  color: rgba(122, 191, 255, 0.4);
+  box-sizing: border-box;
+}
+/* ==================================================
+   📄 分頁條橫向捲動排版 (防止大量頁碼擠爆)
+   ================================================== */
+.pagination-container {
+  display: flex !important;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding-top: 20px;
+  box-sizing: border-box;
+}
+
+.page-numbers {
+  display: flex;
+  gap: 6px;
+  max-width: 65vw;
+  overflow-x: auto;
+  padding: 6px 4px;
+  scrollbar-width: thin;
+  white-space: nowrap;
+}
+
+.page-numbers::-webkit-scrollbar {
+  height: 6px;
+}
+
+.page-numbers::-webkit-scrollbar-thumb {
+  background: rgba(0, 242, 254, 0.4);
+  border-radius: 10px;
+}
+
+.page-num {
+  flex-shrink: 0;
+  min-width: 34px;
+  height: 34px;
+  padding: 0 6px;
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
 }

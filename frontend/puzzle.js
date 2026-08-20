@@ -15,6 +15,63 @@ function getFullImageUrl(url) {
   return `${API_BASE_URL}${url.startsWith("/") ? "" : "/"}${url}`;
 }
 
+// 輔助函式：計算九宮格 (1~9) 碎片對應的背景裁切位置
+function getPieceCropStyle(pieceNumber, imageUrl) {
+  const row = Math.floor((pieceNumber - 1) / 3);
+  const col = (pieceNumber - 1) % 3;
+  const posX = col * 50; // 0%, 50%, 100%
+  const posY = row * 50; // 0%, 50%, 100%
+  return `background-image: url('${imageUrl}'); background-size: 300% 300%; background-position: ${posX}% ${posY}%; background-repeat: no-repeat;`;
+}
+
+// 輔助函式：產生「我的收藏」九宮格拼圖遮罩 HTML
+function renderPuzzleFrameHTML(unlockedPieces, fullImg, isCompleted, isLocked) {
+  if (isLocked) {
+    // 0/9 完全未解鎖：暗黑模糊 + 鎖頭
+    return `
+      <div class="puzzle-board-frame">
+        <img src="${fullImg}" class="locked-preview-img" onerror="this.src='images/fish_logo.png'" />
+        <div class="lock-icon">🔒</div>
+      </div>
+    `;
+  }
+
+  if (isCompleted) {
+    // 9/9 完整集齊：全圖展示 + 金色光暈
+    return `
+      <div class="puzzle-board-frame completed">
+        <img src="${fullImg}" class="completed-img" onerror="this.src='images/fish_logo.png'" />
+        <div class="frame-shine"></div>
+      </div>
+    `;
+  }
+
+  // 1~8 收集進行中：3x3 九宮格拼圖塊
+  let cellsHtml = "";
+  for (let i = 1; i <= 9; i++) {
+    const isPieceUnlocked = unlockedPieces.includes(i);
+    if (isPieceUnlocked) {
+      cellsHtml += `
+        <div class="puzzle-piece-cell unlocked" style="${getPieceCropStyle(i, fullImg)}">
+          <span class="piece-num-tag">${i}</span>
+        </div>
+      `;
+    } else {
+      cellsHtml += `
+        <div class="puzzle-piece-cell locked-slot">
+          <span>${i}</span>
+        </div>
+      `;
+    }
+  }
+
+  return `
+    <div class="puzzle-board-frame in-progress-grid">
+      ${cellsHtml}
+    </div>
+  `;
+}
+
 // 輔助函式：取得身分驗證 Header
 function getAuthHeaders() {
   const token = localStorage.getItem("authToken");
@@ -29,7 +86,7 @@ function getAuthHeaders() {
 }
 
 // ==================================================
-// 💎 喚醒石與任務系統
+// 💎 喚醒石、庫存與每日任務
 // ==================================================
 function claimToken(btnElement, amount) {
   btnElement.disabled = true;
@@ -51,8 +108,39 @@ function updateTokenDisplay() {
   if (drawBtn) drawBtn.disabled = drawTokens <= 0;
 }
 
+async function fetchInventory() {
+  const token = localStorage.getItem("authToken");
+  if (!token) return;
+
+  try {
+    const res = await fetch(`${API_BASE_URL}/game/collect/inventory`, {
+      method: "GET",
+      headers: getAuthHeaders()
+    });
+    if (res.ok) {
+      const { data } = await res.json();
+      const fragEl = document.getElementById("fragment-counts");
+      if (fragEl) {
+        fragEl.innerText = `${data.normal_fragments || 0} / ${data.premium_fragments || 0}`;
+      }
+
+      const elNFrag = document.getElementById("inv-normal-frag");
+      const elPFrag = document.getElementById("inv-premium-frag");
+      const elNChest = document.getElementById("inv-normal-chest");
+      const elPChest = document.getElementById("inv-premium-chest");
+
+      if (elNFrag) elNFrag.innerText = data.normal_fragments || 0;
+      if (elPFrag) elPFrag.innerText = data.premium_fragments || 0;
+      if (elNChest) elNChest.innerText = data.normal_chests || 0;
+      if (elPChest) elPChest.innerText = data.premium_chests || 0;
+    }
+  } catch (e) {
+    console.error("更新庫存失敗:", e);
+  }
+}
+
 // ==================================================
-// 🔮 真實後端抽卡喚醒 (Gacha System)
+// 🔮 真實後端九宮格抽卡喚醒 (Gacha System)
 // ==================================================
 async function performDraw() {
   if (drawTokens <= 0) return;
@@ -70,7 +158,7 @@ async function performDraw() {
 
   drawBtn.disabled = true;
 
-  // 💥 階段一：水晶球聚能震動與裂痕蔓延
+  // 💥 階段一：蓄力
   crystal.className = "crystal-ball drawing";
   crystal.innerHTML = `
     <div class="crystal-core"></div>
@@ -99,45 +187,63 @@ async function performDraw() {
     const resData = await response.json();
     const result = resData.data || {};
     const pic = result.picture || {};
-    const isNew = result.isNew;
+    const drawnPiece = result.drawnPiece || 1;
+    const unlockedPieces = result.puzzleProgress?.unlocked_pieces || [drawnPiece];
+    const isCompletedNow = Boolean(result.isCompletedNow);
     const rarity = pic.rarity || "NORMAL";
 
-    // 扣除喚醒石並更新
     drawTokens--;
     localStorage.setItem("puzzle_tokens", drawTokens);
     updateTokenDisplay();
+    fetchInventory();
 
-    // 稀有度視覺設定
-    const isPremium = (rarity === "PREMIUM");
+    const isPremium = rarity === "PREMIUM";
     const rarityColor = isPremium ? "#ffd200" : "#00f2fe";
     const rarityTag = isPremium ? "✨ PREMIUM 高級" : "NORMAL 普通";
     const fullImg = getFullImageUrl(pic.image_url);
 
     setTimeout(() => {
-      // 💥 階段二：水晶球極速碎裂光爆
+      // 💥 階段二：碎裂
       crystal.className = "crystal-ball explode";
       crystal.innerHTML = "";
 
-      // 💥 階段三：展示手遊級發光卡牌與射線
+      // 💥 階段三：展示單格碎片與九宮格
       setTimeout(() => {
         crystal.className = "prize-stage";
+        
+        let gridHtml = "";
+        for (let i = 1; i <= 9; i++) {
+          const isUnlocked = unlockedPieces.includes(i);
+          const isDrawn = (i === drawnPiece);
+          gridHtml += `<div class="grid-cell ${isUnlocked ? 'unlocked' : ''} ${isDrawn ? 'highlight' : ''}">${i}</div>`;
+        }
+
+        const cardDisplayContent = isCompletedNow
+          ? `<img src="${fullImg}" alt="${pic.title}" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.src='images/fish_logo.png'" />`
+          : `<div style="width: 100%; height: 100%; ${getPieceCropStyle(drawnPiece, fullImg)}"></div>`;
+
         crystal.innerHTML = `
           <div class="prize-rays"></div>
-          <div class="prize-card" style="background: #062347; box-shadow: 0 0 45px ${rarityColor}, inset 0 0 20px rgba(255,255,255,0.85); border-color: ${rarityColor}; overflow: hidden; padding: 0;">
-            <img src="${fullImg}" alt="${pic.title}" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.src='images/fish_logo.png'" />
+          <div class="prize-puzzle-box">
+            <div class="prize-card" style="box-shadow: 0 0 35px ${rarityColor}; border-color: ${rarityColor}; background: #061b36;">
+              ${cardDisplayContent}
+            </div>
+            <div class="mini-grid-9">
+              ${gridHtml}
+            </div>
           </div>
           <div class="rarity-pill" style="background: ${rarityColor}; color: #021226;">
-            ${rarityTag} ${isNew ? '<span style="color:#ff3838; margin-left:4px;">NEW!</span>' : ''}
+            ${rarityTag} · 第 ${drawnPiece} 號碎片
           </div>
           <div class="prize-title" style="color: ${rarityColor}; text-shadow: 0 0 16px ${rarityColor};">
-            ${pic.title || "神秘海洋圖鑑"}
+            ${pic.title || "海洋拼圖"}
           </div>
-          <div class="prize-desc">${pic.category || "海洋生物"} · ${pic.description || "探索海洋獲得"}</div>
+          <div class="prize-desc">
+            ${isCompletedNow ? '🎉 恭喜集齊完整拼圖！' : `收集進度：${unlockedPieces.length} / 9 (${result.puzzleProgress?.progressRate || '0%'})`}
+          </div>
         `;
 
         if (drawTokens > 0) drawBtn.disabled = false;
-        
-        // 重新拉取最新圖鑑快取
         fetchGalleryData();
       }, 400);
     }, 1300);
@@ -146,7 +252,6 @@ async function performDraw() {
     console.error("喚醒抽卡錯誤:", error);
     alert(`喚醒發生錯誤：${error.message}`);
     
-    // 重置水晶球
     crystal.className = "crystal-ball";
     crystal.innerHTML = `
       <div class="crystal-core"></div>
@@ -154,6 +259,74 @@ async function performDraw() {
       <span class="idle-sub">TAP TO SUMMON</span>
     `;
     if (drawTokens > 0) drawBtn.disabled = false;
+  }
+}
+
+// ==================================================
+// 📦 碎片工坊與開啟寶箱 API 串接
+// ==================================================
+function openWorkshop() {
+  const modal = document.getElementById("workshop-modal");
+  if (modal) {
+    modal.style.display = "flex";
+    fetchInventory();
+  }
+}
+
+function closeWorkshop() {
+  const modal = document.getElementById("workshop-modal");
+  if (modal) modal.style.display = "none";
+}
+
+async function exchangeFragments(type) {
+  const token = localStorage.getItem("authToken");
+  if (!token) return alert("請先登入！");
+
+  try {
+    const res = await fetch(`${API_BASE_URL}/game/collect/exchange`, {
+      method: "POST",
+      headers: getAuthHeaders(),
+      body: JSON.stringify({ exchange_type: type, times: 1 })
+    });
+
+    const data = await res.json();
+    if (res.ok) {
+      alert(data.message || "兌換成功！🎉");
+      fetchInventory();
+    } else {
+      alert(`兌換失敗：${data.message || "碎片不足"}`);
+    }
+  } catch (e) {
+    alert("連線失敗，請稍後再試！");
+  }
+}
+
+async function openChest(chestType) {
+  const token = localStorage.getItem("authToken");
+  if (!token) return alert("請先登入！");
+
+  try {
+    const res = await fetch(`${API_BASE_URL}/game/collect/open-chest`, {
+      method: "POST",
+      headers: getAuthHeaders(),
+      body: JSON.stringify({ chest_type: chestType, count: 1 })
+    });
+
+    const data = await res.json();
+    if (res.ok) {
+      const result = data.data?.results?.[0];
+      if (result) {
+        alert(`🎁 開啟成功！獲得【${result.picture?.title}】的第 ${result.drawnPiece} 號碎片！`);
+      } else {
+        alert(data.message || "開啟成功！");
+      }
+      fetchInventory();
+      fetchGalleryData();
+    } else {
+      alert(`開啟失敗：${data.message || "寶箱數量不足"}`);
+    }
+  } catch (e) {
+    alert("連線失敗，請稍後再試！");
   }
 }
 
@@ -201,19 +374,21 @@ function renderGalleryPage(page) {
   const pageData = galleryPictures.slice(start, start + ITEMS_PER_PAGE);
 
   container.innerHTML = pageData.map(item => {
-    const isUnlocked = Boolean(item.is_unlocked);
+    const prog = item.user_progress || {};
+    const isCompleted = Boolean(prog.is_completed);
+    const unlockedPieces = prog.unlocked_pieces || [];
+    const pieceCount = prog.piece_count || 0;
+    const isLocked = (pieceCount === 0);
     const fullImg = getFullImageUrl(item.image_url);
-    const dateStr = item.obtained_at ? new Date(item.obtained_at).toLocaleDateString('zh-TW') : "未達成";
-    const rarityClass = item.rarity === "PREMIUM" ? "style='color:#ffd200;'" : "";
+    const rarityColor = item.rarity === "PREMIUM" ? "style='color:#ffd200;'" : "";
 
     return `
-      <div class="gallery-item ${isUnlocked ? 'unlocked' : 'locked'}">
+      <div class="gallery-item ${isCompleted ? 'unlocked' : (pieceCount > 0 ? 'in-progress' : 'locked')}">
         <div class="img-frame">
-          <img src="${fullImg}" alt="${item.title}" onerror="this.src='images/fish_logo.png'" />
-          ${!isUnlocked ? '<div class="lock-icon">🔒</div>' : '<div class="frame-shine"></div>'}
+          ${renderPuzzleFrameHTML(unlockedPieces, fullImg, isCompleted, isLocked)}
         </div>
-        <p class="gallery-name" ${rarityClass}>${isUnlocked ? '✨ ' + item.title : '❓ ' + (item.category || '神秘生物')}</p>
-        <span class="date">${isUnlocked ? `${dateStr} 達成` : (item.task_requirement || '尚未解鎖')}</span>
+        <p class="gallery-name" ${rarityColor}>${isCompleted ? '✨ ' : ''}${item.title || '海洋拼圖'}</p>
+        <span class="date">${isCompleted ? '已集齊 (9/9)' : `碎片進度: ${pieceCount}/9 (${prog.progress_rate || '0%'})`}</span>
       </div>
     `;
   }).join("");
@@ -221,6 +396,7 @@ function renderGalleryPage(page) {
   renderPaginationControls(totalPages);
 }
 
+// 全部頁碼完整渲染
 function renderPaginationControls(totalPages) {
   const paginationContainer = document.querySelector(".pagination-container");
   if (!paginationContainer) return;
@@ -231,12 +407,19 @@ function renderPaginationControls(totalPages) {
   }
 
   paginationContainer.style.display = "flex";
+
+  // 直接生成 1 到 totalPages 的所有頁碼
+  const pagesHtml = Array.from({ length: totalPages }, (_, i) => i + 1)
+    .map(
+      (p) =>
+        `<button class="page-num ${p === currentGalleryPage ? 'active' : ''}" onclick="renderGalleryPage(${p})">${p}</button>`
+    )
+    .join("");
+
   paginationContainer.innerHTML = `
     <button class="page-btn prev-btn" ${currentGalleryPage === 1 ? 'disabled' : ''} onclick="renderGalleryPage(${currentGalleryPage - 1})">&laquo; 上一頁</button>
     <div class="page-numbers">
-      ${Array.from({ length: totalPages }, (_, i) => i + 1).map(p => `
-        <button class="page-num ${p === currentGalleryPage ? 'active' : ''}" onclick="renderGalleryPage(${p})">${p}</button>
-      `).join('')}
+      ${pagesHtml}
     </div>
     <button class="page-btn next-btn" ${currentGalleryPage === totalPages ? 'disabled' : ''} onclick="renderGalleryPage(${currentGalleryPage + 1})">下一頁 &raquo;</button>
   `;
@@ -244,25 +427,25 @@ function renderPaginationControls(totalPages) {
 
 // 模態窗控制
 const galleryModal = document.getElementById("gallery-modal");
-
 function openGallery() {
   if (galleryModal) {
     galleryModal.style.display = "flex";
     fetchGalleryData();
   }
 }
-
 function closeGallery() {
   if (galleryModal) galleryModal.style.display = "none";
 }
 
 window.addEventListener("click", function (event) {
   if (event.target === galleryModal) closeGallery();
+  const wsModal = document.getElementById("workshop-modal");
+  if (event.target === wsModal) closeWorkshop();
 });
 
-// 初始化頁面
 document.addEventListener("DOMContentLoaded", () => {
   updateTokenDisplay();
+  fetchInventory();
 
   const crystal = document.getElementById("crystal-ball");
   if (crystal) {
