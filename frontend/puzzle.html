@@ -7,38 +7,180 @@
       content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
     />
     <title>突然想拼圖 - 秘密海域</title>
-    <!-- 引入獨立的 CSS 樣式檔 -->
-    <link rel="stylesheet" href="puzzle.css" />
+    <link rel="stylesheet" href="puzzle.css?v=2026_ultra_v1" />
   </head>
   <body>
-    <!-- 海洋背景 -->
-    <div class="ocean-bg"></div>
+    <!-- 🌊 極致動態深海背景 -->
+    <div class="ocean-bg">
+      <div class="deep-glow"></div>
+      <div class="light-ray"></div>
+      <div class="bubbles">
+        <span style="--i: 11"></span>
+        <span style="--i: 14"></span>
+        <span style="--i: 22"></span>
+        <span style="--i: 10"></span>
+        <span style="--i: 18"></span>
+        <span style="--i: 25"></span>
+        <span style="--i: 13"></span>
+        <span style="--i: 16"></span>
+      </div>
+    </div>
 
-    <!-- 🖼️ 右上角：打開收藏冊的按鈕 -->
-    <button class="gallery-btn" onclick="openGallery()">🖼️ 我的收藏</button>
+    <!-- 頂部精緻導航按鈕 -->
+    <a href="games.html" class="nav-btn back-btn">
+      <span class="btn-icon">🔙</span> 回遊樂場
+    </a>
+    <button class="nav-btn gallery-btn" onclick="openGallery()">
+      <span class="btn-icon">🖼️</span> 我的收藏
+    </button>
 
-    <!-- 📚 收藏展示櫃 (隱藏彈窗) -->
+    <!-- 🧩 主內容區 -->
+    <div class="main-container">
+      <!-- 🔮 上半部：深海神殿召喚法陣 -->
+      <div class="glass-panel gacha-panel">
+        <div class="panel-header">
+          <span class="deco-star">✦</span>
+          <h2 class="panel-title">深海碎片喚醒</h2>
+          <span class="deco-star">✦</span>
+        </div>
+
+        <!-- 抽獎法陣舞台 -->
+        <div class="gacha-stage">
+          <div class="magic-runes-outer"></div>
+          <div class="magic-runes-inner"></div>
+          <div class="pedestal-glow"></div>
+
+          <!-- 水晶球主體 -->
+          <div id="crystal-ball" class="crystal-ball">
+            <div class="crystal-core"></div>
+            <div class="crystal-highlight"></div>
+            <span class="idle-text">等待喚醒</span>
+            <span class="idle-sub">TAP TO SUMMON</span>
+          </div>
+        </div>
+
+        <!-- 抽獎控制區 -->
+        <div class="gacha-controls">
+          <div class="token-badge">
+            <span class="token-icon">💎</span>
+            <span class="token-label">持有喚醒石</span>
+            <span id="token-count" class="token-value">0</span>
+          </div>
+          <button
+            id="draw-btn"
+            class="gacha-btn"
+            onclick="performDraw()"
+            disabled
+          >
+            <span class="btn-shine"></span>
+            <span class="btn-text">消耗 1 顆喚醒石抽取</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- 📋 下半部：每日任務列 -->
+      <div class="glass-panel task-panel-bottom">
+        <div class="panel-header sub-header">
+          <span class="deco-star">✦</span>
+          <h2 class="panel-title sub-title">每日任務 (獲取喚醒石)</h2>
+          <span class="deco-star">✦</span>
+        </div>
+
+        <div class="task-grid">
+          <div class="task-card">
+            <div class="task-head">
+              <div class="task-icon-box">📅</div>
+              <div class="task-info">
+                <h4>每日簽到</h4>
+                <p>登入海洋世界報到</p>
+              </div>
+            </div>
+            <div class="task-progress-wrap">
+              <div class="progress-bar-bg">
+                <div class="progress-bar-fill" style="width: 100%"></div>
+              </div>
+              <span class="progress-num">1 / 1</span>
+            </div>
+            <button class="claim-btn active" onclick="claimToken(this, 1)">
+              <span>領取 1 顆</span>
+            </button>
+          </div>
+
+          <div class="task-card">
+            <div class="task-head">
+              <div class="task-icon-box">✉️</div>
+              <div class="task-info">
+                <h4>漂流初探</h4>
+                <p>累積發文 3 篇</p>
+              </div>
+            </div>
+            <div class="task-progress-wrap">
+              <div class="progress-bar-bg">
+                <div class="progress-bar-fill" style="width: 0%"></div>
+              </div>
+              <span class="progress-num">0 / 3</span>
+            </div>
+            <button class="claim-btn" disabled>未達成</button>
+          </div>
+
+          <div class="task-card">
+            <div class="task-head">
+              <div class="task-icon-box">💬</div>
+              <div class="task-info">
+                <h4>侃侃而談</h4>
+                <p>累積發文 6 篇</p>
+              </div>
+            </div>
+            <div class="task-progress-wrap">
+              <div class="progress-bar-bg">
+                <div class="progress-bar-fill" style="width: 0%"></div>
+              </div>
+              <span class="progress-num">0 / 6</span>
+            </div>
+            <button class="claim-btn" disabled>未達成</button>
+          </div>
+
+          <div class="task-card">
+            <div class="task-head">
+              <div class="task-icon-box">🌊</div>
+              <div class="task-info">
+                <h4>海洋話匣子</h4>
+                <p>累積發文 10 篇</p>
+              </div>
+            </div>
+            <div class="task-progress-wrap">
+              <div class="progress-bar-bg">
+                <div class="progress-bar-fill" style="width: 0%"></div>
+              </div>
+              <span class="progress-num">0 / 10</span>
+            </div>
+            <button class="claim-btn" disabled>未達成</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 📚 收藏展示櫃 -->
     <div id="gallery-modal" class="glass-modal">
       <div class="glass-modal-content">
         <span class="close-gallery" onclick="closeGallery()">&times;</span>
-        <h2 class="panel-title" style="margin-bottom: 30px">
-          🖼️ 拼圖收藏展示櫃
-        </h2>
+        <div class="panel-header">
+          <h2 class="panel-title modal-title">🖼️ 拼圖收藏展示櫃</h2>
+        </div>
 
         <div class="gallery-grid">
-          <!-- 展示品 1：已解鎖 -->
           <div class="gallery-item unlocked">
             <div class="img-frame">
               <img
                 src="https://images.unsplash.com/photo-1551244072-5d12893278ab?ixlib=rb-4.0.3&auto=format&fit=crop&w=300&q=80"
                 alt="深海奇遇"
               />
+              <div class="frame-shine"></div>
             </div>
-            <p>✨ 深海奇遇</p>
+            <p class="gallery-name">✨ 深海奇遇</p>
             <span class="date">2026/07/25 達成</span>
           </div>
 
-          <!-- 展示品 2：未解鎖 -->
           <div class="gallery-item locked">
             <div class="img-frame">
               <img
@@ -47,11 +189,10 @@
               />
               <div class="lock-icon">🔒</div>
             </div>
-            <p>❓ 神秘海域</p>
+            <p class="gallery-name">❓ 神秘海域</p>
             <span class="date">進度: 3/9</span>
           </div>
 
-          <!-- 展示品 3：未解鎖 -->
           <div class="gallery-item locked">
             <div class="img-frame">
               <img
@@ -60,11 +201,10 @@
               />
               <div class="lock-icon">🔒</div>
             </div>
-            <p>❓ 珊瑚秘境</p>
+            <p class="gallery-name">❓ 珊瑚秘境</p>
             <span class="date">進度: 0/9</span>
           </div>
 
-          <!-- 展示品 4：未解鎖 -->
           <div class="gallery-item locked">
             <div class="img-frame">
               <img
@@ -73,11 +213,10 @@
               />
               <div class="lock-icon">🔒</div>
             </div>
-            <p>❓ 鯨魚低語</p>
+            <p class="gallery-name">❓ 鯨魚低語</p>
             <span class="date">進度: 1/9</span>
           </div>
 
-          <!-- 展示品 5：未解鎖 -->
           <div class="gallery-item locked">
             <div class="img-frame">
               <img
@@ -86,11 +225,10 @@
               />
               <div class="lock-icon">🔒</div>
             </div>
-            <p>❓ 海底遺跡</p>
+            <p class="gallery-name">❓ 海底遺跡</p>
             <span class="date">進度: 0/9</span>
           </div>
 
-          <!-- 展示品 6：未解鎖 -->
           <div class="gallery-item locked">
             <div class="img-frame">
               <img
@@ -99,13 +237,11 @@
               />
               <div class="lock-icon">🔒</div>
             </div>
-            <p>❓ 尋寶之旅</p>
+            <p class="gallery-name">❓ 尋寶之旅</p>
             <span class="date">進度: 0/9</span>
           </div>
         </div>
-        <!-- 結束 gallery-grid -->
 
-        <!-- 📄 底部頁碼控制區 -->
         <div class="pagination-container">
           <button class="page-btn prev-btn" disabled>&laquo; 上一頁</button>
           <div class="page-numbers">
@@ -116,89 +252,8 @@
           <button class="page-btn next-btn">下一頁 &raquo;</button>
         </div>
       </div>
-      <!-- 結束 glass-modal-content -->
-    </div>
-    <!-- 結束 gallery-modal -->
-
-    <!-- 🔙 返回按鈕 -->
-    <a href="games.html" class="back-btn">🔙 回遊樂場</a>
-
-    <!-- 🧩 主內容區 (改為上下排版) -->
-    <div class="main-container">
-      
-      <!-- 🔮 上半部：深海抽獎法陣 -->
-      <div class="glass-panel gacha-panel">
-        <h2 class="panel-title">🔮 深海碎片喚醒</h2>
-        
-        <!-- 抽獎動畫顯示區 -->
-        <div class="gacha-display">
-          <div id="crystal-ball" class="crystal-ball">
-            <span class="idle-text">等待喚醒...</span>
-          </div>
-        </div>
-
-        <!-- 抽獎控制區 -->
-        <div class="gacha-controls">
-          <p class="token-info">持有喚醒石：<span id="token-count" style="color: #ffca28; font-size: 1.5rem; font-weight: 900;">0</span> 顆</p>
-          <button id="draw-btn" class="gacha-btn" onclick="performDraw()" disabled>消耗 1 顆喚醒石抽取</button>
-        </div>
-      </div>
-
-      <!-- 📋 下半部：每日任務列 -->
-      <div class="glass-panel task-panel-bottom">
-        <h2 class="panel-title" style="font-size: 1.4rem; margin-bottom: 15px;">📝 每日任務 (獲取喚醒石)</h2>
-        <div class="task-grid">
-          
-          <div class="task-item">
-            <div class="task-info">
-              <h4>📅 每日簽到</h4>
-              <p>登入海洋世界報到</p>
-            </div>
-            <button class="claim-btn" onclick="claimToken(this, 1)">領取 1 顆</button>
-          </div>
-
-          <div class="task-item">
-            <div class="task-info">
-              <h4>✉️ 漂流初探 (0/3)</h4>
-              <p>累積發文 3 篇</p>
-            </div>
-            <button class="claim-btn" disabled>未達成</button>
-          </div>
-
-          <div class="task-item">
-            <div class="task-info">
-              <h4>✉️ 侃侃而談 (0/6)</h4>
-              <p>累積發文 6 篇</p>
-            </div>
-            <button class="claim-btn" disabled>未達成</button>
-          </div>
-
-          <div class="task-item">
-            <div class="task-info">
-              <h4>✉️ 海洋話匣子 (0/10)</h4>
-              <p>累積發文 10 篇</p>
-            </div>
-            <button class="claim-btn" disabled>未達成</button>
-          </div>
-
-        </div>
-      </div>
-
     </div>
 
-      <!-- 🖼️ 右側：拼圖盤 -->
-      <div class="glass-panel board-panel">
-        <h2 class="panel-title">🧩 我的拼圖</h2>
-        <div class="puzzle-wrapper" id="puzzleBoard">
-          <!-- JavaScript 會在這裡生成拼圖塊 -->
-        </div>
-        <div class="progress-text">
-          收集進度：<span id="progress-count">0</span> / 9
-        </div>
-      </div>
-    </div>
-
-    <!-- 引入獨立的 JavaScript 腳本檔 -->
-    <script src="puzzle.js"></script>
+    <script src="puzzle.js?v=2026_ultra_v1"></script>
   </body>
 </html>
