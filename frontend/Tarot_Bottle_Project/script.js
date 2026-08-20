@@ -1,4 +1,3 @@
-
 const tarotDeck = [
     { id: 0, name: "愚者", image: "images/m00.jpg" }, { id: 1, name: "魔術師", image: "images/m01.jpg" }, { id: 2, name: "女祭司", image: "images/m02.jpg" }, { id: 3, name: "皇后", image: "images/m03.jpg" }, { id: 4, name: "皇帝", image: "images/m04.jpg" }, { id: 5, name: "教皇", image: "images/m05.jpg" }, { id: 6, name: "戀人", image: "images/m06.jpg" }, { id: 7, name: "戰車", image: "images/m07.jpg" }, { id: 8, name: "力量", image: "images/m08.jpg" }, { id: 9, name: "隱者", image: "images/m09.jpg" }, { id: 10, name: "命運之輪", image: "images/m10.jpg" }, { id: 11, name: "正義", image: "images/m11.jpg" }, { id: 12, name: "倒吊人", image: "images/m12.jpg" }, { id: 13, name: "死神", image: "images/m13.jpg" }, { id: 14, name: "節制", image: "images/m14.jpg" }, { id: 15, name: "惡魔", image: "images/m15.jpg" }, { id: 16, name: "高塔", image: "images/m16.jpg" }, { id: 17, name: "星星", image: "images/m17.jpg" }, { id: 18, name: "月亮", image: "images/m18.jpg" }, { id: 19, name: "太陽", image: "images/m19.jpg" }, { id: 20, name: "審判", image: "images/m20.jpg" }, { id: 21, name: "世界", image: "images/m21.jpg" },
     { id: 22, name: "權杖王牌", image: "images/w01.jpg" }, { id: 23, name: "權杖二", image: "images/w02.jpg" }, { id: 24, name: "權杖三", image: "images/w03.jpg" }, { id: 25, name: "權杖四", image: "images/w04.jpg" }, { id: 26, name: "權杖五", image: "images/w05.jpg" }, { id: 27, name: "權杖六", image: "images/w06.jpg" }, { id: 28, name: "權杖七", image: "images/w07.jpg" }, { id: 29, name: "權杖八", image: "images/w08.jpg" }, { id: 30, name: "權杖九", image: "images/w09.jpg" }, { id: 31, name: "權杖十", image: "images/w10.jpg" }, { id: 32, name: "權杖侍者", image: "images/w11.jpg" }, { id: 33, name: "權杖騎士", image: "images/w12.jpg" }, { id: 34, name: "權杖王后", image: "images/w13.jpg" }, { id: 35, name: "權杖國王", image: "images/w14.jpg" },
@@ -7,7 +6,6 @@ const tarotDeck = [
     { id: 64, name: "金幣王牌", image: "images/p01.jpg" }, { id: 65, name: "金幣二", image: "images/p02.jpg" }, { id: 66, name: "金幣三", image: "images/p03.jpg" }, { id: 67, name: "金幣四", image: "images/p04.jpg" }, { id: 68, name: "金幣五", image: "images/p05.jpg" }, { id: 69, name: "金幣六", image: "images/p06.jpg" }, { id: 70, name: "金幣七", image: "images/p07.jpg" }, { id: 71, name: "金幣八", image: "images/p08.jpg" }, { id: 72, name: "金幣九", image: "images/p09.jpg" }, { id: 73, name: "金幣十", image: "images/p10.jpg" }, { id: 74, name: "金幣侍者", image: "images/p11.jpg" }, { id: 75, name: "金幣騎士", image: "images/p12.jpg" }, { id: 76, name: "金幣王后", image: "images/p13.jpg" }, { id: 77, name: "金幣國王", image: "images/p14.jpg" }
 ];
 
-/* 翻譯字典 i18n */
 const i18n = {
     'zh-TW': {
         langToggle: "🌐 English",
@@ -99,8 +97,14 @@ let selectedTopic = "";
 let currentReadingData = null; 
 let currentLang = 'zh-TW';
 
-// 頁面載入時初始化 UI 語言
-document.addEventListener('DOMContentLoaded', updateUI);
+document.addEventListener('DOMContentLoaded', () => {
+    updateUI();
+    const savedStep = localStorage.getItem('tarot_step');
+    const savedDomain = localStorage.getItem('tarot_domain');
+    if (savedStep === 'drawing' && savedDomain) {
+        startGame(savedDomain);
+    }
+});
 
 function toggleLanguage() {
     currentLang = currentLang === 'zh-TW' ? 'en' : 'zh-TW';
@@ -110,14 +114,12 @@ function toggleLanguage() {
 function updateUI() {
     const t = i18n[currentLang];
     
-    // 更新固定文字
     document.getElementById('lang-toggle-btn').innerHTML = t.langToggle;
     document.getElementById('view-fav-btn').innerHTML = t.favBtn;
     document.getElementById('back-games-btn').innerHTML = t.backGamesBtn;
     document.querySelector('.main-title').innerHTML = t.mainTitle;
     document.querySelector('.subtitle').innerHTML = t.subtitle;
     
-    // 更新網格按鈕
     const btns = document.querySelectorAll('.topic-grid button');
     btns[0].innerHTML = t.btnRel; btns[0].setAttribute('onclick', `startGame('${t.topicRel}')`);
     btns[1].innerHTML = t.btnCar; btns[1].setAttribute('onclick', `startGame('${t.topicCar}')`);
@@ -126,36 +128,29 @@ function updateUI() {
     btns[4].innerHTML = t.btnWea; btns[4].setAttribute('onclick', `startGame('${t.topicWea}')`);
     btns[5].innerHTML = t.btnCom; btns[5].setAttribute('onclick', `startGame('${t.topicCom}')`);
     
-    // 更新輸入框與開始按鈕
     document.getElementById('custom-topic-input').placeholder = t.placeholder;
     document.querySelector('.custom-topic button').innerHTML = t.startBtn;
     
-    // 更新抽牌區提示
     document.querySelector('.instruction-text').innerHTML = t.instruction;
     document.querySelector('#card-past .card-title').innerText = t.past;
     document.querySelector('#card-present .card-title').innerText = t.present;
     document.querySelector('#card-future .card-title').innerText = t.future;
     
-    // 更新結果區
     document.querySelector('.result-title').innerHTML = t.resultTitle;
     document.getElementById('restart-btn').innerHTML = t.restartBtn;
     document.getElementById('save-btn').innerHTML = t.saveBtn;
     
-    // 更新收藏 Modal
     document.getElementById('fav-modal-title').innerHTML = t.favTitle;
     
-    // 若已選擇主題，即時更新顯示的主題文字
     if (selectedTopic !== "") {
         document.getElementById('current-topic-display').innerText = `${t.currentTopicPrefix}【${selectedTopic}】`;
     }
     
-    // 若目前正在顯示讀取文字，即時切換
     const resText = document.getElementById('ai-reading-result').innerHTML;
     if (resText.includes('命運的魔法陣') || resText.includes('Activating')) {
         document.getElementById('ai-reading-result').innerHTML = t.loadingInput;
     }
     
-    // 若收藏庫開啟中，即時重新渲染
     if (!document.getElementById('favorites-modal').classList.contains('hidden')) {
         showFavorites();
     }
@@ -163,11 +158,13 @@ function updateUI() {
 
 function startGame(topic) {
     selectedTopic = topic; 
+    localStorage.setItem('tarot_domain', topic);
+    localStorage.setItem('tarot_step', 'drawing');
+    
     document.getElementById('topic-selection').classList.add('hidden');
     document.getElementById('tarot-area').classList.remove('hidden');
     document.getElementById('current-topic-display').innerText = `${i18n[currentLang].currentTopicPrefix}【${topic}】`;
     
-    // ★ 關鍵：每次進入抽牌區，重新計算與渲染牌陣，適應當前螢幕寬度
     resetSlots();
     renderSpread(); 
 }
@@ -198,6 +195,9 @@ function resetSlots() {
 }
 
 function resetGame() {
+    localStorage.removeItem('tarot_step');
+    localStorage.removeItem('tarot_domain');
+
     document.getElementById('result-box').classList.add('hidden');
     document.getElementById('tarot-area').classList.add('hidden');
     document.getElementById('topic-selection').classList.remove('hidden');
@@ -216,7 +216,6 @@ function resetGame() {
     spreadContainer.classList.remove('hidden');
 }
 
-// 監聽視窗大小改變，如果正在抽牌畫面，就重新繪製扇形
 window.addEventListener('resize', () => {
     const tarotArea = document.getElementById('tarot-area');
     if (!tarotArea.classList.contains('hidden') && currentSlotIndex < 3) {
@@ -229,9 +228,6 @@ function renderSpread() {
     spreadContainer.innerHTML = ''; 
     
     const total = availableCards.length;
-    
-    // ★ 根據螢幕寬度動態調整扇形展開的角度
-    // 電腦版寬廣 (140度)，手機版因為寬度受限，角度要縮小 (約90-100度) 才不會超出螢幕
     const isMobile = window.innerWidth <= 768;
     const spreadAngle = isMobile ? 90 : 140; 
     const startAngle = -(spreadAngle / 2); 
@@ -313,18 +309,17 @@ async function generateReading() {
     `;
 
 try {
-        // 確保這裡有包含 method: "POST", 
-const response = await fetch("https://api.drift-bottles.xyz/api/tarot", {    
-    method: "POST",       
-     headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-                card_name: `${drawnCards['past'].name}、${drawnCards['present'].name}、${drawnCards['future'].name}`,
-                orientation: `${drawnCards['past'].isReversed ? '逆位' : '正位'}、${drawnCards['present'].isReversed ? '逆位' : '正位'}、${drawnCards['future'].isReversed ? '逆位' : '正位'}`,
-                question: selectedTopic
-            })
-        });
+    const response = await fetch("https://api.drift-bottles.xyz/api/tarot", {    
+        method: "POST",       
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+            card_name: `${drawnCards['past'].name}、${drawnCards['present'].name}、${drawnCards['future'].name}`,
+            orientation: `${drawnCards['past'].isReversed ? '逆位' : '正位'}、${drawnCards['present'].isReversed ? '逆位' : '正位'}、${drawnCards['future'].isReversed ? '逆位' : '正位'}`,
+            question: selectedTopic
+        })
+    });
         
         if (!response.ok) {
             throw new Error(`HTTP 錯誤碼: ${response.status}`);
@@ -399,3 +394,35 @@ function deleteFavorite(reverseIndex) {
         showFavorites(); 
     }
 }
+
+const backBtn = document.getElementById('back-games-btn');
+if (backBtn) {
+    backBtn.addEventListener('click', () => {
+        localStorage.removeItem('tarot_step');
+        localStorage.removeItem('tarot_domain');
+    });
+}
+
+// ✨ 修正：再問一次（留在目前的領域，重新展開牌陣，不再刷新頁面）
+function restartSameTopic() {
+    document.getElementById('result-box').classList.add('hidden');
+    document.getElementById('restart-btn').classList.add('hidden');
+    document.getElementById('save-btn').classList.add('hidden');
+    document.getElementById('ai-reading-result').innerHTML = i18n[currentLang].loadingInput;
+
+    drawnCards = {};
+    availableCards = [...tarotDeck];
+    currentReadingData = null;
+
+    resetSlots();
+
+    const spreadContainer = document.getElementById('deck-spread');
+    spreadContainer.style.pointerEvents = 'auto';
+    spreadContainer.style.opacity = '1';
+    spreadContainer.classList.remove('hidden');
+    
+    renderSpread();
+}
+
+// 將按鈕綁定這個重啟函數
+document.getElementById('restart-btn').onclick = restartSameTopic;

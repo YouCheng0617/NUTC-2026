@@ -6,7 +6,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const stopIcon = actionBtn.querySelector('.stop-icon');
     const welcomeScreen = document.getElementById('welcome-screen');
 
-    // 設定按鈕
     const themeToggle = document.getElementById('theme-toggle');
     const fontToggle = document.getElementById('font-toggle');
     const langToggle = document.getElementById('lang-toggle');
@@ -15,16 +14,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let isGenerating = false;
     let typingInterval = null;
-    let currentLastPrompt = "";
-    let lastTopic = ""; // ✨ 當作 AI 的短期記憶，記住現在聊到的話題
 
     // --- UI 互動邏輯 ---
-
-    // 1. 自動調整 Textarea 高度 & 監聽輸入狀態
     messageInput.addEventListener('input', function () {
         this.style.height = 'auto';
         this.style.height = (this.scrollHeight) + 'px';
-
         if (this.value.trim().length > 0 && !isGenerating) {
             actionBtn.disabled = false;
         } else if (!isGenerating) {
@@ -32,7 +26,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // 2. 監聽 Enter 鍵發送 (Shift + Enter 換行)
     messageInput.addEventListener('keydown', function (e) {
         if (e.key === 'Enter' && !e.shiftKey) {
             e.preventDefault();
@@ -42,16 +35,11 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // 3. 發送/停止 按鈕點擊事件
     actionBtn.addEventListener('click', () => {
-        if (isGenerating) {
-            stopGeneration();
-        } else {
-            handleSend();
-        }
+        if (isGenerating) stopGeneration();
+        else handleSend();
     });
 
-    // 4. 點擊建議對話 (破冰標籤)
     document.querySelectorAll('.chip').forEach(chip => {
         chip.addEventListener('click', () => {
             messageInput.value = chip.innerText;
@@ -59,16 +47,12 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // --- 核心功能 ---
-
+    // --- 核心連線功能 ---
     function handleSend(forcePrompt = null) {
         const text = forcePrompt || messageInput.value.trim();
         if (!text) return;
 
         if (welcomeScreen) welcomeScreen.style.display = 'none';
-
-        currentLastPrompt = text;
-
         if (!forcePrompt) {
             messageInput.value = '';
             messageInput.style.height = 'auto';
@@ -89,97 +73,70 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function simulateAIResponse(userText) {
         isGenerating = true;
-
         const row = document.createElement('div');
         row.className = 'message-row ai-row';
-
         row.innerHTML = `
             <div class="ai-avatar-small">🤖</div>
             <div class="bubble ai-bubble">
                 <div class="content">
                     <div class="typing-indicator"><span></span><span></span><span></span></div>
                 </div>
-                <div class="ai-toolbar" style="display:none;">
-                    <button class="copy-btn"><i class="fa-regular fa-copy"></i> 複製</button>
-                    <button class="regen-btn"><i class="fa-solid fa-rotate-right"></i> 重新生成</button>
-                </div>
             </div>
         `;
         chatArea.appendChild(row);
         scrollToBottom();
-
         const contentDiv = row.querySelector('.content');
-        const toolbar = row.querySelector('.ai-toolbar');
 
-        // 模擬網路延遲 1.5 秒後開始打字
-        // ✨ 真實連線版：向後端發送請求，取得真實 AI 回覆
+        // ✨ 真實連線：呼叫你寫好的 Python 後端 API
         async function fetchRealAIResponse() {
             try {
-                // 1. 準備要傳給後端的資料 (包含使用者的訊息與當前的語言模式)
-                const requestData = {
-                    message: userText,
-                    language: currentLang 
-                };
-
-                // 2. 向妳們的後端 API 發送請求 (這裡假設後端寫好的網址是 /api/chat)
-                // ※ 注意：這裡的 URL 要改成妳們後端實際運行的網址喔！
-                const response = await fetch('/api/chat', {
+                // 將網址改成正式的伺服器路徑
+                const response = await fetch('https://api.drift-bottles.xyz/api/chat', {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(requestData)
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ message: userText, language: currentLang })
                 });
 
-                if (!response.ok) {
-                    throw new Error('API 連線失敗');
-                }
-
-                // 3. 接收後端回傳的資料
+                if (!response.ok) throw new Error('API 連線失敗');
                 const data = await response.json();
                 
-                // 假設後端把 AI 的回答包裝在 data.reply 裡面
-                const realResponse = data.reply || "抱歉，我暫時無法思考，請稍後再試喔！";
+                // 從後端接收 reply (在 api.py 裡定義的)
+                const realResponse = data.reply || "抱歉，系統目前有些忙碌... 🤖";
 
-                // 4. 清除讀取中的動畫，開始執行打字機效果
                 contentDiv.innerHTML = '';
                 let index = 0;
                 typingInterval = setInterval(() => {
-                    contentDiv.innerHTML += realResponse.charAt(index);
+                    // 處理換行符號
+                    if (realResponse.charAt(index) === '\n') {
+                        contentDiv.innerHTML += '<br>';
+                    } else {
+                        contentDiv.innerHTML += realResponse.charAt(index);
+                    }
                     scrollToBottom();
                     index++;
-
                     if (index >= realResponse.length) {
-                        finishGeneration(toolbar);
+                        finishGeneration();
                     }
-                }, 50);
+                }, 30);
 
             } catch (error) {
                 console.error("連線錯誤:", error);
-                contentDiv.innerHTML = "連線到深海大腦時發生了點小問題，請檢查網路或稍後再試喔！🌊";
-                finishGeneration(toolbar);
+                contentDiv.innerHTML = "連線到 AI 大腦時發生了點小問題，請稍後再試喔！🤖";
+                finishGeneration();
             }
         }
-
-        // 執行連線函式
         fetchRealAIResponse();
     }
 
     function stopGeneration() {
         isGenerating = false;
         clearInterval(typingInterval);
-
-        const toolbars = document.querySelectorAll('.ai-toolbar');
-        if (toolbars.length > 0) {
-            toolbars[toolbars.length - 1].style.display = 'flex';
-        }
         setButtonState('send');
     }
 
-    function finishGeneration(toolbar) {
+    function finishGeneration() {
         isGenerating = false;
         clearInterval(typingInterval);
-        toolbar.style.display = 'flex';
         setButtonState('send');
     }
 
@@ -199,43 +156,22 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // --- 輔助功能 ---
-
-    function scrollToBottom() {
-        chatArea.scrollTop = chatArea.scrollHeight;
-    }
-
-    function escapeHTML(str) {
-        return str.replace(/[&<>'"]/g, tag => ({
-            '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;'
-        }[tag]));
-    }
-
-    function copyToClipboard(text) {
-        navigator.clipboard.writeText(text).then(() => {
-            showToast('✨ 已複製到剪貼簿！');
-        });
-    }
-
+    function scrollToBottom() { chatArea.scrollTop = chatArea.scrollHeight; }
+    function escapeHTML(str) { return str.replace(/[&<>'"]/g, tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag])); }
     function showToast(message) {
         let toast = document.getElementById("custom-toast");
-
         if (!toast) {
             toast = document.createElement("div");
             toast.id = "custom-toast";
             toast.className = "toast";
             document.body.appendChild(toast);
         }
-
         toast.innerText = message;
         toast.classList.add("show");
-
-        setTimeout(() => {
-            toast.classList.remove("show");
-        }, 2500);
+        setTimeout(() => { toast.classList.remove("show"); }, 2500);
     }
 
-    // --- 主題與字體設定 ---
+    // --- 主題、字體與語言 ---
     themeToggle.addEventListener('click', () => {
         const currentTheme = document.documentElement.getAttribute('data-theme');
         const newTheme = currentTheme === 'light' ? 'dark' : 'light';
@@ -249,8 +185,7 @@ document.addEventListener('DOMContentLoaded', () => {
         document.documentElement.style.setProperty('--base-font-size', isLargeFont ? '18px' : '16px');
     });
 
-    // --- 語言選單邏輯 ---
-
+    // ✨ 恢復為原本的 AI 特助字典
     const uiTranslations = {
         "zh-TW": {
             appTitle: "✨ AI 特助",
@@ -299,48 +234,37 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     let currentLang = "zh-TW";
-
     langToggle.addEventListener('click', (e) => {
         e.stopPropagation();
         langMenu.classList.toggle('show');
     });
-
     document.addEventListener('click', (e) => {
-        if (!langMenu.contains(e.target) && e.target !== langToggle) {
-            langMenu.classList.remove('show');
-        }
+        if (!langMenu.contains(e.target) && e.target !== langToggle) langMenu.classList.remove('show');
     });
 
     langOptions.forEach(option => {
         option.addEventListener('click', () => {
             const langName = option.innerText;
             const langCode = option.getAttribute('data-lang');
-
             currentLang = langCode;
             const t = uiTranslations[langCode];
-
+            
             document.querySelector('.chat-header .title').innerHTML = t.appTitle;
-
             const welcomeH2 = document.querySelector('#welcome-screen h2');
             if (welcomeH2) welcomeH2.innerText = t.welcomeH2;
-
             const welcomeP = document.querySelector('#welcome-screen p');
             if (welcomeP) welcomeP.innerText = t.welcomeP;
-
+            
             const chips = document.querySelectorAll('.suggestion-chips .chip');
             if (chips.length === 3) {
                 chips[0].innerText = t.chip1;
                 chips[1].innerText = t.chip2;
                 chips[2].innerText = t.chip3;
             }
-
             document.getElementById('message-input').placeholder = t.placeholder;
             document.querySelector('.input-footer-text').innerText = t.footer;
-
             showToast(`${t.toastPrefix}${langName}`);
-
             langMenu.classList.remove('show');
         });
     });
-
 });
