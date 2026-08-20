@@ -5180,6 +5180,342 @@ case 'butterfly': {
 
                     setTimeout(loopRandomStorm, 1200);
                     break;
+// 👻 【百鬼夜行】輕透淡霧 ＋ 白透長尾大幽靈 ＋ 點擊三四隻小鬼成群飄升版
+                case 'ghost':
+                    if (!document.getElementById('ghostEffectStyle')) {
+                        const style = document.createElement('style');
+                        style.id = 'ghostEffectStyle';
+                        style.innerHTML = `
+                            /* 🌟 1. 輕透淡灰冷霧舞台（極致輕透） */
+                            .ghost-realm-stage {
+                                position: absolute; inset: 0; width: 100%; height: 100%;
+                                pointer-events: none; z-index: 12; overflow: hidden;
+                                background: radial-gradient(circle at 50% 50%, rgba(148, 163, 184, 0.08) 0%, rgba(51, 65, 85, 0.22) 100%);
+                                mix-blend-mode: normal;
+                                transition: opacity 0.8s ease-in-out;
+                            }
+
+                            /* 飄動的極淡白色輕煙層 */
+                            .ghost-creepy-fog {
+                                position: absolute; inset: -20%; width: 140%; height: 140%;
+                                background: radial-gradient(ellipse at 30% 40%, rgba(241, 245, 249, 0.12) 0%, transparent 60%),
+                                            radial-gradient(ellipse at 70% 60%, rgba(226, 232, 240, 0.1) 0%, transparent 60%);
+                                filter: blur(35px);
+                                animation: fogDrift 24s ease-in-out infinite alternate;
+                                pointer-events: none;
+                            }
+
+                            @keyframes fogDrift {
+                                0% { transform: translate(0, 0) scale(1); }
+                                50% { transform: translate(-30px, 15px) scale(1.05); }
+                                100% { transform: translate(25px, -15px) scale(1.02); }
+                            }
+
+                            /* 🌟 2. 飛掠幽靈樣式 */
+                            .flying-ghost-spirit {
+                                position: absolute;
+                                pointer-events: none;
+                                z-index: 15;
+                                filter: drop-shadow(0 0 15px rgba(255, 255, 255, 0.8)) drop-shadow(0 0 30px rgba(224, 242, 254, 0.6));
+                                will-change: transform, opacity;
+                            }
+
+                            /* 背景慢速橫向大幽靈軌跡 */
+                            @keyframes ghostFlyLeftToRight {
+                                0% { transform: translate3d(-180px, var(--start-y), 0) scale(var(--scale)) rotate(var(--rot-start)); opacity: 0; }
+                                15% { opacity: 0.85; }
+                                50% { transform: translate3d(50vw, calc(var(--start-y) + 25px), 0) scale(var(--scale)) rotate(calc(var(--rot-start) * -0.5)); }
+                                85% { opacity: 0.85; }
+                                100% { transform: translate3d(calc(100vw + 180px), var(--end-y), 0) scale(var(--scale)) rotate(var(--rot-end)); opacity: 0; }
+                            }
+
+                            @keyframes ghostFlyRightToLeft {
+                                0% { transform: translate3d(calc(100vw + 180px), var(--start-y), 0) scale(var(--scale)) scaleX(-1) rotate(var(--rot-start)); opacity: 0; }
+                                15% { opacity: 0.85; }
+                                50% { transform: translate3d(50vw, calc(var(--start-y) - 25px), 0) scale(var(--scale)) scaleX(-1) rotate(calc(var(--rot-start) * -0.5)); }
+                                85% { opacity: 0.85; }
+                                100% { transform: translate3d(-180px, var(--end-y), 0) scale(var(--scale)) scaleX(-1) rotate(var(--rot-end)); opacity: 0; }
+                            }
+
+                            /* 🌟 3. 點擊生成的小幽靈：向左上/右上緩緩蜿蜒升空 */
+                            @keyframes miniGhostFloatUp {
+                                0% {
+                                    transform: translate(-50%, -50%) translate3d(0, 0, 0) scale(0.3) rotate(0deg);
+                                    opacity: 0;
+                                }
+                                20% {
+                                    opacity: 0.95;
+                                    transform: translate(-50%, -50%) translate3d(calc(var(--drift-x) * 0.25), -60px, 0) scale(var(--target-scale)) rotate(var(--rot-mid));
+                                }
+                                60% {
+                                    opacity: 0.85;
+                                    transform: translate(-50%, -50%) translate3d(calc(var(--drift-x) * 0.75), -180px, 0) scale(calc(var(--target-scale) * 1.05)) rotate(calc(var(--rot-mid) * -0.6));
+                                }
+                                100% {
+                                    opacity: 0;
+                                    transform: translate(-50%, -50%) translate3d(var(--drift-x), -320px, 0) scale(calc(var(--target-scale) * 1.15)) rotate(var(--rot-end));
+                                }
+                            }
+                        `;
+                        document.head.appendChild(style);
+                    }
+
+                    const ghostSessionId = Math.random();
+                    window.ghostSessionId = ghostSessionId;
+
+                    // 🕯️ 【Web Audio 輕柔空靈風鳴背景音】
+                    function startGhostAmbientSound() {
+                        try {
+                            if (!window.sharedAudioCtx) window.sharedAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                            const ctx = window.sharedAudioCtx;
+                            if (ctx.state === 'suspended') ctx.resume();
+
+                            if (window.synthGhostAmbience) return;
+
+                            const bufferLen = ctx.sampleRate * 4;
+                            const buffer = ctx.createBuffer(1, bufferLen, ctx.sampleRate);
+                            const data = buffer.getChannelData(0);
+                            let last = 0;
+                            for (let i = 0; i < bufferLen; i++) {
+                                const white = Math.random() * 2 - 1;
+                                last = (last + 0.02 * white) / 1.02;
+                                data[i] = last * 2.2;
+                            }
+                            const windSrc = ctx.createBufferSource();
+                            windSrc.buffer = buffer;
+                            windSrc.loop = true;
+
+                            const windFilter = ctx.createBiquadFilter();
+                            windFilter.type = 'bandpass';
+                            windFilter.frequency.setValueAtTime(320, ctx.currentTime);
+                            windFilter.Q.setValueAtTime(3.0, ctx.currentTime);
+
+                            const lfo = ctx.createOscillator();
+                            lfo.frequency.setValueAtTime(0.12, ctx.currentTime);
+                            const lfoGain = ctx.createGain();
+                            lfoGain.gain.setValueAtTime(100, ctx.currentTime);
+                            lfo.connect(lfoGain);
+                            lfoGain.connect(windFilter.frequency);
+                            lfo.start();
+
+                            const windGain = ctx.createGain();
+                            windGain.gain.setValueAtTime(0.005, ctx.currentTime);
+                            windGain.gain.linearRampToValueAtTime(0.12, ctx.currentTime + 2.5);
+
+                            windSrc.connect(windFilter);
+                            windFilter.connect(windGain);
+                            windGain.connect(ctx.destination);
+                            windSrc.start();
+
+                            window.synthGhostAmbience = {
+                                stop: function() {
+                                    windGain.gain.linearRampToValueAtTime(0.001, ctx.currentTime + 0.8);
+                                    setTimeout(() => {
+                                        try { windSrc.stop(); windSrc.disconnect(); lfo.stop(); } catch(e) {}
+                                    }, 850);
+                                }
+                            };
+                        } catch (e) {
+                            console.error('Ghost ambient sound error:', e);
+                        }
+                    }
+
+                    // 👻 【悠長慢速幽靈哭鳴聲】
+                    function playGhostSwooshSound(pitchMultiplier = 1.0, durationMultiplier = 1.0) {
+                        try {
+                            if (!window.sharedAudioCtx) window.sharedAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                            const ctx = window.sharedAudioCtx;
+                            if (ctx.state === 'suspended') ctx.resume();
+
+                            const now = ctx.currentTime;
+                            const dur = 3.0 * durationMultiplier;
+
+                            const osc = ctx.createOscillator();
+                            osc.type = 'sine';
+                            const baseFreq = 290 * pitchMultiplier;
+                            osc.frequency.setValueAtTime(baseFreq * 0.8, now);
+                            osc.frequency.exponentialRampToValueAtTime(baseFreq * 1.35, now + dur * 0.45);
+                            osc.frequency.exponentialRampToValueAtTime(baseFreq * 0.65, now + dur);
+
+                            const vibrato = ctx.createOscillator();
+                            vibrato.frequency.setValueAtTime(3.5, now);
+                            const vibGain = ctx.createGain();
+                            vibGain.gain.setValueAtTime(16, now);
+                            vibrato.connect(vibGain);
+                            vibGain.connect(osc.frequency);
+                            vibrato.start(now);
+                            vibrato.stop(now + dur);
+
+                            const filter = ctx.createBiquadFilter();
+                            filter.type = 'lowpass';
+                            filter.frequency.setValueAtTime(950, now);
+
+                            const gain = ctx.createGain();
+                            gain.gain.setValueAtTime(0.001, now);
+                            gain.gain.linearRampToValueAtTime(0.18, now + dur * 0.4);
+                            gain.gain.exponentialRampToValueAtTime(0.001, now + dur);
+
+                            osc.connect(filter);
+                            filter.connect(gain);
+                            gain.connect(ctx.destination);
+
+                            osc.start(now);
+                            osc.stop(now + dur);
+                        } catch(e) {
+                            console.error('Ghost whoosh sound error:', e);
+                        }
+                    }
+
+                    startGhostAmbientSound();
+
+                    // 淡霧背景
+                    const fogStage = document.createElement('div');
+                    fogStage.className = 'ghost-realm-stage';
+                    fogStage.innerHTML = `<div class="ghost-creepy-fog"></div>`;
+                    layer.appendChild(fogStage);
+
+                    // 👻 【白色、超長拉絲飄逸尾巴的純白 SVG 幽靈】
+                    function createGhostSVG() {
+                        return `
+                            <svg viewBox="0 0 100 180" width="100%" height="100%">
+                                <defs>
+                                    <linearGradient id="pureWhiteGhostGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+                                        <stop offset="0%" stop-color="#ffffff" stop-opacity="0.95"/>
+                                        <stop offset="45%" stop-color="#f8fafc" stop-opacity="0.85"/>
+                                        <stop offset="75%" stop-color="#e2e8f0" stop-opacity="0.5"/>
+                                        <stop offset="100%" stop-color="#ffffff" stop-opacity="0"/>
+                                    </linearGradient>
+                                </defs>
+                                <path d="M 50 12 C 28 12 18 36 18 64 C 18 90 28 115 36 138 C 42 155 46 175 48 180 C 50 172 56 150 62 132 C 72 108 82 86 82 64 C 82 36 72 12 50 12 Z" 
+                                      fill="url(#pureWhiteGhostGrad)" />
+                                <path d="M 22 56 Q 8 62 16 70 Q 24 68 26 60 Z" fill="#ffffff" opacity="0.95"/>
+                                <path d="M 78 56 Q 92 62 84 70 Q 76 68 74 60 Z" fill="#ffffff" opacity="0.95"/>
+                                <ellipse cx="38" cy="46" rx="5" ry="6.5" fill="#1e293b"/>
+                                <ellipse cx="62" cy="46" rx="5" ry="6.5" fill="#1e293b"/>
+                                <circle cx="36" cy="44" r="1.8" fill="#ffffff"/>
+                                <circle cx="60" cy="44" r="1.8" fill="#ffffff"/>
+                                <ellipse cx="30" cy="54" rx="4.5" ry="2.2" fill="#fca5a5" opacity="0.5"/>
+                                <ellipse cx="70" cy="54" rx="4.5" ry="2.2" fill="#fca5a5" opacity="0.5"/>
+                                <ellipse cx="50" cy="58" rx="3.5" ry="4.5" fill="#1e293b"/>
+                            </svg>
+                        `;
+                    }
+
+                    // 👻 【背景慢速飛掠大幽靈】
+                    function spawnFlyingGhost() {
+                        if (window.ghostSessionId !== ghostSessionId) return;
+
+                        const ghost = document.createElement('div');
+                        ghost.className = 'flying-ghost-spirit';
+
+                        const isLeftToRight = Math.random() > 0.5;
+                        const width = Math.floor(Math.random() * 40 + 90);
+                        const height = Math.floor(width * 1.8);
+                        const startY = Math.floor(Math.random() * 65 + 10) + 'vh';
+                        const endY = Math.floor(Math.random() * 65 + 10) + 'vh';
+                        const duration = (Math.random() * 2.0 + 4.5).toFixed(2);
+                        const rotStart = (Math.random() * 20 - 10) + 'deg';
+                        const rotEnd = (Math.random() * 24 - 12) + 'deg';
+
+                        ghost.style.width = `${width}px`;
+                        ghost.style.height = `${height}px`;
+                        ghost.style.setProperty('--start-y', startY);
+                        ghost.style.setProperty('--end-y', endY);
+                        ghost.style.setProperty('--scale', (Math.random() * 0.3 + 0.9).toFixed(2));
+                        ghost.style.setProperty('--rot-start', rotStart);
+                        ghost.style.setProperty('--rot-end', rotEnd);
+
+                        ghost.style.animation = `${isLeftToRight ? 'ghostFlyLeftToRight' : 'ghostFlyRightToLeft'} ${duration}s ease-in-out forwards`;
+                        ghost.innerHTML = createGhostSVG();
+
+                        layer.appendChild(ghost);
+                        playGhostSwooshSound(Math.random() * 0.4 + 0.8, 1.0);
+
+                        setTimeout(() => {
+                            if (ghost.parentNode) ghost.remove();
+                        }, duration * 1000 + 100);
+                    }
+
+                    // 🌟 點擊滑鼠：一次生成 3 ~ 4 隻小巧幽靈緩慢向上飄散
+                    layer.style.pointerEvents = 'auto';
+                    layer.onpointerdown = (e) => {
+                        if (window.sharedAudioCtx && window.sharedAudioCtx.state === 'suspended') {
+                            window.sharedAudioCtx.resume();
+                        }
+                        startGhostAmbientSound();
+
+                        const rect = layer.getBoundingClientRect();
+                        const clickX = e.clientX - rect.left;
+                        const clickY = e.clientY - rect.top;
+
+                        const ghostCount = Math.floor(Math.random() * 2) + 3; // 隨機 3 或 4 隻
+
+                        for (let i = 0; i < ghostCount; i++) {
+                            setTimeout(() => {
+                                const miniGhost = document.createElement('div');
+                                miniGhost.className = 'flying-ghost-spirit';
+
+                                // 小幽靈尺寸（36px ~ 48px，修長比例）
+                                const miniWidth = Math.floor(Math.random() * 12 + 36);
+                                const miniHeight = Math.floor(miniWidth * 1.8);
+
+                                // 點擊位置周圍微微錯開
+                                const offsetX = (Math.random() * 36 - 18);
+                                const offsetY = (Math.random() * 20 - 10);
+                                miniGhost.style.left = `${clickX + offsetX}px`;
+                                miniGhost.style.top = `${clickY + offsetY}px`;
+                                miniGhost.style.width = `${miniWidth}px`;
+                                miniGhost.style.height = `${miniHeight}px`;
+
+                                // 每隻小幽靈各自不同的向上飄移軌跡與擺動
+                                const driftX = (Math.random() * 160 - 80) + 'px'; // 左右擴散飄
+                                const rotMid = (Math.random() * 24 - 12) + 'deg';
+                                const rotEnd = (Math.random() * 36 - 18) + 'deg';
+                                const animDur = (Math.random() * 0.6 + 1.8).toFixed(2); // 1.8s ~ 2.4s 悠長飄升
+
+                                miniGhost.style.setProperty('--drift-x', driftX);
+                                miniGhost.style.setProperty('--rot-mid', rotMid);
+                                miniGhost.style.setProperty('--rot-end', rotEnd);
+                                miniGhost.style.setProperty('--target-scale', (Math.random() * 0.3 + 0.85).toFixed(2));
+
+                                miniGhost.style.animation = `miniGhostFloatUp ${animDur}s ease-out forwards`;
+                                miniGhost.innerHTML = createGhostSVG();
+                                layer.appendChild(miniGhost);
+
+                                setTimeout(() => {
+                                    if (miniGhost.parentNode) miniGhost.remove();
+                                }, animDur * 1000 + 100);
+                            }, i * 120); // 每隻小幽靈微幅錯開 120ms，呈現依序竄升感
+                        }
+
+                        // 點擊觸發空靈幽靈滑音
+                        playGhostSwooshSound(1.35, 0.7);
+
+                        // 試用期間不加積分，正式購買後才加分
+                        if (!trialState.effect) {
+                            gameState.points += 5;
+                            saveGame();
+                            updateUI();
+                            showFloatText('👻 百鬼夜行 +5');
+                        }
+                    };
+
+                    // 👻 背景群鬼穿梭循環
+                    function loopGhostSwarm() {
+                        if (window.ghostSessionId !== ghostSessionId) return;
+                        const activeEffect = trialState.effect || gameState.currentEffect;
+                        if (activeEffect !== 'ghost') return;
+
+                        spawnFlyingGhost();
+                        if (Math.random() < 0.35) {
+                            setTimeout(spawnFlyingGhost, 800);
+                        }
+
+                        window.ghostInterval = setTimeout(loopGhostSwarm, Math.random() * 1700 + 1800);
+                    }
+
+                    setTimeout(loopGhostSwarm, 600);
+                    break;
 // 💖 【心動幻境】水晶愛心由下往上飄、帶有朦朧透光感，支援滑鼠互動與左下角正方形色系切換
 case 'heartbeat':
     if (window.heartbeatAnimFrame) cancelAnimationFrame(window.heartbeatAnimFrame);
