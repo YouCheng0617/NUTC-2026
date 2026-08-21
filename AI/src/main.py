@@ -9,10 +9,14 @@ from google.genai import types
 env_path = os.path.join(os.path.dirname(__file__), '.env')
 load_dotenv(env_path)
 
-# 設定 Gemini API 金鑰並初始化新版 Client
-GEMINI_KEY = os.getenv("GEMINI_API_KEY")
-if GEMINI_KEY:
-    client = genai.Client(api_key=GEMINI_KEY)
+# 修改後的寫法：不手動傳遞 api_key 參數
+if os.getenv("GEMINI_API_KEY"):
+    try:
+        # 讓 SDK 自己去底層抓環境變數
+        client = genai.Client() 
+    except Exception as e:
+        print(f"⚠️ 初始化 Client 失敗: {e}")
+        client = None
 else:
     print("⚠️ 警告：未在 .env 中偵測到 GEMINI_API_KEY")
     client = None
