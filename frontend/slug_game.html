@@ -445,6 +445,224 @@
         }
         body.is-dragging-global, body.is-dragging-global * { cursor: grabbing !important; user-select: none !important; -webkit-user-select: none !important; }
         .slug-container.is-petting .slug-svg { transform: scale(1.06, 0.92) translateY(12px); filter: drop-shadow(0 5px 8px rgba(0,0,0,0.25)); }
+        
+        /* 🌟 【餵食互動：拖曳海藻、咀嚼特效與碎屑動畫】 */
+        .drag-algae-item {
+            position: fixed;
+            width: 55px;
+            height: 55px;
+            pointer-events: none;
+            z-index: 99999;
+            transform: translate(-50%, -50%);
+            filter: drop-shadow(0 6px 12px rgba(22, 101, 52, 0.4));
+            animation: algaeWobble 0.6s infinite alternate ease-in-out;
+        }
+        @keyframes algaeWobble {
+            0% { transform: translate(-50%, -50%) rotate(-8deg) scale(1); }
+            100% { transform: translate(-50%, -50%) rotate(8deg) scale(1.1); }
+        }
+
+        .slug-container.is-chasing-food .slug-svg {
+            animation: slugHungryHop 0.35s infinite alternate ease-in-out !important;
+        }
+        @keyframes slugHungryHop {
+            0% { transform: translateY(0) scale(1.08, 0.88); }
+            100% { transform: translateY(-32px) scale(0.92, 1.12); }
+        }
+
+        /* 😋 嚼嚼嚼本體：腮幫子快速一鼓一縮、上下 Q 彈搖晃 */
+        .slug-container.is-eating-munch .slug-svg {
+            animation: slugChewingShake 0.16s infinite alternate ease-in-out !important;
+        }
+        @keyframes slugChewingShake {
+            0% { transform: scale(1.1, 0.9) translateY(4px) rotate(-1.5deg); }
+            100% { transform: scale(0.95, 1.08) translateY(-4px) rotate(1.5deg); }
+        }
+
+        
+        /* 😋 吃到海藻時：連續 Q 彈咀嚼（嚼嚼嚼！Nom Nom Nom） */
+        .slug-container.is-eating-munch .slug-svg {
+            animation: slugNomNomMunch 0.22s infinite alternate ease-in-out !important;
+        }
+        @keyframes slugNomNomMunch {
+            0% { transform: scale(1.08, 0.92) translateY(4px); }
+            100% { transform: scale(0.96, 1.05) translateY(-2px); }
+        }
+
+        /* 🌟 幸福瞇瞇眼與咀嚼動畫強制覆蓋 */
+        .slug-container.is-eating-munch .normal-eye {
+            display: none !important;
+        }
+        .happy-eye {
+            display: none;
+        }
+        .slug-container.is-eating-munch .happy-eye {
+            display: block !important;
+        }
+
+        /* 🌟 細緻線條嘴巴：咀嚼時一開一張閉合動畫 */
+        #chewingLineMouth {
+            transform-box: fill-box;
+            transform-origin: center center;
+            animation: mouthLineChew 0.16s infinite alternate ease-in-out !important;
+        }
+        @keyframes mouthLineChew {
+            0% { 
+                /* 閉合咬下：壓平成一條細直小扁線 */
+                transform: scale(1.1, 0.2) translateY(1px); 
+            }
+            100% { 
+                /* 嚼開張嘴：拉伸成圓潤的微笑開口弧線 */
+                transform: scale(0.85, 1.6) translateY(-1px); 
+            }
+        }
+
+        /* 🌿 嘴邊柔軟水草：隨嘴巴咀嚼自然波浪甩動、一軟一飄被吸進去 */
+        #chewingAlgaePiece {
+            transform-box: fill-box;
+            transform-origin: 0px 4px; /* 以嘴巴銜接處為旋轉支點 */
+            animation: algaeSoftWiggle 0.28s infinite alternate ease-in-out, algaeSuckIn 1.8s forwards ease-in-out !important;
+        }
+        @keyframes algaeSoftWiggle {
+            0% { 
+                /* 咬下時：水草尾端受力向左下柔軟彎垂 */
+                transform: rotate(-18deg) skewX(-12deg) scale(1, 0.95); 
+            }
+            50% {
+                transform: rotate(-4deg) skewX(6deg) scale(0.98, 1.02);
+            }
+            100% { 
+                /* 嚼開時：水草隨嘴唇向上彈起波浪飄揚 */
+                transform: rotate(14deg) skewX(16deg) scale(0.95, 1.05); 
+            }
+        }
+        @keyframes algaeSuckIn {
+            0% { 
+                opacity: 1; 
+                clip-path: inset(0 0 0 0);
+            }
+            50% { 
+                opacity: 0.95; 
+            }
+            85% { 
+                opacity: 0.7; 
+            }
+            100% { 
+                /* 像吃麵條一樣，整根水草被完全吸進嘴中消失 */
+                transform: scale(0.15, 0.1) translate(12px, -8px); 
+                opacity: 0; 
+            }
+        }
+
+        /* 水草分叉葉片各自的微波浪晃動 */
+        .algae-soft-blade-1 {
+            transform-origin: 0% 0%;
+            animation: bladeWiggle1 0.22s infinite alternate ease-in-out;
+        }
+        .algae-soft-blade-2 {
+            transform-origin: 0% 0%;
+            animation: bladeWiggle2 0.3s infinite alternate ease-in-out;
+        }
+        @keyframes bladeWiggle1 {
+            0% { transform: rotate(-8deg); }
+            100% { transform: rotate(10deg); }
+        }
+        @keyframes bladeWiggle2 {
+            0% { transform: rotate(12deg); }
+            100% { transform: rotate(-10deg); }
+        }
+
+        /* 🌟 嘴邊叼著的海藻：從嘴邊慢慢嚼進肚子裡縮小消失 */
+        .eating-algae-prop {
+            display: none;
+            position: absolute;
+            width: 36px;
+            height: 36px;
+            left: 105px;
+            top: 145px;
+            z-index: 25;
+            pointer-events: none;
+        }
+        .slug-container.is-eating-munch .eating-algae-prop {
+            display: block !important;
+            animation: algaeGetEaten 1.4s forwards ease-in-out !important;
+        }
+        @keyframes algaeGetEaten {
+            0% { transform: scale(1.1) rotate(-15deg); opacity: 1; }
+            30% { transform: scale(0.85) rotate(10deg); opacity: 1; }
+            60% { transform: scale(0.55) rotate(-8deg); opacity: 0.9; }
+            85% { transform: scale(0.25) rotate(5deg); opacity: 0.7; }
+            100% { transform: scale(0) rotate(0deg); opacity: 0; }
+        }
+
+        /* 🌟 嘴裡咬著的海藻漸漸被吃掉縮小動畫 */
+        .eating-algae-prop {
+            display: none;
+            position: absolute;
+            width: 32px;
+            height: 32px;
+            left: 112px;
+            top: 148px;
+            z-index: 15;
+            pointer-events: none;
+            transform-origin: right bottom;
+        }
+        .slug-container.is-eating-munch .eating-algae-prop {
+            display: block !important;
+            animation: algaeDisappear 1.2s forwards ease-in-out;
+        }
+        @keyframes algaeDisappear {
+            0% { transform: scale(1) rotate(-15deg); opacity: 1; }
+            50% { transform: scale(0.6) rotate(10deg); opacity: 0.9; }
+            90% { transform: scale(0.2) rotate(-5deg); opacity: 0.8; }
+            100% { transform: scale(0) rotate(0deg); opacity: 0; }
+        }
+/* 🌟 細緻線條嘴巴：咀嚼時一開一張閉合動畫 */
+        #chewingLineMouth {
+            transform-box: fill-box;
+            transform-origin: center center;
+            animation: mouthLineChew 0.16s infinite alternate ease-in-out !important;
+        }
+        @keyframes mouthLineChew {
+            0% { transform: scale(1.1, 0.2) translateY(1px); } 
+            100% { transform: scale(0.85, 1.6) translateY(-1px); } 
+        }
+
+        /* 🌿 嘴邊柔軟水草：以嘴巴中心為支點自然擺動並被吸入 */
+        #chewingAlgaePiece {
+            transform-box: fill-box;
+            transform-origin: center top;
+            animation: algaeSoftWiggle 0.28s infinite alternate ease-in-out, algaeSuckIn 1.8s forwards ease-in-out !important;
+        }
+        @keyframes algaeSoftWiggle {
+            0% { transform: rotate(-18deg) skewX(-12deg) scale(1, 0.95); }
+            50% { transform: rotate(-4deg) skewX(6deg) scale(0.98, 1.02); }
+            100% { transform: rotate(14deg) skewX(16deg) scale(0.95, 1.05); }
+        }
+        @keyframes algaeSuckIn {
+            0% { opacity: 1; }
+            50% { opacity: 0.95; }
+            85% { opacity: 0.7; }
+            100% { transform: scale(0.15, 0.1) translate(12px, -8px); opacity: 0; }
+        }
+
+        /* 水草分叉葉片微幅飄動 */
+        .algae-soft-blade-1 {
+            transform-origin: 0% 0%;
+            animation: bladeWiggle1 0.22s infinite alternate ease-in-out;
+        }
+        .algae-soft-blade-2 {
+            transform-origin: 0% 0%;
+            animation: bladeWiggle2 0.3s infinite alternate ease-in-out;
+        }
+        @keyframes bladeWiggle1 {
+            0% { transform: rotate(-8deg); }
+            100% { transform: rotate(10deg); }
+        }
+        @keyframes bladeWiggle2 {
+            0% { transform: rotate(12deg); }
+            100% { transform: rotate(-10deg); }
+        }
         .slug-svg { width: 100%; height: 100%; overflow: visible; filter: drop-shadow(0 15px 15px rgba(0,0,0,0.15)); transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1.2), filter 0.3s ease; pointer-events: none !important; }
         
         /* 兔子的耳朵與尾巴自動擺動動畫 */
@@ -1029,7 +1247,6 @@
                     </g>
                 </g>
             </svg>
-            
         </div>
     </div>
 
@@ -1042,7 +1259,7 @@
         <button onclick="toggleShopPanel()" style="position: absolute; top: -20px; left: 50%; transform: translateX(-50%); background: white; color: var(--text-dark); border: 3px solid var(--border-color); padding: 5px 20px; border-radius: 20px; font-weight: 900; cursor: pointer; box-shadow: 0 4px 10px var(--shadow-color); z-index: 85;">⬇️ 收起</button>
 
         <div class="interaction-group">
-            <button class="btn-interact" id="btnFeed" onclick="interact('feed', 80, 8)">
+<button class="btn-interact" id="btnFeed" onclick="triggerFeedInteraction(event)">
                 <span class="btn-title" id="txtFeedTitle">餵食海藻</span>
                 <span class="btn-desc" id="txtFeedDesc">冷卻 0s</span>
             </button>
@@ -1542,6 +1759,21 @@ function updateRoomUI(text) {
         };
 
         const svgLib = {
+            // 🌟 鮮嫩可口的翠綠海藻
+            algae: `<svg viewBox="0 0 100 100" style="width:100%; height:100%; overflow:visible;">
+                <defs>
+                    <linearGradient id="algaeGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" stop-color="#86efac"/>
+                        <stop offset="50%" stop-color="#22c55e"/>
+                        <stop offset="100%" stop-color="#14532d"/>
+                    </linearGradient>
+                </defs>
+                <path d="M 50 90 Q 30 65 38 45 Q 45 25 28 8 Q 42 22 48 42 Q 52 65 50 90 Z" fill="url(#algaeGrad)" stroke="#14532d" stroke-width="2"/>
+                <path d="M 50 92 Q 40 55 58 35 Q 70 18 52 2 Q 68 20 54 48 Q 42 70 50 92 Z" fill="url(#algaeGrad)" stroke="#14532d" stroke-width="2"/>
+                <path d="M 50 90 Q 68 70 65 50 Q 62 30 78 12 Q 68 28 60 48 Q 55 72 50 90 Z" fill="url(#algaeGrad)" stroke="#14532d" stroke-width="2"/>
+                <circle cx="35" cy="20" r="2.5" fill="#ffffff" opacity="0.8"/>
+                <circle cx="62" cy="15" r="2" fill="#ffffff" opacity="0.8"/>
+            </svg>`,
             tomato: `<svg viewBox="0 0 200 200"><defs><radialGradient id="coreGlow" cx="50%" cy="55%" r="50%"><stop offset="0%" stop-color="#ffffff" stop-opacity="1"/><stop offset="20%" stop-color="#fef08a" stop-opacity="0.8"/><stop offset="60%" stop-color="#ef4444" stop-opacity="0.9"/><stop offset="100%" stop-color="#991b1b" stop-opacity="0"/></radialGradient><filter id="fireworkGlow" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="2" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs><g filter="url(#fireworkGlow)"><circle cx="100" cy="120" r="75" fill="url(#coreGlow)"/><circle cx="100" cy="120" r="75" fill="none" stroke="#ef4444" stroke-width="3" stroke-dasharray="1, 8" stroke-linecap="round"/><circle cx="100" cy="120" r="68" fill="none" stroke="#fca5a5" stroke-width="2" stroke-dasharray="1, 6" stroke-linecap="round"/><circle cx="100" cy="120" r="60" fill="none" stroke="#ef4444" stroke-width="3" stroke-dasharray="1, 7" stroke-linecap="round"/><circle cx="100" cy="120" r="50" fill="none" stroke="#f87171" stroke-width="2" stroke-dasharray="1, 5" stroke-linecap="round"/><circle cx="100" cy="120" r="40" fill="none" stroke="#fef08a" stroke-width="2" stroke-dasharray="1, 6" stroke-linecap="round"/><circle cx="100" cy="120" r="30" fill="none" stroke="#ffffff" stroke-width="1.5" stroke-dasharray="1, 4" stroke-linecap="round"/><circle cx="100" cy="120" r="20" fill="none" stroke="#fef08a" stroke-width="2" stroke-dasharray="1, 5" stroke-linecap="round"/><circle cx="100" cy="120" r="10" fill="none" stroke="#ffffff" stroke-width="2" stroke-dasharray="1, 3" stroke-linecap="round"/><path d="M 100 120 L 100 45 M 100 120 L 100 195 M 100 120 L 25 120 M 100 120 L 175 120 M 100 120 L 47 67 M 100 120 L 153 67 M 100 120 L 47 173 M 100 120 L 153 173 M 100 120 L 70 50 M 100 120 L 130 50 M 100 120 L 70 190 M 100 120 L 130 190 M 100 120 L 30 90 M 100 120 L 170 90 M 100 120 L 30 150 M 100 120 L 170 150" stroke="#ef4444" stroke-width="2" stroke-dasharray="1, 8" stroke-linecap="round"/><path d="M 100 120 L 60 50 M 100 120 L 140 50 M 100 120 L 50 160 M 100 120 L 150 160" stroke="#fca5a5" stroke-width="1.5" stroke-dasharray="1, 6" stroke-linecap="round"/><g fill="none" stroke-linecap="round"><g stroke="#22c55e" stroke-width="6" stroke-dasharray="1, 6"><path d="M 100 80 Q 105 40 120 15"/><path d="M 100 80 Q 50 80 30 100"/><path d="M 100 80 Q 70 65 45 45"/><path d="M 100 80 Q 85 50 75 30"/><path d="M 100 80 Q 130 65 160 45"/><path d="M 100 80 Q 140 80 170 100"/><path d="M 100 80 Q 80 100 65 125"/><path d="M 100 80 Q 120 100 135 125"/></g><g stroke="#4ade80" stroke-width="3" stroke-dasharray="1, 5"><path d="M 100 80 Q 105 40 120 15"/><path d="M 100 80 Q 50 80 30 100"/><path d="M 100 80 Q 70 65 45 45"/><path d="M 100 80 Q 85 50 75 30"/><path d="M 100 80 Q 130 65 160 45"/><path d="M 100 80 Q 140 80 170 100"/><path d="M 100 80 Q 80 100 65 125"/><path d="M 100 80 Q 120 100 135 125"/></g><g stroke="#fef08a" stroke-width="1.5" stroke-dasharray="1, 4"><path d="M 100 80 Q 105 40 120 15"/><path d="M 100 80 Q 50 80 30 100"/><path d="M 100 80 Q 70 65 45 45"/><path d="M 100 80 Q 85 50 75 30"/><path d="M 100 80 Q 130 65 160 45"/><path d="M 100 80 Q 140 80 170 100"/><path d="M 100 80 Q 80 100 65 125"/><path d="M 100 80 Q 120 100 135 125"/></g><ellipse cx="122" cy="13" rx="6" ry="3" stroke="#4ade80" stroke-width="2" stroke-dasharray="1, 3" transform="rotate(-25 122 13)"/><ellipse cx="122" cy="13" rx="6" ry="3" stroke="#fef08a" stroke-width="1" stroke-dasharray="1, 2" transform="rotate(-25 122 13)"/></g></g></svg>`,
             boba: `<svg viewBox="0 0 100 100"><path d="M30 30 L35 85 Q50 95 65 85 L70 30 Z" fill="#fed7aa"/><rect x="25" y="20" width="50" height="10" rx="3" fill="#f8fafc"/><rect x="45" y="5" width="10" height="85" fill="#38bdf8"/><circle cx="45" cy="75" r="5" fill="#292524"/><circle cx="55" cy="70" r="5" fill="#292524"/><circle cx="40" cy="65" r="5" fill="#292524"/><circle cx="60" cy="80" r="5" fill="#292524"/></svg>`,
             
@@ -1892,14 +2124,304 @@ checkDaily();
         window.onload = function() {
             initGameData(); 
         };
-// 🌟 寶寶專屬：洗掉前任記憶的忘情水！
+// 🌟 洗掉前任記憶的忘情水！
         function clearTestLogin() {
-            // 把瀏覽器死記硬背的測試帳號跟正式 Token 通通刪掉
             sessionStorage.removeItem('test_nudi_token');
             localStorage.removeItem('nudi_token'); 
-            
-            // 讓網頁重新整理，海兔就會乖乖重新投胎啦！
             location.reload(); 
+        }
+
+        // 🌟 【存檔與讀取系統】
+        function saveGame() {
+            try {
+                localStorage.setItem('nudi_game_save', JSON.stringify(gameState));
+            } catch(e) {
+                console.error("存檔失敗", e);
+            }
+        }
+
+        function loadGame() {
+            const saved = localStorage.getItem('nudi_game_save');
+            if (saved) {
+                try {
+                    const parsed = JSON.parse(saved);
+                    gameState = { ...gameState, ...parsed };
+                } catch(e) {
+                    console.error("存檔讀取失敗", e);
+                }
+            }
+
+            // 🌟 防刷分與時間戳記校正：依據真實時間計算剩餘冷卻秒數
+            if (!gameState.cooldownUntil) {
+                gameState.cooldownUntil = { feed: 0, clean: 0, pet: 0 };
+            }
+            if (!gameState.cooldowns) {
+                gameState.cooldowns = { feed: 0, clean: 0, pet: 0 };
+            }
+
+            const now = Date.now();
+            ['feed', 'clean', 'pet'].forEach(type => {
+                const targetTime = gameState.cooldownUntil[type] || 0;
+                const remaining = Math.max(0, Math.ceil((targetTime - now) / 1000));
+                gameState.cooldowns[type] = remaining;
+            });
+        }
+
+        // 🌟 【冷卻倒數計時器：防刷分防重整版】
+        function startCooldownTimer() {
+            setInterval(() => {
+                const now = Date.now();
+                let changed = false;
+
+                if (!gameState.cooldownUntil) {
+                    gameState.cooldownUntil = { feed: 0, clean: 0, pet: 0 };
+                }
+
+                ['feed', 'clean', 'pet'].forEach(type => {
+                    const targetTime = gameState.cooldownUntil[type] || 0;
+                    const remainingMs = targetTime - now;
+
+                    if (remainingMs > 0) {
+                        const remainingSec = Math.ceil(remainingMs / 1000);
+                        if (gameState.cooldowns[type] !== remainingSec) {
+                            gameState.cooldowns[type] = remainingSec;
+                            changed = true;
+                        }
+                    } else {
+                        if (gameState.cooldowns[type] !== 0) {
+                            gameState.cooldowns[type] = 0;
+                            changed = true;
+                        }
+                    }
+                });
+
+                if (changed) {
+                    updateUI();
+                }
+            }, 500);
+        }
+
+        // 🌟 【一般互動系統：淨化水質與摸摸】
+        function interact(type, points, cd) {
+            if (gameState.cooldowns[type] > 0) {
+                showFloatText('海兔還在休息中喔！✨');
+                return;
+            }
+
+            gameState.points += points;
+            gameState.cooldowns[type] = cd;
+
+            if (!gameState.cooldownUntil) gameState.cooldownUntil = { feed: 0, clean: 0, pet: 0 };
+            gameState.cooldownUntil[type] = Date.now() + (cd * 1000);
+
+            if (type === 'pet') {
+                const slug = document.getElementById('slugContainer');
+                slug.classList.add('is-petting');
+                setTimeout(() => slug.classList.remove('is-petting'), 500);
+            }
+
+            saveGame();
+            updateUI();
+
+            const txtMap = {
+                clean: `✨ 淨化水質 +${points}`,
+                pet: `💖 溫柔撫摸 +${points}`
+            };
+            showFloatText(txtMap[type] || `+${points}`);
+            fetchAPI('/pet-games/interact', 'POST', { action: type });
+        }
+        // 🌟 【餵食海藻：點擊召喚海藻與海兔飢餓追逐系統】
+        let isFeedingActive = false;
+        let foodChaseFrame = null;
+        let floatingAlgae = null;
+        let targetFoodPos = { x: 0, y: 0 };
+
+        function triggerFeedInteraction(e) {
+            if (e) e.stopPropagation();
+
+            if (gameState.cooldowns.feed > 0) {
+                showFloatText('海兔還在消化中喔！🌱');
+                return;
+            }
+
+            if (isFeedingActive) return;
+            isFeedingActive = true;
+
+            const btn = document.getElementById('btnFeed');
+            const btnRect = btn.getBoundingClientRect();
+
+            targetFoodPos = {
+                x: e.clientX || (btnRect.left + btnRect.width / 2),
+                y: e.clientY || (btnRect.top + btnRect.height / 2)
+            };
+
+            floatingAlgae = document.createElement('div');
+            floatingAlgae.className = 'drag-algae-item';
+            floatingAlgae.innerHTML = svgLib['algae'] || '🌱';
+            floatingAlgae.style.left = targetFoodPos.x + 'px';
+            floatingAlgae.style.top = targetFoodPos.y + 'px';
+            document.body.appendChild(floatingAlgae);
+
+            const slugEl = document.getElementById('slugContainer');
+            slugEl.classList.add('is-chasing-food');
+
+            window.addEventListener('pointermove', handleFoodTracking);
+            window.addEventListener('touchmove', handleFoodTouchTracking, { passive: false });
+            window.addEventListener('pointerup', handleFeedSuccessCheck);
+            window.addEventListener('touchend', handleFeedSuccessCheck);
+
+            runSlugChaseLoop();
+        }
+
+        function handleFoodTracking(e) {
+            if (!isFeedingActive || !floatingAlgae) return;
+            targetFoodPos.x = e.clientX;
+            targetFoodPos.y = e.clientY;
+            floatingAlgae.style.left = targetFoodPos.x + 'px';
+            floatingAlgae.style.top = targetFoodPos.y + 'px';
+        }
+
+        function handleFoodTouchTracking(e) {
+            if (!isFeedingActive || !floatingAlgae || !e.touches[0]) return;
+            e.preventDefault();
+            targetFoodPos.x = e.touches[0].clientX;
+            targetFoodPos.y = e.touches[0].clientY;
+            floatingAlgae.style.left = targetFoodPos.x + 'px';
+            floatingAlgae.style.top = targetFoodPos.y + 'px';
+        }
+
+        function runSlugChaseLoop() {
+            if (!isFeedingActive) return;
+
+            const slugEl = document.getElementById('slugContainer');
+            const stage = document.getElementById('mainStage');
+            const rect = slugEl.getBoundingClientRect();
+
+            const slugCenterX = rect.left + rect.width / 2;
+            const slugCenterY = rect.top + rect.height / 2;
+
+            const dx = targetFoodPos.x - slugCenterX;
+            const dy = targetFoodPos.y - slugCenterY;
+            const dist = Math.hypot(dx, dy);
+
+            if (dist > 30) {
+                const stepSpeed = 5.2;
+                let curLeft = parseFloat(slugEl.style.left) || slugEl.offsetLeft;
+                let curTop = parseFloat(slugEl.style.top) || slugEl.offsetTop;
+
+                curLeft += (dx / dist) * stepSpeed;
+                curTop += (dy / dist) * stepSpeed;
+
+                const maxX = stage.offsetWidth - slugEl.offsetWidth;
+                const maxY = stage.offsetHeight - slugEl.offsetHeight;
+
+                slugEl.style.left = Math.max(0, Math.min(maxX, curLeft)) + 'px';
+                slugEl.style.top = Math.max(0, Math.min(maxY, curTop)) + 'px';
+
+                // 讓海兔正面朝向海藻方向（預設臉朝左，往右需翻轉為 -1）
+                const direction = dx > 0 ? -1 : 1;
+                slugEl.style.transform = `scaleX(${direction})`;
+            }
+
+            if (dist < 70) {
+                completeFeedingAction(true);
+                return;
+            }
+
+            foodChaseFrame = requestAnimationFrame(runSlugChaseLoop);
+        }
+
+        function handleFeedSuccessCheck() {
+            if (!isFeedingActive) return;
+
+            const slugEl = document.getElementById('slugContainer');
+            const rect = slugEl.getBoundingClientRect();
+            const slugCenterX = rect.left + rect.width / 2;
+            const slugCenterY = rect.top + rect.height / 2;
+
+            const dist = Math.hypot(targetFoodPos.x - slugCenterX, targetFoodPos.y - slugCenterY);
+
+            if (dist < 120) {
+                completeFeedingAction(true);
+            } else {
+                completeFeedingAction(false);
+            }
+        }
+
+function completeFeedingAction(isSuccess) {
+            isFeedingActive = false;
+            if (foodChaseFrame) {
+                cancelAnimationFrame(foodChaseFrame);
+                foodChaseFrame = null;
+            }
+
+            window.removeEventListener('pointermove', handleFoodTracking);
+            window.removeEventListener('touchmove', handleFoodTouchTracking);
+            window.removeEventListener('pointerup', handleFeedSuccessCheck);
+            window.removeEventListener('touchend', handleFeedSuccessCheck);
+
+            if (floatingAlgae && floatingAlgae.parentNode) {
+                floatingAlgae.remove();
+                floatingAlgae = null;
+            }
+
+            const slugEl = document.getElementById('slugContainer');
+            slugEl.classList.remove('is-chasing-food');
+
+            if (isSuccess) {
+                slugEl.classList.add('is-eating-munch');
+
+                // 🌟 1. 直接將海兔的臉部換成「幸福大笑眼 ＋ 鼓腮幫 ＋ 嘴裡叼著海藻咀嚼」
+                const faceGroup = slugEl.querySelector('g[transform="translate(130, 150)"]');
+                const originalFaceHTML = faceGroup ? faceGroup.innerHTML : '';
+
+                if (faceGroup) {
+                    faceGroup.innerHTML = `
+                        <!-- 爆紅超幸福腮紅 -->
+                        <ellipse cx="-35" cy="12" rx="18" ry="11" fill="var(--c-blush)" opacity="0.95"/>
+                        <ellipse cx="35" cy="12" rx="18" ry="11" fill="var(--c-blush)" opacity="0.95"/>
+                        
+                        <!-- 幸福瞇瞇笑眼 ( > < ) -->
+                        <g stroke="#2c3e50" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round" fill="none">
+                            <path d="M -26 -2 L -18 3 L -26 8" />
+                            <path d="M 26 -2 L 18 3 L 26 8" />
+                        </g>
+
+                        <!-- 🌿 真正含在嘴唇裡的柔軟垂墜海草（頂端卡進嘴心，尾巴垂出嘴外） -->
+                        <g id="chewingAlgaePiece" transform="translate(0, 10)">
+                            <!-- 主海草長葉：從嘴巴中心往下延伸垂落 -->
+                            <path class="algae-soft-blade-1" d="M 0 0 C -6 6, -12 12, -8 22 C -5 27, 2 22, 0 14 C -1 8, 1 3, 0 0 Z" fill="#22c55e" stroke="#14532d" stroke-width="1.1" stroke-linejoin="round"/>
+                            <!-- 側邊柔軟小分岔葉片 -->
+                            <path class="algae-soft-blade-2" d="M -2 3 C -8 7, -14 14, -10 19 C -7 21, -3 16, -3 10 Z" fill="#4ade80" stroke="#14532d" stroke-width="0.9" stroke-linejoin="round"/>
+                            <!-- 嘴邊短嫩芽 -->
+                            <path d="M 1 2 C 4 5, 6 10, 3 13 C 1 11, 1 6, 1 2 Z" fill="#86efac" stroke="#14532d" stroke-width="0.7"/>
+                        </g>
+
+                        <!-- 👄 乾淨細緻的手繪單線咀嚼嘴（覆蓋在海草上方，形成上下唇咬住的視覺） -->
+                        <path id="chewingLineMouth" d="M -6 6 Q 0 11 6 6" fill="none" stroke="#2c3e50" stroke-width="1.8" stroke-linecap="round"/>
+                    `;
+                }
+
+                // 🌟 2. 咀嚼 1.8 秒後吃乾淨，海藻完全吞入肚，五官恢復正常！
+                setTimeout(() => {
+                    slugEl.classList.remove('is-eating-munch');
+                    slugEl.style.transform = 'scaleX(1)';
+                    if (faceGroup) faceGroup.innerHTML = originalFaceHTML;
+                }, 1800);
+
+                gameState.points += 80;
+                gameState.cooldowns.feed = 8;
+                // 🌟 記錄 8 秒後的真實時間戳記
+                if (!gameState.cooldownUntil) gameState.cooldownUntil = { feed: 0, clean: 0, pet: 0 };
+                gameState.cooldownUntil.feed = Date.now() + (8 * 1000);
+                saveGame();
+                updateUI();
+                showFloatText('😋 嚼嚼嚼！美味海藻 +80');
+                fetchAPI('/pet-games/interact', 'POST', { action: 'feed' });
+            } else {
+                slugEl.style.transform = 'scaleX(1)';
+                showFloatText('海藻掉在路上了～再試一次吧！');
+            }
         }
         // 🌟 【切換語言小幫手】
         function toggleLang() {
@@ -7518,18 +8040,41 @@ addDailyProgress(type);
             setTimeout(() => el.remove(), duration);
         }
 
-        // 倒數計時冷卻時間的大時鐘
+// 🌟 【冷卻倒數計時器：防刷分防重整版】
         function startCooldownTimer() {
             setInterval(() => {
-                let needUpdate = false;
+                const now = Date.now();
+                let changed = false;
+
+                // 如果還沒有 cooldownUntil 物件，就初始化它
+                if (!gameState.cooldownUntil) {
+                    gameState.cooldownUntil = { feed: 0, clean: 0, pet: 0 };
+                }
+
                 ['feed', 'clean', 'pet'].forEach(type => {
-                    if (gameState.cooldowns[type] > 0) {
-                        gameState.cooldowns[type]--;
-                        needUpdate = true;
+                    const targetTime = gameState.cooldownUntil[type] || 0;
+                    const remainingMs = targetTime - now;
+
+                    if (remainingMs > 0) {
+                        // 還在冷卻中：計算還剩幾秒
+                        const remainingSec = Math.ceil(remainingMs / 1000);
+                        if (gameState.cooldowns[type] !== remainingSec) {
+                            gameState.cooldowns[type] = remainingSec;
+                            changed = true;
+                        }
+                    } else {
+                        // 已經冷卻完畢：歸零解鎖
+                        if (gameState.cooldowns[type] !== 0) {
+                            gameState.cooldowns[type] = 0;
+                            changed = true;
+                        }
                     }
                 });
-                if (needUpdate) updateUI();
-            }, 1000);
+
+                if (changed) {
+                    updateUI();
+                }
+            }, 500);
         }
 
         // 🌟 【防撞衫專屬鑰匙】拿每個人的專屬帳號/Token 當保險箱密碼，確保大家的存檔不會混在一起
@@ -7553,8 +8098,7 @@ addDailyProgress(type);
                 console.warn("存檔失敗", e);
             }
         }
-
-        // 🌟 【記憶吐司：讀取進度】
+// 🌟 【記憶吐司：讀取進度】
         function loadGame() {
             const saved = localStorage.getItem(getSaveKey()); // 用專屬鑰匙開鎖！
             if (saved) { 
@@ -7577,6 +8121,21 @@ addDailyProgress(type);
                     console.error("存檔讀取失敗或已損毀", e);
                 } 
             }
+
+            // 🌟 防刷分與時間戳記校正：讀取存檔後依據真實時間計算剩餘秒數
+            if (!gameState.cooldownUntil) {
+                gameState.cooldownUntil = { feed: 0, clean: 0, pet: 0 };
+            }
+            if (!gameState.cooldowns) {
+                gameState.cooldowns = { feed: 0, clean: 0, pet: 0 };
+            }
+
+            const now = Date.now();
+            ['feed', 'clean', 'pet'].forEach(type => {
+                const targetTime = gameState.cooldownUntil[type] || 0;
+                const remaining = Math.max(0, Math.ceil((targetTime - now) / 1000));
+                gameState.cooldowns[type] = remaining;
+            });
         }
         
         // 更新按鈕是否鎖定與積分顯示
