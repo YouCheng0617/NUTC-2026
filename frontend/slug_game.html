@@ -137,7 +137,53 @@
         @keyframes rainFall { to { transform: translateY(60vh); } }
         .bubble { position: absolute; border-radius: 50%; border: 1.5px solid rgba(255, 255, 255, 0.7); background: rgba(255, 255, 255, 0.2); bottom: -20px; animation: bubbleRise ease-in infinite; }
         @keyframes bubbleRise { to { transform: translateY(-60vh) scale(1.5); opacity: 0; } }
-/* 🌟 愛心由下往上飄動與破掉的動畫 */
+/* 🫧 水質髒污圖層（遮住海兔） */
+        .water-dirt-overlay {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            pointer-events: none;
+            touch-action: none; /* 🌟 禁止手機預設手勢，確保擦拭不卡頓 */
+            z-index: 18;
+            transition: opacity 0.3s ease;
+            opacity: 0;
+            background: radial-gradient(circle at 50% 50%, rgba(101, 163, 13, 0.55) 0%, rgba(63, 98, 18, 0.8) 60%, rgba(20, 45, 10, 0.96) 100%);
+            backdrop-filter: blur(8px);
+        }
+
+        /* 🧽 擦玻璃抹布（跟隨滑鼠／手指移動） */
+        .cleaning-cloth-item {
+            position: fixed;
+            width: 70px;
+            height: 70px;
+            pointer-events: none;
+            z-index: 99999;
+            transform: translate(-50%, -50%);
+            filter: drop-shadow(0 8px 15px rgba(0, 0, 0, 0.3));
+            animation: clothSway 0.25s infinite alternate ease-in-out;
+        }
+        @keyframes clothSway {
+            0% { transform: translate(-50%, -50%) rotate(-12deg) scale(1); }
+            100% { transform: translate(-50%, -50%) rotate(12deg) scale(1.08); }
+        }
+
+        /* ✨ 抹布擦過時留下的乾淨透明水光圈 */
+        .cloth-wipe-trail {
+            position: absolute;
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 19;
+            transform: translate(-50%, -50%);
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.8) 0%, rgba(56, 189, 248, 0.4) 40%, transparent 80%);
+            animation: wipeSparkle 0.6s ease-out forwards;
+        }
+        @keyframes wipeSparkle {
+            0% { transform: translate(-50%, -50%) scale(0.6); opacity: 1; }
+            100% { transform: translate(-50%, -50%) scale(1.6); opacity: 0; }
+        }
+        /* 🌟 愛心由下往上飄動與破掉的動畫 */
 @keyframes heartFloatAndPop {
     0% {
         transform: translateY(0vh) scale(0.3);
@@ -1181,6 +1227,9 @@
         <div class="dot-pattern" id="dotPattern"></div>
         <div id="effectLayer" class="effect-layer"></div>
         
+        <!-- 🫧 水質髒污圖層（隨時間混濁、遮住海兔） -->
+        <div id="dirtOverlay" class="water-dirt-overlay"></div>
+        
         <!-- 其他玩家的顯示圖層 -->
         <div id="otherPlayersLayer" style="position: absolute; width:100%; height:100%; top:0; left:0; pointer-events:none; z-index:9;"></div>
 
@@ -1263,7 +1312,7 @@
                 <span class="btn-title" id="txtFeedTitle">餵食海藻</span>
                 <span class="btn-desc" id="txtFeedDesc">冷卻 0s</span>
             </button>
-            <button class="btn-interact" id="btnClean" onclick="interact('clean', 100, 15)">
+            <button class="btn-interact" id="btnClean" onclick="triggerCleanInteraction(event)">
                 <span class="btn-title" id="txtCleanTitle">淨化水質</span>
                 <span class="btn-desc" id="txtCleanDesc">冷卻 0s</span>
             </button>
@@ -1643,6 +1692,8 @@ function updateRoomUI(text) {
             currentSpecies: 'snow',
             currentBg: 'sky',
             currentEffect: 'none',
+            dirtiness: 0, // 🌟 0: 乾淨清澈, 100: 最髒且完全看不見海兔
+            lastDirtTime: Date.now(), // 記錄上次計算髒污的時間戳記
             unlockedSpecies: [], 
             unlockedBgs: ['sky'],
             unlockedEffects: ['none'],
@@ -2075,6 +2126,7 @@ checkDaily();
             updateLangUI();
             renderShop();
             startCooldownTimer();
+            startWaterPollutionSystem(); // 🌟 啟動水質自然變髒與渲染系統
             initDragAndPetSystem(); 
             updateNameUI();
             updateRecallButtonVisibility();
@@ -2201,9 +2253,10 @@ checkDaily();
             }, 500);
         }
 
-        // 🌟 【一般互動系統：淨化水質與摸摸】
+        // 🌟 【一般互動系統：淨化水質與溫柔撫摸】
         function interact(type, points, cd) {
-            if (gameState.cooldowns[type] > 0) {
+            // 檢查是否還在冷卻中
+            if (gameState.cooldowns && gameState.cooldowns[type] > 0) {
                 showFloatText('海兔還在休息中喔！✨');
                 return;
             }
@@ -2211,6 +2264,7 @@ checkDaily();
             gameState.points += points;
             gameState.cooldowns[type] = cd;
 
+            // 🌟 核心：精準記錄真實冷卻結束時間（當前時間 + CD秒數）
             if (!gameState.cooldownUntil) gameState.cooldownUntil = { feed: 0, clean: 0, pet: 0 };
             gameState.cooldownUntil[type] = Date.now() + (cd * 1000);
 
@@ -2228,6 +2282,8 @@ checkDaily();
                 pet: `💖 溫柔撫摸 +${points}`
             };
             showFloatText(txtMap[type] || `+${points}`);
+
+            // 同步給伺服器
             fetchAPI('/pet-games/interact', 'POST', { action: type });
         }
         // 🌟 【餵食海藻：點擊召喚海藻與海兔飢餓追逐系統】
@@ -2271,6 +2327,157 @@ checkDaily();
             window.addEventListener('touchend', handleFeedSuccessCheck);
 
             runSlugChaseLoop();
+        }
+        // 🌟 【淨化水質：拿抹布擦拭魚缸水質系統】
+        let isCleaningActive = false;
+        let cleaningCloth = null;
+        let cleanProgress = 0; // 擦拭次數計數器
+        const TARGET_WIPES = 12; // 擦拭約 12 下即可完全擦乾淨
+
+        function triggerCleanInteraction(e) {
+            if (e) e.stopPropagation();
+
+            if (gameState.cooldowns.clean > 0) {
+                showFloatText('水質已經被擦乾淨囉！✨');
+                return;
+            }
+
+            if ((gameState.dirtiness || 0) <= 5) {
+                showFloatText('水質已經非常清澈，不用擦啦！💎');
+                return;
+            }
+
+            if (isCleaningActive) return;
+            isCleaningActive = true;
+            cleanProgress = 0;
+
+            const btn = document.getElementById('btnClean');
+            const btnRect = btn.getBoundingClientRect();
+
+            // 建立藍白格紋可愛清潔抹布
+            cleaningCloth = document.createElement('div');
+            cleaningCloth.className = 'cleaning-cloth-item';
+            cleaningCloth.innerHTML = `
+                <svg viewBox="0 0 100 100" style="width:100%; height:100%;">
+                    <rect x="15" y="15" width="70" height="70" rx="15" fill="#38bdf8" stroke="#0284c7" stroke-width="4"/>
+                    <rect x="25" y="25" width="50" height="50" rx="8" fill="#e0f2fe" stroke="#38bdf8" stroke-width="3" stroke-dasharray="6,4"/>
+                    <path d="M 30 50 Q 50 35 70 50 Q 50 65 30 50 Z" fill="#ffffff" opacity="0.8"/>
+                    <circle cx="70" cy="30" r="4" fill="#ffffff"/>
+                </svg>
+            `;
+            cleaningCloth.style.left = (e.clientX || (btnRect.left + btnRect.width / 2)) + 'px';
+            cleaningCloth.style.top = (e.clientY || (btnRect.top + btnRect.height / 2)) + 'px';
+            document.body.appendChild(cleaningCloth);
+
+            showFloatText('🧽 拖曳抹布在魚缸上擦一擦！');
+
+            window.addEventListener('pointermove', handleClothWiping);
+            window.addEventListener('touchmove', handleClothTouchWiping, { passive: false });
+            window.addEventListener('pointerup', checkCleanCompleted);
+            window.addEventListener('touchend', checkCleanCompleted);
+            window.addEventListener('touchcancel', checkCleanCompleted);
+        }
+
+        function handleClothWiping(e) {
+            if (!isCleaningActive || !cleaningCloth) return;
+            cleaningCloth.style.left = e.clientX + 'px';
+            cleaningCloth.style.top = e.clientY + 'px';
+            performWipeAction(e.clientX, e.clientY);
+        }
+
+        function handleClothTouchWiping(e) {
+            if (!isCleaningActive || !cleaningCloth || !e.touches || !e.touches[0]) return;
+            // 🛑 阻止手機下拉重整與畫面跟著滑動
+            if (e.cancelable) e.preventDefault();
+            
+            const touch = e.touches[0];
+            const tx = touch.clientX;
+            const ty = touch.clientY;
+            
+            cleaningCloth.style.left = tx + 'px';
+            cleaningCloth.style.top = ty + 'px';
+            performWipeAction(tx, ty);
+        }
+
+        let lastWipePos = { x: 0, y: 0 };
+        const REQUIRED_WIPES = 8; // 🌟 必須在魚缸上連續滑動擦拭滿 8 下
+
+        function performWipeAction(x, y) {
+            const stage = document.getElementById('mainStage');
+            const stageRect = stage.getBoundingClientRect();
+
+            // 判斷是否在魚缸舞台範圍內擦拭
+            if (x >= stageRect.left && x <= stageRect.right && y >= stageRect.top && y <= stageRect.bottom) {
+                const dist = Math.hypot(x - lastWipePos.x, y - lastWipePos.y);
+                
+                // 只有滑動距離超過 45px 才算認真擦了一次
+                if (dist > 45) {
+                    lastWipePos = { x, y };
+                    cleanProgress++;
+
+                    // 產生擦拭水光漣漪
+                    const trail = document.createElement('div');
+                    trail.className = 'cloth-wipe-trail';
+                    trail.style.left = (x - stageRect.left) + 'px';
+                    trail.style.top = (y - stageRect.top) + 'px';
+                    stage.appendChild(trail);
+                    setTimeout(() => trail.remove(), 600);
+
+                    // 髒污度隨著擦拭次數一層層淡化
+                    const currentDirt = gameState.dirtiness || 0;
+                    const cleanPercent = cleanProgress / REQUIRED_WIPES;
+                    const overlay = document.getElementById('dirtOverlay');
+                    if (overlay) {
+                        overlay.style.opacity = Math.max(0, (currentDirt / 100) * (1 - cleanPercent));
+                    }
+
+                    // 🌟 必須確實擦滿 8 下才會完成淨化
+                    if (cleanProgress >= REQUIRED_WIPES) {
+                        finishCleaningAction(true);
+                    }
+                }
+            }
+        }
+
+        function checkCleanCompleted() {
+            if (!isCleaningActive) return;
+            // 如果放開滑鼠/手指時還沒擦滿 8 下，就判定還沒擦乾淨
+            if (cleanProgress >= REQUIRED_WIPES) {
+                finishCleaningAction(true);
+            } else {
+                finishCleaningAction(false);
+            }
+        }
+
+        function finishCleaningAction(isSuccess) {
+            isCleaningActive = false;
+            window.removeEventListener('pointermove', handleClothWiping);
+            window.removeEventListener('touchmove', handleClothTouchWiping);
+            window.removeEventListener('pointerup', checkCleanCompleted);
+            window.removeEventListener('touchend', checkCleanCompleted);
+
+            if (cleaningCloth && cleaningCloth.parentNode) {
+                cleaningCloth.remove();
+                cleaningCloth = null;
+            }
+
+            if (isSuccess) {
+                gameState.dirtiness = 0;
+                gameState.lastDirtTime = Date.now();
+                renderWaterQuality();
+
+                gameState.points += 100;
+                gameState.cooldowns.clean = 15;
+                if (!gameState.cooldownUntil) gameState.cooldownUntil = { feed: 0, clean: 0, pet: 0 };
+                gameState.cooldownUntil.clean = Date.now() + (15 * 1000);
+
+                saveGame();
+                updateUI();
+                showFloatText('✨ 魚缸擦得亮晶晶！ +100');
+                fetchAPI('/pet-games/interact', 'POST', { action: 'clean' });
+            } else {
+                showFloatText('還有一點青苔沒擦乾淨喔！再試一次吧～');
+            }
         }
 
         function handleFoodTracking(e) {
@@ -2422,6 +2629,92 @@ function completeFeedingAction(isSuccess) {
                 slugEl.style.transform = 'scaleX(1)';
                 showFloatText('海藻掉在路上了～再試一次吧！');
             }
+        }
+        // 🌟 【水質系統：隨時間自然變髒與渲染引擎】
+        function startWaterPollutionSystem() {
+            // 每 10 秒檢查一次水質變化（10 分鐘增加 3%，換算每 200 秒增加 1 點髒污度）
+            setInterval(() => {
+                const now = Date.now();
+                const lastTime = gameState.lastDirtTime || now;
+                const elapsedSeconds = (now - lastTime) / 1000;
+                
+                // 🌟 每過 200 秒（3.33 分鐘）增加 1 點髒污（600 秒 = 10 分鐘累積 3 點）
+                if (elapsedSeconds >= 200) {
+                    const addDirt = Math.floor(elapsedSeconds / 200);
+                    gameState.dirtiness = Math.min(100, (gameState.dirtiness || 0) + addDirt);
+                    gameState.lastDirtTime = now;
+                    saveGame();
+                    renderWaterQuality();
+                }
+            }, 10000);
+
+            // 剛進入遊戲立即渲染當前水質
+            renderWaterQuality();
+        }
+
+        // 🎨 根據當前髒污度更新畫面視覺
+        function renderWaterQuality() {
+            const overlay = document.getElementById('dirtOverlay');
+            if (!overlay) return;
+
+            const dirt = gameState.dirtiness || 0;
+            // 髒污度 0 ~ 100 轉換為遮罩透明度與模糊度
+            overlay.style.opacity = (dirt / 100) * 0.96;
+            overlay.style.backdropFilter = `blur(${(dirt / 100) * 12}px)`;
+        }
+
+        // 🌟 【一般互動系統：淨化水質與溫柔撫摸的動作總管 (interact 函式)】
+        function interact(type, points, cd) {
+            // 1. 檢查是否還在冷卻中
+            if (gameState.cooldowns && gameState.cooldowns[type] > 0) {
+                showFloatText('海兔還在休息中喔！✨');
+                return;
+            }
+
+            // 2. 淨化水質專屬邏輯：水質已經很乾淨時提示
+            if (type === 'clean' && (gameState.dirtiness || 0) <= 0) {
+                showFloatText('水質已經非常清澈囉！💎');
+                return;
+            }
+
+            // 3. 加分與設定冷卻時間
+            gameState.points += points;
+            gameState.cooldowns[type] = cd;
+
+            if (!gameState.cooldownUntil) gameState.cooldownUntil = { feed: 0, clean: 0, pet: 0 };
+            gameState.cooldownUntil[type] = Date.now() + (cd * 1000);
+
+            // 4. 淨化水質：瞬間洗淨髒污並播放清澈水光動畫
+            if (type === 'clean') {
+                gameState.dirtiness = 0;
+                gameState.lastDirtTime = Date.now();
+                
+                const stage = document.getElementById('mainStage');
+                const flash = document.createElement('div');
+                flash.className = 'water-purifying-flash';
+                stage.appendChild(flash);
+                setTimeout(() => flash.remove(), 1200);
+
+                renderWaterQuality();
+            }
+
+            // 5. 溫柔撫摸：觸發海兔摸摸動畫
+            if (type === 'pet') {
+                const slug = document.getElementById('slugContainer');
+                slug.classList.add('is-petting');
+                setTimeout(() => slug.classList.remove('is-petting'), 500);
+            }
+
+            // 6. 存檔並更新畫面數字
+            saveGame();
+            updateUI();
+
+            const txtMap = {
+                clean: `💎 水質煥然一新！ +${points}`,
+                pet: `💖 溫柔撫摸 +${points}`
+            };
+            showFloatText(txtMap[type] || `+${points}`);
+            fetchAPI('/pet-games/interact', 'POST', { action: type });
         }
         // 🌟 【切換語言小幫手】
         function toggleLang() {
@@ -8046,7 +8339,6 @@ addDailyProgress(type);
                 const now = Date.now();
                 let changed = false;
 
-                // 如果還沒有 cooldownUntil 物件，就初始化它
                 if (!gameState.cooldownUntil) {
                     gameState.cooldownUntil = { feed: 0, clean: 0, pet: 0 };
                 }
@@ -8056,14 +8348,12 @@ addDailyProgress(type);
                     const remainingMs = targetTime - now;
 
                     if (remainingMs > 0) {
-                        // 還在冷卻中：計算還剩幾秒
                         const remainingSec = Math.ceil(remainingMs / 1000);
                         if (gameState.cooldowns[type] !== remainingSec) {
                             gameState.cooldowns[type] = remainingSec;
                             changed = true;
                         }
                     } else {
-                        // 已經冷卻完畢：歸零解鎖
                         if (gameState.cooldowns[type] !== 0) {
                             gameState.cooldowns[type] = 0;
                             changed = true;
