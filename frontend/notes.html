@@ -19,9 +19,9 @@
     <div class="container">
         <!-- 新增便利貼的控制台 -->
         <div class="note-creator glass-panel">
-            <textarea id="note-text" placeholder="今天想記錄點什麼呢？..." rows="3"></textarea>
+            <textarea id="note-text" placeholder="今天想記錄點什麼呢？..." rows="3" maxlength="50"></textarea>
             <div class="creator-actions">
-                
+                <span id="char-count" class="char-count">0 / 50</span>
                 <button id="add-note-btn" class="btn-action">發佈便利貼</button>
             </div>
         </div>

@@ -81,9 +81,26 @@ body::before {
 
 .creator-actions { 
     display: flex; 
-    justify-content: flex-end; 
+    justify-content: space-between; 
     align-items: center; 
     margin-top: 20px; 
+}
+
+.char-count {
+    font-size: 0.95rem;
+    font-weight: bold;
+    color: rgba(255, 255, 255, 0.75);
+    background: rgba(255, 255, 255, 0.1);
+    padding: 6px 14px;
+    border-radius: 15px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    user-select: none;
+    transition: color 0.2s ease;
+}
+
+.char-count.limit {
+    color: #ffb4b4;
+    border-color: rgba(255, 100, 100, 0.4);
 }
 
 .btn-action {

@@ -23,17 +23,17 @@ const i18nNotes = {
 let currLangNotes = 'zh';
 
 // 🌟 2. 切換語言的核心魔法
-window.toggleLang = function() {
+window.toggleLang = function () {
     currLangNotes = currLangNotes === 'zh' ? 'en' : 'zh';
     const t = i18nNotes[currLangNotes];
-    
+
     // 更新靜態 UI
     document.getElementById('page-title').innerText = t.title;
     document.getElementById('btn-lang').innerText = t.langBtn;
     document.getElementById('btn-back').innerText = t.backBtn;
     document.getElementById('note-text').placeholder = t.placeholder;
     document.getElementById('add-note-btn').innerText = t.addBtn;
-    
+
     // 如果已經有抓到資料，重新渲染以更新空狀態的語言
     if (window._currentNotesData) {
         window._renderNotes(window._currentNotesData);
@@ -43,8 +43,22 @@ window.toggleLang = function() {
 // 🌟 3. 核心執行區塊
 (async () => {
     const textInput = document.getElementById('note-text');
+    const charCount = document.getElementById('char-count');
     const addBtn = document.getElementById('add-note-btn');
     const notesBoard = document.getElementById('notes-board');
+
+    const updateCharCount = () => {
+        if (!charCount) return;
+        const len = textInput.value.length;
+        charCount.innerText = `${len} / 50`;
+        if (len >= 50) {
+            charCount.classList.add('limit');
+        } else {
+            charCount.classList.remove('limit');
+        }
+    };
+
+    textInput.addEventListener('input', updateCharCount);
 
     const API_BASE_URL = "https://api.drift-bottles.xyz";
     const API_URL = `${API_BASE_URL}/game/daily-note`;
@@ -54,7 +68,7 @@ window.toggleLang = function() {
         try {
             const res = await fetch(API_URL);
             const rawData = await res.json();
-            window._currentNotesData = rawData.data || []; 
+            window._currentNotesData = rawData.data || [];
             window._renderNotes(window._currentNotesData);
         } catch (error) {
             console.error("連線錯誤：", error);
@@ -76,7 +90,7 @@ window.toggleLang = function() {
 
             const card = document.createElement('div');
             card.className = 'note-card';
-            card.style.background = randomColor; 
+            card.style.background = randomColor;
             card.innerHTML = `
                 <div class="note-text">${escapeHTML(note.content)}</div>
                 <div class="note-footer"><span>🕒 ${timeString}</span></div>
@@ -86,36 +100,37 @@ window.toggleLang = function() {
     };
 
     const addNote = async () => {
-        const content = textInput.value; 
+        const content = textInput.value;
         const t = i18nNotes[currLangNotes];
 
         if (content.trim() === '') { showToast(t.warnEmpty, 'warning'); return; }
-        const token = localStorage.getItem('authToken'); 
+        const token = localStorage.getItem('authToken');
         if (!token) { showToast(t.warnLogin, "warning"); return; }
 
         try {
             const res = await fetch(API_URL, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-                body: JSON.stringify({ content: content }) 
+                body: JSON.stringify({ content: content })
             });
 
             if (!res.ok) {
-                let errorMessage = t.duplicate; 
+                let errorMessage = t.duplicate;
                 try {
                     const errData = await res.json();
                     errorMessage = errData.message || errData.error || errorMessage;
-                } catch (e) {}
+                } catch (e) { }
                 showToast(errorMessage, "error");
-                return; 
+                return;
             }
 
-            textInput.value = ''; 
-            showToast(t.success, 'success'); 
-            fetchNotes();         
+            textInput.value = '';
+            updateCharCount();
+            showToast(t.success, 'success');
+            fetchNotes();
         } catch (error) {
             console.error("發佈失敗：", error);
-            showToast(t.fail, "error"); 
+            showToast(t.fail, "error");
         }
     };
 
