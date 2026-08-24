@@ -738,7 +738,24 @@
         .btn-interact:disabled { opacity: 0.6; cursor: not-allowed; background: #f1f5f9; border-color: #cbd5e1; box-shadow: 0 5px 0 #cbd5e1; color: #94a3b8; }
         .btn-title { font-size: 1.05rem; font-weight: 900; margin-bottom: 6px; }
         .btn-desc { font-size: 0.8rem; color: var(--text-dim); font-weight: 800;}
-
+/* 🌟 餵食按鈕專屬：膠囊飽食進度條 */
+        .hunger-bar-container {
+            width: 78%;
+            height: 6px;
+            background: #e2e8f0;
+            border-radius: 10px;
+            margin: 2px auto 4px auto;
+            overflow: hidden;
+            border: 1px solid #cbd5e1;
+            box-shadow: inset 0 1px 2px rgba(0,0,0,0.1);
+        }
+        .hunger-bar-fill {
+            height: 100%;
+            width: 100%;
+            border-radius: 10px;
+            background: linear-gradient(90deg, #4ade80, #22c55e);
+            transition: width 0.35s cubic-bezier(0.18, 0.89, 0.32, 1.28), background 0.4s ease;
+        }
         /* 面板標籤與商品網格 */
         .tabs { display: flex; gap: 10px; margin-bottom: 20px; border-bottom: 3px solid var(--border-color); padding-bottom: 10px; padding-left: 5px; align-items: center; }
         .tab { background: transparent; border: none; color: var(--text-dim); font-size: 1.1rem; font-weight: 900; cursor: pointer; padding: 8px 16px; border-radius: 15px; transition: 0.2s; }
@@ -764,8 +781,34 @@
         .start-btn { background: var(--text-dark); color: white; border: none; padding: 16px 50px; border-radius: 35px; font-weight: 900; font-size: 1.3rem; cursor: pointer; display: none; box-shadow: 0 6px 0 rgba(0,0,0,0.15); transition: 0.1s; }
         .start-btn:active { transform: translateY(6px); box-shadow: 0 0 0 transparent; }
 
-        /* 🌟 【獲得積分時飄起來的文字】 */
-        .float-text { position: absolute; color: var(--accent-color); font-weight: 900; font-size: 2rem; pointer-events: none; text-shadow: 2px 2px 0px white, -2px -2px 0px white, 2px -2px 0px white, -2px 2px 0px white; animation: floatUp 1s forwards cubic-bezier(0.18, 0.89, 0.32, 1.28); z-index: 100; }
+        /* 🌟 【全域浮動通知文字：清晰停留版】 */
+        .float-text {
+            position: fixed;
+            top: 25%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: var(--text-dark);
+            background: rgba(255, 255, 255, 0.95);
+            border: 3px solid var(--border-color);
+            padding: 12px 28px;
+            border-radius: 30px;
+            font-weight: 900;
+            font-size: 1.25rem;
+            pointer-events: none;
+            box-shadow: 0 8px 25px var(--shadow-color);
+            backdrop-filter: blur(6px);
+            z-index: 999999;
+            white-space: nowrap;
+            animation: floatNoticeStay 2.5s cubic-bezier(0.18, 0.89, 0.32, 1.28) forwards;
+        }
+        @keyframes floatNoticeStay {
+            0% { opacity: 0; transform: translate(-50%, 15px) scale(0.7); }
+            15% { opacity: 1; transform: translate(-50%, 0) scale(1.05); }
+            25% { transform: translate(-50%, 0) scale(1); }
+            80% { opacity: 1; transform: translate(-50%, 0) scale(1); }
+            100% { opacity: 0; transform: translate(-50%, -25px) scale(0.9); }
+        }
+
         /* 🌟 14天簽到網格樣式 */
         .checkin-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin: 15px 0; max-height: 40vh; overflow-y: auto; padding-right: 5px; }
         .checkin-grid::-webkit-scrollbar { width: 4px; }
@@ -1310,6 +1353,10 @@
         <div class="interaction-group">
 <button class="btn-interact" id="btnFeed" onclick="triggerFeedInteraction(event)">
                 <span class="btn-title" id="txtFeedTitle">餵食海藻</span>
+                <!-- 🌟 飽食度進度條 -->
+                <div class="hunger-bar-container" title="飽食度">
+                    <div class="hunger-bar-fill" id="hungerBarFill"></div>
+                </div>
                 <span class="btn-desc" id="txtFeedDesc">冷卻 0s</span>
             </button>
             <button class="btn-interact" id="btnClean" onclick="triggerCleanInteraction(event)">
@@ -1694,6 +1741,8 @@ function updateRoomUI(text) {
             currentEffect: 'none',
             dirtiness: 0, // 🌟 0: 乾淨清澈, 100: 最髒且完全看不見海兔
             lastDirtTime: Date.now(), // 記錄上次計算髒污的時間戳記
+            hunger: 100, // 🌟 100 代表吃飽飽，0 代表肚子快餓扁了
+            lastHungerTime: Date.now(), // 記錄上次計算飢餓度的時間戳記
             unlockedSpecies: [], 
             unlockedBgs: ['sky'],
             unlockedEffects: ['none'],
@@ -2126,6 +2175,7 @@ checkDaily();
             updateLangUI();
             renderShop();
             startCooldownTimer();
+            startHungerSystem(); // 🌟 啟動飢餓度監控與更新
             startWaterPollutionSystem(); // 🌟 啟動水質自然變髒與渲染系統
             initDragAndPetSystem(); 
             updateNameUI();
@@ -2292,11 +2342,17 @@ checkDaily();
         let floatingAlgae = null;
         let targetFoodPos = { x: 0, y: 0 };
 
-        function triggerFeedInteraction(e) {
+      function triggerFeedInteraction(e) {
             if (e) e.stopPropagation();
 
             if (gameState.cooldowns.feed > 0) {
                 showFloatText('海兔還在消化中喔！🌱');
+                return;
+            }
+
+            // 🌟 飽足度大於等於 100% 時提示已經吃很飽
+            if (gameState.hunger >= 100) {
+                showFloatText('海兔肚子圓滾滾，已經吃很飽啦！🥰');
                 return;
             }
 
@@ -2629,6 +2685,20 @@ function completeFeedingAction(isSuccess) {
                 slugEl.style.transform = 'scaleX(1)';
                 showFloatText('海藻掉在路上了～再試一次吧！');
             }
+            gameState.points += 80;
+                gameState.cooldowns.feed = 8;
+                
+                // 🌟 每次餵食增加 35% 飽足度（最多 100%）
+                gameState.hunger = Math.min(100, (gameState.hunger || 0) + 35);
+                gameState.lastHungerTime = Date.now();
+                updateHungerUI();
+
+                if (!gameState.cooldownUntil) gameState.cooldownUntil = { feed: 0, clean: 0, pet: 0 };
+                gameState.cooldownUntil.feed = Date.now() + (8 * 1000);
+                saveGame();
+                updateUI();
+                showFloatText('😋 嚼嚼嚼！美味海藻 +80');
+                fetchAPI('/pet-games/interact', 'POST', { action: 'feed' });
         }
         // 🌟 【水質系統：隨時間自然變髒與渲染引擎】
         function startWaterPollutionSystem() {
@@ -2697,7 +2767,44 @@ function completeFeedingAction(isSuccess) {
 
                 renderWaterQuality();
             }
+// 🌟 【飢餓度系統：隨時間自然變餓與按鈕顯示】
+        function startHungerSystem() {
+            // 每 5 秒檢查一次飢餓度
+            setInterval(() => {
+                const now = Date.now();
+                const lastTime = gameState.lastHungerTime || now;
+                const elapsedSeconds = (now - lastTime) / 1000;
 
+                // 🌟 設定消耗速度：每過 30 秒消耗 1% 飽足度（約 50 分鐘降到 0%）
+                if (elapsedSeconds >= 30) {
+                    const dropHunger = Math.floor(elapsedSeconds / 30);
+                    gameState.hunger = Math.max(0, (gameState.hunger !== undefined ? gameState.hunger : 100) - dropHunger);
+                    gameState.lastHungerTime = now;
+                    saveGame();
+                    updateHungerUI();
+                }
+            }, 5000);
+
+            updateHungerUI();
+        }
+
+        // 🌟 更新餵食按鈕上的飽食進度條長度與顏色
+        function updateHungerUI() {
+            const bar = document.getElementById('hungerBarFill');
+            if (!bar) return;
+
+            const h = gameState.hunger !== undefined ? Math.max(0, Math.min(100, gameState.hunger)) : 100;
+            bar.style.width = h + '%';
+
+            // 依據飽足度切換警戒顏色
+            if (h <= 25) {
+                bar.style.background = 'linear-gradient(90deg, #f87171, #ef4444)'; // 快餓扁：紅色
+            } else if (h <= 55) {
+                bar.style.background = 'linear-gradient(90deg, #fbbf24, #f97316)'; // 肚子餓：橘黃色
+            } else {
+                bar.style.background = 'linear-gradient(90deg, #4ade80, #22c55e)'; // 飽足：綠色
+            }
+        }
             // 5. 溫柔撫摸：觸發海兔摸摸動畫
             if (type === 'pet') {
                 const slug = document.getElementById('slugContainer');
