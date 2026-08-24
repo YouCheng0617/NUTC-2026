@@ -183,6 +183,73 @@
             0% { transform: translate(-50%, -50%) scale(0.6); opacity: 1; }
             100% { transform: translate(-50%, -50%) scale(1.6); opacity: 0; }
         }
+        /* 🏀 運動撿球：玩具彈力球（手持與空中飛行） */
+        .exercise-ball-item {
+            position: fixed;
+            width: 45px;
+            height: 45px;
+            pointer-events: none;
+            z-index: 99999;
+            transform: translate(-50%, -50%);
+            filter: drop-shadow(0 6px 12px rgba(234, 88, 12, 0.4));
+            animation: ballPulse 0.4s infinite alternate ease-in-out;
+        }
+        @keyframes ballPulse {
+            0% { transform: translate(-50%, -50%) scale(0.95); }
+            100% { transform: translate(-50%, -50%) scale(1.08); }
+        }
+
+        /* 🏀 丟在舞台上的球（落地彈跳） */
+        .stage-landed-ball {
+            position: absolute;
+            width: 42px;
+            height: 42px;
+            pointer-events: none;
+            z-index: 12;
+            transform: translate(-50%, -50%);
+            filter: drop-shadow(0 6px 8px rgba(0, 0, 0, 0.25));
+        }
+
+        /* 🥣 撿球目標小碗（出現在畫面下方） */
+        .ball-return-bowl {
+            position: absolute;
+            bottom: 25px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 90px;
+            height: 55px;
+            pointer-events: none;
+            z-index: 15;
+            filter: drop-shadow(0 8px 15px rgba(0, 0, 0, 0.2));
+            animation: bowlPopIn 0.4s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+        }
+        @keyframes bowlPopIn {
+            0% { transform: translateX(-50%) scale(0); opacity: 0; }
+            100% { transform: translateX(-50%) scale(1); opacity: 1; }
+        }
+
+        /* 💦 海兔運動跑步中：身體劇烈 Q 彈起伏 + 狂奔 */
+        .slug-container.is-exercising-run .slug-svg {
+            animation: slugRunPuff 0.18s infinite alternate ease-in-out !important;
+        }
+        @keyframes slugRunPuff {
+            0% { transform: translateY(0) scale(1.12, 0.85); }
+            100% { transform: translateY(-24px) scale(0.88, 1.15); }
+        }
+
+        /* 💦 狂奔時身邊飄出的小汗珠 */
+        .exercise-sweat-drop {
+            position: absolute;
+            width: 22px;
+            height: 22px;
+            pointer-events: none;
+            z-index: 25;
+            animation: sweatFly 0.6s ease-out forwards;
+        }
+        @keyframes sweatFly {
+            0% { transform: translate(0, 0) scale(0.5); opacity: 1; }
+            100% { transform: translate(var(--sw-dx), -35px) scale(1.2); opacity: 0; }
+        }
         /* 🌟 愛心由下往上飄動與破掉的動畫 */
 @keyframes heartFloatAndPop {
     0% {
@@ -1363,8 +1430,8 @@
                 <span class="btn-title" id="txtCleanTitle">淨化水質</span>
                 <span class="btn-desc" id="txtCleanDesc">冷卻 0s</span>
             </button>
-            <button class="btn-interact" id="btnPet" onclick="interact('pet', 50, 5)">
-                <span class="btn-title" id="txtPetTitle">溫柔撫摸</span>
+            <button class="btn-interact" id="btnPet" onclick="triggerExerciseInteraction(event)">
+                <span class="btn-title" id="txtPetTitle">活力運動</span>
                 <span class="btn-desc" id="txtPetDesc">冷卻 0s</span>
             </button>
             <!-- 🌟任務按鈕 -->
@@ -1715,7 +1782,7 @@ function updateRoomUI(text) {
             zh: {
                 backBtn: "🏠 返回", points: "積分", langBtn: "EN", 
                 gachaTitle: "發現神祕海兔卵", gachaBox: "點擊孵化", startBtn: "開始照顧",
-                feed: "餵食海藻", clean: "淨化水質", pet: "溫柔撫摸",
+                feed: "餵食海藻", clean: "淨化水質", pet: "活力運動",
                 cooldown: "冷卻", ready: "可互動",
                 tabSpecies: "圖鑑", tabBg: "背景", tabEffect: "特效",
                 equip: "使用中", owned: "已解鎖"
@@ -1723,7 +1790,7 @@ function updateRoomUI(text) {
             en: { /* 英文翻譯保持不變 */
                 backBtn: "🏠 Home", points: "Pts", langBtn: "中文", 
                 gachaTitle: "Mystic Egg Found", gachaBox: "Incubate", startBtn: "Start Caring",
-                feed: "Feed Algae", clean: "Purify Water", pet: "Gentle Pet",
+                feed: "Feed Algae", clean: "Purify Water", pet: "Play Catch",
                 cooldown: "CD", ready: "Ready",
                 tabSpecies: "Species", tabBg: "Background", tabEffect: "Effects",
                 equip: "Active", owned: "Unlocked"
@@ -2666,6 +2733,245 @@ function completeFeedingAction(isSuccess) {
                 updateUI();
                 showFloatText('😋 嚼嚼嚼！美味海藻 +80');
                 fetchAPI('/pet-games/interact', 'POST', { action: 'feed' });
+        }
+        // 🌟 【活力運動：拋接球與海兔流汗撿球收納系統】
+        let isExercisingActive = false;
+        let heldBall = null;
+        let exerciseLandedBall = null;
+        let returnBowl = null;
+        let exerciseAnimFrame = null;
+        let sweatInterval = null;
+
+        const ballSVGHTML = `
+            <svg viewBox="0 0 100 100" style="width:100%; height:100%;">
+                <defs>
+                    <radialGradient id="toyBallGrad" cx="35%" cy="35%" r="65%">
+                        <stop offset="0%" stop-color="#fdba74"/>
+                        <stop offset="40%" stop-color="#f97316"/>
+                        <stop offset="100%" stop-color="#c2410c"/>
+                    </radialGradient>
+                </defs>
+                <circle cx="50" cy="50" r="45" fill="url(#toyBallGrad)" stroke="#7c2d12" stroke-width="4"/>
+                <path d="M 15 50 Q 50 20 85 50" fill="none" stroke="#fef08a" stroke-width="6" stroke-linecap="round"/>
+                <path d="M 20 65 Q 50 35 80 65" fill="none" stroke="#ffffff" stroke-width="4" stroke-linecap="round"/>
+                <circle cx="35" cy="30" r="5" fill="#ffffff" opacity="0.8"/>
+            </svg>
+        `;
+
+        const bowlSVGHTML = `
+            <svg viewBox="0 0 120 80" style="width:100%; height:100%;">
+                <ellipse cx="60" cy="65" rx="48" ry="12" fill="rgba(0,0,0,0.15)"/>
+                <path d="M 12 25 Q 10 65 60 65 Q 110 65 108 25 Z" fill="#38bdf8" stroke="#0284c7" stroke-width="4"/>
+                <ellipse cx="60" cy="25" rx="48" ry="15" fill="#bae6fd" stroke="#0284c7" stroke-width="4"/>
+                <ellipse cx="60" cy="25" rx="38" ry="10" fill="#0284c7" opacity="0.3"/>
+                <path d="M 25 38 Q 60 55 95 38" fill="none" stroke="#ffffff" stroke-width="3" stroke-linecap="round" opacity="0.8"/>
+            </svg>
+        `;
+
+        function triggerExerciseInteraction(e) {
+            if (e) e.stopPropagation();
+
+            if (gameState.cooldowns.pet > 0) {
+                showFloatText('海兔運動完在喘氣休息中喔！💦');
+                return;
+            }
+
+            if (isExercisingActive) return;
+            isExercisingActive = true;
+
+            const btn = document.getElementById('btnPet');
+            const btnRect = btn.getBoundingClientRect();
+
+            heldBall = document.createElement('div');
+            heldBall.className = 'exercise-ball-item';
+            heldBall.innerHTML = ballSVGHTML;
+            heldBall.style.left = (e.clientX || (btnRect.left + btnRect.width / 2)) + 'px';
+            heldBall.style.top = (e.clientY || (btnRect.top + btnRect.height / 2)) + 'px';
+            document.body.appendChild(heldBall);
+
+            const stage = document.getElementById('mainStage');
+            returnBowl = document.createElement('div');
+            returnBowl.className = 'ball-return-bowl';
+            returnBowl.innerHTML = bowlSVGHTML;
+            stage.appendChild(returnBowl);
+
+            showFloatText('🏀 把球丟到魚缸裡讓海兔撿！');
+
+            window.addEventListener('pointermove', handleBallTracking);
+            window.addEventListener('touchmove', handleBallTouchTracking, { passive: false });
+            window.addEventListener('pointerup', handleThrowBall);
+            window.addEventListener('touchend', handleThrowBall);
+        }
+
+        function handleBallTracking(e) {
+            if (!isExercisingActive || !heldBall) return;
+            heldBall.style.left = e.clientX + 'px';
+            heldBall.style.top = e.clientY + 'px';
+        }
+
+        function handleBallTouchTracking(e) {
+            if (!isExercisingActive || !heldBall || !e.touches || !e.touches[0]) return;
+            if (e.cancelable) e.preventDefault();
+            heldBall.style.left = e.touches[0].clientX + 'px';
+            heldBall.style.top = e.touches[0].clientY + 'px';
+        }
+
+        function handleThrowBall(e) {
+            if (!isExercisingActive || !heldBall) return;
+
+            window.removeEventListener('pointermove', handleBallTracking);
+            window.removeEventListener('touchmove', handleBallTouchTracking);
+            window.removeEventListener('pointerup', handleThrowBall);
+            window.removeEventListener('touchend', handleThrowBall);
+
+            const stage = document.getElementById('mainStage');
+            const stageRect = stage.getBoundingClientRect();
+
+            let dropX = e.clientX;
+            let dropY = e.clientY;
+
+            if (!dropX && e.changedTouches && e.changedTouches[0]) {
+                dropX = e.changedTouches[0].clientX;
+                dropY = e.changedTouches[0].clientY;
+            }
+
+            if (dropX >= stageRect.left && dropX <= stageRect.right && dropY >= stageRect.top && dropY <= stageRect.bottom) {
+                heldBall.remove();
+                heldBall = null;
+
+                const ballStageX = dropX - stageRect.left;
+                const ballStageY = dropY - stageRect.top;
+
+                exerciseLandedBall = document.createElement('div');
+                exerciseLandedBall.className = 'stage-landed-ball';
+                exerciseLandedBall.innerHTML = ballSVGHTML;
+                exerciseLandedBall.style.left = ballStageX + 'px';
+                exerciseLandedBall.style.top = ballStageY + 'px';
+                stage.appendChild(exerciseLandedBall);
+
+                startSlugFetchMotion(ballStageX, ballStageY);
+            } else {
+                cleanupExercise();
+                showFloatText('球掉在魚缸外面囉～再試一次吧！');
+            }
+        }
+
+        function startSlugFetchMotion(targetBallX, targetBallY) {
+            const slugEl = document.getElementById('slugContainer');
+            const stage = document.getElementById('mainStage');
+            slugEl.classList.add('is-exercising-run');
+
+            sweatInterval = setInterval(() => {
+                const sRect = slugEl.getBoundingClientRect();
+                const stRect = stage.getBoundingClientRect();
+                const drop = document.createElement('div');
+                drop.className = 'exercise-sweat-drop';
+                drop.innerHTML = svgLib['sweat'] || '💦';
+                drop.style.left = (sRect.left - stRect.left + (Math.random() * 60 + 20)) + 'px';
+                drop.style.top = (sRect.top - stRect.top + 20) + 'px';
+                drop.style.setProperty('--sw-dx', (Math.random() * 40 - 20) + 'px');
+                stage.appendChild(drop);
+                setTimeout(() => drop.remove(), 600);
+            }, 180);
+
+            let fetchPhase = 'toBall';
+
+            function fetchLoop() {
+                let curLeft = parseFloat(slugEl.style.left) || slugEl.offsetLeft;
+                let curTop = parseFloat(slugEl.style.top) || slugEl.offsetTop;
+
+                let slugCenterX = curLeft + slugEl.offsetWidth / 2;
+                let slugCenterY = curTop + slugEl.offsetHeight / 2;
+
+                const maxX = stage.offsetWidth - slugEl.offsetWidth;
+                const maxY = stage.offsetHeight - slugEl.offsetHeight;
+
+                // 🌟 回碗目標：計算海兔在碗上方可抵達的真實中心位置
+                let destX = fetchPhase === 'toBall' ? targetBallX : (stage.offsetWidth / 2);
+                let destY = fetchPhase === 'toBall' ? targetBallY : (maxY + slugEl.offsetHeight / 2 - 10);
+
+                const dx = destX - slugCenterX;
+                const dy = destY - slugCenterY;
+                const dist = Math.hypot(dx, dy);
+
+                // 抵達判定的距離門檻（去撿球 35px，回碗放球 65px）
+                const arriveThreshold = fetchPhase === 'toBall' ? 35 : 65;
+
+                slugEl.style.transform = `scaleX(${dx > 0 ? -1 : 1})`;
+
+                const runSpeed = 6.2;
+                if (dist > arriveThreshold) {
+                    curLeft += (dx / dist) * runSpeed;
+                    curTop += (dy / dist) * runSpeed;
+
+                    slugEl.style.left = Math.max(0, Math.min(maxX, curLeft)) + 'px';
+                    slugEl.style.top = Math.max(0, Math.min(maxY, curTop)) + 'px';
+
+                    // 咬著球跑：球球固定在海兔嘴邊
+                    if (fetchPhase === 'toBowl' && exerciseLandedBall) {
+                        const mouthDir = dx > 0 ? -1 : 1;
+                        exerciseLandedBall.style.left = (curLeft + slugEl.offsetWidth / 2 + (mouthDir * 25)) + 'px';
+                        exerciseLandedBall.style.top = (curTop + slugEl.offsetHeight / 2 + 25) + 'px';
+                    }
+
+                    exerciseAnimFrame = requestAnimationFrame(fetchLoop);
+                } else {
+                    if (fetchPhase === 'toBall') {
+                        // 🌟 1. 咬到球球
+                        fetchPhase = 'toBowl';
+                        showFloatText('🐶 咬到球球了！跑回碗裡放～');
+                        exerciseAnimFrame = requestAnimationFrame(fetchLoop);
+                    } else {
+                        // 🌟 2. 順利回到碗邊，球球進碗
+                        if (exerciseLandedBall && returnBowl) {
+                            const bowlRect = returnBowl.getBoundingClientRect();
+                            const stageRect = stage.getBoundingClientRect();
+                            exerciseLandedBall.style.transition = 'all 0.3s ease-out';
+                            exerciseLandedBall.style.left = (bowlRect.left - stageRect.left + bowlRect.width / 2) + 'px';
+                            exerciseLandedBall.style.top = (bowlRect.top - stageRect.top + bowlRect.height / 2 - 5) + 'px';
+                        }
+                        setTimeout(() => {
+                            finishExerciseSuccess();
+                        }, 350);
+                    }
+                }
+            }
+
+            exerciseAnimFrame = requestAnimationFrame(fetchLoop);
+        }
+
+        function finishExerciseSuccess() {
+            cleanupExercise();
+
+            gameState.points += 60;
+            gameState.cooldowns.pet = 10;
+            if (!gameState.cooldownUntil) gameState.cooldownUntil = { feed: 0, clean: 0, pet: 0 };
+            gameState.cooldownUntil.pet = Date.now() + (10 * 1000);
+
+            saveGame();
+            updateUI();
+            showFloatText('⚽ 運動大成功！球球收進碗裡囉 +60');
+            fetchAPI('/pet-games/interact', 'POST', { action: 'pet' });
+        }
+
+        function cleanupExercise() {
+            isExercisingActive = false;
+            if (exerciseAnimFrame) cancelAnimationFrame(exerciseAnimFrame);
+            if (sweatInterval) clearInterval(sweatInterval);
+
+            if (heldBall && heldBall.parentNode) heldBall.remove();
+            if (exerciseLandedBall && exerciseLandedBall.parentNode) exerciseLandedBall.remove();
+            if (returnBowl && returnBowl.parentNode) returnBowl.remove();
+
+            heldBall = null;
+            exerciseLandedBall = null;
+            returnBowl = null;
+
+            const slugEl = document.getElementById('slugContainer');
+            if (slugEl) {
+                slugEl.classList.remove('is-exercising-run');
+                slugEl.style.transform = 'scaleX(1)';
+            }
         }
         // 🌟 【水質系統：隨時間自然變髒與渲染引擎】
         function startWaterPollutionSystem() {
