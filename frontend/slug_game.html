@@ -183,15 +183,16 @@
             0% { transform: translate(-50%, -50%) scale(0.6); opacity: 1; }
             100% { transform: translate(-50%, -50%) scale(1.6); opacity: 0; }
         }
-        /* 🏀 運動撿球：玩具彈力球（手持與空中飛行） */
+        /* 🏀 玩具水晶球（手持飛行與落地） */
         .exercise-ball-item {
             position: fixed;
-            width: 45px;
-            height: 45px;
+            width: 58px; /* 🌟 稍微放大至 58px，看小魚更清楚 */
+            height: 58px;
             pointer-events: none;
+            touch-action: none;
             z-index: 99999;
             transform: translate(-50%, -50%);
-            filter: drop-shadow(0 6px 12px rgba(234, 88, 12, 0.4));
+            filter: drop-shadow(0 8px 16px rgba(14, 165, 233, 0.4));
             animation: ballPulse 0.4s infinite alternate ease-in-out;
         }
         @keyframes ballPulse {
@@ -199,25 +200,24 @@
             100% { transform: translate(-50%, -50%) scale(1.08); }
         }
 
-        /* 🏀 丟在舞台上的球（落地彈跳） */
         .stage-landed-ball {
             position: absolute;
-            width: 42px;
-            height: 42px;
+            width: 54px; /* 🌟 舞台上的球為 54px */
+            height: 54px;
             pointer-events: none;
             z-index: 12;
             transform: translate(-50%, -50%);
-            filter: drop-shadow(0 6px 8px rgba(0, 0, 0, 0.25));
+            filter: drop-shadow(0 6px 10px rgba(0, 0, 0, 0.25));
         }
 
-        /* 🥣 撿球目標小碗（出現在畫面下方） */
+/* 🥣 撿球目標小碗（出現在畫面下方，提升層級避免被擋） */
         .ball-return-bowl {
             position: absolute;
-            bottom: 25px;
+            bottom: 15px;
             left: 50%;
             transform: translateX(-50%);
-            width: 90px;
-            height: 55px;
+            width: 80px;
+            height: 50px;
             pointer-events: none;
             z-index: 15;
             filter: drop-shadow(0 8px 15px rgba(0, 0, 0, 0.2));
@@ -228,13 +228,53 @@
             100% { transform: translateX(-50%) scale(1); opacity: 1; }
         }
 
-        /* 💦 海兔運動跑步中：身體劇烈 Q 彈起伏 + 狂奔 */
-        .slug-container.is-exercising-run .slug-svg {
-            animation: slugRunPuff 0.18s infinite alternate ease-in-out !important;
+        /* 😫 【飢餓虛弱狀態】整隻海兔癱軟、無精打采慢速喘息 */
+        .slug-container.is-starving .slug-svg {
+            filter: drop-shadow(0 6px 10px rgba(0, 0, 0, 0.15)) grayscale(0.25) brightness(0.92);
+            animation: slugStarvingSlump 2.2s infinite ease-in-out !important;
+            transform-origin: center bottom;
         }
-        @keyframes slugRunPuff {
-            0% { transform: translateY(0) scale(1.12, 0.85); }
-            100% { transform: translateY(-24px) scale(0.88, 1.15); }
+        @keyframes slugStarvingSlump {
+            0%, 100% { transform: scale(1.04, 0.86) translateY(14px); }
+            50% { transform: scale(0.96, 0.94) translateY(8px); }
+        }
+
+        /* 🫧 肚子咕嚕咕嚕飢餓氣泡字樣 */
+        .starving-belly-grumble {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            background: rgba(254, 242, 242, 0.92);
+            border: 2px dashed #ef4444;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 900;
+            color: #dc2626;
+            pointer-events: none;
+            z-index: 25;
+            box-shadow: 0 4px 10px rgba(239, 68, 68, 0.25);
+            animation: bellyGrumblePulse 1.4s infinite ease-in-out;
+        }
+        @keyframes bellyGrumblePulse {
+            0%, 100% { transform: translate(-50%, -50%) scale(0.92); opacity: 0.85; }
+            50% { transform: translate(-50%, -58%) scale(1.08); opacity: 1; filter: drop-shadow(0 0 6px rgba(239, 68, 68, 0.4)); }
+        }
+
+        /* 拒絕運動時的無奈小搖頭 */
+        .slug-container.is-refusing-exercise .slug-svg {
+            animation: slugRefuseShake 0.4s ease-in-out !important;
+        }
+        @keyframes slugRefuseShake {
+            0%, 100% { transform: translateX(0); }
+            20% { transform: translateX(-12px) rotate(-4deg); }
+            40% { transform: translateX(12px) rotate(4deg); }
+            60% { transform: translateX(-8px) rotate(-2deg); }
+            80% { transform: translateX(8px) rotate(2deg); }
         }
 
         /* 💦 狂奔時身邊飄出的小汗珠 */
@@ -1879,50 +1919,50 @@ function updateRoomUI(text) {
             abyssSlug: { name: {zh: '深淵使者', en: 'Abyss Herald'}, cost: 9000, body: '#030712', outline: '#14b8a6', earTop: '#0d9488', tail: '#0f766e', spot: '#115e59', blush: '#2dd4bf' }
         };
 
-        const bgData = {
-            // 0 ~ 500 基礎入門系列
-            none: { name: {zh: '預設無背景', en: 'Default'}, cost: 0, preview: '#ffffff', class: 'bg-none' },
-            cozy_room: { name: {zh: '溫馨房間', en: 'Cozy Room'}, cost: 200, preview: '#fef3c7', class: 'bg-cozy-room' },
-            sunshine_grassland: { name: {zh: '陽光草原', en: 'Sunshine Grassland'}, cost: 400, preview: '#86efac', class: 'bg-sunshine-grassland' },
-            sunny_park: { name: {zh: '陽光公園', en: 'Sunny Park'}, cost: 500, preview: '#bbf7d0', class: 'bg-sunny-park' },
+       const bgData = {
+            // 🌟 01 ~ 04：基礎入門系列（純白、暖黃、青綠、粉薄荷）
+            none: { name: {zh: '無背景', en: 'Default'}, cost: 0, preview: '#ffffff', style: '#ffffff', hasDots: true },
+            cozy_room: { name: {zh: '溫馨房間', en: 'Cozy Room'}, cost: 200, preview: '#fef3c7', style: '#fef3c7', hasDots: true },
+            sunshine_grassland: { name: {zh: '陽光草原', en: 'Sunshine Grassland'}, cost: 400, preview: '#86efac', style: '#86efac', hasDots: true },
+            sunny_park: { name: {zh: '陽光公園', en: 'Sunny Park'}, cost: 500, preview: '#a7f3d0', style: '#a7f3d0', hasDots: true },
 
-            // 600 ~ 1200 自然與日常系列
-            misty_forest: { name: {zh: '迷霧森林', en: 'Misty Forest'}, cost: 600, preview: '#a7f3d0', class: 'bg-misty-forest' },
-            breeze_morning: { name: {zh: '微風晨曦', en: 'Breeze Morning'}, cost: 800, preview: '#bae6fd', class: 'bg-breeze-morning' },
-            afternoon_tea: { name: {zh: '午後茶會', en: 'Afternoon Tea'}, cost: 900, preview: '#fed7aa', class: 'bg-afternoon-tea' },
-            cherry_park: { name: {zh: '櫻花小徑', en: 'Cherry Park'}, cost: 1000, preview: '#fbcfe8', class: 'bg-cherry-park' },
-            bamboo_grove: { name: {zh: '翠綠竹林', en: 'Bamboo Grove'}, cost: 1100, preview: '#6ee7b7', class: 'bg-bamboo-grove' },
-            rainy_street: { name: {zh: '雨中街景', en: 'Rainy Street'}, cost: 1200, preview: '#94a3b8', class: 'bg-rainy-street' },
+            // 🌟 05 ~ 10：自然與日常系列（森林綠、天空藍、杏桃橘、櫻花粉、竹林翠、陰雨灰）
+            misty_forest: { name: {zh: '迷霧森林', en: 'Misty Forest'}, cost: 600, preview: '#34d399', style: '#34d399', hasDots: true },
+            breeze_morning: { name: {zh: '微風晨曦', en: 'Breeze Morning'}, cost: 800, preview: '#bae6fd', style: '#bae6fd', hasDots: true },
+            afternoon_tea: { name: {zh: '午後茶會', en: 'Afternoon Tea'}, cost: 900, preview: '#fed7aa', style: '#fed7aa', hasDots: true },
+            cherry_park: { name: {zh: '櫻花小徑', en: 'Cherry Park'}, cost: 1000, preview: '#fbcfe8', style: '#fbcfe8', hasDots: true },
+            bamboo_grove: { name: {zh: '翠綠竹林', en: 'Bamboo Grove'}, cost: 1100, preview: '#4ade80', style: '#4ade80', hasDots: true },
+            rainy_street: { name: {zh: '雨中街景', en: 'Rainy Street'}, cost: 1200, preview: '#94a3b8', style: '#94a3b8', hasDots: true },
 
-            // 1400 ~ 2000 風景與探險系列
-            sunset_beach: { name: {zh: '夕陽海灘', en: 'Sunset Beach'}, cost: 1400, preview: '#fdba74', class: 'bg-sunset-beach' },
-            autumn_leaves: { name: {zh: '秋日楓紅', en: 'Autumn Leaves'}, cost: 1500, preview: '#f97316', class: 'bg-autumn-leaves' },
-            deep_sea: { name: {zh: '深海秘境', en: 'Deep Ocean'}, cost: 1600, preview: '#0284c7', class: 'bg-deep-sea' },
-            snowy_mountain: { name: {zh: '銀白雪山', en: 'Snow Mountain'}, cost: 1800, preview: '#e0f2fe', class: 'bg-snowy-mountain' },
-            starry_night: { name: {zh: '璀璨星空', en: 'Starry Night'}, cost: 2000, preview: '#312e81', class: 'bg-starry-night' },
+            // 🌟 11 ~ 15：風景與探險系列（晚霞橘、楓葉紅、深海藍、雪山白、星夜藍）
+            sunset_beach: { name: {zh: '夕陽海灘', en: 'Sunset Beach'}, cost: 1400, preview: '#fb923c', style: '#fb923c', hasDots: true },
+            autumn_leaves: { name: {zh: '秋日楓紅', en: 'Autumn Leaves'}, cost: 1500, preview: '#ea580c', style: '#ea580c', hasDots: true },
+            deep_sea: { name: {zh: '深海秘境', en: 'Deep Ocean'}, cost: 1600, preview: '#0284c7', style: '#0284c7', hasDots: false },
+            snowy_mountain: { name: {zh: '銀白雪山', en: 'Snow Mountain'}, cost: 1800, preview: '#e0f2fe', style: '#e0f2fe', hasDots: true },
+            starry_night: { name: {zh: '璀璨星空', en: 'Starry Night'}, cost: 2000, preview: '#312e81', style: '#312e81', hasDots: false },
 
-            // 2200 ~ 3000 奇幻異想系列
-            candy_land: { name: {zh: '糖果王國', en: 'Candy Land'}, cost: 2200, preview: '#f472b6', class: 'bg-candy-land' },
-            magic_academy: { name: {zh: '魔法學院', en: 'Magic Academy'}, cost: 2400, preview: '#c084fc', class: 'bg-magic-academy' },
-            lavender_field: { name: {zh: '薰衣草田', en: 'Lavender Field'}, cost: 2500, preview: '#ddd6fe', class: 'bg-lavender-field' },
-            aurora_sky: { name: {zh: '夢幻極光', en: 'Aurora Sky'}, cost: 2600, preview: '#2dd4bf', class: 'bg-aurora-sky' },
-            retro_arcade: { name: {zh: '復古街機', en: 'Retro Arcade'}, cost: 2800, preview: '#ec4899', class: 'bg-retro-arcade' },
-            neon_city: { name: {zh: '賽博霓虹', en: 'Cyber Neon'}, cost: 3000, preview: '#06b6d4', class: 'bg-neon-city' },
+            // 🌟 16 ~ 21：奇幻異想系列（糖果粉、魔法紫、薰衣草、極光綠、街機桃紅、霓虹青）
+            candy_land: { name: {zh: '糖果王國', en: 'Candy Land'}, cost: 2200, preview: '#f472b6', style: '#f472b6', hasDots: true },
+            magic_academy: { name: {zh: '魔法學院', en: 'Magic Academy'}, cost: 2400, preview: '#c084fc', style: '#c084fc', hasDots: false },
+            lavender_field: { name: {zh: '薰衣草田', en: 'Lavender Field'}, cost: 2500, preview: '#ddd6fe', style: '#ddd6fe', hasDots: true },
+            aurora_sky: { name: {zh: '夢幻極光', en: 'Aurora Sky'}, cost: 2600, preview: '#2dd4bf', style: '#2dd4bf', hasDots: false },
+            retro_arcade: { name: {zh: '復古街機', en: 'Retro Arcade'}, cost: 2800, preview: '#ec4899', style: '#ec4899', hasDots: false },
+            neon_city: { name: {zh: '賽博霓虹', en: 'Cyber Neon'}, cost: 3000, preview: '#06b6d4', style: '#06b6d4', hasDots: false },
 
-            // 3200 ~ 4000 宇宙與奇境系列
-            crystal_cave: { name: {zh: '水晶洞穴', en: 'Crystal Cave'}, cost: 3200, preview: '#a855f7', class: 'bg-crystal-cave' },
-            galaxy_space: { name: {zh: '浩瀚銀河', en: 'Galaxy Space'}, cost: 3400, preview: '#1e1b4b', class: 'bg-galaxy-space' },
-            desert_oasis: { name: {zh: '沙漠綠洲', en: 'Desert Oasis'}, cost: 3500, preview: '#fde047', class: 'bg-desert-oasis' },
-            ancient_ruins: { name: {zh: '遠古遺跡', en: 'Ancient Ruins'}, cost: 3600, preview: '#78350f', class: 'bg-ancient-ruins' },
-            volcano_core: { name: {zh: '熔岩火山', en: 'Lava Volcano'}, cost: 3800, preview: '#ef4444', class: 'bg-volcano-core' },
-            floating_island: { name: {zh: '浮空島嶼', en: 'Floating Island'}, cost: 4000, preview: '#38bdf8', class: 'bg-floating-island' },
+            // 🌟 22 ~ 27：宇宙與奇境系列（水晶紫、銀河靛藍、綠洲金黃、遺跡棕、熔岩烈紅、浮島天藍）
+            crystal_cave: { name: {zh: '水晶洞穴', en: 'Crystal Cave'}, cost: 3200, preview: '#a855f7', style: '#a855f7', hasDots: false },
+            galaxy_space: { name: {zh: '浩瀚銀河', en: 'Galaxy Space'}, cost: 3400, preview: '#1e1b4b', style: '#1e1b4b', hasDots: false },
+            desert_oasis: { name: {zh: '沙漠綠洲', en: 'Desert Oasis'}, cost: 3500, preview: '#fde047', style: '#fde047', hasDots: true },
+            ancient_ruins: { name: {zh: '遠古遺跡', en: 'Ancient Ruins'}, cost: 3600, preview: '#78350f', style: '#78350f', hasDots: false },
+            volcano_core: { name: {zh: '熔岩火山', en: 'Lava Volcano'}, cost: 3800, preview: '#ef4444', style: '#ef4444', hasDots: false },
+            floating_island: { name: {zh: '浮空島嶼', en: 'Floating Island'}, cost: 4000, preview: '#38bdf8', style: '#38bdf8', hasDots: true },
 
-            // 4200 ~ 5000 頂級壓軸殿堂系列
-            underwater_temple: { name: {zh: '亞特蘭提斯', en: 'Atlantis'}, cost: 4200, preview: '#0ea5e9', class: 'bg-underwater-temple' },
-            cyber_matrix: { name: {zh: '數位母體', en: 'Digital Matrix'}, cost: 4500, preview: '#10b981', class: 'bg-cyber-matrix' },
-            celestial_realm: { name: {zh: '雲端神域', en: 'Celestial Realm'}, cost: 4800, preview: '#fef08a', class: 'bg-celestial-realm' },
-            dream_wonderland: { name: {zh: '夢境仙境', en: 'Dreamland'}, cost: 5000, preview: '#e879f9', class: 'bg-dream-wonderland' },
-            royal_palace: { name: {zh: '皇家宮殿', en: 'Royal Palace'}, cost: 5200, preview: '#eab308', class: 'bg-royal-palace' }
+            // 🌟 28 ~ 32：頂級殿堂系列（海神藍、母體翠綠、神域暖黃、仙境洋紅、皇家金）
+            underwater_temple: { name: {zh: '亞特蘭提斯', en: 'Atlantis'}, cost: 4200, preview: '#0ea5e9', style: '#0ea5e9', hasDots: false },
+            cyber_matrix: { name: {zh: '數位母體', en: 'Digital Matrix'}, cost: 4500, preview: '#10b981', style: '#10b981', hasDots: false },
+            celestial_realm: { name: {zh: '雲端神域', en: 'Celestial Realm'}, cost: 4800, preview: '#fef08a', style: '#fef08a', hasDots: true },
+            dream_wonderland: { name: {zh: '夢境仙境', en: 'Dreamland'}, cost: 5000, preview: '#e879f9', style: '#e879f9', hasDots: true },
+            royal_palace: { name: {zh: '皇家宮殿', en: 'Royal Palace'}, cost: 5200, preview: '#eab308', style: '#eab308', hasDots: true }
         };
 
         const svgLib = {
@@ -2743,18 +2783,98 @@ function completeFeedingAction(isSuccess) {
         let sweatInterval = null;
 
         const ballSVGHTML = `
-            <svg viewBox="0 0 100 100" style="width:100%; height:100%;">
+            <svg viewBox="0 0 120 120" style="width:100%; height:100%; overflow:visible;">
                 <defs>
-                    <radialGradient id="toyBallGrad" cx="35%" cy="35%" r="65%">
-                        <stop offset="0%" stop-color="#fdba74"/>
-                        <stop offset="40%" stop-color="#f97316"/>
-                        <stop offset="100%" stop-color="#c2410c"/>
+                    <!-- 水晶球通透玻璃球體漸層 -->
+                    <radialGradient id="glassSphereGrad" cx="35%" cy="30%" r="65%">
+                        <stop offset="0%" stop-color="#ffffff" stop-opacity="0.9"/>
+                        <stop offset="25%" stop-color="#e0f2fe" stop-opacity="0.4"/>
+                        <stop offset="65%" stop-color="#bae6fd" stop-opacity="0.15"/>
+                        <stop offset="90%" stop-color="#38bdf8" stop-opacity="0.35"/>
+                        <stop offset="100%" stop-color="#0284c7" stop-opacity="0.6"/>
                     </radialGradient>
+                    <!-- 橘色小魚立體漸層 -->
+                    <linearGradient id="fishOrangeGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" stop-color="#ffedd5"/>
+                        <stop offset="30%" stop-color="#fb923c"/>
+                        <stop offset="75%" stop-color="#ea580c"/>
+                        <stop offset="100%" stop-color="#c2410c"/>
+                    </linearGradient>
+                    <!-- 藍色小魚漸層 -->
+                    <linearGradient id="fishBlueGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" stop-color="#67e8f9"/>
+                        <stop offset="50%" stop-color="#0ea5e9"/>
+                        <stop offset="100%" stop-color="#1d4ed8"/>
+                    </linearGradient>
                 </defs>
-                <circle cx="50" cy="50" r="45" fill="url(#toyBallGrad)" stroke="#7c2d12" stroke-width="4"/>
-                <path d="M 15 50 Q 50 20 85 50" fill="none" stroke="#fef08a" stroke-width="6" stroke-linecap="round"/>
-                <path d="M 20 65 Q 50 35 80 65" fill="none" stroke="#ffffff" stroke-width="4" stroke-linecap="round"/>
-                <circle cx="35" cy="30" r="5" fill="#ffffff" opacity="0.8"/>
+
+                <!-- 1. 外部主球體底層與外框 -->
+                <circle cx="60" cy="60" r="54" fill="url(#glassSphereGrad)" stroke="rgba(255, 255, 255, 0.75)" stroke-width="2.5"/>
+
+                <!-- 2. 下半部繽紛碎星亮片層 -->
+                <g opacity="0.85">
+                    <!-- 亮片聚集弧形底色 -->
+                    <path d="M 16 75 Q 60 50 104 75 A 54 54 0 0 1 16 75 Z" fill="rgba(244, 114, 182, 0.25)"/>
+                    <!-- 各色小星星與彩色亮片點 -->
+                    <polygon points="35,85 37,90 42,90 38,93 39,98 35,95 31,98 32,93 28,90 33,90" fill="#f43f5e" opacity="0.9"/>
+                    <polygon points="50,78 51,82 55,82 52,85 53,89 50,86 47,89 48,85 45,82 49,82" fill="#38bdf8" opacity="0.85"/>
+                    <polygon points="70,82 71,85 75,85 72,88 73,91 70,89 67,91 68,88 65,85 69,85" fill="#facc15" opacity="0.9"/>
+                    <polygon points="85,88 86,91 90,91 87,93 88,96 85,94 82,96 83,93 80,91 84,91" fill="#4ade80" opacity="0.8"/>
+                    <polygon points="60,94 61,97 65,97 62,99 63,102 60,100 57,102 58,99 55,97 59,97" fill="#c084fc" opacity="0.9"/>
+                    <circle cx="28" cy="98" r="3" fill="#f472b6"/>
+                    <circle cx="45" cy="92" r="2.5" fill="#a7f3d0"/>
+                    <circle cx="78" cy="96" r="3" fill="#fef08a"/>
+                    <circle cx="95" cy="80" r="2.5" fill="#c084fc"/>
+                    <circle cx="40" cy="104" r="2.8" fill="#38bdf8"/>
+                    <circle cx="72" cy="105" r="2.5" fill="#f43f5e"/>
+                </g>
+
+                <!-- 3. 上方游動的小藍魚 -->
+                <g transform="translate(42, 28) scale(0.68) rotate(-8)">
+                    <!-- 魚尾巴 -->
+                    <path d="M 45 15 L 62 6 Q 58 15 62 24 Z" fill="url(#fishBlueGrad)"/>
+                    <!-- 魚身 -->
+                    <path d="M 5 15 C 10 3, 35 3, 46 15 C 35 27, 10 27, 5 15 Z" fill="url(#fishBlueGrad)" stroke="#1e3a8a" stroke-width="1"/>
+                    <!-- 魚鰭 -->
+                    <path d="M 18 17 Q 26 24 22 26 Z" fill="#0284c7"/>
+                    <!-- 魚眼睛與黑色紋理 -->
+                    <circle cx="12" cy="12" r="2" fill="#0f172a"/>
+                    <path d="M 22 10 Q 32 10 38 12 M 20 14 Q 30 14 36 16 M 22 18 Q 28 18 34 20" stroke="#1e3a8a" stroke-width="1.2" fill="none" opacity="0.75"/>
+                </g>
+
+                <!-- 4. 主角：立體大橘魚 -->
+                <g transform="translate(20, 38) scale(0.95) rotate(-4)">
+                    <!-- 魚尾鰭 -->
+                    <path d="M 58 22 C 72 8, 80 14, 76 22 C 80 30, 72 36, 58 22 Z" fill="url(#fishOrangeGrad)" stroke="#9a3412" stroke-width="1.2"/>
+                    <!-- 魚背鰭與腹鰭 -->
+                    <path d="M 25 5 Q 40 0 52 8 Z" fill="#ea580c"/>
+                    <path d="M 30 35 Q 42 42 48 32 Z" fill="#ea580c"/>
+                    <!-- 魚身體 -->
+                    <path d="M 5 20 C 14 3, 48 3, 60 20 C 48 37, 14 37, 5 20 Z" fill="url(#fishOrangeGrad)" stroke="#7c2d12" stroke-width="1.6"/>
+                    <!-- 大胸鰭 -->
+                    <path d="M 22 22 Q 34 32 26 34 Z" fill="#f97316" stroke="#9a3412" stroke-width="1"/>
+                    <!-- 呆萌圓眼睛 -->
+                    <circle cx="14" cy="17" r="3.2" fill="#18181b"/>
+                    <circle cx="15.2" cy="15.8" r="1.1" fill="#ffffff"/>
+                    <!-- 橘魚身上的深色側線斑紋 -->
+                    <g stroke="#7c2d12" stroke-width="1.5" stroke-linecap="round" fill="none" opacity="0.85">
+                        <path d="M 24 24 Q 38 24 46 22"/>
+                        <path d="M 22 28 Q 36 29 44 26"/>
+                        <path d="M 25 32 Q 34 33 40 30"/>
+                    </g>
+                </g>
+
+                <!-- 5. 玻璃球表面真實反光條與高光點 -->
+                <g pointer-events="none">
+                    <!-- 左上方長條玻璃反光 -->
+                    <path d="M 28 20 A 46 46 0 0 1 55 12" stroke="rgba(255, 255, 255, 0.85)" stroke-width="4.5" stroke-linecap="round" fill="none"/>
+                    <!-- 中心長方形室內燈光倒影 -->
+                    <rect x="44" y="38" width="5" height="12" rx="2" fill="#ffffff" opacity="0.8" transform="rotate(-15 44 38)"/>
+                    <rect x="52" y="35" width="5" height="14" rx="2" fill="#ffffff" opacity="0.8" transform="rotate(-15 52 35)"/>
+                    <rect x="60" y="34" width="4.5" height="13" rx="2" fill="#ffffff" opacity="0.8" transform="rotate(-15 60 34)"/>
+                    <!-- 右下緣月牙弧光 -->
+                    <path d="M 88 88 A 50 50 0 0 1 65 106" stroke="rgba(255, 255, 255, 0.45)" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+                </g>
             </svg>
         `;
 
@@ -2768,11 +2888,22 @@ function completeFeedingAction(isSuccess) {
             </svg>
         `;
 
-        function triggerExerciseInteraction(e) {
+function triggerExerciseInteraction(e) {
             if (e) e.stopPropagation();
 
             if (gameState.cooldowns.pet > 0) {
                 showFloatText('海兔運動完在喘氣休息中喔！💦');
+                return;
+            }
+
+            // 🌟 核心：如果飽食度歸零，海兔原地搖頭拒絕運動，不拿球出來！
+            if ((gameState.hunger || 0) <= 0) {
+                const slugEl = document.getElementById('slugContainer');
+                if (slugEl) {
+                    slugEl.classList.add('is-refusing-exercise');
+                    setTimeout(() => slugEl.classList.remove('is-refusing-exercise'), 500);
+                }
+                showFloatText('海兔肚子咕嚕咕嚕叫，餓得走不動啦...🥺 請先餵食！');
                 return;
             }
 
@@ -2816,7 +2947,7 @@ function completeFeedingAction(isSuccess) {
             heldBall.style.top = e.touches[0].clientY + 'px';
         }
 
-        function handleThrowBall(e) {
+function handleThrowBall(e) {
             if (!isExercisingActive || !heldBall) return;
 
             window.removeEventListener('pointermove', handleBallTracking);
@@ -2827,14 +2958,16 @@ function completeFeedingAction(isSuccess) {
             const stage = document.getElementById('mainStage');
             const stageRect = stage.getBoundingClientRect();
 
+            // 🌟 精準相容手機觸控座標提取
             let dropX = e.clientX;
             let dropY = e.clientY;
 
-            if (!dropX && e.changedTouches && e.changedTouches[0]) {
+            if ((dropX === undefined || dropY === undefined) && e.changedTouches && e.changedTouches[0]) {
                 dropX = e.changedTouches[0].clientX;
                 dropY = e.changedTouches[0].clientY;
             }
 
+            // 判斷是否落在魚缸內
             if (dropX >= stageRect.left && dropX <= stageRect.right && dropY >= stageRect.top && dropY <= stageRect.bottom) {
                 heldBall.remove();
                 heldBall = null;
@@ -3081,21 +3214,79 @@ function completeFeedingAction(isSuccess) {
             updateHungerUI();
         }
 
-        // 🌟 【更新餵食按鈕上的飽食進度條】
+// 🌟 更新餵食按鈕上的飽食進度條與海兔飢餓虛弱狀態
         function updateHungerUI() {
             const bar = document.getElementById('hungerBarFill');
-            if (!bar) return;
+            if (bar) {
+                const h = gameState.hunger !== undefined ? Math.max(0, Math.min(100, gameState.hunger)) : 100;
+                bar.style.width = h + '%';
 
-            const h = gameState.hunger !== undefined ? Math.max(0, Math.min(100, gameState.hunger)) : 100;
-            bar.style.width = h + '%';
+                if (h <= 25) {
+                    bar.style.background = 'linear-gradient(90deg, #f87171, #ef4444)';
+                } else if (h <= 55) {
+                    bar.style.background = 'linear-gradient(90deg, #fbbf24, #f97316)';
+                } else {
+                    bar.style.background = 'linear-gradient(90deg, #4ade80, #22c55e)';
+                }
+            }
 
-            // 依據飽足度切換顏色
-            if (h <= 25) {
-                bar.style.background = 'linear-gradient(90deg, #f87171, #ef4444)'; // 快餓扁：紅色
-            } else if (h <= 55) {
-                bar.style.background = 'linear-gradient(90deg, #fbbf24, #f97316)'; // 肚子餓：橘黃色
+            // 🌟 檢查海兔是否陷入「飢餓虛弱（飽食度 0%）」狀態
+            renderStarvingState();
+        }
+
+        function renderStarvingState() {
+            const slugEl = document.getElementById('slugContainer');
+            if (!slugEl) return;
+
+            const isStarving = (gameState.hunger || 0) <= 0;
+            const existingGrumble = slugEl.querySelector('.starving-belly-grumble');
+
+            if (isStarving) {
+                slugEl.classList.add('is-starving');
+
+                // 產生肚子「咕嚕咕嚕～」提示
+                if (!existingGrumble) {
+                    const grumbleEl = document.createElement('div');
+                    grumbleEl.className = 'starving-belly-grumble';
+                    grumbleEl.innerHTML = `<span>🫧 咕嚕咕嚕...</span>`;
+                    slugEl.appendChild(grumbleEl);
+                }
+
+                // 將海兔五官換成虛弱垂眼與委屈小嘴
+                const faceGroup = slugEl.querySelector('g[transform="translate(130, 150)"]');
+                if (faceGroup && !slugEl.classList.contains('is-eating-munch')) {
+                    faceGroup.innerHTML = `
+                        <!-- 淡淡的蒼白腮紅 -->
+                        <ellipse cx="-35" cy="12" rx="10" ry="6" fill="var(--c-blush)" opacity="0.35"/>
+                        <ellipse cx="35" cy="12" rx="10" ry="6" fill="var(--c-blush)" opacity="0.35"/>
+                        
+                        <!-- 沒精神的半垂垂眼 ( = = ) -->
+                        <g stroke="#2c3e50" stroke-width="3.5" stroke-linecap="round" fill="none">
+                            <line x1="-26" y1="-2" x2="-14" y2="4"/>
+                            <line x1="14" y1="4" x2="26" y2="-2"/>
+                        </g>
+
+                        <!-- 肚子餓的委屈波浪嘴 -->
+                        <path d="M -8 10 Q 0 4 8 10" fill="none" stroke="#2c3e50" stroke-width="3" stroke-linecap="round"/>
+                    `;
+                }
             } else {
-                bar.style.background = 'linear-gradient(90deg, #4ade80, #22c55e)'; // 飽足：綠色
+                slugEl.classList.remove('is-starving');
+                if (existingGrumble) existingGrumble.remove();
+
+                // 恢復原本水靈靈的大眼睛
+                const faceGroup = slugEl.querySelector('g[transform="translate(130, 150)"]');
+                if (faceGroup && !slugEl.classList.contains('is-eating-munch')) {
+                    faceGroup.innerHTML = `
+                        <ellipse cx="-35" cy="12" rx="14" ry="8" fill="var(--c-blush)" opacity="0.85"/>
+                        <ellipse cx="35" cy="12" rx="14" ry="8" fill="var(--c-blush)" opacity="0.85"/>
+                        <circle cx="-20" cy="0" r="7" fill="#2c3e50" />
+                        <circle cx="20" cy="0" r="7" fill="#2c3e50" />
+                        <circle cx="-18" cy="-2" r="2.5" fill="#ffffff" />
+                        <circle cx="22" cy="-2" r="2.5" fill="#ffffff" />
+                        <path d="M -7 5 Q 0 12 7 5" fill="none" stroke="#2c3e50" stroke-width="3.5" stroke-linecap="round"/>
+                    `;
+                }
             }
         }
         // 🌟 【切換語言小幫手】
