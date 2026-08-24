@@ -2302,40 +2302,7 @@ checkDaily();
                 }
             }, 500);
         }
-
-        // 🌟 【一般互動系統：淨化水質與溫柔撫摸】
-        function interact(type, points, cd) {
-            // 檢查是否還在冷卻中
-            if (gameState.cooldowns && gameState.cooldowns[type] > 0) {
-                showFloatText('海兔還在休息中喔！✨');
-                return;
-            }
-
-            gameState.points += points;
-            gameState.cooldowns[type] = cd;
-
-            // 🌟 核心：精準記錄真實冷卻結束時間（當前時間 + CD秒數）
-            if (!gameState.cooldownUntil) gameState.cooldownUntil = { feed: 0, clean: 0, pet: 0 };
-            gameState.cooldownUntil[type] = Date.now() + (cd * 1000);
-
-            if (type === 'pet') {
-                const slug = document.getElementById('slugContainer');
-                slug.classList.add('is-petting');
-                setTimeout(() => slug.classList.remove('is-petting'), 500);
-            }
-
-            saveGame();
-            updateUI();
-
-            const txtMap = {
-                clean: `✨ 淨化水質 +${points}`,
-                pet: `💖 溫柔撫摸 +${points}`
-            };
-            showFloatText(txtMap[type] || `+${points}`);
-
-            // 同步給伺服器
-            fetchAPI('/pet-games/interact', 'POST', { action: type });
-        }
+    
         // 🌟 【餵食海藻：點擊召喚海藻與海兔飢餓追逐系統】
         let isFeedingActive = false;
         let foodChaseFrame = null;
@@ -2733,7 +2700,7 @@ function completeFeedingAction(isSuccess) {
             overlay.style.backdropFilter = `blur(${(dirt / 100) * 12}px)`;
         }
 
-        // 🌟 【一般互動系統：淨化水質與溫柔撫摸的動作總管 (interact 函式)】
+// 🌟 【一般互動系統：淨化水質與溫柔撫摸的動作總管】
         function interact(type, points, cd) {
             // 1. 檢查是否還在冷卻中
             if (gameState.cooldowns && gameState.cooldowns[type] > 0) {
@@ -2767,44 +2734,7 @@ function completeFeedingAction(isSuccess) {
 
                 renderWaterQuality();
             }
-// 🌟 【飢餓度系統：隨時間自然變餓與按鈕顯示】
-        function startHungerSystem() {
-            // 每 5 秒檢查一次飢餓度
-            setInterval(() => {
-                const now = Date.now();
-                const lastTime = gameState.lastHungerTime || now;
-                const elapsedSeconds = (now - lastTime) / 1000;
 
-                // 🌟 設定消耗速度：每過 30 秒消耗 1% 飽足度（約 50 分鐘降到 0%）
-                if (elapsedSeconds >= 30) {
-                    const dropHunger = Math.floor(elapsedSeconds / 30);
-                    gameState.hunger = Math.max(0, (gameState.hunger !== undefined ? gameState.hunger : 100) - dropHunger);
-                    gameState.lastHungerTime = now;
-                    saveGame();
-                    updateHungerUI();
-                }
-            }, 5000);
-
-            updateHungerUI();
-        }
-
-        // 🌟 更新餵食按鈕上的飽食進度條長度與顏色
-        function updateHungerUI() {
-            const bar = document.getElementById('hungerBarFill');
-            if (!bar) return;
-
-            const h = gameState.hunger !== undefined ? Math.max(0, Math.min(100, gameState.hunger)) : 100;
-            bar.style.width = h + '%';
-
-            // 依據飽足度切換警戒顏色
-            if (h <= 25) {
-                bar.style.background = 'linear-gradient(90deg, #f87171, #ef4444)'; // 快餓扁：紅色
-            } else if (h <= 55) {
-                bar.style.background = 'linear-gradient(90deg, #fbbf24, #f97316)'; // 肚子餓：橘黃色
-            } else {
-                bar.style.background = 'linear-gradient(90deg, #4ade80, #22c55e)'; // 飽足：綠色
-            }
-        }
             // 5. 溫柔撫摸：觸發海兔摸摸動畫
             if (type === 'pet') {
                 const slug = document.getElementById('slugContainer');
@@ -2822,6 +2752,45 @@ function completeFeedingAction(isSuccess) {
             };
             showFloatText(txtMap[type] || `+${points}`);
             fetchAPI('/pet-games/interact', 'POST', { action: type });
+        }
+
+        // 🌟 【飢餓度系統：獨立外層定時器】
+        function startHungerSystem() {
+            // 每 2 秒檢查一次飢餓度
+            setInterval(() => {
+                const now = Date.now();
+                const lastTime = gameState.lastHungerTime || now;
+                const elapsedSeconds = (now - lastTime) / 1000;
+
+                // 🌟 設定：每過 10 秒自然消耗 1% 飽足度（約 16 分鐘餓扁，方便測試與養成）
+                if (elapsedSeconds >= 10) {
+                    const dropHunger = Math.floor(elapsedSeconds / 10);
+                    gameState.hunger = Math.max(0, (gameState.hunger !== undefined ? gameState.hunger : 100) - dropHunger);
+                    gameState.lastHungerTime = now;
+                    saveGame();
+                    updateHungerUI();
+                }
+            }, 2000);
+
+            updateHungerUI();
+        }
+
+        // 🌟 【更新餵食按鈕上的飽食進度條】
+        function updateHungerUI() {
+            const bar = document.getElementById('hungerBarFill');
+            if (!bar) return;
+
+            const h = gameState.hunger !== undefined ? Math.max(0, Math.min(100, gameState.hunger)) : 100;
+            bar.style.width = h + '%';
+
+            // 依據飽足度切換顏色
+            if (h <= 25) {
+                bar.style.background = 'linear-gradient(90deg, #f87171, #ef4444)'; // 快餓扁：紅色
+            } else if (h <= 55) {
+                bar.style.background = 'linear-gradient(90deg, #fbbf24, #f97316)'; // 肚子餓：橘黃色
+            } else {
+                bar.style.background = 'linear-gradient(90deg, #4ade80, #22c55e)'; // 飽足：綠色
+            }
         }
         // 🌟 【切換語言小幫手】
         function toggleLang() {
