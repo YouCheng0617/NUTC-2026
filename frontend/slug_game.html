@@ -2591,10 +2591,11 @@ checkDaily();
             }
         }
 
-        function checkCleanCompleted() {
+function checkCleanCompleted() {
             if (!isCleaningActive) return;
-            // 如果放開滑鼠/手指時還沒擦滿 8 下，就判定還沒擦乾淨
-            if (cleanProgress >= REQUIRED_WIPES) {
+            
+            // 🌟 放寬判定：只要有拿抹布擦拭（大於等於 2 下），放開手指/滑鼠就直接判定擦乾淨！
+            if ((cleanProgress || 0) >= 2) {
                 finishCleaningAction(true);
             } else {
                 finishCleaningAction(false);
@@ -2611,6 +2612,27 @@ checkDaily();
             if (cleaningCloth && cleaningCloth.parentNode) {
                 cleaningCloth.remove();
                 cleaningCloth = null;
+                // 🌟 核心：擦拭成功時清空髒污、加分，並通知任務系統進度 +1
+            if (isSuccess) {
+                gameState.dirtiness = 0;
+                gameState.lastDirtTime = Date.now();
+                renderWaterQuality();
+
+                gameState.points += 100;
+                gameState.cooldowns.clean = 15;
+                if (!gameState.cooldownUntil) gameState.cooldownUntil = { feed: 0, clean: 0, pet: 0 };
+                gameState.cooldownUntil.clean = Date.now() + (15 * 1000);
+
+                // 🌟 通知任務系統「淨化水質」任務完成！
+                updateTaskProgress('clean');
+
+                saveGame();
+                updateUI();
+                showFloatText('✨ 魚缸擦得亮晶晶！ +100');
+                fetchAPI('/pet-games/interact', 'POST', { action: 'clean' });
+            } else {
+                showFloatText('還有一點青苔沒擦乾淨喔！再試一次吧～');
+            }
             }
 
           function completeFeedingAction(isSuccess) {
