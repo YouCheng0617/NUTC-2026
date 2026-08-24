@@ -1251,29 +1251,19 @@
         </div>
     </div>
     <!-- 🌟 【每日任務彈窗】 -->
-    <div class="name-modal-overlay" id="dailyModalOverlay">
+   <div class="name-modal-overlay" id="dailyModalOverlay">
         <div class="name-modal" style="width: 90%; max-width: 350px;">
-            <!-- 任務標題與圓形簽到按鈕 -->
             <div style="display: flex; justify-content: center; align-items: center; margin-bottom: 5px;">
-                <!-- 任務標題與「開箱動畫」純禮物盒按鈕 -->
-            <div style="display: flex; justify-content: center; align-items: center; margin-bottom: 5px;">
-                <h2 style="margin:0; font-weight:900; color: var(--text-dark);">📅 每日任務</h2>
+                <h2 style="margin:0; font-weight:900; color: var(--text-dark);" id="modalDailyHeader">📅 每日任務</h2>
                 
-                <!-- 🌟 點擊時改呼叫 playGiftAnimation，加上 ID 方便控制 -->
                 <button class="btn-pure-gift" id="btnDailyGift" onclick="playGiftAnimation(this)" title="14天簽到" style="position: relative;">
-                    
-                    <!-- 🔴 新增：靈魂小紅點 -->
                     <div class="gift-noti-dot"></div>
-
                     <svg viewBox="0 0 100 100" class="gift-svg">
-                        <!-- 📦 禮物盒底座 (下半部) -->
                         <g class="gift-base">
                             <path d="M 15 45 L 85 45 L 85 78 C 85 85 80 90 73 90 L 27 90 C 20 90 15 85 15 78 Z" fill="#ffe4e6" stroke="#fb7185" stroke-width="4"/>
                             <path d="M 25 45 L 75 45 L 75 76 C 75 80 71 84 67 84 L 33 84 C 29 84 25 80 25 76 Z" fill="#fb7185"/>
                             <rect x="42" y="45" width="16" height="45" fill="#fde047"/>
                         </g>
-                        
-                        <!-- 🎀 禮物盒蓋子 (上半部，包含緞帶結) -->
                         <g class="gift-lid">
                             <rect x="11" y="25" width="78" height="20" rx="6" fill="#ffe4e6" stroke="#fb7185" stroke-width="4"/>
                             <rect x="21" y="29" width="58" height="12" rx="3" fill="#fb7185"/>
@@ -1287,6 +1277,16 @@
                     </svg>
                 </button>
             </div>
+            <div style="font-size: 0.9rem; color: var(--text-dim); margin-bottom: 15px;" id="modalDailySub">完成任務領取豐厚獎勵！</div>
+            
+            <div id="dailyTaskList" style="display: flex; flex-direction: column; gap: 10px;">
+            </div>
+            
+            <div class="modal-btns" style="margin-top: 20px;">
+                <button class="modal-btn btn-confirm" id="btnCloseDailyModal" onclick="document.getElementById('dailyModalOverlay').style.display='none'" style="width: 100%;">關閉</button>
+            </div>
+        </div>
+    </div>
             </div>
             <div style="font-size: 0.9rem; color: var(--text-dim); margin-bottom: 15px;">完成任務領取豐厚獎勵！</div>
             
@@ -1476,8 +1476,8 @@
             </button>
             <!-- 🌟任務按鈕 -->
             <button class="btn-interact" onclick="openDailyModal()" style="background: #fefce8; border-color: #fde047; box-shadow: 0 5px 0 #fde047; color: #a16207;">
-                <span class="btn-title">📅 任務</span>
-                <span class="btn-desc" style="color: #ca8a04;">點我領錢</span>
+                <span class="btn-title" id="txtDailyTitle">📅 任務</span>
+                <span class="btn-desc" id="txtDailyDesc" style="color: #ca8a04;">點我領錢</span>
             </button>
             <button class="btn-interact" id="btnCatalog" onclick="openCatalog()" style="display: none; background: var(--text-dark); color: white; border-color: var(--text-dark); box-shadow: 0 5px 0 rgba(0,0,0,0.15);">
                 <span class="btn-title" id="txtCatalogBtn">🎒 百寶袋</span>
@@ -1818,22 +1818,44 @@ function updateRoomUI(text) {
         }
 
         // 🌟 【多國語言翻譯字典】
-        const i18n = {
+const i18n = {
             zh: {
                 backBtn: "🏠 返回", points: "積分", langBtn: "EN", 
                 gachaTitle: "發現神祕海兔卵", gachaBox: "點擊孵化", startBtn: "開始照顧",
                 feed: "餵食海藻", clean: "淨化水質", pet: "活力運動",
+                dailyTitle: "📅 任務", dailyDesc: "點我領錢",
+                modalDailyHeader: "📅 每日任務", modalDailySub: "完成任務領取豐厚獎勵！", closeBtn: "關閉",
+                taskCompletedToast: "🎉 達成每日任務！快去領取獎勵～",
+                taskClaimedToast: "🎁 成功領取任務獎勵 +",
+                taskStatus: { claimed: "已領取", claim: "領取 +", uncompleted: "進行中" },
+                taskNames: {
+                    pet: { title: "陪伴海兔運動", desc: "丟球讓海兔撿球運動 1 次" },
+                    feed: { title: "餵食美味海藻", desc: "餵海兔吃美味海藻 1 次" },
+                    clean: { title: "淨化水質環境", desc: "拿抹布擦乾淨魚缸 1 次" }
+                },
                 cooldown: "冷卻", ready: "可互動",
                 tabSpecies: "圖鑑", tabBg: "背景", tabEffect: "特效",
-                equip: "使用中", owned: "已解鎖"
+                equip: "使用中", owned: "已解鎖",
+                mpBtn: "📡 連線", roomNotConnected: "尚未連線", createRoom: "創立房間", joinRoom: "加入房間", chat: "💬 聊天", leaveRoom: "離開房間"
             },
-            en: { /* 英文翻譯保持不變 */
+            en: {
                 backBtn: "🏠 Home", points: "Pts", langBtn: "中文", 
                 gachaTitle: "Mystic Egg Found", gachaBox: "Incubate", startBtn: "Start Caring",
                 feed: "Feed Algae", clean: "Purify Water", pet: "Play Catch",
+                dailyTitle: "📅 Quests", dailyDesc: "Get Coins",
+                modalDailyHeader: "📅 Daily Quests", modalDailySub: "Complete quests to earn rewards!", closeBtn: "Close",
+                taskCompletedToast: "🎉 Quest Completed! Claim your reward now!",
+                taskClaimedToast: "🎁 Reward Claimed +",
+                taskStatus: { claimed: "Claimed", claim: "Claim +", uncompleted: "In Progress" },
+                taskNames: {
+                    pet: { title: "Play catch with slug", desc: "Throw the ball for slug 1 time" },
+                    feed: { title: "Feed tasty algae", desc: "Feed delicious algae 1 time" },
+                    clean: { title: "Purify aquarium water", desc: "Wipe and clean aquarium 1 time" }
+                },
                 cooldown: "CD", ready: "Ready",
                 tabSpecies: "Species", tabBg: "Background", tabEffect: "Effects",
-                equip: "Active", owned: "Unlocked"
+                equip: "Active", owned: "Unlocked",
+                mpBtn: "📡 Connect", roomNotConnected: "Not Connected", createRoom: "Create Room", joinRoom: "Join Room", chat: "💬 Chat", leaveRoom: "Leave Room"
             }
         };
         let currLang = 'zh';
@@ -2591,15 +2613,104 @@ checkDaily();
                 cleaningCloth = null;
             }
 
+          function completeFeedingAction(isSuccess) {
+            isFeedingActive = false;
+            if (foodChaseFrame) {
+                cancelAnimationFrame(foodChaseFrame);
+                foodChaseFrame = null;
+            }
+
+            window.removeEventListener('pointermove', handleFoodTracking);
+            window.removeEventListener('touchmove', handleFoodTouchTracking);
+            window.removeEventListener('pointerup', handleFeedSuccessCheck);
+            window.removeEventListener('touchend', handleFeedSuccessCheck);
+
+            if (floatingAlgae && floatingAlgae.parentNode) {
+                floatingAlgae.remove();
+                floatingAlgae = null;
+            }
+
+            const slugEl = document.getElementById('slugContainer');
+            slugEl.classList.remove('is-chasing-food');
+
             if (isSuccess) {
+                slugEl.classList.add('is-eating-munch');
+
+                const faceGroup = slugEl.querySelector('g[transform="translate(130, 150)"]');
+                const originalFaceHTML = faceGroup ? faceGroup.innerHTML : '';
+
+                if (faceGroup) {
+                    faceGroup.innerHTML = `
+                        <ellipse cx="-35" cy="12" rx="18" ry="11" fill="var(--c-blush)" opacity="0.95"/>
+                        <ellipse cx="35" cy="12" rx="18" ry="11" fill="var(--c-blush)" opacity="0.95"/>
+                        <g stroke="#2c3e50" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round" fill="none">
+                            <path d="M -26 -2 L -18 3 L -26 8" />
+                            <path d="M 26 -2 L 18 3 L 26 8" />
+                        </g>
+                        <g id="chewingAlgaePiece" transform="translate(0, 10)">
+                            <path class="algae-soft-blade-1" d="M 0 0 C -6 6, -12 12, -8 22 C -5 27, 2 22, 0 14 C -1 8, 1 3, 0 0 Z" fill="#22c55e" stroke="#14532d" stroke-width="1.1" stroke-linejoin="round"/>
+                            <path class="algae-soft-blade-2" d="M -2 3 C -8 7, -14 14, -10 19 C -7 21, -3 16, -3 10 Z" fill="#4ade80" stroke="#14532d" stroke-width="0.9" stroke-linejoin="round"/>
+                            <path d="M 1 2 C 4 5, 6 10, 3 13 C 1 11, 1 6, 1 2 Z" fill="#86efac" stroke="#14532d" stroke-width="0.7"/>
+                        </g>
+                        <path id="chewingLineMouth" d="M -6 6 Q 0 11 6 6" fill="none" stroke="#2c3e50" stroke-width="1.8" stroke-linecap="round"/>
+                    `;
+                }
+
+                setTimeout(() => {
+                    slugEl.classList.remove('is-eating-munch');
+                    slugEl.style.transform = 'scaleX(1)';
+                    if (faceGroup) faceGroup.innerHTML = originalFaceHTML;
+                }, 1800);
+
+                // 餵食加分與冷卻
+                gameState.points += 80;
+                gameState.cooldowns.feed = 8;
+                if (!gameState.cooldownUntil) gameState.cooldownUntil = { feed: 0, clean: 0, pet: 0 };
+                gameState.cooldownUntil.feed = Date.now() + (8 * 1000);
+
+                // 🌟 通知任務系統「餵食」完成
+                updateTaskProgress('feed');
+
+                // 回補飽足度
+                gameState.hunger = Math.min(100, (gameState.hunger !== undefined ? gameState.hunger : 0) + 35);
+                gameState.lastHungerTime = Date.now();
+                updateHungerUI();
+
+                saveGame();
+                updateUI();
+                showFloatText('😋 嚼嚼嚼！美味海藻 +80');
+                fetchAPI('/pet-games/interact', 'POST', { action: 'feed' });
+            } else {
+                slugEl.style.transform = 'scaleX(1)';
+                showFloatText('海藻掉在路上了～再試一次吧！');
+            }
+        }
+        function finishCleaningAction(isSuccess) {
+            isCleaningActive = false;
+            window.removeEventListener('pointermove', handleClothWiping);
+            window.removeEventListener('touchmove', handleClothTouchWiping);
+            window.removeEventListener('pointerup', checkCleanCompleted);
+            window.removeEventListener('touchend', checkCleanCompleted);
+
+            if (cleaningCloth && cleaningCloth.parentNode) {
+                cleaningCloth.remove();
+                cleaningCloth = null;
+            }
+
+            if (isSuccess) {
+                // 清空水質髒污
                 gameState.dirtiness = 0;
                 gameState.lastDirtTime = Date.now();
                 renderWaterQuality();
 
+                // 淨化加分與冷卻
                 gameState.points += 100;
                 gameState.cooldowns.clean = 15;
                 if (!gameState.cooldownUntil) gameState.cooldownUntil = { feed: 0, clean: 0, pet: 0 };
                 gameState.cooldownUntil.clean = Date.now() + (15 * 1000);
+
+                // 🌟 通知任務系統「淨化水質」完成
+                updateTaskProgress('clean');
 
                 saveGame();
                 updateUI();
@@ -2608,6 +2719,7 @@ checkDaily();
             } else {
                 showFloatText('還有一點青苔沒擦乾淨喔！再試一次吧～');
             }
+        }
         }
 
         function handleFoodTracking(e) {
@@ -2708,38 +2820,26 @@ function completeFeedingAction(isSuccess) {
             if (isSuccess) {
                 slugEl.classList.add('is-eating-munch');
 
-                // 🌟 1. 直接將海兔的臉部換成「幸福大笑眼 ＋ 鼓腮幫 ＋ 嘴裡叼著海藻咀嚼」
                 const faceGroup = slugEl.querySelector('g[transform="translate(130, 150)"]');
                 const originalFaceHTML = faceGroup ? faceGroup.innerHTML : '';
 
                 if (faceGroup) {
                     faceGroup.innerHTML = `
-                        <!-- 爆紅超幸福腮紅 -->
                         <ellipse cx="-35" cy="12" rx="18" ry="11" fill="var(--c-blush)" opacity="0.95"/>
                         <ellipse cx="35" cy="12" rx="18" ry="11" fill="var(--c-blush)" opacity="0.95"/>
-                        
-                        <!-- 幸福瞇瞇笑眼 ( > < ) -->
                         <g stroke="#2c3e50" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round" fill="none">
                             <path d="M -26 -2 L -18 3 L -26 8" />
                             <path d="M 26 -2 L 18 3 L 26 8" />
                         </g>
-
-                        <!-- 🌿 真正含在嘴唇裡的柔軟垂墜海草（頂端卡進嘴心，尾巴垂出嘴外） -->
                         <g id="chewingAlgaePiece" transform="translate(0, 10)">
-                            <!-- 主海草長葉：從嘴巴中心往下延伸垂落 -->
                             <path class="algae-soft-blade-1" d="M 0 0 C -6 6, -12 12, -8 22 C -5 27, 2 22, 0 14 C -1 8, 1 3, 0 0 Z" fill="#22c55e" stroke="#14532d" stroke-width="1.1" stroke-linejoin="round"/>
-                            <!-- 側邊柔軟小分岔葉片 -->
                             <path class="algae-soft-blade-2" d="M -2 3 C -8 7, -14 14, -10 19 C -7 21, -3 16, -3 10 Z" fill="#4ade80" stroke="#14532d" stroke-width="0.9" stroke-linejoin="round"/>
-                            <!-- 嘴邊短嫩芽 -->
                             <path d="M 1 2 C 4 5, 6 10, 3 13 C 1 11, 1 6, 1 2 Z" fill="#86efac" stroke="#14532d" stroke-width="0.7"/>
                         </g>
-
-                        <!-- 👄 乾淨細緻的手繪單線咀嚼嘴（覆蓋在海草上方，形成上下唇咬住的視覺） -->
                         <path id="chewingLineMouth" d="M -6 6 Q 0 11 6 6" fill="none" stroke="#2c3e50" stroke-width="1.8" stroke-linecap="round"/>
                     `;
                 }
 
-                // 🌟 2. 咀嚼 1.8 秒後吃乾淨，海藻完全吞入肚，五官恢復正常！
                 setTimeout(() => {
                     slugEl.classList.remove('is-eating-munch');
                     slugEl.style.transform = 'scaleX(1)';
@@ -2748,7 +2848,15 @@ function completeFeedingAction(isSuccess) {
 
                 gameState.points += 80;
                 gameState.cooldowns.feed = 8;
-                // 🌟 記錄 8 秒後的真實時間戳記
+                
+                // 🌟 核心：通知任務系統「餵食海藻」任務完成！
+                updateTaskProgress('feed');
+
+                // 增加飽食度
+                gameState.hunger = Math.min(100, (gameState.hunger !== undefined ? gameState.hunger : 0) + 35);
+                gameState.lastHungerTime = Date.now();
+                updateHungerUI();
+
                 if (!gameState.cooldownUntil) gameState.cooldownUntil = { feed: 0, clean: 0, pet: 0 };
                 gameState.cooldownUntil.feed = Date.now() + (8 * 1000);
                 saveGame();
@@ -2759,6 +2867,7 @@ function completeFeedingAction(isSuccess) {
                 slugEl.style.transform = 'scaleX(1)';
                 showFloatText('海藻掉在路上了～再試一次吧！');
             }
+        
             gameState.points += 80;
                 gameState.cooldowns.feed = 8;
                 
@@ -3080,6 +3189,8 @@ function handleThrowBall(e) {
             gameState.cooldowns.pet = 10;
             if (!gameState.cooldownUntil) gameState.cooldownUntil = { feed: 0, clean: 0, pet: 0 };
             gameState.cooldownUntil.pet = Date.now() + (10 * 1000);
+// 🌟 核心：通知任務系統「陪伴海兔運動」任務進度 +1
+            updateTaskProgress('pet');
 
             saveGame();
             updateUI();
@@ -3298,8 +3409,7 @@ function handleThrowBall(e) {
             updateNameUI();
         }
 
-        // 把畫面上的文字全部翻譯過一遍
-        function updateLangUI() {
+function updateLangUI() {
             const t = i18n[currLang];
             document.getElementById('btnBack').innerText = t.backBtn;
             document.getElementById('btnLang').innerText = t.langBtn;
@@ -3313,10 +3423,31 @@ function handleThrowBall(e) {
             document.getElementById('txtFeedTitle').innerText = t.feed;
             document.getElementById('txtCleanTitle').innerText = t.clean;
             document.getElementById('txtPetTitle').innerText = t.pet;
-            
+            // 🌟 更新任務按鈕文字
+            const dailyTitleEl = document.getElementById('txtDailyTitle');
+            const dailyDescEl = document.getElementById('txtDailyDesc');
+            if (dailyTitleEl) dailyTitleEl.innerText = t.dailyTitle;
+            if (dailyDescEl) dailyDescEl.innerText = t.dailyDesc;
+            // 🌟 更新彈窗固定文字
+            const modalHeader = document.getElementById('modalDailyHeader');
+            const modalSub = document.getElementById('modalDailySub');
+            const modalClose = document.getElementById('btnCloseDailyModal');
+            if (modalHeader) modalHeader.innerText = t.modalDailyHeader;
+            if (modalSub) modalSub.innerText = t.modalDailySub;
+            if (modalClose) modalClose.innerText = t.closeBtn;
             document.getElementById('tabSpecies').innerText = t.tabSpecies;
             document.getElementById('tabBg').innerText = t.tabBg;
             document.getElementById('tabEffect').innerText = t.tabEffect;
+
+            // 🌟 同步更新連線按鈕與面板文字
+            document.getElementById('btnToggleMp').innerText = t.mpBtn;
+            if (!currentRoomId) {
+                document.getElementById('roomStatusText').innerText = t.roomNotConnected;
+            }
+            document.getElementById('btnCreateRoom').innerText = t.createRoom;
+            document.getElementById('btnJoinRoom').innerText = t.joinRoom;
+            document.getElementById('btnChat').innerText = t.chat;
+            document.getElementById('btnLeaveRoom').innerText = t.leaveRoom;
         }
 
         // 🌟 【防偷看機制】檢查是不是第一次玩，沒寵物就強迫顯示抽獎畫面
@@ -9440,55 +9571,131 @@ function addDailyProgress(type) {
     }
 }
 
-// 打開任務面板
-function openDailyModal() {
-    const modal = document.getElementById('dailyModalOverlay');
-    const list = document.getElementById('dailyTaskList');
-    list.innerHTML = ''; 
-
-    const tasksInfo = [
-        { id: 'pet', name: '陪伴海兔運動', icon: '🏀' },
-        { id: 'feed', name: '餵食美味海藻', icon: '🌿' },
-        { id: 'clean', name: '淨化水質環境', icon: '✨' }
-    ];
-
-    tasksInfo.forEach(t => {
-        let current = gameState.daily.progress[t.id] || 0;
-        let target = DAILY_TARGETS[t.id];
-        let isClaimed = gameState.daily.claimed[t.id];
-        let isDone = current >= target;
-
-        let btnHtml = '';
-        if (isClaimed) {
-            btnHtml = `<button disabled style="padding: 6px 12px; border-radius: 12px; border: none; background: #e2e8f0; color: #94a3b8; font-weight: 900;">已領取</button>`;
-        } else if (isDone) {
-            btnHtml = `<button onclick="claimDaily('${t.id}')" style="padding: 6px 12px; border-radius: 12px; border: none; background: #4ade80; color: white; font-weight: 900; cursor: pointer; box-shadow: 0 4px 0 #16a34a;">領取 +${DAILY_REWARD}</button>`;
-        } else {
-            btnHtml = `<div style="font-weight: 900; color: var(--text-dim); padding: 5px;">${current} / ${target}</div>`;
+// 🌟 【每日任務進度資料庫】
+        function getDailyTaskData() {
+            const todayStr = new Date().toDateString();
+            if (!gameState.dailyTaskProgress || gameState.dailyTaskProgress.date !== todayStr) {
+                gameState.dailyTaskProgress = {
+                    date: todayStr,
+                    tasks: {
+                        pet: { count: 0, target: 1, reward: 60, claimed: false },
+                        feed: { count: 0, target: 1, reward: 80, claimed: false },
+                        clean: { count: 0, target: 1, reward: 100, claimed: false }
+                    }
+                };
+                saveGame();
+            }
+            return gameState.dailyTaskProgress.tasks;
         }
 
-        list.innerHTML += `
-            <div style="display: flex; justify-content: space-between; align-items: center; background: var(--card-bg); padding: 12px 15px; border-radius: 15px; border: 2px solid var(--border-color);">
-                <div style="font-weight: 900; color: var(--text-dark);">${t.icon} ${t.name}</div>
-                ${btnHtml}
-            </div>
-        `;
-    });
+        // 🌟 動作觸發時累加任務進度 + 達成提示
+function updateTaskProgress(actionType) {
+            const tasks = getDailyTaskData();
+            const task = tasks[actionType];
+            if (task && task.count < task.target) {
+                task.count++;
+                saveGame();
+                if (task.count >= task.target) {
+                    const t = i18n[currLang];
+                    showFloatText(t.taskCompletedToast || '🎉 達成每日任務！快去領取獎勵～', 3000);
+                }
+            }
+        }
 
-    modal.style.display = 'flex';
-}
+        // 🌟 打開任務面板（含進度條、狀態判定、領取獎勵按鈕與雙語切換）
+        function openDailyModal() {
+            const modal = document.getElementById('dailyModalOverlay');
+            const list = document.getElementById('dailyTaskList');
+            if (!modal || !list) return;
 
-// 領取任務獎勵
-function claimDaily(type) {
-    if (!gameState.daily.claimed[type] && gameState.daily.progress[type] >= DAILY_TARGETS[type]) {
-        gameState.points += DAILY_REWARD;
-        gameState.daily.claimed[type] = true;
-        saveGame();
-        updateUI();
-        openDailyModal(); // 刷新面板
-        showFloatText(`✨ 任務完成 +${DAILY_REWARD} ✨`);
-    }
-}
+            list.innerHTML = ''; 
+            const t = i18n[currLang];
+
+            // 更新標題與關閉按鈕雙語
+            const headerEl = document.getElementById('modalDailyHeader');
+            const subEl = document.getElementById('modalDailySub');
+            const closeEl = document.getElementById('btnCloseDailyModal');
+            if (headerEl) headerEl.innerText = t.modalDailyHeader;
+            if (subEl) subEl.innerText = t.modalDailySub;
+            if (closeEl) closeEl.innerText = t.closeBtn;
+
+            const tasks = getDailyTaskData();
+            const taskKeys = [
+                { key: 'pet', icon: '🏀' },
+                { key: 'feed', icon: '🌿' },
+                { key: 'clean', icon: '✨' }
+            ];
+
+            taskKeys.forEach(({ key, icon }) => {
+                const task = tasks[key];
+                const info = t.taskNames[key];
+                const isDone = task.count >= task.target;
+                const isClaimed = task.claimed;
+
+                const item = document.createElement('div');
+                item.style.cssText = `
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    background: ${isClaimed ? '#f8fafc' : (isDone ? '#f0fdf4' : '#fff9fa')};
+                    border: 2px solid ${isClaimed ? '#cbd5e1' : (isDone ? '#86efac' : '#ffd1dc')};
+                    border-radius: 18px;
+                    padding: 10px 14px;
+                    gap: 8px;
+                    transition: 0.2s;
+                `;
+
+                let btnBg = '#f1f5f9';
+                let btnColor = '#94a3b8';
+                let btnText = `${t.taskStatus.uncompleted} (${task.count}/${task.target})`;
+                let btnCursor = 'default';
+                let btnAction = '';
+
+                if (isClaimed) {
+                    btnBg = '#e2e8f0';
+                    btnColor = '#94a3b8';
+                    btnText = t.taskStatus.claimed;
+                } else if (isDone) {
+                    btnBg = 'linear-gradient(135deg, #4ade80, #22c55e)';
+                    btnColor = '#ffffff';
+                    btnText = `${t.taskStatus.claim}${task.reward}`;
+                    btnCursor = 'pointer';
+                    btnAction = `onclick="claimDailyTaskReward('${key}')"`;
+                }
+
+                item.innerHTML = `
+                    <div style="display: flex; align-items: center; gap: 10px; text-align: left;">
+                        <span style="font-size: 1.5rem;">${icon}</span>
+                        <div>
+                            <div style="font-weight: 900; font-size: 0.95rem; color: var(--text-dark);">${info.title}</div>
+                            <div style="font-size: 0.78rem; color: var(--text-dim); font-weight: 800;">${info.desc}</div>
+                        </div>
+                    </div>
+                    <button ${btnAction} style="background: ${btnBg}; color: ${btnColor}; border: none; padding: 7px 12px; border-radius: 14px; font-weight: 900; font-size: 0.85rem; cursor: ${btnCursor}; white-space: nowrap; box-shadow: ${isDone && !isClaimed ? '0 4px 10px rgba(34, 197, 94, 0.35)' : 'none'};">
+                        ${btnText}
+                    </button>
+                `;
+                list.appendChild(item);
+            });
+
+            modal.style.display = 'flex';
+        }
+
+        // 🌟 領取任務獎勵
+        function claimDailyTaskReward(taskKey) {
+            const tasks = getDailyTaskData();
+            const task = tasks[taskKey];
+            if (task && task.count >= task.target && !task.claimed) {
+                task.claimed = true;
+                gameState.points += task.reward;
+                saveGame();
+                updateUI();
+
+                const t = i18n[currLang];
+                showFloatText(`${t.taskClaimedToast}${task.reward} Pts！`, 2500);
+                openDailyModal(); // 立即刷新介面為「已領取」
+            }
+        }
 // 🌟 播放禮物盒開蓋動畫，再進入日曆
 function playGiftAnimation(btnElement) {
     const svg = btnElement.querySelector('.gift-svg');
