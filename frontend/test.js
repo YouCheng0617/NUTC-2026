@@ -2025,7 +2025,7 @@ async function fetchNotificationCount() {
     if (!token) return;
 
     try {
-        const response = await fetch(`${API_BASE_URL}/notifications/unread`, {
+        const response = await fetch(`${API_BASE_URL}/notifications`, {
             method: 'GET',
             headers: {
                 'Authorization': `Bearer ${token}`,
