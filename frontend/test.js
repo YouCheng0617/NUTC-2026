@@ -489,12 +489,25 @@ window.renderComments = async function (postId) {
                     });
                 }
 
+                // 讀取留言時間顯示設定 (預設為 true 顯示)
+                const showCommentTime = localStorage.getItem('setting_show_comment_time') !== 'false';
+                
+                // 時間格式化處理
+                const rawTime = c.createdAt || c.created_at || c.time;
+                let formattedTime = '';
+                if (rawTime) {
+                    const dateObj = new Date(rawTime);
+                    formattedTime = !isNaN(dateObj) ? dateObj.toLocaleString('zh-TW', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' }) : String(rawTime);
+                }
+                const timeHtml = (showCommentTime && formattedTime) ? `<span class="comment-time-text">${formattedTime}</span>` : '';
+
                 html += `
                     <div class="ocean-comment-card">
                         <div class="comment-header">
                             <span class="comment-author">
                                 <img src="${avatar}" class="comment-avatar">
                                 ${escapeHTML(authorName)}
+                                ${timeHtml}
                             </span>
                             <span class="comment-floor">B${index + 1}</span>
                         </div>
@@ -724,12 +737,30 @@ window.openPostDetail = function (id) {
     if (!p) return;
 
     currentOpenPostId = id;
-    currentAuthorId = p.authorId; // 🌟 魔法在此：打開文章時，把這位作者的 ID 存下來給追蹤功能用！
+    currentAuthorId = p.authorId; // 儲存作者 ID 供追蹤功能使用
 
     document.querySelectorAll('#detail-board-tag').forEach(el => el.innerText = p.board);
     document.querySelectorAll('#detail-author-tag').forEach(el => el.innerText = p.author || '匿名');
     document.querySelectorAll('#detail-post-title').forEach(el => el.innerHTML = highlightText(escapeHTML(p.title), currentKeyword));
     document.querySelectorAll('#detail-post-content').forEach(el => el.innerHTML = highlightText(escapeHTML(p.desc), currentKeyword));
+
+    // 判斷是否顯示追蹤按鈕 (匿名不顯示；若作者關閉被追蹤設定亦不顯示)
+    const followBtn = document.getElementById('follow-author-btn');
+    const isAnonymous = (p.author === '匿名' || !p.authorId);
+    
+    // 檢查後端欄位或本地自身文章設定
+    const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
+    const isSelf = (p.authorId && String(p.authorId) === String(currentUser.id || currentUser.userId));
+    const allowFollowSetting = localStorage.getItem('setting_allow_follow') !== 'false';
+    const isFollowAllowed = (p.allow_follow !== undefined ? p.allow_follow : (isSelf ? allowFollowSetting : true));
+
+    if (followBtn) {
+        if (isAnonymous || !isFollowAllowed || isSelf) {
+            followBtn.style.display = 'none';
+        } else {
+            followBtn.style.display = 'inline-block';
+        }
+    }
 
     document.querySelectorAll('.detail-post-time').forEach(el => {
         if (p.createdAt) {
@@ -1187,9 +1218,11 @@ document.addEventListener('DOMContentLoaded', () => {
         const postModal = document.getElementById('post-modal');
         const profileModal = document.getElementById('profile-modal');
         const followingModal = document.getElementById('following-modal');
+        const settingsModal = document.getElementById('settings-modal');
         if (profileModal && event.target == profileModal) profileModal.style.display = 'none';
         if (postModal && event.target == postModal) postModal.style.display = 'none';
         if (followingModal && event.target == followingModal) followingModal.style.display = 'none';
+        if (settingsModal && event.target == settingsModal) settingsModal.style.display = 'none';
     };
 
     const profileModal = document.getElementById('profile-modal');
@@ -1914,19 +1947,40 @@ async function fetchPopularBottles() {
 // 🫂 追蹤與我的追蹤功能邏輯 (完美乾淨版)
 // =========================================
 
-// 1. 切換追蹤 / 取消追蹤作者
+// 1. 切換追蹤 / 取消追蹤作者 (完善防呆與後端相容版)
 window.toggleFollow = async function () {
     const token = localStorage.getItem("authToken");
     const btn = document.getElementById('follow-author-btn');
-    const authorName = document.getElementById('detail-author-tag').innerText;
+    const authorTag = document.getElementById('detail-author-tag');
+    const authorName = authorTag ? authorTag.innerText.trim() : '作者';
 
     if (!token) {
-        alert("寶寶，請先登入才能追蹤作者喔！");
+        if (typeof showOceanToast === 'function') {
+            showOceanToast("請先登入才能追蹤作者喔！🔒");
+        } else {
+            alert("請先登入才能追蹤作者喔！");
+        }
         return;
     }
 
     if (authorName === '匿名' || !currentAuthorId) {
-        alert("這位作者使用了隱身斗篷，沒辦法追蹤喔！👻");
+        if (typeof showOceanToast === 'function') {
+            showOceanToast("這位作者使用了匿名，無法追蹤喔！👻");
+        } else {
+            alert("這位作者使用了匿名，無法追蹤喔！👻");
+        }
+        return;
+    }
+
+    // 檢查是否為自己的文章
+    const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
+    const myId = currentUser.id || currentUser.userId || currentUser.user_id;
+    if (myId && String(currentAuthorId) === String(myId)) {
+        if (typeof showOceanToast === 'function') {
+            showOceanToast("不能追蹤自己喔！🐾");
+        } else {
+            alert("不能追蹤自己喔！");
+        }
         return;
     }
 
@@ -1938,25 +1992,41 @@ window.toggleFollow = async function () {
                 'Authorization': `Bearer ${token}`,
                 'ngrok-skip-browser-warning': 'true'
             },
-            body: JSON.stringify({ followedId: currentAuthorId })
+            body: JSON.stringify({ 
+                followedId: currentAuthorId,
+                followed_id: currentAuthorId 
+            })
         });
 
         if (response.ok) {
-            btn.classList.toggle('following');
-            if (btn.classList.contains('following')) {
-                btn.innerHTML = '<span>已追蹤</span>';
-                alert(`成功把 ${authorName} 加入追蹤名單啦！🎉`);
-            } else {
-                btn.innerHTML = '+ 追蹤';
-                alert(`已悄悄取消追蹤 ${authorName} 💔`);
+            if (btn) {
+                btn.classList.toggle('following');
+                if (btn.classList.contains('following')) {
+                    btn.innerHTML = '<span>已追蹤</span>';
+                    if (typeof showOceanToast === 'function') {
+                        showOceanToast(`成功把 ${authorName} 加入追蹤名單啦！🎉`);
+                    }
+                } else {
+                    btn.innerHTML = '+ 追蹤';
+                    if (typeof showOceanToast === 'function') {
+                        showOceanToast(`已取消追蹤 ${authorName} 💔`);
+                    }
+                }
             }
         } else {
-            const errData = await response.json();
-            alert(`操作失敗：${errData.message || '請稍後再試'}`);
+            const errData = await response.json().catch(() => ({}));
+            const msg = errData.message || '伺服器拒絕了追蹤請求';
+            if (typeof showOceanToast === 'function') {
+                showOceanToast(`追蹤失敗：${msg}`);
+            } else {
+                alert(`追蹤失敗：${msg}`);
+            }
         }
     } catch (error) {
         console.error("追蹤 API 連線錯誤:", error);
-        alert("伺服器開小差了，請稍後再試 😢");
+        if (typeof showOceanToast === 'function') {
+            showOceanToast("伺服器連線異常，請稍後再試 🌊");
+        }
     }
 };
 
@@ -2314,4 +2384,62 @@ window.showOceanToast = function (message) {
             toast.remove();
         }, 400);
     }, 3000);
+};
+// =========================================
+// ⚙️ 網站設定彈窗邏輯
+// =========================================
+window.openSettingsModal = function () {
+    const dropdown = document.getElementById('user-dropdown');
+    if (dropdown) dropdown.classList.remove('show-dropdown');
+
+    const modal = document.getElementById('settings-modal');
+    const timeToggle = document.getElementById('setting-show-comment-time');
+    const followToggle = document.getElementById('setting-allow-follow');
+
+    // 1. 讀取留言時間開關 (預設開啟)
+    const isShowTime = localStorage.getItem('setting_show_comment_time') !== 'false';
+    if (timeToggle) timeToggle.checked = isShowTime;
+
+    // 2. 讀取允許追蹤開關 (預設開啟)
+    const isAllowFollow = localStorage.getItem('setting_allow_follow') !== 'false';
+    if (followToggle) followToggle.checked = isAllowFollow;
+
+    if (modal) modal.style.display = 'block';
+};
+
+// 切換是否允許他人追蹤
+window.toggleAllowFollowSetting = async function (isChecked) {
+    localStorage.setItem('setting_allow_follow', isChecked ? 'true' : 'false');
+    showOceanToast(isChecked ? "已開啟允許他人追蹤 🫂" : "已關閉追蹤功能，他人無法追蹤你 🔒");
+
+    // 同步嘗試發送至後端儲存偏好設定
+    const token = localStorage.getItem("authToken");
+    if (token) {
+        try {
+            fetch(`${API_BASE_URL}/auth/update-data`, {
+                method: 'PATCH',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json',
+                    'ngrok-skip-browser-warning': 'true'
+                },
+                body: JSON.stringify({ allow_follow: isChecked })
+            }).catch(e => console.log('設定已暫存於本地', e));
+        } catch (e) {}
+    }
+};
+
+window.closeSettingsModal = function () {
+    const modal = document.getElementById('settings-modal');
+    if (modal) modal.style.display = 'none';
+};
+
+window.toggleCommentTimeSetting = function (isChecked) {
+    localStorage.setItem('setting_show_comment_time', isChecked ? 'true' : 'false');
+    showOceanToast(isChecked ? "已開啟留言時間顯示 🕒" : "已隱藏留言時間顯示 🙈");
+
+    // 如果目前剛好打開文章閱讀模式，即時重新渲染留言
+    if (currentOpenPostId) {
+        renderComments(currentOpenPostId);
+    }
 };
