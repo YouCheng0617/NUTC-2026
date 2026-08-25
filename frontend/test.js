@@ -2018,33 +2018,56 @@ window.closeFollowingModal = function () {
     if (modal) modal.style.display = 'none';
 };
 // =========================================
-// 🔔 抓取未讀通知數量的功能
+// 🔔 抓取未讀通知數量與發光效果
 // =========================================
 async function fetchNotificationCount() {
     const token = localStorage.getItem("authToken");
-    if (!token) return;
+    const bellBtn = document.getElementById('notification-bell-btn');
+    const badge = document.getElementById('notification-badge');
+
+    if (!token) {
+        if (badge) badge.style.display = 'none';
+        if (bellBtn) bellBtn.classList.remove('has-unread');
+        return;
+    }
 
     try {
         const response = await fetch(`${API_BASE_URL}/notifications`, {
             method: 'GET',
             headers: {
                 'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json',
                 'ngrok-skip-browser-warning': 'true'
             }
         });
 
         if (response.ok) {
             const data = await response.json();
-            // 如果後端回傳屬性不是 count，記得稍微修改這裡喔
-            const unreadCount = data.count || 0;
-            const badge = document.getElementById('notification-badge');
+            
+            // 相容陣列格式與各類物件屬性結構
+            let unreadCount = 0;
+            if (typeof data.count === 'number') {
+                unreadCount = data.count;
+            } else if (typeof data.unreadCount === 'number') {
+                unreadCount = data.unreadCount;
+            } else if (typeof data.unread_count === 'number') {
+                unreadCount = data.unread_count;
+            } else {
+                let notifList = Array.isArray(data) ? data : (data.data || data.notifications || data.result || []);
+                if (Array.isArray(notifList)) {
+                    unreadCount = notifList.filter(item => !(item.is_read ?? item.isRead)).length;
+                }
+            }
 
-            if (badge) {
+            // 更新鈴鐺發光與數字顯示
+            if (badge && bellBtn) {
                 if (unreadCount > 0) {
                     badge.innerText = unreadCount > 99 ? '99+' : unreadCount;
                     badge.style.display = 'block';
+                    bellBtn.classList.add('has-unread');
                 } else {
                     badge.style.display = 'none';
+                    bellBtn.classList.remove('has-unread');
                 }
             }
         }
@@ -2052,6 +2075,11 @@ async function fetchNotificationCount() {
         console.error("撈取通知數量失敗:", error);
     }
 }
+
+// 每 30 秒自動輪詢一次，讓首頁隨時接收到通知並發光
+setInterval(() => {
+    fetchNotificationCount();
+}, 30000);
 /* =========================================
    🚀 手機版海域選單 (Bottom Sheet) 專屬邏輯
    ========================================= */
