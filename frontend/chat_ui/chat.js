@@ -184,11 +184,12 @@ document.addEventListener('DOMContentLoaded', () => {
         themeToggle.innerHTML = newTheme === 'light' ? '<i class="fa-solid fa-moon"></i>' : '<i class="fa-solid fa-sun"></i>';
     });
 
-    // 2. 字體大小切換
+    // 2. 字體大小切換 (改用 clamp 支援 RWD)
     let isLargeFont = false;
     fontToggle.addEventListener('click', () => {
         isLargeFont = !isLargeFont;
-        document.documentElement.style.setProperty('--base-font-size', isLargeFont ? '18px' : '16px');
+        const newSize = isLargeFont ? 'clamp(18px, 2vw, 26px)' : 'clamp(14px, 1.5vw, 22px)';
+        document.documentElement.style.setProperty('--base-font-size', newSize);
     });
 
     // 3. 語言記憶與字典

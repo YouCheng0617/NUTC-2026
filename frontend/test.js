@@ -1621,16 +1621,20 @@ document.addEventListener('DOMContentLoaded', () => {
                         if (awakeMascot) awakeMascot.style.display = 'none';
                         if (sleepingMascot) sleepingMascot.style.display = 'block';
 
-                        // 🌟 完美置中與大小魔法 (不會再偏到右下角了！)
-                        mascot.style.transition = 'all 0.5s ease-out';
-                        mascot.style.transform = `scale(0.65)`; // ✨ 尺寸調整為剛好的大小
+                      // 🌟 完美置中與動態大小魔法 (跟隨小窩彈性縮放！)
+                    mascot.style.transition = 'all 0.5s ease-out';
+                    
+                    // 動態計算：小窩最大 180px 時比例是 0.65，依據目前小窩寬度等比縮放
+                    const dynamicScale = (homeRect.width / 180) * 0.65;
+                    mascot.style.setProperty('transform', `scale(${dynamicScale})`, 'important'); 
 
-                        // 扣掉吉祥物本身一半的寬度跟高度，才會真的置中！
-                        const exactX = homeRect.left + (homeRect.width / 2) - (mascot.offsetWidth / 2);
-                        const exactY = homeRect.top + (homeRect.height / 2) - (mascot.offsetHeight / 2) + 15; // +15 讓牠稍微沉在水底
+                    // 扣掉吉祥物本身一半的寬度跟高度，才會真的置中
+                    const exactX = homeRect.left + (homeRect.width / 2) - (mascot.offsetWidth / 2);
+                    // 沉入水底的深度也依比例動態微調 (原本寫死的 +15)
+                    const exactY = homeRect.top + (homeRect.height / 2) - (mascot.offsetHeight / 2) + (homeRect.width * 0.08); 
 
-                        mascot.style.left = `${exactX}px`;
-                        mascot.style.top = `${exactY}px`;
+                    mascot.style.left = `${exactX}px`;
+                    mascot.style.top = `${exactY}px`;
 
                         const dialogueBox = document.getElementById('mermecat-dialogue');
                         if (dialogueBox) {
@@ -1650,6 +1654,26 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
     };
+    // 🌟 新增：當視窗大小改變時，讓正在睡覺的小助理跟著小窩無縫縮放與移動！
+    window.addEventListener('resize', () => {
+        if (window.isMascotSleeping) {
+            const home = document.getElementById('mascot-home');
+            const cat = document.getElementById('svg-mermecat-mascot');
+            if (home && cat) {
+                const homeRect = home.getBoundingClientRect();
+                const dynamicScale = (homeRect.width / 180) * 0.65;
+                
+                cat.style.transition = 'none'; // 縮放時不要有動畫延遲，確保黏緊緊
+                cat.style.setProperty('transform', `scale(${dynamicScale})`, 'important');
+                
+                const exactX = homeRect.left + (homeRect.width / 2) - (cat.offsetWidth / 2);
+                const exactY = homeRect.top + (homeRect.height / 2) - (cat.offsetHeight / 2) + (homeRect.width * 0.08); 
+                
+                cat.style.left = `${exactX}px`;
+                cat.style.top = `${exactY}px`;
+            }
+        }
+    });
 
     // 🏠 --- 蓋房子與起床的程式碼 ---
     let mascotHome = document.getElementById('mascot-home');
@@ -1671,10 +1695,14 @@ document.addEventListener('DOMContentLoaded', () => {
             if (awakeMascot) awakeMascot.style.display = 'block';
             if (sleepingMascot) sleepingMascot.style.display = 'none';
 
-            // 恢復大小跟位置
+           // 恢復大小跟位置
             const homeRect = mascotHome.getBoundingClientRect();
             mascot.style.transition = 'none';
+            
+            // 🌟 拔掉睡覺時加上的強制縮放，把大小控制權還給原有的 RWD 設定
+            mascot.style.removeProperty('transform'); 
             mascot.style.transform = `scale(1)`;
+            
             mascot.style.left = (homeRect.right + 15) + 'px';
             mascot.style.top = (homeRect.top - 30) + 'px';
             mascot.offsetHeight; // 強制瀏覽器重繪

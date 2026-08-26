@@ -2547,6 +2547,7 @@ div#ocean-rules-board .rules-content-wrapper::after {
     display: none !important;
 }
 /* =========================================
+<<<<<<< Updated upstream
    ⚙️ 網站設定與開關元件 (Toggle Switch)
    ========================================= */
 .switch {
@@ -2602,4 +2603,14 @@ input:checked + .slider:before {
     color: #94a3b8;
     margin-left: 8px;
     font-weight: normal;
+=======
+   🌟 終極修復：珊瑚小窩無縫彈性縮放
+   ========================================= */
+#mascot-home {
+    /* 解除原本寫死的像素，改用 clamp 讓小窩尺寸隨視窗平滑縮放 */
+    width: clamp(75px, 12vw, 180px) !important; 
+    height: clamp(75px, 12vw, 180px) !important; 
+    bottom: clamp(75px, 10vh, 120px) !important; 
+    left: clamp(10px, 2vw, 25px) !important; 
+>>>>>>> Stashed changes
 }

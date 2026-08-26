@@ -4,7 +4,7 @@
 
 /* ✨ 1. 調整日間模式：加上提亮的濾鏡與溫和的藍色調 */
 :root {
-    --base-font-size: 16px;
+    --base-font-size: clamp(14px, 1.5vw, 22px);
 
     --bg-overlay: rgba(255, 255, 255, 0.1);
     /* 白天：微微提亮的清澈濾鏡 */
@@ -95,8 +95,8 @@ body {
 
 /* 核心：圓潤氣泡膠囊 */
 .chat-wrapper {
-    width: 100%;
-    max-width: 800px;
+    width: 95vw;
+    max-width: 1400px;
     height: 95%;
     display: flex;
     flex-direction: column;
@@ -482,4 +482,30 @@ textarea::-webkit-scrollbar {
 .chat-area::-webkit-scrollbar-thumb {
     background-color: var(--glass-border);
     border-radius: 10px;
+}
+
+/* =========================================
+   RWD 手機版設定 (Responsive Web Design)
+   ========================================= */
+@media (max-width: 768px) {
+    body {
+        padding: 0;
+    }
+    
+    .chat-wrapper {
+        width: 100%;
+        height: 100dvh;
+        border-radius: 0;
+        border: none;
+    }
+    
+    .chat-header {
+        border-top-left-radius: 0;
+        border-top-right-radius: 0;
+    }
+    
+    .input-container {
+        border-bottom-left-radius: 0;
+        border-bottom-right-radius: 0;
+    }
 }
