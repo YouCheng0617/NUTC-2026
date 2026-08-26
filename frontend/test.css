@@ -286,7 +286,19 @@ input, textarea {
 .post-card::before { content: ""; position: absolute; top: -24px; left: 50%; transform: translateX(-50%); width: 45px; height: 25px; background: #a67c52; border-radius: 5px 5px 0 0; box-shadow: inset -5px 0 10px rgba(0,0,0,0.2); z-index: 1; }
 .post-card::after { content: ""; position: absolute; top: -5px; left: 50%; transform: translateX(-50%); width: 55px; height: 12px; background: rgba(224, 242, 254, 0.9); border: 2px solid rgba(255, 255, 255, 0.9); border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); z-index: 2; }
 .post-card p, .post-card .action-bar { display: none !important; }
-.post-card h2 { font-size: 1.05rem !important; margin: 5px 0 0 0 !important; color: #0055a5 !important; font-weight: 900; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; line-height: 1.3; }
+.post-card h2 {
+    font-size: 1.05rem !important;
+    margin: 5px 0 0 0 !important;
+    color: #0055a5 !important;
+    font-weight: 900;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    line-clamp: 2; /* 👈 加上這行，黃色波浪線就會直接消失！ */
+    -webkit-box-orient: vertical;
+    line-height: 1.3;
+}
 .post-card > div:first-child { flex-direction: column !important; justify-content: center !important; align-items: center !important; gap: 4px; width: 100%; margin-bottom: 8px; }
 .post-card > div:first-child > div:nth-child(2) { font-size: 0.75rem !important; padding: 2px 8px !important; white-space: nowrap !important; }
 
