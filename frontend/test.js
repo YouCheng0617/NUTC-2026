@@ -1654,8 +1654,9 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
     };
-    // 🌟 新增：當視窗大小改變時，讓正在睡覺的小助理跟著小窩無縫縮放與移動！
-    window.addEventListener('resize', () => {
+// 🌟 視窗尺寸改變時（包含點擊預設解析度按鈕），即時校正睡覺位置與游泳範圍
+window.addEventListener('resize', () => {
+    function adjustSleepingPosition() {
         if (window.isMascotSleeping) {
             const home = document.getElementById('mascot-home');
             const cat = document.getElementById('svg-mermecat-mascot');
@@ -1663,7 +1664,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const homeRect = home.getBoundingClientRect();
                 const dynamicScale = (homeRect.width / 180) * 0.65;
                 
-                cat.style.transition = 'none'; // 縮放時不要有動畫延遲，確保黏緊緊
+                cat.style.transition = 'none';
                 cat.style.setProperty('transform', `scale(${dynamicScale})`, 'important');
                 
                 const exactX = homeRect.left + (homeRect.width / 2) - (cat.offsetWidth / 2);
@@ -1673,7 +1674,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 cat.style.top = `${exactY}px`;
             }
         }
-    });
+    }
+
+    // 立即校正一次，並在瀏覽器重排後 50ms 再次確認
+    adjustSleepingPosition();
+    setTimeout(adjustSleepingPosition, 50);
+});
 
     // 🏠 --- 蓋房子與起床的程式碼 ---
     let mascotHome = document.getElementById('mascot-home');
