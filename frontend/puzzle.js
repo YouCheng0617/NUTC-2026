@@ -88,15 +88,59 @@ function getAuthHeaders() {
 // ==================================================
 // 💎 喚醒石、庫存與每日任務
 // ==================================================
+
+// 取得當前日期字串 (YYYY-MM-DD)
+function getTodayDateString() {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, '0');
+  const day = String(now.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
+// 檢查每日簽到狀態
+function checkDailySignInStatus() {
+  const signBtn = document.getElementById("daily-sign-btn");
+  if (!signBtn) return;
+
+  const today = getTodayDateString();
+  const lastSignDate = localStorage.getItem("puzzle_last_sign_date");
+
+  if (lastSignDate === today) {
+    // 今日已簽到
+    signBtn.disabled = true;
+    signBtn.classList.remove("active");
+    signBtn.innerText = "已領取 ✔️";
+    signBtn.style.background = "rgba(255, 255, 255, 0.1)";
+    signBtn.style.color = "#4facfe";
+  } else {
+    // 今日尚未簽到
+    signBtn.disabled = false;
+    signBtn.classList.add("active");
+    signBtn.innerHTML = "<span>領取 1 顆</span>";
+    signBtn.style.background = "";
+    signBtn.style.color = "";
+  }
+}
+
 function claimToken(btnElement, amount) {
-  btnElement.disabled = true;
-  btnElement.classList.remove("active");
-  btnElement.innerText = "已領取 ✔️";
-  btnElement.style.background = "rgba(255, 255, 255, 0.1)";
-  btnElement.style.color = "#4facfe";
+  const today = getTodayDateString();
+  const lastSignDate = localStorage.getItem("puzzle_last_sign_date");
+
+  // 防呆：如果今天已經領取過則直接阻擋
+  if (lastSignDate === today) {
+    alert("今天已經領取過簽到獎勵囉！明天再來吧～🌊");
+    checkDailySignInStatus();
+    return;
+  }
+
+  // 記錄今日簽到日期
+  localStorage.setItem("puzzle_last_sign_date", today);
 
   drawTokens += amount;
   localStorage.setItem("puzzle_tokens", drawTokens);
+  
+  checkDailySignInStatus();
   updateTokenDisplay();
 }
 
@@ -445,6 +489,7 @@ window.addEventListener("click", function (event) {
 
 document.addEventListener("DOMContentLoaded", () => {
   updateTokenDisplay();
+  checkDailySignInStatus(); // 🌟 每次開網頁或重新整理時，檢查今天是否已簽到
   fetchInventory();
 
   const crystal = document.getElementById("crystal-ball");
