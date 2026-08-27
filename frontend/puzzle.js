@@ -538,7 +538,8 @@ document.addEventListener("DOMContentLoaded", () => {
   updateTokenDisplay();
   checkDailySignInStatus();
   fetchInventory();
-  createOceanSparkles(); // 🌟 啟動背景亮晶晶星光
+  createOceanSparkles(); // 原本的亮晶晶星光
+  createSwimmingFish();  // 🌟 加入這行，召喚小魚！
 
   const crystal = document.getElementById("crystal-ball");
   if (crystal) {
@@ -549,3 +550,58 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 });
+// 🐟 自動生成深海發光游魚群
+function createSwimmingFish() {
+  const oceanBg = document.querySelector(".ocean-bg");
+  if (!oceanBg) return;
+
+  // 建立魚群圖層
+  let fishLayer = document.querySelector(".swimming-fish-layer");
+  if (!fishLayer) {
+    fishLayer = document.createElement("div");
+    fishLayer.className = "swimming-fish-layer";
+    oceanBg.appendChild(fishLayer);
+  } else {
+    fishLayer.innerHTML = "";
+  }
+
+  // 魚的數量與顏色設定
+  const fishList = [
+    { top: "18%", dur: "14s", delay: "0s", dir: "L2R", scale: 1.1, color: "#00f2fe", wave: "-35px" },
+    { top: "42%", dur: "11s", delay: "2s", dir: "R2L", scale: 0.9, color: "#ffd200", wave: "40px" },
+    { top: "68%", dur: "16s", delay: "1s", dir: "L2R", scale: 1.2, color: "#00f2fe", wave: "-25px" },
+    { top: "82%", dur: "13s", delay: "4s", dir: "R2L", scale: 0.8, color: "#4facfe", wave: "30px" },
+    { top: "30%", dur: "20s", delay: "6s", dir: "L2R", scale: 0.65, color: "#ffffff", wave: "-20px" }
+  ];
+
+  fishList.forEach((cfg) => {
+    const fishBox = document.createElement("div");
+    fishBox.className = "fish-item";
+    
+    // 設定位置與動畫屬性
+    fishBox.style.top = cfg.top;
+    fishBox.style.width = `${85 * cfg.scale}px`;
+    fishBox.style.height = `${50 * cfg.scale}px`;
+    fishBox.style.setProperty("--wave-y", cfg.wave);
+    fishBox.style.setProperty("--fish-scale", cfg.scale);
+    fishBox.style.animation = `${cfg.dir === 'L2R' ? 'swimL2R' : 'swimR2L'} ${cfg.dur} linear infinite`;
+    fishBox.style.animationDelay = cfg.delay;
+
+    // SVG 魚本體
+    fishBox.innerHTML = `
+      <svg class="ocean-fish-svg" viewBox="0 0 100 50">
+        <!-- 擺動尾巴 -->
+        <polygon class="fish-tail" points="30,25 5,8 5,42" fill="${cfg.color}" opacity="0.85" />
+        <!-- 背鰭 -->
+        <polygon points="50,15 65,5 75,18" fill="${cfg.color}" opacity="0.6" />
+        <!-- 魚身 -->
+        <path d="M 25,25 Q 55,5 88,25 Q 55,45 25,25 Z" fill="${cfg.color}" opacity="0.95" />
+        <!-- 眼睛 -->
+        <circle cx="78" cy="22" r="2.8" fill="#ffffff" />
+        <circle cx="79" cy="22" r="1.3" fill="#010814" />
+      </svg>
+    `;
+
+    fishLayer.appendChild(fishBox);
+  });
+}

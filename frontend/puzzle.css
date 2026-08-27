@@ -33,7 +33,116 @@ body, html {
   z-index: -1;
   overflow: hidden;
 }
+/* ==================================================
+   🐟 深海游動魚群動畫 (SVG Fish Swim Effect)
+   ================================================== */
+.swimming-fish-layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0; /* 置於背景光效之上、卡片容器之下 */
+  overflow: hidden;
+}
 
+.fish-item {
+  position: absolute;
+  filter: drop-shadow(0 0 12px var(--neon-blue));
+  opacity: 0.85;
+}
+
+.ocean-fish {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+/* 尾鰭左右擺動真實效果 */
+.fish-tail {
+  transform-origin: 25px 30px;
+  animation: tailWiggle 0.8s ease-in-out infinite alternate;
+}
+
+@keyframes tailWiggle {
+  0% { transform: rotate(-14deg) skewY(-5deg); }
+  100% { transform: rotate(14deg) skewY(5deg); }
+}
+
+/* 🐟 魚 1：左至右（深度較高、淡藍色發光） */
+.fish-1 {
+  top: 28%;
+  left: -120px;
+  width: 90px;
+  height: 54px;
+  animation: swimLeftToRight 22s linear infinite;
+}
+
+/* 🐟 魚 2：右至左（金黃發光、反轉朝向） */
+.fish-2 {
+  top: 55%;
+  right: -120px;
+  width: 75px;
+  height: 45px;
+  transform: scaleX(-1); /* 水平翻轉朝向左邊 */
+  filter: drop-shadow(0 0 14px rgba(255, 210, 0, 0.8));
+  animation: swimRightToLeft 18s linear infinite 3s;
+}
+
+/* 🐟 魚 3：深處小型慢游（左至右、上下浮沉幅度大） */
+.fish-3 {
+  top: 75%;
+  left: -90px;
+  width: 50px;
+  height: 30px;
+  opacity: 0.45;
+  filter: blur(1px) drop-shadow(0 0 8px var(--neon-blue)); /* 景深虛化效果 */
+  animation: swimDeepWave 28s ease-in-out infinite 7s;
+}
+
+/* 魚游動路徑動畫 */
+@keyframes swimLeftToRight {
+  0% {
+    transform: translateX(0) translateY(0px) rotate(2deg);
+  }
+  25% {
+    transform: translateX(35vw) translateY(-25px) rotate(-3deg);
+  }
+  50% {
+    transform: translateX(65vw) translateY(15px) rotate(3deg);
+  }
+  75% {
+    transform: translateX(85vw) translateY(-10px) rotate(-1deg);
+  }
+  100% {
+    transform: translateX(calc(100vw + 150px)) translateY(0px) rotate(2deg);
+  }
+}
+
+@keyframes swimRightToLeft {
+  0% {
+    transform: scaleX(-1) translateX(0) translateY(0px) rotate(0deg);
+  }
+  30% {
+    transform: scaleX(-1) translateX(30vw) translateY(30px) rotate(-4deg);
+  }
+  70% {
+    transform: scaleX(-1) translateX(70vw) translateY(-20px) rotate(3deg);
+  }
+  100% {
+    transform: scaleX(-1) translateX(calc(100vw + 150px)) translateY(0px) rotate(0deg);
+  }
+}
+
+@keyframes swimDeepWave {
+  0% {
+    transform: translateX(0) translateY(0);
+  }
+  50% {
+    transform: translateX(50vw) translateY(-40px);
+  }
+  100% {
+    transform: translateX(calc(100vw + 120px)) translateY(10px);
+  }
+}
 /* ✨ 水面波光粼粼亮晶晶反光層 */
 .shimmer-water-wave {
   position: absolute;
@@ -1112,4 +1221,66 @@ body, html {
   display: inline-flex;
   justify-content: center;
   align-items: center;
+}
+/* ==================================================
+   🐟 深海發光游動魚群 (高能見度版)
+   ================================================== */
+.swimming-fish-layer {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  pointer-events: none;
+  z-index: 2; /* 提高到星光粒子之上，確保看得清清楚楚 */
+  overflow: hidden;
+}
+
+.fish-item {
+  position: absolute;
+  filter: drop-shadow(0 0 10px #00f2fe) drop-shadow(0 0 18px rgba(0, 242, 254, 0.8));
+  opacity: 0.9;
+  will-change: transform;
+}
+
+.ocean-fish-svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+/* 尾鰭擺動動畫 */
+.fish-tail {
+  transform-origin: 30px 25px;
+  animation: tailWiggle 0.6s ease-in-out infinite alternate;
+}
+
+@keyframes tailWiggle {
+  0% { transform: rotate(-16deg); }
+  100% { transform: rotate(16deg); }
+}
+
+/* 魚游動路徑：左往右 */
+@keyframes swimL2R {
+  0% {
+    transform: translateX(-150px) translateY(0) scale(var(--fish-scale, 1));
+  }
+  50% {
+    transform: translateX(50vw) translateY(var(--wave-y, -25px)) scale(var(--fish-scale, 1));
+  }
+  100% {
+    transform: translateX(calc(100vw + 150px)) translateY(0) scale(var(--fish-scale, 1));
+  }
+}
+
+/* 魚游動路徑：右往左 */
+@keyframes swimR2L {
+  0% {
+    transform: scaleX(-1) translateX(-150px) translateY(0) scale(var(--fish-scale, 1));
+  }
+  50% {
+    transform: scaleX(-1) translateX(50vw) translateY(var(--wave-y, 25px)) scale(var(--fish-scale, 1));
+  }
+  100% {
+    transform: scaleX(-1) translateX(calc(100vw + 150px)) translateY(0) scale(var(--fish-scale, 1));
+  }
 }
