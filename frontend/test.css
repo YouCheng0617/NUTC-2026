@@ -751,7 +751,45 @@ input, textarea {
     flex-direction: column;
     overflow: hidden;
 }
-.notif-popup-header { display: flex; justify-content: space-between; align-items: center; padding: 14px 18px; border-bottom: 1px solid rgba(77, 166, 255, 0.3); color: #fff; font-weight: 900; }
+.notif-popup-header { 
+    display: flex; 
+    justify-content: space-between; 
+    align-items: center; 
+    padding: 14px 18px; 
+    border-bottom: 1px solid rgba(77, 166, 255, 0.3); 
+    background: rgba(0, 30, 60, 0.6);
+    color: #fff; 
+    font-weight: 900; 
+}
+
+/* 🌟 美化「全部已讀」按鈕：深海微光膠囊 */
+.notif-popup-header .mark-all-btn {
+    background: rgba(77, 166, 255, 0.15);
+    border: 1px solid rgba(77, 166, 255, 0.4);
+    color: #88c4ff;
+    font-size: 0.8rem;
+    font-weight: bold;
+    padding: 5px 12px;
+    border-radius: 15px;
+    cursor: pointer;
+    transition: all 0.25s cubic-bezier(0.25, 0.8, 0.25, 1);
+    outline: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.notif-popup-header .mark-all-btn:hover {
+    background: linear-gradient(135deg, #4da6ff, #0073e6);
+    border-color: #a8d5ff;
+    color: #ffffff;
+    transform: translateY(-1px) scale(1.05);
+    box-shadow: 0 4px 12px rgba(77, 166, 255, 0.4);
+}
+
+.notif-popup-header .mark-all-btn:active {
+    transform: translateY(0) scale(0.95);
+}
 .notif-popup-list { padding: 12px; overflow-y: auto; flex: 1; }
 .notif-mini-card { display: flex; align-items: center; padding: 12px; margin-bottom: 10px; background: rgba(255, 255, 255, 0.08); border-radius: 14px; color: #fff; }
 
