@@ -235,6 +235,13 @@ Query 參數 (必填)：?keyword=你要找的字
 
 查詢簽到狀態與 14 天獎勵預覽 GET 給Token /pet-games/sign-in-status
 
+取得使用者現在金幣數量 GET 給Token /pet-games/coin (亦支援 /pet-games/coins)
+回傳範例：
+{
+  "coin": 500
+}
+
+
 ---
 
 ### 🧩 拼圖收集/圖鑑遊戲 API (`/game/collect`)
@@ -462,9 +469,11 @@ Query 參數 (必填)：?keyword=你要找的字
 ```
 
 #### 6. 查詢個人碎片與寶箱庫存
+
 * **方法與路徑**：`GET /game/collect/inventory`
 * **身份驗證**：需要帶 Token (`Bearer Token`)
 * **Response 範例**：
+
 ```json
 {
   "message": "取得庫存成功",
@@ -478,6 +487,7 @@ Query 參數 (必填)：?keyword=你要找的字
 ```
 
 #### 7. 拼圖每日簽到 (30 天循環)
+
 * **方法與路徑**：`POST /game/collect/sign-in`
 * **身份驗證**：需要帶 Token (`Bearer Token`)
 * **規則與獎勵**：
@@ -485,6 +495,7 @@ Query 參數 (必填)：?keyword=你要找的字
   * **第 1 ~ 29 天**：每天獲得 **1 個普通寶箱** 🎁
   * **第 30 天（滿簽大獎）**：獲得 **1 個高級寶箱** 🌟
 * **Response 範例**：
+
 ```json
 {
   "message": "✨ 今日拼圖簽到成功！獲得 1 個普通寶箱 🎁 (第 1/30 天)",
@@ -506,9 +517,11 @@ Query 參數 (必填)：?keyword=你要找的字
 ```
 
 #### 8. 查詢拼圖簽到狀態與 30 天獎勵清單
+
 * **方法與路徑**：`GET /game/collect/sign-in-status`
 * **身份驗證**：需要帶 Token (`Bearer Token`)
 * **Response 範例**：
+
 ```json
 {
   "is_signed_in_today": false, // 今日是否已簽到

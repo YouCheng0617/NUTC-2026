@@ -164,6 +164,22 @@ export const getMyPetWithInventory = async (memberId: number) => {
     };
 };
 
+export const getPetCoin = async (memberId: number) => {
+    let pet = await prisma.pet.findUnique({
+        where: { member_id: memberId },
+        select: { coin: true }
+    });
+
+    if (!pet) {
+        pet = await prisma.pet.create({
+            data: { member_id: memberId },
+            select: { coin: true }
+        });
+    }
+
+    return { coin: pet.coin };
+};
+
 /**
  * 輔助函式：取得台北時區 YYYY-MM-DD 日期字串
  */
