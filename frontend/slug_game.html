@@ -1538,6 +1538,24 @@ let GAME_TOKEN = localStorage.getItem('authToken') || localStorage.getItem('acce
             }
         }
 
+        // 🪙 【取得使用者現在金幣/積分數量】
+        async function fetchUserCoins() {
+            if (!GAME_TOKEN) return;
+            try {
+                const data = await fetchAPI('/pet-games/coin', 'GET');
+                if (data && !data.error) {
+                    const coins = data.coin !== undefined ? data.coin : (data.coins !== undefined ? data.coins : (data.points !== undefined ? data.points : null));
+                    if (coins !== null && !isNaN(Number(coins))) {
+                        gameState.points = Number(coins);
+                        saveGame();
+                        updateUI();
+                    }
+                }
+            } catch (e) {
+                console.warn('抓取金幣數量失敗，使用本地存檔數值', e);
+            }
+        }
+
         // 🌟 【多人連線小總管】負責跟伺服器打招呼，處理誰加進來、誰離開，還有房主權限的判定
         function initSocketIO() {
             try {
@@ -2294,11 +2312,11 @@ const effectData = {
         let trialTimer = null;
         let trialInterval = null;
         
-        // 🌟 【遊戲啟動核心】網頁載入後第一個跑來這裡，負責讀檔、連線、把所有畫面準備好
+       // 🌟 【遊戲啟動核心】網頁載入後第一個跑來這裡，負責讀檔、連線、把所有畫面準備好
         async function initGameData() {
             // 1. 先第一時間讀取本地存檔，讓畫面瞬間恢復！
             loadGame();
-checkDaily();
+            checkDaily();
             // 2. 判斷要不要顯示抽獎畫面，並且更新全部的按鈕與圖案
             checkFirstTime();
             updateLangUI();
@@ -2310,7 +2328,10 @@ checkDaily();
             updateNameUI();
             updateRecallButtonVisibility();
 
-            // 🌟 3. 背景悄悄同步伺服器資料
+            // 🌟 3. 主動向後端拉取最新金幣數量
+            await fetchUserCoins();
+
+            // 🌟 4. 背景悄悄同步伺服器資料
             try {
                 const data = await fetchAPI('/pet-games/my-pet', 'GET');
                 if (data && !data.error) {
@@ -2319,6 +2340,7 @@ checkDaily();
                     // 同步名字與金幣
                     if (data.petName) gameState.petName = data.petName;
                     if (data.coins !== undefined) gameState.points = data.coins;
+                    else if (data.coin !== undefined) gameState.points = data.coin;
                     
                     // 同步目前裝備 (以下屬性名稱 data.bgColor 等，需確認後端實際給的名稱)
                     if (data.petColor) gameState.currentSpecies = data.petColor;
@@ -9154,24 +9176,29 @@ addDailyProgress(type);
             });
         }
         
-        // 更新按鈕是否鎖定與積分顯示
         function updateUI() {
+            const pointEl = document.getElementById('pointDisplay');
+            if (pointEl) {
+                pointEl.innerText = Number(gameState.points || 0).toLocaleString();
+            }
+
             const t = i18n[currLang];
-            document.getElementById('pointDisplay').innerText = gameState.points;
-            
-            ['feed', 'clean', 'pet'].forEach(type => {
-                const capitalizedType = type.charAt(0).toUpperCase() + type.slice(1);
-                const btn = document.getElementById('btn' + capitalizedType);
-                const desc = document.getElementById('txt' + capitalizedType + 'Desc');
-                
-                if (gameState.cooldowns[type] > 0) {
-                    btn.disabled = true; 
-                    desc.innerText = `${t.cooldown} ${gameState.cooldowns[type]}s`;
-                } else {
-                    btn.disabled = false; 
-                    desc.innerText = t.ready;
-                }
-            });
+            const btnFeed = document.getElementById('btnFeed');
+            const btnClean = document.getElementById('btnClean');
+            const btnPet = document.getElementById('btnPet');
+
+            if (btnFeed) {
+                const desc = document.getElementById('txtFeedDesc');
+                if (desc) desc.innerText = gameState.cooldowns.feed > 0 ? `${t.cooldown} ${gameState.cooldowns.feed}s` : t.ready;
+            }
+            if (btnClean) {
+                const desc = document.getElementById('txtCleanDesc');
+                if (desc) desc.innerText = gameState.cooldowns.clean > 0 ? `${t.cooldown} ${gameState.cooldowns.clean}s` : t.ready;
+            }
+            if (btnPet) {
+                const desc = document.getElementById('txtPetDesc');
+                if (desc) desc.innerText = gameState.cooldowns.pet > 0 ? `${t.cooldown} ${gameState.cooldowns.pet}s` : t.ready;
+            }
         }
 
         // 🌟 【物理互動引擎】負責計算你怎麼抓海兔、怎麼摸牠，以及噴出愛心
