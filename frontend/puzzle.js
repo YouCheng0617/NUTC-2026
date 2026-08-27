@@ -487,10 +487,58 @@ window.addEventListener("click", function (event) {
   if (event.target === wsModal) closeWorkshop();
 });
 
+// ✨ 動態生成深海亮晶晶星光粒子群
+function createOceanSparkles() {
+  const oceanBg = document.querySelector(".ocean-bg");
+  if (!oceanBg) return;
+
+  // 避免重複生成
+  let sparklesLayer = document.querySelector(".sparkles-layer");
+  if (!sparklesLayer) {
+    sparklesLayer = document.createElement("div");
+    sparklesLayer.className = "sparkles-layer";
+    sparklesLayer.style.cssText = "position: absolute; inset: 0; pointer-events: none; z-index: 1;";
+    oceanBg.appendChild(sparklesLayer);
+  } else {
+    sparklesLayer.innerHTML = "";
+  }
+
+  const symbols = ["✦", "✧", "★", "·", "✨"];
+  const count = 35; // 產生 35 顆星光
+
+  for (let i = 0; i < count; i++) {
+    const star = document.createElement("div");
+    star.className = "sparkle-star";
+    star.innerText = symbols[Math.floor(Math.random() * symbols.length)];
+
+    const top = Math.random() * 95 + "%";
+    const left = Math.random() * 95 + "%";
+    const size = Math.random() * 12 + 10 + "px";
+    const dur = Math.random() * 2 + 1.8 + "s";
+    const delay = Math.random() * 3 + "s";
+
+    star.style.cssText = `
+      position: absolute;
+      top: ${top};
+      left: ${left};
+      font-size: ${size};
+      color: #e0f9ff;
+      text-shadow: 0 0 6px #ffffff, 0 0 12px #00f2fe, 0 0 22px rgba(0, 242, 254, 0.9);
+      animation: twinkleSparkle ${dur} ease-in-out infinite alternate;
+      animation-delay: ${delay};
+      transform-origin: center center;
+      user-select: none;
+    `;
+
+    sparklesLayer.appendChild(star);
+  }
+}
+
 document.addEventListener("DOMContentLoaded", () => {
   updateTokenDisplay();
-  checkDailySignInStatus(); // 🌟 每次開網頁或重新整理時，檢查今天是否已簽到
+  checkDailySignInStatus();
   fetchInventory();
+  createOceanSparkles(); // 🌟 啟動背景亮晶晶星光
 
   const crystal = document.getElementById("crystal-ball");
   if (crystal) {
