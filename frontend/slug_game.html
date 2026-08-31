@@ -131,7 +131,22 @@
             box-shadow: inset 0 0 50px rgba(255, 255, 255, 0.5); z-index: 2; transition: opacity 0.5s;
         }
         .effect-layer { position: absolute; width: 100%; height: 100%; top: 0; left: 0; pointer-events: none; z-index: 5; overflow: hidden; }
-
+/* 🌟 海兔跳躍與名片專屬模式 */
+        .slug-container.is-jumping {
+            /* 加入超 Q 彈的果凍跳躍曲線 (cubic-bezier) */
+            transition: top 0.5s cubic-bezier(0.34, 1.56, 0.64, 1), 
+                        left 0.5s cubic-bezier(0.34, 1.56, 0.64, 1), 
+                        transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+        }
+        
+        .slug-container.card-mode {
+            /* 讓海兔突破背景限制，定位到螢幕正中央的證件照框框裡 */
+            top: calc(50vh - 120px) !important;
+            left: calc(50vw - 170px) !important;
+            transform: translateY(-40px) scale(0.65) !important;
+            z-index: 10005 !important;
+            pointer-events: none !important; /* 拍照時乖乖不動，不能拖曳 */
+        }
         /* 特效動畫：雨滴與泡泡 */
         .rain-drop { position: absolute; width: 2px; height: 20px; background: rgba(255, 255, 255, 0.7); top: -20px; animation: rainFall linear infinite; }
         @keyframes rainFall { to { transform: translateY(60vh); } }
@@ -1006,7 +1021,8 @@
     }
         /* 🌟 【寵物名字標籤與命名彈窗】 */
         .pet-name-tag { position: absolute; top: -45px; left: 50%; transform: translateX(-50%); background: transparent; border: none; padding: 0; font-weight: 900; color: var(--text-dark); font-size: 1.35rem; letter-spacing: 2px; text-shadow: 2px 2px 0 #fff, -2px -2px 0 #fff, 2px -2px 0 #fff, -2px 2px 0 #fff, 0px 2px 0 #fff, 0px -2px 0 #fff, 2px 0px 0 #fff, -2px 0px 0 #fff, 0px 5px 10px rgba(0,0,0,0.2); white-space: nowrap; pointer-events: auto; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: 0.3s cubic-bezier(0.18, 0.89, 0.32, 1.28); z-index: 20; }
-        .pet-name-tag.named { cursor: default; pointer-events: none; }
+       /* 🌟 讓取好名字的標籤依然可以點擊，用來觸發警告 */
+        .pet-name-tag.named { cursor: pointer; }
         .pet-name-tag:hover:not(.named) { transform: translateX(-50%) scale(1.1); text-shadow: 2px 2px 0 #fff, -2px -2px 0 #fff, 2px -2px 0 #fff, -2px 2px 0 #fff, 0px 2px 0 #fff, 0px -2px 0 #fff, 2px 0px 0 #fff, -2px 0px 0 #fff, 0px 6px 15px rgba(255, 182, 193, 0.8); }
         .pet-name-tag:active:not(.named) { transform: translateX(-50%) scale(0.95); }
 
@@ -1328,18 +1344,30 @@
             <button class="modal-btn btn-confirm" onclick="claimCheckIn()" style="width: 100%; background: #eab308; box-shadow: 0 5px 0 #ca8a04; color: white; font-size: 1.2rem;">開心收下！💰</button>
         </div>
     </div>
-<!-- 🌟 【命名彈窗】把海兔寶寶的名字寫下來！ -->
-<div class="name-modal-overlay" id="nameModalOverlay">
-    <div class="name-modal">
-        <h2 style="margin-top:0; font-weight:900; color: var(--text-dark);" id="txtModalTitle">給海兔寶寶取名</h2>
-        <input type="text" class="name-input" id="petNameInput" placeholder="輸入可愛的名字..." maxlength="12">
-        <button class="modal-btn btn-random" id="btnRandomName" onclick="generateRandomName()">🎲 幫我隨機想一個</button>
-        <div class="modal-btns">
-            <button class="modal-btn btn-cancel" id="btnCancelName" onclick="closeNameModal()">取消</button>
-            <button class="modal-btn btn-confirm" id="btnConfirmName" onclick="confirmName()">確定</button>
+<!-- 🌟 【全新：海兔專屬身份證名片】 -->
+    <div class="name-modal-overlay" id="idCardModalOverlay" style="z-index: 10000;">
+        <div class="name-modal" style="width: 85%; max-width: 320px; text-align: center;">
+            <h2 style="margin-top:0; font-weight:900; color: #1d4ed8;">🪪 海兔名片</h2>
+            
+            <!-- 🌟 留給海兔跳進來的專屬拍照框 -->
+            <div style="height: 150px; margin: 15px auto; border: 4px dashed #bfdbfe; border-radius: 25px; background: #f8fafc; display: flex; align-items: center; justify-content: center;">
+                <span style="color: #93c5fd; font-weight: 900; font-size: 1.2rem; opacity: 0.5;">證件照拍攝中...</span>
+            </div>
+            
+            <div style="font-size: 1.2rem; color: var(--text-dark); font-weight: 900; margin-bottom: 10px;">
+                名字：<span id="idCardNameDisplay" style="color: #ef4444;">神祕海兔</span> 
+                <button onclick="openNameModal()" style="background:none; border:none; cursor:pointer; font-size:1.2rem;" title="修改名字">✏️</button>
+            </div>
+            <div style="font-size: 1rem; color: var(--text-dim); font-weight: 800; margin-bottom: 25px;">
+                品種：<span id="idCardSpeciesDisplay">經典雪兔</span>
+            </div>
+            
+            <div class="modal-btns">
+                <!-- 🌟 按下收起名片時，觸發跳躍回去的程式碼 -->
+                <button class="modal-btn btn-confirm" onclick="closeIdCardModal()" style="width: 100%; background: #3b82f6; box-shadow: 0 5px 0 #2563eb; color: white;">收起名片</button>
+            </div>
         </div>
     </div>
-</div>
     <!-- 🌟 【試用倒數計時器】點擊尚未解鎖的商品時會出現 -->
     <div id="trialTimerDisplay" style="display:none; position: absolute; top: 15%; left: 50%; transform: translateX(-50%); font-size: 1.2rem; font-weight: 900; color: var(--text-dark); background: rgba(255, 255, 255, 0.85); border: 3px solid var(--accent-color); padding: 8px 24px; border-radius: 30px; box-shadow: 0 5px 15px var(--shadow-color); backdrop-filter: blur(4px); z-index: 100; pointer-events: none;">
         ⏱️ 試用中 <span id="trialCountdownNum" style="color: var(--accent-color); font-size: 1.4rem;">10</span>s
@@ -1391,11 +1419,9 @@
         <button class="palette-btn" onclick="setPaintPalette(1)"></button>
         <button class="palette-btn" onclick="setPaintPalette(2)"></button>
     </div>
-        <!-- 🐰 【海兔本體圖層】 -->
+       <!-- 🐰 【海兔本體圖層】 -->
         <div class="slug-container" id="slugContainer">
-            <div class="pet-name-tag" id="petNameTag" onclick="openNameModal()">
-                <span id="displayPetName">神祕海兔</span> <span id="pencilIcon">✏️</span>
-            </div>
+            
             <!-- 防止奇怪的瀏覽器拖曳行為的防護罩 -->
             <div style="position: absolute; width: 100%; height: 100%; top: 0; left: 0; z-index: 10; cursor: inherit; background: rgba(0,0,0,0);"></div>
             
@@ -1458,6 +1484,11 @@
         <button onclick="toggleShopPanel()" style="position: absolute; top: -20px; left: 50%; transform: translateX(-50%); background: white; color: var(--text-dark); border: 3px solid var(--border-color); padding: 5px 20px; border-radius: 20px; font-weight: 900; cursor: pointer; box-shadow: 0 4px 10px var(--shadow-color); z-index: 85;">⬇️ 收起</button>
 
         <div class="interaction-group">
+            <!-- 🌟 新增的身份證按鈕 -->
+            <button class="btn-interact" id="btnIdCard" onclick="openIdCardModal()" style="background: #eff6ff; border-color: #bfdbfe; box-shadow: 0 5px 0 #bfdbfe; color: #1d4ed8;">
+                <span class="btn-title" id="txtIdCardTitle">🪪 身份證</span>
+                <span class="btn-desc" id="txtIdCardDesc" style="color: #2563eb;">海兔檔案</span>
+            </button>
 <button class="btn-interact" id="btnFeed" onclick="triggerFeedInteraction(event)">
                 <span class="btn-title" id="txtFeedTitle">餵食海藻</span>
                 <!-- 🌟 飽食度進度條 -->
@@ -3564,20 +3595,25 @@ function updateLangUI() {
             en: ["Bug Maker", "Mr. Squishy", "Not A Snail", "Sleepy Sluuuug", "Ocean Potato", "Error 404", "Sir Slime-a-lot", "Baby's Cutie"]
         };
 
-        // 🌟 【名字顯示小幫手】
+        // 🌟 【打開身份證小魔法】
+        function openIdCardModal() {
+            document.getElementById('idCardModalOverlay').style.display = 'flex';
+            updateNameUI(); // 每次打開前刷新一下最新資料
+        }
+
+        // 🌟 【名字與名片顯示小幫手】
         function updateNameUI() {
-            const nameDisplay = document.getElementById('displayPetName');
-            const nameTag = document.getElementById('petNameTag');
-            const pencil = document.getElementById('pencilIcon');
+            // 更新名片上的名字
+            const idCardNameDisplay = document.getElementById('idCardNameDisplay');
+            if (idCardNameDisplay) {
+                idCardNameDisplay.innerText = gameState.petName || (currLang === 'zh' ? '神祕海兔' : 'Mystic Slug');
+            }
             
-            if (gameState.petName) {
-                nameDisplay.innerText = gameState.petName;
-                nameTag.classList.add('named'); // 鎖住名字不讓改
-                if (pencil) pencil.style.display = 'none'; 
-            } else {
-                nameDisplay.innerText = currLang === 'zh' ? '神祕海兔' : 'Mystic Slug';
-                nameTag.classList.remove('named');
-                if (pencil) pencil.style.display = 'inline';
+            // 同時偷偷更新一下名片上的品種，讓名片更專業
+            const idCardSpeciesDisplay = document.getElementById('idCardSpeciesDisplay');
+            if (idCardSpeciesDisplay) {
+                const spec = speciesData[gameState.currentSpecies];
+                idCardSpeciesDisplay.innerText = spec ? spec.name[currLang] : '未知品種';
             }
         }
 
@@ -10181,6 +10217,41 @@ let currentPaintPalette = 0;
                 osc.stop(now + 0.58);
                 shimmerOsc.stop(now + 0.38);
             } catch(e) {}
+        }
+        // 🌟 【打開身份證小魔法：呼叫海兔跳進來！】
+        function openIdCardModal() {
+            document.getElementById('idCardModalOverlay').style.display = 'flex';
+            updateNameUI(); // 更新名字與品種
+            
+            const slug = document.getElementById('slugContainer');
+            
+            // 🌟 關鍵：把海兔暫時移出魚缸，放到最外層，這樣牠跳起來才不會被魚缸的邊緣切斷頭！
+            document.body.appendChild(slug);
+            
+            // 加上跳躍動畫
+            slug.classList.add('is-jumping');
+            
+            // 稍微等 0.01 秒，確保動畫能完美觸發，然後套用「名片模式」的座標
+            requestAnimationFrame(() => {
+                slug.classList.add('card-mode');
+            });
+        }
+
+        // 🌟 【關閉身份證：海兔跳回舞台！】
+        function closeIdCardModal() {
+            document.getElementById('idCardModalOverlay').style.display = 'none';
+            
+            const slug = document.getElementById('slugContainer');
+            const stage = document.getElementById('mainStage');
+            
+            // 解除名片模式，海兔就會自動循著剛剛的 Q 彈動畫飛回原本的位置
+            slug.classList.remove('card-mode');
+            
+            // 🌟 倒數 0.5 秒（等牠飛完落地），再把牠放回魚缸裡，並解除動畫狀態
+            setTimeout(() => {
+                slug.classList.remove('is-jumping');
+                stage.appendChild(slug); // 乖乖回魚缸
+            }, 500); 
         }
     </script>
 </body>
