@@ -774,9 +774,6 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     });
   }
-<<<<<<< Updated upstream
-});
-=======
 });
 // 🐟 自動生成深海發光游魚群
 function createSwimmingFish() {
@@ -833,4 +830,3 @@ function createSwimmingFish() {
     fishLayer.appendChild(fishBox);
   });
 }
->>>>>>> Stashed changes
