@@ -8,7 +8,7 @@
   <link rel="stylesheet" href="admin.css" />
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <!-- 🌟 在下方加入這行 -->
-<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels"></script>
 
   <script>
     const token = localStorage.getItem("authToken");
@@ -115,24 +115,26 @@
           </div>
         </div>
 
- <!-- 📈 第一列圖表 (寬版圖表：折線圖 / 長條圖) -->
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 400px), 1fr)); gap: 24px; margin-top: 24px;">
-          
-  <!-- 發文趨勢圖 (折線圖) -->
+        <!-- 📈 第一列圖表 (寬版圖表：折線圖 / 長條圖) -->
+        <div
+          style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 400px), 1fr)); gap: 24px; margin-top: 24px;">
+
+          <!-- 發文趨勢圖 (折線圖) -->
           <div class="modern-card" style="padding: 24px; box-sizing: border-box;">
             <!-- 🌟 將標題列改為 Flexbox，讓標題跟下拉選單左右對齊 -->
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
               <h3 style="margin: 0; font-size: 1.1rem; color: #1f2937;">📈 發文趨勢</h3>
-              
+
               <!-- 🌟 新增的下拉選單，綁定 onchange 事件 -->
-              <select id="trend-time-filter" onchange="changeTrendTimeRange(this.value)" style="padding: 6px 12px; border: 1px solid #cbd5e1; border-radius: 20px; outline: none; font-weight: 600; color: #475569; background: #f8fafc; cursor: pointer;">
+              <select id="trend-time-filter" onchange="changeTrendTimeRange(this.value)"
+                style="padding: 6px 12px; border: 1px solid #cbd5e1; border-radius: 20px; outline: none; font-weight: 600; color: #475569; background: #f8fafc; cursor: pointer;">
                 <option value="7">最近 7 天</option>
                 <option value="30">最近 1 個月</option>
                 <option value="180">最近半年</option>
                 <option value="365">最近一年</option>
               </select>
             </div>
-            
+
             <div style="position: relative; height: 300px; width: 100%;">
               <canvas id="trendChart"></canvas>
             </div>
@@ -148,8 +150,9 @@
         </div>
 
         <!-- 🥧 第二列圖表 (圓形圖表：環狀圖 / 圓餅圖) -->
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr)); gap: 24px; margin-top: 24px;">
-          
+        <div
+          style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr)); gap: 24px; margin-top: 24px;">
+
           <!-- 漂流瓶情緒分佈圖 (環狀圖) -->
           <div class="modern-card" style="padding: 24px; box-sizing: border-box;">
             <h3 style="margin: 0 0 20px 0; font-size: 1.1rem; color: #1f2937;">📊 漂流瓶情緒分佈圖</h3>
@@ -158,7 +161,7 @@
             </div>
           </div>
 
-          
+
           <!-- 全體會員男女比例分佈圖 (圓餅圖) -->
           <div class="modern-card" style="padding: 24px; box-sizing: border-box;">
             <h3 style="margin: 0 0 20px 0; font-size: 1.1rem; color: #1f2937;">👥 全體會員男女比例</h3>
@@ -190,9 +193,9 @@
           </div>
 
         </div>
-        
 
-</div>
+
+      </div>
       <div id="section-users" class="admin-section" style="display: none">
         <div class="modern-card">
           <div class="card-header" style="
@@ -212,7 +215,7 @@
                 " oninput="filterUsers()" />
           </div>
 
-          <div
+          <div class="filter-columns"
             style="padding: 12px 24px; background: #ffffff; border-bottom: 1px solid var(--border-light); display: flex; gap: 10px; flex-wrap: wrap; align-items: center;">
             <span style="font-size: 0.9rem; font-weight: 600; color: #64748b; margin-right: 5px;">📂 快速分類：</span>
             <button id="filter-user-all" class="btn-action"
@@ -227,6 +230,10 @@
             <button id="filter-user-banned" class="btn-action"
               style="background:#f8fafc; color:#64748b; border: 1px solid #e2e8f0; border-radius: 20px; padding: 4px 12px;"
               onclick="filterUserByStatus('BANNED')">🔴 封鎖</button>
+
+            <button id="sort-user-btn" class="btn-action"
+              style="margin-left: auto; padding: 6px 12px; border: 1px solid #cbd5e1; border-radius: 20px; outline: none; font-weight: 600; color: #475569; background: #f8fafc; cursor: pointer;"
+              onclick="toggleUserSort()">⏳ 由新到舊 ⬇️</button>
           </div>
           <div class="table-responsive">
             <table class="modern-table">
@@ -242,7 +249,7 @@
               </thead>
               <tbody id="admin-users-body"></tbody>
             </table>
-          </div> 
+          </div>
           <div id="users-pagination" class="pagination-container"></div>
         </div>
       </div>
@@ -273,7 +280,7 @@
 " oninput="filterBottles()" />
           </div>
 
-          <div
+          <div class="filter-columns"
             style="padding: 12px 24px; background: #ffffff; border-bottom: 1px solid var(--border-light); display: flex; gap: 10px; flex-wrap: wrap; align-items: center;">
             <span style="font-size: 0.9rem; font-weight: 600; color: #64748b; margin-right: 5px;">📂 快速分類：</span>
             <button id="filter-btn-all" class="btn-action"
@@ -289,15 +296,23 @@
               style="background:#f8fafc; color:#64748b; border: 1px solid #e2e8f0; border-radius: 20px; padding: 4px 12px;"
               onclick="filterByStatus('rejected')">❌ 沒通過</button>
 
-            <!-- 🌟 新增的情緒分類下拉選單 -->
-            <select id="category-filter" onchange="filterByCategory(this.value)" style="margin-left: auto; padding: 6px 12px; border: 1px solid #cbd5e1; border-radius: 20px; outline: none; font-weight: 600; color: #475569; background: #f8fafc; cursor: pointer;">
-              <option value="all">📂 所有情緒分類</option>
-              <option value="angry">😡 極度憤怒中</option>
-              <option value="secret">🤫 沒人懂的秘密</option>
-              <option value="broken">💔 破碎的碎片</option>
-              <option value="apathy">😑 極度厭世/躺平</option>
-              <option value="happy">😁 開心的事</option>
-            </select>
+            <!-- 排序按鈕與分類選單置右 -->
+            <div style="margin-left: auto; display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+              <button id="sort-bottle-btn" class="btn-action"
+                style="padding: 6px 12px; border: 1px solid #cbd5e1; border-radius: 20px; outline: none; font-weight: 600; color: #475569; background: #f8fafc; cursor: pointer;"
+                onclick="toggleBottleSort()">⏳ 由新到舊 ⬇️</button>
+
+              <!-- 🌟 新增的情緒分類下拉選單 -->
+              <select id="category-filter" onchange="filterByCategory(this.value)"
+                style="padding: 6px 12px; border: 1px solid #cbd5e1; border-radius: 20px; outline: none; font-weight: 600; color: #475569; background: #f8fafc; cursor: pointer;">
+                <option value="all">📂 所有情緒分類</option>
+                <option value="angry">😡 極度憤怒中</option>
+                <option value="secret">🤫 沒人懂的秘密</option>
+                <option value="broken">💔 破碎的碎片</option>
+                <option value="apathy">😑 極度厭世/躺平</option>
+                <option value="happy">😁 開心的事</option>
+              </select>
+            </div>
           </div>
           <div class="table-responsive">
             <table class="modern-table">
@@ -331,7 +346,7 @@
                   max-width: 300px;
                 " oninput="filterReports()" />
           </div>
-          <div
+          <div class="filter-columns"
             style="padding: 12px 24px; background: #ffffff; border-bottom: 1px solid var(--border-light); display: flex; gap: 10px; flex-wrap: wrap; align-items: center;">
             <span style="font-size: 0.9rem; font-weight: 600; color: #64748b; margin-right: 5px;">📂 案件狀態：</span>
 
@@ -344,6 +359,10 @@
             <button id="filter-report-processed" class="btn-action"
               style="background:#f8fafc; color:#64748b; border: 1px solid #e2e8f0; border-radius: 20px; padding: 4px 12px;"
               onclick="filterReportByStatus('processed')">✅ 已審核 (下架)</button>
+
+            <button id="sort-report-btn" class="btn-action"
+              style="margin-left: auto; padding: 6px 12px; border: 1px solid #cbd5e1; border-radius: 20px; outline: none; font-weight: 600; color: #475569; background: #f8fafc; cursor: pointer;"
+              onclick="toggleReportSort()">⏳ 由新到舊 ⬇️</button>
           </div>
           <div class="table-responsive">
             <table class="modern-table">

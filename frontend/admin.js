@@ -11,6 +11,78 @@ function escapeHTML(str) {
     }[tag]));
 }
 
+// 🌟 解析時間戳記以供排序
+function getItemTimestamp(item, idField) {
+    if (item.created_at) {
+        const t = new Date(item.created_at).getTime();
+        if (!isNaN(t)) return t;
+    }
+    return Number(item[idField] || item.id) || 0;
+}
+
+// 🌟 點擊兩下開啟行內頁碼輸入框
+window.enableInlinePageInput = function (el, totalItems, currentPage, totalPages, containerId, changePageFuncName) {
+    el.removeAttribute('ondblclick');
+    el.innerHTML = `第 <input type="text" id="inline-page-input" value="${currentPage}" style="width: 48px; padding: 2px 4px; text-align: center; border: 1.5px solid #3b82f6; border-radius: 6px; font-weight: bold; color: #1e293b; outline: none; font-size: 0.9rem; margin: 0 4px;" /> / ${totalPages} 頁 (共 ${totalItems} 筆)`;
+
+    const input = document.getElementById('inline-page-input');
+    if (!input) return;
+
+    input.focus();
+    input.select();
+
+    let isSubmitted = false;
+    let isAlerting = false;
+
+    const handleSubmit = () => {
+        if (isSubmitted) return;
+        const val = input.value.trim();
+        const pageNum = Number(val);
+
+        if (!val || !/^\d+$/.test(val) || isNaN(pageNum) || pageNum < 1 || pageNum > totalPages) {
+            isAlerting = true;
+            alert("請輸入正確的頁碼");
+            isAlerting = false;
+            input.focus();
+            input.select();
+            return;
+        }
+
+        isSubmitted = true;
+        if (typeof window[changePageFuncName] === 'function') {
+            window[changePageFuncName](pageNum);
+        }
+    };
+
+    input.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            handleSubmit();
+        } else if (e.key === 'Escape') {
+            e.preventDefault();
+            renderPagination(totalItems, currentPage, containerId, changePageFuncName);
+        }
+    });
+
+    input.addEventListener('blur', () => {
+        setTimeout(() => {
+            if (isSubmitted || isAlerting) return;
+            const val = input.value.trim();
+            const pageNum = Number(val);
+            if (val && /^\d+$/.test(val) && !isNaN(pageNum) && pageNum >= 1 && pageNum <= totalPages) {
+                if (pageNum !== currentPage) {
+                    isSubmitted = true;
+                    if (typeof window[changePageFuncName] === 'function') {
+                        window[changePageFuncName](pageNum);
+                        return;
+                    }
+                }
+            }
+            renderPagination(totalItems, currentPage, containerId, changePageFuncName);
+        }, 150);
+    });
+};
+
 // 🌟 共用分頁渲染產生器
 function renderPagination(totalItems, currentPage, containerId, changePageFuncName) {
     const container = document.getElementById(containerId);
@@ -25,7 +97,7 @@ function renderPagination(totalItems, currentPage, containerId, changePageFuncNa
     
     container.innerHTML = `
         <button class="pagination-btn" ${currentPage === 1 ? 'disabled' : ''} onclick="${changePageFuncName}(${currentPage - 1})">⬅️ 上一頁</button>
-        <span class="pagination-info">第 ${currentPage} / ${totalPages} 頁 (共 ${totalItems} 筆)</span>
+        <span class="pagination-info" title="點擊兩下直接輸入頁碼跳頁" style="cursor: pointer; user-select: none;" ondblclick="enableInlinePageInput(this, ${totalItems}, ${currentPage}, ${totalPages}, '${containerId}', '${changePageFuncName}')">第 ${currentPage} / ${totalPages} 頁 (共 ${totalItems} 筆)</span>
         <button class="pagination-btn" ${currentPage === totalPages ? 'disabled' : ''} onclick="${changePageFuncName}(${currentPage + 1})">下一頁 ➡️</button>
     `;
 }
@@ -472,6 +544,16 @@ window._allUsers = [];
 window._filteredUsersCache = [];
 window._currentUserStatusFilter = 'all';
 window._currentUserPage = 1;
+window._userSortOrder = 'desc'; // 'desc' (由新到舊) 或 'asc' (由舊到新)
+
+window.toggleUserSort = function () {
+    window._userSortOrder = window._userSortOrder === 'desc' ? 'asc' : 'desc';
+    const btn = document.getElementById('sort-user-btn');
+    if (btn) {
+        btn.innerHTML = window._userSortOrder === 'desc' ? '⏳ 由新到舊 ⬇️' : '⏳ 由舊到新 ⬆️';
+    }
+    filterUsers();
+};
 
 async function loadUsers() {
     const tbody = document.getElementById('admin-users-body');
@@ -519,6 +601,12 @@ window.filterUsers = function () {
             matchStatus = (currentStatus === window._currentUserStatusFilter);
         }
         return matchKeyword && matchStatus;
+    });
+
+    window._filteredUsersCache.sort((a, b) => {
+        const timeA = getItemTimestamp(a, 'member_id');
+        const timeB = getItemTimestamp(b, 'member_id');
+        return window._userSortOrder === 'asc' ? timeA - timeB : timeB - timeA;
     });
 
     window._currentUserPage = 1; 
@@ -603,6 +691,16 @@ window._filteredBottlesCache = [];
 window._currentStatusFilter = 'all';
 window._currentCategoryFilter = 'all'; 
 window._currentBottlePage = 1;
+window._bottleSortOrder = 'desc'; // 'desc' (由新到舊) 或 'asc' (由舊到新)
+
+window.toggleBottleSort = function () {
+    window._bottleSortOrder = window._bottleSortOrder === 'desc' ? 'asc' : 'desc';
+    const btn = document.getElementById('sort-bottle-btn');
+    if (btn) {
+        btn.innerHTML = window._bottleSortOrder === 'desc' ? '⏳ 由新到舊 ⬇️' : '⏳ 由舊到新 ⬆️';
+    }
+    filterBottles();
+};
 
 function getBottleCategoryType(b) {
     let rawCat = b.category_name || null;
@@ -629,7 +727,7 @@ async function loadBottles() {
         if (!response.ok) throw new Error();
 
         const data = await response.json();
-        window._allBottles = (data.data || data.bottles || data || []).reverse(); 
+        window._allBottles = data.data || data.bottles || data || []; 
         filterBottles();
     } catch (e) {
         tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:red;">無法載入，請確認權限或後端是否啟動</td></tr>`;
@@ -672,6 +770,12 @@ window.filterBottles = function () {
         }
 
         return matchKeyword && matchStatus && matchCategory;
+    });
+
+    window._filteredBottlesCache.sort((a, b) => {
+        const timeA = getItemTimestamp(a, 'bottle_id');
+        const timeB = getItemTimestamp(b, 'bottle_id');
+        return window._bottleSortOrder === 'asc' ? timeA - timeB : timeB - timeA;
     });
 
     window._currentBottlePage = 1;
@@ -782,6 +886,16 @@ window._allReports = [];
 window._filteredReportsCache = [];
 window._currentReportStatusFilter = 'pending';
 window._currentReportPage = 1;
+window._reportSortOrder = 'desc'; // 'desc' (由新到舊) 或 'asc' (由舊到新)
+
+window.toggleReportSort = function () {
+    window._reportSortOrder = window._reportSortOrder === 'desc' ? 'asc' : 'desc';
+    const btn = document.getElementById('sort-report-btn');
+    if (btn) {
+        btn.innerHTML = window._reportSortOrder === 'desc' ? '⏳ 由新到舊 ⬇️' : '⏳ 由舊到新 ⬆️';
+    }
+    filterReports();
+};
 
 window.updateDashboardReportCount = function () {
     if (!window._allReports) return;
@@ -800,8 +914,7 @@ async function loadReports() {
         const response = await fetch(`${API_BASE_URL}/admin/bottles/reported`, { headers: { 'Authorization': `Bearer ${token}`, 'ngrok-skip-browser-warning': 'true' } });
         if (!response.ok) throw new Error();
         const data = await response.json();
-        // 將最新檢舉排前面
-        window._allReports = (data.data || data || []).reverse();
+        window._allReports = data.data || data || [];
         updateDashboardReportCount();
         filterReports();
     } catch (e) {
@@ -832,6 +945,12 @@ window.filterReports = function () {
         if (window._currentReportStatusFilter === 'pending') matchStatus = !isProcessed;
         else if (window._currentReportStatusFilter === 'processed') matchStatus = isProcessed;
         return matchKeyword && matchStatus;
+    });
+
+    window._filteredReportsCache.sort((a, b) => {
+        const timeA = getItemTimestamp(a, 'bottle_id');
+        const timeB = getItemTimestamp(b, 'bottle_id');
+        return window._reportSortOrder === 'asc' ? timeA - timeB : timeB - timeA;
     });
 
     window._currentReportPage = 1;
