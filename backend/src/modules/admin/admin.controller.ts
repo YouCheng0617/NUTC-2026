@@ -1,5 +1,19 @@
 import type { Response, Request } from "express";
-import { getAllMembers, changeMemberStatus, getAllBottlesForAdmin, updateBottleStatus, deleteBottleByAdmin, deleteMemberByAdmin, getReportedBottles, getAllComments } from "./admin.service.js";
+import {
+    getAllMembers,
+    changeMemberStatus,
+    getAllBottlesForAdmin,
+    updateBottleStatus,
+    deleteBottleByAdmin,
+    deleteMemberByAdmin,
+    getReportedBottles,
+    getAllComments,
+    getAllCustomerServiceTickets,
+    getCustomerServiceTicketForAdmin,
+    replyCustomerServiceTicket,
+    updateCustomerServiceStatus,
+    deleteCustomerServiceTicket
+} from "./admin.service.js";
 
 export class AdminController {
 
@@ -163,6 +177,111 @@ export class AdminController {
                 real_error: error.message || error.toString(),
                 stack: error.stack
             });
+        }
+    }
+
+    /* 獲取所有客服問題列表 */
+    async getAllCustomerServices(req: Request, res: Response) {
+        try {
+            const status = req.query.status !== undefined ? Number(req.query.status) : undefined;
+            const tickets = await getAllCustomerServiceTickets(status);
+            res.status(200).json({
+                message: "客服問題列表獲取成功",
+                data: tickets
+            });
+        } catch (error) {
+            console.error("Error fetching customer services:", error);
+            res.status(500).json({ message: "內部伺服器錯誤" });
+        }
+    }
+
+    /* 獲取單筆客服問題詳情 */
+    async getCustomerServiceDetail(req: Request, res: Response) {
+        try {
+            const id = Number(req.params.id);
+            if (isNaN(id)) {
+                return res.status(400).json({ message: "無效的客服問題 ID" });
+            }
+            const ticket = await getCustomerServiceTicketForAdmin(id);
+            if (!ticket) {
+                return res.status(404).json({ message: "找不到該筆客服紀錄" });
+            }
+            res.status(200).json({
+                message: "客服問題詳情獲取成功",
+                data: ticket
+            });
+        } catch (error) {
+            console.error("Error fetching customer service detail:", error);
+            res.status(500).json({ message: "內部伺服器錯誤" });
+        }
+    }
+
+    /* 管理員回覆客服問題 */
+    async replyCustomerService(req: Request, res: Response) {
+        try {
+            const id = Number(req.params.id || req.body.id || req.body.ticket_id);
+            const { reply, status } = req.body;
+
+            if (!id || isNaN(id)) {
+                return res.status(400).json({ message: "請提供有效的客服問題 ID" });
+            }
+            if (!reply || typeof reply !== "string" || !reply.trim()) {
+                return res.status(400).json({ message: "請輸入回覆內容" });
+            }
+
+            const newStatus = status !== undefined ? Number(status) : 2; // 預設 2 (已回覆/結案)
+            const updated = await replyCustomerServiceTicket(id, reply, newStatus);
+
+            res.status(200).json({
+                message: "回覆成功，已同步發送通知給使用者！",
+                data: updated
+            });
+        } catch (error: any) {
+            console.error("Error replying to customer service:", error);
+            if (error.code === 'P2025') {
+                return res.status(404).json({ message: "找不到該客服問題" });
+            }
+            res.status(500).json({ message: "內部伺服器錯誤" });
+        }
+    }
+
+    /* 管理員更新客服問題狀態 */
+    async updateCustomerServiceStatus(req: Request, res: Response) {
+        try {
+            const id = Number(req.params.id);
+            const { status } = req.body;
+
+            if (isNaN(id) || status === undefined || isNaN(Number(status))) {
+                return res.status(400).json({ message: "請提供有效的 ID 與 status 數值" });
+            }
+
+            const updated = await updateCustomerServiceStatus(id, Number(status));
+            res.status(200).json({
+                message: "客服狀態更新成功",
+                data: updated
+            });
+        } catch (error: any) {
+            if (error.code === 'P2025') {
+                return res.status(404).json({ message: "找不到該客服紀錄" });
+            }
+            res.status(500).json({ message: "內部伺服器錯誤" });
+        }
+    }
+
+    /* 管理員刪除客服紀錄 */
+    async deleteCustomerService(req: Request, res: Response) {
+        try {
+            const id = Number(req.params.id);
+            if (isNaN(id)) {
+                return res.status(400).json({ message: "無效的客服問題 ID" });
+            }
+            await deleteCustomerServiceTicket(id);
+            res.status(200).json({ message: "客服紀錄已刪除" });
+        } catch (error: any) {
+            if (error.code === 'P2025') {
+                return res.status(404).json({ message: "找不到該客服紀錄" });
+            }
+            res.status(500).json({ message: "內部伺服器錯誤" });
         }
     }
 }

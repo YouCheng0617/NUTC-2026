@@ -221,3 +221,127 @@ export const getAllComments = async () => {
         };
     });
 }
+
+// ==========================================
+// 客服管理 (Customer Service for Admin)
+// ==========================================
+
+// 1. 獲取全站客服問題列表 (管理員)
+export const getAllCustomerServiceTickets = async (status?: number) => {
+    const where: any = {};
+    if (status !== undefined && !isNaN(status)) {
+        where.status = status;
+    }
+
+    const tickets = await prisma.customerService.findMany({
+        where,
+        orderBy: {
+            created_at: "desc"
+        },
+        include: {
+            member: {
+                select: {
+                    member_id: true,
+                    name: true,
+                    email: true,
+                    gender: true,
+                    status: true,
+                }
+            }
+        }
+    });
+
+    return tickets.map(ticket => {
+        const { member, ...ticketData } = ticket;
+        return {
+            ...ticketData,
+            member_name: member?.name || "未知會員",
+            member_email: member?.email || "未知信箱",
+            member_gender: member?.gender || "保密",
+            member_status: member?.status || "ACTIVE",
+        };
+    });
+};
+
+// 2. 獲取單筆客服問題詳情 (管理員)
+export const getCustomerServiceTicketForAdmin = async (id: number) => {
+    const ticket = await prisma.customerService.findUnique({
+        where: { id },
+        include: {
+            member: {
+                select: {
+                    member_id: true,
+                    name: true,
+                    email: true,
+                    gender: true,
+                    status: true,
+                }
+            }
+        }
+    });
+
+    if (!ticket) return null;
+
+    const { member, ...ticketData } = ticket;
+    return {
+        ...ticketData,
+        member_name: member?.name || "未知會員",
+        member_email: member?.email || "未知信箱",
+        member_gender: member?.gender || "保密",
+        member_status: member?.status || "ACTIVE",
+    };
+};
+
+// 3. 管理員回覆客服問題 (並發送通知給使用者)
+export const replyCustomerServiceTicket = async (ticketId: number, reply: string, status: number = 2) => {
+    const updatedTicket = await prisma.customerService.update({
+        where: { id: ticketId },
+        data: {
+            reply: reply.trim(),
+            status: status, // 預設 2: 已回覆/結案
+            updated_at: new Date()
+        },
+        include: {
+            member: {
+                select: {
+                    member_id: true,
+                    name: true,
+                    email: true
+                }
+            }
+        }
+    });
+
+    // 🌟 回覆時通知該使用者
+    if (updatedTicket.member_id) {
+        const preview = reply.trim().length > 35 ? reply.trim().substring(0, 35) + "..." : reply.trim();
+        await createNotification(
+            updatedTicket.member_id,
+            "CUSTOMER_SERVICE_REPLY",
+            `💬 管理員已回覆您的客服問題「${updatedTicket.title}」：${preview}`,
+            undefined,
+            updatedTicket.id
+        );
+    }
+
+    return updatedTicket;
+};
+
+// 4. 管理員更新客服問題狀態
+export const updateCustomerServiceStatus = async (ticketId: number, status: number) => {
+    return await prisma.customerService.update({
+        where: { id: ticketId },
+        data: {
+            status,
+            updated_at: new Date()
+        }
+    });
+};
+
+// 5. 管理員刪除客服紀錄
+export const deleteCustomerServiceTicket = async (ticketId: number) => {
+    return await prisma.customerService.delete({
+        where: { id: ticketId }
+    });
+};
+
