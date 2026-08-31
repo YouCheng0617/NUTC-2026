@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="zh-TW">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>心情漂流瓶 - 客服與問題反饋中心</title>
+  <link rel="stylesheet" href="test.css?v=22" />
+  <link rel="stylesheet" href="customer-service.css" />
+</head>
+
+<body>
+  <!-- 回到主頁浮動按鈕 -->
+  <button class="ocean-refresh-btn" onclick="window.location.href = 'test.html'" title="返回漂流瓶論壇">
+    🏠 回到主頁
+  </button>
+
+  <div id="forum-view">
+    <!-- 頂部海洋導覽列 -->
+    <header class="light-header">
+      <div class="logo" onclick="window.location.href = 'test.html'" title="回到主頁">
+        <img src="images/fish_logo.png" style="width: 30px; margin-right: 10px; vertical-align: middle" alt="Logo" />
+        心情漂流瓶
+      </div>
+
+      <div class="header-center-title">
+        <span class="cs-badge-title">💬 客服與問題反饋中心</span>
+      </div>
+
+      <div class="nav-actions">
+        <button id="login-trigger" class="btn-login" onclick="window.location.href = 'login.html'">註冊 / 登入</button>
+
+        <div id="user-profile" class="user-menu-wrapper" style="display: none; align-items: center; gap: 15px">
+          <!-- 👤 使用者大頭貼與名字 -->
+          <div class="user-info-trigger" id="user-menu-btn">
+            <img id="user-avatar" src="images/fish_logo.png" alt="頭像" class="avatar-img" />
+            <span id="user-name" class="user-name-text"></span>
+            <span class="menu-arrow">▼</span>
+          </div>
+
+          <div class="user-dropdown-menu" id="user-dropdown">
+            <div class="menu-item" onclick="window.location.href = 'test.html'">🏠 漂流瓶大廳</div>
+            <div class="menu-item" onclick="window.location.href = 'saved.html'">⭐ 收藏文章</div>
+            <div class="menu-item" onclick="window.location.href = 'post.html'">📝 我的文章</div>
+            <div class="menu-item active" onclick="window.location.href = 'customer-service.html'">💬 線上客服</div>
+            <div class="menu-divider"></div>
+            <div class="menu-item logout-item" id="logout-btn">🚪 退出登入</div>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- 主體內容區塊 -->
+    <div class="cs-container-wrapper">
+      <div class="cs-card">
+
+        <!-- 頂部 Banner 介紹 -->
+        <div class="cs-banner">
+          <div class="cs-banner-icon">🌊</div>
+          <div class="cs-banner-text">
+            <h2>心情漂流瓶 客服中心</h2>
+            <p>遇到操作問題、功能異常或有任何想法與建議嗎？請告訴我們，我們隨時傾聽你的聲音！</p>
+          </div>
+        </div>
+
+        <!-- 頁籤切換器 -->
+        <div class="cs-tab-bar">
+          <button id="tab-btn-form" class="cs-tab-btn active" onclick="switchCsTab('form')">
+            ✍️ 我要提問 / 意見反饋
+          </button>
+          <button id="tab-btn-history" class="cs-tab-btn" onclick="switchCsTab('history')">
+            📜 我的客服紀錄 <span id="cs-history-count" class="cs-count-tag" style="display: none;">0</span>
+          </button>
+        </div>
+
+        <!-- 頁籤 1: 填寫提問表單 -->
+        <section id="cs-section-form" class="cs-section">
+          <!-- 快速分類標籤 -->
+          <div class="quick-category-container">
+            <span class="quick-category-label">💡 快速選取常見主旨：</span>
+            <div class="quick-pills">
+              <button type="button" class="quick-pill" onclick="setQuickTitle('【帳號問題】無法登入或修改資料')">🔑 帳號問題</button>
+              <button type="button" class="quick-pill" onclick="setQuickTitle('【文章問題】漂流瓶審核或發布異常')">🍾 文章問題</button>
+              <button type="button" class="quick-pill" onclick="setQuickTitle('【檢舉申訴】對於文章檢舉處理有疑問')">⚠️ 檢舉申訴</button>
+              <button type="button" class="quick-pill" onclick="setQuickTitle('【功能異常】發現系統 BUG 或顯示錯誤')">🛠️ BUG 回報</button>
+              <button type="button" class="quick-pill" onclick="setQuickTitle('【優化建議】希望新增或改進某項功能')">✨ 功能建議</button>
+              <button type="button" class="quick-pill" onclick="setQuickTitle('【其他問題】')">💬 其他諮詢</button>
+            </div>
+          </div>
+
+          <form id="cs-form" onsubmit="handleFormSubmit(event)">
+            <!-- 主旨輸入 -->
+            <div class="form-group">
+              <label for="cs-title" class="form-label">
+                <span>問題主旨 <span class="required">*</span></span>
+                <span id="title-counter" class="char-counter">0 / 80</span>
+              </label>
+              <input type="text" id="cs-title" class="form-input" placeholder="請簡述您的問題（例如：無法送出漂流瓶留言）..." maxlength="80"
+                required oninput="updateCharCount('cs-title', 'title-counter', 80)" />
+            </div>
+
+            <!-- 詳細內容輸入 -->
+            <div class="form-group">
+              <label for="cs-message" class="form-label">
+                <span>詳細描述 <span class="required">*</span></span>
+                <span id="message-counter" class="char-counter">0 / 1000</span>
+              </label>
+              <textarea id="cs-message" class="form-textarea"
+                placeholder="請盡可能詳細說明您遇到的狀況、發生步驟、裝置瀏覽器或任何具體建議，以利客服人員快速為您解答與排除問題..." rows="7" maxlength="1000"
+                required oninput="updateCharCount('cs-message', 'message-counter', 1000)"></textarea>
+            </div>
+
+            <!-- 溫馨提示小卡 -->
+            <div class="cs-notice-box">
+              <div class="notice-icon">📢</div>
+              <div class="notice-content">
+                <strong>處理說明：</strong>
+                <ul>
+                  <li>客服表單成功送出後，系統將自動發送「送出成功通知」至您的通知中心。</li>
+                  <li>管理員回覆後，您將會收到即時通知，亦可隨時切換至<strong>「我的客服紀錄」</strong>查看詳細回覆內容。</li>
+                </ul>
+              </div>
+            </div>
+
+            <!-- 送出按鈕 -->
+            <div class="form-actions">
+              <button type="button" class="btn-cancel" onclick="resetCsForm()">清空重填</button>
+              <button type="submit" id="btn-submit-cs" class="btn-submit">
+                <span id="btn-submit-text">🚀 確認送出客服表單</span>
+                <span id="btn-submit-spinner" class="spinner" style="display: none;"></span>
+              </button>
+            </div>
+          </form>
+        </section>
+
+        <!-- 頁籤 2: 我的客服紀錄清單 -->
+        <section id="cs-section-history" class="cs-section" style="display: none;">
+          <!-- 狀態篩選列 -->
+          <div class="history-filter-bar">
+            <span class="filter-label">篩選案件狀態：</span>
+            <div class="filter-buttons">
+              <button class="filter-btn active" onclick="filterHistoryByStatus('all', this)">全部</button>
+              <button class="filter-btn" onclick="filterHistoryByStatus(0, this)">⏳ 待處理</button>
+              <button class="filter-btn" onclick="filterHistoryByStatus(1, this)">⚙️ 處理中</button>
+              <button class="filter-btn" onclick="filterHistoryByStatus(2, this)">✅ 已回覆</button>
+            </div>
+            <button class="btn-refresh" onclick="loadUserTickets()" title="重新整理客服紀錄">
+              🔄 重新整理
+            </button>
+          </div>
+
+          <!-- 紀錄卡片清單容器 -->
+          <div id="cs-tickets-container" class="tickets-container">
+            <div class="cs-loading-state">
+              <div class="cs-bubble-spinner">🌊</div>
+              <p>正在載入您的客服紀錄...</p>
+            </div>
+          </div>
+        </section>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- 提示 Toast 訊息 -->
+  <div id="cs-toast" class="cs-toast" style="display: none;"></div>
+
+  <script src="customer-service.js"></script>
+</body>
+
+</html>

@@ -51,6 +51,12 @@
           ">
         ⚠️ 檢舉處理
       </li>
+      <li onclick="
+            switchAdminTab('customer-service');
+            toggleSidebarIfMobile();
+          ">
+        💬 客服問題管理
+      </li>
     </ul>
     <div class="sidebar-footer">
       <button class="btn-return" onclick="window.location.href = 'test.html'">
@@ -113,6 +119,13 @@
               <p id="stat-reports">5</p>
             </div>
           </div>
+          <div class="stat-card">
+            <div class="stat-icon" style="background: #eff6ff; color: #0284c7">💬</div>
+            <div class="stat-info">
+              <h3>待處理客服</h3>
+              <p id="stat-cs-pending">載入中...</p>
+            </div>
+          </div>
         </div>
 
         <!-- 📈 第一列圖表 (寬版圖表：折線圖 / 長條圖) -->
@@ -137,6 +150,25 @@
 
             <div style="position: relative; height: 300px; width: 100%;">
               <canvas id="trendChart"></canvas>
+            </div>
+          </div>
+
+          <!-- 💬 客服案件趨勢圖 (折線圖：總案件數 & 待處理案件數) -->
+          <div class="modern-card" style="padding: 24px; box-sizing: border-box;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+              <h3 style="margin: 0; font-size: 1.1rem; color: #1f2937;">💬 客服案件趨勢</h3>
+
+              <select id="cs-trend-time-filter" onchange="changeCsTrendTimeRange(this.value)"
+                style="padding: 6px 12px; border: 1px solid #cbd5e1; border-radius: 20px; outline: none; font-weight: 600; color: #475569; background: #f8fafc; cursor: pointer;">
+                <option value="7">最近 7 天</option>
+                <option value="30">最近 1 個月</option>
+                <option value="180">最近半年</option>
+                <option value="365">最近一年</option>
+              </select>
+            </div>
+
+            <div style="position: relative; height: 300px; width: 100%;">
+              <canvas id="csTrendChart"></canvas>
             </div>
           </div>
 
@@ -384,7 +416,139 @@
           <div id="reports-pagination" class="pagination-container"></div>
         </div>
       </div>
+
+      <!-- 💬 客服問題管理面板 -->
+      <div id="section-customer-service" class="admin-section" style="display: none">
+        <div class="modern-card">
+          <div class="card-header"
+            style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+            <div style="display: flex; align-items: center; gap: 15px;">
+              <h3 style="margin: 0; color: #0284c7;">💬 客服問題與意見管理</h3>
+              <span id="cs-pending-count-badge" class="badge"
+                style="background:#fef9c3; color:#854d0e; border:1px solid #fde047; font-weight: bold;">0 件待處理</span>
+            </div>
+
+            <input type="text" id="search-cs" placeholder="🔍 搜尋 ID、提問者、主旨或內容..." style="
+                  padding: 8px 12px;
+                  border: 1px solid #ccc;
+                  border-radius: 6px;
+                  width: 100%;
+                  max-width: 300px;
+                " oninput="filterCustomerServices()" />
+          </div>
+
+          <div class="filter-columns"
+            style="padding: 12px 24px; background: #ffffff; border-bottom: 1px solid var(--border-light); display: flex; gap: 10px; flex-wrap: wrap; align-items: center;">
+            <span style="font-size: 0.9rem; font-weight: 600; color: #64748b; margin-right: 5px;">📂 案件狀態：</span>
+            <button id="filter-cs-all" class="btn-action"
+              style="background:#3b82f6; color:#fff; border: 1px solid #3b82f6; border-radius: 20px; padding: 4px 12px;"
+              onclick="filterCsByStatus('all')">全部</button>
+            <button id="filter-cs-0" class="btn-action"
+              style="background:#f8fafc; color:#64748b; border: 1px solid #e2e8f0; border-radius: 20px; padding: 4px 12px;"
+              onclick="filterCsByStatus(0)">⏳ 待處理</button>
+            <button id="filter-cs-1" class="btn-action"
+              style="background:#f8fafc; color:#64748b; border: 1px solid #e2e8f0; border-radius: 20px; padding: 4px 12px;"
+              onclick="filterCsByStatus(1)">⚙️ 處理中</button>
+            <button id="filter-cs-2" class="btn-action"
+              style="background:#f8fafc; color:#64748b; border: 1px solid #e2e8f0; border-radius: 20px; padding: 4px 12px;"
+              onclick="filterCsByStatus(2)">✅ 已結案 / 已回覆</button>
+
+            <button id="sort-cs-btn" class="btn-action"
+              style="margin-left: auto; padding: 6px 12px; border: 1px solid #cbd5e1; border-radius: 20px; outline: none; font-weight: 600; color: #475569; background: #f8fafc; cursor: pointer;"
+              onclick="toggleCustomerServiceSort()">⏳ 由新到舊 ⬇️</button>
+          </div>
+
+          <div class="table-responsive">
+            <table class="modern-table">
+              <thead>
+                <tr>
+                  <th>案件 ID</th>
+                  <th>提問會員</th>
+                  <th>問題主旨</th>
+                  <th>提交時間</th>
+                  <th>案件狀態</th>
+                  <th>回覆狀況</th>
+                  <th>操作</th>
+                </tr>
+              </thead>
+              <tbody id="admin-cs-body"></tbody>
+            </table>
+          </div>
+          <div id="cs-pagination" class="pagination-container"></div>
+        </div>
+      </div>
   </main>
+
+  <!-- 客服詳細與回覆彈窗 -->
+  <div id="cs-reply-modal" class="admin-modal-overlay" style="display: none; z-index: 10002;">
+    <div class="admin-modal-content" style="max-width: 650px; padding: 28px; border-radius: 20px;">
+      <span class="close-admin-modal" onclick="closeCsReplyModal()">&times;</span>
+      
+      <div style="border-bottom: 2px solid #e2e8f0; padding-bottom: 14px; margin-bottom: 18px;">
+        <div style="display: flex; align-items: center; justify-content: space-between; gap: 10px;">
+          <h3 id="cs-modal-title" style="margin: 0; font-size: 1.3rem; color: #1e293b;">💬 客服案件詳情</h3>
+          <span id="cs-modal-status-badge"></span>
+        </div>
+        <div id="cs-modal-user-info" style="font-size: 0.9rem; color: #64748b; margin-top: 8px;"></div>
+      </div>
+
+      <div style="margin-bottom: 20px;">
+        <label style="font-weight: 700; color: #334155; display: block; margin-bottom: 8px;">📝 會員提問內容：</label>
+        <div id="cs-modal-message-box" style="background: #f8fafc; border: 1.5px solid #e2e8f0; border-radius: 12px; padding: 16px; font-size: 0.98rem; color: #1e293b; line-height: 1.7; white-space: pre-wrap; max-height: 180px; overflow-y: auto;"></div>
+      </div>
+
+      <div style="margin-bottom: 20px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+          <label for="cs-reply-textarea" style="font-weight: 700; color: #0284c7;">🐟 管理員回覆內容：</label>
+          <span style="font-size: 0.8rem; color: #10b981; font-weight: 600;">✨ 送出後將自動推播通知給會員</span>
+        </div>
+        <textarea id="cs-reply-textarea" rows="5" placeholder="請輸入回覆內容..." style="width: 100%; box-sizing: border-box; padding: 14px; border: 2px solid #cbd5e1; border-radius: 12px; font-size: 0.98rem; outline: none; line-height: 1.6; font-family: inherit; transition: 0.2s;" onfocus="this.style.borderColor='#0284c7';"></textarea>
+      </div>
+
+      <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <label style="font-size: 0.9rem; font-weight: 600; color: #475569;">回覆後將狀態設為：</label>
+          <select id="cs-reply-status-select" style="padding: 6px 12px; border: 1.5px solid #cbd5e1; border-radius: 8px; font-weight: 600; color: #334155; outline: none;">
+            <option value="2" selected>✅ 已結案 / 已回覆</option>
+            <option value="1">⚙️ 處理中</option>
+            <option value="0">⏳ 待處理</option>
+          </select>
+        </div>
+
+        <div style="display: flex; gap: 10px;">
+          <button class="btn-action btn-secondary" onclick="closeCsReplyModal()">取消</button>
+          <button id="btn-submit-cs-reply" class="btn-action" style="background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%); color: #fff; border: none; font-weight: 800;" onclick="submitCsReply()">🚀 確認回覆並發送通知</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 客服快速切換狀態彈窗 -->
+  <div id="cs-status-modal" class="admin-modal-overlay" style="display: none; z-index: 10002;">
+    <div class="admin-modal-content" style="max-width: 350px; text-align: center; padding: 25px; border-radius: 20px;">
+      <span class="close-admin-modal" onclick="closeCsStatusModal()">&times;</span>
+      <h3 style="margin-bottom: 8px; color: #1e293b;">🔄 更改客服案件狀態</h3>
+      <p id="cs-status-modal-ticket-id" style="color: #64748b; margin-bottom: 20px; font-weight: 500;">案件 #</p>
+
+      <div style="display: flex; flex-direction: column; gap: 12px;">
+        <button class="btn-action"
+          style="background:#fef9c3; color:#854d0e; border:1px solid #fde047; padding: 12px; font-size: 1rem; border-radius: 10px; font-weight: bold;"
+          onclick="confirmChangeCsStatus(0)">
+          ⏳ 待處理 (PENDING)
+        </button>
+        <button class="btn-action"
+          style="background:#f1f5f9; color:#475569; border:1px solid #cbd5e1; padding: 12px; font-size: 1rem; border-radius: 10px; font-weight: bold;"
+          onclick="confirmChangeCsStatus(1)">
+          ⚙️ 處理中 (IN_PROGRESS)
+        </button>
+        <button class="btn-action"
+          style="background:#dcfce7; color:#166534; border:1px solid #86efac; padding: 12px; font-size: 1rem; border-radius: 10px; font-weight: bold;"
+          onclick="confirmChangeCsStatus(2)">
+          ✅ 已結案 / 已回覆 (RESOLVED)
+        </button>
+      </div>
+    </div>
+  </div>
 
   <div id="admin-modal" class="admin-modal-overlay" style="display: none">
     <div class="admin-modal-content">

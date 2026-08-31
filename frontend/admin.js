@@ -143,6 +143,7 @@ window.switchAdminTab = function (tabName) {
     else if (tabName === 'users') { titleEl.innerText = "管理使用者"; loadUsers(); }
     else if (tabName === 'bottles') { titleEl.innerText = "漂流瓶審核"; loadBottles(); }
     else if (tabName === 'reports') { titleEl.innerText = "檢舉處理"; loadReports(); }
+    else if (tabName === 'customer-service') { titleEl.innerText = "客服問題管理"; loadCustomerServices(); }
 }
 
 // ==========================================
@@ -153,33 +154,43 @@ let myZodiacChart = null;
 let myGenderChart = null;
 let myBottleGenderChart = null; // 🌟 新增發文者性別圖表變數
 let myTrendChart = null;
+let myCsTrendChart = null; // 🌟 新增客服案件趨勢圖表變數
 let myCommentTypeChart = null; // 🌟 新增留言類型圖表變數
 window._dashboardBottles = []; // 🌟 新增：用來暫存文章資料，切換時間時就不用重新打 API
-let myCommentGenderChart = null; // 🌟 新增：留言男女圖表變數s
+window._dashboardCs = []; // 🌟 新增：用來暫存客服資料，供切換趨勢圖時間使用
+let myCommentGenderChart = null; // 🌟 新增：留言男女圖表變數
 
 async function loadDashboardData() {
     const token = localStorage.getItem("authToken");
     try {
-        const [usersRes, bottlesRes, commentsRes] = await Promise.all([
+        const [usersRes, bottlesRes, commentsRes, csRes] = await Promise.all([
             fetch(`${API_BASE_URL}/admin/members`, { headers: { 'Authorization': `Bearer ${token}`, 'ngrok-skip-browser-warning': 'true' } }),
             fetch(`${API_BASE_URL}/admin/bottles`, { headers: { 'Authorization': `Bearer ${token}`, 'ngrok-skip-browser-warning': 'true' } }),
-            fetch(`${API_BASE_URL}/admin/comments`, { headers: { 'Authorization': `Bearer ${token}`, 'ngrok-skip-browser-warning': 'true' } }).catch(() => null)
+            fetch(`${API_BASE_URL}/admin/comments`, { headers: { 'Authorization': `Bearer ${token}`, 'ngrok-skip-browser-warning': 'true' } }).catch(() => null),
+            fetch(`${API_BASE_URL}/admin/customer-services`, { headers: { 'Authorization': `Bearer ${token}`, 'ngrok-skip-browser-warning': 'true' } }).catch(() => null)
         ]);
 
         const usersData = await usersRes.json();
         const bottlesData = await bottlesRes.json();
         const commentsData = commentsRes ? await commentsRes.json() : [];
+        const csData = csRes ? await csRes.json() : [];
 
         const users = usersData.data || usersData || [];
         const bottles = bottlesData.data || bottlesData.bottles || bottlesData || [];
         const comments = commentsData.data || commentsData || []; 
+        const customerServices = csData.data || csData || [];
 
         // 1. 更新頂部卡片數字
         document.getElementById('stat-users').innerText = users.length;
         document.getElementById('stat-bottles').innerText = bottles.length;
 
-        // 2. 🌟 將文章資料存入全域變數，供切換時間範圍時使用
+        const pendingCsCount = customerServices.filter(cs => Number(cs.status || 0) === 0).length;
+        const statCsPendingEl = document.getElementById('stat-cs-pending');
+        if (statCsPendingEl) statCsPendingEl.innerText = pendingCsCount;
+
+        // 2. 🌟 將文章與客服資料存入全域變數，供切換時間範圍時使用
         window._dashboardBottles = bottles;
+        window._dashboardCs = customerServices;
 
         // --- 準備資料變數 ---
         let angry = 0, secret = 0, broken = 0, apathy = 0, happy = 0;
@@ -259,7 +270,8 @@ async function loadDashboardData() {
         });
 
         // --- 繪製所有圖表 ---
-        changeTrendTimeRange('7'); // 畫趨勢圖
+        changeTrendTimeRange('7'); // 畫發文趨勢圖
+        changeCsTrendTimeRange('7'); // 畫客服案件趨勢圖
         drawDoughnutChart([angry, secret, broken, apathy, happy]);
         drawZodiacChart(Object.keys(zodiacCounts), Object.values(zodiacCounts));
         drawGenderChart([maleCount, femaleCount, otherCount]);
@@ -332,7 +344,137 @@ window.changeTrendTimeRange = function(rangeValue) {
 
     // 重新繪製折線圖
     drawTrendChart(trendLabels, Object.values(trendCounts));
+};
+
+// 🌟 新增：繪製客服案件折線圖 (總案件數 vs 未處理案件數)
+function drawCsTrendChart(labels, totalDataArray, pendingDataArray) {
+    const ctx = document.getElementById('csTrendChart');
+    if (!ctx) return;
+    if (myCsTrendChart) myCsTrendChart.destroy();
+    myCsTrendChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [
+                {
+                    label: '💬 客服總案件數',
+                    data: totalDataArray,
+                    borderColor: '#0284c7',
+                    backgroundColor: 'rgba(2, 132, 199, 0.12)',
+                    borderWidth: 3,
+                    tension: 0.35,
+                    fill: true,
+                    pointBackgroundColor: '#ffffff',
+                    pointBorderColor: '#0284c7',
+                    pointBorderWidth: 2,
+                    pointRadius: 4,
+                    pointHoverRadius: 6
+                },
+                {
+                    label: '⏳ 未處理案件數',
+                    data: pendingDataArray,
+                    borderColor: '#eab308',
+                    backgroundColor: 'rgba(234, 179, 8, 0.1)',
+                    borderWidth: 2.5,
+                    borderDash: [5, 5],
+                    tension: 0.35,
+                    fill: false,
+                    pointBackgroundColor: '#ffffff',
+                    pointBorderColor: '#eab308',
+                    pointBorderWidth: 2,
+                    pointRadius: 4,
+                    pointHoverRadius: 6
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: true,
+                    position: 'top',
+                    labels: {
+                        boxWidth: 14,
+                        font: { size: 12, weight: 'bold' },
+                        color: '#334155'
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: { precision: 0, color: '#64748b' },
+                    grid: { color: '#f1f5f9' }
+                },
+                x: {
+                    ticks: { color: '#64748b' },
+                    grid: { display: false }
+                }
+            }
+        }
+    });
 }
+
+// 🌟 新增：動態切換客服案件趨勢時間範圍
+window.changeCsTrendTimeRange = function(rangeValue) {
+    const csList = window._dashboardCs || [];
+    const trendLabels = [];
+    const totalCounts = {};
+    const pendingCounts = {};
+    const days = parseInt(rangeValue);
+
+    if (days === 7 || days === 30) {
+        // 📅 短期統計：以「天」為單位
+        for (let i = days - 1; i >= 0; i--) {
+            let d = new Date();
+            d.setDate(d.getDate() - i);
+            let dateStr = `${d.getMonth() + 1}/${d.getDate()}`;
+            trendLabels.push(dateStr);
+            totalCounts[dateStr] = 0;
+            pendingCounts[dateStr] = 0;
+        }
+
+        csList.forEach(cs => {
+            if (cs.created_at) {
+                let csDate = new Date(cs.created_at);
+                let csDateStr = `${csDate.getMonth() + 1}/${csDate.getDate()}`;
+                if (totalCounts[csDateStr] !== undefined) {
+                    totalCounts[csDateStr]++;
+                    if (Number(cs.status || 0) === 0) {
+                        pendingCounts[csDateStr]++;
+                    }
+                }
+            }
+        });
+    } else {
+        // 🗓️ 長期統計：以「月」為單位 (半年=6個月, 一年=12個月)
+        const months = days === 180 ? 6 : 12;
+        for (let i = months - 1; i >= 0; i--) {
+            let d = new Date();
+            d.setMonth(d.getMonth() - i);
+            let monthStr = `${d.getFullYear()}/${String(d.getMonth() + 1).padStart(2, '0')}`;
+            trendLabels.push(monthStr);
+            totalCounts[monthStr] = 0;
+            pendingCounts[monthStr] = 0;
+        }
+
+        csList.forEach(cs => {
+            if (cs.created_at) {
+                let csDate = new Date(cs.created_at);
+                let monthStr = `${csDate.getFullYear()}/${String(csDate.getMonth() + 1).padStart(2, '0')}`;
+                if (totalCounts[monthStr] !== undefined) {
+                    totalCounts[monthStr]++;
+                    if (Number(cs.status || 0) === 0) {
+                        pendingCounts[monthStr]++;
+                    }
+                }
+            }
+        });
+    }
+
+    drawCsTrendChart(trendLabels, Object.values(totalCounts), Object.values(pendingCounts));
+};
 
 function drawDoughnutChart(dataArray) {
     const ctx = document.getElementById('categoryChart');
@@ -1017,3 +1159,339 @@ window.banReportedBottle = async function (bottleId) {
         } else { const err = await response.json(); alert(`下架失敗: ${err.message}`); }
     } catch (e) { alert("伺服器連線失敗"); }
 }
+
+// ==========================================
+// 8. 客服問題與意見回饋管理 (Customer Service)
+// ==========================================
+window._allCustomerServices = [];
+window._filteredCsCache = [];
+window._currentCsStatusFilter = 'all';
+window._currentCsPage = 1;
+window._csSortOrder = 'desc'; // 'desc' (由新到舊) 或 'asc' (由舊到新)
+window._activeCsTicketId = null;
+
+window.toggleCustomerServiceSort = function () {
+    window._csSortOrder = window._csSortOrder === 'desc' ? 'asc' : 'desc';
+    const btn = document.getElementById('sort-cs-btn');
+    if (btn) {
+        btn.innerHTML = window._csSortOrder === 'desc' ? '⏳ 由新到舊 ⬇️' : '⏳ 由舊到新 ⬆️';
+    }
+    filterCustomerServices();
+};
+
+window.updateDashboardCsCount = function () {
+    if (!window._allCustomerServices) return;
+    const pendingCount = window._allCustomerServices.filter(cs => Number(cs.status || 0) === 0).length;
+    const badge = document.getElementById('cs-pending-count-badge');
+    if (badge) {
+        badge.innerText = `${pendingCount} 件待處理`;
+        badge.style.display = pendingCount > 0 ? 'inline-block' : 'none';
+    }
+};
+
+window.loadCustomerServices = async function () {
+    const tbody = document.getElementById('admin-cs-body');
+    const token = localStorage.getItem("authToken");
+    if (!tbody) return;
+    tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;">讀取客服資料中...</td></tr>`;
+
+    try {
+        const response = await fetch(`${API_BASE_URL}/admin/customer-services`, {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'ngrok-skip-browser-warning': 'true'
+            }
+        });
+        if (!response.ok) throw new Error();
+        const resData = await response.json();
+        window._allCustomerServices = resData.data || resData || [];
+        updateDashboardCsCount();
+        filterCustomerServices();
+    } catch (e) {
+        console.error("載入客服紀錄失敗:", e);
+        tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; color:red;">無法載入客服紀錄</td></tr>`;
+    }
+};
+
+window.filterCsByStatus = function (status) {
+    window._currentCsStatusFilter = status;
+    const btnKeys = ['all', 0, 1, 2];
+    btnKeys.forEach(key => {
+        const el = document.getElementById('filter-cs-' + key);
+        if (!el) return;
+        if (String(key) === String(status)) {
+            el.style.background = '#3b82f6';
+            el.style.color = '#fff';
+            el.style.borderColor = '#3b82f6';
+        } else {
+            el.style.background = '#f8fafc';
+            el.style.color = '#64748b';
+            el.style.borderColor = '#e2e8f0';
+        }
+    });
+    filterCustomerServices();
+};
+
+window.filterCustomerServices = function () {
+    const keyword = document.getElementById('search-cs')?.value.toLowerCase().trim() || '';
+
+    window._filteredCsCache = window._allCustomerServices.filter(cs => {
+        const id = String(cs.id || '');
+        const title = String(cs.title || '').toLowerCase();
+        const message = String(cs.message || '').toLowerCase();
+        const reply = String(cs.reply || '').toLowerCase();
+        const memberName = String(cs.member?.name || cs.member_name || '').toLowerCase();
+        const memberEmail = String(cs.member?.email || cs.email || '').toLowerCase();
+
+        const matchKeyword = id.includes(keyword) ||
+                             title.includes(keyword) ||
+                             message.includes(keyword) ||
+                             reply.includes(keyword) ||
+                             memberName.includes(keyword) ||
+                             memberEmail.includes(keyword);
+
+        let matchStatus = true;
+        if (window._currentCsStatusFilter !== 'all') {
+            matchStatus = (Number(cs.status || 0) === Number(window._currentCsStatusFilter));
+        }
+
+        return matchKeyword && matchStatus;
+    });
+
+    window._filteredCsCache.sort((a, b) => {
+        const timeA = getItemTimestamp(a, 'id');
+        const timeB = getItemTimestamp(b, 'id');
+        return window._csSortOrder === 'asc' ? timeA - timeB : timeB - timeA;
+    });
+
+    window._currentCsPage = 1;
+    applyCsPagination();
+};
+
+window.changeCsPage = function (newPage) {
+    window._currentCsPage = newPage;
+    applyCsPagination();
+};
+
+function applyCsPagination() {
+    const startIndex = (window._currentCsPage - 1) * PAGE_SIZE;
+    const endIndex = startIndex + PAGE_SIZE;
+    const pagedData = window._filteredCsCache.slice(startIndex, endIndex);
+
+    renderCustomerServices(pagedData);
+    renderPagination(window._filteredCsCache.length, window._currentCsPage, 'cs-pagination', 'changeCsPage');
+}
+
+function renderCustomerServices(tickets) {
+    const tbody = document.getElementById('admin-cs-body');
+    if (!tbody) return;
+
+    if (tickets.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="7"><div class="empty-state"><span class="empty-icon">☕</span><p>目前沒有符合條件的客服案件唷！</p></div></td></tr>`;
+        return;
+    }
+
+    tbody.innerHTML = tickets.map(ticket => {
+        const id = ticket.id;
+        const member = ticket.member || {};
+        const memberDisplayName = member.name || ticket.member_name || `會員 #${ticket.member_id}`;
+        const memberEmail = member.email || ticket.email || '';
+        const date = ticket.created_at ? new Date(ticket.created_at).toLocaleString("zh-TW") : '未知';
+        const statusNum = Number(ticket.status || 0);
+
+        let statusBadge = "";
+        if (statusNum === 0) {
+            statusBadge = `<span class="badge" style="background:#fef9c3; color:#854d0e; border:1px solid #fde047;">⏳ 待處理</span>`;
+        } else if (statusNum === 1) {
+            statusBadge = `<span class="badge" style="background:#f1f5f9; color:#475569; border:1px solid #cbd5e1;">⚙️ 處理中</span>`;
+        } else {
+            statusBadge = `<span class="badge" style="background:#dcfce7; color:#166534; border:1px solid #86efac;">✅ 已結案</span>`;
+        }
+
+        const hasReply = Boolean(ticket.reply && ticket.reply.trim());
+        const replyBadge = hasReply
+            ? `<span class="badge" style="background:#ecfeff; color:#0891b2; border:1px solid #a5f3fc;" title="${escapeHTML(ticket.reply)}">💬 已有回覆</span>`
+            : `<span class="badge" style="background:#fff1f2; color:#e11d48; border:1px solid #fecdd3;">❌ 尚未回覆</span>`;
+
+        const rowBg = statusNum === 0 ? '#ffffff' : '#f8fafc';
+
+        return `
+        <tr style="background: ${rowBg}; transition: 0.25s;">
+            <td data-label="案件 ID" style="color: #64748b; font-weight: 700;">#${id}</td>
+            <td data-label="提問會員">
+                <div style="font-weight: 600; color: #1e293b;">${escapeHTML(memberDisplayName)}</div>
+                ${memberEmail ? `<div style="font-size: 0.8rem; color: #94a3b8;">${escapeHTML(memberEmail)}</div>` : ''}
+            </td>
+            <td data-label="問題主旨" style="min-width: 200px; max-width: 320px;">
+                <div style="font-weight: 600; color: #0f172a; line-height: 1.4; word-break: break-word;">${escapeHTML(ticket.title)}</div>
+                <div style="font-size: 0.82rem; color: #64748b; margin-top: 4px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">${escapeHTML(ticket.message)}</div>
+            </td>
+            <td data-label="提交時間" style="color: #64748b; font-size: 0.85rem; white-space: nowrap;">${date}</td>
+            <td data-label="案件狀態">${statusBadge}</td>
+            <td data-label="回覆狀況">${replyBadge}</td>
+            <td data-label="操作" style="white-space: nowrap;">
+                <button class="btn-action btn-primary" onclick="openCsReplyModal(${id})">${hasReply ? '查看 / 重覆' : '💬 回覆'}</button>
+                <button class="btn-action" style="margin-left: 5px; background: #e0f2fe; color: #0284c7; border: 1px solid #bae6fd;" onclick="openCsStatusModal(${id})">🔄 狀態</button>
+                <button class="btn-action btn-danger" style="margin-left: 5px;" onclick="deleteCustomerServiceAsAdmin(${id})">刪除</button>
+            </td>
+        </tr>
+        `;
+    }).join('');
+}
+
+// 彈窗 1：回覆客服案件
+window.openCsReplyModal = function (ticketId) {
+    const ticket = window._allCustomerServices.find(t => Number(t.id) === Number(ticketId));
+    if (!ticket) return;
+
+    window._activeCsTicketId = ticketId;
+
+    const member = ticket.member || {};
+    const memberName = member.name || ticket.member_name || `會員 #${ticket.member_id}`;
+    const memberEmail = member.email || ticket.email || '無提供';
+    const date = ticket.created_at ? new Date(ticket.created_at).toLocaleString("zh-TW") : '未知';
+
+    document.getElementById('cs-modal-title').innerText = `💬 案件 #${ticket.id}：${ticket.title}`;
+
+    const statusNum = Number(ticket.status || 0);
+    let statusText = statusNum === 0 ? "⏳ 待處理" : statusNum === 1 ? "⚙️ 處理中" : "✅ 已結案";
+    let statusColor = statusNum === 0 ? "#854d0e" : statusNum === 1 ? "#475569" : "#166534";
+    let statusBg = statusNum === 0 ? "#fef9c3" : statusNum === 1 ? "#f1f5f9" : "#dcfce7";
+    document.getElementById('cs-modal-status-badge').innerHTML = `<span class="badge" style="background:${statusBg}; color:${statusColor}; font-weight:bold;">${statusText}</span>`;
+
+    document.getElementById('cs-modal-user-info').innerText = `👤 提問者：${memberName} (${memberEmail}) ｜ 📅 提交時間：${date}`;
+    document.getElementById('cs-modal-message-box').innerText = ticket.message || '（無內容）';
+
+    const replyTextarea = document.getElementById('cs-reply-textarea');
+    replyTextarea.value = ticket.reply || '';
+
+    const statusSelect = document.getElementById('cs-reply-status-select');
+    statusSelect.value = ticket.reply ? String(ticket.status || 2) : "2";
+
+    document.getElementById('cs-reply-modal').style.display = 'flex';
+    replyTextarea.focus();
+};
+
+window.closeCsReplyModal = function () {
+    const modal = document.getElementById('cs-reply-modal');
+    if (modal) modal.style.display = 'none';
+    window._activeCsTicketId = null;
+};
+
+window.submitCsReply = async function () {
+    if (!window._activeCsTicketId) return;
+
+    const reply = document.getElementById('cs-reply-textarea').value.trim();
+    const status = Number(document.getElementById('cs-reply-status-select').value);
+
+    if (!reply) {
+        alert("請輸入回覆內容！");
+        document.getElementById('cs-reply-textarea').focus();
+        return;
+    }
+
+    const btn = document.getElementById('btn-submit-cs-reply');
+    btn.disabled = true;
+    btn.innerText = "傳送中...";
+
+    try {
+        const token = localStorage.getItem("authToken");
+        const response = await fetch(`${API_BASE_URL}/admin/customer-services/${window._activeCsTicketId}/reply`, {
+            method: 'PUT',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json',
+                'ngrok-skip-browser-warning': 'true'
+            },
+            body: JSON.stringify({ reply, status })
+        });
+
+        const res = await response.json();
+
+        if (response.ok) {
+            alert("🎉 回覆成功！系統已同步發送通知至會員通知中心。");
+            closeCsReplyModal();
+            loadCustomerServices(); // 重新拉取最新資料
+        } else {
+            alert("回覆失敗：" + (res.message || "伺服器錯誤"));
+        }
+    } catch (e) {
+        console.error("回覆失敗:", e);
+        alert("連線伺服器失敗，請稍後再試！");
+    } finally {
+        btn.disabled = false;
+        btn.innerText = "🚀 確認回覆並發送通知";
+    }
+};
+
+// 彈窗 2：快速更改客服案件狀態
+window.openCsStatusModal = function (ticketId) {
+    window._activeCsTicketId = ticketId;
+    document.getElementById('cs-status-modal-ticket-id').innerText = `正在修改案件 #${ticketId} 的處理狀態`;
+    document.getElementById('cs-status-modal').style.display = 'flex';
+};
+
+window.closeCsStatusModal = function () {
+    const modal = document.getElementById('cs-status-modal');
+    if (modal) modal.style.display = 'none';
+    window._activeCsTicketId = null;
+};
+
+window.confirmChangeCsStatus = async function (statusNum) {
+    if (!window._activeCsTicketId) return;
+
+    try {
+        const token = localStorage.getItem("authToken");
+        const response = await fetch(`${API_BASE_URL}/admin/customer-services/${window._activeCsTicketId}/status`, {
+            method: 'PUT',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json',
+                'ngrok-skip-browser-warning': 'true'
+            },
+            body: JSON.stringify({ status: statusNum })
+        });
+
+        if (response.ok) {
+            alert("✅ 案件狀態已成功更新！");
+            closeCsStatusModal();
+            loadCustomerServices();
+        } else {
+            const err = await response.json();
+            alert("更新狀態失敗：" + (err.message || "未知錯誤"));
+        }
+    } catch (e) {
+        console.error("更新狀態連線失敗:", e);
+        alert("連線伺服器失敗！");
+    }
+};
+
+// 刪除客服案件
+window.deleteCustomerServiceAsAdmin = async function (ticketId) {
+    if (!confirm(`⚠️ 確定要刪除客服案件 #${ticketId} 嗎？此操作無法復原！`)) return;
+
+    try {
+        const token = localStorage.getItem("authToken");
+        const response = await fetch(`${API_BASE_URL}/admin/customer-services/${ticketId}`, {
+            method: 'DELETE',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'ngrok-skip-browser-warning': 'true'
+            }
+        });
+
+        if (response.ok) {
+            alert("🗑️ 客服案件已成功刪除！");
+            window._allCustomerServices = window._allCustomerServices.filter(t => Number(t.id) !== Number(ticketId));
+            filterCustomerServices();
+            updateDashboardCsCount();
+        } else {
+            const err = await response.json();
+            alert("刪除失敗：" + (err.message || "未知錯誤"));
+        }
+    } catch (e) {
+        console.error("刪除案件失敗:", e);
+        alert("連線伺服器失敗！");
+    }
+};
+

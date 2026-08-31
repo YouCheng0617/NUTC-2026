@@ -250,24 +250,25 @@ html {
 }
 
 /* =======================================================
-   數據總覽卡片
+   數據總覽卡片 (5 個數據卡片同一排)
 ======================================================= */
 .stats-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-  gap: 24px;
-  margin-bottom: 32px;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 16px;
+  margin-bottom: 28px;
 }
 
 .stat-card {
   background: var(--bg-card);
-  padding: 24px;
+  padding: 16px 18px;
   border-radius: var(--border-radius);
   box-shadow: var(--shadow-sm);
   border: 1px solid var(--border-light);
   display: flex;
   align-items: center;
-  gap: 20px;
+  gap: 14px;
+  min-width: 0;
   transition: 0.2s;
 }
 
@@ -277,27 +278,37 @@ html {
 }
 
 .stat-icon {
-  width: 56px;
-  height: 56px;
-  border-radius: 16px;
+  width: 46px;
+  height: 46px;
+  border-radius: 12px;
   display: flex;
   justify-content: center;
   align-items: center;
-  font-size: 1.5rem;
+  font-size: 1.3rem;
+  flex-shrink: 0;
+}
+
+.stat-info {
+  min-width: 0;
 }
 
 .stat-info h3 {
   margin: 0 0 4px 0;
   color: var(--text-muted);
-  font-size: 0.9rem;
-  font-weight: 500;
+  font-size: 0.85rem;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .stat-info p {
   margin: 0;
-  font-size: 1.8rem;
-  font-weight: 700;
+  font-size: 1.45rem;
+  font-weight: 800;
   color: var(--text-main);
+  line-height: 1.2;
+}
 }
 
 /* 解除 overflow: hidden，讓選單可以掉出卡片外 */
@@ -752,6 +763,86 @@ html {
     color: var(--text-muted);
   }
 
+  /* 💬 客服管理表格轉手機卡片 */
+  #section-customer-service td:nth-child(1)::before {
+    content: "🆔 案件 ID";
+    font-weight: 600;
+    color: var(--text-muted);
+  }
+
+  #section-customer-service td:nth-child(2)::before {
+    content: "👤 提問會員";
+    font-weight: 600;
+    color: var(--text-muted);
+  }
+
+  #section-customer-service td:nth-child(3)::before {
+    content: "📝 問題主旨";
+    font-weight: 600;
+    color: var(--text-muted);
+  }
+
+  #section-customer-service td:nth-child(4)::before {
+    content: "⏰ 提交時間";
+    font-weight: 600;
+    color: var(--text-muted);
+  }
+
+  #section-customer-service td:nth-child(5)::before {
+    content: "🚦 案件狀態";
+    font-weight: 600;
+    color: var(--text-muted);
+  }
+
+  #section-customer-service td:nth-child(6)::before {
+    content: "💬 回覆狀況";
+    font-weight: 600;
+    color: var(--text-muted);
+  }
+
+  #section-customer-service td:nth-child(7)::before {
+    content: "⚙️ 項目操作";
+    font-weight: 600;
+    color: var(--text-muted);
+  }
+
+  /* ⚠️ 檢舉案件表格轉手機卡片 */
+  #section-reports td:nth-child(1)::before {
+    content: "🆔 文章 ID";
+    font-weight: 600;
+    color: var(--text-muted);
+  }
+
+  #section-reports td:nth-child(2)::before {
+    content: "⚠️ 檢舉內容";
+    font-weight: 600;
+    color: var(--text-muted);
+  }
+
+  #section-reports td:nth-child(3)::before {
+    content: "📋 檢舉原因";
+    font-weight: 600;
+    color: var(--text-muted);
+  }
+
+  #section-reports td:nth-child(4)::before {
+    content: "👤 檢舉者 ID";
+    font-weight: 600;
+    color: var(--text-muted);
+  }
+
+  #section-reports td:nth-child(5)::before {
+    content: "⏰ 檢舉時間";
+    font-weight: 600;
+    color: var(--text-muted);
+  }
+
+  #section-reports td:nth-child(6)::before {
+    content: "⚙️ 項目操作";
+    font-weight: 600;
+    color: var(--text-muted);
+  }
+
   .modern-table td:last-child {
     border-bottom: none !important;
   }
@@ -770,6 +861,17 @@ html {
 
   .profile-info {
     display: none;
+  }
+
+  .admin-modal-content {
+    padding: 20px 16px !important;
+    width: 92% !important;
+    max-height: 90vh !important;
+    overflow-y: auto !important;
+  }
+
+  .filter-columns {
+    padding: 10px 14px !important;
   }
 }
 /* =======================================================
