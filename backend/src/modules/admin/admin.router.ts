@@ -14,5 +14,14 @@ export function adminRouter() {
     router.delete("/members/:memberId/delete", authCheck, adminCheck, (req, res) => adminController.deleteMember(req, res));
     router.get("/bottles/reported", authCheck, adminCheck, (req: AuthRequest, res) => adminController.getReportedBottlesController(req, res));
     router.get("/comments", authCheck, adminCheck, (req, res) => adminController.getAllCommentsController(req, res));
+
+    // 🌟 客服後台管理
+    router.get("/customer-services", authCheck, adminCheck, (req, res) => adminController.getAllCustomerServices(req, res));
+    router.get("/customer-services/:id", authCheck, adminCheck, (req, res) => adminController.getCustomerServiceDetail(req, res));
+    router.put("/customer-services/:id/reply", authCheck, adminCheck, (req, res) => adminController.replyCustomerService(req, res));
+    router.put("/customer-services/reply", authCheck, adminCheck, (req, res) => adminController.replyCustomerService(req, res));
+    router.put("/customer-services/:id/status", authCheck, adminCheck, (req, res) => adminController.updateCustomerServiceStatus(req, res));
+    router.delete("/customer-services/:id", authCheck, adminCheck, (req, res) => adminController.deleteCustomerService(req, res));
+
     return router;
 }

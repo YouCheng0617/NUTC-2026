@@ -15,6 +15,8 @@ import { commentRouter } from './modules/comment/comment.router.js';
 import { gameRouter } from './modules/game/game.router.js';
 import { notificationRouter } from './modules/notification/notification.router.js';
 import { petGameRouter } from './socket/petGame.router.js';
+import { CSRouter } from './modules/customer-service/CS.router.js';
+
 
 import { setupPetSocket } from './socket/petServer.js';
 
@@ -47,6 +49,7 @@ app.use('/comments', commentRouter());
 app.use('/game', gameRouter());
 app.use('/notifications', notificationRouter());
 app.use('/pet-games', petGameRouter());
+app.use('/customer-service', CSRouter());
 if (!process.env["DATABASE_URL"]) {
     console.error("DATABASE_URL is not defined in env.");
 }
