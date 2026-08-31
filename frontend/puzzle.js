@@ -774,10 +774,10 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     });
   }
-<<<<<<< Updated upstream
+
 });
-=======
-});
+
+
 // 🐟 自動生成深海發光游魚群
 function createSwimmingFish() {
   const oceanBg = document.querySelector(".ocean-bg");
@@ -833,4 +833,4 @@ function createSwimmingFish() {
     fishLayer.appendChild(fishBox);
   });
 }
->>>>>>> Stashed changes
+
