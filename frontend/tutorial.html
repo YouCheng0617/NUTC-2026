@@ -48,8 +48,9 @@
   .tutorial-window {
     position: relative;
     z-index: 10; 
-    width: 1200px; 
-    height: 700px; 
+    /* 微調寬高，給長條形圖片更多上下延伸空間 */
+    width: 1150px; 
+    height: 720px; 
     background-color: rgba(15, 32, 55, 0.85); 
     backdrop-filter: blur(12px); 
     border: 1px solid rgba(255, 255, 255, 0.1);
@@ -113,17 +114,17 @@
   }
 
   .sub-sidebar {
-    width: 240px;
-    padding: 80px 15px 20px 25px;
+    width: 230px;
+    padding: 80px 15px 20px 20px;
     overflow-y: auto;
   }
   .sub-tab {
-    padding: 15px 20px;
+    padding: 14px 18px;
     margin-bottom: 12px;
     border-radius: 30px; 
     background-color: rgba(255, 255, 255, 0.05);
     color: #99aab5;
-    font-size: 16px;
+    font-size: 15px;
     font-weight: bold;
     cursor: pointer;
     transition: 0.2s;
@@ -138,7 +139,7 @@
 
   .content-area {
     flex: 1;
-    padding: 60px 40px 40px 30px;
+    padding: 50px 30px 30px 20px;
     display: flex;
     flex-direction: column;
     position: relative;
@@ -155,20 +156,44 @@
   .image-container {
     position: relative;
     flex: 1; 
-    margin: 0 20px; 
-    height: 450px; 
-    background-color: rgba(0, 0, 0, 0.5); 
-    border-radius: 15px;
+    margin: 0 15px; 
+    /* 拉高圖片展示區，讓長圖可以變更大 */
+    height: 480px; 
+    background-color: transparent; 
     display: flex;
     justify-content: center;
     align-items: center;
-    box-shadow: inset 0 0 20px rgba(0,0,0,0.8);
-    overflow: hidden; 
+    cursor: zoom-in; 
   }
+  
   .image-container img {
-    max-width: 100%;
-    max-height: 100%;
-    object-fit: contain;
+    width: 100%;
+    height: 100%;
+    object-fit: contain; 
+    filter: drop-shadow(0 8px 25px rgba(0,0,0,0.6)); 
+    transition: 0.2s;
+  }
+  .image-container:hover img {
+    transform: scale(1.02); 
+  }
+
+  .zoom-hint {
+    position: absolute;
+    right: 15px; bottom: 15px;
+    background: rgba(0,0,0,0.7);
+    color: #fff;
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 14px;
+    pointer-events: none; 
+    backdrop-filter: blur(4px);
+    opacity: 0.5;
+    transition: 0.3s;
+    letter-spacing: 1px;
+    z-index: 20;
+  }
+  .image-container:hover .zoom-hint {
+    opacity: 1;
   }
 
   .arrow {
@@ -189,36 +214,83 @@
 
   .dots-wrapper {
     position: absolute;
-    bottom: 15px;
+    bottom: -25px; 
     left: 50%;
     transform: translateX(-50%);
     display: flex;
     gap: 10px;
+    z-index: 5; 
   }
   .dot {
     width: 10px; height: 10px;
     border-radius: 50%;
-    background-color: rgba(255,255,255,0.3);
+    background-color: rgba(255,255,255,0.4);
+    box-shadow: 0 0 5px rgba(0,0,0,0.6); 
     transition: 0.3s;
   }
-  .dot.active { background-color: #5ab9ff; box-shadow: 0 0 8px #5ab9ff; }
+  .dot.active { background-color: #5ab9ff; box-shadow: 0 0 8px #5ab9ff, 0 0 5px rgba(0,0,0,0.6); }
 
-  .text-container { padding: 0 15px; }
+  .text-container { padding: 0 15px; margin-top: 15px; }
   .text-title {
-    font-size: 26px; 
+    font-size: 24px; 
     font-weight: bold;
     color: white;
-    margin: 0 0 15px 0;
+    margin: 0 0 10px 0;
   }
   .text-desc {
-    font-size: 17px; 
+    font-size: 16px; 
     color: #b0c4de; 
     line-height: 1.6;
     margin: 0;
   }
+
+  /* === 全螢幕放大圖片模態框 === */
+  .lightbox {
+    display: none; 
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background-color: rgba(0, 0, 0, 0.9);
+    z-index: 9999; 
+    justify-content: center;
+    align-items: center;
+    cursor: zoom-out;
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+  .lightbox.show {
+    display: flex;
+    opacity: 1;
+  }
+  
+  .lightbox img {
+    width: 100%;
+    height: 100%;
+    max-width: 90vw;
+    max-height: 90vh;
+    object-fit: contain;
+    filter: drop-shadow(0 0 25px rgba(255,255,255,0.15));
+  }
+  
+  .lightbox-close {
+    position: absolute;
+    top: 20px; right: 30px;
+    color: white;
+    font-size: 50px;
+    font-weight: bold;
+    cursor: pointer;
+    z-index: 10000;
+  }
+  .lightbox-close:hover { color: #5ab9ff; }
+
 </style>
 </head>
 <body>
+
+<!-- 全螢幕放大圖片區塊 -->
+<div class="lightbox" id="lightbox">
+  <span class="lightbox-close">&times;</span>
+  <img id="lightboxImg" src="" alt="放大圖片">
+</div>
 
 <div class="bubbles-container">
   <div class="bubble"></div>
@@ -246,8 +318,9 @@
     <div class="carousel-container">
       <button class="arrow arrow-left" id="prevBtn">◀</button>
       
-      <div class="image-container">
+      <div class="image-container" id="imgContainer">
         <img id="displayImage" src="" alt="指南圖片">
+        <div class="zoom-hint">🔍 點擊圖片放大</div>
         <div class="dots-wrapper" id="dotsWrapper"></div>
       </div>
       
@@ -264,6 +337,20 @@
 <script>
   document.getElementById('closeGuideBtn').onclick = () => {
     window.location.href = 'test.html'; 
+  };
+
+  // 全螢幕放大邏輯
+  const lightbox = document.getElementById('lightbox');
+  const lightboxImg = document.getElementById('lightboxImg');
+  const imgContainer = document.getElementById('imgContainer');
+  
+  imgContainer.onclick = () => {
+    lightboxImg.src = document.getElementById('displayImage').src;
+    lightbox.classList.add('show');
+  };
+  
+  lightbox.onclick = () => {
+    lightbox.classList.remove('show');
   };
 
   const tutorialData = {
@@ -283,7 +370,7 @@
           { img: "./images/notification.png", subtitle: "通知中心", desc: "通知小鈴鐺在右上方，點擊可查看最新通知喔！" }
         ]
       },
-    {
+      {
         title: "打造個人空間",
         slides: [
           { img: "./images/user_menu.png", subtitle: "檢視個人空間", desc: "點選右上角的暱稱，即可展開選單檢視個人空間，裡面包含個人資料、我的追蹤、網站設定等功能。" },
@@ -298,7 +385,7 @@
           { img: "./images/write_bottle.png", subtitle: "拋出你的心事", desc: "點擊「發文」，自由選擇貼文要拋向哪個海域，並隨時決定要以「實名」或「匿名」發布，讓海浪替你傳遞心聲。" }
         ]
       },
-     {
+      {
         title: "海流導航與社群",
         slides: [
           { img: "./images/hot_posts.png", subtitle: "熱門貼文", desc: "點擊可以在這裡看到最近大家都在討論的內容，是已被收藏人數排名的。" },
@@ -336,7 +423,6 @@
           { img: "./images/seahare_tasks.png", subtitle: "任務與裝扮", desc: "每天完成餵食等任務賺取積分，可至商城兌換背景特效。還能建立連線房間跟好友展示海兔！" }
         ]
       },
-      // === 重新拆解：今日塔羅瓶 (4張圖) ===
       {
         title: "今日塔羅瓶",
         slides: [
@@ -346,7 +432,6 @@
           { img: "./images/tarot_save.png", subtitle: "再問一次與收藏", desc: "解析結束後可點擊「再問一次」重新占卜，或點選「收藏此存檔」，隨時至右上角收藏庫回顧過往紀錄與測算時間。" }
         ]
       },
-      // === 重新拆解：突然想拼圖 (4張圖) ===
       {
         title: "突然想拼圖",
         slides: [
@@ -435,7 +520,7 @@
       prevBtn.style.cursor = currentSlideIndex === 0 ? 'default' : 'pointer';
       nextBtn.style.cursor = currentSlideIndex === slideData.length - 1 ? 'default' : 'pointer';
       prevBtn.style.opacity = '0.6';
-      nextBtn.style.opacity = '0.6';
+      prevBtn.style.opacity = '0.6';
     }
   }
 
