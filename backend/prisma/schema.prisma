@@ -74,6 +74,8 @@ model Member {
   puzzle_last_sign_in_date  DateTime? // 上次拼圖簽到日期
   puzzle_sign_in_streak     Int       @default(0) // 當前連續簽到天數 (1~30 循環)
   puzzle_total_sign_in_days Int       @default(0) // 累計簽到總天數
+
+  CustomerService CustomerService[]
 }
 
 model BlacklistedToken {
@@ -366,4 +368,17 @@ model MemberPicture {
 
   // 確保同一位會員對同一張圖片只會有一筆拼圖進度紀錄
   @@unique([member_id, picture_id])
+}
+
+model CustomerService {
+  id         Int      @id @default(autoincrement())
+  member_id  Int
+  title      String
+  message    String   @db.Text
+  status     Int      @default(0) // (0: 待處理, 1: 處理中, 2: 已回覆/結案)
+  created_at DateTime @default(now())
+  reply      String?  @db.Text // 管理員回覆內容 
+  updated_at DateTime @updatedAt // 最後更新時間
+
+  member Member @relation(fields: [member_id], references: [member_id], onDelete: Cascade)
 }
