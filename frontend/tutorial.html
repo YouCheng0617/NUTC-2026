@@ -5,24 +5,22 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>漂流指南 - 心情漂流瓶</title>
 <style>
-  /* === 基礎重置與深海漸層背景 === */
   body {
     background: linear-gradient(180deg, #044b7a 0%, #011322 100%);
     margin: 0;
-    min-height: 100vh; /* 修復：讓畫面不夠大時允許延展 */
+    min-height: 100vh; 
     display: flex;
     justify-content: center;
     align-items: center;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     color: #e0e0e0;
-    overflow-y: auto; /* 修復：允許上下捲動，避免畫面被切掉 */
+    overflow-y: auto; 
     position: relative;
-    padding: 20px 0; /* 修復：上下預留空間，避免視窗太貼邊 */
+    padding: 20px 0; 
   }
 
-  /* === 海底動態氣泡 (純 CSS 動畫) === */
   .bubbles-container {
-    position: fixed; /* 修復：改為 fixed，確保視窗上下捲動時泡泡依然佈滿螢幕 */
+    position: fixed; 
     top: 0; left: 0; width: 100%; height: 100%;
     z-index: 0;
     pointer-events: none; 
@@ -47,7 +45,6 @@
     100% { transform: translateY(-120vh) scale(1.2); opacity: 0; }
   }
 
-  /* === 導覽主體介面 === */
   .tutorial-window {
     position: relative;
     z-index: 10; 
@@ -62,7 +59,6 @@
     overflow: hidden;
   }
 
-  /* 關閉按鈕 (右上角 X) */
   .close-btn {
     position: absolute;
     top: 15px; right: 25px;
@@ -79,7 +75,6 @@
     transform: scale(1.1); 
   }
 
-  /* 左上角標題裝飾 */
   .tutorial-header {
     position: absolute;
     top: 20px; left: 25px;
@@ -91,7 +86,6 @@
   }
   .tutorial-header span { color: #5ab9ff; }
 
-  /* === 最左側：大分類選單 === */
   .main-sidebar {
     width: 90px;
     background-color: rgba(5, 15, 28, 0.6); 
@@ -118,7 +112,6 @@
     box-shadow: 0 0 15px rgba(90, 185, 255, 0.6);
   }
 
-  /* === 中間：細項選單 === */
   .sub-sidebar {
     width: 240px;
     padding: 80px 15px 20px 25px;
@@ -143,7 +136,6 @@
     border: 1px solid rgba(90, 185, 255, 0.5);
   }
 
-  /* === 右側：內容展示區 === */
   .content-area {
     flex: 1;
     padding: 60px 40px 40px 30px;
@@ -160,7 +152,6 @@
     margin-bottom: 25px;
   }
 
-  /* 圖片與輪播容器 */
   .image-container {
     position: relative;
     flex: 1; 
@@ -180,7 +171,6 @@
     object-fit: contain;
   }
 
-  /* 左右箭頭 */
   .arrow {
     font-size: 40px;
     color: #5ab9ff; 
@@ -197,7 +187,6 @@
     text-shadow: 0 0 15px rgba(90,185,255,0.8);
   }
 
-  /* 底部點點 */
   .dots-wrapper {
     position: absolute;
     bottom: 15px;
@@ -214,7 +203,6 @@
   }
   .dot.active { background-color: #5ab9ff; box-shadow: 0 0 8px #5ab9ff; }
 
-  /* 文字說明區 */
   .text-container { padding: 0 15px; }
   .text-title {
     font-size: 26px; 
@@ -232,7 +220,6 @@
 </head>
 <body>
 
-<!-- 背景泡泡動畫 -->
 <div class="bubbles-container">
   <div class="bubble"></div>
   <div class="bubble"></div>
@@ -244,23 +231,17 @@
 </div>
 
 <div class="tutorial-window">
-  <!-- 右上角關閉按鈕 -->
   <div class="close-btn" id="closeGuideBtn" title="返回大廳">&times;</div>
   
   <div class="tutorial-header"><span>▍</span>漂流指南</div>
 
-  <!-- 左側大分類 (第一層級) -->
   <div class="main-sidebar">
     <div class="main-tab active" data-category="main" title="心情漂流瓶">🍾</div>
     <div class="main-tab" data-category="park" title="遊樂園">🎮</div>
   </div>
 
-  <!-- 中間細項 (第二層級) -->
-  <div class="sub-sidebar" id="subSidebar">
-    <!-- JS 會自動在這裡產生按鈕 -->
-  </div>
+  <div class="sub-sidebar" id="subSidebar"></div>
 
-  <!-- 右側內容區 -->
   <div class="content-area">
     <div class="carousel-container">
       <button class="arrow arrow-left" id="prevBtn">◀</button>
@@ -281,126 +262,124 @@
 </div>
 
 <script>
-  // ==========================================
-  // 跳轉回大廳邏輯
-  // ==========================================
   document.getElementById('closeGuideBtn').onclick = () => {
     window.location.href = 'test.html'; 
   };
 
-  // ==========================================
-  // 指南內容資料庫 (完整 14 項內容已補齊)
-  // ==========================================
   const tutorialData = {
-    // 類別 1：心情漂流瓶 (7 項)
     main: [
       {
         title: "歡迎來到漂流瓶",
         slides: [
-          { img: "https://placehold.co/800x450/033352/white?text=1.註冊畫面", subtitle: "註冊與登入", desc: "歡迎來到心情漂流瓶！請先在畫面右上角點擊「註冊 / 登入」，填寫基本資料。" },
-          { img: "https://placehold.co/800x450/033352/white?text=2.登入畫面", subtitle: "登入你的帳號", desc: "輸入你的 Email 與密碼進行登入。" },
-          { img: "https://placehold.co/800x450/033352/white?text=3.進入主頁", subtitle: "準備啟航", desc: "登入後就能進入你的專屬帳號，開啟深海之旅囉！記得滑到最下方同意海神公約喔！" }
+          { img: "./images/register.png", subtitle: "註冊與登入", desc: "歡迎來到心情漂流瓶！請先在畫面右上角點擊「註冊 / 登入」，填寫基本資料。" },
+          { img: "./images/login.png", subtitle: "登入你的帳號", desc: "輸入你的 Email 與密碼進行登入。" },
+          { img: "./images/home.png", subtitle: "註冊帳號", desc: "第一次來的要註冊，記得滑到最下方同意海神公約喔！" }
         ]
       },
       {
         title: "探索海底大廳",
         slides: [
-          { img: "https://placehold.co/800x450/033352/white?text=大廳畫面", subtitle: "海底大廳", desc: "登入後將來到最熱鬧的「海底大廳」！這裡是所有交流的核心，包含了熱門貼文與遊樂場入口。" },
-          { img: "https://placehold.co/800x450/033352/white?text=通知中心", subtitle: "通知中心", desc: "畫面右上方會貼心顯示當前的日期、天氣與通知小鈴鐺，點擊可查看最新通知喔！" }
+          { img: "./images/lobby.png", subtitle: "海底大廳", desc: "登入後將來到最熱鬧的「海底大廳」！這裡是所有交流的核心，包含了熱門貼文與遊樂場入口。" },
+          { img: "./images/notification.png", subtitle: "通知中心", desc: "通知小鈴鐺在右上方，點擊可查看最新通知喔！" }
         ]
       },
-      {
+    {
         title: "打造個人空間",
         slides: [
-          { img: "https://placehold.co/800x450/033352/white?text=編輯資料", subtitle: "編輯個人資料", desc: "點擊右上角的使用者名稱，即可自由編輯個人資料，打造專屬形象。" },
-          { img: "https://placehold.co/800x450/033352/white?text=追蹤與收藏", subtitle: "追蹤與收藏", desc: "隨時查看你追蹤了哪些優質創作者，並在「收藏瓶子」裡回顧那些觸動你的溫暖文字。" },
-          { img: "https://placehold.co/800x450/033352/white?text=我的瓶子", subtitle: "我的瓶子", desc: "透過「我的瓶子」頁面，你可以輕鬆管理自己發布過的所有貼文紀錄。" }
+          { img: "./images/user_menu.png", subtitle: "檢視個人空間", desc: "點選右上角的暱稱，即可展開選單檢視個人空間，裡面包含個人資料、我的追蹤、網站設定等功能。" },
+          { img: "./images/profile_edit.png", subtitle: "編輯個人資料", desc: "進入個人資料設定後，你可以自由修改細節，打造專屬的個人形象。" },
+          { img: "./images/collections.png", subtitle: "追蹤與收藏", desc: "可以隨時查看你追蹤了哪些優質創作者，並在「收藏瓶子」裡回顧那些觸動你的溫暖文字。" },
+          { img: "./images/my_bottles.png", subtitle: "我的瓶子", desc: "透過「我的瓶子」頁面，你可以輕鬆管理自己發布過的所有貼文紀錄。" }
         ]
       },
       {
         title: "拋出你的瓶子",
         slides: [
-          { img: "https://placehold.co/800x450/033352/white?text=發文畫面", subtitle: "拋出你的心事", desc: "點擊「發文」，自由選擇貼文要拋向哪個海域，並隨時決定要以「實名」或「匿名」發布，讓海浪替你傳遞心聲。" }
+          { img: "./images/write_bottle.png", subtitle: "拋出你的心事", desc: "點擊「發文」，自由選擇貼文要拋向哪個海域，並隨時決定要以「實名」或「匿名」發布，讓海浪替你傳遞心聲。" }
         ]
       },
-      {
+     {
         title: "海流導航與社群",
         slides: [
-          { img: "https://placehold.co/800x450/033352/white?text=頻道分類", subtitle: "頻道與熱門", desc: "透過下方分類輕鬆切換觀看「所有文章」或單一情緒頻道。左側會顯示被收藏最多次的熱烈討論。" },
-          { img: "https://placehold.co/800x450/033352/white?text=呼喚海流", subtitle: "呼喚海流與殿規", desc: "想看新瓶子？點擊右下角「呼喚海流」即可隨機刷新！交流同時也請務必遵守右側的「海神殿規」喔！" }
+          { img: "./images/hot_posts.png", subtitle: "熱門貼文", desc: "點擊可以在這裡看到最近大家都在討論的內容，是已被收藏人數排名的。" },
+          { img: "./images/temple_rules.png", subtitle: "海神殿規", desc: "來到這邊要守的規則與溫馨小提醒，一起維護友善的海洋。" },
+          { img: "./images/summon_current.png", subtitle: "呼喚海流", desc: "按了之後會隨機刷新瓶子，或是 60 秒後也會自動刷新。" },
+          { img: "./images/channel_categories.png", subtitle: "頻道分類", desc: "這邊可以選擇貼文的分類，有分所有文章(全海域)、只看單一頻道(憤怒、秘密、傷心、厭世/躺平、開心)。" }
         ]
       },
       {
         title: "尋找共鳴與留言",
         slides: [
-          { img: "https://placehold.co/800x450/033352/white?text=搜尋與交流", subtitle: "搜尋特定話題", desc: "使用畫面上方的搜尋列，輸入關鍵字就能快速尋找相關的漂流瓶，點開即可看到完整內容。" },
-          { img: "https://placehold.co/800x450/033352/white?text=留言互動", subtitle: "安全的留言空間", desc: "留言區採用直覺的樓層編號，留言時也支援一鍵切換實名或匿名，讓交流充滿彈性無負擔。" }
+          { img: "./images/search.png", subtitle: "搜尋特定話題", desc: "使用畫面上方的搜尋列，輸入關鍵字就能快速尋找相關的漂流瓶，點開即可看到完整內容。" },
+          { img: "./images/comments.png", subtitle: "安全的留言空間", desc: "留言區採用直覺的樓層編號，留言時也支援一鍵切換實名或匿名，讓交流充滿彈性無負擔。" }
         ]
       },
       {
         title: "專屬 AI 特助",
         slides: [
-          { img: "https://placehold.co/800x450/033352/white?text=桌寵的家", subtitle: "你的桌寵夥伴", desc: "畫面裡有一隻可愛小傢伙陪伴你！點兩下會跑向你，不需要時也能拉牠回「桌寵的家」睡覺。" },
-          { img: "https://placehold.co/800x450/033352/white?text=AI特助", subtitle: "AI 特助聊天", desc: "點擊桌寵會喚醒「AI 特助」，不但能陪你聊天，還提供夜間模式、調整字體與多國語言切換等功能！" }
+          { img: "./images/pet_home.png", subtitle: "你的桌寵夥伴", desc: "畫面裡有一隻可愛小傢伙陪伴你！點兩下會跑向你，不需要時也能拉牠回「桌寵的家」睡覺。" },
+          { img: "./images/ai_assistant.png", subtitle: "AI 特助聊天", desc: "點擊桌寵會喚醒「AI 特助」，不但能陪你聊天，還提供夜間模式、調整字體與多國語言切換等功能！" }
         ]
       }
     ],
-    // 類別 2：遊樂園 (7 項)
     park: [
       {
         title: "秘密海域遊樂場",
         slides: [
-          { img: "https://placehold.co/800x450/4a1c40/white?text=遊樂場大廳", subtitle: "秘密海域大廳", desc: "心情有點悶？點擊大廳的「遊樂場」按鈕，這裡準備了六款各具特色的舒壓互動小遊戲等你探索！" }
+          { img: "./images/park_lobby.png", subtitle: "秘密海域大廳", desc: "心情有點悶？點擊大廳的「遊樂場」按鈕，這裡準備了六款各具特色的舒壓互動小遊戲等你探索！" }
         ]
       },
       {
         title: "海兔養成記",
         slides: [
-          { img: "https://placehold.co/800x450/4a1c40/white?text=海兔首頁", subtitle: "遇見你的海兔", desc: "進入遊戲可享受無限重抽，直到遇見命中注定的專屬海兔並為牠命名！" },
-          { img: "https://placehold.co/800x450/4a1c40/white?text=每日任務", subtitle: "任務與裝扮", desc: "每天完成餵食等任務賺取積分，可至商城兌換背景特效。還能建立連線房間跟好友展示海兔！" }
+          { img: "./images/seahare_home.png", subtitle: "遇見你的海兔", desc: "進入遊戲可享受無限重抽，直到遇見命中注定的專屬海兔並為牠命名！" },
+          { img: "./images/seahare_tasks.png", subtitle: "任務與裝扮", desc: "每天完成餵食等任務賺取積分，可至商城兌換背景特效。還能建立連線房間跟好友展示海兔！" }
         ]
       },
+      // === 重新拆解：今日塔羅瓶 (4張圖) ===
       {
         title: "今日塔羅瓶",
         slides: [
-          { img: "https://placehold.co/800x450/4a1c40/white?text=選擇領域", subtitle: "深海的占卜", desc: "提供無次數限制的專屬占卜服務。選擇想探索的領域或自訂專屬問題。" },
-          { img: "https://placehold.co/800x450/4a1c40/white?text=抽牌解析", subtitle: "AI 牌義解析", desc: "憑直覺由左至右抽出三張正位牌，系統會自動結合 AI 產生專屬的完整解析報告與收藏功能。" }
+          { img: "./images/tarot_categories.png", subtitle: "選擇占卜領域", desc: "提供個人化且無次數限制的塔羅占卜。進入介面後可快速點選預設的六大問題類別（感情、事業、學業、成長、財運、人際），或於下方自訂專屬問題。" },
+          { img: "./images/tarot_shuffle.png", subtitle: "互動式扇形牌陣", desc: "確認問題後畫面會展開扇形牌陣，使用者透過滑動瀏覽，憑直覺由左至右依序抽出代表「過去、現在、未來」的三張正位牌。" },
+          { img: "./images/tarot_result.png", subtitle: "AI 牌義綜合解析", desc: "抽牌完成後系統會自動串接 AI 進行牌義綜合分析，生成詳盡的深海塔羅占卜報告與專屬象徵解析。" },
+          { img: "./images/tarot_save.png", subtitle: "再問一次與收藏", desc: "解析結束後可點擊「再問一次」重新占卜，或點選「收藏此存檔」，隨時至右上角收藏庫回顧過往紀錄與測算時間。" }
         ]
       },
+      // === 重新拆解：突然想拼圖 (4張圖) ===
       {
         title: "突然想拼圖",
         slides: [
-          { img: "https://placehold.co/800x450/4a1c40/white?text=碎片喚醒", subtitle: "海洋圖鑑收集", desc: "完成每日任務獲取「喚醒石」來抽取碎片，逐步解鎖各種美麗的海洋生物圖鑑。" },
-          { img: "https://placehold.co/800x450/4a1c40/white?text=工坊展示", subtitle: "工坊與展示櫃", desc: "多餘的碎片可在「碎片工坊」兌換寶箱保底新碎片！進度會即時同步至你的收藏展示櫃。" }
+          { img: "./images/puzzle_intro.png", subtitle: "海洋生物拼圖", desc: "本模組為一款以海洋生物為主題的任務導向拼圖小遊戲，每幅拼圖由 9 個固定位置的區塊組成。" },
+          { img: "./images/puzzle_gacha.png", subtitle: "喚醒石與抽卡", desc: "玩家可透過完成每日任務獲取專屬道具「召喚石」，消耗召喚石即可進行抽卡，隨機獲取普通或高級的拼圖碎片。" },
+          { img: "./images/puzzle_workshop.png", subtitle: "碎片工坊與寶箱", desc: "擁有重複或多餘碎片時，可利用右上角「碎片工坊」將碎片兌換成普通或高級寶箱，開啟寶箱必得拼圖碎片保底！" },
+          { img: "./images/puzzle_cabinet.png", subtitle: "拼圖收藏展示櫃", desc: "點擊「我的收藏」進入展示櫃，即時同步並視覺化所有海洋生物的收集進度，帶給玩家滿滿的解鎖成就感。" }
         ]
       },
       {
         title: "每日便利貼",
         slides: [
-          { img: "https://placehold.co/800x450/4a1c40/white?text=便利貼牆", subtitle: "無聲樹洞", desc: "匿名情感交流空間，每人每天限留一次 50 字以內便利貼，24小時後系統會自動清除痕跡。" },
-          { img: "https://placehold.co/800x450/4a1c40/white?text=發布限制", subtitle: "純粹的抒發", desc: "此區刻意關閉回覆功能，讓大家在沒有社交壓力的環境下，純粹地抒發並感受彼此心境。" }
+          { img: "./images/notes_wall.png", subtitle: "無聲樹洞", desc: "匿名情感交流空間，每人每天限留一次 50 字以內便利貼，24小時後系統會自動清除痕跡。" },
+          { img: "./images/notes_write.png", subtitle: "純粹的抒發", desc: "此區刻意關閉回覆功能，讓大家在沒有社交壓力的環境下，純粹地抒發並感受彼此心境。" }
         ]
       },
       {
         title: "瓶命射擊",
         slides: [
-          { img: "https://placehold.co/800x450/4a1c40/white?text=難度選擇", subtitle: "動態狙擊挑戰", desc: "極度考驗反應力與精準度！選擇難度後，準確狙擊掉落的「瓶子」來累積連擊與高分。" },
-          { img: "https://placehold.co/800x450/4a1c40/white?text=遊戲道具", subtitle: "干擾與增益", desc: "誤擊干擾物「魚」會被扣分。遊戲中會隨機掉落延長時間的沙漏與補充彈藥的貝殼，善用它們挑戰霸主！" }
+          { img: "./images/shooting_menu.png", subtitle: "動態狙擊挑戰", desc: "極度考驗反應力與精準度！選擇難度後，準確狙擊掉落的「瓶子」來累積連擊與高分。" },
+          { img: "./images/shooting_game.png", subtitle: "干擾與增益", desc: "誤擊干擾物「魚」會被扣分。遊戲中會隨機掉落延長時間的沙漏與補充彈藥的貝殼，善用它們挑戰霸主！" }
         ]
       },
       {
         title: "接住小瓶",
         slides: [
-          { img: "https://placehold.co/800x450/4a1c40/white?text=準備畫面", subtitle: "接物挑戰", desc: "快節奏的刺激接物遊戲！在 30 秒限時內，敏捷操控籃子接住掉落的漂流瓶累積積分。" },
-          { img: "https://placehold.co/800x450/4a1c40/white?text=道具說明", subtitle: "閃避與護盾", desc: "必須完美閃避扣分炸彈！隨機掉落的雙倍星能讓得分翻倍，無敵護盾能擋下一次致命攻擊。" }
+          { img: "./images/catch_menu.png", subtitle: "接物挑戰", desc: "快節奏的刺激接物遊戲！在 30 秒限時內，敏捷操控籃子接住掉落的漂流瓶累積積分。" },
+          { img: "./images/catch_game.png", subtitle: "閃避與護盾", desc: "必須完美閃避扣分炸彈！隨機掉落的雙倍星能讓得分翻倍，無敵護盾能擋下一次致命攻擊。" }
         ]
       }
     ]
   };
 
-  // ==========================================
-  // 核心控制邏輯
-  // ==========================================
   let currentCategory = 'main'; 
   let currentSubIndex = 0;      
   let currentSlideIndex = 0;    
