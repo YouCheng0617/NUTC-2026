@@ -1266,12 +1266,11 @@
             </div>
         </div>
     </div>
-    <!-- 🌟 【每日任務彈窗】 -->
-   <div class="name-modal-overlay" id="dailyModalOverlay">
+<!-- 🌟 【每日任務彈窗】 -->
+    <div class="name-modal-overlay" id="dailyModalOverlay" style="z-index: 10000; display: none;">
         <div class="name-modal" style="width: 90%; max-width: 350px;">
             <div style="display: flex; justify-content: center; align-items: center; margin-bottom: 5px;">
                 <h2 style="margin:0; font-weight:900; color: var(--text-dark);" id="modalDailyHeader">📅 每日任務</h2>
-                
                 <button class="btn-pure-gift" id="btnDailyGift" onclick="playGiftAnimation(this)" title="14天簽到" style="position: relative;">
                     <div class="gift-noti-dot"></div>
                     <svg viewBox="0 0 100 100" class="gift-svg">
@@ -1296,6 +1295,7 @@
             <div style="font-size: 0.9rem; color: var(--text-dim); margin-bottom: 15px;" id="modalDailySub">完成任務領取豐厚獎勵！</div>
             
             <div id="dailyTaskList" style="display: flex; flex-direction: column; gap: 10px;">
+                <!-- 任務會由 JS 自動生成在這裡 -->
             </div>
             
             <div class="modal-btns" style="margin-top: 20px;">
@@ -1303,57 +1303,41 @@
             </div>
         </div>
     </div>
-            </div>
-            <div style="font-size: 0.9rem; color: var(--text-dim); margin-bottom: 15px;">完成任務領取豐厚獎勵！</div>
-            
-            <div id="dailyTaskList" style="display: flex; flex-direction: column; gap: 10px;">
-                <!-- 任務會由 JS 自動生成在這裡 -->
-            </div>
-            <!-- 🌟 【全新：14天日曆簽到彈窗】 -->
-    <div class="name-modal-overlay" id="checkInModalOverlay" style="z-index: 10010;">
+
+    <!-- 🌟 【全新：14天日曆簽到彈窗】 -->
+    <div class="name-modal-overlay" id="checkInModalOverlay" style="z-index: 10010; display: none;">
         <div class="name-modal" style="width: 95%; max-width: 380px;">
             <h2 style="margin-top:0; font-weight:900; color: #eab308;">🎁 14天簽到獎勵</h2>
             <div style="font-size: 0.9rem; color: var(--text-dim); margin-bottom: 10px;">連續簽到拿大獎，第7與14天翻倍！</div>
-            
-            <!-- 🌟 14天的格子會由 JS 自動畫在這裡面 -->
             <div id="checkInGrid" class="checkin-grid"></div>
-            
             <button class="modal-btn btn-confirm" id="btnClaimCheckIn" onclick="claimCheckIn()" style="width: 100%; background: #eab308; box-shadow: 0 5px 0 #ca8a04; color: white; margin-top: 15px;">馬上簽到！</button>
             <button class="modal-btn" onclick="document.getElementById('checkInModalOverlay').style.display='none'" style="width: 100%; background: #f1f5f9; color: var(--text-dim); margin-top: 10px; border: none; font-weight: 900; padding: 12px; border-radius: 20px; cursor: pointer;">關閉日曆</button>
         </div>
     </div>
-            <div class="modal-btns" style="margin-top: 20px;">
-                <button class="modal-btn btn-confirm" onclick="document.getElementById('dailyModalOverlay').style.display='none'" style="width: 100%;">關閉</button>
-            </div>
-        </div>
-        </div>
-<!-- 🌟 【全新：累計簽到大禮包彈窗】 -->
-    <div class="name-modal-overlay" id="checkInModalOverlay" style="z-index: 10005;">
+
+    <!-- 🌟 【全新：累計簽到大禮包彈窗】 -->
+    <div class="name-modal-overlay" id="streakRewardModalOverlay" style="z-index: 10005; display: none;">
         <div class="name-modal" style="width: 85%; max-width: 320px; text-align: center;">
             <h2 style="margin-top:0; font-weight:900; color: #eab308; text-shadow: 0 2px 5px rgba(253, 224, 71, 0.5);">📅 每日簽到</h2>
             <div style="font-size: 1.1rem; color: var(--text-dim); margin-bottom: 15px; font-weight: 900;">
                 累計簽到第 <span id="txtStreakDays" style="color: #ef4444; font-size: 1.6rem;">1</span> 天
             </div>
-            
             <div style="font-size: 4rem; margin: 10px 0; animation: tailFluff 2s infinite ease-in-out;">🎁</div>
-            
             <div style="font-size: 1.1rem; color: var(--text-dark); font-weight: 800; margin-bottom: 25px; line-height: 1.5;">
                 今日獎勵<br>
                 <span id="txtTodayReward" style="color: #ef4444; font-size: 1.8rem; font-weight: 900;">+100 積分</span>
             </div>
-            <button class="modal-btn btn-confirm" onclick="claimCheckIn()" style="width: 100%; background: #eab308; box-shadow: 0 5px 0 #ca8a04; color: white; font-size: 1.2rem;">開心收下！💰</button>
+            <button class="modal-btn btn-confirm" onclick="document.getElementById('streakRewardModalOverlay').style.display='none'" style="width: 100%; background: #eab308; box-shadow: 0 5px 0 #ca8a04; color: white; font-size: 1.2rem;">開心收下！💰</button>
         </div>
     </div>
-<!-- 🌟 【全新：海兔專屬身份證名片】 -->
-    <div class="name-modal-overlay" id="idCardModalOverlay" style="z-index: 10000;">
+
+    <!-- 🌟 1. 海兔專屬身份證名片 -->
+    <div class="name-modal-overlay" id="idCardModalOverlay" style="z-index: 10000; display: none;">
         <div class="name-modal" style="width: 85%; max-width: 320px; text-align: center;">
             <h2 style="margin-top:0; font-weight:900; color: #1d4ed8;">🪪 海兔名片</h2>
-            
-            <!-- 🌟 留給海兔跳進來的專屬拍照框 -->
             <div style="height: 150px; margin: 15px auto; border: 4px dashed #bfdbfe; border-radius: 25px; background: #f8fafc; display: flex; align-items: center; justify-content: center;">
                 <span style="color: #93c5fd; font-weight: 900; font-size: 1.2rem; opacity: 0.5;">證件照拍攝中...</span>
             </div>
-            
             <div style="font-size: 1.2rem; color: var(--text-dark); font-weight: 900; margin-bottom: 10px;">
                 名字：<span id="idCardNameDisplay" style="color: #ef4444;">神祕海兔</span> 
                 <button onclick="openNameModal()" style="background:none; border:none; cursor:pointer; font-size:1.2rem;" title="修改名字">✏️</button>
@@ -1361,10 +1345,36 @@
             <div style="font-size: 1rem; color: var(--text-dim); font-weight: 800; margin-bottom: 25px;">
                 品種：<span id="idCardSpeciesDisplay">經典雪兔</span>
             </div>
-            
             <div class="modal-btns">
-                <!-- 🌟 按下收起名片時，觸發跳躍回去的程式碼 -->
                 <button class="modal-btn btn-confirm" onclick="closeIdCardModal()" style="width: 100%; background: #3b82f6; box-shadow: 0 5px 0 #2563eb; color: white;">收起名片</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 🌟 2. 付費改名確認窗 -->
+    <div class="name-modal-overlay" id="renamePromptModal" style="z-index: 10020; display: none;">
+        <div class="name-modal" style="width: 80%; max-width: 300px; text-align: center;">
+            <div style="font-size: 3.5rem; margin-bottom: 10px; animation: pulseDay 1.5s infinite;">💳</div>
+            <h3 style="margin-top:0; font-weight:900; color: #3b82f6;">申請修改名字</h3>
+            <div style="font-size: 1.05rem; color: var(--text-dark); font-weight: 800; margin-bottom: 20px; line-height: 1.6;">
+                重新辦理手續需要花費 <span style="color: #ef4444; font-size: 1.2rem;">1000 積分</span>
+            </div>
+            <div class="modal-btns">
+                <button class="modal-btn btn-cancel" onclick="document.getElementById('renamePromptModal').style.display='none'">再想想</button>
+                <button class="modal-btn btn-confirm" onclick="proceedToRename()" style="background: #ef4444; box-shadow: 0 5px 0 #b91c1c; color: white;">付費改名</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 🌟 3. 命名彈窗 (實際打字的地方) -->
+    <div class="name-modal-overlay" id="nameModalOverlay" style="z-index: 10030; display: none;">
+        <div class="name-modal">
+            <h2 style="margin-top:0; font-weight:900; color: var(--text-dark);" id="txtModalTitle">給海兔寶寶取名</h2>
+            <input type="text" class="name-input" id="petNameInput" placeholder="輸入可愛的名字..." maxlength="12">
+            <button class="modal-btn btn-random" id="btnRandomName" onclick="generateRandomName()">🎲 幫我隨機想一個</button>
+            <div class="modal-btns">
+                <button class="modal-btn btn-cancel" id="btnCancelName" onclick="closeNameModal()">取消</button>
+                <button class="modal-btn btn-confirm" id="btnConfirmName" onclick="confirmName()">確定</button>
             </div>
         </div>
     </div>
@@ -3617,32 +3627,65 @@ function updateLangUI() {
             }
         }
 
+// 🌟 全域變數：記錄現在是不是正在進行「付費改名」
+        let isPaidRename = false; 
+
         function openNameModal() {
-            if (gameState.petName) return; // 已經有名字就不理你
+            // 如果已經有名字，且還沒答應付費，就跳出「付費確認窗」
+            if (gameState.petName && !isPaidRename) {
+                const promptModal = document.getElementById('renamePromptModal');
+                if (promptModal) promptModal.style.display = 'flex';
+                return; 
+            }
             
+            // 開啟輸入框
             const modal = document.getElementById('nameModalOverlay');
             const input = document.getElementById('petNameInput');
             
-            document.getElementById('txtModalTitle').innerText = currLang === 'zh' ? '給海兔寶寶取名' : 'Name Your Baby';
-            document.getElementById('btnRandomName').innerText = currLang === 'zh' ? '🎲 幫我隨機想一個' : '🎲 Random Name';
-            document.getElementById('btnCancelName').innerText = currLang === 'zh' ? '取消' : 'Cancel';
-            document.getElementById('btnConfirmName').innerText = currLang === 'zh' ? '確定' : 'Confirm';
-            input.placeholder = currLang === 'zh' ? '輸入可愛的名字...' : 'Max 12 chars...';
-
-            input.value = gameState.petName; 
+            document.getElementById('txtModalTitle').innerText = isPaidRename ? '修改名字 (扣 1000 積分)' : '給海兔寶寶取名';
+            input.value = gameState.petName || ''; 
             modal.style.display = 'flex';
         }
 
-        function closeNameModal() { document.getElementById('nameModalOverlay').style.display = 'none'; }
+        function proceedToRename() {
+            document.getElementById('renamePromptModal').style.display = 'none';
+            if (gameState.points < 1000) {
+                showFloatText('積分不夠 1000 喔！快去解任務賺錢吧 😢');
+                return;
+            }
+            isPaidRename = true; 
+            openNameModal();
+        }
+
+        function closeNameModal() { 
+            document.getElementById('nameModalOverlay').style.display = 'none'; 
+            isPaidRename = false; 
+        }
 
         function confirmName() {
             const newName = document.getElementById('petNameInput').value.trim();
             if (newName) {
+                if (newName === gameState.petName) {
+                    showFloatText('名字沒有變喔！');
+                    closeNameModal();
+                    return;
+                }
+
+                if (isPaidRename) {
+                    if (gameState.points < 1000) {
+                        showFloatText('積分不夠 1000 喔！😢');
+                        return;
+                    }
+                    gameState.points -= 1000;
+                    showFloatText('✨ 扣除 1000 積分，改名成功 ✨');
+                } else {
+                    showFloatText('✨ 命名成功 ✨');
+                }
+
                 gameState.petName = newName;
                 updateNameUI();
                 saveGame();
-                showFloatText('✨ 命名成功 ✨');
-                // 將改名結果告訴伺服器
+                if (typeof updateUI === 'function') updateUI(); 
                 fetchAPI('/pet-games/rename', 'POST', { newName: newName });
             }
             closeNameModal();
