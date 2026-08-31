@@ -593,6 +593,7 @@ function renderGalleryPage(page) {
   renderPaginationControls(totalPages);
 }
 
+// 🌟 拼圖收藏展示櫃分頁控制 (顯示目前頁面前後2頁，最多5個頁碼 + 上下頁 + 自輸入跳頁按鈕 + 總頁數提示)
 function renderPaginationControls(totalPages) {
   const paginationContainer = document.querySelector(".pagination-container");
   const dict = translations[currentLang] || translations.zh;
@@ -605,27 +606,114 @@ function renderPaginationControls(totalPages) {
 
   paginationContainer.style.display = "flex";
 
-  const isZh = currentLang === "zh";
-  const pageInfoHtml = isZh
-    ? `第 <input type="number" class="page-num-input" min="1" max="${totalPages}" value="${currentGalleryPage}" onchange="handlePageInput(this.value, ${totalPages})" onkeydown="if(event.key==='Enter') handlePageInput(this.value, ${totalPages})"> / ${totalPages} 頁 (共 ${galleryPictures.length} 筆)`
-    : `Page <input type="number" class="page-num-input" min="1" max="${totalPages}" value="${currentGalleryPage}" onchange="handlePageInput(this.value, ${totalPages})" onkeydown="if(event.key==='Enter') handlePageInput(this.value, ${totalPages})"> / ${totalPages} (Total ${galleryPictures.length})`;
+  // 計算以 currentGalleryPage 為中心，前後各 2 個頁碼 (共 5 個)
+  let startPage = Math.max(1, currentGalleryPage - 2);
+  let endPage = Math.min(totalPages, currentGalleryPage + 2);
+
+  if (endPage - startPage < 4) {
+    if (startPage === 1) {
+      endPage = Math.min(totalPages, startPage + 4);
+    } else if (endPage === totalPages) {
+      startPage = Math.max(1, endPage - 4);
+    }
+  }
+
+  const pages = [];
+  for (let p = startPage; p <= endPage; p++) {
+    pages.push(p);
+  }
+
+  const pagesHtml = pages
+    .map(
+      (p) =>
+        `<button class="page-num ${p === currentGalleryPage ? 'active' : ''}" onclick="renderGalleryPage(${p})">${p}</button>`
+    )
+    .join("");
+
+  const prevText = dict["page-prev"] || "&laquo; 上一頁";
+  const nextText = dict["page-next"] || "下一頁 &raquo;";
 
   paginationContainer.innerHTML = `
-    <button class="page-btn prev-btn" ${currentGalleryPage === 1 ? "disabled" : ""} onclick="renderGalleryPage(${currentGalleryPage - 1})">${dict["page-prev"]}</button>
-    <span class="pagination-info">
-      ${pageInfoHtml}
+    <button class="page-btn prev-btn" ${currentGalleryPage === 1 ? 'disabled' : ''} onclick="renderGalleryPage(${currentGalleryPage - 1})">${prevText}</button>
+    <div class="page-numbers" style="display: flex; gap: 8px; align-items: center;">
+      ${pagesHtml}
+    </div>
+    <button class="page-btn next-btn" ${currentGalleryPage === totalPages ? 'disabled' : ''} onclick="renderGalleryPage(${currentGalleryPage + 1})">${nextText}</button>
+    <div id="gallery-jump-wrap" style="display: inline-flex; align-items: center; margin-left: 6px;">
+      <button class="page-btn jump-btn" title="手動輸入頁碼 (共 ${totalPages} 頁)" onclick="openGalleryJumpInput(${totalPages})">🔢 跳頁</button>
+    </div>
+    <span class="gallery-page-indicator" style="color: #8cb4ff; font-size: 0.85rem; font-weight: 700; background: rgba(0, 30, 60, 0.6); padding: 5px 12px; border-radius: 12px; border: 1px solid rgba(0, 242, 254, 0.25); margin-left: 4px; user-select: none;">
+      第 ${currentGalleryPage} / ${totalPages} 頁 (共 ${galleryPictures.length} 筆)
     </span>
-    <button class="page-btn next-btn" ${currentGalleryPage === totalPages ? "disabled" : ""} onclick="renderGalleryPage(${currentGalleryPage + 1})">${dict["page-next"]}</button>
   `;
 }
 
-window.handlePageInput = function (val, totalPages) {
-  let page = parseInt(val, 10);
-  if (isNaN(page) || page < 1) page = 1;
-  if (page > totalPages) page = totalPages;
-  renderGalleryPage(page);
+window.renderGalleryPage = renderGalleryPage;
+
+window.openGalleryJumpInput = function (totalPages) {
+  const wrap = document.getElementById("gallery-jump-wrap");
+  if (!wrap) return;
+
+  wrap.innerHTML = `
+    <input type="text" id="gallery-jump-input" value="${currentGalleryPage}" placeholder="1~${totalPages}" title="請輸入 1 ~ ${totalPages} 頁碼"
+      style="width: 55px; height: 32px; text-align: center; border: 1.5px solid #00f2fe; border-radius: 8px; font-weight: 800; color: #fff; background: rgba(0, 30, 60, 0.95); outline: none; box-shadow: 0 0 10px rgba(0, 242, 254, 0.6); box-sizing: border-box;" />
+  `;
+
+  const input = document.getElementById("gallery-jump-input");
+  if (!input) return;
+  input.focus();
+  input.select();
+
+  let isSubmitted = false;
+  let isAlerting = false;
+
+  const handleJump = () => {
+    if (isSubmitted) return;
+    const val = input.value.trim();
+    const pageNum = Number(val);
+
+    if (!val || !/^\d+$/.test(val) || isNaN(pageNum) || pageNum < 1 || pageNum > totalPages) {
+      isAlerting = true;
+      alert(`請輸入正確的頁碼（範圍 1 ~ ${totalPages}）`);
+      isAlerting = false;
+      input.focus();
+      input.select();
+      return;
+    }
+
+    isSubmitted = true;
+    renderGalleryPage(pageNum);
+  };
+
+  input.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      handleJump();
+    } else if (e.key === "Escape") {
+      e.preventDefault();
+      renderPaginationControls(totalPages);
+    }
+  });
+
+  input.addEventListener("blur", () => {
+    setTimeout(() => {
+      if (isSubmitted || isAlerting) return;
+      const val = input.value.trim();
+      const pageNum = Number(val);
+      if (val && /^\d+$/.test(val) && !isNaN(pageNum) && pageNum >= 1 && pageNum <= totalPages) {
+        if (pageNum !== currentGalleryPage) {
+          isSubmitted = true;
+          renderGalleryPage(pageNum);
+          return;
+        }
+      }
+      renderPaginationControls(totalPages);
+    }, 150);
+  });
 };
 
+// 模態窗控制
+const galleryModal = document.getElementById("gallery-modal");
 function openGallery() {
   const modal = document.getElementById("gallery-modal");
   if (modal) {
@@ -686,4 +774,63 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     });
   }
+<<<<<<< Updated upstream
 });
+=======
+});
+// 🐟 自動生成深海發光游魚群
+function createSwimmingFish() {
+  const oceanBg = document.querySelector(".ocean-bg");
+  if (!oceanBg) return;
+
+  // 建立魚群圖層
+  let fishLayer = document.querySelector(".swimming-fish-layer");
+  if (!fishLayer) {
+    fishLayer = document.createElement("div");
+    fishLayer.className = "swimming-fish-layer";
+    oceanBg.appendChild(fishLayer);
+  } else {
+    fishLayer.innerHTML = "";
+  }
+
+  // 魚的數量與顏色設定
+  const fishList = [
+    { top: "18%", dur: "14s", delay: "0s", dir: "L2R", scale: 1.1, color: "#00f2fe", wave: "-35px" },
+    { top: "42%", dur: "11s", delay: "2s", dir: "R2L", scale: 0.9, color: "#ffd200", wave: "40px" },
+    { top: "68%", dur: "16s", delay: "1s", dir: "L2R", scale: 1.2, color: "#00f2fe", wave: "-25px" },
+    { top: "82%", dur: "13s", delay: "4s", dir: "R2L", scale: 0.8, color: "#4facfe", wave: "30px" },
+    { top: "30%", dur: "20s", delay: "6s", dir: "L2R", scale: 0.65, color: "#ffffff", wave: "-20px" }
+  ];
+
+  fishList.forEach((cfg) => {
+    const fishBox = document.createElement("div");
+    fishBox.className = "fish-item";
+
+    // 設定位置與動畫屬性
+    fishBox.style.top = cfg.top;
+    fishBox.style.width = `${85 * cfg.scale}px`;
+    fishBox.style.height = `${50 * cfg.scale}px`;
+    fishBox.style.setProperty("--wave-y", cfg.wave);
+    fishBox.style.setProperty("--fish-scale", cfg.scale);
+    fishBox.style.animation = `${cfg.dir === 'L2R' ? 'swimL2R' : 'swimR2L'} ${cfg.dur} linear infinite`;
+    fishBox.style.animationDelay = cfg.delay;
+
+    // SVG 魚本體
+    fishBox.innerHTML = `
+      <svg class="ocean-fish-svg" viewBox="0 0 100 50">
+        <!-- 擺動尾巴 -->
+        <polygon class="fish-tail" points="30,25 5,8 5,42" fill="${cfg.color}" opacity="0.85" />
+        <!-- 背鰭 -->
+        <polygon points="50,15 65,5 75,18" fill="${cfg.color}" opacity="0.6" />
+        <!-- 魚身 -->
+        <path d="M 25,25 Q 55,5 88,25 Q 55,45 25,25 Z" fill="${cfg.color}" opacity="0.95" />
+        <!-- 眼睛 -->
+        <circle cx="78" cy="22" r="2.8" fill="#ffffff" />
+        <circle cx="79" cy="22" r="1.3" fill="#010814" />
+      </svg>
+    `;
+
+    fishLayer.appendChild(fishBox);
+  });
+}
+>>>>>>> Stashed changes

@@ -491,7 +491,7 @@ window.renderComments = async function (postId) {
 
                 // 讀取留言時間顯示設定 (預設為 true 顯示)
                 const showCommentTime = localStorage.getItem('setting_show_comment_time') !== 'false';
-                
+
                 // 時間格式化處理
                 const rawTime = c.createdAt || c.created_at || c.time;
                 let formattedTime = '';
@@ -747,7 +747,7 @@ window.openPostDetail = function (id) {
     // 判斷是否顯示追蹤按鈕 (匿名不顯示；若作者關閉被追蹤設定亦不顯示)
     const followBtn = document.getElementById('follow-author-btn');
     const isAnonymous = (p.author === '匿名' || !p.authorId);
-    
+
     // 檢查後端欄位或本地自身文章設定
     const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
     const isSelf = (p.authorId && String(p.authorId) === String(currentUser.id || currentUser.userId));
@@ -1346,27 +1346,122 @@ function renderPagination(totalPages, dataArray) {
     pageContainer.innerHTML = '';
     if (totalPages <= 1) return;
 
+    // ◀ 上一頁按鈕
     const prevBtn = document.createElement('button');
     prevBtn.className = 'page-btn';
     prevBtn.innerText = '◀';
+    prevBtn.title = '上一頁';
     prevBtn.disabled = (currentPage === 1);
-    prevBtn.onclick = () => { currentPage--; renderPosts(dataArray); window.scrollTo({ top: 0, behavior: 'smooth' }); };
+    prevBtn.onclick = () => {
+        currentPage--;
+        renderPosts(dataArray);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    };
     pageContainer.appendChild(prevBtn);
 
+    // 數字頁碼按鈕
     for (let i = 1; i <= totalPages; i++) {
         const pageBtn = document.createElement('button');
         pageBtn.className = `page-btn ${i === currentPage ? 'active' : ''}`;
         pageBtn.innerText = i;
-        pageBtn.onclick = () => { currentPage = i; renderPosts(dataArray); window.scrollTo({ top: 0, behavior: 'smooth' }); };
+        pageBtn.title = `第 ${i} 頁`;
+        pageBtn.onclick = () => {
+            currentPage = i;
+            renderPosts(dataArray);
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        };
         pageContainer.appendChild(pageBtn);
     }
 
+    // ▶ 下一頁按鈕
     const nextBtn = document.createElement('button');
     nextBtn.className = 'page-btn';
     nextBtn.innerText = '▶';
+    nextBtn.title = '下一頁';
     nextBtn.disabled = (currentPage === totalPages);
-    nextBtn.onclick = () => { currentPage++; renderPosts(dataArray); window.scrollTo({ top: 0, behavior: 'smooth' }); };
+    nextBtn.onclick = () => {
+        currentPage++;
+        renderPosts(dataArray);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    };
     pageContainer.appendChild(nextBtn);
+
+    // 🌟 點擊自訂輸入跳頁按鈕 (維持原有海洋泡泡樣式)
+    const jumpContainer = document.createElement('div');
+    jumpContainer.style.display = 'inline-flex';
+    jumpContainer.style.alignItems = 'center';
+    jumpContainer.style.marginLeft = '4px';
+
+    const jumpBtn = document.createElement('button');
+    jumpBtn.className = 'page-btn ocean-jump-btn';
+    jumpBtn.innerText = '🔢';
+    jumpBtn.title = `點擊手動輸入頁碼跳頁 (共 ${totalPages} 頁)`;
+    jumpBtn.style.fontSize = '1.05rem';
+
+    jumpBtn.onclick = () => {
+        jumpContainer.innerHTML = `
+            <input type="text" id="ocean-jump-input" value="${currentPage}" placeholder="1~${totalPages}" title="請輸入 1 ~ ${totalPages} 頁碼"
+                style="width: 44px; height: 35px; text-align: center; border: 2px solid #4da6ff; border-radius: 18px; font-weight: bold; color: #0055a5; background: rgba(255,255,255,0.95); outline: none; font-size: 0.95rem; box-shadow: 0 0 12px rgba(77, 166, 255, 0.6); box-sizing: border-box;" />
+        `;
+        const input = document.getElementById('ocean-jump-input');
+        if (!input) return;
+        input.focus();
+        input.select();
+
+        let isSubmitted = false;
+        let isAlerting = false;
+
+        const handleJumpSubmit = () => {
+            if (isSubmitted) return;
+            const val = input.value.trim();
+            const pageNum = Number(val);
+
+            if (!val || !/^\d+$/.test(val) || isNaN(pageNum) || pageNum < 1 || pageNum > totalPages) {
+                isAlerting = true;
+                alert(`請輸入正確的頁碼（範圍 1 ~ ${totalPages}）`);
+                isAlerting = false;
+                input.focus();
+                input.select();
+                return;
+            }
+
+            isSubmitted = true;
+            currentPage = pageNum;
+            renderPosts(dataArray);
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        };
+
+        input.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                handleJumpSubmit();
+            } else if (e.key === 'Escape') {
+                e.preventDefault();
+                renderPagination(totalPages, dataArray);
+            }
+        });
+
+        input.addEventListener('blur', () => {
+            setTimeout(() => {
+                if (isSubmitted || isAlerting) return;
+                const val = input.value.trim();
+                const pageNum = Number(val);
+                if (val && /^\d+$/.test(val) && !isNaN(pageNum) && pageNum >= 1 && pageNum <= totalPages) {
+                    if (pageNum !== currentPage) {
+                        isSubmitted = true;
+                        currentPage = pageNum;
+                        renderPosts(dataArray);
+                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                        return;
+                    }
+                }
+                renderPagination(totalPages, dataArray);
+            }, 150);
+        });
+    };
+
+    jumpContainer.appendChild(jumpBtn);
+    pageContainer.appendChild(jumpContainer);
 }
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -1621,20 +1716,20 @@ document.addEventListener('DOMContentLoaded', () => {
                         if (awakeMascot) awakeMascot.style.display = 'none';
                         if (sleepingMascot) sleepingMascot.style.display = 'block';
 
-                      // 🌟 完美置中與動態大小魔法 (跟隨小窩彈性縮放！)
-                    mascot.style.transition = 'all 0.5s ease-out';
-                    
-                    // 動態計算：小窩最大 180px 時比例是 0.65，依據目前小窩寬度等比縮放
-                    const dynamicScale = (homeRect.width / 180) * 0.65;
-                    mascot.style.setProperty('transform', `scale(${dynamicScale})`, 'important'); 
+                        // 🌟 完美置中與動態大小魔法 (跟隨小窩彈性縮放！)
+                        mascot.style.transition = 'all 0.5s ease-out';
 
-                    // 扣掉吉祥物本身一半的寬度跟高度，才會真的置中
-                    const exactX = homeRect.left + (homeRect.width / 2) - (mascot.offsetWidth / 2);
-                    // 沉入水底的深度也依比例動態微調 (原本寫死的 +15)
-                    const exactY = homeRect.top + (homeRect.height / 2) - (mascot.offsetHeight / 2) + (homeRect.width * 0.08); 
+                        // 動態計算：小窩最大 180px 時比例是 0.65，依據目前小窩寬度等比縮放
+                        const dynamicScale = (homeRect.width / 180) * 0.65;
+                        mascot.style.setProperty('transform', `scale(${dynamicScale})`, 'important');
 
-                    mascot.style.left = `${exactX}px`;
-                    mascot.style.top = `${exactY}px`;
+                        // 扣掉吉祥物本身一半的寬度跟高度，才會真的置中
+                        const exactX = homeRect.left + (homeRect.width / 2) - (mascot.offsetWidth / 2);
+                        // 沉入水底的深度也依比例動態微調 (原本寫死的 +15)
+                        const exactY = homeRect.top + (homeRect.height / 2) - (mascot.offsetHeight / 2) + (homeRect.width * 0.08);
+
+                        mascot.style.left = `${exactX}px`;
+                        mascot.style.top = `${exactY}px`;
 
                         const dialogueBox = document.getElementById('mermecat-dialogue');
                         if (dialogueBox) {
@@ -1654,32 +1749,32 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
     };
-// 🌟 視窗尺寸改變時（包含點擊預設解析度按鈕），即時校正睡覺位置與游泳範圍
-window.addEventListener('resize', () => {
-    function adjustSleepingPosition() {
-        if (window.isMascotSleeping) {
-            const home = document.getElementById('mascot-home');
-            const cat = document.getElementById('svg-mermecat-mascot');
-            if (home && cat) {
-                const homeRect = home.getBoundingClientRect();
-                const dynamicScale = (homeRect.width / 180) * 0.65;
-                
-                cat.style.transition = 'none';
-                cat.style.setProperty('transform', `scale(${dynamicScale})`, 'important');
-                
-                const exactX = homeRect.left + (homeRect.width / 2) - (cat.offsetWidth / 2);
-                const exactY = homeRect.top + (homeRect.height / 2) - (cat.offsetHeight / 2) + (homeRect.width * 0.08); 
-                
-                cat.style.left = `${exactX}px`;
-                cat.style.top = `${exactY}px`;
+    // 🌟 視窗尺寸改變時（包含點擊預設解析度按鈕），即時校正睡覺位置與游泳範圍
+    window.addEventListener('resize', () => {
+        function adjustSleepingPosition() {
+            if (window.isMascotSleeping) {
+                const home = document.getElementById('mascot-home');
+                const cat = document.getElementById('svg-mermecat-mascot');
+                if (home && cat) {
+                    const homeRect = home.getBoundingClientRect();
+                    const dynamicScale = (homeRect.width / 180) * 0.65;
+
+                    cat.style.transition = 'none';
+                    cat.style.setProperty('transform', `scale(${dynamicScale})`, 'important');
+
+                    const exactX = homeRect.left + (homeRect.width / 2) - (cat.offsetWidth / 2);
+                    const exactY = homeRect.top + (homeRect.height / 2) - (cat.offsetHeight / 2) + (homeRect.width * 0.08);
+
+                    cat.style.left = `${exactX}px`;
+                    cat.style.top = `${exactY}px`;
+                }
             }
         }
-    }
 
-    // 立即校正一次，並在瀏覽器重排後 50ms 再次確認
-    adjustSleepingPosition();
-    setTimeout(adjustSleepingPosition, 50);
-});
+        // 立即校正一次，並在瀏覽器重排後 50ms 再次確認
+        adjustSleepingPosition();
+        setTimeout(adjustSleepingPosition, 50);
+    });
 
     // 🏠 --- 蓋房子與起床的程式碼 ---
     let mascotHome = document.getElementById('mascot-home');
@@ -1701,14 +1796,14 @@ window.addEventListener('resize', () => {
             if (awakeMascot) awakeMascot.style.display = 'block';
             if (sleepingMascot) sleepingMascot.style.display = 'none';
 
-           // 恢復大小跟位置
+            // 恢復大小跟位置
             const homeRect = mascotHome.getBoundingClientRect();
             mascot.style.transition = 'none';
-            
+
             // 🌟 拔掉睡覺時加上的強制縮放，把大小控制權還給原有的 RWD 設定
-            mascot.style.removeProperty('transform'); 
+            mascot.style.removeProperty('transform');
             mascot.style.transform = `scale(1)`;
-            
+
             mascot.style.left = (homeRect.right + 15) + 'px';
             mascot.style.top = (homeRect.top - 30) + 'px';
             mascot.offsetHeight; // 強制瀏覽器重繪
@@ -2026,9 +2121,9 @@ window.toggleFollow = async function () {
                 'Authorization': `Bearer ${token}`,
                 'ngrok-skip-browser-warning': 'true'
             },
-            body: JSON.stringify({ 
+            body: JSON.stringify({
                 followedId: currentAuthorId,
-                followed_id: currentAuthorId 
+                followed_id: currentAuthorId
             })
         });
 
@@ -2147,7 +2242,7 @@ async function fetchNotificationCount() {
 
         if (response.ok) {
             const data = await response.json();
-            
+
             // 相容陣列格式與各類物件屬性結構
             let unreadCount = 0;
             if (typeof data.count === 'number') {
@@ -2459,7 +2554,7 @@ window.toggleAllowFollowSetting = async function (isChecked) {
                 },
                 body: JSON.stringify({ allow_follow: isChecked })
             }).catch(e => console.log('設定已暫存於本地', e));
-        } catch (e) {}
+        } catch (e) { }
     }
 };
 
