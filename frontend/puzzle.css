@@ -258,16 +258,17 @@ body, html {
 }
 
 .panel-title {
-  font-size: 1.85rem;
+  font-size: clamp(1.4rem, 3.5vw, 1.85rem);
   font-weight: 900;
-  letter-spacing: 4px;
+  letter-spacing: 2px; /* 縮小標題字距 */
   background: linear-gradient(180deg, #ffffff 30%, #a4e5ff 100%);
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
   filter: drop-shadow(0 2px 10px rgba(0, 242, 254, 0.6));
+  white-space: nowrap;
+  text-align: center;
 }
-
 .deco-star {
   color: var(--neon-blue);
   font-size: 1.2rem;
@@ -366,25 +367,28 @@ body, html {
 }
 
 .idle-text {
-  font-size: 1.25rem;
+  font-size: clamp(1rem, 2.2vw, 1.15rem); /* 自適應縮放，完美塞入水晶球 */
   font-weight: 900;
   color: #032042;
-  letter-spacing: 3px;
+  letter-spacing: 1px; /* 由 3px 縮小至 1px，避免英文字被擠爆 */
   text-shadow: 0 0 12px rgba(255, 255, 255, 0.95);
   position: relative;
   z-index: 2;
+  white-space: nowrap; /* 強制不折行 */
+  text-align: center;
+  max-width: 90%;
 }
 
 .idle-sub {
-  font-size: 0.68rem;
+  font-size: 0.65rem;
   font-weight: 800;
   color: rgba(3, 32, 66, 0.75);
-  letter-spacing: 2px;
+  letter-spacing: 1.5px;
   margin-top: 4px;
   position: relative;
   z-index: 2;
+  white-space: nowrap;
 }
-
 .crystal-ball.drawing {
   animation: chargingShake 0.15s ease-in-out infinite, chargingGlow 0.4s alternate infinite;
 }
@@ -546,15 +550,16 @@ body, html {
 
 .gacha-btn {
   width: 100%;
-  max-width: 390px;
-  padding: 18px 32px;
+  max-width: 420px; /* 稍微加寬以容納英文長句 */
+  padding: 16px 24px;
   border-radius: 50px;
   border: 1px solid rgba(255, 255, 255, 0.65);
-  background: linear-gradient(135deg, #00f2fe 0%, #4facfe 50%, #0066ff 100%);
+  background: linear-gradient(135deg, #00f2fe 0%, #4facfe 50%, #0066cc 100%);
   color: #ffffff;
-  font-size: 1.25rem;
+  font-size: clamp(1rem, 2vw, 1.15rem);
   font-weight: 900;
-  letter-spacing: 3px;
+  letter-spacing: 1px; /* 縮小字距，使英文維持在同一行 */
+  white-space: nowrap; /* 鎖定單行置中 */
   cursor: pointer;
   position: relative;
   overflow: hidden;
