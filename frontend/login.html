@@ -828,7 +828,15 @@
               role: realUser.role || "USER",
             };
             localStorage.setItem("currentUser", JSON.stringify(userToSave));
-            window.location.href = "test.html";
+
+            // 🌟 檢查是否為新註冊會員第一次登入
+            const isNewUser = localStorage.getItem("isNewUserTutorial");
+            if (isNewUser === "true") {
+              localStorage.removeItem("isNewUserTutorial");
+              window.location.href = "tutorial.html";
+            } else {
+              window.location.href = "test.html";
+            }
           } else {
             showModalError(
               "❌ 登入失敗：" + (responseData.message || "帳號或密碼錯誤"),
@@ -896,7 +904,11 @@
           });
           const data = await response.json();
           if (response.ok) {
-            alert("🎉 註冊成功！請登入。");
+            alert("🎉 註冊成功！請登入以開啟新手導覽指南。");
+            // 標記新註冊標籤，登入後自動導向 tutorial.html
+            localStorage.setItem("isNewUserTutorial", "true");
+            document.getElementById("email").value = email;
+            document.getElementById("password").value = password;
             switchTab("login");
           } else {
             showModalError(

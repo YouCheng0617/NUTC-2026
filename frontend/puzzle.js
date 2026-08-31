@@ -1,5 +1,153 @@
 // ==================================================
-// 🌐 API 統一設定與狀態管理
+// 🌐 多國語言 (i18n) 字典與狀態
+// ==================================================
+const translations = {
+  zh: {
+    "toggle-btn": "🌐 EN",
+    "back-btn": "<span class='btn-icon'>🔙</span> 回遊樂場",
+    "workshop-nav": "<span class='btn-icon'>📦</span> 碎片工坊",
+    "gallery-nav": "<span class='btn-icon'>🖼️</span> 我的收藏",
+    "gacha-title": "海域碎片喚醒",
+    "idle-summon": "等待喚醒",
+    "token-label": "喚醒石",
+    "frag-badge-label": "普通/高級",
+    "draw-btn": "消耗 1 顆喚醒石抽取",
+    "task-panel-title": "每日任務 (獲取喚醒石)",
+    "task-1-title": "每日簽到",
+    "task-1-desc": "登入海洋世界報到",
+    "claim-1-stone": "領取 1 顆",
+    "claimed-btn": "已領取 ✔️",
+    "task-2-title": "漂流初探",
+    "task-2-desc": "累積發文 3 篇",
+    "task-3-title": "侃侃而談",
+    "task-3-desc": "累積發文 6 篇",
+    "task-4-title": "海洋話匣子",
+    "task-4-desc": "累積發文 10 篇",
+    "task-locked": "未達成",
+    "workshop-modal-title": "📦 碎片工坊與寶箱",
+    "inv-normal-frag": "🧩 普通碎片：",
+    "inv-prem-frag": "✨ 高級碎片：",
+    "inv-normal-chest": "🎁 普通寶箱：",
+    "inv-prem-chest": "👑 高級寶箱：",
+    "chest-section-title": "🎁 開啟寶箱 (必得拼圖碎片)",
+    "chest-normal-name": "普通寶箱",
+    "chest-normal-desc": "必得普通稀有度碎片",
+    "chest-prem-name": "高級寶箱",
+    "chest-prem-desc": "必得高級稀有度碎片",
+    "open-1-btn": "開啟 1 個",
+    "exchange-section-title": "🔄 碎片兌換工坊",
+    "exch-1": "10 普通碎片 ➔ 1 普通寶箱",
+    "exch-2": "30 普通碎片 ➔ 1 高級寶箱",
+    "exch-3": "1 高級碎片 ➔ 10 普通寶箱",
+    "exch-4": "5 高級碎片 ➔ 1 高級寶箱",
+    "exch-btn": "兌換",
+    "gallery-modal-title": "🖼️ 拼圖收藏展示櫃",
+    "page-prev": "⬅️ 上一頁",
+    "page-next": "下一頁 ➡️",
+    "page-text-1": "第",
+    "page-text-2": "頁 (共",
+    "page-text-3": "筆)",
+    "puzzle-completed": "已集齊 (9/9)",
+    "puzzle-progress": "碎片進度:",
+    "rarity-normal": "NORMAL 普通",
+    "rarity-prem": "✨ PREMIUM 高級",
+    "shard-num-tag": "第 {num} 號碎片",
+    "draw-congrats": "🎉 恭喜集齊完整拼圖！",
+    "draw-progress": "收集進度：{count} / 9 ({rate})",
+    "err-no-login": "請先登入後再進行碎片喚醒唷！🌊",
+    "err-signin-done": "今天已經領取過簽到獎勵囉！明天再來吧～🌊",
+    "empty-gallery": "目前還沒有圖鑑資料唷！🌊",
+    "server-error": "伺服器連線中斷 😢"
+  },
+  en: {
+    "toggle-btn": "🌐 中文",
+    "back-btn": "<span class='btn-icon'>🔙</span> Arcade",
+    "workshop-nav": "<span class='btn-icon'>📦</span> Workshop",
+    "gallery-nav": "<span class='btn-icon'>🖼️</span> Gallery",
+    "gacha-title": "Ocean Shard Awakening",
+    "idle-summon": "Ready to Summon",
+    "token-label": "Stones",
+    "frag-badge-label": "Norm / Prem",
+    "draw-btn": "Use 1 Stone to Summon",
+    "task-panel-title": "Daily Quests (Get Stones)",
+    "task-1-title": "Daily Check-in",
+    "task-1-desc": "Log in to ocean realm",
+    "claim-1-stone": "Claim 1",
+    "claimed-btn": "Claimed ✔️",
+    "task-2-title": "First Drift",
+    "task-2-desc": "Post 3 bottles",
+    "task-3-title": "Chatterbox",
+    "task-3-desc": "Post 6 bottles",
+    "task-4-title": "Ocean Speaker",
+    "task-4-desc": "Post 10 bottles",
+    "task-locked": "Locked",
+    "workshop-modal-title": "📦 Fragment Workshop",
+    "inv-normal-frag": "🧩 Normal Frags: ",
+    "inv-prem-frag": "✨ Premium Frags: ",
+    "inv-normal-chest": "🎁 Normal Chests: ",
+    "inv-prem-chest": "👑 Premium Chests: ",
+    "chest-section-title": "🎁 Open Chests (Guaranteed Shards)",
+    "chest-normal-name": "Normal Chest",
+    "chest-normal-desc": "Guaranteed normal shard",
+    "chest-prem-name": "Premium Chest",
+    "chest-prem-desc": "Guaranteed premium shard",
+    "open-1-btn": "Open 1",
+    "exchange-section-title": "🔄 Shard Exchange",
+    "exch-1": "10 Normal Frags ➔ 1 Normal Chest",
+    "exch-2": "30 Normal Frags ➔ 1 Premium Chest",
+    "exch-3": "1 Premium Frag ➔ 10 Normal Chests",
+    "exch-4": "5 Premium Frags ➔ 1 Premium Chest",
+    "exch-btn": "Trade",
+    "gallery-modal-title": "🖼️ Puzzle Showcase",
+    "page-prev": "⬅️ Prev",
+    "page-next": "Next ➡️",
+    "page-text-1": "Page",
+    "page-text-2": " / ",
+    "page-text-3": " (Total ",
+    "puzzle-completed": "Completed (9/9)",
+    "puzzle-progress": "Progress:",
+    "rarity-normal": "NORMAL",
+    "rarity-prem": "✨ PREMIUM",
+    "shard-num-tag": "Piece #{num}",
+    "draw-congrats": "🎉 Puzzle Complete!",
+    "draw-progress": "Progress: {count} / 9 ({rate})",
+    "err-no-login": "Please log in before summoning shards! 🌊",
+    "err-signin-done": "Already claimed today! Come back tomorrow~ 🌊",
+    "empty-gallery": "No puzzle collections yet! 🌊",
+    "server-error": "Server connection interrupted 😢"
+  }
+};
+
+let currentLang = localStorage.getItem("game_lang") || "zh";
+
+function applyTranslations() {
+  const dict = translations[currentLang] || translations.zh;
+  document.querySelectorAll("[data-i18n]").forEach((el) => {
+    const key = el.getAttribute("data-i18n");
+    if (dict[key]) {
+      el.innerHTML = dict[key];
+    }
+  });
+
+  const toggleBtn = document.getElementById("lang-toggle-btn");
+  if (toggleBtn) {
+    toggleBtn.innerText = dict["toggle-btn"];
+  }
+
+  checkDailySignInStatus();
+  if (galleryPictures.length > 0) {
+    renderGalleryPage(currentGalleryPage);
+  }
+}
+
+window.toggleLanguage = function () {
+  currentLang = currentLang === "zh" ? "en" : "zh";
+  localStorage.setItem("game_lang", currentLang);
+  applyTranslations();
+};
+
+// ==================================================
+// 🌐 API 統一設定與全域狀態管理
 // ==================================================
 const API_BASE_URL = "https://api.drift-bottles.xyz";
 
@@ -7,27 +155,24 @@ let drawTokens = parseInt(localStorage.getItem("puzzle_tokens") || "0", 10);
 let galleryPictures = [];
 let currentGalleryPage = 1;
 const ITEMS_PER_PAGE = 6;
+let isDrawing = false;
 
-// 輔助函式：取得圖片完整網址
 function getFullImageUrl(url) {
   if (!url) return "images/fish_logo.png";
   if (url.startsWith("http://") || url.startsWith("https://")) return url;
   return `${API_BASE_URL}${url.startsWith("/") ? "" : "/"}${url}`;
 }
 
-// 輔助函式：計算九宮格 (1~9) 碎片對應的背景裁切位置
 function getPieceCropStyle(pieceNumber, imageUrl) {
   const row = Math.floor((pieceNumber - 1) / 3);
   const col = (pieceNumber - 1) % 3;
-  const posX = col * 50; // 0%, 50%, 100%
-  const posY = row * 50; // 0%, 50%, 100%
+  const posX = col * 50;
+  const posY = row * 50;
   return `background-image: url('${imageUrl}'); background-size: 300% 300%; background-position: ${posX}% ${posY}%; background-repeat: no-repeat;`;
 }
 
-// 輔助函式：產生「我的收藏」九宮格拼圖遮罩 HTML
 function renderPuzzleFrameHTML(unlockedPieces, fullImg, isCompleted, isLocked) {
   if (isLocked) {
-    // 0/9 完全未解鎖：暗黑模糊 + 鎖頭
     return `
       <div class="puzzle-board-frame">
         <img src="${fullImg}" class="locked-preview-img" onerror="this.src='images/fish_logo.png'" />
@@ -37,7 +182,6 @@ function renderPuzzleFrameHTML(unlockedPieces, fullImg, isCompleted, isLocked) {
   }
 
   if (isCompleted) {
-    // 9/9 完整集齊：全圖展示 + 金色光暈
     return `
       <div class="puzzle-board-frame completed">
         <img src="${fullImg}" class="completed-img" onerror="this.src='images/fish_logo.png'" />
@@ -46,7 +190,6 @@ function renderPuzzleFrameHTML(unlockedPieces, fullImg, isCompleted, isLocked) {
     `;
   }
 
-  // 1~8 收集進行中：3x3 九宮格拼圖塊
   let cellsHtml = "";
   for (let i = 1; i <= 9; i++) {
     const isPieceUnlocked = unlockedPieces.includes(i);
@@ -72,7 +215,6 @@ function renderPuzzleFrameHTML(unlockedPieces, fullImg, isCompleted, isLocked) {
   `;
 }
 
-// 輔助函式：取得身分驗證 Header
 function getAuthHeaders() {
   const token = localStorage.getItem("authToken");
   const headers = {
@@ -86,60 +228,54 @@ function getAuthHeaders() {
 }
 
 // ==================================================
-// 💎 喚醒石、庫存與每日任務
+// 💎 喚醒石、庫存與簽到任務
 // ==================================================
-
-// 取得當前日期字串 (YYYY-MM-DD)
 function getTodayDateString() {
   const now = new Date();
   const year = now.getFullYear();
-  const month = String(now.getMonth() + 1).padStart(2, '0');
-  const day = String(now.getDate()).padStart(2, '0');
+  const month = String(now.getMonth() + 1).padStart(2, "0");
+  const day = String(now.getDate()).padStart(2, "0");
   return `${year}-${month}-${day}`;
 }
 
-// 檢查每日簽到狀態
 function checkDailySignInStatus() {
   const signBtn = document.getElementById("daily-sign-btn");
   if (!signBtn) return;
 
+  const dict = translations[currentLang] || translations.zh;
   const today = getTodayDateString();
   const lastSignDate = localStorage.getItem("puzzle_last_sign_date");
 
   if (lastSignDate === today) {
-    // 今日已簽到
     signBtn.disabled = true;
     signBtn.classList.remove("active");
-    signBtn.innerText = "已領取 ✔️";
+    signBtn.innerText = dict["claimed-btn"];
     signBtn.style.background = "rgba(255, 255, 255, 0.1)";
     signBtn.style.color = "#4facfe";
   } else {
-    // 今日尚未簽到
     signBtn.disabled = false;
     signBtn.classList.add("active");
-    signBtn.innerHTML = "<span>領取 1 顆</span>";
+    signBtn.innerHTML = `<span>${dict["claim-1-stone"]}</span>`;
     signBtn.style.background = "";
     signBtn.style.color = "";
   }
 }
 
 function claimToken(btnElement, amount) {
+  const dict = translations[currentLang] || translations.zh;
   const today = getTodayDateString();
   const lastSignDate = localStorage.getItem("puzzle_last_sign_date");
 
-  // 防呆：如果今天已經領取過則直接阻擋
   if (lastSignDate === today) {
-    alert("今天已經領取過簽到獎勵囉！明天再來吧～🌊");
+    alert(dict["err-signin-done"]);
     checkDailySignInStatus();
     return;
   }
 
-  // 記錄今日簽到日期
   localStorage.setItem("puzzle_last_sign_date", today);
-
   drawTokens += amount;
   localStorage.setItem("puzzle_tokens", drawTokens);
-  
+
   checkDailySignInStatus();
   updateTokenDisplay();
 }
@@ -149,7 +285,7 @@ function updateTokenDisplay() {
   const drawBtn = document.getElementById("draw-btn");
 
   if (tokenCountEl) tokenCountEl.innerText = drawTokens;
-  if (drawBtn) drawBtn.disabled = drawTokens <= 0;
+  if (drawBtn) drawBtn.disabled = drawTokens <= 0 || isDrawing;
 }
 
 async function fetchInventory() {
@@ -184,14 +320,15 @@ async function fetchInventory() {
 }
 
 // ==================================================
-// 🔮 真實後端九宮格抽卡喚醒 (Gacha System)
+// 🔮 抽卡喚醒系統 (Gacha Draw)
 // ==================================================
 async function performDraw() {
-  if (drawTokens <= 0) return;
+  const dict = translations[currentLang] || translations.zh;
+  if (drawTokens <= 0 || isDrawing) return;
 
   const token = localStorage.getItem("authToken");
   if (!token) {
-    alert("請先登入後再進行碎片喚醒唷！🌊");
+    alert(dict["err-no-login"]);
     window.location.href = "login.html";
     return;
   }
@@ -200,9 +337,9 @@ async function performDraw() {
   const crystal = document.getElementById("crystal-ball");
   if (!crystal || !drawBtn) return;
 
+  isDrawing = true;
   drawBtn.disabled = true;
 
-  // 💥 階段一：蓄力
   crystal.className = "crystal-ball drawing";
   crystal.innerHTML = `
     <div class="crystal-core"></div>
@@ -243,28 +380,31 @@ async function performDraw() {
 
     const isPremium = rarity === "PREMIUM";
     const rarityColor = isPremium ? "#ffd200" : "#00f2fe";
-    const rarityTag = isPremium ? "✨ PREMIUM 高級" : "NORMAL 普通";
+    const rarityTag = isPremium ? dict["rarity-prem"] : dict["rarity-normal"];
+    const pieceNumTag = dict["shard-num-tag"].replace("{num}", drawnPiece);
     const fullImg = getFullImageUrl(pic.image_url);
 
     setTimeout(() => {
-      // 💥 階段二：碎裂
       crystal.className = "crystal-ball explode";
       crystal.innerHTML = "";
 
-      // 💥 階段三：展示單格碎片與九宮格
       setTimeout(() => {
         crystal.className = "prize-stage";
-        
+
         let gridHtml = "";
         for (let i = 1; i <= 9; i++) {
           const isUnlocked = unlockedPieces.includes(i);
           const isDrawn = (i === drawnPiece);
-          gridHtml += `<div class="grid-cell ${isUnlocked ? 'unlocked' : ''} ${isDrawn ? 'highlight' : ''}">${i}</div>`;
+          gridHtml += `<div class="grid-cell ${isUnlocked ? "unlocked" : ""} ${isDrawn ? "highlight" : ""}">${i}</div>`;
         }
 
         const cardDisplayContent = isCompletedNow
           ? `<img src="${fullImg}" alt="${pic.title}" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.src='images/fish_logo.png'" />`
           : `<div style="width: 100%; height: 100%; ${getPieceCropStyle(drawnPiece, fullImg)}"></div>`;
+
+        const descText = isCompletedNow
+          ? dict["draw-congrats"]
+          : dict["draw-progress"].replace("{count}", unlockedPieces.length).replace("{rate}", result.puzzleProgress?.progressRate || "0%");
 
         crystal.innerHTML = `
           <div class="prize-rays"></div>
@@ -277,16 +417,17 @@ async function performDraw() {
             </div>
           </div>
           <div class="rarity-pill" style="background: ${rarityColor}; color: #021226;">
-            ${rarityTag} · 第 ${drawnPiece} 號碎片
+            ${rarityTag} · ${pieceNumTag}
           </div>
           <div class="prize-title" style="color: ${rarityColor}; text-shadow: 0 0 16px ${rarityColor};">
             ${pic.title || "海洋拼圖"}
           </div>
           <div class="prize-desc">
-            ${isCompletedNow ? '🎉 恭喜集齊完整拼圖！' : `收集進度：${unlockedPieces.length} / 9 (${result.puzzleProgress?.progressRate || '0%'})`}
+            ${descText}
           </div>
         `;
 
+        isDrawing = false;
         if (drawTokens > 0) drawBtn.disabled = false;
         fetchGalleryData();
       }, 400);
@@ -295,11 +436,12 @@ async function performDraw() {
   } catch (error) {
     console.error("喚醒抽卡錯誤:", error);
     alert(`喚醒發生錯誤：${error.message}`);
-    
+
+    isDrawing = false;
     crystal.className = "crystal-ball";
     crystal.innerHTML = `
       <div class="crystal-core"></div>
-      <span class="idle-text">等待喚醒</span>
+      <span class="idle-text">${dict["idle-summon"]}</span>
       <span class="idle-sub">TAP TO SUMMON</span>
     `;
     if (drawTokens > 0) drawBtn.disabled = false;
@@ -307,7 +449,7 @@ async function performDraw() {
 }
 
 // ==================================================
-// 📦 碎片工坊與開啟寶箱 API 串接
+// 📦 碎片工坊與開啟寶箱 API
 // ==================================================
 function openWorkshop() {
   const modal = document.getElementById("workshop-modal");
@@ -324,7 +466,7 @@ function closeWorkshop() {
 
 async function exchangeFragments(type) {
   const token = localStorage.getItem("authToken");
-  if (!token) return alert("請先登入！");
+  if (!token) return alert(translations[currentLang]["err-no-login"]);
 
   try {
     const res = await fetch(`${API_BASE_URL}/game/collect/exchange`, {
@@ -347,7 +489,7 @@ async function exchangeFragments(type) {
 
 async function openChest(chestType) {
   const token = localStorage.getItem("authToken");
-  if (!token) return alert("請先登入！");
+  if (!token) return alert(translations[currentLang]["err-no-login"]);
 
   try {
     const res = await fetch(`${API_BASE_URL}/game/collect/open-chest`, {
@@ -375,10 +517,11 @@ async function openChest(chestType) {
 }
 
 // ==================================================
-// 🖼️ 收藏畫廊後端連線 (Gallery Modal)
+// 🖼️ 拼圖收藏畫廊 API 與自然排序渲染
 // ==================================================
 async function fetchGalleryData() {
   const container = document.querySelector(".gallery-grid");
+  const dict = translations[currentLang] || translations.zh;
   if (!container) return;
 
   try {
@@ -390,23 +533,32 @@ async function fetchGalleryData() {
     if (response.ok) {
       const json = await response.json();
       galleryPictures = json.data?.pictures || [];
+
+      // 自然排序 (Natural Sort)
+      galleryPictures.sort((a, b) => {
+        const titleA = String(a.title || "");
+        const titleB = String(b.title || "");
+        return titleA.localeCompare(titleB, undefined, { numeric: true, sensitivity: "base" });
+      });
+
       renderGalleryPage(currentGalleryPage);
     } else {
-      container.innerHTML = '<div style="grid-column: 1/-1; text-align:center; color:#88bbff; padding: 40px 0;">載入圖鑑失敗，請稍後再試 🌊</div>';
+      container.innerHTML = `<div style="grid-column: 1/-1; text-align:center; color:#88bbff; padding: 40px 0;">${dict["empty-gallery"]}</div>`;
     }
   } catch (error) {
     console.error("載入圖鑑失敗:", error);
-    container.innerHTML = '<div style="grid-column: 1/-1; text-align:center; color:#ff7675; padding: 40px 0;">伺服器連線中斷 😢</div>';
+    container.innerHTML = `<div style="grid-column: 1/-1; text-align:center; color:#ff7675; padding: 40px 0;">${dict["server-error"]}</div>`;
   }
 }
 
 function renderGalleryPage(page) {
   const container = document.querySelector(".gallery-grid");
   const paginationContainer = document.querySelector(".pagination-container");
+  const dict = translations[currentLang] || translations.zh;
   if (!container) return;
 
   if (galleryPictures.length === 0) {
-    container.innerHTML = '<div style="grid-column: 1/-1; text-align:center; color:#88bbff; padding: 40px 0;">目前還沒有圖鑑資料唷！🌊</div>';
+    container.innerHTML = `<div style="grid-column: 1/-1; text-align:center; color:#88bbff; padding: 40px 0;">${dict["empty-gallery"]}</div>`;
     if (paginationContainer) paginationContainer.style.display = "none";
     return;
   }
@@ -417,7 +569,7 @@ function renderGalleryPage(page) {
   const start = (currentGalleryPage - 1) * ITEMS_PER_PAGE;
   const pageData = galleryPictures.slice(start, start + ITEMS_PER_PAGE);
 
-  container.innerHTML = pageData.map(item => {
+  container.innerHTML = pageData.map((item) => {
     const prog = item.user_progress || {};
     const isCompleted = Boolean(prog.is_completed);
     const unlockedPieces = prog.unlocked_pieces || [];
@@ -425,14 +577,15 @@ function renderGalleryPage(page) {
     const isLocked = (pieceCount === 0);
     const fullImg = getFullImageUrl(item.image_url);
     const rarityColor = item.rarity === "PREMIUM" ? "style='color:#ffd200;'" : "";
+    const progressText = isCompleted ? dict["puzzle-completed"] : `${dict["puzzle-progress"]} ${pieceCount}/9 (${prog.progress_rate || "0%"})`;
 
     return `
-      <div class="gallery-item ${isCompleted ? 'unlocked' : (pieceCount > 0 ? 'in-progress' : 'locked')}">
+      <div class="gallery-item ${isCompleted ? "unlocked" : (pieceCount > 0 ? "in-progress" : "locked")}">
         <div class="img-frame">
           ${renderPuzzleFrameHTML(unlockedPieces, fullImg, isCompleted, isLocked)}
         </div>
-        <p class="gallery-name" ${rarityColor}>${isCompleted ? '✨ ' : ''}${item.title || '海洋拼圖'}</p>
-        <span class="date">${isCompleted ? '已集齊 (9/9)' : `碎片進度: ${pieceCount}/9 (${prog.progress_rate || '0%'})`}</span>
+        <p class="gallery-name" ${rarityColor}>${isCompleted ? "✨ " : ""}${item.title || "海洋拼圖"}</p>
+        <span class="date">${progressText}</span>
       </div>
     `;
   }).join("");
@@ -440,168 +593,97 @@ function renderGalleryPage(page) {
   renderPaginationControls(totalPages);
 }
 
-// 全部頁碼完整渲染
 function renderPaginationControls(totalPages) {
   const paginationContainer = document.querySelector(".pagination-container");
+  const dict = translations[currentLang] || translations.zh;
   if (!paginationContainer) return;
 
-  if (totalPages <= 1) {
+  if (totalPages <= 0 || galleryPictures.length === 0) {
     paginationContainer.style.display = "none";
     return;
   }
 
   paginationContainer.style.display = "flex";
 
-  // 直接生成 1 到 totalPages 的所有頁碼
-  const pagesHtml = Array.from({ length: totalPages }, (_, i) => i + 1)
-    .map(
-      (p) =>
-        `<button class="page-num ${p === currentGalleryPage ? 'active' : ''}" onclick="renderGalleryPage(${p})">${p}</button>`
-    )
-    .join("");
+  const isZh = currentLang === "zh";
+  const pageInfoHtml = isZh
+    ? `第 <input type="number" class="page-num-input" min="1" max="${totalPages}" value="${currentGalleryPage}" onchange="handlePageInput(this.value, ${totalPages})" onkeydown="if(event.key==='Enter') handlePageInput(this.value, ${totalPages})"> / ${totalPages} 頁 (共 ${galleryPictures.length} 筆)`
+    : `Page <input type="number" class="page-num-input" min="1" max="${totalPages}" value="${currentGalleryPage}" onchange="handlePageInput(this.value, ${totalPages})" onkeydown="if(event.key==='Enter') handlePageInput(this.value, ${totalPages})"> / ${totalPages} (Total ${galleryPictures.length})`;
 
   paginationContainer.innerHTML = `
-    <button class="page-btn prev-btn" ${currentGalleryPage === 1 ? 'disabled' : ''} onclick="renderGalleryPage(${currentGalleryPage - 1})">&laquo; 上一頁</button>
-    <div class="page-numbers">
-      ${pagesHtml}
-    </div>
-    <button class="page-btn next-btn" ${currentGalleryPage === totalPages ? 'disabled' : ''} onclick="renderGalleryPage(${currentGalleryPage + 1})">下一頁 &raquo;</button>
+    <button class="page-btn prev-btn" ${currentGalleryPage === 1 ? "disabled" : ""} onclick="renderGalleryPage(${currentGalleryPage - 1})">${dict["page-prev"]}</button>
+    <span class="pagination-info">
+      ${pageInfoHtml}
+    </span>
+    <button class="page-btn next-btn" ${currentGalleryPage === totalPages ? "disabled" : ""} onclick="renderGalleryPage(${currentGalleryPage + 1})">${dict["page-next"]}</button>
   `;
 }
 
-// 模態窗控制
-const galleryModal = document.getElementById("gallery-modal");
+window.handlePageInput = function (val, totalPages) {
+  let page = parseInt(val, 10);
+  if (isNaN(page) || page < 1) page = 1;
+  if (page > totalPages) page = totalPages;
+  renderGalleryPage(page);
+};
+
 function openGallery() {
-  if (galleryModal) {
-    galleryModal.style.display = "flex";
+  const modal = document.getElementById("gallery-modal");
+  if (modal) {
+    modal.style.display = "flex";
     fetchGalleryData();
   }
 }
+
 function closeGallery() {
-  if (galleryModal) galleryModal.style.display = "none";
+  const modal = document.getElementById("gallery-modal");
+  if (modal) modal.style.display = "none";
 }
 
-window.addEventListener("click", function (event) {
-  if (event.target === galleryModal) closeGallery();
+window.addEventListener("click", (event) => {
+  const galleryModal = document.getElementById("gallery-modal");
   const wsModal = document.getElementById("workshop-modal");
+  if (event.target === galleryModal) closeGallery();
   if (event.target === wsModal) closeWorkshop();
 });
 
-// ✨ 動態生成深海亮晶晶星光粒子群
+// ==================================================
+// ✨ 浮游微光粒子生成
+// ==================================================
 function createOceanSparkles() {
-  const oceanBg = document.querySelector(".ocean-bg");
-  if (!oceanBg) return;
+  const container = document.getElementById("ocean-sparkles");
+  if (!container) return;
+  container.innerHTML = "";
 
-  // 避免重複生成
-  let sparklesLayer = document.querySelector(".sparkles-layer");
-  if (!sparklesLayer) {
-    sparklesLayer = document.createElement("div");
-    sparklesLayer.className = "sparkles-layer";
-    sparklesLayer.style.cssText = "position: absolute; inset: 0; pointer-events: none; z-index: 1;";
-    oceanBg.appendChild(sparklesLayer);
-  } else {
-    sparklesLayer.innerHTML = "";
-  }
-
-  const symbols = ["✦", "✧", "★", "·", "✨"];
-  const count = 35; // 產生 35 顆星光
-
-  for (let i = 0; i < count; i++) {
+  const icons = ["✦", "✧", "·", "✨"];
+  for (let i = 0; i < 28; i++) {
     const star = document.createElement("div");
     star.className = "sparkle-star";
-    star.innerText = symbols[Math.floor(Math.random() * symbols.length)];
+    star.innerText = icons[Math.floor(Math.random() * icons.length)];
 
-    const top = Math.random() * 95 + "%";
-    const left = Math.random() * 95 + "%";
-    const size = Math.random() * 12 + 10 + "px";
-    const dur = Math.random() * 2 + 1.8 + "s";
-    const delay = Math.random() * 3 + "s";
+    star.style.top = `${Math.random() * 90}%`;
+    star.style.left = `${Math.random() * 95}%`;
+    star.style.fontSize = `${Math.random() * 10 + 10}px`;
+    star.style.setProperty("--dur", `${Math.random() * 2 + 1.8}s`);
+    star.style.setProperty("--delay", `${Math.random() * 3}s`);
 
-    star.style.cssText = `
-      position: absolute;
-      top: ${top};
-      left: ${left};
-      font-size: ${size};
-      color: #e0f9ff;
-      text-shadow: 0 0 6px #ffffff, 0 0 12px #00f2fe, 0 0 22px rgba(0, 242, 254, 0.9);
-      animation: twinkleSparkle ${dur} ease-in-out infinite alternate;
-      animation-delay: ${delay};
-      transform-origin: center center;
-      user-select: none;
-    `;
-
-    sparklesLayer.appendChild(star);
+    container.appendChild(star);
   }
 }
 
+// 頁面初次載入
 document.addEventListener("DOMContentLoaded", () => {
+  applyTranslations();
   updateTokenDisplay();
   checkDailySignInStatus();
   fetchInventory();
-  createOceanSparkles(); // 原本的亮晶晶星光
-  createSwimmingFish();  // 🌟 加入這行，召喚小魚！
+  createOceanSparkles();
 
   const crystal = document.getElementById("crystal-ball");
   if (crystal) {
     crystal.addEventListener("click", () => {
-      if (drawTokens > 0 && !document.getElementById("draw-btn").disabled) {
+      if (drawTokens > 0 && !isDrawing) {
         performDraw();
       }
     });
   }
 });
-// 🐟 自動生成深海發光游魚群
-function createSwimmingFish() {
-  const oceanBg = document.querySelector(".ocean-bg");
-  if (!oceanBg) return;
-
-  // 建立魚群圖層
-  let fishLayer = document.querySelector(".swimming-fish-layer");
-  if (!fishLayer) {
-    fishLayer = document.createElement("div");
-    fishLayer.className = "swimming-fish-layer";
-    oceanBg.appendChild(fishLayer);
-  } else {
-    fishLayer.innerHTML = "";
-  }
-
-  // 魚的數量與顏色設定
-  const fishList = [
-    { top: "18%", dur: "14s", delay: "0s", dir: "L2R", scale: 1.1, color: "#00f2fe", wave: "-35px" },
-    { top: "42%", dur: "11s", delay: "2s", dir: "R2L", scale: 0.9, color: "#ffd200", wave: "40px" },
-    { top: "68%", dur: "16s", delay: "1s", dir: "L2R", scale: 1.2, color: "#00f2fe", wave: "-25px" },
-    { top: "82%", dur: "13s", delay: "4s", dir: "R2L", scale: 0.8, color: "#4facfe", wave: "30px" },
-    { top: "30%", dur: "20s", delay: "6s", dir: "L2R", scale: 0.65, color: "#ffffff", wave: "-20px" }
-  ];
-
-  fishList.forEach((cfg) => {
-    const fishBox = document.createElement("div");
-    fishBox.className = "fish-item";
-    
-    // 設定位置與動畫屬性
-    fishBox.style.top = cfg.top;
-    fishBox.style.width = `${85 * cfg.scale}px`;
-    fishBox.style.height = `${50 * cfg.scale}px`;
-    fishBox.style.setProperty("--wave-y", cfg.wave);
-    fishBox.style.setProperty("--fish-scale", cfg.scale);
-    fishBox.style.animation = `${cfg.dir === 'L2R' ? 'swimL2R' : 'swimR2L'} ${cfg.dur} linear infinite`;
-    fishBox.style.animationDelay = cfg.delay;
-
-    // SVG 魚本體
-    fishBox.innerHTML = `
-      <svg class="ocean-fish-svg" viewBox="0 0 100 50">
-        <!-- 擺動尾巴 -->
-        <polygon class="fish-tail" points="30,25 5,8 5,42" fill="${cfg.color}" opacity="0.85" />
-        <!-- 背鰭 -->
-        <polygon points="50,15 65,5 75,18" fill="${cfg.color}" opacity="0.6" />
-        <!-- 魚身 -->
-        <path d="M 25,25 Q 55,5 88,25 Q 55,45 25,25 Z" fill="${cfg.color}" opacity="0.95" />
-        <!-- 眼睛 -->
-        <circle cx="78" cy="22" r="2.8" fill="#ffffff" />
-        <circle cx="79" cy="22" r="1.3" fill="#010814" />
-      </svg>
-    `;
-
-    fishLayer.appendChild(fishBox);
-  });
-}
