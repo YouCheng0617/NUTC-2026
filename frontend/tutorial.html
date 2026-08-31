@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>漂流指南 - 心情漂流瓶</title>
+<style>
+  /* === 基礎重置與深海漸層背景 === */
+  body {
+    background: linear-gradient(180deg, #044b7a 0%, #011322 100%);
+    margin: 0;
+    min-height: 100vh; /* 修復：讓畫面不夠大時允許延展 */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    color: #e0e0e0;
+    overflow-y: auto; /* 修復：允許上下捲動，避免畫面被切掉 */
+    position: relative;
+    padding: 20px 0; /* 修復：上下預留空間，避免視窗太貼邊 */
+  }
+
+  /* === 海底動態氣泡 (純 CSS 動畫) === */
+  .bubbles-container {
+    position: fixed; /* 修復：改為 fixed，確保視窗上下捲動時泡泡依然佈滿螢幕 */
+    top: 0; left: 0; width: 100%; height: 100%;
+    z-index: 0;
+    pointer-events: none; 
+  }
+  .bubble {
+    position: absolute;
+    bottom: -100px;
+    background-color: rgba(255, 255, 255, 0.15); 
+    border-radius: 50%;
+    animation: floatUp infinite ease-in;
+  }
+  .bubble:nth-child(1) { left: 10%; width: 40px; height: 40px; animation-duration: 8s; animation-delay: 0s; }
+  .bubble:nth-child(2) { left: 25%; width: 20px; height: 20px; animation-duration: 5s; animation-delay: 2s; }
+  .bubble:nth-child(3) { left: 40%; width: 50px; height: 50px; animation-duration: 10s; animation-delay: 1s; }
+  .bubble:nth-child(4) { left: 60%; width: 30px; height: 30px; animation-duration: 7s; animation-delay: 3s; }
+  .bubble:nth-child(5) { left: 75%; width: 65px; height: 65px; animation-duration: 12s; animation-delay: 0s; }
+  .bubble:nth-child(6) { left: 85%; width: 25px; height: 25px; animation-duration: 6s; animation-delay: 4s; }
+  .bubble:nth-child(7) { left: 95%; width: 45px; height: 45px; animation-duration: 9s; animation-delay: 2s; }
+
+  @keyframes floatUp {
+    0% { transform: translateY(0) scale(1); opacity: 1; }
+    100% { transform: translateY(-120vh) scale(1.2); opacity: 0; }
+  }
+
+  /* === 導覽主體介面 === */
+  .tutorial-window {
+    position: relative;
+    z-index: 10; 
+    width: 1200px; 
+    height: 700px; 
+    background-color: rgba(15, 32, 55, 0.85); 
+    backdrop-filter: blur(12px); 
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 20px;
+    display: flex;
+    box-shadow: 0 15px 50px rgba(0,0,0,0.8);
+    overflow: hidden;
+  }
+
+  /* 關閉按鈕 (右上角 X) */
+  .close-btn {
+    position: absolute;
+    top: 15px; right: 25px;
+    font-size: 35px;
+    color: #8899a6;
+    cursor: pointer;
+    font-weight: bold;
+    z-index: 100;
+    user-select: none;
+    transition: 0.2s;
+  }
+  .close-btn:hover { 
+    color: #5ab9ff; 
+    transform: scale(1.1); 
+  }
+
+  /* 左上角標題裝飾 */
+  .tutorial-header {
+    position: absolute;
+    top: 20px; left: 25px;
+    font-size: 20px;
+    font-weight: bold;
+    color: #f4ecd8; 
+    letter-spacing: 2px;
+    z-index: 100;
+  }
+  .tutorial-header span { color: #5ab9ff; }
+
+  /* === 最左側：大分類選單 === */
+  .main-sidebar {
+    width: 90px;
+    background-color: rgba(5, 15, 28, 0.6); 
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding-top: 80px;
+    border-right: 1px solid rgba(255, 255, 255, 0.05);
+  }
+  .main-tab {
+    width: 55px; height: 55px;
+    border-radius: 50%;
+    background-color: rgba(255, 255, 255, 0.1);
+    margin-bottom: 25px;
+    display: flex; justify-content: center; align-items: center;
+    font-size: 28px;
+    cursor: pointer;
+    transition: 0.3s;
+    color: #888;
+  }
+  .main-tab.active {
+    background-color: #5ab9ff; 
+    color: #011322;
+    box-shadow: 0 0 15px rgba(90, 185, 255, 0.6);
+  }
+
+  /* === 中間：細項選單 === */
+  .sub-sidebar {
+    width: 240px;
+    padding: 80px 15px 20px 25px;
+    overflow-y: auto;
+  }
+  .sub-tab {
+    padding: 15px 20px;
+    margin-bottom: 12px;
+    border-radius: 30px; 
+    background-color: rgba(255, 255, 255, 0.05);
+    color: #99aab5;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: 0.2s;
+    user-select: none;
+  }
+  .sub-tab:hover { background-color: rgba(255, 255, 255, 0.15); color: white; }
+  .sub-tab.active {
+    background-color: rgba(90, 185, 255, 0.2); 
+    color: #5ab9ff; 
+    border: 1px solid rgba(90, 185, 255, 0.5);
+  }
+
+  /* === 右側：內容展示區 === */
+  .content-area {
+    flex: 1;
+    padding: 60px 40px 40px 30px;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+  }
+
+  .carousel-container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    margin-bottom: 25px;
+  }
+
+  /* 圖片與輪播容器 */
+  .image-container {
+    position: relative;
+    flex: 1; 
+    margin: 0 20px; 
+    height: 450px; 
+    background-color: rgba(0, 0, 0, 0.5); 
+    border-radius: 15px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    box-shadow: inset 0 0 20px rgba(0,0,0,0.8);
+    overflow: hidden; 
+  }
+  .image-container img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+  }
+
+  /* 左右箭頭 */
+  .arrow {
+    font-size: 40px;
+    color: #5ab9ff; 
+    background: transparent !important;
+    border: none !important;
+    outline: none !important;
+    cursor: pointer;
+    opacity: 0.6;
+    transition: 0.3s;
+    padding: 0 10px;
+  }
+  .arrow:hover { 
+    opacity: 1; 
+    text-shadow: 0 0 15px rgba(90,185,255,0.8);
+  }
+
+  /* 底部點點 */
+  .dots-wrapper {
+    position: absolute;
+    bottom: 15px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 10px;
+  }
+  .dot {
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    background-color: rgba(255,255,255,0.3);
+    transition: 0.3s;
+  }
+  .dot.active { background-color: #5ab9ff; box-shadow: 0 0 8px #5ab9ff; }
+
+  /* 文字說明區 */
+  .text-container { padding: 0 15px; }
+  .text-title {
+    font-size: 26px; 
+    font-weight: bold;
+    color: white;
+    margin: 0 0 15px 0;
+  }
+  .text-desc {
+    font-size: 17px; 
+    color: #b0c4de; 
+    line-height: 1.6;
+    margin: 0;
+  }
+</style>
+</head>
+<body>
+
+<!-- 背景泡泡動畫 -->
+<div class="bubbles-container">
+  <div class="bubble"></div>
+  <div class="bubble"></div>
+  <div class="bubble"></div>
+  <div class="bubble"></div>
+  <div class="bubble"></div>
+  <div class="bubble"></div>
+  <div class="bubble"></div>
+</div>
+
+<div class="tutorial-window">
+  <!-- 右上角關閉按鈕 -->
+  <div class="close-btn" id="closeGuideBtn" title="返回大廳">&times;</div>
+  
+  <div class="tutorial-header"><span>▍</span>漂流指南</div>
+
+  <!-- 左側大分類 (第一層級) -->
+  <div class="main-sidebar">
+    <div class="main-tab active" data-category="main" title="心情漂流瓶">🍾</div>
+    <div class="main-tab" data-category="park" title="遊樂園">🎮</div>
+  </div>
+
+  <!-- 中間細項 (第二層級) -->
+  <div class="sub-sidebar" id="subSidebar">
+    <!-- JS 會自動在這裡產生按鈕 -->
+  </div>
+
+  <!-- 右側內容區 -->
+  <div class="content-area">
+    <div class="carousel-container">
+      <button class="arrow arrow-left" id="prevBtn">◀</button>
+      
+      <div class="image-container">
+        <img id="displayImage" src="" alt="指南圖片">
+        <div class="dots-wrapper" id="dotsWrapper"></div>
+      </div>
+      
+      <button class="arrow arrow-right" id="nextBtn">▶</button>
+    </div>
+
+    <div class="text-container">
+      <h3 class="text-title" id="displayTitle">標題</h3>
+      <p class="text-desc" id="displayDesc">描述內容</p>
+    </div>
+  </div>
+</div>
+
+<script>
+  // ==========================================
+  // 跳轉回大廳邏輯
+  // ==========================================
+  document.getElementById('closeGuideBtn').onclick = () => {
+    window.location.href = 'test.html'; 
+  };
+
+  // ==========================================
+  // 指南內容資料庫 (完整 14 項內容已補齊)
+  // ==========================================
+  const tutorialData = {
+    // 類別 1：心情漂流瓶 (7 項)
+    main: [
+      {
+        title: "歡迎來到漂流瓶",
+        slides: [
+          { img: "https://placehold.co/800x450/033352/white?text=1.註冊畫面", subtitle: "註冊與登入", desc: "歡迎來到心情漂流瓶！請先在畫面右上角點擊「註冊 / 登入」，填寫基本資料。" },
+          { img: "https://placehold.co/800x450/033352/white?text=2.登入畫面", subtitle: "登入你的帳號", desc: "輸入你的 Email 與密碼進行登入。" },
+          { img: "https://placehold.co/800x450/033352/white?text=3.進入主頁", subtitle: "準備啟航", desc: "登入後就能進入你的專屬帳號，開啟深海之旅囉！記得滑到最下方同意海神公約喔！" }
+        ]
+      },
+      {
+        title: "探索海底大廳",
+        slides: [
+          { img: "https://placehold.co/800x450/033352/white?text=大廳畫面", subtitle: "海底大廳", desc: "登入後將來到最熱鬧的「海底大廳」！這裡是所有交流的核心，包含了熱門貼文與遊樂場入口。" },
+          { img: "https://placehold.co/800x450/033352/white?text=通知中心", subtitle: "通知中心", desc: "畫面右上方會貼心顯示當前的日期、天氣與通知小鈴鐺，點擊可查看最新通知喔！" }
+        ]
+      },
+      {
+        title: "打造個人空間",
+        slides: [
+          { img: "https://placehold.co/800x450/033352/white?text=編輯資料", subtitle: "編輯個人資料", desc: "點擊右上角的使用者名稱，即可自由編輯個人資料，打造專屬形象。" },
+          { img: "https://placehold.co/800x450/033352/white?text=追蹤與收藏", subtitle: "追蹤與收藏", desc: "隨時查看你追蹤了哪些優質創作者，並在「收藏瓶子」裡回顧那些觸動你的溫暖文字。" },
+          { img: "https://placehold.co/800x450/033352/white?text=我的瓶子", subtitle: "我的瓶子", desc: "透過「我的瓶子」頁面，你可以輕鬆管理自己發布過的所有貼文紀錄。" }
+        ]
+      },
+      {
+        title: "拋出你的瓶子",
+        slides: [
+          { img: "https://placehold.co/800x450/033352/white?text=發文畫面", subtitle: "拋出你的心事", desc: "點擊「發文」，自由選擇貼文要拋向哪個海域，並隨時決定要以「實名」或「匿名」發布，讓海浪替你傳遞心聲。" }
+        ]
+      },
+      {
+        title: "海流導航與社群",
+        slides: [
+          { img: "https://placehold.co/800x450/033352/white?text=頻道分類", subtitle: "頻道與熱門", desc: "透過下方分類輕鬆切換觀看「所有文章」或單一情緒頻道。左側會顯示被收藏最多次的熱烈討論。" },
+          { img: "https://placehold.co/800x450/033352/white?text=呼喚海流", subtitle: "呼喚海流與殿規", desc: "想看新瓶子？點擊右下角「呼喚海流」即可隨機刷新！交流同時也請務必遵守右側的「海神殿規」喔！" }
+        ]
+      },
+      {
+        title: "尋找共鳴與留言",
+        slides: [
+          { img: "https://placehold.co/800x450/033352/white?text=搜尋與交流", subtitle: "搜尋特定話題", desc: "使用畫面上方的搜尋列，輸入關鍵字就能快速尋找相關的漂流瓶，點開即可看到完整內容。" },
+          { img: "https://placehold.co/800x450/033352/white?text=留言互動", subtitle: "安全的留言空間", desc: "留言區採用直覺的樓層編號，留言時也支援一鍵切換實名或匿名，讓交流充滿彈性無負擔。" }
+        ]
+      },
+      {
+        title: "專屬 AI 特助",
+        slides: [
+          { img: "https://placehold.co/800x450/033352/white?text=桌寵的家", subtitle: "你的桌寵夥伴", desc: "畫面裡有一隻可愛小傢伙陪伴你！點兩下會跑向你，不需要時也能拉牠回「桌寵的家」睡覺。" },
+          { img: "https://placehold.co/800x450/033352/white?text=AI特助", subtitle: "AI 特助聊天", desc: "點擊桌寵會喚醒「AI 特助」，不但能陪你聊天，還提供夜間模式、調整字體與多國語言切換等功能！" }
+        ]
+      }
+    ],
+    // 類別 2：遊樂園 (7 項)
+    park: [
+      {
+        title: "秘密海域遊樂場",
+        slides: [
+          { img: "https://placehold.co/800x450/4a1c40/white?text=遊樂場大廳", subtitle: "秘密海域大廳", desc: "心情有點悶？點擊大廳的「遊樂場」按鈕，這裡準備了六款各具特色的舒壓互動小遊戲等你探索！" }
+        ]
+      },
+      {
+        title: "海兔養成記",
+        slides: [
+          { img: "https://placehold.co/800x450/4a1c40/white?text=海兔首頁", subtitle: "遇見你的海兔", desc: "進入遊戲可享受無限重抽，直到遇見命中注定的專屬海兔並為牠命名！" },
+          { img: "https://placehold.co/800x450/4a1c40/white?text=每日任務", subtitle: "任務與裝扮", desc: "每天完成餵食等任務賺取積分，可至商城兌換背景特效。還能建立連線房間跟好友展示海兔！" }
+        ]
+      },
+      {
+        title: "今日塔羅瓶",
+        slides: [
+          { img: "https://placehold.co/800x450/4a1c40/white?text=選擇領域", subtitle: "深海的占卜", desc: "提供無次數限制的專屬占卜服務。選擇想探索的領域或自訂專屬問題。" },
+          { img: "https://placehold.co/800x450/4a1c40/white?text=抽牌解析", subtitle: "AI 牌義解析", desc: "憑直覺由左至右抽出三張正位牌，系統會自動結合 AI 產生專屬的完整解析報告與收藏功能。" }
+        ]
+      },
+      {
+        title: "突然想拼圖",
+        slides: [
+          { img: "https://placehold.co/800x450/4a1c40/white?text=碎片喚醒", subtitle: "海洋圖鑑收集", desc: "完成每日任務獲取「喚醒石」來抽取碎片，逐步解鎖各種美麗的海洋生物圖鑑。" },
+          { img: "https://placehold.co/800x450/4a1c40/white?text=工坊展示", subtitle: "工坊與展示櫃", desc: "多餘的碎片可在「碎片工坊」兌換寶箱保底新碎片！進度會即時同步至你的收藏展示櫃。" }
+        ]
+      },
+      {
+        title: "每日便利貼",
+        slides: [
+          { img: "https://placehold.co/800x450/4a1c40/white?text=便利貼牆", subtitle: "無聲樹洞", desc: "匿名情感交流空間，每人每天限留一次 50 字以內便利貼，24小時後系統會自動清除痕跡。" },
+          { img: "https://placehold.co/800x450/4a1c40/white?text=發布限制", subtitle: "純粹的抒發", desc: "此區刻意關閉回覆功能，讓大家在沒有社交壓力的環境下，純粹地抒發並感受彼此心境。" }
+        ]
+      },
+      {
+        title: "瓶命射擊",
+        slides: [
+          { img: "https://placehold.co/800x450/4a1c40/white?text=難度選擇", subtitle: "動態狙擊挑戰", desc: "極度考驗反應力與精準度！選擇難度後，準確狙擊掉落的「瓶子」來累積連擊與高分。" },
+          { img: "https://placehold.co/800x450/4a1c40/white?text=遊戲道具", subtitle: "干擾與增益", desc: "誤擊干擾物「魚」會被扣分。遊戲中會隨機掉落延長時間的沙漏與補充彈藥的貝殼，善用它們挑戰霸主！" }
+        ]
+      },
+      {
+        title: "接住小瓶",
+        slides: [
+          { img: "https://placehold.co/800x450/4a1c40/white?text=準備畫面", subtitle: "接物挑戰", desc: "快節奏的刺激接物遊戲！在 30 秒限時內，敏捷操控籃子接住掉落的漂流瓶累積積分。" },
+          { img: "https://placehold.co/800x450/4a1c40/white?text=道具說明", subtitle: "閃避與護盾", desc: "必須完美閃避扣分炸彈！隨機掉落的雙倍星能讓得分翻倍，無敵護盾能擋下一次致命攻擊。" }
+        ]
+      }
+    ]
+  };
+
+  // ==========================================
+  // 核心控制邏輯
+  // ==========================================
+  let currentCategory = 'main'; 
+  let currentSubIndex = 0;      
+  let currentSlideIndex = 0;    
+
+  const subSidebar = document.getElementById('subSidebar');
+  const displayImage = document.getElementById('displayImage');
+  const displayTitle = document.getElementById('displayTitle');
+  const displayDesc = document.getElementById('displayDesc');
+  const dotsWrapper = document.getElementById('dotsWrapper');
+  const prevBtn = document.getElementById('prevBtn');
+  const nextBtn = document.getElementById('nextBtn');
+
+  function renderSubMenu() {
+    subSidebar.innerHTML = ''; 
+    const items = tutorialData[currentCategory];
+    
+    items.forEach((item, index) => {
+      const btn = document.createElement('div');
+      btn.className = `sub-tab ${index === currentSubIndex ? 'active' : ''}`;
+      btn.innerText = item.title;
+      btn.onclick = () => {
+        currentSubIndex = index;
+        currentSlideIndex = 0; 
+        renderSubMenu();       
+        renderSlide();         
+      };
+      subSidebar.appendChild(btn);
+    });
+  }
+
+  function renderSlide() {
+    const slideData = tutorialData[currentCategory][currentSubIndex].slides;
+    const currentSlide = slideData[currentSlideIndex];
+
+    displayImage.src = currentSlide.img;
+    displayTitle.innerText = currentSlide.subtitle;
+    displayDesc.innerText = currentSlide.desc;
+
+    dotsWrapper.innerHTML = '';
+    slideData.forEach((_, idx) => {
+      const dot = document.createElement('div');
+      dot.className = `dot ${idx === currentSlideIndex ? 'active' : ''}`;
+      dotsWrapper.appendChild(dot);
+    });
+
+    if (slideData.length <= 1) {
+      prevBtn.style.visibility = 'hidden';
+      nextBtn.style.visibility = 'hidden';
+    } else {
+      prevBtn.style.visibility = currentSlideIndex === 0 ? 'hidden' : 'visible';
+      nextBtn.style.visibility = currentSlideIndex === slideData.length - 1 ? 'hidden' : 'visible';
+      
+      prevBtn.style.cursor = currentSlideIndex === 0 ? 'default' : 'pointer';
+      nextBtn.style.cursor = currentSlideIndex === slideData.length - 1 ? 'default' : 'pointer';
+      prevBtn.style.opacity = '0.6';
+      nextBtn.style.opacity = '0.6';
+    }
+  }
+
+  prevBtn.onclick = () => {
+    if (currentSlideIndex > 0) {
+      currentSlideIndex--;
+      renderSlide();
+    }
+  };
+  
+  nextBtn.onclick = () => {
+    const maxSlides = tutorialData[currentCategory][currentSubIndex].slides.length;
+    if (currentSlideIndex < maxSlides - 1) {
+      currentSlideIndex++;
+      renderSlide();
+    }
+  };
+
+  document.querySelectorAll('.main-tab').forEach(tab => {
+    tab.onclick = (e) => {
+      document.querySelectorAll('.main-tab').forEach(t => t.classList.remove('active'));
+      e.currentTarget.classList.add('active');
+      
+      currentCategory = e.currentTarget.getAttribute('data-category');
+      currentSubIndex = 0;
+      currentSlideIndex = 0;
+      
+      renderSubMenu();
+      renderSlide();
+    };
+  });
+
+  renderSubMenu();
+  renderSlide();
+</script>
+</body>
+</html>
