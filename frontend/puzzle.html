@@ -6,135 +6,137 @@
       name="viewport"
       content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
     />
-    <title>突然想拼圖 - 秘密海域</title>
-   <link rel="stylesheet" href="puzzle.css?v=20260827_sparkle_v5" />
+    <title>突然想拼圖 - 漂流瓶海域</title>
+    <link rel="stylesheet" href="puzzle.css?v=20260831_i18n_v1" />
   </head>
   <body>
-<!-- 🌊 極致動態深海背景 (亮晶晶星光升級版) -->
-<div class="ocean-bg">
-  <div class="deep-glow"></div>
-  <div class="light-ray"></div>
-  <div class="shimmer-water-wave"></div>
-  
-  <!-- ✨ 亮晶晶閃爍星光粒子群 -->
-  <div class="sparkles-layer">
-    <!-- 原有的星光粒子保留 -->
-  </div>
+    <!-- 🌊 漂流瓶與星夜洋流背景 -->
+    <div class="ocean-bg">
+      <div class="sky-glow"></div>
+      <div class="caustic-waves"></div>
 
-  <!-- 🐟 新增：深海游動魚群層 (SVG 向量小魚) -->
-  <div class="swimming-fish-layer">
-    <!-- 第 1 隻魚：從左向右游（大型、緩慢、發光） -->
-    <div class="fish-item fish-1">
-      <svg class="ocean-fish" viewBox="0 0 100 60">
-        <!-- 尾鰭與擺動動畫 -->
-        <polygon class="fish-fin fish-tail" points="25,30 5,12 5,48" fill="url(#tailGrad1)" />
-        <!-- 背鰭與胸鰭 -->
-        <polygon class="fish-fin top-fin" points="45,20 60,10 70,22" fill="rgba(0, 242, 254, 0.4)" />
-        <!-- 魚身曲線 -->
-        <path class="fish-body" d="M 20,30 Q 50,8 85,30 Q 50,52 20,30 Z" fill="url(#bodyGrad1)" />
-        <!-- 魚眼 -->
-        <circle cx="76" cy="27" r="2.5" fill="#ffffff" />
-        <circle cx="77" cy="27" r="1.2" fill="#010814" />
-        
-        <!-- 漸層定義 -->
-        <defs>
-          <linearGradient id="bodyGrad1" x1="0%" y1="0%" x2="100%" y2="0%">
-            <stop offset="0%" stop-color="#4facfe" stop-opacity="0.25" />
-            <stop offset="100%" stop-color="#00f2fe" stop-opacity="0.7" />
-          </linearGradient>
-          <linearGradient id="tailGrad1" x1="0%" y1="0%" x2="100%" y2="0%">
-            <stop offset="0%" stop-color="#00f2fe" stop-opacity="0.1" />
-            <stop offset="100%" stop-color="#4facfe" stop-opacity="0.6" />
-          </linearGradient>
-        </defs>
-      </svg>
+      <!-- 🍾 漂流瓶群 -->
+      <div class="drifting-bottles-layer">
+        <div class="bottle-item bottle-1">
+          <svg class="bottle-svg" viewBox="0 0 100 100">
+            <defs>
+              <linearGradient id="glass1" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="rgba(255,255,255,0.75)" />
+                <stop offset="35%" stop-color="rgba(0,242,254,0.3)" />
+                <stop offset="70%" stop-color="rgba(4,40,80,0.5)" />
+                <stop offset="100%" stop-color="rgba(0,242,254,0.6)" />
+              </linearGradient>
+              <linearGradient id="paper1" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" stop-color="#ffeaa7" />
+                <stop offset="100%" stop-color="#ffd200" />
+              </linearGradient>
+            </defs>
+            <rect x="42" y="10" width="16" height="8" rx="2" fill="#c48a4d" />
+            <rect x="38" y="17" width="24" height="6" rx="2" fill="#d99b59" />
+            <path d="M 40,23 L 40,32 L 28,46 L 28,82 A 12,12 0 0,0 40,94 L 60,94 A 12,12 0 0,0 72,82 L 72,46 L 60,32 L 60,23 Z"
+                  fill="url(#glass1)" stroke="rgba(255,255,255,0.85)" stroke-width="2" />
+            <g class="letter-glow">
+              <rect x="37" y="52" width="26" height="30" rx="4" fill="url(#paper1)" transform="rotate(-8 50 67)" />
+              <line x1="42" y1="58" x2="58" y2="56" stroke="#b37d14" stroke-width="1.8" stroke-linecap="round" />
+              <line x1="41" y1="65" x2="57" y2="63" stroke="#b37d14" stroke-width="1.8" stroke-linecap="round" />
+              <rect x="36" y="63" width="28" height="3" fill="#e74c3c" rx="1.5" transform="rotate(-8 50 67)" />
+            </g>
+            <path d="M 32,48 Q 33,65 33,82" stroke="rgba(255,255,255,0.75)" stroke-width="2.5" stroke-linecap="round" fill="none" />
+          </svg>
+        </div>
+
+        <div class="bottle-item bottle-2">
+          <svg class="bottle-svg" viewBox="0 0 100 100">
+            <defs>
+              <linearGradient id="glass2" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="rgba(255,255,255,0.8)" />
+                <stop offset="40%" stop-color="rgba(255,210,0,0.3)" />
+                <stop offset="80%" stop-color="rgba(2,30,65,0.6)" />
+                <stop offset="100%" stop-color="rgba(255,210,0,0.5)" />
+              </linearGradient>
+            </defs>
+            <rect x="42" y="10" width="16" height="8" rx="2" fill="#c48a4d" />
+            <rect x="38" y="17" width="24" height="6" rx="2" fill="#d99b59" />
+            <path d="M 40,23 L 40,32 L 28,46 L 28,82 A 12,12 0 0,0 40,94 L 60,94 A 12,12 0 0,0 72,82 L 72,46 L 60,32 L 60,23 Z"
+                  fill="url(#glass2)" stroke="rgba(255,255,255,0.85)" stroke-width="2" />
+            <g class="letter-glow">
+              <rect x="37" y="52" width="26" height="30" rx="4" fill="#ffd200" transform="rotate(-8 50 67)" />
+              <line x1="42" y1="58" x2="58" y2="56" stroke="#8a5a00" stroke-width="1.8" stroke-linecap="round" />
+              <line x1="41" y1="65" x2="57" y2="63" stroke="#8a5a00" stroke-width="1.8" stroke-linecap="round" />
+              <rect x="36" y="63" width="28" height="3" fill="#e74c3c" rx="1.5" transform="rotate(-8 50 67)" />
+            </g>
+            <path d="M 32,48 Q 33,65 33,82" stroke="rgba(255,255,255,0.75)" stroke-width="2.5" stroke-linecap="round" fill="none" />
+          </svg>
+        </div>
+
+        <div class="bottle-item bottle-3">
+          <svg class="bottle-svg" viewBox="0 0 100 100">
+            <rect x="42" y="10" width="16" height="8" rx="2" fill="#c48a4d" />
+            <path d="M 40,23 L 40,32 L 28,46 L 28,82 A 12,12 0 0,0 40,94 L 60,94 A 12,12 0 0,0 72,82 L 72,46 L 60,32 L 60,23 Z"
+                  fill="rgba(0, 242, 254, 0.25)" stroke="rgba(255,255,255,0.6)" stroke-width="2" />
+            <rect x="37" y="52" width="26" height="30" rx="4" fill="#ffeaa7" transform="rotate(-8 50 67)" />
+          </svg>
+        </div>
+      </div>
+
+      <div class="bubbles-container">
+        <div class="ocean-bubble bubble-1"></div>
+        <div class="ocean-bubble bubble-2"></div>
+        <div class="ocean-bubble bubble-3"></div>
+        <div class="ocean-bubble bubble-4"></div>
+      </div>
+
+      <div class="sparkles-layer" id="ocean-sparkles"></div>
     </div>
 
-    <!-- 第 2 隻魚：從右向左游（中型、稍快） -->
-    <div class="fish-item fish-2">
-      <svg class="ocean-fish" viewBox="0 0 100 60">
-        <polygon class="fish-fin fish-tail" points="25,30 5,12 5,48" fill="url(#tailGrad2)" />
-        <polygon class="fish-fin top-fin" points="45,20 60,10 70,22" fill="rgba(255, 210, 0, 0.3)" />
-        <path class="fish-body" d="M 20,30 Q 50,8 85,30 Q 50,52 20,30 Z" fill="url(#bodyGrad2)" />
-        <circle cx="76" cy="27" r="2" fill="#ffffff" />
-        <circle cx="77" cy="27" r="1" fill="#010814" />
-        
-        <defs>
-          <linearGradient id="bodyGrad2" x1="0%" y1="0%" x2="100%" y2="0%">
-            <stop offset="0%" stop-color="#ff9900" stop-opacity="0.2" />
-            <stop offset="100%" stop-color="#ffd200" stop-opacity="0.65" />
-          </linearGradient>
-          <linearGradient id="tailGrad2" x1="0%" y1="0%" x2="100%" y2="0%">
-            <stop offset="0%" stop-color="#ffd200" stop-opacity="0.1" />
-            <stop offset="100%" stop-color="#ff9900" stop-opacity="0.5" />
-          </linearGradient>
-        </defs>
-      </svg>
-    </div>
-
-    <!-- 第 3 隻魚：深層遠景（小型、朦朧光影） -->
-    <div class="fish-item fish-3">
-      <svg class="ocean-fish" viewBox="0 0 100 60">
-        <polygon class="fish-fin fish-tail" points="25,30 5,14 5,46" fill="rgba(0, 242, 254, 0.3)" />
-        <path class="fish-body" d="M 20,30 Q 50,10 85,30 Q 50,50 20,30 Z" fill="rgba(0, 242, 254, 0.45)" />
-        <circle cx="76" cy="28" r="2" fill="#ffffff" />
-      </svg>
-    </div>
-  </div>
-
-  <div class="bubbles">
-    <!-- 原有的泡泡保留 -->
-  </div>
-</div>
-
-    <!-- 頂部導航按鈕 -->
-    <a href="games.html" class="nav-btn back-btn">
+    <!-- 🔘 頂部導航按鈕 -->
+    <a href="games.html" class="nav-btn back-btn" data-i18n="back-btn">
       <span class="btn-icon">🔙</span> 回遊樂場
     </a>
     <div class="nav-right-group">
-      <button class="nav-btn workshop-btn" onclick="openWorkshop()">
+      <button id="lang-toggle-btn" class="nav-btn lang-btn" onclick="toggleLanguage()">
+        🌐 EN
+      </button>
+      <button class="nav-btn workshop-btn" onclick="openWorkshop()" data-i18n="workshop-nav">
         <span class="btn-icon">📦</span> 碎片工坊
       </button>
-      <button class="nav-btn gallery-btn" onclick="openGallery()">
+      <button class="nav-btn gallery-btn" onclick="openGallery()" data-i18n="gallery-nav">
         <span class="btn-icon">🖼️</span> 我的收藏
       </button>
     </div>
 
     <!-- 🧩 主內容區 -->
     <div class="main-container">
-      <!-- 🔮 上半部：深海神殿召喚法陣 -->
+      <!-- 🔮 上半部：海域碎片喚醒水晶球 -->
       <div class="glass-panel gacha-panel">
         <div class="panel-header">
           <span class="deco-star">✦</span>
-          <h2 class="panel-title">深海碎片喚醒</h2>
+          <h2 class="panel-title" data-i18n="gacha-title">海域碎片喚醒</h2>
           <span class="deco-star">✦</span>
         </div>
 
-        <!-- 抽獎法陣舞台 -->
         <div class="gacha-stage">
           <div class="magic-runes-outer"></div>
           <div class="magic-runes-inner"></div>
           <div class="pedestal-glow"></div>
 
-          <!-- 水晶球主體 -->
           <div id="crystal-ball" class="crystal-ball">
             <div class="crystal-core"></div>
-            <span class="idle-text">等待喚醒</span>
+            <span class="idle-text" data-i18n="idle-summon">等待喚醒</span>
             <span class="idle-sub">TAP TO SUMMON</span>
           </div>
         </div>
 
-        <!-- 抽獎控制區 -->
         <div class="gacha-controls">
           <div class="token-badge-group">
             <div class="token-badge">
               <span class="token-icon">💎</span>
-              <span class="token-label">喚醒石</span>
+              <span class="token-label" data-i18n="token-label">喚醒石</span>
               <span id="token-count" class="token-value">0</span>
             </div>
             <div class="token-badge fragment-badge">
               <span class="token-icon">🧩</span>
-              <span class="token-label">普通/高級</span>
+              <span class="token-label" data-i18n="frag-badge-label">普通/高級</span>
               <span id="fragment-counts" class="token-value">0 / 0</span>
             </div>
           </div>
@@ -145,7 +147,7 @@
             disabled
           >
             <span class="btn-shine"></span>
-            <span class="btn-text">消耗 1 顆喚醒石抽取</span>
+            <span id="draw-btn-text" class="btn-text" data-i18n="draw-btn">消耗 1 顆喚醒石抽取</span>
           </button>
         </div>
       </div>
@@ -154,7 +156,7 @@
       <div class="glass-panel task-panel-bottom">
         <div class="panel-header sub-header">
           <span class="deco-star">✦</span>
-          <h2 class="panel-title sub-title">每日任務 (獲取喚醒石)</h2>
+          <h2 class="panel-title sub-title" data-i18n="task-panel-title">每日任務 (獲取喚醒石)</h2>
           <span class="deco-star">✦</span>
         </div>
 
@@ -163,8 +165,8 @@
             <div class="task-head">
               <div class="task-icon-box">📅</div>
               <div class="task-info">
-                <h4>每日簽到</h4>
-                <p>登入海洋世界報到</p>
+                <h4 data-i18n="task-1-title">每日簽到</h4>
+                <p data-i18n="task-1-desc">登入海洋世界報到</p>
               </div>
             </div>
             <div class="task-progress-wrap">
@@ -174,7 +176,7 @@
               <span class="progress-num">1 / 1</span>
             </div>
             <button id="daily-sign-btn" class="claim-btn" onclick="claimToken(this, 1)">
-              <span>領取 1 顆</span>
+              <span data-i18n="claim-1-stone">領取 1 顆</span>
             </button>
           </div>
 
@@ -182,8 +184,8 @@
             <div class="task-head">
               <div class="task-icon-box">✉️</div>
               <div class="task-info">
-                <h4>漂流初探</h4>
-                <p>累積發文 3 篇</p>
+                <h4 data-i18n="task-2-title">漂流初探</h4>
+                <p data-i18n="task-2-desc">累積發文 3 篇</p>
               </div>
             </div>
             <div class="task-progress-wrap">
@@ -192,15 +194,15 @@
               </div>
               <span class="progress-num">0 / 3</span>
             </div>
-            <button class="claim-btn" disabled>未達成</button>
+            <button class="claim-btn" disabled data-i18n="task-locked">未達成</button>
           </div>
 
           <div class="task-card">
             <div class="task-head">
               <div class="task-icon-box">💬</div>
               <div class="task-info">
-                <h4>侃侃而談</h4>
-                <p>累積發文 6 篇</p>
+                <h4 data-i18n="task-3-title">侃侃而談</h4>
+                <p data-i18n="task-3-desc">累積發文 6 篇</p>
               </div>
             </div>
             <div class="task-progress-wrap">
@@ -209,15 +211,15 @@
               </div>
               <span class="progress-num">0 / 6</span>
             </div>
-            <button class="claim-btn" disabled>未達成</button>
+            <button class="claim-btn" disabled data-i18n="task-locked">未達成</button>
           </div>
 
           <div class="task-card">
             <div class="task-head">
               <div class="task-icon-box">🌊</div>
               <div class="task-info">
-                <h4>海洋話匣子</h4>
-                <p>累積發文 10 篇</p>
+                <h4 data-i18n="task-4-title">海洋話匣子</h4>
+                <p data-i18n="task-4-desc">累積發文 10 篇</p>
               </div>
             </div>
             <div class="task-progress-wrap">
@@ -226,7 +228,7 @@
               </div>
               <span class="progress-num">0 / 10</span>
             </div>
-            <button class="claim-btn" disabled>未達成</button>
+            <button class="claim-btn" disabled data-i18n="task-locked">未達成</button>
           </div>
         </div>
       </div>
@@ -237,79 +239,65 @@
       <div class="glass-modal-content workshop-content">
         <span class="close-gallery" onclick="closeWorkshop()">&times;</span>
         <div class="panel-header">
-          <h2 class="panel-title modal-title">📦 碎片工坊與寶箱</h2>
+          <h2 class="panel-title modal-title" data-i18n="workshop-modal-title">📦 碎片工坊與寶箱</h2>
         </div>
 
-        <!-- 庫存總覽 -->
         <div class="inventory-bar">
           <div class="inv-item">
-            <span>🧩 普通碎片：</span><b id="inv-normal-frag">0</b>
+            <span data-i18n="inv-normal-frag">🧩 普通碎片：</span><b id="inv-normal-frag">0</b>
           </div>
           <div class="inv-item">
-            <span>✨ 高級碎片：</span><b id="inv-premium-frag">0</b>
+            <span data-i18n="inv-prem-frag">✨ 高級碎片：</span><b id="inv-premium-frag">0</b>
           </div>
           <div class="inv-item">
-            <span>🎁 普通寶箱：</span><b id="inv-normal-chest">0</b>
+            <span data-i18n="inv-normal-chest">🎁 普通寶箱：</span><b id="inv-normal-chest">0</b>
           </div>
           <div class="inv-item">
-            <span>👑 高級寶箱：</span><b id="inv-premium-chest">0</b>
+            <span data-i18n="inv-prem-chest">👑 高級寶箱：</span><b id="inv-premium-chest">0</b>
           </div>
         </div>
 
         <div class="workshop-sections">
-          <!-- 寶箱開啟區 -->
           <div class="workshop-box">
-            <h3>🎁 開啟寶箱 (必得拼圖碎片)</h3>
+            <h3 data-i18n="chest-section-title">🎁 開啟寶箱 (必得拼圖碎片)</h3>
             <div class="chest-action-row">
               <div class="chest-card">
                 <div class="chest-icon">📦</div>
-                <h4>普通寶箱</h4>
-                <p>必得普通稀有度碎片</p>
-                <button class="gacha-mini-btn" onclick="openChest('NORMAL')">
+                <h4 data-i18n="chest-normal-name">普通寶箱</h4>
+                <p data-i18n="chest-normal-desc">必得普通稀有度碎片</p>
+                <button class="gacha-mini-btn" onclick="openChest('NORMAL')" data-i18n="open-1-btn">
                   開啟 1 個
                 </button>
               </div>
               <div class="chest-card premium">
                 <div class="chest-icon">👑</div>
-                <h4>高級寶箱</h4>
-                <p>必得高級稀有度碎片</p>
-                <button
-                  class="gacha-mini-btn gold"
-                  onclick="openChest('PREMIUM')"
-                >
+                <h4 data-i18n="chest-prem-name">高級寶箱</h4>
+                <p data-i18n="chest-prem-desc">必得高級稀有度碎片</p>
+                <button class="gacha-mini-btn gold" onclick="openChest('PREMIUM')" data-i18n="open-1-btn">
                   開啟 1 個
                 </button>
               </div>
             </div>
           </div>
 
-          <!-- 碎片兌換區 -->
           <div class="workshop-box">
-            <h3>🔄 碎片兌換工坊</h3>
+            <h3 data-i18n="exchange-section-title">🔄 碎片兌換工坊</h3>
             <div class="exchange-grid">
               <div class="exchange-item">
-                <span>10 普通碎片 ➔ 1 普通寶箱</span>
-                <button class="exchange-btn" onclick="exchangeFragments(1)">
-                  兌換
-                </button>
+                <span data-i18n="exch-1">10 普通碎片 ➔ 1 普通寶箱</span>
+                <button class="exchange-btn" onclick="exchangeFragments(1)" data-i18n="exch-btn">兌換</button>
               </div>
               <div class="exchange-item">
-                <span>30 普通碎片 ➔ 1 高級寶箱</span>
-                <button class="exchange-btn" onclick="exchangeFragments(2)">
-                  兌換
-                </button>
+                <span data-i18n="exch-2">30 普通碎片 ➔ 1 高級寶箱</span>
+                <button class="exchange-btn" onclick="exchangeFragments(2)" data-i18n="exch-btn">兌換</button>
               </div>
               <div class="exchange-item">
-                <span>1 高級碎片 ➔ 10 普通寶箱</span>
-                <button class="exchange-btn" onclick="exchangeFragments(3)">
-                  兌換
-                </button>
+                <span data-i18n="exch-3">1 高級碎片 ➔ 10 普通寶箱</span>
+                <button class="exchange-btn" onclick="exchangeFragments(3)" data-i18n="exch-btn">兌換</button>
               </div>
               <div class="exchange-item">
-                <span>5 高級碎片 ➔ 1 高級寶箱</span>
-                <button class="exchange-btn" onclick="exchangeFragments(4)">
-                  兌換
-                </button>
+                <span data-i18n="exch-4">5 高級碎片 ➔ 1 高級寶箱</span>
+                <button class="exchange-btn" onclick="exchangeFragments(4)" data-i18n="exch-btn">兌換</button>
               </div>
             </div>
           </div>
@@ -317,20 +305,19 @@
       </div>
     </div>
 
-    <!-- 📚 收藏展示櫃 -->
+    <!-- 🖼️ 收藏展示櫃 -->
     <div id="gallery-modal" class="glass-modal">
       <div class="glass-modal-content">
         <span class="close-gallery" onclick="closeGallery()">&times;</span>
         <div class="panel-header">
-          <h2 class="panel-title modal-title">🖼️ 拼圖收藏展示櫃</h2>
+          <h2 class="panel-title modal-title" data-i18n="gallery-modal-title">🖼️ 拼圖收藏展示櫃</h2>
         </div>
 
         <div class="gallery-grid"></div>
-
         <div class="pagination-container"></div>
       </div>
     </div>
 
-    <script src="puzzle.js?v=20260820_puzzle_v4"></script>
+    <script src="puzzle.js?v=20260831_i18n_v1"></script>
   </body>
 </html>

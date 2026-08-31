@@ -1,11 +1,11 @@
 /* ==================================================
-   🌌 沉浸式深海遊戲 UI - 拼圖九宮格與工坊尊爵版
+   🌌 秘密海域・拼圖系統 (全螢幕獨立雙背景旗艦版)
    ================================================== */
 :root {
   --neon-blue: #00f2fe;
   --deep-blue: #4facfe;
   --cyber-gold: #ffd200;
-  --panel-bg: rgba(4, 20, 42, 0.75);
+  --panel-bg: rgba(4, 20, 42, 0.78);
   --panel-border: rgba(79, 172, 254, 0.38);
 }
 
@@ -20,240 +20,164 @@
 body, html {
   width: 100%;
   min-height: 100%;
-  background-color: #010814;
+  background-color: #010a17 !important;
   color: #fff;
   overflow-x: hidden;
 }
 
-/* 🌊 視差背景 (亮晶晶璀璨深海版) */
-.ocean-bg {
-  position: fixed;
-  inset: 0;
-  background: radial-gradient(circle at 50% 15%, #0a3d75 0%, #031c3b 50%, #000814 100%);
-  z-index: -1;
-  overflow: hidden;
-}
 /* ==================================================
-   🐟 深海游動魚群動畫 (SVG Fish Swim Effect)
+   🍾 主頁：漂流瓶與星夜洋流背景
    ================================================== */
-.swimming-fish-layer {
+.ocean-bg {
+  position: fixed !important;
+  inset: 0 !important;
+  z-index: 0 !important;
+  overflow: hidden !important;
+  background: radial-gradient(circle at 50% 12%, #083769 0%, #031c3c 45%, #010b1a 80%, #00050d 100%) !important;
+  pointer-events: none !important;
+}
+
+.sky-glow {
   position: absolute;
-  inset: 0;
-  pointer-events: none;
-  z-index: 0; /* 置於背景光效之上、卡片容器之下 */
-  overflow: hidden;
+  top: -10%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 900px;
+  height: 450px;
+  background: radial-gradient(ellipse at center, rgba(0, 242, 254, 0.28) 0%, transparent 75%);
+  filter: blur(50px);
 }
 
-.fish-item {
-  position: absolute;
-  filter: drop-shadow(0 0 12px var(--neon-blue));
-  opacity: 0.85;
-}
-
-.ocean-fish {
-  width: 100%;
-  height: 100%;
-  display: block;
-}
-
-/* 尾鰭左右擺動真實效果 */
-.fish-tail {
-  transform-origin: 25px 30px;
-  animation: tailWiggle 0.8s ease-in-out infinite alternate;
-}
-
-@keyframes tailWiggle {
-  0% { transform: rotate(-14deg) skewY(-5deg); }
-  100% { transform: rotate(14deg) skewY(5deg); }
-}
-
-/* 🐟 魚 1：左至右（深度較高、淡藍色發光） */
-.fish-1 {
-  top: 28%;
-  left: -120px;
-  width: 90px;
-  height: 54px;
-  animation: swimLeftToRight 22s linear infinite;
-}
-
-/* 🐟 魚 2：右至左（金黃發光、反轉朝向） */
-.fish-2 {
-  top: 55%;
-  right: -120px;
-  width: 75px;
-  height: 45px;
-  transform: scaleX(-1); /* 水平翻轉朝向左邊 */
-  filter: drop-shadow(0 0 14px rgba(255, 210, 0, 0.8));
-  animation: swimRightToLeft 18s linear infinite 3s;
-}
-
-/* 🐟 魚 3：深處小型慢游（左至右、上下浮沉幅度大） */
-.fish-3 {
-  top: 75%;
-  left: -90px;
-  width: 50px;
-  height: 30px;
-  opacity: 0.45;
-  filter: blur(1px) drop-shadow(0 0 8px var(--neon-blue)); /* 景深虛化效果 */
-  animation: swimDeepWave 28s ease-in-out infinite 7s;
-}
-
-/* 魚游動路徑動畫 */
-@keyframes swimLeftToRight {
-  0% {
-    transform: translateX(0) translateY(0px) rotate(2deg);
-  }
-  25% {
-    transform: translateX(35vw) translateY(-25px) rotate(-3deg);
-  }
-  50% {
-    transform: translateX(65vw) translateY(15px) rotate(3deg);
-  }
-  75% {
-    transform: translateX(85vw) translateY(-10px) rotate(-1deg);
-  }
-  100% {
-    transform: translateX(calc(100vw + 150px)) translateY(0px) rotate(2deg);
-  }
-}
-
-@keyframes swimRightToLeft {
-  0% {
-    transform: scaleX(-1) translateX(0) translateY(0px) rotate(0deg);
-  }
-  30% {
-    transform: scaleX(-1) translateX(30vw) translateY(30px) rotate(-4deg);
-  }
-  70% {
-    transform: scaleX(-1) translateX(70vw) translateY(-20px) rotate(3deg);
-  }
-  100% {
-    transform: scaleX(-1) translateX(calc(100vw + 150px)) translateY(0px) rotate(0deg);
-  }
-}
-
-@keyframes swimDeepWave {
-  0% {
-    transform: translateX(0) translateY(0);
-  }
-  50% {
-    transform: translateX(50vw) translateY(-40px);
-  }
-  100% {
-    transform: translateX(calc(100vw + 120px)) translateY(10px);
-  }
-}
-/* ✨ 水面波光粼粼亮晶晶反光層 */
-.shimmer-water-wave {
+.caustic-waves {
   position: absolute;
   top: 0;
   left: 0;
   width: 100%;
-  height: 45%;
-  background: linear-gradient(
-    135deg,
-    rgba(0, 242, 254, 0.08) 0%,
-    rgba(255, 255, 255, 0.15) 25%,
-    transparent 50%,
-    rgba(0, 242, 254, 0.12) 75%,
-    transparent 100%
-  );
+  height: 50%;
+  background: linear-gradient(135deg, rgba(0, 242, 254, 0.08) 0%, transparent 35%, rgba(255, 255, 255, 0.12) 50%, transparent 65%);
   background-size: 200% 200%;
-  animation: shimmerWaveMove 8s ease-in-out infinite alternate;
-  pointer-events: none;
+  animation: waveShimmer 10s ease-in-out infinite alternate;
 }
 
-@keyframes shimmerWaveMove {
-  0% { background-position: 0% 0%; opacity: 0.6; }
-  100% { background-position: 100% 100%; opacity: 1; }
+@keyframes waveShimmer {
+  0% { background-position: 0% 0%; }
+  100% { background-position: 100% 100%; }
 }
 
-/* ✨ 亮晶晶閃耀星芒層 */
-.sparkles-layer {
+.drifting-bottles-layer {
   position: absolute;
   inset: 0;
   pointer-events: none;
   z-index: 1;
 }
 
-.sparkle-star {
+.bottle-item {
   position: absolute;
-  top: var(--top);
-  left: var(--left);
-  font-size: var(--size);
-  color: #e0f9ff;
-  text-shadow: 
-    0 0 6px #ffffff,
-    0 0 12px var(--neon-blue),
-    0 0 25px rgba(0, 242, 254, 0.9);
-  animation: twinkleSparkle var(--dur) ease-in-out infinite alternate;
-  animation-delay: var(--delay);
-  transform-origin: center center;
+  filter: drop-shadow(0 0 16px rgba(0, 242, 254, 0.7)) drop-shadow(0 0 25px rgba(255, 210, 0, 0.35));
 }
 
-@keyframes twinkleSparkle {
-  0% {
-    transform: scale(0.3) rotate(0deg);
-    opacity: 0.15;
-    filter: brightness(0.8);
-  }
-  50% {
-    transform: scale(1.3) rotate(45deg);
-    opacity: 1;
-    filter: brightness(2) drop-shadow(0 0 8px #ffffff);
-  }
-  100% {
-    transform: scale(0.6) rotate(90deg);
-    opacity: 0.3;
-    filter: brightness(1);
-  }
+.bottle-svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+  animation: bottleRock 3.5s ease-in-out infinite alternate;
 }
 
-.deep-glow {
-  position: absolute;
-  top: 10%;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 700px;
-  height: 500px;
-  background: radial-gradient(ellipse at center, rgba(0, 242, 254, 0.22) 0%, rgba(79, 172, 254, 0.08) 50%, transparent 80%);
-  filter: blur(60px);
-  pointer-events: none;
+@keyframes bottleRock {
+  0% { transform: rotate(-14deg) translateY(-8px); }
+  50% { transform: rotate(4deg) translateY(6px); }
+  100% { transform: rotate(16deg) translateY(-6px); }
 }
 
-.light-ray {
-  position: absolute;
-  top: -40%;
-  left: -20%;
-  width: 140%;
-  height: 180%;
-  background: radial-gradient(ellipse at top, rgba(0, 242, 254, 0.12) 0%, transparent 60%);
-  transform: rotate(-8deg);
-  pointer-events: none;
+.letter-glow {
+  animation: letterPulse 2.2s infinite alternate ease-in-out;
 }
 
-.bubbles span {
+@keyframes letterPulse {
+  0% { opacity: 0.6; filter: drop-shadow(0 0 4px #ffd200); }
+  100% { opacity: 1; filter: drop-shadow(0 0 14px #ffeaa7); }
+}
+
+.bottle-1 {
+  top: 22%;
+  left: -120px;
+  width: 95px;
+  height: 95px;
+  animation: driftL2R 22s linear infinite;
+}
+
+.bottle-2 {
+  top: 48%;
+  right: -120px;
+  width: 80px;
+  height: 80px;
+  transform: scaleX(-1);
+  filter: drop-shadow(0 0 16px rgba(255, 210, 0, 0.8));
+  animation: driftR2L 18s linear infinite 3s;
+}
+
+.bottle-3 {
+  top: 72%;
+  left: -90px;
+  width: 55px;
+  height: 55px;
+  opacity: 0.55;
+  filter: blur(1.5px) drop-shadow(0 0 10px #00f2fe);
+  animation: driftL2R 28s linear infinite 8s;
+}
+
+@keyframes driftL2R {
+  0% { transform: translateX(0) translateY(0); }
+  50% { transform: translateX(50vw) translateY(-30px); }
+  100% { transform: translateX(calc(100vw + 200px)) translateY(0); }
+}
+
+@keyframes driftR2L {
+  0% { transform: scaleX(-1) translateX(0) translateY(0); }
+  50% { transform: scaleX(-1) translateX(50vw) translateY(30px); }
+  100% { transform: scaleX(-1) translateX(calc(100vw + 200px)) translateY(0); }
+}
+
+.bubbles-container { position: absolute; inset: 0; pointer-events: none; }
+.ocean-bubble {
   position: absolute;
-  bottom: -60px;
-  background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.8), rgba(0, 242, 254, 0.2));
-  border: 1px solid rgba(255, 255, 255, 0.4);
+  bottom: -30px;
   border-radius: 50%;
-  box-shadow: 0 0 14px rgba(0, 242, 254, 0.6);
+  background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.8), rgba(0,242,254,0.2));
+  border: 1px solid rgba(255,255,255,0.4);
+  box-shadow: 0 0 8px rgba(0,242,254,0.5);
   animation: floatBubble 14s linear infinite;
-  left: calc(var(--i) * 3.8%);
-  width: calc(var(--i) * 1.3px + 8px);
-  height: calc(var(--i) * 1.3px + 8px);
-  animation-duration: calc(140s / var(--i));
 }
+.bubble-1 { left: 15%; width: 14px; height: 14px; animation-duration: 12s; animation-delay: 0s; }
+.bubble-2 { left: 40%; width: 22px; height: 22px; animation-duration: 16s; animation-delay: 3s; }
+.bubble-3 { left: 70%; width: 10px; height: 10px; animation-duration: 10s; animation-delay: 1s; }
+.bubble-4 { left: 88%; width: 18px; height: 18px; animation-duration: 14s; animation-delay: 5s; }
 
 @keyframes floatBubble {
-  0% { transform: translateY(0) scale(0.8); opacity: 0; }
-  10% { opacity: 0.85; }
-  90% { opacity: 0.85; }
-  100% { transform: translateY(-120vh) scale(1.3); opacity: 0; }
+  0% { transform: translateY(0); opacity: 0; }
+  15% { opacity: 0.8; }
+  85% { opacity: 0.8; }
+  100% { transform: translateY(-115vh); opacity: 0; }
 }
 
-/* 🔘 導航按鈕群 */
+.sparkles-layer { position: absolute; inset: 0; pointer-events: none; z-index: 2; }
+.sparkle-star {
+  position: absolute;
+  color: #fff;
+  text-shadow: 0 0 8px #ffffff, 0 0 16px var(--neon-blue);
+  animation: sparkleTwinkle var(--dur) ease-in-out infinite alternate;
+  animation-delay: var(--delay);
+}
+
+@keyframes sparkleTwinkle {
+  0% { transform: scale(0.3); opacity: 0.2; }
+  50% { transform: scale(1.2); opacity: 1; filter: drop-shadow(0 0 10px var(--cyber-gold)); }
+  100% { transform: scale(0.6); opacity: 0.3; }
+}
+
+/* ==================================================
+   🔘 主頁導航按鈕與內容容器
+   ================================================== */
 .nav-btn {
   position: fixed;
   top: 22px;
@@ -288,8 +212,9 @@ body, html {
   color: #fff;
 }
 
-/* 🧩 主排版容器 */
 .main-container {
+  position: relative;
+  z-index: 10;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -338,6 +263,7 @@ body, html {
   letter-spacing: 4px;
   background: linear-gradient(180deg, #ffffff 30%, #a4e5ff 100%);
   -webkit-background-clip: text;
+  background-clip: text;
   -webkit-text-fill-color: transparent;
   filter: drop-shadow(0 2px 10px rgba(0, 242, 254, 0.6));
 }
@@ -353,7 +279,9 @@ body, html {
   100% { transform: scale(1.3); opacity: 1; filter: drop-shadow(0 0 8px var(--neon-blue)); }
 }
 
-/* 🔮 召喚祭壇與水晶球 */
+/* ==================================================
+   🔮 水晶球法陣與抽卡動態
+   ================================================== */
 .gacha-stage {
   width: 100%;
   height: 330px;
@@ -369,7 +297,7 @@ body, html {
   height: 310px;
   border-radius: 50%;
   border: 2px dashed rgba(255, 210, 0, 0.35);
-  box-shadow: 0 0 35px rgba(255, 210, 0, 0.2), inset 0 0 25px rgba(255, 210, 0, 0.1);
+  box-shadow: 0 0 35px rgba(255, 210, 0, 0.2);
   animation: runeSpinClockwise 30s linear infinite;
   pointer-events: none;
 }
@@ -385,15 +313,8 @@ body, html {
   pointer-events: none;
 }
 
-@keyframes runeSpinClockwise {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
-}
-
-@keyframes runeSpinCounter {
-  from { transform: rotate(360deg); }
-  to { transform: rotate(0deg); }
-}
+@keyframes runeSpinClockwise { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+@keyframes runeSpinCounter { from { transform: rotate(360deg); } to { transform: rotate(0deg); } }
 
 .pedestal-glow {
   position: absolute;
@@ -410,11 +331,7 @@ body, html {
   border-radius: 50% !important;
   overflow: hidden !important;
   background: radial-gradient(circle at 35% 25%, rgba(255, 255, 255, 0.98) 0%, rgba(135, 215, 255, 0.65) 25%, rgba(10, 80, 160, 0.88) 60%, rgba(2, 25, 55, 0.98) 100%);
-  box-shadow: 
-    0 20px 45px rgba(0, 0, 0, 0.85),
-    inset 0 0 35px rgba(255, 255, 255, 0.85),
-    inset -15px -15px 35px rgba(0, 0, 0, 0.85),
-    0 0 55px rgba(0, 242, 254, 0.55);
+  box-shadow: 0 20px 45px rgba(0, 0, 0, 0.85), inset 0 0 35px rgba(255, 255, 255, 0.85), 0 0 55px rgba(0, 242, 254, 0.55);
   border: 2.5px solid rgba(255, 255, 255, 0.75);
   display: flex;
   flex-direction: column;
@@ -429,7 +346,7 @@ body, html {
 
 @keyframes floatBall {
   0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-14px); box-shadow: 0 30px 60px rgba(0,0,0,0.9), inset 0 0 40px #fff, 0 0 75px rgba(0,242,254,0.75); }
+  50% { transform: translateY(-14px); box-shadow: 0 30px 60px rgba(0,0,0,0.9), 0 0 75px rgba(0,242,254,0.75); }
 }
 
 .crystal-core {
@@ -468,15 +385,14 @@ body, html {
   z-index: 2;
 }
 
-/* 💥 抽卡動畫特效 */
 .crystal-ball.drawing {
   animation: chargingShake 0.15s ease-in-out infinite, chargingGlow 0.4s alternate infinite;
 }
 
 @keyframes chargingShake {
-  0% { transform: translate(3px, 2px) rotate(1deg) scale(1.02); }
-  50% { transform: translate(-3px, -2px) rotate(-1deg) scale(0.98); }
-  100% { transform: translate(2px, -3px) rotate(2deg) scale(1.04); }
+  0% { transform: translate(3px, 2px) scale(1.02); }
+  50% { transform: translate(-3px, -2px) scale(0.98); }
+  100% { transform: translate(2px, -3px) scale(1.04); }
 }
 
 @keyframes chargingGlow {
@@ -517,7 +433,7 @@ body, html {
   100% { transform: scale(2.2); opacity: 0; visibility: hidden; }
 }
 
-/* 🌟 抽獎揭曉：九宮格拼圖卡牌 */
+/* 抽獎結果卡牌展示 */
 .prize-stage {
   display: flex;
   flex-direction: column;
@@ -545,19 +461,9 @@ body, html {
   pointer-events: none;
 }
 
-@keyframes raysRotate {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
-}
+@keyframes raysRotate { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
 
-/* 拼圖九宮格卡牌展示 */
-.prize-puzzle-box {
-  display: flex;
-  gap: 16px;
-  align-items: center;
-  margin-bottom: 12px;
-}
-
+.prize-puzzle-box { display: flex; gap: 16px; align-items: center; margin-bottom: 12px; }
 .prize-card {
   width: 130px;
   height: 130px;
@@ -617,38 +523,14 @@ body, html {
   letter-spacing: 2px;
   text-transform: uppercase;
   margin-bottom: 6px;
-  box-shadow: 0 4px 15px rgba(0,0,0,0.5);
   border: 1.5px solid rgba(255, 255, 255, 0.6);
 }
 
-.prize-title {
-  font-size: 1.55rem;
-  font-weight: 900;
-  letter-spacing: 2px;
-  margin-bottom: 4px;
-}
+.prize-title { font-size: 1.55rem; font-weight: 900; letter-spacing: 2px; margin-bottom: 4px; }
+.prize-desc { font-size: 1rem; color: #cde8ff; font-weight: 700; }
 
-.prize-desc {
-  font-size: 1rem;
-  color: #cde8ff;
-  font-weight: 700;
-}
-
-/* 🔘 喚醒按鈕群與標籤 */
-.gacha-controls {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 16px;
-}
-
-.token-badge-group {
-  display: flex;
-  gap: 12px;
-  flex-wrap: wrap;
-  justify-content: center;
-}
-
+.gacha-controls { display: flex; flex-direction: column; align-items: center; gap: 16px; }
+.token-badge-group { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; }
 .token-badge {
   display: inline-flex;
   align-items: center;
@@ -659,7 +541,6 @@ body, html {
   border-radius: 40px;
   box-shadow: inset 0 0 12px rgba(0, 242, 254, 0.2);
 }
-
 .token-label { font-size: 0.9rem; color: #a4cded; font-weight: 600; }
 .token-value { font-size: 1.6rem; font-weight: 900; color: var(--cyber-gold); text-shadow: 0 0 14px rgba(255, 210, 0, 0.85); margin-left: 2px; }
 
@@ -677,7 +558,7 @@ body, html {
   cursor: pointer;
   position: relative;
   overflow: hidden;
-  box-shadow: 0 12px 30px rgba(0, 110, 255, 0.55), inset 0 2px 8px rgba(255, 255, 255, 0.6);
+  box-shadow: 0 12px 30px rgba(0, 110, 255, 0.55);
   transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
@@ -699,7 +580,7 @@ body, html {
 
 .gacha-btn:hover:not(:disabled) {
   transform: translateY(-3px) scale(1.03);
-  box-shadow: 0 16px 45px rgba(0, 242, 254, 0.85), inset 0 2px 14px #fff;
+  box-shadow: 0 16px 45px rgba(0, 242, 254, 0.85);
   border-color: #fff;
 }
 
@@ -710,16 +591,12 @@ body, html {
   box-shadow: none;
   cursor: not-allowed;
 }
-
 .gacha-btn:disabled .btn-shine { display: none; }
 
-/* 📋 任務卡片 */
-.task-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 16px;
-}
-
+/* ==================================================
+   📋 任務卡片區
+   ================================================== */
+.task-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
 .task-card {
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.02) 100%);
   border: 1px solid rgba(255, 255, 255, 0.12);
@@ -731,16 +608,13 @@ body, html {
   gap: 12px;
   transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.35);
-  position: relative;
 }
-
 .task-card:hover {
   transform: translateY(-6px);
   border-color: var(--neon-blue);
   box-shadow: 0 15px 35px rgba(0, 242, 254, 0.35);
   background: linear-gradient(180deg, rgba(0, 242, 254, 0.15) 0%, rgba(6, 32, 65, 0.6) 100%);
 }
-
 .task-head { display: flex; align-items: center; gap: 10px; }
 .task-icon-box {
   width: 44px;
@@ -752,12 +626,9 @@ body, html {
   justify-content: center;
   align-items: center;
   font-size: 1.35rem;
-  flex-shrink: 0;
 }
-
 .task-info h4 { font-size: 0.95rem; color: #fff; font-weight: 800; margin-bottom: 2px; }
 .task-info p { font-size: 0.75rem; color: #8bbce0; }
-
 .task-progress-wrap { display: flex; align-items: center; gap: 8px; }
 .progress-bar-bg {
   flex: 1;
@@ -774,7 +645,6 @@ body, html {
   box-shadow: 0 0 8px #00f2fe;
 }
 .progress-num { font-size: 0.75rem; color: #cce9ff; font-weight: 700; }
-
 .claim-btn {
   background: rgba(255, 255, 255, 0.08);
   border: 1px solid rgba(255, 255, 255, 0.2);
@@ -786,7 +656,6 @@ body, html {
   font-size: 0.85rem;
   transition: all 0.25s ease;
 }
-
 .claim-btn.active {
   background: linear-gradient(135deg, #00f2fe 0%, #0066cc 100%);
   border-color: #fff;
@@ -794,7 +663,6 @@ body, html {
   cursor: pointer;
   box-shadow: 0 4px 18px rgba(0, 242, 254, 0.6);
 }
-
 .claim-btn.active:hover {
   transform: scale(1.04);
   filter: brightness(1.2);
@@ -802,55 +670,159 @@ body, html {
 }
 
 /* ==================================================
-   📦 碎片工坊與寶箱彈窗樣式
+   🪟 100% 實心全螢幕遮罩 (徹底遮蔽主頁內容)
    ================================================== */
-.workshop-content {
-  max-width: 900px !important;
+.glass-modal {
+  display: none;
+  position: fixed !important;
+  inset: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  z-index: 99999 !important;
+  justify-content: center !important;
+  align-items: center !important;
+  overflow: hidden !important;
+}
+
+/* 🌟 全域背景動態動畫圖層容器 */
+.modal-bg-fx {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  overflow: hidden;
+  z-index: 0;
+}
+
+/* ==================================================
+   📦 碎片工坊：全螢幕黃金熔煉動畫
+   ================================================== */
+#workshop-modal {
+  background-color: #0b0601 !important;
+  background-image: 
+    radial-gradient(circle at 50% 10%, rgba(255, 180, 0, 0.45) 0%, rgba(255, 100, 0, 0.25) 40%, transparent 75%),
+    linear-gradient(180deg, #1f1103 0%, #0d0701 50%, #030200 100%) !important;
+}
+
+/* 頂部熔爐強光光波 */
+.forge-light-beam {
+  position: absolute;
+  top: -80px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 800px;
+  height: 350px;
+  background: radial-gradient(ellipse at center, rgba(255, 210, 0, 0.55) 0%, rgba(255, 120, 0, 0.2) 50%, transparent 75%);
+  filter: blur(45px);
+  animation: forgeBeamPulse 4s ease-in-out infinite alternate;
+}
+
+@keyframes forgeBeamPulse {
+  0% { transform: translateX(-50%) scale(0.9); opacity: 0.7; }
+  100% { transform: translateX(-50%) scale(1.15); opacity: 1; }
+}
+
+/* 金燦火花粒子向上升騰動畫 */
+.forge-ember-particles .ember {
+  position: absolute;
+  border-radius: 50%;
+  background: radial-gradient(circle, #ffffff 0%, #ffd200 60%, #ff8800 100%);
+  box-shadow: 0 0 10px #ffd200, 0 0 20px #ff7700;
+  animation: emberFloatUp var(--dur, 5s) ease-in-out infinite;
+  animation-delay: var(--del, 0s);
+  opacity: 0;
+}
+
+.e1 { left: 8%; bottom: -20px; width: 6px; height: 6px; --dur: 5s; --del: 0s; }
+.e2 { left: 22%; bottom: -20px; width: 10px; height: 10px; --dur: 6.5s; --del: 1.5s; }
+.e3 { left: 38%; bottom: -20px; width: 5px; height: 5px; --dur: 4.5s; --del: 3s; }
+.e4 { left: 55%; bottom: -20px; width: 8px; height: 8px; --dur: 7s; --del: 0.8s; }
+.e5 { left: 70%; bottom: -20px; width: 6px; height: 6px; --dur: 5.5s; --del: 2.2s; }
+.e6 { left: 84%; bottom: -20px; width: 9px; height: 9px; --dur: 6s; --del: 0.3s; }
+.e7 { left: 92%; bottom: -20px; width: 4px; height: 4px; --dur: 4.8s; --del: 2.8s; }
+.e8 { left: 16%; bottom: -20px; width: 7px; height: 7px; --dur: 5.8s; --del: 3.5s; }
+
+@keyframes emberFloatUp {
+  0% { transform: translateY(0) translateX(0) scale(0.6); opacity: 0; }
+  20% { opacity: 0.9; }
+  50% { transform: translateY(-50vh) translateX(15px) scale(1.1); opacity: 0.8; }
+  80% { opacity: 0.6; }
+  100% { transform: translateY(-110vh) translateX(-20px) scale(0.5); opacity: 0; }
+}
+
+/* 工坊內部卡片 */
+#workshop-modal .workshop-content {
+  max-width: 920px !important;
+  width: 92vw !important;
+  border-radius: 30px !important;
+  padding: 35px 45px !important;
+  position: relative !important;
+  z-index: 10 !important;
+  overflow-y: auto !important;
+  background: 
+    radial-gradient(ellipse at 50% -20%, rgba(255, 210, 0, 0.5) 0%, rgba(255, 140, 0, 0.2) 40%, transparent 70%),
+    linear-gradient(180deg, #241403 0%, #140b02 55%, #080401 100%) !important;
+  border: 2.5px solid rgba(255, 210, 0, 0.85) !important;
+  box-shadow: 
+    0 25px 60px rgba(0, 0, 0, 0.95),
+    inset 0 0 50px rgba(255, 210, 0, 0.25),
+    inset 0 2px 15px rgba(255, 255, 255, 0.8),
+    0 0 45px rgba(255, 210, 0, 0.4) !important;
+  animation: forgeBorderGlow 3s ease-in-out infinite alternate;
+}
+
+@keyframes forgeBorderGlow {
+  0% { border-color: rgba(255, 210, 0, 0.7); box-shadow: 0 0 25px rgba(255, 210, 0, 0.3); }
+  100% { border-color: rgba(255, 230, 100, 1); box-shadow: 0 0 45px rgba(255, 210, 0, 0.55); }
+}
+
+#workshop-modal .workshop-content::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 4px;
+  background: linear-gradient(90deg, transparent, #ffd200, #ff9900, #ffd200, transparent);
+  box-shadow: 0 0 15px #ffd200;
+}
+
+#workshop-modal .modal-title {
+  background: linear-gradient(180deg, #ffffff 20%, #ffe066 60%, #ffd200 100%) !important;
+  -webkit-background-clip: text !important;
+  background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+  filter: drop-shadow(0 2px 12px rgba(255, 210, 0, 0.9)) !important;
 }
 
 .inventory-bar {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 12px;
-  background: rgba(0, 15, 35, 0.7);
+  background: linear-gradient(135deg, rgba(50, 30, 6, 0.95) 0%, rgba(24, 14, 3, 0.98) 100%) !important;
   padding: 16px;
   border-radius: 20px;
-  border: 1px solid rgba(77, 166, 255, 0.3);
+  border: 1.5px solid rgba(255, 210, 0, 0.65) !important;
+  box-shadow: inset 0 0 20px rgba(255, 210, 0, 0.2), 0 8px 25px rgba(0, 0, 0, 0.6) !important;
   margin-bottom: 25px;
 }
+.inv-item { display: flex; justify-content: center; align-items: center; gap: 6px; font-size: 0.95rem; }
+.inv-item b { color: var(--cyber-gold); font-size: 1.25rem; text-shadow: 0 0 10px rgba(255, 210, 0, 0.9); }
 
-.inv-item {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 6px;
-  font-size: 0.95rem;
-}
-.inv-item b { color: var(--cyber-gold); font-size: 1.25rem; }
-
-.workshop-sections {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-}
-
+.workshop-sections { display: flex; flex-direction: column; gap: 20px; }
 .workshop-box {
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(77, 166, 255, 0.2);
+  background: linear-gradient(180deg, rgba(255, 210, 0, 0.08) 0%, rgba(255, 140, 0, 0.03) 100%) !important;
+  border: 1.5px solid rgba(255, 210, 0, 0.45) !important;
+  box-shadow: inset 0 0 25px rgba(0, 0, 0, 0.5) !important;
   padding: 20px;
   border-radius: 20px;
 }
-.workshop-box h3 { margin-bottom: 15px; font-size: 1.15rem; color: #7abfff; }
-
-.chest-action-row {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 20px;
-}
-
+.workshop-box h3 { margin-bottom: 15px; font-size: 1.15rem; color: #ffd200; text-shadow: 0 0 10px rgba(255, 210, 0, 0.7); }
+.chest-action-row { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; }
 .chest-card {
-  background: rgba(0, 30, 60, 0.6);
-  border: 1px solid rgba(77, 166, 255, 0.3);
+  background: rgba(36, 22, 5, 0.9);
+  border: 1.5px solid rgba(255, 210, 0, 0.55);
   border-radius: 16px;
   padding: 18px;
   text-align: center;
@@ -858,10 +830,10 @@ body, html {
   flex-direction: column;
   align-items: center;
   gap: 8px;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.6);
 }
-.chest-card.premium { border-color: rgba(255, 210, 0, 0.5); }
+.chest-card.premium { border-color: rgba(255, 210, 0, 0.95); box-shadow: 0 0 24px rgba(255, 210, 0, 0.35); }
 .chest-icon { font-size: 2.5rem; }
-
 .gacha-mini-btn {
   background: linear-gradient(135deg, #00f2fe, #0066cc);
   border: 1px solid #fff;
@@ -875,27 +847,20 @@ body, html {
 }
 .gacha-mini-btn.gold { background: linear-gradient(135deg, #ffd200, #ff7700); color: #001222; }
 .gacha-mini-btn:hover { transform: scale(1.06); filter: brightness(1.2); }
-
-.exchange-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 12px;
-}
-
+.exchange-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
 .exchange-item {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background: rgba(0, 20, 45, 0.6);
+  background: rgba(30, 18, 4, 0.85);
   padding: 12px 18px;
   border-radius: 14px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 210, 0, 0.35);
   font-size: 0.9rem;
 }
-
 .exchange-btn {
-  background: rgba(0, 242, 254, 0.2);
-  border: 1px solid var(--neon-blue);
+  background: rgba(255, 210, 0, 0.3);
+  border: 1.5px solid var(--cyber-gold);
   color: #fff;
   padding: 6px 14px;
   border-radius: 15px;
@@ -903,34 +868,126 @@ body, html {
   font-weight: bold;
   transition: 0.2s;
 }
-.exchange-btn:hover { background: var(--neon-blue); color: #001222; }
+.exchange-btn:hover { background: var(--cyber-gold); color: #001222; }
 
 /* ==================================================
-   🖼️ 收藏畫廊模態窗 (九宮格微縮展示)
+   🖼️ 我的收藏：全螢幕亞特蘭提斯水下光波動畫
    ================================================== */
-.glass-modal {
-  display: none;
-  position: fixed;
-  inset: 0;
-  background: rgba(1, 10, 22, 0.88);
-  backdrop-filter: blur(20px);
-  z-index: 1000;
-  justify-content: center;
-  align-items: center;
+#gallery-modal {
+  background-color: #000a17 !important;
+  background-image: 
+    radial-gradient(circle at 50% 10%, rgba(0, 242, 254, 0.5) 0%, rgba(0, 102, 255, 0.25) 45%, transparent 75%),
+    linear-gradient(180deg, #0b386b 0%, #041d3d 50%, #010c1c 100%) !important;
 }
 
-.glass-modal-content {
-  background: radial-gradient(circle at 50% 0%, rgba(10, 50, 95, 0.95) 0%, rgba(2, 16, 32, 0.98) 80%);
-  border: 2px solid rgba(0, 242, 254, 0.4);
-  border-radius: 30px;
-  width: 92vw;
-  max-width: 1200px;
-  height: 90vh;
-  max-height: 880px;
-  padding: 40px 50px;
-  position: relative;
-  overflow-y: auto;
-  box-shadow: 0 35px 80px rgba(0, 0, 0, 0.95), inset 0 0 60px rgba(0, 242, 254, 0.15);
+/* 穿透水面的青藍光束 (God Rays) */
+.gallery-god-rays {
+  position: absolute;
+  top: -30%;
+  left: -20%;
+  width: 140%;
+  height: 140%;
+  background: radial-gradient(ellipse at top center, rgba(0, 242, 254, 0.35) 0%, rgba(79, 172, 254, 0.12) 45%, transparent 70%);
+  transform: rotate(-6deg);
+  filter: blur(35px);
+  animation: godRaysDrift 9s ease-in-out infinite alternate;
+}
+
+@keyframes godRaysDrift {
+  0% { transform: rotate(-6deg) scale(0.95); opacity: 0.65; }
+  100% { transform: rotate(4deg) scale(1.1); opacity: 0.95; }
+}
+
+/* 水面焦散粼粼光影 (Caustics) */
+.gallery-water-waves {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, rgba(0, 242, 254, 0.08) 0%, transparent 35%, rgba(255, 255, 255, 0.1) 50%, transparent 65%);
+  background-size: 200% 200%;
+  animation: causticsPan 12s ease-in-out infinite alternate;
+}
+
+@keyframes causticsPan {
+  0% { background-position: 0% 0%; }
+  100% { background-position: 100% 100%; }
+}
+
+/* 水下晶瑩藍泡泡升騰動畫 */
+.gallery-bubble-particles .aqua-bubble {
+  position: absolute;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, rgba(255, 255, 255, 0.9) 0%, rgba(0, 242, 254, 0.4) 50%, transparent 90%);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  box-shadow: 0 0 10px rgba(0, 242, 254, 0.5);
+  animation: aquaBubbleRise var(--dur, 6s) linear infinite;
+  animation-delay: var(--del, 0s);
+  opacity: 0;
+}
+
+.ab1 { left: 10%; bottom: -30px; width: 14px; height: 14px; --dur: 7s; --del: 0s; }
+.ab2 { left: 25%; bottom: -30px; width: 22px; height: 22px; --dur: 8.5s; --del: 2s; }
+.ab3 { left: 42%; bottom: -30px; width: 10px; height: 10px; --dur: 6s; --del: 1s; }
+.ab4 { left: 60%; bottom: -30px; width: 18px; height: 18px; --dur: 7.5s; --del: 3.5s; }
+.ab5 { left: 74%; bottom: -30px; width: 12px; height: 12px; --dur: 5.5s; --del: 0.5s; }
+.ab6 { left: 88%; bottom: -30px; width: 26px; height: 26px; --dur: 9s; --del: 1.8s; }
+.ab7 { left: 5%; bottom: -30px; width: 16px; height: 16px; --dur: 6.8s; --del: 4s; }
+.ab8 { left: 95%; bottom: -30px; width: 14px; height: 14px; --dur: 7.2s; --del: 2.5s; }
+
+@keyframes aquaBubbleRise {
+  0% { transform: translateY(0) scale(0.7); opacity: 0; }
+  15% { opacity: 0.85; }
+  85% { opacity: 0.85; }
+  100% { transform: translateY(-115vh) scale(1.15); opacity: 0; }
+}
+
+/* 收藏內部卡片 */
+#gallery-modal .glass-modal-content {
+  width: 92vw !important;
+  max-width: 1200px !important;
+  height: 90vh !important;
+  max-height: 880px !important;
+  border-radius: 30px !important;
+  padding: 40px 50px !important;
+  position: relative !important;
+  z-index: 10 !important;
+  overflow-y: auto !important;
+  background: 
+    radial-gradient(ellipse at 50% -15%, rgba(0, 242, 254, 0.55) 0%, rgba(79, 172, 254, 0.3) 45%, transparent 75%),
+    linear-gradient(180deg, #0e3b6d 0%, #062042 50%, #020f21 100%) !important;
+  border: 2.5px solid rgba(0, 242, 254, 0.85) !important;
+  box-shadow: 
+    0 30px 80px rgba(0, 0, 0, 0.95),
+    inset 0 0 60px rgba(0, 242, 254, 0.25),
+    inset 0 2px 20px rgba(255, 255, 255, 0.9),
+    0 0 50px rgba(0, 242, 254, 0.5) !important;
+  animation: galleryBorderGlow 3s ease-in-out infinite alternate;
+}
+
+@keyframes galleryBorderGlow {
+  0% { border-color: rgba(0, 242, 254, 0.7); box-shadow: 0 0 30px rgba(0, 242, 254, 0.35); }
+  100% { border-color: rgba(200, 250, 255, 1); box-shadow: 0 0 55px rgba(0, 242, 254, 0.65); }
+}
+
+#gallery-modal .glass-modal-content::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 4px;
+  background: linear-gradient(90deg, transparent, #00f2fe, #ffffff, #00f2fe, transparent);
+  box-shadow: 0 0 16px #00f2fe;
+}
+
+#gallery-modal .modal-title {
+  background: linear-gradient(180deg, #ffffff 30%, #a4e5ff 70%, #00f2fe 100%) !important;
+  -webkit-background-clip: text !important;
+  background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+  filter: drop-shadow(0 2px 14px rgba(0, 242, 254, 0.85)) !important;
 }
 
 .close-gallery {
@@ -943,7 +1000,6 @@ body, html {
   transition: 0.25s;
   line-height: 1;
 }
-
 .close-gallery:hover { color: #ff5252; transform: rotate(90deg) scale(1.15); }
 
 .gallery-grid {
@@ -959,37 +1015,138 @@ body, html {
   align-items: center;
   position: relative;
   transition: transform 0.35s ease;
+  z-index: 1;
 }
+.gallery-item:hover { transform: translateY(-8px); }
 
-.gallery-item::after {
+#gallery-modal .gallery-item::after {
   content: '';
   position: absolute;
-  bottom: -12px;
-  left: -5%;
-  width: 110%;
-  height: 16px;
-  background: linear-gradient(to bottom, rgba(255, 255, 255, 0.4) 0%, rgba(0, 242, 254, 0.1) 100%);
-  border-top: 1px solid rgba(255, 255, 255, 0.8);
-  box-shadow: 0 15px 25px rgba(0, 0, 0, 0.8), inset 0 2px 10px rgba(0, 242, 254, 0.5);
-  border-radius: 4px;
+  bottom: -10px;
+  left: 5%;
+  width: 90%;
+  height: 14px;
+  background: radial-gradient(ellipse at center, rgba(0, 242, 254, 0.6) 0%, rgba(0, 102, 204, 0.2) 60%, transparent 85%);
+  border-radius: 50%;
+  filter: blur(5px);
+  z-index: -1;
 }
 
 .img-frame {
-  width: 80%;
-  max-width: 230px;
-  aspect-ratio: 1/1;
+  width: 100%;
+  max-width: 220px;
+  aspect-ratio: 1 / 1;
   border-radius: 16px;
   overflow: hidden;
-  margin-bottom: 16px;
   position: relative;
   border: 3px solid rgba(255, 255, 255, 0.9);
   box-shadow: 0 12px 28px rgba(0, 0, 0, 0.7);
-  transition: 0.35s;
+  background: #020d1c;
+  display: flex;
+  margin-bottom: 16px;
+}
+.gallery-item:hover .img-frame {
+  box-shadow: 0 20px 40px rgba(0, 242, 254, 0.6);
+  border-color: var(--neon-blue);
 }
 
-.img-frame img { width: 100%; height: 100%; object-fit: cover; }
-.gallery-item:hover { transform: translateY(-8px); }
-.gallery-item:hover .img-frame { box-shadow: 0 20px 40px rgba(0, 242, 254, 0.6); border-color: var(--neon-blue); }
+.puzzle-board-frame {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  display: flex;
+}
+
+/* 0/9 未解鎖暗化圖 */
+.locked-preview-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: grayscale(100%) blur(25px) brightness(0.08) contrast(150%);
+  transform: scale(1.2);
+  opacity: 0.5;
+}
+
+.gallery-item.locked .img-frame {
+  background: radial-gradient(circle at 50% 50%, #031326 0%, #010814 100%);
+  border-color: rgba(79, 172, 254, 0.25);
+  box-shadow: inset 0 0 35px rgba(0, 0, 0, 0.95), 0 8px 20px rgba(0, 0, 0, 0.8);
+}
+
+.lock-icon {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 2.8rem;
+  filter: drop-shadow(0 0 15px rgba(0, 242, 254, 0.7));
+  z-index: 5;
+  pointer-events: none;
+  animation: lockGlowPulse 3s infinite ease-in-out;
+}
+
+@keyframes lockGlowPulse {
+  0%, 100% { transform: translate(-50%, -50%) scale(1); }
+  50% { transform: translate(-50%, -50%) scale(1.08); filter: drop-shadow(0 0 22px rgba(0, 242, 254, 0.95)); }
+}
+
+/* 9/9 完成全圖與流光 */
+.completed-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.frame-shine {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(255,255,255,0.4) 0%, transparent 40%, rgba(0,242,254,0.3) 100%);
+  pointer-events: none;
+}
+
+/* 1~8 進行中九宮格 */
+.in-progress-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: repeat(3, 1fr);
+  gap: 2px;
+  background: rgba(0, 0, 0, 0.9);
+  padding: 2px;
+  width: 100%;
+  height: 100%;
+}
+
+.puzzle-piece-cell.unlocked {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  box-shadow: inset 0 0 6px rgba(0, 242, 254, 0.4);
+}
+
+.piece-num-tag {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  font-size: 0.55rem;
+  font-weight: 900;
+  color: #fff;
+  background: rgba(0, 0, 0, 0.65);
+  padding: 1px 4px;
+  border-radius: 3px;
+}
+
+.puzzle-piece-cell.locked-slot {
+  width: 100%;
+  height: 100%;
+  background: rgba(6, 25, 48, 0.85);
+  border: 1px dashed rgba(77, 166, 255, 0.25);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 0.8rem;
+  font-weight: 800;
+  color: rgba(122, 191, 255, 0.4);
+}
 
 .gallery-name {
   margin: 0 0 5px 0;
@@ -1000,7 +1157,6 @@ body, html {
   padding: 4px 14px;
   border-radius: 20px;
   border: 1px solid rgba(0, 242, 254, 0.4);
-  z-index: 1;
 }
 
 .gallery-item .date {
@@ -1009,46 +1165,77 @@ body, html {
   background: rgba(0, 15, 35, 0.75);
   padding: 2px 10px;
   border-radius: 12px;
-  z-index: 1;
 }
 
-.gallery-item.locked .img-frame img {
-  filter: sepia(100%) hue-rotate(190deg) saturate(220%) grayscale(40%) blur(2.5px) brightness(0.3);
-}
-
-.lock-icon {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  font-size: 2.6rem;
-  filter: drop-shadow(0 0 10px var(--neon-blue));
-}
-
+/* ==================================================
+   📑 精緻分頁元件 (目標樣式)
+   ================================================== */
 .pagination-container {
-  display: flex;
+  position: relative;
+  z-index: 1;
+  display: flex !important;
   justify-content: center;
   align-items: center;
-  gap: 12px;
-  padding-top: 20px;
+  gap: 16px;
+  width: 100%;
+  padding-top: 22px;
   border-top: 1px dashed rgba(0, 242, 254, 0.3);
+  font-size: 1rem;
 }
 
-.page-btn, .page-num {
-  background: rgba(0, 30, 60, 0.8);
-  border: 1px solid rgba(0, 242, 254, 0.4);
-  color: #8cb4ff;
-  padding: 7px 16px;
+.pagination-info {
+  font-size: 0.95rem;
+  color: #a4cded;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.page-num-input {
+  width: 48px;
+  padding: 4px 6px;
+  border: 1.5px solid var(--neon-blue);
   border-radius: 8px;
+  background: rgba(0, 20, 45, 0.85);
+  color: var(--neon-blue);
+  font-weight: 800;
+  font-size: 1rem;
+  text-align: center;
+  outline: none;
+  transition: all 0.2s ease;
+}
+
+.page-num-input:focus {
+  box-shadow: 0 0 10px rgba(0, 242, 254, 0.7);
+  background: rgba(0, 30, 65, 0.95);
+  color: #fff;
+  border-color: #fff;
+}
+
+.page-btn {
+  background: rgba(0, 30, 60, 0.85);
+  border: 1px solid rgba(0, 242, 254, 0.4);
+  color: #e2f1ff;
+  padding: 8px 18px;
+  border-radius: 10px;
   cursor: pointer;
   font-weight: 800;
+  font-size: 0.9rem;
   transition: all 0.25s;
 }
 
-.page-num { border-radius: 50%; padding: 6px 12px; }
-.page-btn:hover:not(:disabled), .page-num:hover:not(.active) { background: rgba(0, 242, 254, 0.3); color: #fff; border-color: #fff; }
-.page-num.active { background: linear-gradient(135deg, #00f2fe, #0066cc); color: #fff; border-color: #fff; box-shadow: 0 0 15px rgba(0, 242, 254, 0.8); }
-.page-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+.page-btn:hover:not(:disabled) {
+  background: rgba(0, 242, 254, 0.3);
+  color: #fff;
+  border-color: #fff;
+  box-shadow: 0 0 12px rgba(0, 242, 254, 0.5);
+}
+
+.page-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
 
 /* 📱 響應式排版 (RWD) */
 @media screen and (max-width: 900px) {
@@ -1066,221 +1253,7 @@ body, html {
   .nav-btn { padding: 8px 14px; font-size: 0.82rem; }
   .glass-modal-content { padding: 25px 15px; width: 95vw; }
   .panel-title { font-size: 1.5rem; }
-}
-/* ==================================================
-   🧩 展示櫃 3x3 九宮格拼圖框修復版 (鎖定正方形與網格)
-   ================================================== */
-.img-frame {
-  width: 100% !important;
-  max-width: 220px !important;
-  aspect-ratio: 1 / 1 !important; /* 強制固定 1:1 正方形 */
-  border-radius: 16px;
-  overflow: hidden;
-  position: relative;
-  border: 3px solid rgba(255, 255, 255, 0.9);
-  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.7);
-  background: #020d1c;
-  display: flex !important;
-}
-
-.puzzle-board-frame {
-  width: 100% !important;
-  height: 100% !important;
-  position: relative;
-  display: flex;
-}
-
-/* 0/9 未解鎖暗化圖 (極致深度馬賽克遮蔽版) */
-.locked-preview-img {
-  width: 100% !important;
-  height: 100% !important;
-  object-fit: cover;
-  /* 🌟 極限打碼：高強度灰階 + 25px 強烈高斯模糊 + 壓至近乎全黑 (0.08) */
-  filter: grayscale(100%) blur(25px) brightness(0.08) contrast(150%) !important;
-  transform: scale(1.2); /* 避免高強度模糊造成邊緣穿透留白 */
-  opacity: 0.5;
-}
-
-/* 🌟 在未解鎖外框加上一層深海暗黑毛玻璃遮罩，徹底封印細節 */
-.gallery-item.locked .img-frame {
-  background: radial-gradient(circle at 50% 50%, #031326 0%, #010814 100%) !important;
-  border-color: rgba(79, 172, 254, 0.25) !important;
-  box-shadow: inset 0 0 35px rgba(0, 0, 0, 0.95), 0 8px 20px rgba(0, 0, 0, 0.8) !important;
-}
-
-/* 🌟 鎖頭圖示強化立體質感與神秘發光 */
-.lock-icon {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  font-size: 2.8rem;
-  filter: drop-shadow(0 0 15px rgba(0, 242, 254, 0.7)) drop-shadow(0 4px 10px rgba(0,0,0,0.9));
-  z-index: 5;
-  pointer-events: none;
-  animation: lockGlowPulse 3s infinite ease-in-out;
-}
-
-@keyframes lockGlowPulse {
-  0%, 100% { transform: translate(-50%, -50%) scale(1); filter: drop-shadow(0 0 12px rgba(0, 242, 254, 0.5)); }
-  50% { transform: translate(-50%, -50%) scale(1.08); filter: drop-shadow(0 0 22px rgba(0, 242, 254, 0.95)); }
-}
-
-/* 9/9 完成大圖 */
-.completed-img {
-  width: 100% !important;
-  height: 100% !important;
-  object-fit: cover;
-}
-
-/* 1~8 進行中的 3x3 九宮格 (強制 3欄 x 3列) */
-.in-progress-grid {
-  display: grid !important;
-  grid-template-columns: repeat(3, 1fr) !important;
-  grid-template-rows: repeat(3, 1fr) !important;
-  gap: 2px !important;
-  background: rgba(0, 0, 0, 0.9) !important;
-  padding: 2px !important;
-  width: 100% !important;
-  height: 100% !important;
-  box-sizing: border-box !important;
-}
-
-/* 單個拼圖碎片 (已解鎖) */
-.puzzle-piece-cell.unlocked {
-  position: relative !important;
-  width: 100% !important;
-  height: 100% !important;
-  box-shadow: inset 0 0 6px rgba(0, 242, 254, 0.4);
-}
-
-.piece-num-tag {
-  position: absolute;
-  top: 2px;
-  left: 2px;
-  font-size: 0.55rem;
-  font-weight: 900;
-  color: #fff;
-  background: rgba(0, 0, 0, 0.65);
-  padding: 1px 4px;
-  border-radius: 3px;
-  line-height: 1;
-}
-
-/* 未解鎖的黑色空位 */
-.puzzle-piece-cell.locked-slot {
-  width: 100% !important;
-  height: 100% !important;
-  background: rgba(6, 25, 48, 0.85);
-  border: 1px dashed rgba(77, 166, 255, 0.25);
-  display: flex !important;
-  justify-content: center !important;
-  align-items: center !important;
-  font-size: 0.8rem;
-  font-weight: 800;
-  color: rgba(122, 191, 255, 0.4);
-  box-sizing: border-box;
-}
-/* ==================================================
-   📄 分頁條橫向捲動排版 (防止大量頁碼擠爆)
-   ================================================== */
-.pagination-container {
-  display: flex !important;
-  justify-content: center;
-  align-items: center;
-  gap: 10px;
-  width: 100%;
-  padding-top: 20px;
-  box-sizing: border-box;
-}
-
-.page-numbers {
-  display: flex;
-  gap: 6px;
-  max-width: 65vw;
-  overflow-x: auto;
-  padding: 6px 4px;
-  scrollbar-width: thin;
-  white-space: nowrap;
-}
-
-.page-numbers::-webkit-scrollbar {
-  height: 6px;
-}
-
-.page-numbers::-webkit-scrollbar-thumb {
-  background: rgba(0, 242, 254, 0.4);
-  border-radius: 10px;
-}
-
-.page-num {
-  flex-shrink: 0;
-  min-width: 34px;
-  height: 34px;
-  padding: 0 6px;
-  display: inline-flex;
-  justify-content: center;
-  align-items: center;
-}
-/* ==================================================
-   🐟 深海發光游動魚群 (高能見度版)
-   ================================================== */
-.swimming-fish-layer {
-  position: fixed;
-  inset: 0;
-  width: 100vw;
-  height: 100vh;
-  pointer-events: none;
-  z-index: 2; /* 提高到星光粒子之上，確保看得清清楚楚 */
-  overflow: hidden;
-}
-
-.fish-item {
-  position: absolute;
-  filter: drop-shadow(0 0 10px #00f2fe) drop-shadow(0 0 18px rgba(0, 242, 254, 0.8));
-  opacity: 0.9;
-  will-change: transform;
-}
-
-.ocean-fish-svg {
-  width: 100%;
-  height: 100%;
-  display: block;
-}
-
-/* 尾鰭擺動動畫 */
-.fish-tail {
-  transform-origin: 30px 25px;
-  animation: tailWiggle 0.6s ease-in-out infinite alternate;
-}
-
-@keyframes tailWiggle {
-  0% { transform: rotate(-16deg); }
-  100% { transform: rotate(16deg); }
-}
-
-/* 魚游動路徑：左往右 */
-@keyframes swimL2R {
-  0% {
-    transform: translateX(-150px) translateY(0) scale(var(--fish-scale, 1));
-  }
-  50% {
-    transform: translateX(50vw) translateY(var(--wave-y, -25px)) scale(var(--fish-scale, 1));
-  }
-  100% {
-    transform: translateX(calc(100vw + 150px)) translateY(0) scale(var(--fish-scale, 1));
-  }
-}
-
-/* 魚游動路徑：右往左 */
-@keyframes swimR2L {
-  0% {
-    transform: scaleX(-1) translateX(-150px) translateY(0) scale(var(--fish-scale, 1));
-  }
-  50% {
-    transform: scaleX(-1) translateX(50vw) translateY(var(--wave-y, 25px)) scale(var(--fish-scale, 1));
-  }
-  100% {
-    transform: scaleX(-1) translateX(calc(100vw + 150px)) translateY(0) scale(var(--fish-scale, 1));
-  }
+  .pagination-container { gap: 10px; font-size: 0.85rem; }
+  .page-btn { padding: 6px 12px; font-size: 0.8rem; }
+  .page-num-input { width: 38px; font-size: 0.85rem; }
 }
