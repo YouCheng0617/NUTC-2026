@@ -1510,7 +1510,7 @@ let GAME_TOKEN = localStorage.getItem('authToken') || localStorage.getItem('acce
         // 🌟 2. 殺掉單機測試防呆！如果沒抓到真實帳號，就不准他玩！
         if (!GAME_TOKEN) {
             alert("請先登入帳號才能看見您的海兔喔！");
-            // window.location.href = "login.html"; // 如果需要，可以把這行打開，自動踢回登入頁
+            window.location.href = "login.html"; // 封印解除！無情踢回登入頁
         }
         
         let socket = null;
@@ -3125,8 +3125,25 @@ function handleThrowBall(e) {
                 heldBall.remove();
                 heldBall = null;
 
-                const ballStageX = dropX - stageRect.left;
-                const ballStageY = dropY - stageRect.top;
+                const stage = document.getElementById('mainStage');
+                const slugEl = document.getElementById('slugContainer');
+                
+                // 🌟 1. 計算海兔身體可以移動的極限
+                const maxSlugX = Math.max(0, stage.offsetWidth - slugEl.offsetWidth);
+                const maxSlugY = Math.max(0, stage.offsetHeight - slugEl.offsetHeight);
+
+                // 🌟 2. 換算成海兔「中心點」能安全咬到球的座標範圍
+                const minSafeX = slugEl.offsetWidth / 2;
+                const maxSafeX = maxSlugX + (slugEl.offsetWidth / 2);
+                const minSafeY = slugEl.offsetHeight / 2;
+                const maxSafeY = maxSlugY + (slugEl.offsetHeight / 2);
+
+                // 🌟 3. 取得實際落點，如果丟太旁邊，就強制用 Math.min/max 吸回邊界內！
+                let rawBallX = dropX - stageRect.left;
+                let rawBallY = dropY - stageRect.top;
+                
+                const ballStageX = Math.max(minSafeX, Math.min(maxSafeX, rawBallX));
+                const ballStageY = Math.max(minSafeY, Math.min(maxSafeY, rawBallY));
 
                 exerciseLandedBall = document.createElement('div');
                 exerciseLandedBall.className = 'stage-landed-ball';
