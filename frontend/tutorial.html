@@ -8,15 +8,14 @@
   body {
     background: linear-gradient(180deg, #044b7a 0%, #011322 100%);
     margin: 0;
-    min-height: 100vh; 
+    height: 100vh; 
     display: flex;
     justify-content: center;
     align-items: center;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     color: #e0e0e0;
-    overflow-y: auto; 
+    overflow: hidden; 
     position: relative;
-    padding: 20px 0; 
   }
 
   .bubbles-container {
@@ -45,12 +44,22 @@
     100% { transform: translateY(-120vh) scale(1.2); opacity: 0; }
   }
 
+  /* === 隱藏所有醜陋的系統預設滾動條，但保留滑動功能 === */
+  ::-webkit-scrollbar {
+    display: none;
+  }
+  * {
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  /* Firefox */
+  }
+
   .tutorial-window {
     position: relative;
     z-index: 10; 
-    /* 微調寬高，給長條形圖片更多上下延伸空間 */
-    width: 1150px; 
-    height: 720px; 
+    width: 1050px; 
+    height: 620px; 
+    max-width: 95vw; 
+    max-height: 90vh; 
     background-color: rgba(15, 32, 55, 0.85); 
     backdrop-filter: blur(12px); 
     border: 1px solid rgba(255, 255, 255, 0.1);
@@ -60,9 +69,21 @@
     overflow: hidden;
   }
 
+  /* === 頂部按鈕與標題排版 === */
+  .tutorial-header {
+    position: absolute;
+    top: 25px; left: 25px;
+    font-size: 20px;
+    font-weight: bold;
+    color: #f4ecd8; 
+    letter-spacing: 2px;
+    z-index: 100;
+  }
+  .tutorial-header span { color: #5ab9ff; }
+
   .close-btn {
     position: absolute;
-    top: 15px; right: 25px;
+    top: 13px; right: 25px;
     font-size: 35px;
     color: #8899a6;
     cursor: pointer;
@@ -76,17 +97,7 @@
     transform: scale(1.1); 
   }
 
-  .tutorial-header {
-    position: absolute;
-    top: 20px; left: 25px;
-    font-size: 20px;
-    font-weight: bold;
-    color: #f4ecd8; 
-    letter-spacing: 2px;
-    z-index: 100;
-  }
-  .tutorial-header span { color: #5ab9ff; }
-
+  /* === 側邊選單 === */
   .main-sidebar {
     width: 90px;
     background-color: rgba(5, 15, 28, 0.6); 
@@ -117,6 +128,7 @@
     width: 230px;
     padding: 80px 15px 20px 20px;
     overflow-y: auto;
+    scroll-behavior: smooth;
   }
   .sub-tab {
     padding: 14px 18px;
@@ -137,12 +149,14 @@
     border: 1px solid rgba(90, 185, 255, 0.5);
   }
 
+  /* === 內容展示區 === */
   .content-area {
     flex: 1;
-    padding: 50px 30px 30px 20px;
+    padding: 45px 30px 25px 20px;
     display: flex;
     flex-direction: column;
     position: relative;
+    overflow: hidden; 
   }
 
   .carousel-container {
@@ -150,15 +164,15 @@
     align-items: center;
     justify-content: space-between;
     width: 100%;
-    margin-bottom: 25px;
+    height: 60%; 
+    margin-bottom: 15px;
   }
 
   .image-container {
     position: relative;
     flex: 1; 
     margin: 0 15px; 
-    /* 拉高圖片展示區，讓長圖可以變更大 */
-    height: 480px; 
+    height: 100%; 
     background-color: transparent; 
     display: flex;
     justify-content: center;
@@ -167,9 +181,9 @@
   }
   
   .image-container img {
-    width: 100%;
-    height: 100%;
-    object-fit: contain; 
+    max-width: 100%;
+    max-height: 100%;
+    border-radius: 16px; 
     filter: drop-shadow(0 8px 25px rgba(0,0,0,0.6)); 
     transition: 0.2s;
   }
@@ -184,7 +198,7 @@
     color: #fff;
     padding: 6px 14px;
     border-radius: 20px;
-    font-size: 14px;
+    font-size: 13px;
     pointer-events: none; 
     backdrop-filter: blur(4px);
     opacity: 0.5;
@@ -197,7 +211,7 @@
   }
 
   .arrow {
-    font-size: 40px;
+    font-size: 38px;
     color: #5ab9ff; 
     background: transparent !important;
     border: none !important;
@@ -214,15 +228,15 @@
 
   .dots-wrapper {
     position: absolute;
-    bottom: -25px; 
+    bottom: -22px; 
     left: 50%;
     transform: translateX(-50%);
     display: flex;
-    gap: 10px;
+    gap: 8px;
     z-index: 5; 
   }
   .dot {
-    width: 10px; height: 10px;
+    width: 9px; height: 9px;
     border-radius: 50%;
     background-color: rgba(255,255,255,0.4);
     box-shadow: 0 0 5px rgba(0,0,0,0.6); 
@@ -230,15 +244,20 @@
   }
   .dot.active { background-color: #5ab9ff; box-shadow: 0 0 8px #5ab9ff, 0 0 5px rgba(0,0,0,0.6); }
 
-  .text-container { padding: 0 15px; margin-top: 15px; }
+  .text-container { 
+    padding: 0 15px; 
+    margin-top: 15px; 
+    height: 35%; 
+    overflow-y: auto; 
+  }
   .text-title {
-    font-size: 24px; 
+    font-size: 22px; 
     font-weight: bold;
     color: white;
-    margin: 0 0 10px 0;
+    margin: 0 0 8px 0;
   }
   .text-desc {
-    font-size: 16px; 
+    font-size: 15px; 
     color: #b0c4de; 
     line-height: 1.6;
     margin: 0;
@@ -263,11 +282,10 @@
   }
   
   .lightbox img {
-    width: 100%;
-    height: 100%;
-    max-width: 90vw;
-    max-height: 90vh;
+    width: 90vw;
+    height: 90vh;
     object-fit: contain;
+    border-radius: 16px; 
     filter: drop-shadow(0 0 25px rgba(255,255,255,0.15));
   }
   
@@ -281,6 +299,79 @@
     z-index: 10000;
   }
   .lightbox-close:hover { color: #5ab9ff; }
+
+  /* ========================================== */
+  /* === RWD 響應式設計：針對平板與手機介面 === */
+  /* ========================================== */
+  @media (max-width: 900px) {
+    .tutorial-window {
+      flex-direction: column; 
+      height: 95vh;
+    }
+    
+    .tutorial-header {
+      top: 15px; left: 15px;
+    }
+
+    .close-btn {
+      top: 8px; right: 15px;
+    }
+
+    .main-sidebar {
+      width: 100%;
+      flex-direction: row;
+      justify-content: center;
+      padding: 10px 0;
+      padding-top: 60px; /* 留出空間給上方的標題 */
+      border-right: none;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+    .main-tab {
+      width: 45px; height: 45px;
+      margin: 0 15px;
+      font-size: 22px;
+    }
+
+    .sub-sidebar {
+      width: 100%;
+      height: auto;
+      padding: 10px 15px;
+      display: flex;
+      flex-direction: row;
+      overflow-x: auto;
+      overflow-y: hidden;
+      white-space: nowrap;
+      box-sizing: border-box;
+      -webkit-overflow-scrolling: touch; 
+    }
+    .sub-tab {
+      display: inline-block;
+      margin: 0 10px 0 0;
+      padding: 8px 16px;
+      font-size: 14px;
+    }
+
+    .content-area {
+      padding: 15px 15px 20px 15px;
+    }
+
+    .carousel-container {
+      height: 55%;
+    }
+
+    .text-container {
+      height: 45%;
+    }
+    
+    .text-title {
+      font-size: 20px;
+    }
+    
+    .arrow {
+      font-size: 30px;
+      padding: 0 5px;
+    }
+  }
 
 </style>
 </head>
@@ -303,36 +394,37 @@
 </div>
 
 <div class="tutorial-window">
-  <div class="close-btn" id="closeGuideBtn" title="返回大廳">&times;</div>
   
-  <div class="tutorial-header" style="display: flex; align-items: center; gap: 15px;">
-    <div><span>▍</span>漂流指南</div>
-    <button onclick="window.location.href='test.html'" style="background: linear-gradient(135deg, #38bdf8, #0284c7); color: #fff; border: none; padding: 5px 14px; border-radius: 20px; font-weight: bold; font-size: 0.85rem; cursor: pointer; box-shadow: 0 2px 10px rgba(56, 189, 248, 0.4); transition: 0.2s;">🌊 進入漂流瓶主頁 &rarr;</button>
-  </div>
+  <!-- === 標題 === -->
+  <div class="tutorial-header"><span>▍</span>漂流指南</div>
+  <div class="close-btn" id="closeGuideBtn" title="返回大廳">&times;</div>
 
-  <div class="main-sidebar">
-    <div class="main-tab active" data-category="main" title="心情漂流瓶">🍾</div>
-    <div class="main-tab" data-category="park" title="遊樂園">🎮</div>
-  </div>
-
-  <div class="sub-sidebar" id="subSidebar"></div>
-
-  <div class="content-area">
-    <div class="carousel-container">
-      <button class="arrow arrow-left" id="prevBtn">◀</button>
-      
-      <div class="image-container" id="imgContainer">
-        <img id="displayImage" src="" alt="指南圖片">
-        <div class="zoom-hint">🔍 點擊圖片放大</div>
-        <div class="dots-wrapper" id="dotsWrapper"></div>
-      </div>
-      
-      <button class="arrow arrow-right" id="nextBtn">▶</button>
+  <!-- 主區塊 -->
+  <div style="display: flex; flex: 1; flex-direction: inherit; overflow: hidden;">
+    <div class="main-sidebar">
+      <div class="main-tab active" data-category="main" title="心情漂流瓶">🍾</div>
+      <div class="main-tab" data-category="park" title="遊樂園">🎮</div>
     </div>
 
-    <div class="text-container">
-      <h3 class="text-title" id="displayTitle">標題</h3>
-      <p class="text-desc" id="displayDesc">描述內容</p>
+    <div class="sub-sidebar" id="subSidebar"></div>
+
+    <div class="content-area">
+      <div class="carousel-container">
+        <button class="arrow arrow-left" id="prevBtn">◀</button>
+        
+        <div class="image-container" id="imgContainer">
+          <img id="displayImage" src="" alt="指南圖片">
+          <div class="zoom-hint">🔍 點擊圖片放大</div>
+          <div class="dots-wrapper" id="dotsWrapper"></div>
+        </div>
+        
+        <button class="arrow arrow-right" id="nextBtn">▶</button>
+      </div>
+
+      <div class="text-container">
+        <h3 class="text-title" id="displayTitle">標題</h3>
+        <p class="text-desc" id="displayDesc">描述內容</p>
+      </div>
     </div>
   </div>
 </div>
@@ -356,59 +448,71 @@
     lightbox.classList.remove('show');
   };
 
+  // === 讓滑鼠滾輪可以直接水平滑動次選單 ===
+  const subSidebar = document.getElementById('subSidebar');
+  subSidebar.addEventListener('wheel', (evt) => {
+    if (window.innerWidth <= 900) {
+      evt.preventDefault();
+      subSidebar.scrollLeft += evt.deltaY;
+    }
+  });
+
   const tutorialData = {
     main: [
       {
         title: "歡迎來到漂流瓶",
         slides: [
-          { img: "./images/register.png", subtitle: "註冊與登入", desc: "歡迎來到心情漂流瓶！請先在畫面右上角點擊「註冊 / 登入」，填寫基本資料。" },
-          { img: "./images/login.png", subtitle: "登入你的帳號", desc: "輸入你的 Email 與密碼進行登入。" },
-          { img: "./images/home.png", subtitle: "註冊帳號", desc: "第一次來的要註冊，記得滑到最下方同意海神公約喔！" }
+          { img: "./images/register.png", subtitle: "註冊與登入", desc: "歡迎來到心情漂流瓶！請先在畫面右上角點擊「註冊 / 登入」，填寫信箱與密碼等基本資料。" },
+          { img: "./images/login.png", subtitle: "登入你的帳號", desc: "輸入你的 Email 與密碼進行登入，系統也附有圖形驗證碼來保障你的帳號安全。" },
+          { img: "./images/home.png", subtitle: "註冊帳號", desc: "第一次來的要註冊，記得要滑到畫面最下方，看完並同意「心情漂流瓶公約」才能打勾喔！" }
         ]
       },
       {
         title: "探索海底大廳",
         slides: [
-          { img: "./images/lobby.png", subtitle: "海底大廳", desc: "登入後將來到最熱鬧的「海底大廳」！這裡是所有交流的核心，包含了熱門貼文與遊樂場入口。" },
-          { img: "./images/notification.png", subtitle: "通知中心", desc: "通知小鈴鐺在右上方，點擊可查看最新通知喔！" }
+          { img: "./images/lobby.png", subtitle: "海底大廳", desc: "登入後會來到最熱鬧的海底大廳！畫面上方有搜尋列與遊樂場入口，左右兩側藏有熱門貼文與海神殿規的捷徑，中間則是各個海域的漂流瓶。" },
+          { img: "./images/notification.png", subtitle: "通知與帳號", desc: "畫面右上方除了發文按鈕，還有通知小鈴鐺與你的使用者名稱。點擊小鈴鐺即可隨時查看最新收到的互動通知喔！" }
         ]
       },
       {
         title: "打造個人空間",
         slides: [
-          { img: "./images/user_menu.png", subtitle: "檢視個人空間", desc: "點選右上角的暱稱，即可展開選單檢視個人空間，裡面包含個人資料、我的追蹤、網站設定等功能。" },
-          { img: "./images/profile_edit.png", subtitle: "編輯個人資料", desc: "進入個人資料設定後，你可以自由修改細節，打造專屬的個人形象。" },
-          { img: "./images/collections.png", subtitle: "追蹤與收藏", desc: "可以隨時查看你追蹤了哪些優質創作者，並在「收藏瓶子」裡回顧那些觸動你的溫暖文字。" },
-          { img: "./images/my_bottles.png", subtitle: "我的瓶子", desc: "透過「我的瓶子」頁面，你可以輕鬆管理自己發布過的所有貼文紀錄。" }
+          { img: "./images/user_menu.png", subtitle: "個人空間選單", desc: "點選右上角的使用者名稱即可展開選單。這裡是你專屬的空間中樞，包含個人資料、追蹤、收藏、客服、新手教學與網站設定等功能。" },
+          { img: "./images/profile_edit.png", subtitle: "編輯個人資料", desc: "你可以自由修改姓名、生日、性別、星座與自我介紹等細節，打造專屬的形象。請注意，綁定的 Email 帳號無法更改喔！" },
+          { img: "./images/following.png", subtitle: "我的追蹤", desc: "這裡會清楚列出所有你關注的創作者名單，讓你可以隨時查看追蹤了哪些用戶，不再錯過他們的最新動態。" },
+          { img: "./images/collections.png", subtitle: "收藏瓶子", desc: "在這裡可以回顧那些曾觸動你的溫暖文字。上方提供便利的關鍵字搜尋列，搭配下方分頁功能，幫你快速找到珍藏的貼文。" },
+          { img: "./images/my_bottles.png", subtitle: "我的瓶子", desc: "透過專屬的「我的瓶子」頁面，你可以輕鬆管理自己過去發布的所有貼文紀錄，同樣支援搜尋與分頁瀏覽功能。" },
+          { img: "./images/customer_service.png", subtitle: "線上客服中心", desc: "遇到問題或有功能建議？客服中心提供「我要提問」與「我的客服紀錄」板塊，快速選取主旨並詳述問題，我們隨時聽你的聲音！" },
+          { img: "./images/website_settings.png", subtitle: "網站小設定", desc: "在設定中，你可以自由切換「顯示留言時間」與「允許他人追蹤」的開關，隨心所欲地客製化你的隱私與閱讀體驗。" }
         ]
       },
       {
         title: "拋出你的瓶子",
         slides: [
-          { img: "./images/write_bottle.png", subtitle: "拋出你的心事", desc: "點擊「發文」，自由選擇貼文要拋向哪個海域，並隨時決定要以「實名」或「匿名」發布，讓海浪替你傳遞心聲。" }
+          { img: "./images/write_bottle.png", subtitle: "拋出你的心事", desc: "選擇發文海域、填寫標題內容後，還能自由選擇要以「實名」或「匿名（偷偷說）」的身分發布，讓海浪替你傳遞心聲。" }
         ]
       },
       {
         title: "海流導航與社群",
         slides: [
-          { img: "./images/hot_posts.png", subtitle: "熱門貼文", desc: "點擊可以在這裡看到最近大家都在討論的內容，是已被收藏人數排名的。" },
-          { img: "./images/temple_rules.png", subtitle: "海神殿規", desc: "來到這邊要守的規則與溫馨小提醒，一起維護友善的海洋。" },
-          { img: "./images/summon_current.png", subtitle: "呼喚海流", desc: "按了之後會隨機刷新瓶子，或是 60 秒後也會自動刷新。" },
-          { img: "./images/channel_categories.png", subtitle: "頻道分類", desc: "這邊可以選擇貼文的分類，有分所有文章(全海域)、只看單一頻道(憤怒、秘密、傷心、厭世/躺平、開心)。" }
+          { img: "./images/hot_posts.png", subtitle: "熱門貼文", desc: "點擊可以在左側看到最近大家都在討論的內容，這是依據已被收藏人數多寡來排名的熱門榜單。" },
+          { img: "./images/temple_rules.png", subtitle: "海神殿規", desc: "來到這邊要遵守的規則與溫馨小提醒（如友善交流、拒絕海洋垃圾等），一起維護友善的海洋環境。" },
+          { img: "./images/summon_current.png", subtitle: "呼喚海流", desc: "想看新瓶子？按了「呼喚海流」之後會隨機刷新瓶子，或者等待 60 秒後系統也會自動幫你刷新畫面。" },
+          { img: "./images/channel_categories.png", subtitle: "頻道分類", desc: "這邊可以選擇貼文分類，有分所有文章(全海域)，或是只看單一頻道(憤怒、秘密、傷心、厭世/躺平、開心)。" }
         ]
       },
       {
         title: "尋找共鳴與留言",
         slides: [
-          { img: "./images/search.png", subtitle: "搜尋特定話題", desc: "使用畫面上方的搜尋列，輸入關鍵字就能快速尋找相關的漂流瓶，點開即可看到完整內容。" },
-          { img: "./images/comments.png", subtitle: "安全的留言空間", desc: "留言區採用直覺的樓層編號，留言時也支援一鍵切換實名或匿名，讓交流充滿彈性無負擔。" }
+          { img: "./images/search.png", subtitle: "搜尋特定話題", desc: "使用畫面上方的搜尋列，打上你要找的類型、標題或內容，就會出現所有跟他相關的漂流瓶文章。" },
+          { img: "./images/comments.png", subtitle: "安全的留言空間", desc: "留言區隱藏了具體時間，改用 B1、B2 等樓層編號標示。準備留言時也能自由勾選實名或匿名身分送出。" }
         ]
       },
       {
         title: "專屬 AI 特助",
         slides: [
-          { img: "./images/pet_home.png", subtitle: "你的桌寵夥伴", desc: "畫面裡有一隻可愛小傢伙陪伴你！點兩下會跑向你，不需要時也能拉牠回「桌寵的家」睡覺。" },
-          { img: "./images/ai_assistant.png", subtitle: "AI 特助聊天", desc: "點擊桌寵會喚醒「AI 特助」，不但能陪你聊天，還提供夜間模式、調整字體與多國語言切換等功能！" }
+          { img: "./images/pet_home.png", subtitle: "你的桌寵夥伴", desc: "這是一個會跑來跑去陪伴你的小傢伙！點兩下會跑向你，不需要時也能把牠拉回「桌寵的家」睡覺，點擊可叫醒。" },
+          { img: "./images/ai_assistant.png", subtitle: "AI 特助聊天", desc: "點擊桌寵喚醒 AI 特助陪你聊天。右上角按鈕提供回主頁、切換夜間模式、字體放大縮小與多國語言切換功能！" }
         ]
       }
     ],
@@ -416,53 +520,54 @@
       {
         title: "秘密海域遊樂場",
         slides: [
-          { img: "./images/park_lobby.png", subtitle: "秘密海域大廳", desc: "心情有點悶？點擊大廳的「遊樂場」按鈕，這裡準備了六款各具特色的舒壓互動小遊戲等你探索！" }
+          { img: "./images/park_lobby.png", subtitle: "秘密海域大廳", desc: "心情有點悶？點擊大廳的「遊樂場」按鈕，這裡準備了六款各具特色的專屬舒壓遊戲等你來探索！" }
         ]
       },
       {
         title: "海兔養成記",
         slides: [
-          { img: "./images/seahare_home.png", subtitle: "遇見你的海兔", desc: "進入遊戲可享受無限重抽，直到遇見命中注定的專屬海兔並為牠命名！" },
-          { img: "./images/seahare_tasks.png", subtitle: "任務與裝扮", desc: "每天完成餵食等任務賺取積分，可至商城兌換背景特效。還能建立連線房間跟好友展示海兔！" }
+          { img: "./images/seahare_home.png", subtitle: "遇見你的海兔", desc: "進入遊戲可享受「無限重抽」的樂趣，直到遇見命中注定的那隻專屬海兔，並幫可愛的牠取個名字！" },
+          { img: "./images/seahare_tasks.png", subtitle: "任務與裝扮", desc: "每天完成餵食、淨化水質等任務賺取積分，可至商城兌換背景特效。還能創建連線房間跟好友展示海兔！" }
         ]
       },
       {
         title: "今日塔羅瓶",
         slides: [
-          { img: "./images/tarot_categories.png", subtitle: "選擇占卜領域", desc: "提供個人化且無次數限制的塔羅占卜。進入介面後可快速點選預設的六大問題類別（感情、事業、學業、成長、財運、人際），或於下方自訂專屬問題。" },
-          { img: "./images/tarot_shuffle.png", subtitle: "互動式扇形牌陣", desc: "確認問題後畫面會展開扇形牌陣，使用者透過滑動瀏覽，憑直覺由左至右依序抽出代表「過去、現在、未來」的三張正位牌。" },
-          { img: "./images/tarot_result.png", subtitle: "AI 牌義綜合解析", desc: "抽牌完成後系統會自動串接 AI 進行牌義綜合分析，生成詳盡的深海塔羅占卜報告與專屬象徵解析。" },
-          { img: "./images/tarot_save.png", subtitle: "再問一次與收藏", desc: "解析結束後可點擊「再問一次」重新占卜，或點選「收藏此存檔」，隨時至右上角收藏庫回顧過往紀錄與測算時間。" }
+          { img: "./images/tarot_categories.png", subtitle: "選擇占卜主題", desc: "提供無次數限制的專屬塔羅占卜。你可以直接點選預設的感情、事業等主題，或在下方輸入框自訂你想詢問的問題。" },
+          { img: "./images/tarot_shuffle.png", subtitle: "扇形牌陣與抽卡", desc: "確認問題後會展開扇形牌陣。請靜下心，憑直覺由左至右依序抽出三張正位牌，分別代表你的過去、現在與未來。" },
+          { img: "./images/tarot_result.png", subtitle: "AI 占卜結果", desc: "抽牌完成後，系統會結合 AI 為你進行深度的牌義綜合分析，生成詳盡的專屬占卜報告與指引。" },
+          { img: "./images/tarot_save.png", subtitle: "再問一次與收藏", desc: "解析結束後，你可以點選「再問一次」重新沉澱思緒測算，或是點擊「收藏此占卜」將這份指引完整保存下來。" },
+          { img: "./images/tarot_collection.png", subtitle: "魔法收藏本", desc: "點擊右上角進入「魔法收藏本」就能查看所有收藏。裡面會清楚標註測算的年月日與時間、詢問的主題、抽到的卡牌，以及完整的 AI 講解紀錄喔！" }
         ]
       },
       {
         title: "突然想拼圖",
         slides: [
-          { img: "./images/puzzle_intro.png", subtitle: "海洋生物拼圖", desc: "本模組為一款以海洋生物為主題的任務導向拼圖小遊戲，每幅拼圖由 9 個固定位置的區塊組成。" },
-          { img: "./images/puzzle_gacha.png", subtitle: "喚醒石與抽卡", desc: "玩家可透過完成每日任務獲取專屬道具「召喚石」，消耗召喚石即可進行抽卡，隨機獲取普通或高級的拼圖碎片。" },
-          { img: "./images/puzzle_workshop.png", subtitle: "碎片工坊與寶箱", desc: "擁有重複或多餘碎片時，可利用右上角「碎片工坊」將碎片兌換成普通或高級寶箱，開啟寶箱必得拼圖碎片保底！" },
-          { img: "./images/puzzle_cabinet.png", subtitle: "拼圖收藏展示櫃", desc: "點擊「我的收藏」進入展示櫃，即時同步並視覺化所有海洋生物的收集進度，帶給玩家滿滿的解鎖成就感。" }
+          { img: "./images/puzzle_intro.png", subtitle: "海洋生物拼圖", desc: "以「海洋生物」為主題的任務導向拼圖小遊戲。每幅拼圖皆由 9 個固定位置的區塊組成，碎片分為普通與高級。" },
+          { img: "./images/puzzle_gacha.png", subtitle: "喚醒石與抽卡", desc: "玩家可透過完成每日任務獲取專屬道具「召喚石」，消耗召喚石進行抽卡，隨機獲取普通或高級的拼圖碎片。" },
+          { img: "./images/puzzle_workshop.png", subtitle: "碎片工坊與寶箱", desc: "擁有多餘碎片時，可利用右上角「碎片工坊」將碎片兌換成寶箱，開啟寶箱將必定「保底」獲得拼圖碎片！" },
+          { img: "./images/puzzle_cabinet.png", subtitle: "拼圖收藏展示櫃", desc: "點擊「我的收藏」進入展示櫃，會即時同步並視覺化所有海洋生物的收集進度，帶給你滿滿的解鎖成就感。" }
         ]
       },
       {
         title: "每日便利貼",
         slides: [
-          { img: "./images/notes_wall.png", subtitle: "無聲樹洞", desc: "匿名情感交流空間，每人每天限留一次 50 字以內便利貼，24小時後系統會自動清除痕跡。" },
-          { img: "./images/notes_write.png", subtitle: "純粹的抒發", desc: "此區刻意關閉回覆功能，讓大家在沒有社交壓力的環境下，純粹地抒發並感受彼此心境。" }
+          { img: "./images/notes_wall.png", subtitle: "無聲樹洞", desc: "宛如「無聲樹洞」的匿名情感交流空間，所有留言 24 小時後自動清除。為保持純粹，此區刻意關閉回覆與評論功能。" },
+          { img: "./images/notes_write.png", subtitle: "純粹的抒發", desc: "每則便利貼設有最高 50 字的字數上限，且系統嚴格限制每人「每日僅限留言一次」，送出後即不可修改。" }
         ]
       },
       {
         title: "瓶命射擊",
         slides: [
-          { img: "./images/shooting_menu.png", subtitle: "動態狙擊挑戰", desc: "極度考驗反應力與精準度！選擇難度後，準確狙擊掉落的「瓶子」來累積連擊與高分。" },
-          { img: "./images/shooting_game.png", subtitle: "干擾與增益", desc: "誤擊干擾物「魚」會被扣分。遊戲中會隨機掉落延長時間的沙漏與補充彈藥的貝殼，善用它們挑戰霸主！" }
+          { img: "./images/shooting_menu.png", subtitle: "動態狙擊挑戰", desc: "考驗反應力與精準度！分為簡單、普通、困難三種級別。設有連擊加成機制，但誤擊干擾物「魚」將被扣分懲罰。" },
+          { img: "./images/shooting_game.png", subtitle: "干擾與增益", desc: "準確狙擊掉落的「瓶子」拿高分。擊中隨機掉落的「發光沙漏」可延長剩餘時間，擊中「發光貝殼」則能補充彈藥數量！" }
         ]
       },
       {
         title: "接住小瓶",
         slides: [
-          { img: "./images/catch_menu.png", subtitle: "接物挑戰", desc: "快節奏的刺激接物遊戲！在 30 秒限時內，敏捷操控籃子接住掉落的漂流瓶累積積分。" },
-          { img: "./images/catch_game.png", subtitle: "閃避與護盾", desc: "必須完美閃避扣分炸彈！隨機掉落的雙倍星能讓得分翻倍，無敵護盾能擋下一次致命攻擊。" }
+          { img: "./images/catch_menu.png", subtitle: "接物挑戰", desc: "快節奏的刺激接物遊戲！在 30 秒的單局限時內，敏捷操控籃子接住掉落的漂流瓶累積積分，分為三種難度級別。" },
+          { img: "./images/catch_game.png", subtitle: "閃避與護盾", desc: "必須完美閃避扣分炸彈！隨機掉落的「雙倍星」能讓 3 秒內得分翻倍，「無敵護盾」能擋下一次炸彈的扣分懲罰。" }
         ]
       }
     ]
@@ -472,7 +577,6 @@
   let currentSubIndex = 0;      
   let currentSlideIndex = 0;    
 
-  const subSidebar = document.getElementById('subSidebar');
   const displayImage = document.getElementById('displayImage');
   const displayTitle = document.getElementById('displayTitle');
   const displayDesc = document.getElementById('displayDesc');
