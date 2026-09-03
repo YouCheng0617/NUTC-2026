@@ -61,7 +61,7 @@ body {
     perspective: 1200px; 
 }
 
-/* 絲滑感應區：底層軌道完全不動 */
+/* 絲滑感應區 */
 .spread-card { 
     position: absolute; 
     width: 110px;   
@@ -87,6 +87,10 @@ body {
     transition: transform 0.4s cubic-bezier(0.25, 0.8, 0.25, 1), filter 0.4s ease; 
     pointer-events: none; 
     transform: translateZ(1px); 
+}
+
+.spread-card:hover {
+    z-index: 999 !important;
 }
 
 .spread-card:hover::before {
@@ -154,7 +158,7 @@ body {
 .save-btn-style { background: rgba(10, 5, 25, 0.5); border: 2px solid #a084ff; color: #d4b5ff; backdrop-filter: blur(5px); }
 .save-btn-style:hover { background: rgba(160, 132, 255, 0.3); transform: scale(1.05); color: #fff; border-color: #fff;}
 
-/* 右上/左上按鈕共用樣式 */
+/* 頂部按鈕共用樣式 */
 #back-games-btn, #lang-toggle-btn, #view-fav-btn { position: absolute; top: 20px; background: rgba(20, 15, 40, 0.8); border: 1px solid #a084ff; color: #d4b5ff; padding: 10px 20px; border-radius: 20px; cursor: pointer; z-index: 100; transition: 0.3s; font-weight: bold; backdrop-filter: blur(10px); box-shadow: 0 0 10px rgba(0,0,0,0.8); }
 #back-games-btn:hover, #lang-toggle-btn:hover, #view-fav-btn:hover { background: #7b2cbf; color: white; box-shadow: 0 0 20px rgba(160, 132, 255, 0.8); }
 
@@ -163,13 +167,9 @@ body {
 #lang-toggle-btn { left: 180px; }
 #view-fav-btn { right: 20px; }
 
-
-/* =========================================
-   ✨ 重新選擇領域按鈕（完美置中排版）
-   ========================================= */
 #back-to-menu-btn {
     display: inline-block;
-    margin-bottom: 15px; /* 與下方的領域標籤保持距離 */
+    margin-bottom: 15px;
     background: rgba(20, 10, 40, 0.6);
     border: 1px dashed rgba(160, 132, 255, 0.6);
     color: #d4b5ff;
@@ -190,7 +190,6 @@ body {
     transform: translateY(-2px);
 }
 
-
 #favorites-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.85); z-index: 1000; display: flex; justify-content: center; align-items: center; backdrop-filter: blur(8px); }
 .modal-content { background: rgba(19, 12, 37, 0.95); border: 1px solid #7b2cbf; width: 90%; max-width: 700px; max-height: 80vh; border-radius: 15px; padding: 30px; overflow-y: auto; position: relative; box-shadow: 0 0 40px rgba(123, 44, 191, 0.6); text-align: left; }
 .close-btn { position: absolute; top: 15px; right: 20px; font-size: 28px; color: #a084ff; cursor: pointer; transition: 0.3s; }
@@ -205,73 +204,193 @@ body {
 .delete-btn:hover { background: #e74c3c; color: white; }
 
 /* =========================================
-   手機版響應式設計 (Media Query)
+   📱 手機版響應式設計 (Media Query)
    ========================================= */
 @media screen and (max-width: 768px) {
+    /* 1. 頂部三顆按鈕不重疊排列 */
     #back-games-btn, #lang-toggle-btn, #view-fav-btn {
-        padding: 6px 12px;
-        font-size: 13px;
-        top: 10px;
+        position: fixed !important;
+        top: 10px !important;
+        padding: 5px 8px !important;
+        font-size: 11px !important;
+        border-radius: 14px !important;
+        z-index: 1000 !important;
     }
-    #lang-toggle-btn { left: 140px; }
-    
-    /* 修正手機版返回按鈕 */
-    #back-to-menu-btn {
-        padding: 6px 15px;
-        font-size: 13px;
-        margin-bottom: 10px;
-    }
-    
-    .main-title { font-size: 2em; margin-top: 40px; }
-    .subtitle { font-size: 1em; }
-    
-    .topic-grid { gap: 10px; }
-    .topic-grid button { padding: 10px 5px; font-size: 15px; }
-    
-    .custom-topic input { width: 220px; font-size: 14px; }
-    .custom-topic button { padding: 10px 20px; font-size: 14px; }
+    #back-games-btn { left: 8px !important; right: auto !important; }
+    #lang-toggle-btn { left: 106px !important; right: auto !important; }
+    #view-fav-btn { right: 8px !important; left: auto !important; }
 
+    /* 2. 主容器 */
+    .container {
+        width: 100% !important;
+        max-width: 100% !important;
+        padding: 50px 10px 30px 10px !important;
+        box-sizing: border-box !important;
+    }
+
+    .main-title { font-size: 1.6rem !important; margin-top: 5px !important; margin-bottom: 6px !important; }
+    .subtitle { font-size: 0.95rem !important; }
+    .topic-display { font-size: 1rem !important; padding: 4px 14px !important; margin-bottom: 6px !important; }
+    .instruction-text { font-size: 0.88rem !important; margin-bottom: 6px !important; }
+
+    .topic-grid { gap: 10px !important; }
+    .topic-grid button { padding: 10px 5px !important; font-size: 15px !important; }
+    .custom-topic input { width: 220px !important; font-size: 14px !important; }
+    .custom-topic button { padding: 10px 20px !important; font-size: 14px !important; }
+
+    /* 3. 塔羅墊 */
+    .tarot-mat {
+        padding: 15px 6px 25px 6px !important;
+        border-radius: 16px !important;
+        margin-top: 10px !important;
+    }
+
+    /* 4. 扇形牌陣：保留高度並提高層級，防止被下方覆蓋 */
     .deck-spread {
-        height: 180px; 
-        margin: 10px auto 30px;
+        height: 170px !important;
+        margin: 5px auto 25px !important;
+        position: relative !important;
+        z-index: 50 !important;
+        perspective: 800px !important;
     }
 
     .spread-card {
-        width: 60px;
-        height: 103px;
-        transform-origin: center 180%;
-        bottom: 80px;
-    }
-    
-    .spread-card:hover::before {
-        transform: translateY(-15px) translateZ(30px) scale(1.05); 
+        width: 52px !important;
+        height: 90px !important;
+        bottom: 55px !important;
+        transform-origin: center 185% !important;
+        z-index: 1 !important;
     }
 
-    .tarot-container {
-        margin-top: 20px;
-        gap: 10px;
+    /* 🌟 手機版碰牌立即浮起到最前方並發光 */
+    .spread-card:hover {
+        z-index: 999 !important;
     }
-    
+    .spread-card:hover::before {
+        transform: translateY(-24px) translateZ(50px) scale(1.12) !important;
+        filter: drop-shadow(0 0 14px #d4b5ff) brightness(1.2) !important;
+        border-color: #d4b5ff !important;
+    }
+
+    /* 5. 三張放置牌：強制單行並排不換行 */
+    .tarot-container {
+        display: flex !important;
+        flex-direction: row !important;
+        flex-wrap: nowrap !important;
+        justify-content: center !important;
+        align-items: center !important;
+        gap: 6px !important;
+        margin-top: 10px !important;
+        width: 100% !important;
+        position: relative !important;
+        z-index: 10 !important;
+    }
+
     .tarot-card {
-        width: 90px;
-        height: 158px;
-        margin-bottom: 10px;
+        width: 86px !important;
+        height: 148px !important;
+        min-width: 0 !important;
+        flex-shrink: 1 !important;
+        margin-bottom: 0 !important;
+    }
+
+    .card-title {
+        font-size: 0.78rem !important;
+        margin-top: 6px !important;
+        white-space: nowrap !important;
     }
 
     .card-name-label {
-        font-size: 11px;
-        padding: 4px 10px;
-        bottom: 15px;
-        letter-spacing: 1px;
-    }
-    
-    .card-title {
-        font-size: 0.9em;
-        margin-top: 10px;
+        font-size: 10px !important;
+        padding: 2px 6px !important;
+        bottom: 8px !important;
+        letter-spacing: 0px !important;
     }
 
     #result-box {
-        padding: 15px;
-        font-size: 14px;
+        padding: 16px 12px !important;
+        font-size: 13px !important;
+        margin-top: 20px !important;
     }
+
+    .action-buttons { gap: 10px !important; }
+    .action-btn { padding: 8px 18px !important; font-size: 13px !important; }
+}
+
+@media screen and (max-width: 330px) {
+    #back-games-btn { font-size: 10px !important; padding: 4px 6px !important; }
+    #lang-toggle-btn { left: 96px !important; font-size: 10px !important; padding: 4px 6px !important; }
+    #view-fav-btn { font-size: 10px !important; padding: 4px 6px !important; }
+    .tarot-card { width: 80px !important; height: 138px !important; }
+}
+/* =========================================
+   📱 手機端點擊/碰觸浮起發光專屬樣式
+   ========================================= */
+.spread-card.touch-active,
+.spread-card:active {
+    z-index: 9999 !important;
+}
+
+.spread-card.touch-active::before,
+.spread-card:active::before {
+    transform: translateY(-30px) translateZ(50px) scale(1.15) !important;
+    filter: drop-shadow(0 0 16px #d4b5ff) brightness(1.25) !important;
+    border-color: #d4b5ff !important;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.9) !important;
+}
+/* =========================================
+   🔮 滑鼠碰觸即浮起發光（適配手機與模擬器）
+   ========================================= */
+.spread-card.hover-highlight,
+.spread-card:hover {
+    z-index: 99999 !important;
+}
+
+.spread-card.hover-highlight::before,
+.spread-card:hover::before {
+    transform: translateY(-28px) translateZ(60px) scale(1.15) !important;
+    filter: drop-shadow(0 0 16px #d4b5ff) drop-shadow(0 0 30px rgba(160, 132, 255, 0.8)) brightness(1.25) !important;
+    border-color: #ffffff !important;
+    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.9) !important;
+}
+/* =========================================
+   ✨ 游標滑過卡片強制浮起與高亮修復
+   ========================================= */
+.deck-spread {
+    touch-action: none !important; /* 防止滑動時被瀏覽器手勢攔截 */
+}
+
+.spread-card {
+    pointer-events: auto !important;
+}
+
+/* 當被游標掃到時，層級拉到最高並向上彈起 */
+.spread-card.hover-highlight {
+    z-index: 999999 !important;
+}
+
+.spread-card.hover-highlight::before {
+    transform: translateY(-35px) scale(1.18) !important;
+    filter: drop-shadow(0 0 15px #ffffff) drop-shadow(0 0 25px #d4b5ff) brightness(1.3) !important;
+    border: 2px solid #ffffff !important;
+    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.95) !important;
+    transition: transform 0.15s ease-out, filter 0.15s ease-out !important;
+}
+/* =========================================
+   🔮 牌陣碰觸/懸浮：強制置頂於所有牌前方
+   ========================================= */
+/* 1. 當卡片被 hover 或激活時，本體直接往 3D 鏡頭前方推進並提至最高層 */
+.spread-card:hover,
+.spread-card.hover-highlight {
+    z-index: 999999 !important;
+    transform: rotate(var(--rot)) translate3d(0, 0, 80px) !important;
+}
+
+/* 2. 卡片本體陰影與發光完全展示，不受後方牌面遮擋 */
+.spread-card:hover::before,
+.spread-card.hover-highlight::before {
+    transform: translateY(-35px) translateZ(40px) scale(1.15) !important;
+    filter: drop-shadow(0 0 16px #d4b5ff) drop-shadow(0 0 30px rgba(160, 132, 255, 0.8)) brightness(1.25) !important;
+    border-color: #ffffff !important;
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.95) !important;
 }

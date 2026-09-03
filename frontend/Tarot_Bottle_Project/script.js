@@ -226,24 +226,43 @@ window.addEventListener('resize', () => {
 function renderSpread() {
     const spreadContainer = document.getElementById('deck-spread');
     spreadContainer.innerHTML = ''; 
-    
+
     const total = availableCards.length;
     const isMobile = window.innerWidth <= 768;
-    const spreadAngle = isMobile ? 90 : 140; 
+    // 手機版讓扇形角度稍微展開一些，避免全部黏成一團
+    const spreadAngle = isMobile ? 110 : 140; 
     const startAngle = -(spreadAngle / 2); 
     const angleStep = spreadAngle / total; 
 
-    for(let i=0; i<total; i++) {
+    for(let i = 0; i < total; i++) {
         let card = document.createElement('div');
         card.className = 'spread-card';
         let angle = startAngle + (i * angleStep);
         card.style.setProperty('--rot', `${angle}deg`); 
-        
+
         card.onclick = function() {
             drawFromSpread(this);
         };
         spreadContainer.appendChild(card);
     }
+
+    // 🌟 核心修復：由外層容器統一監聽滑鼠游標移動，滑到哪張牌哪張牌立刻亮
+    spreadContainer.onpointermove = function(e) {
+        const target = document.elementFromPoint(e.clientX, e.clientY);
+        const card = target ? target.closest('.spread-card') : null;
+
+        document.querySelectorAll('.spread-card').forEach(c => {
+            if (c !== card) c.classList.remove('hover-highlight');
+        });
+
+        if (card && spreadContainer.contains(card)) {
+            card.classList.add('hover-highlight');
+        }
+    };
+
+    spreadContainer.onpointerleave = function() {
+        document.querySelectorAll('.spread-card').forEach(c => c.classList.remove('hover-highlight'));
+    };
 }
 
 function drawFromSpread(cardElement) {
