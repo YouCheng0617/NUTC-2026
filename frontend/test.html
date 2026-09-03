@@ -53,6 +53,17 @@
           >
             🎮 <span>遊樂場</span>
           </button>
+
+          <button
+            class="header-tutorial-btn"
+            onclick="
+              event.stopPropagation();
+              window.location.href = 'tutorial.html';
+            "
+            title="查看新手指南與特色教學"
+          >
+            📖 <span>新手教學</span>
+          </button>
         </div>
 
         <div class="search-container">
@@ -158,6 +169,18 @@
                 onclick="window.location.href = 'post.html'"
               >
                 📝 我的瓶子
+              </div>
+              <div
+                class="menu-item"
+                onclick="window.location.href = 'customer-service.html'"
+              >
+                💬 線上客服
+              </div>
+              <div
+                class="menu-item"
+                onclick="window.location.href = 'tutorial.html'"
+              >
+                📖 新手教學
               </div>
               <div class="menu-item" onclick="openSettingsModal()">
                 ⚙️ 網站設定

@@ -422,7 +422,13 @@ export const searchBottle = async (keyword: string) => {
 
             OR: [
                 { title: { contains: searchTerm } },
-                { content: { contains: searchTerm } }
+                { content: { contains: searchTerm } },
+                {
+                    author: {
+                        name: { contains: searchTerm }
+                    },
+                    is_anonymous: false
+                }
             ]
         },
         orderBy: {

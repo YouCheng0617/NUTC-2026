@@ -1,6 +1,35 @@
 // ✨ 統一設定後端網址
 const API_BASE_URL = "https://api.drift-bottles.xyz";
 
+// 🌟 全域追蹤名單 ID 集合（記憶已追蹤的作者 ID）
+window._myFollowingIdSet = new Set();
+
+// 載入當前使用者的追蹤名單 ID 集合
+async function syncMyFollowingList() {
+    const token = localStorage.getItem("authToken");
+    if (!token) return;
+
+    try {
+        const response = await fetch(`${API_BASE_URL}/auth/following`, {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'ngrok-skip-browser-warning': 'true'
+            }
+        });
+
+        if (response.ok) {
+            const backendData = await response.json();
+            const list = backendData.data || backendData || [];
+            window._myFollowingIdSet = new Set(
+                list.map(u => String(u.id || u.followed_id || u.followedId || u.member_id))
+            );
+        }
+    } catch (e) {
+        console.error("同步追蹤名單失敗:", e);
+    }
+}
+
 // 🌟 自動登出與 JWT 解析檢查
 function checkTokenExpired() {
     const token = localStorage.getItem("authToken");
@@ -38,7 +67,7 @@ window.fetch = async function (...args) {
 
 let posts = [];
 let currentKeyword = '';
-let currentAuthorId = null; // 🌟 新增：用來記住目前正在看哪位作者的文章！
+let currentAuthorId = null; // 🌟 記住目前正在看哪位作者的文章
 
 // 👇 分頁設定與狀態紀錄
 let currentPage = 1;
@@ -47,13 +76,12 @@ const POSTS_PER_PAGE = 6;
 // 🌟 一進來就看到全海域！
 let currentBoard = sessionStorage.getItem('savedBoard') || '全海域';
 let savedCatId = sessionStorage.getItem('savedCategoryId');
-// 注意：sessionStorage 存的 null 會變成字串 'null'，所以要防呆一下
 let currentCategoryId = (savedCatId !== null && savedCatId !== 'null') ? Number(savedCatId) : null;
 
 let currentView = 'all';
 
 const BOARD_CATEGORY_MAP = {
-    '🌊 全海域': null, // ✨ 這裡是新加入的！null 代表不帶 categoryId 請求
+    '🌊 全海域': null,
     '😡 極度憤怒中': 1,
     '🤫 沒人懂的秘密': 2,
     '💔 破碎的碎片': 3,
@@ -242,7 +270,6 @@ async function fetchBottles() {
                     }
                 }
 
-                // 🌟 加強版：把後端所有可能藏 ID 的地方都翻一遍！
                 let realAuthorId = item.author_id || item.user_id || item.member_id || rawItem.author_id || rawItem.user_id;
 
                 if (!realAuthorId && item.author?.id) realAuthorId = item.author.id;
@@ -255,7 +282,7 @@ async function fetchBottles() {
                     id: safeId,
                     board: finalBoard,
                     author: (item.is_anonymous || item.isAnonymous) ? "匿名" : authorName,
-                    authorId: realAuthorId || null, // 🌟 換成這行！
+                    authorId: realAuthorId || null,
                     title: item.title || rawItem.title,
                     desc: item.content || rawItem.content,
                     likes: totalLikes,
@@ -339,7 +366,6 @@ function applyFilters() {
         res = res.filter(p => p.saved === true);
     } else if (currentView === 'mine') {
     }
-    // ✨ 魔法在這裡：如果是全海域，我們就直接放行所有瓶子！
     else if (!currentKeyword && currentBoard !== '全海域') {
         res = res.filter(p => p.board.includes(currentBoard));
     }
@@ -424,7 +450,7 @@ window.removeSingleHistory = function (e, keyword) {
 let currentOpenPostId = null;
 
 // =========================================
-// 🚀 留言功能完美接軌後端 API 區
+// 🚀 留言功能完整對接後端 API
 // =========================================
 
 window.renderComments = async function (postId) {
@@ -467,7 +493,6 @@ window.renderComments = async function (postId) {
                 const content = c.content || c.text || '';
                 const avatar = c.avatar || 'images/fish_logo.png';
 
-                // 🌟 魔法：打撈子留言！
                 const replies = c.replies || c.children || c.subComments || [];
                 let repliesHtml = '';
 
@@ -489,10 +514,8 @@ window.renderComments = async function (postId) {
                     });
                 }
 
-                // 讀取留言時間顯示設定 (預設為 true 顯示)
                 const showCommentTime = localStorage.getItem('setting_show_comment_time') !== 'false';
 
-                // 時間格式化處理
                 const rawTime = c.createdAt || c.created_at || c.time;
                 let formattedTime = '';
                 if (rawTime) {
@@ -513,12 +536,10 @@ window.renderComments = async function (postId) {
                         </div>
                         <div class="comment-body">${escapeHTML(content)}</div>
                         
-                        <!-- 🌟 這裡是蓋好的子留言展示區塊 -->
                         <div class="reply-container" style="${repliesHtml ? '' : 'display: none;'}">
                             ${repliesHtml}
                         </div>
                         
-                        <!-- 動作區塊加上回覆按鈕 -->
                         <div class="comment-actions">
                             <span class="action-btn reply-trigger" onclick="toggleReplyBox('${commentId}')">
                                 💬 回覆
@@ -528,7 +549,6 @@ window.renderComments = async function (postId) {
                             </span>
                         </div>
 
-                        <!-- 專屬子留言輸入框 -->
                         <div id="reply-box-${commentId}" class="reply-input-box" style="display: none;">
                             <div class="reply-input-wrapper">
                                 <input type="text" id="reply-input-${commentId}" placeholder="偷偷回覆他一點溫暖..." class="custom-reply-input" autocomplete="off">
@@ -576,7 +596,6 @@ window.submitComment = async function () {
     const token = localStorage.getItem("authToken");
     if (!token) { alert("寶寶，要先登入才能留言喔！"); return; }
 
-    // 🌟 修正點：專屬「主留言」的匿名 checkbox
     const mainAnonCheckbox = document.getElementById('main-comment-anon');
     const isAnon = mainAnonCheckbox ? mainAnonCheckbox.checked : false;
 
@@ -588,7 +607,6 @@ window.submitComment = async function () {
                 'Content-Type': 'application/json',
                 'ngrok-skip-browser-warning': 'true'
             },
-            // 🚀 正確傳送 isAnonymous
             body: JSON.stringify({
                 content: text,
                 isAnonymous: isAnon
@@ -596,8 +614,8 @@ window.submitComment = async function () {
         });
 
         if (response.ok) {
-            targetInput.value = ''; // 乖乖清空輸入框
-            if (mainAnonCheckbox) mainAnonCheckbox.checked = false; // 送出後幫忙把勾勾取消
+            targetInput.value = '';
+            if (mainAnonCheckbox) mainAnonCheckbox.checked = false;
 
             alert(isAnon ? "✨ 匿名留言已悄悄送出！" : "✨ 留言成功傳達囉！");
 
@@ -637,7 +655,6 @@ window.submitReply = async function (bottleId, parentId) {
         return;
     }
 
-    // 子留言匿名抓取邏輯完全正確
     const isAnon = document.getElementById(`reply-anon-${parentId}`)?.checked || false;
     const token = localStorage.getItem("authToken");
     if (!token) {
@@ -744,11 +761,10 @@ window.openPostDetail = function (id) {
     document.querySelectorAll('#detail-post-title').forEach(el => el.innerHTML = highlightText(escapeHTML(p.title), currentKeyword));
     document.querySelectorAll('#detail-post-content').forEach(el => el.innerHTML = highlightText(escapeHTML(p.desc), currentKeyword));
 
-    // 判斷是否顯示追蹤按鈕 (匿名不顯示；若作者關閉被追蹤設定亦不顯示)
+    // 判斷是否顯示追蹤按鈕與即時同步「已追蹤/未追蹤」狀態
     const followBtn = document.getElementById('follow-author-btn');
     const isAnonymous = (p.author === '匿名' || !p.authorId);
 
-    // 檢查後端欄位或本地自身文章設定
     const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
     const isSelf = (p.authorId && String(p.authorId) === String(currentUser.id || currentUser.userId));
     const allowFollowSetting = localStorage.getItem('setting_allow_follow') !== 'false';
@@ -759,6 +775,16 @@ window.openPostDetail = function (id) {
             followBtn.style.display = 'none';
         } else {
             followBtn.style.display = 'inline-block';
+
+            // 🌟 自動根據全域名單檢查此作者是否已被追蹤
+            const isAlreadyFollowed = window._myFollowingIdSet.has(String(currentAuthorId));
+            if (isAlreadyFollowed) {
+                followBtn.classList.add('following');
+                followBtn.innerHTML = '<span>已追蹤</span>';
+            } else {
+                followBtn.classList.remove('following');
+                followBtn.innerHTML = '+ 追蹤';
+            }
         }
     }
 
@@ -951,7 +977,8 @@ function setupAuth() {
         if (user && Object.keys(user).length > 0 && token) {
             if (loginTrigger) loginTrigger.style.display = 'none';
             if (userProfile) userProfile.style.display = 'flex';
-            fetchNotificationCount(); // 🔔 登入後去跟後端要通知數量
+            fetchNotificationCount();
+            syncMyFollowingList(); // 🌟 登入後同步追蹤清單
             const displayName = user.name || (user.email ? user.email.split('@')[0] : '用戶');
             const userNameEl = document.getElementById('user-name');
             if (userNameEl) userNameEl.innerText = displayName;
@@ -1005,6 +1032,7 @@ function setupAuth() {
         logoutBtn.onclick = () => {
             localStorage.removeItem('currentUser');
             localStorage.removeItem('authToken');
+            window._myFollowingIdSet.clear();
             updateUI();
             window.location.href = "login.html";
         };
@@ -1038,7 +1066,6 @@ function setupNewPost() {
         };
     }
 
-    // 點擊暗色毛玻璃遮罩也可以關閉彈窗
     if (postModal) {
         postModal.onclick = (e) => {
             if (e.target === postModal) {
@@ -1046,6 +1073,7 @@ function setupNewPost() {
             }
         };
     }
+
     if (form) {
         form.onsubmit = async (e) => {
             e.preventDefault();
@@ -1100,13 +1128,13 @@ function setupNewPost() {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-    // 🏠 創建吉祥物的家
     const mascotHome = document.createElement('div');
     mascotHome.id = 'mascot-home';
     mascotHome.title = '把小助理拖進來休息，點擊再叫牠起床喔！';
     document.body.appendChild(mascotHome);
 
-    // 幫寶寶記錄小助理是不是在睡覺
+    syncMyFollowingList(); // 🌟 頁面啟動時自動拉取追蹤名單
+
     let isSleeping = false;
     if (window.location.pathname.includes('saved.html')) {
         currentView = 'saved';
@@ -1204,9 +1232,8 @@ document.addEventListener('DOMContentLoaded', () => {
         e.target.classList.add('active');
 
         const liText = e.target.innerText.trim();
-        currentBoard = liText.substring(2).trim(); // 這樣「🌊 全海域」切出來就會剛好是「全海域」
+        currentBoard = liText.substring(2).trim();
 
-        // ✨ 精準抓取 Map 裡的值，如果是全海域就會乖乖變成 null，不會報錯！
         currentCategoryId = BOARD_CATEGORY_MAP[liText] !== undefined ? BOARD_CATEGORY_MAP[liText] : 1;
         currentPage = 1;
 
@@ -1361,7 +1388,6 @@ function renderPagination(totalPages, dataArray) {
     pageContainer.innerHTML = '';
     if (totalPages <= 1) return;
 
-    // ◀ 上一頁按鈕
     const prevBtn = document.createElement('button');
     prevBtn.className = 'page-btn';
     prevBtn.innerText = '◀';
@@ -1374,7 +1400,6 @@ function renderPagination(totalPages, dataArray) {
     };
     pageContainer.appendChild(prevBtn);
 
-    // 數字頁碼按鈕
     for (let i = 1; i <= totalPages; i++) {
         const pageBtn = document.createElement('button');
         pageBtn.className = `page-btn ${i === currentPage ? 'active' : ''}`;
@@ -1388,7 +1413,6 @@ function renderPagination(totalPages, dataArray) {
         pageContainer.appendChild(pageBtn);
     }
 
-    // ▶ 下一頁按鈕
     const nextBtn = document.createElement('button');
     nextBtn.className = 'page-btn';
     nextBtn.innerText = '▶';
@@ -1401,7 +1425,6 @@ function renderPagination(totalPages, dataArray) {
     };
     pageContainer.appendChild(nextBtn);
 
-    // 🌟 點擊自訂輸入跳頁按鈕 (維持原有海洋泡泡樣式)
     const jumpContainer = document.createElement('div');
     jumpContainer.style.display = 'inline-flex';
     jumpContainer.style.alignItems = 'center';
@@ -1554,7 +1577,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 <path d="M 32 65 Q 40 72 48 65 M 52 65 Q 60 72 68 65 M 42 75 Q 50 82 58 75" fill="none" stroke="#1a4c6d" stroke-width="2.5" stroke-linecap="round" opacity="0.6"/>
                 <path d="M 22 55 C 20 28 25 25 35 25 L 38 12 L 46 22 L 54 22 L 62 12 L 65 25 C 75 25 80 28 78 55 Z" class="cat line"/>
                 
-                <!-- 閉著睡覺的眼睛 -->
                 <path d="M 32 42 Q 38 46 44 42" fill="none" stroke="#1a4c6d" stroke-width="3" stroke-linecap="round"/>
                 <path d="M 56 42 Q 62 46 68 42" fill="none" stroke="#1a4c6d" stroke-width="3" stroke-linecap="round"/>
                 
@@ -1565,15 +1587,12 @@ document.addEventListener('DOMContentLoaded', () => {
                     <path d="M 28 16 C 27 12, 25 9, 21 9 C 17 9, 14 5, 13 3 C 12 6, 13 8, 10 10 C 6 12, 3 16, 2 20 C 1 23, 0 26, 1 26 C 3 25, 4 23, 5 22 C 6 24, 8 26, 9 25 C 8 22, 10 20, 11 19 C 16 21, 23 20, 28 16 Z" class="dolphin-body line"/>
                     <path d="M 27.5 16.5 C 22 20, 15 20, 11.5 18.5 C 15 16, 22 15, 27.5 15 Z" fill="#ffffff" stroke="none"/>
                     <path d="M 18 18 C 16 23, 14 25, 16 26 C 18 25, 19 22, 20 18 Z" class="dolphin-body line"/>
-                    <!-- 海豚也閉眼睡覺 -->
                     <path d="M 21 14 Q 23 15.5 25 14" fill="none" stroke="#1a4c6d" stroke-width="1.5" stroke-linecap="round"/>
                 </g>
                 
-                <!-- 雙手安靜抱著海豚 -->
                 <path d="M 26 63 C 30 67, 36 69, 41 67 C 43 66, 42 62, 39 62 C 35 62, 30 62, 26 62 Z" class="cat-paw line"/>
                 <path d="M 74 63 C 70 67, 64 69, 59 67 C 57 66, 58 62, 61 62 C 65 62, 70 62, 74 62 Z" class="cat-paw line"/>
 
-                <!-- Zzz 動畫符號 -->
                 <text x="75" y="30" class="zzz">Z</text>
                 <text x="88" y="18" class="zzz zzz-2">z</text>
             </svg>
@@ -1647,7 +1666,6 @@ document.addEventListener('DOMContentLoaded', () => {
     let dialogueTimer;
 
     function showRandomDialogue() {
-        // ✨ 新增這行：如果小助理已經在小窩裡睡覺了，就不准說夢話！
         if (window.isMascotSleeping) return;
 
         if (dialogueBox.classList.contains('show-dialogue')) return;
@@ -1664,7 +1682,6 @@ document.addEventListener('DOMContentLoaded', () => {
         isDragging = true;
         hasMoved = false;
 
-        // 先保留畫面上的即時位置，再切斷游泳動畫，避免抓取瞬間跳到動畫終點。
         const currentPosition = mascot.getBoundingClientRect();
         clearTimeout(swimTimer);
         mascot.style.transition = 'none';
@@ -1687,14 +1704,12 @@ document.addEventListener('DOMContentLoaded', () => {
         let newLeft = initialLeft + dx;
         let newTop = initialTop + dy;
 
-        // 防撞牆：left/top 是吉祥物左上角座標，限制整隻吉祥物留在視窗內。
         newLeft = Math.max(0, Math.min(newLeft, window.innerWidth - mascot.offsetWidth));
         newTop = Math.max(0, Math.min(newTop, window.innerHeight - mascot.offsetHeight));
 
         mascot.style.left = `${newLeft}px`;
         mascot.style.top = `${newTop}px`;
 
-        // 拖曳時根據左右移動來翻轉臉的方向
         const mascotImage = mascot.querySelector('svg');
         if (mascotImage && dx !== 0) {
             mascotImage.style.transform = dx < 0 ? 'scaleX(-1)' : 'scaleX(1)';
@@ -1714,7 +1729,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     const mascotCenterX = mascotRect.left + mascotRect.width / 2;
                     const mascotCenterY = mascotRect.top + mascotRect.height / 2;
 
-                    // 碰撞范围判定
                     if (
                         mascotCenterX > homeRect.left &&
                         mascotCenterX < homeRect.right &&
@@ -1723,24 +1737,19 @@ document.addEventListener('DOMContentLoaded', () => {
                     ) {
                         window.isMascotSleeping = true;
                         mascot.classList.add('mascot-sleeping');
-                        clearTimeout(swimTimer); // 停下
+                        clearTimeout(swimTimer);
 
-                        // 🌟 圖片切換魔法
                         const awakeMascot = document.getElementById('awake-mascot');
                         const sleepingMascot = document.getElementById('sleeping-mascot');
                         if (awakeMascot) awakeMascot.style.display = 'none';
                         if (sleepingMascot) sleepingMascot.style.display = 'block';
 
-                        // 🌟 完美置中與動態大小魔法 (跟隨小窩彈性縮放！)
                         mascot.style.transition = 'all 0.5s ease-out';
 
-                        // 動態計算：小窩最大 180px 時比例是 0.65，依據目前小窩寬度等比縮放
                         const dynamicScale = (homeRect.width / 180) * 0.65;
                         mascot.style.setProperty('transform', `scale(${dynamicScale})`, 'important');
 
-                        // 扣掉吉祥物本身一半的寬度跟高度，才會真的置中
                         const exactX = homeRect.left + (homeRect.width / 2) - (mascot.offsetWidth / 2);
-                        // 沉入水底的深度也依比例動態微調 (原本寫死的 +15)
                         const exactY = homeRect.top + (homeRect.height / 2) - (mascot.offsetHeight / 2) + (homeRect.width * 0.08);
 
                         mascot.style.left = `${exactX}px`;
@@ -1764,7 +1773,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
     };
-    // 🌟 視窗尺寸改變時（包含點擊預設解析度按鈕），即時校正睡覺位置與游泳範圍
+
     window.addEventListener('resize', () => {
         function adjustSleepingPosition() {
             if (window.isMascotSleeping) {
@@ -1786,12 +1795,10 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
 
-        // 立即校正一次，並在瀏覽器重排後 50ms 再次確認
         adjustSleepingPosition();
         setTimeout(adjustSleepingPosition, 50);
     });
 
-    // 🏠 --- 蓋房子與起床的程式碼 ---
     let mascotHome = document.getElementById('mascot-home');
     if (!mascotHome) {
         mascotHome = document.createElement('div');
@@ -1805,23 +1812,20 @@ document.addEventListener('DOMContentLoaded', () => {
             window.isMascotSleeping = false;
             mascot.classList.remove('mascot-sleeping');
 
-            // 🌟 切換回醒著的圖片
             const awakeMascot = document.getElementById('awake-mascot');
             const sleepingMascot = document.getElementById('sleeping-mascot');
             if (awakeMascot) awakeMascot.style.display = 'block';
             if (sleepingMascot) sleepingMascot.style.display = 'none';
 
-            // 恢復大小跟位置
             const homeRect = mascotHome.getBoundingClientRect();
             mascot.style.transition = 'none';
 
-            // 🌟 拔掉睡覺時加上的強制縮放，把大小控制權還給原有的 RWD 設定
             mascot.style.removeProperty('transform');
             mascot.style.transform = `scale(1)`;
 
             mascot.style.left = (homeRect.right + 15) + 'px';
             mascot.style.top = (homeRect.top - 30) + 'px';
-            mascot.offsetHeight; // 強制瀏覽器重繪
+            mascot.offsetHeight;
 
             mascot.style.transition = 'top 8s ease-in-out, left 8s ease-in-out';
 
@@ -1833,7 +1837,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
     });
-    // 🖱️ 滑鼠事件
+
     mascot.addEventListener('mousedown', (e) => {
         e.preventDefault();
         startDrag(e.clientX, e.clientY);
@@ -1841,7 +1845,6 @@ document.addEventListener('DOMContentLoaded', () => {
     document.addEventListener('mousemove', (e) => onDrag(e.clientX, e.clientY));
     document.addEventListener('mouseup', stopDrag);
 
-    // 📱 手機觸控事件
     mascot.addEventListener('touchstart', (e) => {
         if (e.touches.length > 0) {
             startDrag(e.touches[0].clientX, e.touches[0].clientY);
@@ -1849,13 +1852,12 @@ document.addEventListener('DOMContentLoaded', () => {
     }, { passive: false });
     document.addEventListener('touchmove', (e) => {
         if (isDragging && e.touches.length > 0) {
-            e.preventDefault(); // 防止滾動整個網頁
+            e.preventDefault();
             onDrag(e.touches[0].clientX, e.touches[0].clientY);
         }
     }, { passive: false });
     document.addEventListener('touchend', stopDrag);
 
-    // 🫧 雙擊頁面空白處，讓吉祥物游到使用者指定的位置。
     document.addEventListener('dblclick', (e) => {
         if (window.isMascotSleeping) return;
         const target = e.target;
@@ -1880,21 +1882,16 @@ document.addEventListener('DOMContentLoaded', () => {
         mascot.style.left = `${targetLeft}px`;
         mascot.style.top = `${targetTop}px`;
 
-        // 抵達後停留一下，再恢復原本的自動漫遊。
         swimTimer = setTimeout(swimLikeLazyMermaid, 3000);
     });
 
-    // 🚀 防止拖曳完不小心觸發跳轉，只有真的「單純點擊」才會去 AI 助手頁面
     mascot.addEventListener('click', (e) => {
-
-        // 👇 第一步：先檢查是不是「剛被拖曳完」放開滑鼠
         if (hasMoved) {
             e.preventDefault();
-            hasMoved = false; // ✨ 終極魔法：拖曳完馬上把狀態歸零，才不會卡住下次的點擊！
-            return; // 剛拖曳完，不執行點擊動作，讓牠乖乖留在小窩睡覺
+            hasMoved = false;
+            return;
         }
 
-        // 👇 第二步：如果是單純點擊，而且在睡覺，就叫醒牠
         if (window.isMascotSleeping) {
             e.preventDefault();
             const mascotHome = document.getElementById('mascot-home');
@@ -1904,7 +1901,6 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        // 👇 第三步：如果是單純點擊，且醒著，就去聊天室
         window.location.href = AI_ASSISTANT_URL;
     });
 
@@ -1938,7 +1934,6 @@ async function fetchPopularBottles() {
         const headers = { "Content-Type": "application/json", "ngrok-skip-browser-warning": "true" };
         if (token) headers["Authorization"] = `Bearer ${token}`;
 
-        // 🌟 神奇魔法陣：在撈熱門文章前，先偷偷翻一下寶寶的包包，看看收藏過、按讚過哪些瓶子！
         let likedBottleIds = [];
         let savedBottleIds = [];
 
@@ -1977,10 +1972,8 @@ async function fetchPopularBottles() {
                 return;
             }
 
-            // 🌟 魔法防護罩：建立熱門快取，防止被主海域的資料覆蓋導致點不到！
             if (!window.popularCache) window.popularCache = [];
 
-            // 🌟 動態修復 openPostDetail，讓它可以去快取找文章
             if (!window.hasPatchedOpenDetail) {
                 const originalOpen = window.openPostDetail;
                 window.openPostDetail = function (id) {
@@ -2048,7 +2041,6 @@ async function fetchPopularBottles() {
 
                 const savesCount = parseInt(item.save_count || item.saveCount || item.saves || 0, 10);
 
-                // 🌟 終極記憶恢復：核對這篇文章有沒有在寶寶的清單裡！
                 let isActuallyLiked = likedBottleIds.includes(safeId) || Boolean(item.is_liked || item.isLiked);
                 let isActuallySaved = savedBottleIds.includes(safeId) || Boolean(item.is_saved || item.isSaved);
 
@@ -2061,8 +2053,8 @@ async function fetchPopularBottles() {
                     desc: item.content || rawItem.content || "",
                     likes: parseInt(item.like_count || item.likeCount || item.likes || 0, 10),
                     msgs: item.comment_count || item.comments?.length || 0,
-                    liked: isActuallyLiked, // 寫入真實按讚狀態
-                    saved: isActuallySaved, // 寫入真實收藏狀態
+                    liked: isActuallyLiked,
+                    saved: isActuallySaved,
                     createdAt: item.createdAt || item.created_at || rawItem.createdAt || rawItem.created_at
                 };
 
@@ -2087,11 +2079,12 @@ async function fetchPopularBottles() {
         listContainer.innerHTML = '<div style="text-align: center; color: #ff6b6b; padding: 20px 0;">伺服器連線失敗 😢</div>';
     }
 }
+
 // =========================================
-// 🫂 追蹤與我的追蹤功能邏輯 (完美乾淨版)
+// 🫂 追蹤與我的追蹤功能邏輯 (含狀態同步記憶)
 // =========================================
 
-// 1. 切換追蹤 / 取消追蹤作者 (完善防呆與後端相容版)
+// 1. 切換追蹤 / 取消追蹤作者
 window.toggleFollow = async function () {
     const token = localStorage.getItem("authToken");
     const btn = document.getElementById('follow-author-btn');
@@ -2116,7 +2109,6 @@ window.toggleFollow = async function () {
         return;
     }
 
-    // 檢查是否為自己的文章
     const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
     const myId = currentUser.id || currentUser.userId || currentUser.user_id;
     if (myId && String(currentAuthorId) === String(myId)) {
@@ -2145,13 +2137,17 @@ window.toggleFollow = async function () {
         if (response.ok) {
             if (btn) {
                 btn.classList.toggle('following');
-                if (btn.classList.contains('following')) {
+                const isNowFollowing = btn.classList.contains('following');
+
+                if (isNowFollowing) {
                     btn.innerHTML = '<span>已追蹤</span>';
+                    if (currentAuthorId) window._myFollowingIdSet.add(String(currentAuthorId));
                     if (typeof showOceanToast === 'function') {
                         showOceanToast(`成功把 ${authorName} 加入追蹤名單啦！🎉`);
                     }
                 } else {
                     btn.innerHTML = '+ 追蹤';
+                    if (currentAuthorId) window._myFollowingIdSet.delete(String(currentAuthorId));
                     if (typeof showOceanToast === 'function') {
                         showOceanToast(`已取消追蹤 ${authorName} 💔`);
                     }
@@ -2202,9 +2198,13 @@ window.openFollowingModal = async function () {
 
         if (response.ok) {
             const backendData = await response.json();
-            const followingList = backendData.data || backendData;
+            const followingList = backendData.data || backendData || [];
 
-            if (!followingList || followingList.length === 0) {
+            window._myFollowingIdSet = new Set(
+                followingList.map(user => String(user.id || user.followed_id || user.followedId || user.member_id))
+            );
+
+            if (followingList.length === 0) {
                 container.innerHTML = '<div style="text-align: center; color: #888; padding: 30px 0;">目前還沒有追蹤任何人喔，快去海域逛逛吧！🐟</div>';
                 return;
             }
@@ -2231,6 +2231,7 @@ window.closeFollowingModal = function () {
     const modal = document.getElementById('following-modal');
     if (modal) modal.style.display = 'none';
 };
+
 // =========================================
 // 🔔 抓取未讀通知數量與發光效果
 // =========================================
@@ -2258,7 +2259,6 @@ async function fetchNotificationCount() {
         if (response.ok) {
             const data = await response.json();
 
-            // 相容陣列格式與各類物件屬性結構
             let unreadCount = 0;
             if (typeof data.count === 'number') {
                 unreadCount = data.count;
@@ -2273,7 +2273,6 @@ async function fetchNotificationCount() {
                 }
             }
 
-            // 更新鈴鐺發光與數字顯示
             if (badge && bellBtn) {
                 if (unreadCount > 0) {
                     badge.innerText = unreadCount > 99 ? '99+' : unreadCount;
@@ -2290,10 +2289,10 @@ async function fetchNotificationCount() {
     }
 }
 
-// 每 30 秒自動輪詢一次，讓首頁隨時接收到通知並發光
 setInterval(() => {
     fetchNotificationCount();
 }, 30000);
+
 /* =========================================
    🚀 手機版海域選單 (Bottom Sheet) 專屬邏輯
    ========================================= */
@@ -2309,28 +2308,22 @@ window.toggleBoardSheet = function () {
     }
 };
 
-// 自動更新按鈕文字與點擊收合
 document.addEventListener('DOMContentLoaded', () => {
     const mobileNameDisplay = document.getElementById('mobile-board-name');
 
-    // 初始載入時，設定好目前的海域文字
     if (mobileNameDisplay) {
         const activeLi = document.querySelector('.sidebar li.active');
         if (activeLi) mobileNameDisplay.innerText = activeLi.innerText.trim();
     }
 
-    // 綁定點擊事件
     document.querySelectorAll('.sidebar li').forEach(li => {
         li.addEventListener('click', (e) => {
-            // 1. 把按鈕文字換成點選的海域
             if (mobileNameDisplay) {
                 mobileNameDisplay.innerText = e.target.innerText.trim();
             }
 
-            // 2. 點選後自動收起抽屜
             if (window.innerWidth <= 768) {
                 const sidebar = document.querySelector('.sidebar.light-sidebar');
-                // 判斷如果抽屜是打開的狀態，就執行收起
                 if (sidebar && sidebar.classList.contains('sheet-open')) {
                     window.toggleBoardSheet();
                 }
@@ -2338,31 +2331,29 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 });
+
 // =========================================
-// 🔔 通知小視窗專屬魔法區
+// 🔔 通知小視窗專屬邏輯
 // =========================================
 
 // 1. 開關通知小視窗
 window.toggleNotificationPopup = async function (e) {
-    e.stopPropagation(); // 防止點擊事件往外傳遞導致立刻關閉
+    e.stopPropagation();
     const popup = document.getElementById('notif-popup');
 
-    // 如果另一個使用者下拉選單是開著的，就先幫寶寶關掉它，避免畫面太擠
     const userDropdown = document.getElementById('user-dropdown');
     if (userDropdown) userDropdown.classList.remove('show-dropdown');
 
     if (popup.style.display === 'none' || popup.style.display === '') {
         popup.style.display = 'flex';
-        await fetchAndRenderNotifications(); // 每次打開就去後端拿最新資料
+        await fetchAndRenderNotifications();
     } else {
         popup.style.display = 'none';
     }
 };
 
-// 🌟 點擊畫面其他空白處，自動幫你把小視窗收起來
 window.addEventListener('click', (event) => {
     const popup = document.getElementById('notif-popup');
-    // 如果點擊的地方不是視窗裡面，也不是鈴鐺按鈕，就關掉
     if (popup && popup.style.display === 'flex' && !event.target.closest('#notif-popup') && !event.target.closest('#notification-bell-btn')) {
         popup.style.display = 'none';
     }
@@ -2384,11 +2375,10 @@ async function fetchAndRenderNotifications() {
             headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' }
         });
 
-        if (!response.ok) throw new Error('伺服器傲嬌了，抓不到資料');
+        if (!response.ok) throw new Error('伺服器抓不到資料');
 
         const data = await response.json();
 
-        // 防呆拆包機制
         let notifArray = [];
         if (Array.isArray(data)) notifArray = data;
         else if (data && Array.isArray(data.data)) notifArray = data.data;
@@ -2404,7 +2394,6 @@ async function fetchAndRenderNotifications() {
             let iconClass = 'system'; let iconEmoji = '⚠️';
             const typeUpper = (notif.type || '').toUpperCase();
 
-            // 判斷通知類型
             if (typeUpper.includes('LIKE')) { iconClass = 'heart'; iconEmoji = '❤️'; }
             else if (typeUpper.includes('REPLY') || typeUpper.includes('COMMENT')) { iconClass = 'reply'; iconEmoji = '💬'; }
             else if (typeUpper.includes('SAVE') || typeUpper.includes('BOOKMARK')) { iconClass = 'system'; iconEmoji = '⭐'; }
@@ -2447,9 +2436,8 @@ window.markSingleAsReadAPI = async function (id, cardElement) {
             cardElement.classList.remove('unread');
             const dot = cardElement.querySelector('.notif-unread-dot');
             if (dot) dot.style.display = 'none';
-            cardElement.onclick = null; // 拔掉點擊事件
+            cardElement.onclick = null;
 
-            // 順便幫寶寶重新計算右上角的小紅點數量！
             if (typeof fetchNotificationCount === 'function') {
                 fetchNotificationCount();
             }
@@ -2465,7 +2453,6 @@ window.markAllAsReadAPI = async function (e) {
 
     const unreadCards = document.querySelectorAll('.notif-mini-card.unread');
     if (unreadCards.length === 0) {
-        // ✨ 把這裡的 alert 換掉
         showOceanToast("目前沒有未讀通知喔！🌊");
         return;
     }
@@ -2488,47 +2475,41 @@ window.markAllAsReadAPI = async function (e) {
             if (typeof fetchNotificationCount === 'function') {
                 fetchNotificationCount();
             }
-            // ✨ 把這裡最刺眼的稱讚 alert 也換掉！
             showOceanToast("全部都看過囉，寶寶真棒！✨");
         }
     } catch (error) {
         console.error("全部標記已讀失敗：", error);
     }
 };
+
 // =========================================
-// 🫧 深海泡泡提示功能 (優雅地取代 alert)
+// 🫧 深海泡泡提示功能 (取代原生 alert)
 // =========================================
 window.showOceanToast = function (message) {
-    // 如果畫面上已經有舊的泡泡，先把它戳破
     const oldToast = document.getElementById('ocean-toast');
     if (oldToast) {
         oldToast.remove();
     }
 
-    // 吹一個新的泡泡
     const toast = document.createElement('div');
     toast.id = 'ocean-toast';
     toast.className = 'ocean-toast';
-
-    // 裡面放一顆小氣泡 emoji 加上你的文字
     toast.innerHTML = `<span style="font-size: 1.2rem;">🫧</span> <span>${message}</span>`;
 
     document.body.appendChild(toast);
 
-    // 給瀏覽器一點時間準備，然後觸發浮出動畫
     setTimeout(() => {
         toast.classList.add('show');
     }, 10);
 
-    // 3 秒後自動飄走消散
     setTimeout(() => {
         toast.classList.remove('show');
-        // 等待淡出動畫結束後，把元素從網頁上清掉
         setTimeout(() => {
             toast.remove();
         }, 400);
     }, 3000);
 };
+
 // =========================================
 // ⚙️ 網站設定彈窗邏輯
 // =========================================
@@ -2540,23 +2521,19 @@ window.openSettingsModal = function () {
     const timeToggle = document.getElementById('setting-show-comment-time');
     const followToggle = document.getElementById('setting-allow-follow');
 
-    // 1. 讀取留言時間開關 (預設開啟)
     const isShowTime = localStorage.getItem('setting_show_comment_time') !== 'false';
     if (timeToggle) timeToggle.checked = isShowTime;
 
-    // 2. 讀取允許追蹤開關 (預設開啟)
     const isAllowFollow = localStorage.getItem('setting_allow_follow') !== 'false';
     if (followToggle) followToggle.checked = isAllowFollow;
 
     if (modal) modal.style.display = 'block';
 };
 
-// 切換是否允許他人追蹤
 window.toggleAllowFollowSetting = async function (isChecked) {
     localStorage.setItem('setting_allow_follow', isChecked ? 'true' : 'false');
     showOceanToast(isChecked ? "已開啟允許他人追蹤 🫂" : "已關閉追蹤功能，他人無法追蹤你 🔒");
 
-    // 同步嘗試發送至後端儲存偏好設定
     const token = localStorage.getItem("authToken");
     if (token) {
         try {
@@ -2582,7 +2559,6 @@ window.toggleCommentTimeSetting = function (isChecked) {
     localStorage.setItem('setting_show_comment_time', isChecked ? 'true' : 'false');
     showOceanToast(isChecked ? "已開啟留言時間顯示 🕒" : "已隱藏留言時間顯示 🙈");
 
-    // 如果目前剛好打開文章閱讀模式，即時重新渲染留言
     if (currentOpenPostId) {
         renderComments(currentOpenPostId);
     }

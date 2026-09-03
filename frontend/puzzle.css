@@ -1296,8 +1296,211 @@ body, html {
   .nav-right-group { right: 12px; gap: 6px; }
   .nav-btn { padding: 8px 14px; font-size: 0.82rem; }
   .glass-modal-content { padding: 25px 15px; width: 95vw; }
-  .pagination-container { gap: 6px; font-size: 0.85rem; }
+  .panel-title { font-size: 1.5rem; }
+  .pagination-container { gap: 10px; font-size: 0.85rem; }
+  .page-btn { padding: 6px 12px; font-size: 0.8rem; }
+  .page-num-input { width: 38px; font-size: 0.85rem; }
+}
+/* ==================================================
+   📱 秘密海域・拼圖系統 手機版 (<= 550px) 完美 RWD 修復
+   ================================================== */
+@media screen and (max-width: 550px) {
+  /* 1. 頂部導覽列：轉為彈性排版，不再固定左右重疊 */
+  .nav-btn.back-btn {
+    position: fixed !important;
+    top: 12px !important;
+    left: 10px !important;
+    padding: 6px 10px !important;
+    font-size: 0.75rem !important;
+    gap: 4px !important;
+  }
+
+  .nav-right-group {
+    position: fixed !important;
+    top: 12px !important;
+    right: 10px !important;
+    gap: 4px !important;
+  }
+
+  .nav-right-group .nav-btn {
+    padding: 6px 8px !important;
+    font-size: 0.75rem !important;
+    gap: 3px !important;
+  }
+
+  /* 極窄螢幕 (<= 360px) 隱藏文字保留圖示，防爆版 */
+  @media screen and (max-width: 360px) {
+    .nav-btn.back-btn span.btn-icon ~ text,
+    .nav-btn.back-btn {
+      font-size: 0.72rem !important;
+      padding: 5px 8px !important;
+    }
+    .workshop-btn span.btn-icon ~ text,
+    .gallery-btn span.btn-icon ~ text {
+      display: inline-block;
+    }
+    .nav-right-group .nav-btn {
+      padding: 5px 6px !important;
+      font-size: 0.72rem !important;
+    }
+  }
+
+  /* 2. 主容器向上靠攏 */
+  .main-container {
+    width: 95% !important;
+    padding-top: 60px !important;
+    padding-bottom: 50px !important;
+    gap: 18px !important;
+  }
+
+  .glass-panel {
+    padding: 20px 14px !important;
+    border-radius: 24px !important;
+  }
+
+  .panel-header {
+    margin-bottom: 15px !important;
+    gap: 6px !important;
+  }
+
+  .panel-title {
+    font-size: 1.2rem !important;
+  }
+
+  /* 3. 水晶球與法陣自適應縮小，適配 320px */
+  .gacha-stage {
+    height: 240px !important;
+  }
+
+  .magic-runes-outer {
+    width: 230px !important;
+    height: 230px !important;
+  }
+
+  .magic-runes-inner {
+    width: 190px !important;
+    height: 190px !important;
+  }
+
+  .crystal-ball {
+    width: 150px !important;
+    height: 150px !important;
+  }
+
+  .crystal-core {
+    width: 50px !important;
+    height: 50px !important;
+  }
+
+  .idle-text {
+    font-size: 0.85rem !important;
+  }
+
+  .idle-sub {
+    font-size: 0.55rem !important;
+  }
+
+  /* 4. 喚醒石與碎片進度膠囊：在極窄螢幕下自適應縮小 */
+  .token-badge-group {
+    gap: 8px !important;
+    width: 100% !important;
+    justify-content: center !important;
+  }
+
+  .token-badge {
+    padding: 6px 12px !important;
+    gap: 4px !important;
+  }
+
+  .token-label {
+    font-size: 0.75rem !important;
+  }
+
+  .token-value {
+    font-size: 1.2rem !important;
+  }
+
+  /* 5. 抽取按鈕滿版 */
+  .gacha-btn {
+    width: 100% !important;
+    padding: 13px 18px !important;
+    font-size: 0.95rem !important;
+  }
+
+  /* 6. 任務卡片單直列排版 */
+  .task-grid {
+    grid-template-columns: 1fr !important;
+    gap: 12px !important;
+  }
+
+  /* 7. 彈窗容器自適應 */
+  #workshop-modal .workshop-content,
+  #gallery-modal .glass-modal-content {
+    width: 95vw !important;
+    padding: 24px 14px !important;
+    border-radius: 20px !important;
+    max-height: 88vh !important;
+  }
+
+  .inventory-bar {
+    grid-template-columns: 1fr 1fr !important;
+    gap: 8px !important;
+    padding: 10px !important;
+  }
+
+  .inv-item {
+    font-size: 0.8rem !important;
+  }
+
+  .gallery-grid {
+    grid-template-columns: 1fr !important;
+    gap: 25px !important;
+  }
+}
+/* ==================================================
+   📱 拼圖收藏分頁按鈕：手機端強制同一排無溢出修復
+   ================================================== */
+@media screen and (max-width: 550px) {
+  .pagination-container {
+    flex-wrap: nowrap !important; /* 🌟 核心：強制單行不折行 */
+    justify-content: center !important;
+    align-items: center !important;
+    gap: 4px !important; /* 縮小按鈕彼此間距 */
+    width: 100% !important;
+    padding: 15px 0 5px 0 !important;
+    overflow-x: auto !important; /* 極端情況支援微幅橫向滑動保護 */
+  }
+
+  /* 圓形分頁與箭頭按鈕自適應縮小 */
   .pagination-container .page-btn,
-  .pagination-container .page-num { width: 32px; height: 32px; font-size: 0.85rem; }
-  .gallery-jump-input { width: 40px; height: 32px; font-size: 0.85rem; }
+  .pagination-container .page-num {
+    width: 28px !important;
+    height: 28px !important;
+    min-width: 28px !important;
+    font-size: 0.75rem !important;
+    border-width: 1px !important;
+    flex-shrink: 0 !important;
+  }
+
+  .pagination-container .page-btn.active,
+  .pagination-container .page-num.active {
+    transform: scale(1.06) !important;
+  }
+
+  /* 跳頁按鈕與輸入框縮小 */
+  .pagination-container .gallery-jump-btn {
+    width: 28px !important;
+    height: 28px !important;
+    min-width: 28px !important;
+    font-size: 0.8rem !important;
+    flex-shrink: 0 !important;
+  }
+
+  .gallery-jump-input {
+    width: 32px !important;
+    height: 28px !important;
+    font-size: 0.75rem !important;
+    border-radius: 14px !important;
+    flex-shrink: 0 !important;
+  }
 }
