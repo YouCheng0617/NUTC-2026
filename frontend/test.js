@@ -1016,6 +1016,7 @@ function setupNewPost() {
     const form = document.getElementById('new-post-form');
     const btnNewPost = document.getElementById('btn-new-post');
     const closePostModal = document.getElementById('close-post-modal');
+    const postModal = document.getElementById('post-modal');
 
     if (btnNewPost) {
         btnNewPost.onclick = () => {
@@ -1025,12 +1026,26 @@ function setupNewPost() {
                 window.location.href = "login.html";
                 return;
             }
-            document.getElementById('post-modal').style.display = 'block';
+            if (postModal) {
+                postModal.style.setProperty('display', 'flex', 'important');
+            }
         }
     }
 
-    if (closePostModal) closePostModal.onclick = () => document.getElementById('post-modal').style.display = 'none';
+    if (closePostModal && postModal) {
+        closePostModal.onclick = () => {
+            postModal.style.setProperty('display', 'none', 'important');
+        };
+    }
 
+    // 點擊暗色毛玻璃遮罩也可以關閉彈窗
+    if (postModal) {
+        postModal.onclick = (e) => {
+            if (e.target === postModal) {
+                postModal.style.setProperty('display', 'none', 'important');
+            }
+        };
+    }
     if (form) {
         form.onsubmit = async (e) => {
             e.preventDefault();
