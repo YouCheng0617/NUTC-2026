@@ -2176,7 +2176,7 @@ const i18n = {
     </g>
 </svg>`,
             fish: `<svg viewBox="0 0 100 100"><path d="M70 50 C70 25 30 25 30 50 C30 75 70 75 70 50 Z" fill="#0284c7"/><polygon points="35 50, 10 30, 10 70" fill="#0284c7"/><circle cx="60" cy="45" r="3" fill="#ffffff"/><circle cx="61" cy="45" r="1" fill="#0f172a"/></svg>`,
-            planet: `<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="25" fill="#6366f1"/><ellipse cx="50" cy="50" rx="45" ry="10" fill="none" stroke="#facc15" stroke-width="6" transform="rotate(-20 50 50)"/></svg>`,
+            
             // 🎵 1. 連音雙八分音符
             music_double: `<svg viewBox="0 0 100 100" style="width:100%; height:100%; overflow:visible;"><circle cx="28" cy="72" r="14" fill="currentColor"/><circle cx="72" cy="58" r="14" fill="currentColor"/><rect x="36" y="16" width="7" height="56" fill="currentColor"/><rect x="80" y="2" width="7" height="56" fill="currentColor"/><polygon points="36,16 87,2 87,16 36,30" fill="currentColor"/></svg>`,
             // 🎵 2. 單八分音符
@@ -2340,10 +2340,6 @@ const effectData = {
             ghost: { name: {zh: '小幽靈', en: 'Little Ghosts'}, cost: 2500, preview: '#f8fafc', svg: [{s: 'ghost'}], dir: 'up', count: 10 },
             confetti: { name: {zh: '派對拉炮', en: 'Confetti'}, cost: 2500, preview: '#f472b6', svg: [{s: 'star'}, {s: 'sparkle'}], dir: 'down', count: 20 },
             gear: { name: {zh: '齒輪運轉', en: 'Gears Turning'}, cost: 2600, preview: '#64748b', svg: [{s: 'gear'}], dir: 'down', count: 12 },
-            card: { name: {zh: '魔術撲克', en: 'Magic Cards'}, cost: 2700, preview: '#ef4444', svg: [{s: 'heart'}, {s: 'leaf'}], dir: 'down', count: 18 },
-            rainbowStars: { name: {zh: '彩虹星塵', en: 'Rainbow Dust'}, cost: 2800, preview: '#a855f7', svg: [{s: 'star'}], dir: 'up', count: 12 },
-            magic: { name: {zh: '魔法詠唱', en: 'Magic Spell'}, cost: 3500, preview: '#a855f7', svg: [{s: 'sparkle'}, {s: 'star'}], dir: 'up', count: 15 },
-            planet: { name: {zh: '行星軌道', en: 'Planets'}, cost: 4200, preview: '#312e81', svg: [{s: 'planet'}], dir: 'up', count: 8 },     
             bugFree: { name: {zh: 'Bug退散', en: 'No More Bugs'}, cost: 4800, preview: '#4ade80', svg: [{s: 'bugFree'}], dir: 'up', count: 15 },
             money: { name: {zh: '財富自由', en: 'Money Rain'}, cost: 5000, preview: '#facc15', svg: [{s: 'money'}], dir: 'down', count: 20 },
             music: { name: {zh: '跳動音符', en: 'Musical Notes'}, cost: 5200, preview: '#3b82f6' },
@@ -8316,6 +8312,7 @@ case 'fish': {
 
     break;
 }
+
 // ☀️ 【陽光普照】電影級特效：自然發光丁達爾光束 + 柔和角落暖光暈 + 夢幻彩虹漏光與散景光斑
                 case 'sun':
                     if (!document.getElementById('sunStyle')) {
