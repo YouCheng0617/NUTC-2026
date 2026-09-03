@@ -600,31 +600,120 @@ function renderPaginationControls(totalPages) {
 
   if (totalPages <= 0 || galleryPictures.length === 0) {
     paginationContainer.style.display = "none";
+    paginationContainer.innerHTML = "";
     return;
   }
 
   paginationContainer.style.display = "flex";
+  paginationContainer.innerHTML = "";
 
-  const isZh = currentLang === "zh";
-  const pageInfoHtml = isZh
-    ? `第 <input type="number" class="page-num-input" min="1" max="${totalPages}" value="${currentGalleryPage}" onchange="handlePageInput(this.value, ${totalPages})" onkeydown="if(event.key==='Enter') handlePageInput(this.value, ${totalPages})"> / ${totalPages} 頁 (共 ${galleryPictures.length} 筆)`
-    : `Page <input type="number" class="page-num-input" min="1" max="${totalPages}" value="${currentGalleryPage}" onchange="handlePageInput(this.value, ${totalPages})" onkeydown="if(event.key==='Enter') handlePageInput(this.value, ${totalPages})"> / ${totalPages} (Total ${galleryPictures.length})`;
+  // ◀ 上一頁按鈕
+  const prevBtn = document.createElement("button");
+  prevBtn.className = "page-btn prev-btn";
+  prevBtn.innerText = "◀";
+  prevBtn.title = dict["page-prev"] || "上一頁";
+  prevBtn.disabled = currentGalleryPage === 1;
+  prevBtn.onclick = () => renderGalleryPage(currentGalleryPage - 1);
+  paginationContainer.appendChild(prevBtn);
 
-  paginationContainer.innerHTML = `
-    <button class="page-btn prev-btn" ${currentGalleryPage === 1 ? "disabled" : ""} onclick="renderGalleryPage(${currentGalleryPage - 1})">${dict["page-prev"]}</button>
-    <span class="pagination-info">
-      ${pageInfoHtml}
-    </span>
-    <button class="page-btn next-btn" ${currentGalleryPage === totalPages ? "disabled" : ""} onclick="renderGalleryPage(${currentGalleryPage + 1})">${dict["page-next"]}</button>
-  `;
+  // 🔢 計算當前頁的前後2頁（最多5個頁碼）
+  let startPage = Math.max(1, currentGalleryPage - 2);
+  let endPage = Math.min(totalPages, currentGalleryPage + 2);
+
+  if (endPage - startPage < 4) {
+    if (startPage === 1) {
+      endPage = Math.min(totalPages, startPage + 4);
+    } else if (endPage === totalPages) {
+      startPage = Math.max(1, endPage - 4);
+    }
+  }
+
+  for (let i = startPage; i <= endPage; i++) {
+    const pageBtn = document.createElement("button");
+    pageBtn.className = `page-btn page-num ${i === currentGalleryPage ? "active" : ""}`;
+    pageBtn.innerText = i;
+    pageBtn.title = `第 ${i} 頁`;
+    pageBtn.onclick = () => renderGalleryPage(i);
+    paginationContainer.appendChild(pageBtn);
+  }
+
+  // ▶ 下一頁按鈕
+  const nextBtn = document.createElement("button");
+  nextBtn.className = "page-btn next-btn";
+  nextBtn.innerText = "▶";
+  nextBtn.title = dict["page-next"] || "下一頁";
+  nextBtn.disabled = currentGalleryPage === totalPages;
+  nextBtn.onclick = () => renderGalleryPage(currentGalleryPage + 1);
+  paginationContainer.appendChild(nextBtn);
+
+  // 🔢 跳頁按鈕（點擊後展開輸入框供使用者輸入）
+  const jumpContainer = document.createElement("div");
+  jumpContainer.style.display = "inline-flex";
+  jumpContainer.style.alignItems = "center";
+  jumpContainer.style.marginLeft = "2px";
+
+  const jumpBtn = document.createElement("button");
+  jumpBtn.className = "page-btn gallery-jump-btn";
+  jumpBtn.innerText = "🔢";
+  jumpBtn.title = `點擊手動輸入頁碼跳頁 (共 ${totalPages} 頁)`;
+
+  jumpBtn.onclick = () => {
+    jumpContainer.innerHTML = `
+      <input type="number" class="gallery-jump-input" min="1" max="${totalPages}" value="${currentGalleryPage}" placeholder="1~${totalPages}" title="請輸入 1 ~ ${totalPages} 頁碼" />
+    `;
+    const input = jumpContainer.querySelector(".gallery-jump-input");
+    if (!input) return;
+    input.focus();
+    input.select();
+
+    let isSubmitted = false;
+
+    const handleJumpSubmit = () => {
+      if (isSubmitted) return;
+      const val = input.value.trim();
+      const pageNum = parseInt(val, 10);
+
+      if (!val || isNaN(pageNum) || pageNum < 1 || pageNum > totalPages) {
+        alert(currentLang === "zh" ? `請輸入正確的頁碼（範圍 1 ~ ${totalPages}）` : `Please enter a valid page number (1 ~ ${totalPages})`);
+        input.focus();
+        input.select();
+        return;
+      }
+
+      isSubmitted = true;
+      renderGalleryPage(pageNum);
+    };
+
+    input.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        handleJumpSubmit();
+      } else if (e.key === "Escape") {
+        e.preventDefault();
+        renderPaginationControls(totalPages);
+      }
+    });
+
+    input.addEventListener("blur", () => {
+      setTimeout(() => {
+        if (isSubmitted) return;
+        const val = input.value.trim();
+        const pageNum = parseInt(val, 10);
+        if (val && !isNaN(pageNum) && pageNum >= 1 && pageNum <= totalPages) {
+          if (pageNum !== currentGalleryPage) {
+            isSubmitted = true;
+            renderGalleryPage(pageNum);
+            return;
+          }
+        }
+        renderPaginationControls(totalPages);
+      }, 150);
+    });
+  };
+
+  jumpContainer.appendChild(jumpBtn);
+  paginationContainer.appendChild(jumpContainer);
 }
-
-window.handlePageInput = function (val, totalPages) {
-  let page = parseInt(val, 10);
-  if (isNaN(page) || page < 1) page = 1;
-  if (page > totalPages) page = totalPages;
-  renderGalleryPage(page);
-};
 
 function openGallery() {
   const modal = document.getElementById("gallery-modal");
