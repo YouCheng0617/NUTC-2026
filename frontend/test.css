@@ -49,10 +49,12 @@ input, textarea {
     font-weight: 900; 
     color: #ffffff !important; 
     text-shadow: 0 2px 4px rgba(0,0,0,0.3);
-    flex: 1; 
+    flex: 0 0 auto; 
     display: flex; 
     align-items: center; 
+    gap: 16px;
     margin-left: 20px; 
+    margin-right: 35px;
     cursor: pointer; 
     white-space: nowrap !important;
 }
@@ -66,13 +68,13 @@ input, textarea {
     --btn-color-2: #feb47b;
     --btn-shadow: rgba(255, 126, 95, 0.4);
 
-    margin-left: 15px;
+    margin-left: 0;
     background: linear-gradient(45deg, var(--btn-color-1), var(--btn-color-2));
     border: 2px solid #ffffff;
     color: #ffffff;
-    padding: 8px 22px;
+    padding: 8px 20px;
     border-radius: 25px;
-    font-size: 1.15rem;
+    font-size: 1.1rem;
     font-weight: 900;
     cursor: pointer;
     transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
@@ -88,7 +90,7 @@ input, textarea {
 .header-game-btn:hover {
     filter: brightness(1.15);
     border-color: #ffffff;
-    transform: translateY(-3px) scale(1.1);
+    transform: translateY(-3px) scale(1.08);
     box-shadow: 0 8px 25px var(--btn-shadow);
 }
 
@@ -97,7 +99,7 @@ input, textarea {
     --btn-color-2: #0083b0;
     --btn-shadow: rgba(0, 180, 219, 0.4);
 
-    margin-left: 10px;
+    margin-left: 0;
     background: linear-gradient(45deg, var(--btn-color-1), var(--btn-color-2));
     border: 2px solid #ffffff;
     color: #ffffff;
@@ -135,6 +137,7 @@ input, textarea {
     justify-content: center; 
     position: relative; 
     align-items: center; 
+    padding: 0 20px;
 }
 
 .search-box-wrapper {
