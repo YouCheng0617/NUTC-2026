@@ -92,6 +92,36 @@ input, textarea {
     box-shadow: 0 8px 25px var(--btn-shadow);
 }
 
+.header-tutorial-btn {
+    --btn-color-1: #00b4db;
+    --btn-color-2: #0083b0;
+    --btn-shadow: rgba(0, 180, 219, 0.4);
+
+    margin-left: 10px;
+    background: linear-gradient(45deg, var(--btn-color-1), var(--btn-color-2));
+    border: 2px solid #ffffff;
+    color: #ffffff;
+    padding: 8px 20px;
+    border-radius: 25px;
+    font-size: 1.1rem;
+    font-weight: 900;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    box-shadow: 0 4px 15px var(--btn-shadow);
+    text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+    white-space: nowrap !important;
+}
+
+.header-tutorial-btn:hover {
+    filter: brightness(1.15);
+    border-color: #ffffff;
+    transform: translateY(-3px) scale(1.08);
+    box-shadow: 0 8px 25px var(--btn-shadow);
+}
+
 @keyframes game-btn-pulse {
     0% { box-shadow: 0 0 0 0 var(--btn-shadow); }
     70% { box-shadow: 0 0 0 12px rgba(255, 255, 255, 0); }
@@ -1138,11 +1168,14 @@ input:checked + .slider:before { transform: translateX(22px); }
     width: 24px !important;
     height: 24px !important;
   }
-  .header-game-btn {
+  .header-game-btn,
+  .header-tutorial-btn {
     padding: 3px 6px !important;
     font-size: 0.85rem !important;
+    margin-left: 6px !important;
   }
-  .header-game-btn span {
+  .header-game-btn span,
+  .header-tutorial-btn span {
     display: none !important;
   }
 
