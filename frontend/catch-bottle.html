@@ -996,6 +996,19 @@
               isShielded = true;
               showFloatingText("護盾啟動!", item.x, item.y, "#4da6ff");
               clearTimeout(shieldTimer);
+
+              // 🌟 補上 3 秒倒數計時：時間到若沒被炸彈炸破，護盾自動消失
+              shieldTimer = setTimeout(() => {
+                if (isShielded) {
+                  isShielded = false;
+                  showFloatingText(
+                    "護盾消退",
+                    player.x + player.width / 2,
+                    player.y,
+                    "#a0c4ff",
+                  );
+                }
+              }, 3000);
             } else if (item.type === "double") {
               isDoubleScore = true;
               showFloatingText("雙倍積分!", item.x, item.y, "#ffd700");
