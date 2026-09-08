@@ -76,6 +76,7 @@ model Member {
   puzzle_total_sign_in_days Int       @default(0) // 累計簽到總天數
 
   CustomerService CustomerService[]
+  tarotRecords    TarotRecord[]
 }
 
 model BlacklistedToken {
@@ -381,4 +382,18 @@ model CustomerService {
   updated_at DateTime @updatedAt // 最後更新時間
 
   member Member @relation(fields: [member_id], references: [member_id], onDelete: Cascade)
+}
+
+model TarotRecord {
+  id           Int      @id @default(autoincrement())
+  member_id    Int
+  date         String   // 格式 YYYY-MM-DD (台北時區)
+  past_card    String?
+  present_card String?
+  future_card  String?
+  created_at   DateTime @default(now())
+
+  member Member @relation(fields: [member_id], references: [member_id], onDelete: Cascade)
+
+  @@index([member_id, date])
 }

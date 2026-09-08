@@ -500,6 +500,27 @@
         font-size: 1.05rem;
       }
     }
+
+    .remaining-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      margin-top: 12px;
+      padding: 6px 16px;
+      background: rgba(26, 42, 108, 0.6);
+      border: 1px solid rgba(171, 130, 255, 0.4);
+      border-radius: 20px;
+      color: #ffd700;
+      font-size: 0.95rem;
+      font-weight: bold;
+      backdrop-filter: blur(5px);
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    }
+
+    .remaining-badge span.count {
+      color: #00ffcc;
+      font-size: 1.15rem;
+    }
   </style>
 </head>
 
@@ -511,6 +532,9 @@
   <div class="header-title">
     <h1>🔮 今日塔羅瓶</h1>
     <p>點擊海面上的發光寶石瓶，揭曉今日專屬的海洋指引</p>
+    <div class="remaining-badge" id="tarot-limit-badge">
+      今日剩餘占卜次數：<span class="count" id="remaining-count-text">--</span> / <span id="total-limit-text">3</span> 次
+    </div>
   </div>
 
   <div class="tarot-container">
@@ -743,6 +767,44 @@
 
     let flippedCount = 0;
     let drawnCards = [];
+    let currentRemainingCount = null;
+
+    // 🌟 載入今日剩餘占卜次數
+    async function loadTarotStatus() {
+      const token = localStorage.getItem("authToken");
+      if (!token) {
+        document.getElementById("remaining-count-text").innerText = "請先登入";
+        return;
+      }
+
+      try {
+        const response = await fetch(`${API_BASE_URL}/game/tarot/status`, {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "ngrok-skip-browser-warning": "true",
+          },
+        });
+
+        if (response.ok) {
+          const resData = await response.json();
+          const data = resData.data || resData;
+          currentRemainingCount = data.remainingCount;
+          document.getElementById("remaining-count-text").innerText = data.remainingCount;
+          document.getElementById("total-limit-text").innerText = data.dailyLimit || 3;
+
+          if (data.remainingCount <= 0) {
+            document.getElementById("tarot-limit-badge").style.borderColor = "#ff4d4f";
+            document.getElementById("tarot-limit-badge").style.color = "#ff7875";
+          }
+        }
+      } catch (err) {
+        console.error("載入塔羅占卜狀態失敗:", err);
+      }
+    }
+
+    // 頁面載入時取得剩餘次數
+    document.addEventListener("DOMContentLoaded", loadTarotStatus);
 
     function drawCards() {
       let shuffled = [...tarotDeck].sort(() => 0.5 - Math.random());
@@ -763,6 +825,11 @@
     const todayCards = drawCards();
 
     function flipCard(element, position) {
+      if (currentRemainingCount !== null && currentRemainingCount <= 0) {
+        alert("⚠️ 今日占卜次數已達上限 (每日最多 3 次)，明天 00:00 將會重置！");
+        return;
+      }
+
       if (element.classList.contains("flipped")) return;
 
       let cardData;
@@ -869,9 +936,40 @@
 
       const [past, present, future] = todayCards;
 
+      // 1. 同步記錄占卜扣除次數至後端
       try {
         const token = localStorage.getItem("authToken");
-const response = await fetch(`http://127.0.0.1:5000/api/tarot`, { // 本機測試用這個          method: "POST",
+        if (token) {
+          const drawRes = await fetch(`${API_BASE_URL}/game/tarot`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+              "ngrok-skip-browser-warning": "true",
+            },
+            body: JSON.stringify({
+              past: { name: past.name, position: past.positionText, meaning: past.meaning },
+              present: { name: present.name, position: present.positionText, meaning: present.meaning },
+              future: { name: future.name, position: future.positionText, meaning: future.meaning },
+            }),
+          });
+          if (drawRes.ok) {
+            const drawData = await drawRes.json();
+            if (drawData.data && typeof drawData.data.remainingCount === "number") {
+              currentRemainingCount = drawData.data.remainingCount;
+              document.getElementById("remaining-count-text").innerText = drawData.data.remainingCount;
+            }
+          }
+        }
+      } catch (e) {
+        console.warn("記錄塔羅次數發生問題:", e);
+      }
+
+      // 2. 請求 AI 解讀
+      try {
+        const token = localStorage.getItem("authToken");
+        const response = await fetch(`http://127.0.0.1:5000/api/tarot`, { // 本機測試用這個
+          method: "POST",
           headers: {
             "Content-Type": "application/json",
             Authorization: `Bearer ${token}`,
@@ -931,7 +1029,8 @@ const response = await fetch(`http://127.0.0.1:5000/api/tarot`, { // 本機測�
 
       try {
         const token = localStorage.getItem("authToken");
-const response = await fetch(`http://127.0.0.1:5000/api/chat`, { // 本機測試用這個          method: "POST",
+        const response = await fetch(`http://127.0.0.1:5000/api/chat`, { // 本機測試用這個
+          method: "POST",
           headers: {
             "Content-Type": "application/json",
             Authorization: `Bearer ${token}`,

@@ -2,7 +2,7 @@ import type { Response, Request } from "express";
 import type { AuthRequest } from "../middleware/auth.middleware.js";
 import { saveGameRecord, getHighScore, getAllGameRecords } from "./game-record/game-record.service.js";
 import { createDailyNote, getDailyNote } from "./sticky-note/sticky-note.service.js";
-
+import { drawTarot, getTarotDailyStatus } from "./tarot/tarot.service.js";
 export class GameController {
     /*儲存遊戲紀錄*/
     async postGameRecord(req: AuthRequest, res: Response) {
@@ -133,6 +133,49 @@ export class GameController {
 
         } catch (error: any) {
             console.error("getTodayNotesController 錯誤:", error);
+            return res.status(500).json({ message: "伺服器內部錯誤" });
+        }
+    }
+
+    /* 塔羅牌：進行每日占卜 (每天限 3 次，00:00 台北時間重置) */
+    async postDrawTarot(req: AuthRequest, res: Response) {
+        try {
+            const memberId = req.user?.member_id as number;
+            if (!memberId) {
+                return res.status(401).json({ message: "請先登入會員" });
+            }
+
+            const { past, present, future } = req.body;
+            const result = await drawTarot(memberId, { past, present, future });
+
+            return res.status(200).json({
+                message: result.message,
+                data: result
+            });
+        } catch (error: any) {
+            if (error.message && error.message.includes("上限")) {
+                return res.status(400).json({ message: error.message });
+            }
+            console.error("postDrawTarot 錯誤:", error);
+            return res.status(500).json({ message: error.message || "伺服器內部錯誤" });
+        }
+    }
+
+    /* 塔羅牌：查詢今日剩餘占卜次數與狀態 */
+    async getTarotStatus(req: AuthRequest, res: Response) {
+        try {
+            const memberId = req.user?.member_id as number;
+            if (!memberId) {
+                return res.status(401).json({ message: "請先登入會員" });
+            }
+
+            const status = await getTarotDailyStatus(memberId);
+            return res.status(200).json({
+                message: "取得塔羅占卜狀態成功",
+                data: status
+            });
+        } catch (error: any) {
+            console.error("getTarotStatus 錯誤:", error);
             return res.status(500).json({ message: "伺服器內部錯誤" });
         }
     }

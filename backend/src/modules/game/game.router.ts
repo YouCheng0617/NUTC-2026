@@ -14,6 +14,10 @@ export function gameRouter() {
     router.post("/daily-note", authCheck, gameControllerInstance.postDailyNote.bind(gameControllerInstance))
     router.get("/daily-note", optionalAuthCheck, gameControllerInstance.getDailyNote.bind(gameControllerInstance))
 
+    // 🔮 塔羅牌每日占卜路由 (/game/tarot, /game/tarot/status)
+    router.post("/tarot", authCheck, gameControllerInstance.postDrawTarot.bind(gameControllerInstance))
+    router.get("/tarot/status", authCheck, gameControllerInstance.getTarotStatus.bind(gameControllerInstance))
+
     router.get("/:gameName/:difficulty/ranking", optionalAuthCheck, gameControllerInstance.getAllGameRecordsController.bind(gameControllerInstance))
     router.post("/:gameName", authCheck, gameControllerInstance.postGameRecord.bind(gameControllerInstance))
     router.get("/:gameName/:difficulty", authCheck, gameControllerInstance.getHighestRecordController.bind(gameControllerInstance))
