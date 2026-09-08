@@ -1976,40 +1976,44 @@ document.addEventListener("DOMContentLoaded", () => {
   function swimLikeLazyMermaid() {
     if (window.isMascotSleeping) return;
 
-    const padding = 15;
+    const padding = 20;
     const currentCatW = mascot.offsetWidth || 80;
     const currentCatH = mascot.offsetHeight || 80;
 
-    // 確保游動最大範圍不超出當前視窗
-    const maxW = Math.max(10, window.innerWidth - currentCatW - padding);
-    const maxH = Math.max(10, window.innerHeight - currentCatH - padding);
-    const borderThickness = window.innerWidth <= 768 ? 50 : 100;
+    // 🌟 1. 設定安全游動天花板 (避開導覽列與對話框高度)
+    const minY = window.innerWidth <= 768 ? 100 : 120; // 絕對不游進頂部 120px 內
+    const maxY = Math.max(minY + 50, window.innerHeight - currentCatH - 120); // 避開底部按鈕
+    const minX = padding;
+    const maxX = Math.max(
+      padding + 50,
+      window.innerWidth - currentCatW - padding,
+    );
+
+    const borderThickness = window.innerWidth <= 768 ? 50 : 90;
 
     let targetX, targetY;
     if (currentZone === 0) {
-      targetX = padding + Math.random() * (maxW - padding);
-      targetY = padding + Math.random() * borderThickness;
+      targetX = minX + Math.random() * (maxX - minX);
+      targetY = minY + Math.random() * borderThickness;
     } else if (currentZone === 1) {
-      targetX = Math.max(padding, maxW - Math.random() * borderThickness);
-      targetY = padding + Math.random() * (maxH - padding);
+      targetX = Math.max(minX, maxX - Math.random() * borderThickness);
+      targetY = minY + Math.random() * (maxY - minY);
     } else if (currentZone === 2) {
-      targetX = padding + Math.random() * (maxW - padding);
-      targetY = Math.max(padding, maxH - Math.random() * borderThickness);
+      targetX = minX + Math.random() * (maxX - minX);
+      targetY = Math.max(minY, maxY - Math.random() * borderThickness);
     } else {
-      targetX = padding + Math.random() * borderThickness;
-      targetY = padding + Math.random() * (maxH - padding);
+      targetX = minX + Math.random() * borderThickness;
+      targetY = minY + Math.random() * (maxY - minY);
     }
 
-    // 嚴格夾在視窗內部
-    targetX = Math.max(padding, Math.min(targetX, maxW));
-    targetY = Math.max(padding, Math.min(targetY, maxH));
+    targetX = Math.max(minX, Math.min(targetX, maxX));
+    targetY = Math.max(minY, Math.min(targetY, maxY));
 
     mascot.style.left = targetX + "px";
     mascot.style.top = targetY + "px";
 
     if (Math.random() > 0.1) currentZone = (currentZone + 1) % 4;
 
-    // 手機尺寸加快移動頻率避免停留在邊界外，電腦版維持平緩游動
     const duration =
       window.innerWidth <= 768
         ? 3000 + Math.random() * 1500
@@ -2039,10 +2043,41 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function showRandomDialogue() {
     if (window.isMascotSleeping) return;
-
     if (dialogueBox.classList.contains("show-dialogue")) return;
+
     dialogueBox.innerText =
       randomPhrases[Math.floor(Math.random() * randomPhrases.length)];
+
+    // 🌟 智慧邊界計算：動態偵測貓咪相對於螢幕的即時座標
+    const rect = mascot.getBoundingClientRect();
+
+    // 1. 上下方向判定：若離頂部小於 125px，對話框改朝貓咪肚子下方冒出，避免被天花板切斷
+    if (rect.top < 125) {
+      dialogueBox.style.bottom = "auto";
+      dialogueBox.style.top = "calc(100% + 8px)";
+    } else {
+      dialogueBox.style.top = "auto";
+      dialogueBox.style.bottom = "calc(100% - 5px)";
+    }
+
+    // 2. 左右方向判定：若靠近左右邊界，自動對齊邊緣不破版
+    dialogueBox.style.whiteSpace = "normal";
+    dialogueBox.style.maxWidth = window.innerWidth <= 768 ? "140px" : "180px";
+
+    if (rect.left < 90) {
+      dialogueBox.style.left = "0px";
+      dialogueBox.style.right = "auto";
+      dialogueBox.style.transform = "scale(1)";
+    } else if (window.innerWidth - rect.right < 90) {
+      dialogueBox.style.left = "auto";
+      dialogueBox.style.right = "0px";
+      dialogueBox.style.transform = "scale(1)";
+    } else {
+      dialogueBox.style.left = "50%";
+      dialogueBox.style.right = "auto";
+      dialogueBox.style.transform = "translateX(-50%) scale(1)";
+    }
+
     dialogueBox.classList.add("show-dialogue");
     clearTimeout(dialogueTimer);
     dialogueTimer = setTimeout(() => {

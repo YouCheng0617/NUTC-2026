@@ -3312,3 +3312,47 @@ body:has(#profile-modal[style*="display: flex"]) .ocean-rules-board {
     gap: 0 !important;
   }
 }
+/* =========================================
+   🐱 吉祥物對話框邊界防切 & RWD 自適應
+   ========================================= */
+.cute-dialogue {
+  white-space: normal !important; /* 允許文字自動換行，不撐破螢幕 */
+  text-align: center !important;
+  line-height: 1.4 !important;
+}
+
+/* 1. 當貓咪游到螢幕上方時：對話框自動轉向「下方」彈出 */
+.cute-dialogue.pos-bottom {
+  bottom: auto !important;
+  top: calc(100% + 6px) !important;
+}
+
+/* 2. 當貓咪游到最左側時：對話框靠左對齊，不超出左邊界 */
+.cute-dialogue.pos-left {
+  left: 0 !important;
+  transform: translateX(0) scale(0.8) !important;
+}
+.cute-dialogue.pos-left.show-dialogue {
+  transform: translateX(0) scale(1) !important;
+}
+
+/* 3. 當貓咪游到最右側時：對話框靠右對齊，不超出右邊界 */
+.cute-dialogue.pos-right {
+  left: auto !important;
+  right: 0 !important;
+  transform: translateX(0) scale(0.8) !important;
+}
+.cute-dialogue.pos-right.show-dialogue {
+  transform: translateX(0) scale(1) !important;
+}
+
+/* 📱 4. 手機端 (<= 768px) 對話框等比微調縮小 */
+@media screen and (max-width: 768px) {
+  .cute-dialogue {
+    max-width: 140px !important;
+    font-size: 0.8rem !important;
+    padding: 7px 12px !important;
+    border-width: 2.5px !important;
+    border-radius: 14px !important;
+  }
+}
