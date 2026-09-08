@@ -2672,7 +2672,10 @@ window.openFollowingModal = async function () {
   const modal = document.getElementById("following-modal");
   const container = document.getElementById("following-list-container");
 
-  modal.style.display = "block";
+  if (!modal || !container) return;
+
+  // 🌟 以 flex 置中顯示彈窗
+  modal.style.setProperty("display", "flex", "important");
   container.innerHTML =
     '<div style="text-align: center; color: #888; padding: 30px 0;">潛入海底撈取你的追蹤名單中...🌊</div>';
 
@@ -2706,21 +2709,37 @@ window.openFollowingModal = async function () {
 
       if (followingList.length === 0) {
         container.innerHTML =
-          '<div style="text-align: center; color: #888; padding: 30px 0;">目前還沒有追蹤任何人喔，快去海域逛逛吧！🐟</div>';
+          '<div style="text-align: center; color: #888; padding: 40px 0; font-size: 0.95rem;">目前還沒有追蹤任何人喔，快去海域逛逛吧！🐟</div>';
         return;
       }
 
+      // 🌟 渲染名單並加上「已追蹤 / 取消追蹤」膠囊按鈕
       container.innerHTML = followingList
-        .map(
-          (user) => `
-                <div class="following-item">
-                    <div class="following-info">
-                        <img src="${user.avatar || "images/fish_logo.png"}" class="following-avatar">
-                        <span class="following-name">${escapeHTML(user.name || user.username || "神秘海友")}</span>
-                    </div>
+        .map((user) => {
+          const uId = String(
+            user.id || user.followed_id || user.followedId || user.member_id,
+          );
+          const uName = user.name || user.username || "神秘海友";
+          const uAvatar = user.avatar || "images/fish_logo.png";
+
+          return `
+            <div class="following-item" id="following-user-${uId}">
+                <div class="following-info">
+                    <img src="${uAvatar}" class="following-avatar" />
+                    <span class="following-name" title="${escapeHTML(uName)}">${escapeHTML(uName)}</span>
                 </div>
-            `,
-        )
+                <button 
+                  type="button" 
+                  class="btn-unfollow-modal"
+                  onmouseenter="this.innerText='取消追蹤'"
+                  onmouseleave="this.innerText='已追蹤'"
+                  onclick="unfollowFromModal('${uId}', '${escapeHTML(uName)}', event)"
+                >
+                  已追蹤
+                </button>
+            </div>
+          `;
+        })
         .join("");
     } else {
       container.innerHTML =
@@ -2736,7 +2755,54 @@ window.openFollowingModal = async function () {
 // 3. 關閉追蹤列表彈窗
 window.closeFollowingModal = function () {
   const modal = document.getElementById("following-modal");
-  if (modal) modal.style.display = "none";
+  if (modal) modal.style.setProperty("display", "none", "important");
+};
+
+// 🌟 4. 在彈窗內直接取消追蹤某位作者
+window.unfollowFromModal = async function (targetId, targetName, e) {
+  if (e) e.stopPropagation();
+  const token = localStorage.getItem("authToken");
+  if (!token) return;
+
+  try {
+    const response = await fetch(`${API_BASE_URL}/auth/follow`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+        "ngrok-skip-browser-warning": "true",
+      },
+      body: JSON.stringify({
+        followedId: targetId,
+        followed_id: targetId,
+      }),
+    });
+
+    if (response.ok) {
+      window._myFollowingIdSet.delete(String(targetId));
+
+      const row = document.getElementById(`following-user-${targetId}`);
+      if (row) {
+        row.style.opacity = "0";
+        row.style.transform = "translateX(10px)";
+        row.style.transition = "all 0.3s ease";
+        setTimeout(() => {
+          row.remove();
+          const list = document.getElementById("following-list-container");
+          if (list && list.children.length === 0) {
+            list.innerHTML =
+              '<div style="text-align: center; color: #888; padding: 40px 0;">已無追蹤名單囉！🐟</div>';
+          }
+        }, 300);
+      }
+
+      if (typeof showOceanToast === "function") {
+        showOceanToast(`已取消追蹤 ${targetName} 💔`);
+      }
+    }
+  } catch (err) {
+    console.error("取消追蹤失敗:", err);
+  }
 };
 
 // =========================================
