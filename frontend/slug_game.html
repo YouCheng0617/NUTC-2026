@@ -1312,46 +1312,51 @@
                 grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
             }
 
-            /* --- ❌ 商店右上角的獨立紅色叉叉按鈕 (抓回螢幕版) --- */
-            .ui-panel.open > button[onclick="toggleShopPanel()"] {
+            /* --- ❌ 商店的獨立叉叉按鈕 (與購物袋原位置重疊版) --- */
+            #uiPanel.open > button[onclick="toggleShopPanel()"] {
                 display: flex !important;
-                position: relative !important;
-                align-self: flex-end !important; /* 讓它自己靠右站 */
-                margin-right: 7.5% !important;   /* 跟商店白框右側完美對齊 */
-                margin-bottom: -18px !important; /* 往下壓一點，剛好疊在白框右上角 */
-                top: auto !important; left: auto !important; right: auto !important;
+                position: absolute !important;
+                bottom: 105px !important; /* 🌟 對齊原本的購物袋高度 */
+                right: 15px !important;   /* 🌟 對齊原本的購物袋右距 */
+                top: auto !important;
+                left: auto !important;
                 transform: none !important;
-                width: 36px !important;
-                height: 36px !important;
+                margin: 0 !important;
+                width: 55px !important;   /* 🌟 與購物袋一樣大 */
+                height: 55px !important;  /* 🌟 與購物袋一樣大 */
                 padding: 0 !important;
                 border-radius: 50% !important;
-                background: #ef4444 !important; 
-                font-size: 0 !important;         /* 徹底隱藏原本的 ⬇️ Emoji 和文字 */
+                background: #ffffff !important; 
+                font-size: 0 !important; 
                 color: transparent !important;
-                border: 3px solid #ffffff !important;
-                box-shadow: 0 4px 10px rgba(0,0,0,0.2) !important;
+                border: 3px solid #ffd1dc !important;
+                box-shadow: 0 4px 15px rgba(255, 182, 193, 0.4) !important;
                 align-items: center;
                 justify-content: center;
-                z-index: 100 !important;
-                pointer-events: auto;
+                z-index: 9999 !important;
+                pointer-events: auto !important;
             }
             
-            /* 畫出純粹的白色叉叉符號 */
-            .ui-panel.open > button[onclick="toggleShopPanel()"]::before {
+            /* 畫出柔和深咖啡色的叉叉符號 */
+            #uiPanel.open > button[onclick="toggleShopPanel()"]::before {
                 content: '✖';
-                color: white;
-                font-size: 1.1rem;
+                color: #6b4c4a;
+                font-size: 1.5rem; /* 🌟 字體稍微放大一點配合大按鈕 */
                 font-weight: 900;
                 position: absolute;
             }
-
-            /* --- 🛍️ 喚醒商店的懸浮按鈕 --- */
+/* --- 🛑 商店打開時，禁用底部互動按鈕 --- */
+            #uiPanel.open .interaction-group {
+                pointer-events: none !important; /* 徹底禁止點擊與拖曳 */
+                opacity: 0.4 !important;         /* 變暗一點，明確提示現在不能按 */
+            }
+            /* --- 🛒 喚醒商店的懸浮按鈕 (專屬粉紅風格與菜籃 SVG) --- */
             #btnOpenShop {
                 display: flex !important;
                 align-items: center;
                 justify-content: center;
                 position: absolute !important;
-                bottom: 95px !important; /* 浮在互動按鈕的上方 */
+                bottom: 105px !important; /* 確保浮在互動按鈕上方 */
                 right: 15px !important;
                 left: auto !important;
                 transform: none !important;
@@ -1359,13 +1364,31 @@
                 height: 55px !important;
                 padding: 0 !important;
                 border-radius: 50% !important;
-                font-size: 0 !important; /* 隱藏長串文字 */
-                box-shadow: 0 5px 15px rgba(255, 182, 193, 0.6) !important;
-                z-index: 70;
+                font-size: 0 !important; 
+                
+                /* 保持遊戲專屬的粉紅底色與白邊！ */
+                background: var(--accent-color) !important; 
+                border: 3px solid #ffffff !important;
+                box-shadow: 0 4px 15px rgba(255, 182, 193, 0.6) !important;
+                z-index: 70 !important;
             }
+            
+            /* 🌟 使用手繪感 SVG 購物菜籃取代原本的圖案 */
             #btnOpenShop::after {
-                content: '🛍️';
-                font-size: 1.5rem;
+                content: '';
+                width: 28px;
+                height: 28px;
+                /* 精緻的白色菜籃 SVG，格紋透出底部的粉紅色 (#ffb6c1) */
+                background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><path d="M 30 40 C 30 10, 70 10, 70 40" fill="none" stroke="%23ffffff" stroke-width="8" stroke-linecap="round"/><path d="M 15 40 L 85 40 L 75 90 L 25 90 Z" fill="%23ffffff" stroke="%23ffffff" stroke-width="4" stroke-linejoin="round"/><path d="M 35 40 L 35 90 M 50 40 L 50 90 M 65 40 L 65 90 M 20 56 L 80 56 M 22 73 L 78 73" fill="none" stroke="%23ffb6c1" stroke-width="4" stroke-linecap="round"/></svg>');
+                background-size: contain;
+                background-repeat: no-repeat;
+                background-position: center;
+                transition: transform 0.2s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+            }
+            
+            /* 點擊時的可愛小動畫 */
+            #btnOpenShop:active::after {
+                transform: scale(0.85);
             }
         }
     </style>
@@ -1674,7 +1697,7 @@
     <div class="ui-panel" id="uiPanel">
         <!-- 🌟 【新增：收起面板按鈕】像個小耳朵一樣長在面板正上方 -->
         <button onclick="toggleShopPanel()" style="position: absolute; top: -20px; left: 50%; transform: translateX(-50%); background: white; color: var(--text-dark); border: 3px solid var(--border-color); padding: 5px 20px; border-radius: 20px; font-weight: 900; cursor: pointer; box-shadow: 0 4px 10px var(--shadow-color); z-index: 85;">⬇️ 收起</button>
-
+<button onclick="toggleShopPanel()" style="position: absolute; top: -20px; left: 50%; transform: translateX(-50%); background: white; color: var(--text-dark); border: 3px solid var(--border-color); padding: 5px 20px; border-radius: 20px; font-weight: 900; cursor: pointer; box-shadow: 0 4px 10px var(--shadow-color); z-index: 85;">⬇️ 收起</button>
         <div class="interaction-group">
             <!-- 🌟 新增的身份證按鈕 -->
             <button class="btn-interact" id="btnIdCard" onclick="openIdCardModal()" style="background: #eff6ff; border-color: #bfdbfe; box-shadow: 0 5px 0 #bfdbfe; color: #1d4ed8;">
@@ -1865,6 +1888,16 @@ let GAME_TOKEN = localStorage.getItem('authToken') || localStorage.getItem('acce
                 panel.style.display = 'none';
             }
         }
+        function toggleShopPanel() {
+    const panel = document.getElementById('uiPanel');
+    if (panel) {
+        if (panel.classList.contains('open')) {
+            panel.classList.remove('open');
+        } else {
+            panel.classList.add('open');
+        }
+    }
+}
 // 🌟 【貼心小工具：一鍵複製房間代碼】
 function copyRoomId() {
     if (!currentRoomId) return; // 防呆：如果沒有代碼就不做事
