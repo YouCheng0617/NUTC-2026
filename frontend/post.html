@@ -7,116 +7,455 @@
     <link rel="stylesheet" href="test.css?v=20" />
     <style>
       /* ==================================================
-         🏠 回到主頁按鈕：寶寶專屬深海發光水滴特效
+         🏠 回到主頁按鈕：深海發光水滴特效
          ================================================== */
       .ocean-refresh-btn {
-          position: fixed;
-          right: 40px;
-          bottom: 40px;
-          background: radial-gradient(circle, rgba(77, 166, 255, 0.8), rgba(0, 85, 165, 0.8));
-          color: white;
-          padding: 15px 25px;
-          border-radius: 50px;
-          cursor: pointer;
-          z-index: 100;
-          font-weight: bold;
-          border: 2px solid rgba(255, 255, 255, 0.5);
-          box-shadow: 0 0 20px rgba(77, 166, 255, 0.5);
-          transition: 0.3s;
+        position: fixed;
+        right: 40px;
+        bottom: 40px;
+        background: radial-gradient(
+          circle,
+          rgba(77, 166, 255, 0.8),
+          rgba(0, 85, 165, 0.8)
+        );
+        color: white;
+        padding: 15px 25px;
+        border-radius: 50px;
+        cursor: pointer;
+        z-index: 100;
+        font-weight: bold;
+        border: 2px solid rgba(255, 255, 255, 0.5);
+        box-shadow: 0 0 20px rgba(77, 166, 255, 0.5);
+        transition: 0.3s;
       }
       .ocean-refresh-btn:hover {
-          transform: translateY(-5px);
-          box-shadow: 0 0 30px rgba(77, 166, 255, 0.9);
-          background: radial-gradient(circle, rgba(102, 179, 255, 0.9), rgba(0, 102, 204, 0.9));
+        transform: translateY(-5px);
+        box-shadow: 0 0 30px rgba(77, 166, 255, 0.9);
+        background: radial-gradient(
+          circle,
+          rgba(102, 179, 255, 0.9),
+          rgba(0, 102, 204, 0.9)
+        );
       }
 
       /* ==================================================
-         🫧 個人資訊：深海毛玻璃透光泡泡 (含編輯模式)
+         🫧 個人資訊：強制水平與垂直完美置中
          ================================================== */
+      #profile-modal.modal {
+        position: fixed !important;
+        inset: 0 !important;
+        width: 100vw !important;
+        height: 100vh !important;
+        background: rgba(0, 15, 35, 0.75) !important;
+        backdrop-filter: blur(8px) !important;
+        -webkit-backdrop-filter: blur(8px) !important;
+        z-index: 100000 !important;
+        padding: 15px !important;
+        box-sizing: border-box !important;
+        display: none;
+      }
+
+      /* 當由 JS 設定顯示時，強制啟用 Flexbox 垂直水平居中 */
+      #profile-modal.modal[style*="display: block"],
+      #profile-modal.modal[style*="display: flex"] {
+        display: flex !important;
+        justify-content: center !important;
+        align-items: center !important;
+      }
+
       .glass-profile-card {
-          background: rgba(255, 255, 255, 0.85); 
-          backdrop-filter: blur(12px); 
-          -webkit-backdrop-filter: blur(12px);
-          border: 1px solid rgba(255, 255, 255, 0.5);
-          border-radius: 24px;
-          width: 400px;
-          padding: 30px;
-          box-shadow: 0 10px 30px rgba(0, 40, 80, 0.15), inset 0 0 15px rgba(255, 255, 255, 0.8);
-          position: relative;
-          margin: 10vh auto;
-          text-align: left;
-          animation: floatUp 0.4s ease-out;
+        background: rgba(255, 255, 255, 0.96) !important;
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        border: 1px solid rgba(255, 255, 255, 0.8);
+        border-radius: 24px;
+        width: 100% !important;
+        max-width: 360px !important;
+        max-height: 85vh !important;
+        overflow-y: auto !important;
+        padding: 24px 20px !important;
+        box-shadow: 0 15px 40px rgba(0, 20, 50, 0.35);
+        position: relative;
+        margin: 0 !important;
+        top: auto !important;
+        left: auto !important;
+        transform: none !important;
+        text-align: left;
+        box-sizing: border-box !important;
+        animation: floatUpCenter 0.25s ease-out;
       }
-      @keyframes floatUp {
-          from { opacity: 0; transform: translateY(20px) scale(0.95); }
-          to { opacity: 1; transform: translateY(0) scale(1); }
+      @keyframes floatUpCenter {
+        from {
+          opacity: 0;
+          transform: scale(0.92);
+        }
+        to {
+          opacity: 1;
+          transform: scale(1);
+        }
       }
-      .profile-header { text-align: center; border-bottom: 2px dashed rgba(77, 166, 255, 0.3); padding-bottom: 20px; margin-bottom: 20px; }
-      .profile-name { margin: 10px 0 5px; color: #004b87; font-size: 1.5rem; font-weight: 800; }
-      .profile-email { margin: 0; color: #66b3ff; font-size: 0.9rem; }
-      .info-row { display: flex; margin-bottom: 15px; font-size: 1.05rem; color: #003366; background: rgba(255,255,255, 0.6); padding: 10px 15px; border-radius: 12px; }
-      .info-row span:first-child { font-weight: bold; color: #0055a5; margin-right: 10px; width: 80px; }
-      .info-bio { background: rgba(255,255,255, 0.6); padding: 15px; border-radius: 12px; margin-bottom: 20px; }
-      .info-bio span { font-weight: bold; color: #0055a5; display: block; margin-bottom: 8px; }
-      .bio-content { color: #003366; line-height: 1.6; white-space: pre-wrap; font-size: 0.95rem; }
-      .btn-ocean { width: 100%; background: linear-gradient(135deg, #4da6ff, #0073e6); color: white; border: none; padding: 12px; border-radius: 12px; font-size: 1.1rem; font-weight: bold; cursor: pointer; transition: 0.3s; box-shadow: 0 4px 15px rgba(0, 115, 230, 0.3); }
-      .btn-ocean:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0, 115, 230, 0.4); }
-      .btn-group { display: flex; gap: 10px; margin-top: 20px; }
-      .btn-cancel { flex: 1; background: #e2e8f0; color: #475569; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; transition: 0.2s; }
-      .btn-cancel:hover { background: #cbd5e1; }
-      .edit-title { text-align: center; color: #004b87; margin-bottom: 20px; font-size: 1.4rem; }
-      .input-group { margin-bottom: 15px; }
-      .input-group label { display: block; margin-bottom: 5px; color: #0055a5; font-weight: bold; font-size: 0.9rem; }
-      .input-row { display: flex; gap: 15px; }
-      .input-row .input-group { flex: 1; }
-      .ocean-input { width: 100%; padding: 10px 15px; border: 2px solid #bae6fd; border-radius: 10px; background: rgba(255, 255, 255, 0.9); color: #0f172a; font-size: 1rem; box-sizing: border-box; outline: none; transition: 0.2s; }
-      .ocean-input:focus { border-color: #38bdf8; box-shadow: 0 0 10px rgba(56, 189, 248, 0.2); }
+      .profile-header {
+        text-align: center;
+        border-bottom: 2px dashed rgba(77, 166, 255, 0.3);
+        padding-bottom: 15px;
+        margin-bottom: 15px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 4px;
+      }
+      .profile-name {
+        margin: 0;
+        color: #004b87;
+        font-size: 1.4rem;
+        font-weight: 800;
+        word-break: break-word;
+      }
+      .profile-email {
+        margin: 0;
+        color: #66b3ff;
+        font-size: 0.88rem;
+        word-break: break-all;
+      }
+      .info-row {
+        display: flex;
+        align-items: center;
+        margin-bottom: 10px;
+        font-size: 0.95rem;
+        color: #003366;
+        background: rgba(240, 248, 255, 0.8);
+        padding: 8px 12px;
+        border-radius: 12px;
+      }
+      .info-row span:first-child {
+        font-weight: bold;
+        color: #0055a5;
+        margin-right: 8px;
+        width: 75px;
+        flex-shrink: 0;
+      }
+      .info-bio {
+        background: rgba(240, 248, 255, 0.8);
+        padding: 10px 12px;
+        border-radius: 12px;
+        margin-bottom: 16px;
+      }
+      .info-bio span {
+        font-weight: bold;
+        color: #0055a5;
+        display: block;
+        margin-bottom: 6px;
+      }
+      .bio-content {
+        color: #003366;
+        line-height: 1.5;
+        white-space: pre-wrap;
+        font-size: 0.9rem;
+      }
+      .btn-ocean {
+        width: 100%;
+        background: linear-gradient(135deg, #4da6ff, #0073e6);
+        color: white;
+        border: none;
+        padding: 11px;
+        border-radius: 14px;
+        font-size: 1rem;
+        font-weight: bold;
+        cursor: pointer;
+        transition: 0.2s;
+        box-shadow: 0 4px 12px rgba(0, 115, 230, 0.3);
+      }
+      .btn-ocean:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 18px rgba(0, 115, 230, 0.4);
+      }
+      .btn-group {
+        display: flex;
+        gap: 10px;
+        margin-top: 16px;
+      }
+      .btn-cancel {
+        flex: 1;
+        background: #e2e8f0;
+        color: #475569;
+        border: none;
+        border-radius: 12px;
+        font-weight: bold;
+        cursor: pointer;
+        transition: 0.2s;
+      }
+      .btn-cancel:hover {
+        background: #cbd5e1;
+      }
+      .edit-title {
+        text-align: center;
+        color: #004b87;
+        margin-bottom: 16px;
+        font-size: 1.3rem;
+        font-weight: 800;
+      }
+      .input-group {
+        margin-bottom: 12px;
+      }
+      .input-group label {
+        display: block;
+        margin-bottom: 4px;
+        color: #0055a5;
+        font-weight: bold;
+        font-size: 0.88rem;
+      }
+      .input-row {
+        display: flex;
+        gap: 10px;
+      }
+      .input-row .input-group {
+        flex: 1;
+      }
+      .ocean-input {
+        width: 100%;
+        padding: 9px 12px;
+        border: 1.5px solid #bae6fd;
+        border-radius: 10px;
+        background: rgba(255, 255, 255, 0.95);
+        color: #0f172a;
+        font-size: 0.92rem;
+        box-sizing: border-box;
+        outline: none;
+        transition: 0.2s;
+      }
+      .ocean-input:focus {
+        border-color: #38bdf8;
+        box-shadow: 0 0 10px rgba(56, 189, 248, 0.25);
+      }
 
       /* ==================================================
-         🫧 漂流瓶換頁器 (補齊分頁樣式)
+         🫧 漂流瓶換頁器 (桌面預設)
          ================================================== */
-      .ocean-pagination { display: flex; justify-content: center; align-items: center; gap: 8px; margin-top: 50px; margin-bottom: 30px; padding: 10px 20px; background: rgba(255, 255, 255, 0.15); backdrop-filter: blur(8px); border-radius: 50px; border: 1px solid rgba(255, 255, 255, 0.3); box-shadow: 0 4px 15px rgba(0, 40, 80, 0.2); width: fit-content; margin-left: auto; margin-right: auto; }
-      .ocean-pagination button, .ocean-pagination span { width: 35px; height: 35px; display: flex; justify-content: center; align-items: center; border-radius: 50%; border: 1px solid rgba(255, 255, 255, 0.4); background: rgba(255, 255, 255, 0.2); color: #0055a5; font-weight: bold; font-size: 0.95rem; cursor: pointer; transition: all 0.3s ease; text-shadow: 0 1px 3px rgba(0, 0, 0, 0.1); }
-      .ocean-pagination button:hover:not(:disabled) { background: rgba(255, 255, 255, 0.8); color: #0055a5; transform: translateY(-2px); box-shadow: 0 4px 10px rgba(255, 255, 255, 0.5); text-shadow: none; }
-      .ocean-pagination .active { background: #4da6ff; color: white; border: 2px solid #ffffff; box-shadow: 0 0 15px rgba(77, 166, 255, 0.8); transform: scale(1.1); }
-      .ocean-pagination button:disabled { opacity: 0.4; cursor: not-allowed; background: transparent; border: 1px solid rgba(255, 255, 255, 0.2); }
+      .ocean-pagination {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 8px;
+        margin-top: 30px;
+        margin-bottom: 50px;
+        padding: 8px 16px;
+        background: rgba(255, 255, 255, 0.18);
+        backdrop-filter: blur(8px);
+        border-radius: 50px;
+        border: 1px solid rgba(255, 255, 255, 0.35);
+        box-shadow: 0 4px 15px rgba(0, 40, 80, 0.2);
+        width: fit-content;
+        max-width: 92vw;
+        box-sizing: border-box;
+        margin-left: auto;
+        margin-right: auto;
+        position: relative;
+        z-index: 50;
+      }
+
+      .ocean-pagination button,
+      .ocean-pagination span,
+      .ocean-pagination .page-btn {
+        width: 34px;
+        height: 34px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        border-radius: 50%;
+        border: 1px solid rgba(255, 255, 255, 0.4);
+        background: rgba(255, 255, 255, 0.2);
+        color: #0055a5;
+        font-weight: bold;
+        font-size: 0.92rem;
+        cursor: pointer;
+        transition: all 0.25s ease;
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+        flex-shrink: 0;
+      }
+
+      .ocean-pagination button:hover:not(:disabled) {
+        background: rgba(255, 255, 255, 0.85);
+        color: #0055a5;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 10px rgba(255, 255, 255, 0.5);
+        text-shadow: none;
+      }
+
+      .ocean-pagination .active {
+        background: #4da6ff !important;
+        color: white !important;
+        border: 2px solid #ffffff !important;
+        box-shadow: 0 0 12px rgba(77, 166, 255, 0.8) !important;
+        transform: scale(1.08);
+      }
+
+      .ocean-pagination button:disabled {
+        opacity: 0.35;
+        cursor: not-allowed;
+        background: transparent;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+      }
+
+      /* ==================================================
+         📱 手機版專屬流暢滾動與 RWD 修復 (寬度 <= 768px)
+         ================================================== */
+      @media screen and (max-width: 768px) {
+        html,
+        body {
+          overflow-y: auto !important;
+          height: auto !important;
+          min-height: 100% !important;
+        }
+
+        #forum-view {
+          height: auto !important;
+          min-height: 100vh !important;
+          overflow: visible !important;
+        }
+
+        .light-container,
+        .container {
+          height: auto !important;
+          min-height: 100vh !important;
+          overflow: visible !important;
+        }
+
+        #feed-view.main-feed,
+        .main-feed {
+          height: auto !important;
+          min-height: calc(100vh - 70px) !important;
+          overflow-y: visible !important;
+          padding-bottom: 120px !important; /* 核心緩衝：確保分頁按鈕能順暢滑至可視區域 */
+        }
+
+        #post-container {
+          padding-bottom: 15px !important;
+          margin-bottom: 10px !important;
+        }
+
+        .ocean-pagination {
+          gap: 5px;
+          padding: 6px 12px;
+          margin: 15px auto 40px auto !important;
+        }
+
+        .ocean-pagination button,
+        .ocean-pagination span,
+        .ocean-pagination .page-btn {
+          width: 28px !important;
+          height: 28px !important;
+          font-size: 0.8rem !important;
+        }
+
+        .ocean-refresh-btn {
+          bottom: 18px !important;
+          right: 14px !important;
+          padding: 8px 16px !important;
+          font-size: 0.88rem !important;
+        }
+      }
+
+      @media screen and (max-width: 360px) {
+        .glass-profile-card {
+          padding: 18px 14px !important;
+        }
+        .profile-name {
+          font-size: 1.2rem !important;
+        }
+        .info-row {
+          font-size: 0.86rem !important;
+          padding: 6px 10px !important;
+        }
+      }
     </style>
   </head>
-  
+
   <body>
-    <button class="ocean-refresh-btn" onclick="window.location.href = 'test.html'">
+    <button
+      class="ocean-refresh-btn"
+      onclick="window.location.href = 'test.html'"
+    >
       🏠 回到主頁
     </button>
 
     <div id="forum-view">
       <header class="light-header">
-        <div class="logo" onclick="window.location.href = 'test.html'" title="回到主頁">
-          <img src="images/fish_logo.png" style="width: 30px; margin-right: 10px; vertical-align: middle" />心情漂流瓶
+        <div
+          class="logo"
+          onclick="window.location.href = 'test.html'"
+          title="回到主頁"
+        >
+          <img
+            src="images/fish_logo.png"
+            style="width: 30px; margin-right: 10px; vertical-align: middle"
+          />心情漂流瓶
         </div>
-        
+
         <div class="search-container">
-          <input type="text" id="main-search-input" class="search-input light-search" placeholder="🔍 搜尋我發佈的文章..." autocomplete="off" />
-          <div id="search-history-dropdown" class="search-history-box" style="display: none"></div>
+          <input
+            type="text"
+            id="main-search-input"
+            class="search-input light-search"
+            placeholder="🔍 搜尋我發佈的文章..."
+            autocomplete="off"
+          />
+          <div
+            id="search-history-dropdown"
+            class="search-history-box"
+            style="display: none"
+          ></div>
         </div>
 
         <div class="nav-actions">
           <button id="login-trigger" class="btn-login">註冊 / 登入</button>
-          <div id="user-profile" class="user-menu-wrapper" style="display: none">
+          <div
+            id="user-profile"
+            class="user-menu-wrapper"
+            style="display: none"
+          >
             <div class="user-info-trigger" id="user-menu-btn">
-              <img id="user-avatar" src="images/fish_logo.png" alt="頭像" class="avatar-img" />
+              <img
+                id="user-avatar"
+                src="images/fish_logo.png"
+                alt="頭像"
+                class="avatar-img"
+              />
               <span id="user-name" class="user-name-text"></span>
               <span class="menu-arrow">▼</span>
             </div>
 
             <div class="user-dropdown-menu" id="user-dropdown">
               <div class="menu-item" id="open-profile">👤 個人資料</div>
-              <div class="menu-item" onclick="window.location.href = 'saved.html'">⭐ 收藏文章</div>
-              <div class="menu-item" onclick="window.location.href = 'post.html'">📝 我的文章</div>
-              <div class="menu-item" onclick="window.location.href = 'customer-service.html'">💬 線上客服</div>
+              <div
+                class="menu-item"
+                onclick="window.location.href = 'saved.html'"
+              >
+                ⭐ 收藏文章
+              </div>
+              <div
+                class="menu-item"
+                onclick="window.location.href = 'post.html'"
+              >
+                📝 我的文章
+              </div>
+              <div
+                class="menu-item"
+                onclick="window.location.href = 'customer-service.html'"
+              >
+                💬 線上客服
+              </div>
               <div class="menu-divider"></div>
-              <div class="menu-item logout-item" id="logout-btn">🚪 退出登入</div>
+              <div class="menu-item logout-item" id="logout-btn">
+                🚪 退出登入
+              </div>
             </div>
-            <button id="btn-new-post" class="btn-post" style="margin-left: 10px">✏️ 發文</button>
+            <button
+              id="btn-new-post"
+              class="btn-post"
+              style="margin-left: 10px"
+            >
+              ✏️ 發文
+            </button>
           </div>
         </div>
       </header>
@@ -124,20 +463,31 @@
       <div class="container light-container">
         <main class="main-feed" id="feed-view">
           <div id="post-container">
-            <div class="empty-state-text" style="display: none;">目前沒有漂流瓶，快來拋出第一個吧！🌊</div>
+            <div class="empty-state-text" style="display: none">
+              目前沒有漂流瓶，快來拋出第一個吧！🌊
+            </div>
           </div>
           <div id="pagination-container" class="ocean-pagination"></div>
         </main>
 
-        <main class="main-feed ocean-detail-card" id="detail-view" style="display: none;">
+        <main
+          class="main-feed ocean-detail-card"
+          id="detail-view"
+          style="display: none"
+        >
           <div class="detail-nav-bar">
             <div class="back-action" onclick="closePostDetail()">
-              <span class="back-arrow">&larr;</span> 
+              <span class="back-arrow">&larr;</span>
               <span class="back-text">返回列表</span>
             </div>
-            <!-- 👇 加入了檢舉按鈕 👇 -->
-            <div style="display: flex; gap: 12px; align-items: center;">
-              <div class="report-action" onclick="openReportModal()" title="檢舉此瓶子">⚠️ 檢舉</div>
+            <div style="display: flex; gap: 12px; align-items: center">
+              <div
+                class="report-action"
+                onclick="openReportModal()"
+                title="檢舉此瓶子"
+              >
+                ⚠️ 檢舉
+              </div>
               <div class="board-badge">
                 <img src="images/fish_logo.png" class="board-icon" />
                 <span id="detail-board-tag">綜合閒聊</span>
@@ -165,9 +515,25 @@
             <div id="detail-comments-list" class="comments-list"></div>
 
             <div class="comment-action-bar">
-              <button type="button" id="save-bottle-btn" class="save-btn" title="收藏這個瓶子" onclick="this.classList.toggle('active')">⭐</button>
-              <input type="text" id="new-comment-input" placeholder="寫下溫暖的留言..." class="comment-input" autocomplete="off" />
-              <button type="button" onclick="submitComment()" class="send-btn">送出</button>
+              <button
+                type="button"
+                id="save-bottle-btn"
+                class="save-btn"
+                title="收藏這個瓶子"
+                onclick="this.classList.toggle('active')"
+              >
+                ⭐
+              </button>
+              <input
+                type="text"
+                id="new-comment-input"
+                placeholder="寫下溫暖的留言..."
+                class="comment-input"
+                autocomplete="off"
+              />
+              <button type="button" onclick="submitComment()" class="send-btn">
+                送出
+              </button>
             </div>
           </div>
         </main>
@@ -175,59 +541,97 @@
         <aside class="right-panel light-right-panel">
           <h3 id="current-board-title">📝 我的漂流瓶紀錄</h3>
           <div class="tag-cloud">
-            <span class="tag"># 我的動態</span><span class="tag"># 歷史回顧</span>
+            <span class="tag"># 我的動態</span
+            ><span class="tag"># 歷史回顧</span>
           </div>
         </aside>
       </div>
     </div>
 
-    <div id="profile-modal" class="modal" style="display: none;">
+    <!-- 👤 個人資料彈窗 -->
+    <div id="profile-modal" class="modal" style="display: none">
       <div class="glass-profile-card">
-        <span class="close-btn" id="close-profile-modal" style="position: absolute; top: 15px; right: 20px; font-size: 24px; cursor: pointer; color: #0055a5; z-index: 10;" onclick="document.getElementById('profile-modal').style.display='none'">&times;</span>
+        <span
+          class="close-btn"
+          id="close-profile-modal"
+          style="
+            position: absolute;
+            top: 15px;
+            right: 18px;
+            font-size: 24px;
+            cursor: pointer;
+            color: #0055a5;
+            z-index: 10;
+          "
+          onclick="closeProfileModalDOM()"
+          >&times;</span
+        >
 
         <div id="profile-view-mode">
           <div class="profile-header">
-            <!-- ✂️ 已經幫寶寶把頭像刪掉囉 -->
             <h2 id="detail-name" class="profile-name">管理員</h2>
             <p id="detail-email" class="profile-email">Admin@gmail.com</p>
           </div>
 
           <div class="profile-body">
-            <div class="info-row"><span>🎂 生日：</span><span id="detail-birthday">1995-01-01</span></div>
-            <div class="info-row"><span>🚻 性別：</span><span id="detail-gender">未填寫</span></div>
-            <div class="info-row"><span>✨ 星座：</span><span id="detail-zodiac">魔羯座</span></div>
+            <div class="info-row">
+              <span>🎂 生日：</span><span id="detail-birthday">1995-01-01</span>
+            </div>
+            <div class="info-row">
+              <span>🚻 性別：</span><span id="detail-gender">未填寫</span>
+            </div>
+            <div class="info-row">
+              <span>✨ 星座：</span><span id="detail-zodiac">魔羯座</span>
+            </div>
             <div class="info-bio">
               <span>📝 自我介紹：</span>
-              <div id="detail-bio" class="bio-content">ej03</div>
+              <div id="detail-bio" class="bio-content">尚未填寫...</div>
             </div>
           </div>
 
-          <button class="btn-ocean" onclick="toggleProfileMode('edit')">✏️ 更改資料</button>
+          <button class="btn-ocean" onclick="toggleProfileMode('edit')">
+            ✏️ 更改資料
+          </button>
         </div>
 
-        <div id="profile-edit-mode" style="display: none;">
+        <div id="profile-edit-mode" style="display: none">
           <h2 class="edit-title">✨ 編輯個人檔案</h2>
           <div class="edit-form">
             <div class="input-group">
               <label>暱稱</label>
-              <input type="text" id="edit-name" class="ocean-input">
+              <input type="text" id="edit-name" class="ocean-input" />
             </div>
             <div class="input-row">
               <div class="input-group">
                 <label>生日</label>
-                <input type="date" id="edit-birthday" class="ocean-input">
+                <input type="date" id="edit-birthday" class="ocean-input" />
               </div>
               <div class="input-group">
                 <label>性別</label>
                 <select id="edit-gender" class="ocean-input">
-                  <option>生理男</option><option>生理女</option><option>其他</option><option>秘密</option>
+                  <option value="生理男">生理男</option>
+                  <option value="生理女">生理女</option>
+                  <option value="其他">其他</option>
+                  <option value="秘密">秘密</option>
                 </select>
               </div>
             </div>
             <div class="input-group">
               <label>星座</label>
               <select id="edit-zodiac" class="ocean-input">
-                <option>牡羊座</option><option>金牛座</option><option>雙子座</option><option>巨蟹座</option><option>獅子座</option><option>處女座</option><option>天秤座</option><option>天蠍座</option><option>射手座</option><option>魔羯座</option><option>水瓶座</option><option>雙魚座</option><option>不透露</option>
+                <option value="牡羊座">牡羊座</option>
+                <option value="金牛座">金牛座</option>
+                <option value="雙子座">雙子座</option>
+                <option value="巨蟹座">巨蟹座</option>
+                <option value="獅子座">獅子座</option>
+                <option value="處女座">處女座</option>
+                <option value="天秤座">天秤座</option>
+                <option value="天蠍座">天蠍座</option>
+                <option value="射手座">射手座</option>
+                <option value="魔羯座">魔羯座</option>
+                <option value="水瓶座">水瓶座</option>
+                <option value="雙魚座">雙魚座</option>
+                <option value="未填寫">未填寫</option>
               </select>
             </div>
             <div class="input-group">
@@ -235,7 +639,9 @@
               <textarea id="edit-bio" class="ocean-input" rows="3"></textarea>
             </div>
             <div class="btn-group">
-              <button class="btn-cancel" onclick="toggleProfileMode('view')">取消</button>
+              <button class="btn-cancel" onclick="toggleProfileMode('view')">
+                取消
+              </button>
               <button class="btn-ocean" onclick="saveProfile()">💾 儲存</button>
             </div>
           </div>
@@ -243,18 +649,40 @@
       </div>
     </div>
 
-    <!-- 👇 新增的專屬檢舉視窗 👇 -->
+    <!-- ⚠️ 檢舉視窗 -->
     <div id="report-modal" class="modal">
-      <div class="modal-content light-modal" style="width: 320px; text-align: center; padding: 25px;">
+      <div
+        class="modal-content light-modal"
+        style="width: 320px; text-align: center; padding: 25px"
+      >
         <span class="close-btn" onclick="closeReportModal()">&times;</span>
-        <h3 style="color: #ef4444; margin-top: 0; font-size: 1.3rem;">⚠️ 檢舉此瓶子</h3>
-        <p style="color: #64748b; font-size: 0.9rem; margin-bottom: 15px;">請告訴我們這個瓶子出了什麼問題：</p>
-        <textarea id="report-reason" class="light-input" rows="3" placeholder="例如：這篇文章包含惡意攻擊與髒話..."></textarea>
-        <button class="btn-submit" style="background: #ef4444; box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3); border-radius: 20px;" onclick="submitReport()">送出檢舉</button>
+        <h3 style="color: #ef4444; margin-top: 0; font-size: 1.3rem">
+          ⚠️ 檢舉此瓶子
+        </h3>
+        <p style="color: #64748b; font-size: 0.9rem; margin-bottom: 15px">
+          請告訴我們這個瓶子出了什麼問題：
+        </p>
+        <textarea
+          id="report-reason"
+          class="light-input"
+          rows="3"
+          placeholder="例如：這篇文章包含惡意攻擊與髒話..."
+        ></textarea>
+        <button
+          class="btn-submit"
+          style="
+            background: #ef4444;
+            box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3);
+            border-radius: 20px;
+          "
+          onclick="submitReport()"
+        >
+          送出檢舉
+        </button>
       </div>
     </div>
-    <!-- 👆 檢舉視窗結束 👆 -->
 
+    <!-- 📝 發文視窗 -->
     <div id="post-modal" class="modal">
       <div class="modal-content ocean-post-modal">
         <span class="close-btn" id="close-post-modal">&times;</span>
@@ -277,40 +705,69 @@
               <option value="匿名">🎭 偷偷說 (匿名)</option>
             </select>
           </div>
-          <input type="text" id="post-title-input" placeholder="為這瓶心事下個標題吧！" required class="ocean-input" autocomplete="off" />
-          <textarea id="post-content-input" placeholder="寫下你想說的話..." required class="ocean-input ocean-textarea"></textarea>
+          <input
+            type="text"
+            id="post-title-input"
+            placeholder="為這瓶心事下個標題吧！"
+            required
+            class="ocean-input"
+            autocomplete="off"
+          />
+          <textarea
+            id="post-content-input"
+            placeholder="寫下你想說的話..."
+            required
+            class="ocean-input ocean-textarea"
+          ></textarea>
           <button type="submit" class="ocean-submit-btn">🌊 拋出漂流瓶</button>
         </form>
       </div>
     </div>
 
     <script>
-      window.toggleProfileMode = function(mode) {
-          if (mode === 'edit') {
-              document.getElementById('edit-name').value = document.getElementById('detail-name').innerText;
-              document.getElementById('edit-birthday').value = document.getElementById('detail-birthday').innerText;
-              document.getElementById('edit-gender').value = document.getElementById('detail-gender').innerText;
-              document.getElementById('edit-zodiac').value = document.getElementById('detail-zodiac').innerText;
-              document.getElementById('edit-bio').value = document.getElementById('detail-bio').innerText;
-              
-              document.getElementById('profile-view-mode').style.display = 'none';
-              document.getElementById('profile-edit-mode').style.display = 'block';
-          } else {
-              document.getElementById('profile-edit-mode').style.display = 'none';
-              document.getElementById('profile-view-mode').style.display = 'block';
-          }
+      function closeProfileModalDOM() {
+        const modal = document.getElementById("profile-modal");
+        if (modal) {
+          modal.style.setProperty("display", "none", "important");
+        }
       }
 
-      window.saveProfile = function() {
-          document.getElementById('detail-name').innerText = document.getElementById('edit-name').value;
-          document.getElementById('detail-birthday').innerText = document.getElementById('edit-birthday').value;
-          document.getElementById('detail-gender').innerText = document.getElementById('edit-gender').value;
-          document.getElementById('detail-zodiac').innerText = document.getElementById('edit-zodiac').value;
-          document.getElementById('detail-bio').innerText = document.getElementById('edit-bio').value;
-          
-          alert("🎉 個人資料已更新！");
-          toggleProfileMode('view');
-      }
+      window.toggleProfileMode = function (mode) {
+        if (mode === "edit") {
+          document.getElementById("edit-name").value =
+            document.getElementById("detail-name").innerText;
+          document.getElementById("edit-birthday").value =
+            document.getElementById("detail-birthday").innerText;
+          document.getElementById("edit-gender").value =
+            document.getElementById("detail-gender").innerText;
+          document.getElementById("edit-zodiac").value =
+            document.getElementById("detail-zodiac").innerText;
+          document.getElementById("edit-bio").value =
+            document.getElementById("detail-bio").innerText;
+
+          document.getElementById("profile-view-mode").style.display = "none";
+          document.getElementById("profile-edit-mode").style.display = "block";
+        } else {
+          document.getElementById("profile-edit-mode").style.display = "none";
+          document.getElementById("profile-view-mode").style.display = "block";
+        }
+      };
+
+      window.saveProfile = function () {
+        document.getElementById("detail-name").innerText =
+          document.getElementById("edit-name").value;
+        document.getElementById("detail-birthday").innerText =
+          document.getElementById("edit-birthday").value;
+        document.getElementById("detail-gender").innerText =
+          document.getElementById("edit-gender").value;
+        document.getElementById("detail-zodiac").innerText =
+          document.getElementById("edit-zodiac").value;
+        document.getElementById("detail-bio").innerText =
+          document.getElementById("edit-bio").value;
+
+        alert("🎉 個人資料已更新！");
+        toggleProfileMode("view");
+      };
     </script>
 
     <script type="module" src="test.js?v=20"></script>
