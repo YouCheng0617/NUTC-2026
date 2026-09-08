@@ -22,7 +22,7 @@ export const gameConfig = {
     actions: {
         FEED: { reward: 80, cdSeconds: 8 },          // 餵食海藻
         PURIFY: { reward: 100, cdSeconds: 15 },      // 淨化水質
-        PET: { reward: 80, cdSeconds: 10 }         // 撫摸雪兔
+        PET: { reward: 60, cdSeconds: 10 }         // 撫摸雪兔
     },
     shop: {
         pet_color: {
