@@ -1980,16 +1980,15 @@ document.addEventListener("DOMContentLoaded", () => {
     const currentCatW = mascot.offsetWidth || 80;
     const currentCatH = mascot.offsetHeight || 80;
 
-    // 🌟 1. 設定安全游動天花板 (避開導覽列與對話框高度)
-    const minY = window.innerWidth <= 768 ? 100 : 120; // 絕對不游進頂部 120px 內
-    const maxY = Math.max(minY + 50, window.innerHeight - currentCatH - 120); // 避開底部按鈕
+    const minY = window.innerWidth <= 768 ? 100 : 120;
+    const maxY = Math.max(minY + 50, window.innerHeight - currentCatH - 120);
     const minX = padding;
     const maxX = Math.max(
       padding + 50,
       window.innerWidth - currentCatW - padding,
     );
 
-    const borderThickness = window.innerWidth <= 768 ? 50 : 90;
+    const borderThickness = window.innerWidth <= 768 ? 60 : 100;
 
     let targetX, targetY;
     if (currentZone === 0) {
@@ -2009,18 +2008,23 @@ document.addEventListener("DOMContentLoaded", () => {
     targetX = Math.max(minX, Math.min(targetX, maxX));
     targetY = Math.max(minY, Math.min(targetY, maxY));
 
-    mascot.style.left = targetX + "px";
-    mascot.style.top = targetY + "px";
+    // 🌟 轉向翻轉
+    const curLeft = parseFloat(mascot.style.left) || 0;
+    const mascotSvg = mascot.querySelector("svg");
+    if (mascotSvg) {
+      mascotSvg.style.transform = targetX < curLeft ? "scaleX(-1)" : "scaleX(1)";
+    }
+
+    // 🌟 關鍵修復：先設定慢速平滑過渡（6.5 ~ 9.5 秒），再更新座標
+    const duration = 6500 + Math.random() * 3000;
+    mascot.style.transition = `top ${duration}ms cubic-bezier(0.35, 0.1, 0.25, 1), left ${duration}ms cubic-bezier(0.35, 0.1, 0.25, 1)`;
+
+    mascot.style.left = `${targetX}px`;
+    mascot.style.top = `${targetY}px`;
 
     if (Math.random() > 0.1) currentZone = (currentZone + 1) % 4;
 
-    const duration =
-      window.innerWidth <= 768
-        ? 3000 + Math.random() * 1500
-        : 6000 + Math.random() * 3000;
-
-    mascot.style.transition = `top ${duration}ms ease-in-out, left ${duration}ms ease-in-out`;
-    swimTimer = setTimeout(swimLikeLazyMermaid, duration);
+    swimTimer = setTimeout(swimLikeLazyMermaid, duration + 1000);
   }
   swimTimer = setTimeout(swimLikeLazyMermaid, 100);
 
@@ -2308,13 +2312,15 @@ document.addEventListener("DOMContentLoaded", () => {
   );
   document.addEventListener("touchend", stopDrag);
 
-  document.addEventListener("dblclick", (e) => {
+  // 🌟 點兩下召喚貓咪游過來（支援手機觸控雙擊與電腦雙擊）
+  let lastTapTime = 0;
+
+  function summonMascot(clientX, clientY, targetEl) {
     if (window.isMascotSleeping) return;
-    const target = e.target;
     if (
-      target instanceof Element &&
-      target.closest(
-        'a, button, input, textarea, select, label, [role="button"], #svg-mermecat-mascot',
+      targetEl instanceof Element &&
+      targetEl.closest(
+        'a, button, input, textarea, select, label, [role="button"], #svg-mermecat-mascot, #mascot-home, .ocean-popular-board, .ocean-rules-board'
       )
     ) {
       return;
@@ -2322,27 +2328,59 @@ document.addEventListener("DOMContentLoaded", () => {
 
     clearTimeout(swimTimer);
 
+    const currentCatW = mascot.offsetWidth || 80;
+    const currentCatH = mascot.offsetHeight || 80;
+
     const targetLeft = Math.max(
-      0,
-      Math.min(
-        e.clientX - mascot.offsetWidth / 2,
-        window.innerWidth - mascot.offsetWidth,
-      ),
+      10,
+      Math.min(clientX - currentCatW / 2, window.innerWidth - currentCatW - 10)
     );
     const targetTop = Math.max(
-      0,
-      Math.min(
-        e.clientY - mascot.offsetHeight / 2,
-        window.innerHeight - mascot.offsetHeight,
-      ),
+      10,
+      Math.min(clientY - currentCatH / 2, window.innerHeight - currentCatH - 10)
     );
 
-    mascot.style.transition = "top 1.2s ease-out, left 1.2s ease-out";
+    const curLeft = parseFloat(mascot.style.left) || 0;
+    const mascotSvg = mascot.querySelector("svg");
+    if (mascotSvg) {
+      mascotSvg.style.transform = targetLeft < curLeft ? "scaleX(-1)" : "scaleX(1)";
+    }
+
+    mascot.style.transition = "top 0.8s cubic-bezier(0.25, 0.8, 0.25, 1), left 0.8s cubic-bezier(0.25, 0.8, 0.25, 1)";
     mascot.style.left = `${targetLeft}px`;
     mascot.style.top = `${targetTop}px`;
 
-    swimTimer = setTimeout(swimLikeLazyMermaid, 3000);
+    const dialogueBox = document.getElementById("mermecat-dialogue");
+    if (dialogueBox) {
+      dialogueBox.innerText = "喵！來了來了～找我有什麼事嗎？🐬✨";
+      dialogueBox.classList.add("show-dialogue");
+      setTimeout(() => dialogueBox.classList.remove("show-dialogue"), 2500);
+    }
+
+    swimTimer = setTimeout(swimLikeLazyMermaid, 1000);
+  }
+
+  // 電腦端雙擊
+  window.addEventListener("dblclick", (e) => {
+    summonMascot(e.clientX, e.clientY, e.target);
   });
+
+  // 手機觸控雙擊
+  window.addEventListener(
+    "touchend",
+    (e) => {
+      const currentTime = Date.now();
+      const tapGap = currentTime - lastTapTime;
+      if (tapGap < 350 && tapGap > 0) {
+        if (e.changedTouches && e.changedTouches[0]) {
+          const t = e.changedTouches[0];
+          summonMascot(t.clientX, t.clientY, e.target);
+        }
+      }
+      lastTapTime = currentTime;
+    },
+    { passive: true }
+  );
 
   mascot.addEventListener("click", (e) => {
     if (hasMoved) {
