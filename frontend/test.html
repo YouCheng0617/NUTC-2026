@@ -267,7 +267,11 @@
           </div>
 
           <div id="detail-post-content" class="detail-content"></div>
-
+          <div
+            id="detail-post-poll"
+            class="ocean-poll-box"
+            style="display: none"
+          ></div>
           <div class="detail-comments-wrapper">
             <h3 class="comments-title">
               💬 共 <span id="detail-comment-count">0</span> 則留言
@@ -358,11 +362,53 @@
             required
             class="ocean-input ocean-textarea"
           ></textarea>
+
+          <!-- 📊 Threads 風格投票選項設定區 -->
+          <div class="poll-creator-section">
+            <button type="button" id="btn-toggle-poll" class="poll-toggle-btn">
+              📊 附帶投票活動
+            </button>
+
+            <div
+              id="poll-inputs-container"
+              class="poll-inputs-container"
+              style="display: none"
+            >
+              <div class="poll-header-line">
+                <span>投票選項（2～4 項）</span>
+                <span class="poll-close-text" onclick="togglePollCreator(false)"
+                  >✕ 取消投票</span
+                >
+              </div>
+              <div id="poll-options-list">
+                <input
+                  type="text"
+                  class="ocean-input poll-opt-input"
+                  placeholder="選項 1"
+                  maxlength="30"
+                />
+                <input
+                  type="text"
+                  class="ocean-input poll-opt-input"
+                  placeholder="選項 2"
+                  maxlength="30"
+                />
+              </div>
+              <button
+                type="button"
+                id="btn-add-poll-option"
+                class="btn-add-option"
+                onclick="addPollOption()"
+              >
+                + 新增選項
+              </button>
+            </div>
+          </div>
+
           <button type="submit" class="ocean-submit-btn">拋出漂流瓶</button>
         </form>
       </div>
     </div>
-
     <div id="profile-modal" class="modal">
       <div
         class="modal-content light-modal"
@@ -600,35 +646,79 @@
         </div>
       </div>
     </div>
-<!-- ⚙️ 網站設定小彈窗 (單一完整版) -->
+    <!-- ⚙️ 網站設定小彈窗 (單一完整版) -->
     <div id="settings-modal" class="modal">
-      <div class="modal-content light-modal" style="width: 340px; padding: 30px 25px;">
+      <div
+        class="modal-content light-modal"
+        style="width: 340px; padding: 30px 25px"
+      >
         <span class="close-btn" onclick="closeSettingsModal()">&times;</span>
-        <h2 style="color: #0055a5; font-weight: 900; text-align: center; margin-top: 0; margin-bottom: 20px;">
+        <h2
+          style="
+            color: #0055a5;
+            font-weight: 900;
+            text-align: center;
+            margin-top: 0;
+            margin-bottom: 20px;
+          "
+        >
           ⚙️ 網站小設定
         </h2>
-        
+
         <div class="settings-list">
           <!-- 設定 1：顯示留言時間 -->
-          <div class="setting-item" style="display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid #eef2f6;">
+          <div
+            class="setting-item"
+            style="
+              display: flex;
+              justify-content: space-between;
+              align-items: center;
+              padding: 12px 0;
+              border-bottom: 1px solid #eef2f6;
+            "
+          >
             <div>
-              <div style="font-weight: bold; color: #333; font-size: 1rem;">顯示留言時間</div>
-              <div style="font-size: 0.8rem; color: #8899aa; margin-top: 3px;">開啟或隱藏留言發布時間</div>
+              <div style="font-weight: bold; color: #333; font-size: 1rem">
+                顯示留言時間
+              </div>
+              <div style="font-size: 0.8rem; color: #8899aa; margin-top: 3px">
+                開啟或隱藏留言發布時間
+              </div>
             </div>
             <label class="switch">
-              <input type="checkbox" id="setting-show-comment-time" onchange="toggleCommentTimeSetting(this.checked)">
+              <input
+                type="checkbox"
+                id="setting-show-comment-time"
+                onchange="toggleCommentTimeSetting(this.checked)"
+              />
               <span class="slider round"></span>
             </label>
           </div>
 
           <!-- 設定 2：允許他人追蹤 (實名時) -->
-          <div class="setting-item" style="display: flex; justify-content: space-between; align-items: center; padding: 12px 0;">
+          <div
+            class="setting-item"
+            style="
+              display: flex;
+              justify-content: space-between;
+              align-items: center;
+              padding: 12px 0;
+            "
+          >
             <div>
-              <div style="font-weight: bold; color: #333; font-size: 1rem;">允許他人追蹤</div>
-              <div style="font-size: 0.8rem; color: #8899aa; margin-top: 3px;">非匿名發文時是否開放被追蹤</div>
+              <div style="font-weight: bold; color: #333; font-size: 1rem">
+                允許他人追蹤
+              </div>
+              <div style="font-size: 0.8rem; color: #8899aa; margin-top: 3px">
+                非匿名發文時是否開放被追蹤
+              </div>
             </div>
             <label class="switch">
-              <input type="checkbox" id="setting-allow-follow" onchange="toggleAllowFollowSetting(this.checked)">
+              <input
+                type="checkbox"
+                id="setting-allow-follow"
+                onchange="toggleAllowFollowSetting(this.checked)"
+              />
               <span class="slider round"></span>
             </label>
           </div>
