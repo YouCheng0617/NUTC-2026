@@ -44,13 +44,12 @@
     100% { transform: translateY(-120vh) scale(1.2); opacity: 0; }
   }
 
-  /* === 隱藏所有醜陋的系統預設滾動條，但保留滑動功能 === */
   ::-webkit-scrollbar {
     display: none;
   }
   * {
-    -ms-overflow-style: none;  /* IE and Edge */
-    scrollbar-width: none;  /* Firefox */
+    -ms-overflow-style: none;  
+    scrollbar-width: none;  
   }
 
   .tutorial-window {
@@ -69,7 +68,6 @@
     overflow: hidden;
   }
 
-  /* === 頂部按鈕與標題排版 === */
   .tutorial-header {
     position: absolute;
     top: 25px; left: 25px;
@@ -80,6 +78,27 @@
     z-index: 100;
   }
   .tutorial-header span { color: #5ab9ff; }
+
+  .home-link-btn {
+    position: absolute;
+    top: 20px; right: 75px; 
+    background: linear-gradient(135deg, #38bdf8, #0284c7);
+    color: #fff;
+    border: none;
+    padding: 6px 16px;
+    border-radius: 20px;
+    font-weight: bold;
+    font-size: 14px;
+    cursor: pointer;
+    box-shadow: 0 2px 10px rgba(56, 189, 248, 0.4);
+    transition: 0.2s;
+    z-index: 100;
+    white-space: nowrap;
+  }
+  .home-link-btn:hover {
+    transform: scale(1.05);
+    box-shadow: 0 4px 15px rgba(56, 189, 248, 0.6);
+  }
 
   .close-btn {
     position: absolute;
@@ -97,7 +116,6 @@
     transform: scale(1.1); 
   }
 
-  /* === 側邊選單 === */
   .main-sidebar {
     width: 90px;
     background-color: rgba(5, 15, 28, 0.6); 
@@ -125,18 +143,18 @@
   }
 
   .sub-sidebar {
-    width: 230px;
-    padding: 80px 15px 20px 20px;
+    width: 175px; 
+    padding: 80px 15px 20px 15px;
     overflow-y: auto;
     scroll-behavior: smooth;
   }
   .sub-tab {
-    padding: 14px 18px;
+    padding: 12px 15px; 
     margin-bottom: 12px;
     border-radius: 30px; 
     background-color: rgba(255, 255, 255, 0.05);
     color: #99aab5;
-    font-size: 15px;
+    font-size: 14.5px;
     font-weight: bold;
     cursor: pointer;
     transition: 0.2s;
@@ -149,7 +167,6 @@
     border: 1px solid rgba(90, 185, 255, 0.5);
   }
 
-  /* === 內容展示區 === */
   .content-area {
     flex: 1;
     padding: 45px 30px 25px 20px;
@@ -162,16 +179,18 @@
   .carousel-container {
     display: flex;
     align-items: center;
-    justify-content: space-between;
+    justify-content: center;
     width: 100%;
-    height: 60%; 
-    margin-bottom: 15px;
+    height: 72%; 
+    margin-bottom: 25px; 
+    position: relative;
   }
 
   .image-container {
     position: relative;
     flex: 1; 
-    margin: 0 15px; 
+    margin: 0; 
+    width: 100%;
     height: 100%; 
     background-color: transparent; 
     display: flex;
@@ -194,41 +213,52 @@
   .zoom-hint {
     position: absolute;
     right: 15px; bottom: 15px;
-    background: rgba(0,0,0,0.7);
-    color: #fff;
+    background: rgba(0, 0, 0, 0.4); 
+    color: rgba(255, 255, 255, 0.6); 
     padding: 6px 14px;
     border-radius: 20px;
     font-size: 13px;
     pointer-events: none; 
     backdrop-filter: blur(4px);
-    opacity: 0.5;
     transition: 0.3s;
     letter-spacing: 1px;
     z-index: 20;
   }
   .image-container:hover .zoom-hint {
-    opacity: 1;
+    background: rgba(0, 0, 0, 0.6);
+    color: rgba(255, 255, 255, 0.9);
   }
 
   .arrow {
-    font-size: 38px;
-    color: #5ab9ff; 
-    background: transparent !important;
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 20px;
+    color: rgba(255, 255, 255, 0.6); 
+    background: rgba(0, 0, 0, 0.2) !important; 
+    width: 46px;
+    height: 46px;
+    border-radius: 50%;
     border: none !important;
     outline: none !important;
     cursor: pointer;
-    opacity: 0.6;
     transition: 0.3s;
-    padding: 0 10px;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 20;
   }
+  .arrow-left { left: 10px; }
+  .arrow-right { right: 10px; }
   .arrow:hover { 
-    opacity: 1; 
-    text-shadow: 0 0 15px rgba(90,185,255,0.8);
+    background: rgba(0, 0, 0, 0.6) !important;
+    color: #fff;
   }
 
   .dots-wrapper {
     position: absolute;
-    bottom: -22px; 
+    bottom: -25px; 
     left: 50%;
     transform: translateX(-50%);
     display: flex;
@@ -245,9 +275,8 @@
   .dot.active { background-color: #5ab9ff; box-shadow: 0 0 8px #5ab9ff, 0 0 5px rgba(0,0,0,0.6); }
 
   .text-container { 
-    padding: 0 15px; 
-    margin-top: 15px; 
-    height: 35%; 
+    padding: 0 20px; 
+    height: 28%; 
     overflow-y: auto; 
   }
   .text-title {
@@ -263,7 +292,6 @@
     margin: 0;
   }
 
-  /* === 全螢幕放大圖片模態框 === */
   .lightbox {
     display: none; 
     position: fixed;
@@ -300,9 +328,6 @@
   }
   .lightbox-close:hover { color: #5ab9ff; }
 
-  /* ========================================== */
-  /* === RWD 響應式設計：針對平板與手機介面 === */
-  /* ========================================== */
   @media (max-width: 900px) {
     .tutorial-window {
       flex-direction: column; 
@@ -322,7 +347,7 @@
       flex-direction: row;
       justify-content: center;
       padding: 10px 0;
-      padding-top: 60px; /* 留出空間給上方的標題 */
+      padding-top: 50px; 
       border-right: none;
       border-bottom: 1px solid rgba(255, 255, 255, 0.05);
     }
@@ -352,24 +377,30 @@
     }
 
     .content-area {
-      padding: 15px 15px 20px 15px;
+      padding: 15px 5px 20px 5px; 
     }
 
     .carousel-container {
-      height: 55%;
+      height: 75%; 
+      margin-bottom: 15px;
     }
+    
+    .arrow {
+      width: 36px;
+      height: 36px;
+      font-size: 16px;
+    }
+    .arrow-left { left: 5px; }
+    .arrow-right { right: 5px; }
 
     .text-container {
-      height: 45%;
+      height: 25%; 
+      padding: 0 10px; 
+      margin-top: 5px;
     }
     
     .text-title {
       font-size: 20px;
-    }
-    
-    .arrow {
-      font-size: 30px;
-      padding: 0 5px;
     }
   }
 
@@ -377,7 +408,6 @@
 </head>
 <body>
 
-<!-- 全螢幕放大圖片區塊 -->
 <div class="lightbox" id="lightbox">
   <span class="lightbox-close">&times;</span>
   <img id="lightboxImg" src="" alt="放大圖片">
@@ -395,11 +425,9 @@
 
 <div class="tutorial-window">
   
-  <!-- === 標題 === -->
   <div class="tutorial-header"><span>▍</span>漂流指南</div>
   <div class="close-btn" id="closeGuideBtn" title="返回大廳">&times;</div>
 
-  <!-- 主區塊 -->
   <div style="display: flex; flex: 1; flex-direction: inherit; overflow: hidden;">
     <div class="main-sidebar">
       <div class="main-tab active" data-category="main" title="心情漂流瓶">🍾</div>
@@ -409,7 +437,7 @@
     <div class="sub-sidebar" id="subSidebar"></div>
 
     <div class="content-area">
-      <div class="carousel-container">
+      <div class="carousel-container" id="carouselContainer">
         <button class="arrow arrow-left" id="prevBtn">◀</button>
         
         <div class="image-container" id="imgContainer">
@@ -434,7 +462,6 @@
     window.location.href = 'test.html'; 
   };
 
-  // 全螢幕放大邏輯
   const lightbox = document.getElementById('lightbox');
   const lightboxImg = document.getElementById('lightboxImg');
   const imgContainer = document.getElementById('imgContainer');
@@ -448,14 +475,41 @@
     lightbox.classList.remove('show');
   };
 
-  // === 讓滑鼠滾輪可以直接水平滑動次選單 ===
+  // === 重新補齊全部需要的 DOM 變數 ===
   const subSidebar = document.getElementById('subSidebar');
+  const carouselContainer = document.getElementById('carouselContainer');
+  const displayImage = document.getElementById('displayImage');
+  const displayTitle = document.getElementById('displayTitle');
+  const displayDesc = document.getElementById('displayDesc');
+  const dotsWrapper = document.getElementById('dotsWrapper');
+  const prevBtn = document.getElementById('prevBtn');
+  const nextBtn = document.getElementById('nextBtn');
+
+  // === 讓滑鼠滾輪可以直接水平滑動次選單 ===
   subSidebar.addEventListener('wheel', (evt) => {
     if (window.innerWidth <= 900) {
       evt.preventDefault();
       subSidebar.scrollLeft += evt.deltaY;
     }
   });
+
+  // === 讓滑鼠滾輪可以直接切換圖片 (加入防呆冷卻機制) ===
+  let wheelTimeout;
+  carouselContainer.addEventListener('wheel', (evt) => {
+    evt.preventDefault(); 
+    
+    if (wheelTimeout) return;
+    
+    if (evt.deltaY > 0) {
+      nextBtn.click(); 
+    } else if (evt.deltaY < 0) {
+      prevBtn.click(); 
+    }
+    
+    wheelTimeout = setTimeout(() => {
+      wheelTimeout = null;
+    }, 400); 
+  }, { passive: false });
 
   const tutorialData = {
     main: [
@@ -577,13 +631,6 @@
   let currentSubIndex = 0;      
   let currentSlideIndex = 0;    
 
-  const displayImage = document.getElementById('displayImage');
-  const displayTitle = document.getElementById('displayTitle');
-  const displayDesc = document.getElementById('displayDesc');
-  const dotsWrapper = document.getElementById('dotsWrapper');
-  const prevBtn = document.getElementById('prevBtn');
-  const nextBtn = document.getElementById('nextBtn');
-
   function renderSubMenu() {
     subSidebar.innerHTML = ''; 
     const items = tutorialData[currentCategory];
@@ -626,8 +673,7 @@
       
       prevBtn.style.cursor = currentSlideIndex === 0 ? 'default' : 'pointer';
       nextBtn.style.cursor = currentSlideIndex === slideData.length - 1 ? 'default' : 'pointer';
-      prevBtn.style.opacity = '0.6';
-      prevBtn.style.opacity = '0.6';
+      prevBtn.style.opacity = '1';
     }
   }
 
