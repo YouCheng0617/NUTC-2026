@@ -1391,6 +1391,28 @@
                 transform: scale(0.85);
             }
         }
+        /* --- 🤤 手機版專屬：餵食時原地流口水 --- */
+            .slug-container.is-chasing-food::after {
+                content: '';
+                position: absolute;
+                width: 10px;
+                height: 16px;
+                background: #bae6fd; /* 水藍色口水 */
+                border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%; /* 水滴形狀 */
+                left: 126px; /* 對齊嘴巴的相對 X 座標 */
+                top: 155px;  /* 對齊嘴巴的相對 Y 座標 */
+                opacity: 0;
+                animation: droolDripMobile 0.7s infinite;
+                z-index: 20;
+                box-shadow: inset -2px -2px 4px rgba(2, 132, 199, 0.3);
+                pointer-events: none;
+            }
+            
+            @keyframes droolDripMobile {
+                0% { transform: translateY(0) scale(0.6); opacity: 0.9; }
+                80% { transform: translateY(18px) scale(1.1); opacity: 0.9; }
+                100% { transform: translateY(22px) scale(0.8); opacity: 0; }
+            }
     </style>
 </head>
 <body>
@@ -2629,6 +2651,134 @@ const effectData = {
         window.onload = function() {
             initGameData(); 
         };
+        // 🌟 1. 取得簽到狀態 (GET)
+        async function checkDaily() {
+            try {
+                // 使用你原本寫好的 fetchAPI，它已經內建自動帶上 Token
+                const data = await fetchAPI('/pet-games/sign-in-status', 'GET');
+                
+                if (data && !data.error) {
+                    gameState.checkInData = data; 
+                    
+                    // ⚠️ 這裡要確認後端傳來的「今天是否已簽到」的欄位名稱是不是 todaySigned
+                    const isSignedToday = data.todaySigned || false;
+                    
+                    const btnGift = document.getElementById('btnDailyGift');
+                    if (btnGift) {
+                        if (!isSignedToday) {
+                            btnGift.classList.add('needs-attention'); // 沒簽到就顯示小紅點
+                        } else {
+                            btnGift.classList.remove('needs-attention'); // 簽到過就移除小紅點
+                        }
+                    }
+                }
+            } catch (e) {
+                console.error("取得簽到狀態失敗", e);
+            }
+        }
+
+        // 🌟 2. 畫出 14 天的日曆網格
+        function renderCheckInGrid(data) {
+            const grid = document.getElementById('checkInGrid');
+            if (!grid) return;
+            grid.innerHTML = '';
+            
+            // ⚠️ 這裡要確認後端傳來的「目前累積天數」是不是 currentDay
+            let currentDay = data.currentDay || 0; 
+            let isSignedToday = data.todaySigned || false;
+
+            for (let i = 1; i <= 14; i++) {
+                const dayEl = document.createElement('div');
+                dayEl.className = 'checkin-day';
+                
+                // 第 7 天與 14 天獎勵是 200，其餘 100
+                let reward = (i === 7 || i === 14) ? 200 : 100;
+                let icon = (i === 7 || i === 14) ? '🎁' : '🪙';
+                
+                dayEl.innerHTML = `
+                    <div style="font-size:0.8rem;">第 ${i} 天</div>
+                    <div style="font-size:1.1rem; margin:4px 0;">${icon}</div>
+                    <div style="font-size:0.75rem;">${reward}</div>
+                `;
+                
+                // 判斷格子狀態：已領取、今天該領、未來天數
+                if (i < currentDay || (i === currentDay && isSignedToday)) {
+                    dayEl.classList.add('claimed');
+                } else if (i === currentDay + 1 && !isSignedToday) {
+                    dayEl.classList.add('today');
+                    dayEl.onclick = claimCheckIn; // 點擊格子也能簽到
+                } else if (i === currentDay && !isSignedToday) {
+                    dayEl.classList.add('today');
+                    dayEl.onclick = claimCheckIn;
+                }
+                
+                grid.appendChild(dayEl);
+            }
+        }
+
+        // 🌟 3. 送出簽到請求 (POST)
+        async function claimCheckIn() {
+            try {
+                const result = await fetchAPI('/pet-games/sign-in', 'POST');
+                
+                if (result && !result.error) {
+                    // 簽到成功，關閉日曆
+                    document.getElementById('checkInModalOverlay').style.display = 'none';
+                    
+                    // ⚠️ 確認後端回傳的「天數」和「獎勵金額」欄位名稱
+                    let currentDay = result.currentDay || (gameState.checkInData ? (gameState.checkInData.currentDay || 0) + 1 : 1);
+                    let gainedCoins = result.reward || ((currentDay === 7 || currentDay === 14) ? 200 : 100);
+
+                    // 幫玩家加錢並存檔
+                    gameState.points += gainedCoins;
+                    saveGame();
+                    if (typeof updateUI === 'function') updateUI();
+                    
+                    // 拔掉禮物盒的小紅點
+                    const btnGift = document.getElementById('btnDailyGift');
+                    if (btnGift) btnGift.classList.remove('needs-attention');
+                    
+                    // 顯示大禮包畫面
+                    document.getElementById('txtStreakDays').innerText = currentDay;
+                    document.getElementById('txtTodayReward').innerText = '+' + gainedCoins + ' 積分';
+                    document.getElementById('streakRewardModalOverlay').style.display = 'flex';
+                    
+                    // 重新抓取一次最新狀態
+                    checkDaily();
+                } else {
+                    showFloatText(result.message || result.error || '今天已經簽到過囉！');
+                }
+            } catch (e) {
+                console.error("簽到請求失敗", e);
+                showFloatText('伺服器連線異常，請稍後再試！');
+            }
+        }
+
+        // 🌟 4. 點擊禮物盒的動畫與開啟日曆
+        function playGiftAnimation(btn) {
+            const svg = btn.querySelector('.gift-svg');
+            if (svg) {
+                // 播放蓋子飛走動畫
+                svg.classList.add('is-opening');
+                
+                setTimeout(() => {
+                    svg.classList.remove('is-opening');
+                    document.getElementById('checkInModalOverlay').style.display = 'flex';
+                    
+                    // 畫出日曆內容
+                    if (gameState.checkInData) {
+                        renderCheckInGrid(gameState.checkInData);
+                    } else {
+                        fetchAPI('/pet-games/sign-in-status', 'GET').then(data => {
+                            if(data && !data.error) {
+                                gameState.checkInData = data;
+                                renderCheckInGrid(data);
+                            }
+                        });
+                    }
+                }, 500);
+            }
+        }
         // 🌟 視窗大小改變時的「防走失與自動校正」機制
         window.addEventListener('resize', () => {
             const slugEl = document.getElementById('slugContainer');
@@ -3077,28 +3227,33 @@ function runSlugChaseLoop() {
             const dist = Math.hypot(dx, dy);
 
             if (dist > 30) {
-                const stepSpeed = 5.2;
-                let curLeft = parseFloat(slugEl.style.left) || slugEl.offsetLeft;
-                let curTop = parseFloat(slugEl.style.top) || slugEl.offsetTop;
-
-                curLeft += (dx / dist) * stepSpeed;
-                curTop += (dy / dist) * stepSpeed;
-
-                // 🌟 關鍵修復：放寬海兔的「空氣牆」限制
-                // 讓海兔可以超出邊界一點點，這樣才能吃到角落的海藻，不會再卡住無限彈跳！
-                const minX = -slugEl.offsetWidth / 3;
-                const maxX = stage.offsetWidth - slugEl.offsetWidth * 0.6;
-                const minY = -slugEl.offsetHeight / 3;
-                const maxY = stage.offsetHeight - slugEl.offsetHeight * 0.6;
-
-                slugEl.style.left = Math.max(minX, Math.min(maxX, curLeft)) + 'px';
-                slugEl.style.top = Math.max(minY, Math.min(maxY, curTop)) + 'px';
-
-                // 轉向時，動態判斷是否為手機版，保留 scale(0.85) 的縮小設定
+                // 判斷海兔的臉要朝向哪邊
                 const direction = dx > 0 ? -1 : 1;
-                slugEl.style.transform = window.innerWidth <= 768 ? `scale(0.85) scaleX(${direction})` : `scaleX(${direction})`;
+
+                if (window.innerWidth > 768) {
+                    // 💻 電腦版保留原味：海兔親自衝過去把海藻吃掉
+                    const stepSpeed = 5.2;
+                    let curLeft = parseFloat(slugEl.style.left) || slugEl.offsetLeft;
+                    let curTop = parseFloat(slugEl.style.top) || slugEl.offsetTop;
+
+                    curLeft += (dx / dist) * stepSpeed;
+                    curTop += (dy / dist) * stepSpeed;
+
+                    const minX = -slugEl.offsetWidth / 3;
+                    const maxX = stage.offsetWidth - slugEl.offsetWidth * 0.6;
+                    const minY = -slugEl.offsetHeight / 3;
+                    const maxY = stage.offsetHeight - slugEl.offsetHeight * 0.6;
+
+                    slugEl.style.left = Math.max(minX, Math.min(maxX, curLeft)) + 'px';
+                    slugEl.style.top = Math.max(minY, Math.min(maxY, curTop)) + 'px';
+                    slugEl.style.transform = `scaleX(${direction})`;
+                } else {
+                    // 📱 手機版專屬：留在原地跳躍流口水，只轉身面向海藻
+                    slugEl.style.transform = `scale(0.85) scaleX(${direction})`;
+                }
             }
 
+            // 當玩家把海藻拖曳到海兔嘴邊 (距離小於 70) 時，觸發張嘴吃掉！
             if (dist < 70) {
                 completeFeedingAction(true);
                 return;
