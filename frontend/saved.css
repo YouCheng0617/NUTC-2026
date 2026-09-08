@@ -299,3 +299,25 @@
     font-size: 0.82rem !important;
   }
 }
+/* =========================================
+   📱 單一瓶子置中與幽靈分頁框修復
+   ========================================= */
+
+/* 1. 消除空心幽靈膠囊：分頁器裡面沒有按鈕時，直接隱藏 */
+.ocean-pagination:empty,
+#pagination-container:empty {
+  display: none !important;
+}
+
+/* 2. 當只有「1 個瓶子」時，自動橫跨兩欄並水平置中 */
+#post-container .post-card:only-child {
+  grid-column: 1 / -1 !important;
+  margin: 20px auto 0 auto !important;
+}
+
+/* 3. 手機版下方留白保護，避免瓶子被小窩和按鈕遮擋 */
+@media screen and (max-width: 768px) {
+  #post-container {
+    padding-bottom: 180px !important;
+  }
+}
