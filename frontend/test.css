@@ -1749,3 +1749,409 @@ input:checked + .slider:before { transform: translateX(22px); }
         max-height: calc(100vh - 140px) !important;
     }
 }
+/* =========================================
+   🐱 貓咪睡覺時完美鎖定在小窩中心修復
+   ========================================= */
+/* 當貓咪在小窩睡覺時，強制將尺寸與小窩等比對齊 */
+#svg-mermecat-mascot.mascot-sleeping {
+    width: clamp(45px, 8vw, 100px) !important;
+    height: clamp(50px, 9vw, 110px) !important;
+    z-index: 9999 !important;
+    pointer-events: auto !important;
+}
+
+#svg-mermecat-mascot.mascot-sleeping svg {
+    width: 100% !important;
+    height: 100% !important;
+    filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.4)) !important;
+}
+
+/* 📱 手機極窄螢幕 (<= 768px) 小窩與貓咪比例保護 */
+@media screen and (max-width: 768px) {
+    #mascot-home {
+        width: 75px !important;
+        height: 75px !important;
+        bottom: 85px !important;
+        left: 12px !important;
+    }
+
+    #svg-mermecat-mascot.mascot-sleeping {
+        width: 52px !important;
+        height: 56px !important;
+    }
+}
+/* =========================================
+   🐱 貓咪睡覺完美鎖定在小窩圓心 (CSS 釘死)
+   ========================================= */
+#svg-mermecat-mascot.mascot-sleeping {
+    /* 縮小到適合小窩的尺寸 */
+    width: 68px !important;
+    height: 68px !important;
+    z-index: 9999 !important;
+    pointer-events: auto !important;
+    /* 核心：以中心點定位，消除任何外框寬高計算誤差 */
+    transform: translate(-50%, -50%) !important;
+    transition: all 0.3s ease !important;
+}
+
+#svg-mermecat-mascot.mascot-sleeping svg {
+    width: 100% !important;
+    height: 100% !important;
+    transform: none !important; /* 清除可能殘留的 scaleX(-1) 翻轉造成偏移 */
+}
+
+/* 📱 手機極窄螢幕 (<= 768px) 尺寸微調 */
+@media screen and (max-width: 768px) {
+    #svg-mermecat-mascot.mascot-sleeping {
+        width: 50px !important;
+        height: 50px !important;
+    }
+}
+/* =========================================
+   🧹 閱讀文章與彈窗時，自動收起雜亂懸浮元件
+   ========================================= */
+
+/* 1. 當開啟發文彈窗 (#post-modal 顯示) 時，隱藏所有無關懸浮物 */
+body:has(#post-modal[style*="display: block"]),
+body:has(#post-modal[style*="display: flex"]) #mascot-home,
+body:has(#post-modal[style*="display: block"]),
+body:has(#post-modal[style*="display: flex"]) #svg-mermecat-mascot,
+body:has(#post-modal[style*="display: block"]),
+body:has(#post-modal[style*="display: flex"]) .ocean-popular-board,
+body:has(#post-modal[style*="display: block"]),
+body:has(#post-modal[style*="display: flex"]) .ocean-rules-board,
+body:has(#post-modal[style*="display: block"]),
+body:has(#post-modal[style*="display: flex"]) #mobile-board-btn {
+    display: none !important;
+}
+
+/* 2. 當處於「文章詳細頁面」(#detail-view 顯示) 時，隱藏底部海域按鈕與小窩貓咪 */
+body:has(#detail-view[style*="display: block"]) #mobile-board-btn,
+body:has(#detail-view[style*="display: block"]) #mascot-home,
+body:has(#detail-view[style*="display: block"]) #svg-mermecat-mascot,
+body:has(#detail-view[style*="display: block"]) .ocean-popular-board,
+body:has(#detail-view[style*="display: block"]) .ocean-rules-board {
+    display: none !important;
+}
+body.in-detail-view #mobile-board-btn,
+body.in-detail-view #mascot-home,
+body.in-detail-view #svg-mermecat-mascot,
+body.in-detail-view .ocean-popular-board,
+body.in-detail-view .ocean-rules-board {
+    display: none !important;
+}
+/* =========================================
+   📱 Dcard 風格貼文閱讀頁面全新排版
+   ========================================= */
+
+/* 1. 外層容器：手機版滿版無邊框，電腦版俐落置中卡片 */
+.ocean-detail-card {
+    position: fixed !important;
+    top: 60px !important;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+    width: 100% !important;
+    max-width: 720px !important;
+    height: calc(100vh - 60px) !important;
+    max-height: none !important;
+    background: #ffffff !important;
+    border: none !important;
+    border-radius: 16px 16px 0 0 !important;
+    box-shadow: 0 -4px 30px rgba(0, 0, 0, 0.15) !important;
+    padding: 0 !important;
+    overflow-y: auto !important;
+    z-index: 99999 !important;
+    box-sizing: border-box !important;
+}
+
+@media screen and (max-width: 768px) {
+    .ocean-detail-card {
+        top: 0 !important;
+        height: 100vh !important;
+        border-radius: 0 !important;
+    }
+}
+
+/* 2. Dcard 頂部導覽列 (純白、乾淨、附回上一頁與檢舉) */
+.detail-nav-bar {
+    position: sticky !important;
+    top: 0 !important;
+    background: rgba(255, 255, 255, 0.96) !important;
+    backdrop-filter: blur(8px) !important;
+    border-bottom: 1px solid #edf2f7 !important;
+    padding: 12px 18px !important;
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    z-index: 100 !important;
+}
+
+.back-action {
+    color: #334155 !important;
+    font-size: 1.05rem !important;
+    font-weight: 600 !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+}
+
+.board-badge {
+    background: #f1f5f9 !important;
+    color: #006aa6 !important;
+    font-weight: bold !important;
+    padding: 4px 10px !important;
+    border-radius: 6px !important;
+    font-size: 0.85rem !important;
+}
+
+/* 3. 作者資訊區 (Dcard 標準頭像 + 暱稱/學校 + 發布時間) */
+.detail-author-box {
+    display: flex !important;
+    align-items: center !important;
+    gap: 12px !important;
+    padding: 16px 20px 0 20px !important;
+    margin: 0 !important;
+}
+
+.detail-avatar {
+    width: 42px !important;
+    height: 42px !important;
+    border-radius: 50% !important;
+    border: none !important;
+    background: #e2e8f0 !important;
+}
+
+.detail-author-text {
+    flex: 1 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 2px !important;
+}
+
+.detail-author-name {
+    font-size: 0.95rem !important;
+    font-weight: 700 !important;
+    color: #0f172a !important;
+}
+
+.detail-post-time {
+    font-size: 0.8rem !important;
+    color: #94a3b8 !important;
+    margin: 0 !important;
+}
+
+/* 追蹤按鈕 (藍框微膠囊) */
+.follow-btn {
+    border: 1px solid #006aa6 !important;
+    color: #006aa6 !important;
+    background: #fff !important;
+    border-radius: 16px !important;
+    padding: 4px 12px !important;
+    font-size: 0.82rem !important;
+}
+
+.follow-btn.following {
+    background: #006aa6 !important;
+    color: #fff !important;
+}
+
+/* 4. 文章標題與正文 (閱讀舒適、無多餘雜訊) */
+.detail-title {
+    font-size: 1.45rem !important;
+    font-weight: 800 !important;
+    color: #0f172a !important;
+    padding: 14px 20px 0 20px !important;
+    margin: 0 !important;
+    line-height: 1.45 !important;
+    text-align: left !important;
+}
+
+.detail-content {
+    font-size: 1.05rem !important;
+    line-height: 1.85 !important;
+    color: #1e293b !important;
+    padding: 16px 20px 30px 20px !important;
+    margin: 0 !important;
+    text-align: left !important;
+    border-bottom: 8px solid #f8fafc !important; /* Dcard 風格的文章與留言分界粗底色線 */
+}
+
+/* 5. 留言專區 (清晰樓層、卡片留白) */
+.detail-comments-wrapper {
+    background: #ffffff !important;
+    padding: 16px 20px 110px 20px !important; /* 底部留白防止被常駐留言列遮蔽 */
+    margin: 0 !important;
+}
+
+.comments-title {
+    font-size: 0.95rem !important;
+    color: #475569 !important;
+    margin: 0 0 16px 0 !important;
+    text-align: left !important;
+}
+
+.ocean-comment-card {
+    background: transparent !important;
+    border: none !important;
+    border-bottom: 1px solid #f1f5f9 !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    padding: 14px 0 !important;
+    margin-bottom: 0 !important;
+}
+
+.comment-header {
+    margin-bottom: 8px !important;
+}
+
+.comment-author {
+    font-size: 0.9rem !important;
+    color: #334155 !important;
+    font-weight: 600 !important;
+}
+
+.comment-floor {
+    font-size: 0.78rem !important;
+    color: #94a3b8 !important;
+    background: transparent !important;
+    padding: 0 !important;
+}
+
+.comment-body {
+    padding-left: 0 !important;
+    font-size: 0.95rem !important;
+    color: #1e293b !important;
+    line-height: 1.65 !important;
+    margin-bottom: 8px !important;
+    text-align: left !important;
+}
+
+/* 6. Dcard 常駐底部回覆列 (浮動吸附底端) */
+.comment-action-bar {
+    position: fixed !important;
+    bottom: 0 !important;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+    width: 100% !important;
+    max-width: 720px !important;
+    background: #ffffff !important;
+    border-top: 1px solid #e2e8f0 !important;
+    padding: 10px 14px !important;
+    box-sizing: border-box !important;
+    z-index: 1000 !important;
+    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.04) !important;
+}
+
+.comment-action-bar .comment-input {
+    background: #f1f5f9 !important;
+    border: 1px solid transparent !important;
+    border-radius: 20px !important;
+    height: 38px !important;
+    font-size: 0.9rem !important;
+    padding: 0 16px !important;
+}
+
+.comment-action-bar .comment-input:focus {
+    background: #ffffff !important;
+    border-color: #006aa6 !important;
+}
+
+.comment-action-bar .send-btn {
+    height: 38px !important;
+    padding: 0 16px !important;
+    font-size: 0.9rem !important;
+    background: #006aa6 !important;
+    border-radius: 20px !important;
+}
+/* =========================================
+   ✨ Dcard 頂部導覽列：縮小、防換行與美化
+   ========================================= */
+.detail-nav-bar {
+    padding: 10px 14px !important;
+    height: 48px !important;
+    box-sizing: border-box !important;
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    border-bottom: 1px solid #f1f5f9 !important;
+    background: #ffffff !important;
+}
+
+/* 1. 左側「← 返回海域」：俐落不折行 */
+.back-action {
+    font-size: 0.88rem !important;
+    font-weight: 600 !important;
+    color: #475569 !important;
+    white-space: nowrap !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 4px !important;
+    padding: 4px 8px !important;
+    border-radius: 8px !important;
+    transition: background-color 0.2s ease !important;
+}
+.back-action:hover {
+    background-color: #f8fafc !important;
+    color: #0f172a !important;
+}
+
+/* 2. 右側按鈕容器 */
+.detail-nav-bar > div:last-child {
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+    flex-shrink: 0 !important;
+}
+
+/* 3. 「檢舉」按鈕：精巧微膠囊 */
+.report-action {
+    font-size: 0.78rem !important;
+    font-weight: 500 !important;
+    color: #ef4444 !important;
+    background: #fef2f2 !important;
+    border: 1px solid #fee2e2 !important;
+    border-radius: 14px !important;
+    padding: 3px 10px !important;
+    white-space: nowrap !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 3px !important;
+    line-height: 1.4 !important;
+}
+
+/* 4. 看板標籤 (如：極度厭世/躺平)：Dcard 標籤風格 */
+.board-badge {
+    font-size: 0.78rem !important;
+    font-weight: 600 !important;
+    color: #006aa6 !important;
+    background: #f0f7ff !important;
+    border: 1px solid #e0f2fe !important;
+    border-radius: 14px !important;
+    padding: 3px 10px !important;
+    white-space: nowrap !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 4px !important;
+    line-height: 1.4 !important;
+}
+
+.board-badge .board-icon {
+    width: 14px !important;
+    height: 14px !important;
+}
+
+/* 📱 針對 320px 極窄手機螢幕的間距微調 */
+@media screen and (max-width: 360px) {
+    .detail-nav-bar {
+        padding: 8px 10px !important;
+    }
+    .back-action {
+        font-size: 0.82rem !important;
+        padding: 2px 4px !important;
+    }
+    .report-action,
+    .board-badge {
+        font-size: 0.74rem !important;
+        padding: 2px 8px !important;
+    }
+}

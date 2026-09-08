@@ -823,6 +823,7 @@ window.openPostDetail = function (id) {
         if (sidebar) sidebar.style.setProperty('display', 'none', 'important');
         if (oceanBtn) oceanBtn.style.setProperty('display', 'none', 'important');
         window.scrollTo({ top: 0, behavior: 'smooth' });
+        document.body.classList.add('in-detail-view');
     }
 };
 
@@ -838,6 +839,7 @@ window.closePostDetail = function () {
         if (sidebar) sidebar.style.setProperty('display', 'block', 'important');
         if (oceanBtn) oceanBtn.style.setProperty('display', 'block', 'important');
         window.scrollTo({ top: 0, behavior: 'smooth' });
+        document.body.classList.remove('in-detail-view');
     }
 };
 
@@ -1635,23 +1637,46 @@ document.addEventListener('DOMContentLoaded', () => {
     let initialTop = 0;
 
     function swimLikeLazyMermaid() {
-        const padding = 20;
-        const borderThickness = 120;
-        const w = window.innerWidth - 130;
-        const h = window.innerHeight - 140;
+        if (window.isMascotSleeping) return;
+
+        const padding = 15;
+        const currentCatW = mascot.offsetWidth || 80;
+        const currentCatH = mascot.offsetHeight || 80;
+        
+        // 確保游動最大範圍不超出當前視窗
+        const maxW = Math.max(10, window.innerWidth - currentCatW - padding);
+        const maxH = Math.max(10, window.innerHeight - currentCatH - padding);
+        const borderThickness = window.innerWidth <= 768 ? 50 : 100;
 
         let targetX, targetY;
-        if (currentZone === 0) { targetX = Math.random() * w; targetY = padding + Math.random() * (borderThickness - 50); }
-        else if (currentZone === 1) { targetX = w - padding - Math.random() * (borderThickness - 50); targetY = Math.random() * h; }
-        else if (currentZone === 2) { targetX = Math.random() * w; targetY = h - padding - Math.random() * (borderThickness - 50); }
-        else { targetX = padding + Math.random() * (borderThickness - 50); targetY = Math.random() * h; }
+        if (currentZone === 0) { 
+            targetX = padding + Math.random() * (maxW - padding); 
+            targetY = padding + Math.random() * borderThickness; 
+        } else if (currentZone === 1) { 
+            targetX = Math.max(padding, maxW - Math.random() * borderThickness); 
+            targetY = padding + Math.random() * (maxH - padding); 
+        } else if (currentZone === 2) { 
+            targetX = padding + Math.random() * (maxW - padding); 
+            targetY = Math.max(padding, maxH - Math.random() * borderThickness); 
+        } else { 
+            targetX = padding + Math.random() * borderThickness; 
+            targetY = padding + Math.random() * (maxH - padding); 
+        }
+
+        // 嚴格夾在視窗內部
+        targetX = Math.max(padding, Math.min(targetX, maxW));
+        targetY = Math.max(padding, Math.min(targetY, maxH));
 
         mascot.style.left = targetX + 'px';
         mascot.style.top = targetY + 'px';
 
         if (Math.random() > 0.1) currentZone = (currentZone + 1) % 4;
 
-        const duration = 8000 + Math.random() * 4000;
+        // 手機尺寸加快移動頻率避免停留在邊界外，電腦版維持平緩游動
+        const duration = window.innerWidth <= 768 
+            ? (3000 + Math.random() * 1500) 
+            : (6000 + Math.random() * 3000);
+
         mascot.style.transition = `top ${duration}ms ease-in-out, left ${duration}ms ease-in-out`;
         swimTimer = setTimeout(swimLikeLazyMermaid, duration);
     }
@@ -1746,14 +1771,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
                         mascot.style.transition = 'all 0.5s ease-out';
 
-                        const dynamicScale = (homeRect.width / 180) * 0.65;
-                        mascot.style.setProperty('transform', `scale(${dynamicScale})`, 'important');
+                        mascot.style.removeProperty('transform');
+mascot.style.transform = 'scale(1)';
 
-                        const exactX = homeRect.left + (homeRect.width / 2) - (mascot.offsetWidth / 2);
-                        const exactY = homeRect.top + (homeRect.height / 2) - (mascot.offsetHeight / 2) + (homeRect.width * 0.08);
+// 🌟 直接抓取小窩的正中心點座標
+const centerX = homeRect.left + homeRect.width / 2;
+const centerY = homeRect.top + homeRect.height / 2;
 
-                        mascot.style.left = `${exactX}px`;
-                        mascot.style.top = `${exactY}px`;
+mascot.style.left = `${centerX}px`;
+mascot.style.top = `${centerY}px`;
 
                         const dialogueBox = document.getElementById('mermecat-dialogue');
                         if (dialogueBox) {
@@ -1775,28 +1801,43 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     window.addEventListener('resize', () => {
-        function adjustSleepingPosition() {
-            if (window.isMascotSleeping) {
-                const home = document.getElementById('mascot-home');
-                const cat = document.getElementById('svg-mermecat-mascot');
-                if (home && cat) {
-                    const homeRect = home.getBoundingClientRect();
-                    const dynamicScale = (homeRect.width / 180) * 0.65;
+        if (window.isMascotSleeping) {
+            const home = document.getElementById('mascot-home');
+            const cat = document.getElementById('svg-mermecat-mascot');
+            if (home && cat) {
+                const homeRect = home.getBoundingClientRect();
+                cat.style.transition = 'none';
+                cat.style.removeProperty('transform');
+                cat.style.transform = 'scale(1)';
 
-                    cat.style.transition = 'none';
-                    cat.style.setProperty('transform', `scale(${dynamicScale})`, 'important');
+                const exactX = homeRect.left + (homeRect.width - cat.offsetWidth) / 2;
+                const exactY = homeRect.top + (homeRect.height - cat.offsetHeight) / 2 - 4;
 
-                    const exactX = homeRect.left + (homeRect.width / 2) - (cat.offsetWidth / 2);
-                    const exactY = homeRect.top + (homeRect.height / 2) - (cat.offsetHeight / 2) + (homeRect.width * 0.08);
-
-                    cat.style.left = `${exactX}px`;
-                    cat.style.top = `${exactY}px`;
-                }
+                cat.style.left = `${exactX}px`;
+                cat.style.top = `${exactY}px`;
             }
+            return;
         }
 
-        adjustSleepingPosition();
-        setTimeout(adjustSleepingPosition, 50);
+        // 🌟 核心防護：視窗縮小時，若游動座標大於目前視窗寬高，立刻中斷過渡並拉回視窗內
+        if (mascot) {
+            clearTimeout(swimTimer);
+            const currentCatW = mascot.offsetWidth || 80;
+            const currentCatH = mascot.offsetHeight || 80;
+            const maxLeft = Math.max(10, window.innerWidth - currentCatW - 15);
+            const maxTop = Math.max(10, window.innerHeight - currentCatH - 15);
+
+            let curLeft = parseFloat(mascot.style.left) || 0;
+            let curTop = parseFloat(mascot.style.top) || 0;
+
+            if (curLeft > maxLeft || curTop > maxTop || curLeft < 10 || curTop < 10) {
+                mascot.style.transition = 'none';
+                mascot.style.left = `${Math.max(10, Math.min(curLeft, maxLeft))}px`;
+                mascot.style.top = `${Math.max(10, Math.min(curTop, maxTop))}px`;
+            }
+
+            swimTimer = setTimeout(swimLikeLazyMermaid, 200);
+        }
     });
 
     let mascotHome = document.getElementById('mascot-home');
