@@ -610,6 +610,7 @@
             left: calc(50% - 170px); top: calc(50% - 120px);
             user-select: none !important; -webkit-user-select: none !important; -webkit-user-drag: none !important;
             perspective: 800px; /* 解鎖 3D 側翻視覺 */
+            transition: transform 0.25s ease-out;
         }
         body.is-dragging-global, body.is-dragging-global * { cursor: grabbing !important; user-select: none !important; -webkit-user-select: none !important; }
         .slug-container.is-petting .slug-svg { transform: scale(1.06, 0.92) translateY(12px); filter: drop-shadow(0 5px 8px rgba(0,0,0,0.25)); }
@@ -1203,7 +1204,7 @@
                 grid-template-columns: repeat(auto-fill, minmax(90px, 1fr)); 
             }
         }
-        /* ========================================= */
+/* ========================================= */
         /* 🌟 手機版與電腦版的分水嶺魔法開始 */
         /* ========================================= */
 
@@ -1216,40 +1217,221 @@
         /* 2. 手機版專屬魔法 (螢幕寬度小於 768px 時自動發動) */
         @media screen and (max-width: 768px) {
             
-            /* 秀出開關按鈕 */
-            #btnOpenShop, 
-            #uiPanel > button[onclick="toggleShopPanel()"] {
-                display: block !important;
-            }
-
             /* 手機版背景拉滿 100% */
-            .stage {
-                height: 100%;
-            }
+            .stage { height: 100%; }
 
-            /* 手機版面板：預設收起到螢幕下方 */
+            /* --- 🌟 頂部資訊列瘦身（解決重疊問題） --- */
+            .top-bar { padding: 10px 15px; }
+            .points-display { padding: 6px 12px; font-size: 0.95rem; }
+            .lang-btn { padding: 6px 12px; font-size: 0.85rem; }
+            #btnOpenManual { top: 65px; left: 10px; padding: 6px 12px; font-size: 0.85rem; }
+            #btnToggleMp { top: 65px !important; right: 10px !important; padding: 6px 12px !important; font-size: 0.85rem !important; }
+
+            /* --- 🌟 互動小按鈕 + 置中商店彈窗 完美排版 --- */
+
+            /* 把原本的底部抽屜變成「全螢幕的隱形容器」，方便定位裡面的東西 */
             .ui-panel {
-                height: 55%; 
-                padding: 20px 15px 15px 15px; 
-                border-radius: 30px 30px 0 0; 
-                transform: translateY(120%); 
+                position: fixed !important;
+                top: 0; left: 0; width: 100vw; height: 100vh;
+                background: transparent !important;
+                border: none !important;
+                box-shadow: none !important;
+                padding: 0 !important;
+                transform: none !important; /* 關閉原本的上下滑動動畫 */
+                pointer-events: none; /* 讓點擊能穿透隱形背景 */
                 z-index: 80;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
             }
 
-            /* 手機版面板：展開時回到原位 */
+            /* 當點擊打開商店時，加上黑色半透明遮罩 */
             .ui-panel.open {
-                transform: translateY(0);
+                background: rgba(0, 0, 0, 0.6) !important;
+                pointer-events: auto; /* 擋住背後的點擊 */
             }
 
-            /* 讓手機版的互動按鈕與商品網格變緊湊，更好滑動 */
-            .interaction-group { margin-bottom: 15px; gap: 10px; }
-            .btn-interact { padding: 12px 0; border-radius: 18px; }
-            .btn-title { font-size: 0.95rem; margin-bottom: 4px; }
-            .shop-grid { gap: 10px; grid-template-columns: repeat(auto-fill, minmax(90px, 1fr)); }
+            /* --- 🔘 底部常駐互動小按鈕 --- */
+            .interaction-group {
+                position: absolute;
+                bottom: 15px;
+                left: 50%;
+                transform: translateX(-50%);
+                width: calc(100% - 30px);
+                flex-direction: row !important;
+                justify-content: space-between;
+                gap: 5px !important;
+                margin: 0 !important;
+                pointer-events: auto; /* 恢復按鈕點擊 */
+                z-index: 85;
+            }
+            .btn-interact {
+                padding: 10px 2px !important;
+                border-radius: 16px !important;
+                background: rgba(255, 255, 255, 0.95) !important;
+                box-shadow: 0 4px 10px rgba(0,0,0,0.1), 0 4px 0 var(--border-color) !important;
+                backdrop-filter: blur(4px);
+            }
+            .btn-desc { display: none !important; }
+            .btn-title { font-size: 0.75rem !important; margin-bottom: 2px !important; white-space: nowrap; }
+            .hunger-bar-container { width: 85% !important; height: 4px !important; margin-top: 4px !important; }
+
+            /* --- 🛒 置中滑動商店彈窗 --- */
+            /* 沒打開商店時，隱藏標籤、網格和關閉按鈕 */
+            .ui-panel:not(.open) .tabs,
+            .ui-panel:not(.open) .shop-grid,
+            .ui-panel:not(.open) > button[onclick="toggleShopPanel()"] {
+                display: none !important;
+            }
+
+            /* 商店的分類標籤 (彈窗的上半部) */
+            .ui-panel.open .tabs {
+                display: flex !important;
+                width: 85%;
+                background: #fff;
+                border-radius: 25px 25px 0 0; /* 只有上方圓角 */
+                padding: 25px 15px 10px 15px;
+                margin: 0;
+                border-bottom: 2px dashed #eee;
+                justify-content: center;
+                pointer-events: auto;
+            }
+
+            /* 商店的商品列表 (彈窗的下半部，可滑動) */
+            .ui-panel.open .shop-grid {
+                display: grid !important;
+                width: 85%;
+                max-height: 55vh; /* 限制高度，超過就滾動 */
+                background: #fff;
+                border-radius: 0 0 25px 25px; /* 只有下方圓角 */
+                padding: 15px 15px 20px 15px;
+                overflow-y: auto;
+                pointer-events: auto;
+                gap: 10px; 
+                grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
+            }
+
+            /* --- ❌ 商店右上角的獨立紅色叉叉按鈕 (抓回螢幕版) --- */
+            .ui-panel.open > button[onclick="toggleShopPanel()"] {
+                display: flex !important;
+                position: relative !important;
+                align-self: flex-end !important; /* 讓它自己靠右站 */
+                margin-right: 7.5% !important;   /* 跟商店白框右側完美對齊 */
+                margin-bottom: -18px !important; /* 往下壓一點，剛好疊在白框右上角 */
+                top: auto !important; left: auto !important; right: auto !important;
+                transform: none !important;
+                width: 36px !important;
+                height: 36px !important;
+                padding: 0 !important;
+                border-radius: 50% !important;
+                background: #ef4444 !important; 
+                font-size: 0 !important;         /* 徹底隱藏原本的 ⬇️ Emoji 和文字 */
+                color: transparent !important;
+                border: 3px solid #ffffff !important;
+                box-shadow: 0 4px 10px rgba(0,0,0,0.2) !important;
+                align-items: center;
+                justify-content: center;
+                z-index: 100 !important;
+                pointer-events: auto;
+            }
+            
+            /* 畫出純粹的白色叉叉符號 */
+            .ui-panel.open > button[onclick="toggleShopPanel()"]::before {
+                content: '✖';
+                color: white;
+                font-size: 1.1rem;
+                font-weight: 900;
+                position: absolute;
+            }
+
+            /* --- 🛍️ 喚醒商店的懸浮按鈕 --- */
+            #btnOpenShop {
+                display: flex !important;
+                align-items: center;
+                justify-content: center;
+                position: absolute !important;
+                bottom: 95px !important; /* 浮在互動按鈕的上方 */
+                right: 15px !important;
+                left: auto !important;
+                transform: none !important;
+                width: 55px !important;
+                height: 55px !important;
+                padding: 0 !important;
+                border-radius: 50% !important;
+                font-size: 0 !important; /* 隱藏長串文字 */
+                box-shadow: 0 5px 15px rgba(255, 182, 193, 0.6) !important;
+                z-index: 70;
+            }
+            #btnOpenShop::after {
+                content: '🛍️';
+                font-size: 1.5rem;
+            }
         }
     </style>
 </head>
 <body>
+    <!-- 🌟 召喚手冊的懸浮按鈕 (放在左上角) -->
+<button id="btnOpenManual" onclick="openManual()">📖 飼養手冊</button>
+
+<!-- 🌟 【海兔飼養手冊】彈窗 -->
+<div class="manual-overlay" id="manualOverlay">
+    <div class="manual-box">
+        <div class="manual-header">
+            ✨ 海兔飼養秘笈 ✨
+        </div>
+        <div class="manual-content">
+            
+            <!-- 教學區塊 1：照顧 -->
+            <div class="manual-section">
+                <div class="manual-img">
+                    <svg viewBox="0 0 100 100"><path d="M 50 90 Q 30 65 38 45 Q 45 25 28 8 Q 42 22 48 42 Q 52 65 50 90 Z" fill="#4ade80" stroke="#14532d" stroke-width="2"/></svg>
+                </div>
+                <div class="manual-text">
+                    <h3 style="color: #10b981;">1. 照顧寶寶</h3>
+                    <p>海兔會肚子餓，水質也會隨時間變髒喔！記得點擊下方的「餵食海藻」和「淨化水質」保持牠的健康！每次互動都能賺取積分💰</p>
+                </div>
+            </div>
+
+            <!-- 教學區塊 2：運動 -->
+            <div class="manual-section">
+                <div class="manual-img">
+                    <svg viewBox="0 0 120 120"><circle cx="60" cy="60" r="45" fill="#bae6fd" stroke="#0284c7" stroke-width="4"/><circle cx="45" cy="45" r="10" fill="#ffffff" opacity="0.8"/></svg>
+                </div>
+                <div class="manual-text">
+                    <h3 style="color: #3b82f6;">2. 活力運動</h3>
+                    <p>點擊「活力運動」，把球丟進魚缸裡讓海兔撿！如果不餵牠吃飽，牠可是會生氣拒絕運動的喔！</p>
+                </div>
+            </div>
+
+            <!-- 教學區塊 3：裝扮與商店 -->
+            <div class="manual-section">
+                <div class="manual-img">
+                    <svg viewBox="0 0 100 100"><polygon points="50,5 61,35 95,35 68,55 79,85 50,65 21,85 32,55 5,35 39,35" fill="#facc15"/></svg>
+                </div>
+                <div class="manual-text">
+                    <h3 style="color: #f59e0b;">3. 換裝與特效</h3>
+                    <p>賺夠積分後，點擊「🛍️ 裝扮與互動」解鎖新幻獸、超酷背景和浮誇特效。買過的道具會自動收進房主的「百寶袋」裡！</p>
+                </div>
+            </div>
+
+            <!-- 教學區塊 4：多人連線 -->
+            <div class="manual-section">
+                <div class="manual-img">
+                    <svg viewBox="0 0 100 100"><path d="M 10 20 L 90 20 L 90 70 L 60 70 L 40 90 L 40 70 L 10 70 Z" fill="#fbcfe8" stroke="#db2777" stroke-width="4"/></svg>
+                </div>
+                <div class="manual-text">
+                    <h3 style="color: #ec4899;">4. 多人派對</h3>
+                    <p>點擊右上角「📡 連線」可以建立房間，把六碼代碼貼給朋友，大家就能一起在魚缸裡聊天串門子啦！</p>
+                </div>
+            </div>
+
+        </div>
+        <div class="manual-footer">
+            <button class="modal-btn btn-confirm" onclick="closeManual()" style="width: 100%; background: #78350f; box-shadow: 0 5px 0 #451a03; color: white; font-size: 1.2rem;">我知道啦！</button>
+        </div>
+    </div>
+</div>
 <button id="customTauntBtn" onclick="openCustomTauntModal()" style="display: none;">✏️ 設定自定義彈幕</button>
     <!-- 🌟 【百寶袋彈出視窗】只有連線時的房主才能打開炫耀 -->
     <div class="name-modal-overlay" id="catalogModalOverlay">
@@ -2414,6 +2596,29 @@ const effectData = {
         window.onload = function() {
             initGameData(); 
         };
+        // 🌟 視窗大小改變時的「防走失與自動校正」機制
+        window.addEventListener('resize', () => {
+            const slugEl = document.getElementById('slugContainer');
+            const stage = document.getElementById('mainStage');
+            
+            // 如果正在餵食或運動中，先不打擾牠
+            if (!slugEl || !stage || isFeedingActive || isExercisingActive) return;
+
+            // 計算縮小後視窗的安全極限
+            const maxX = stage.offsetWidth - slugEl.offsetWidth;
+            const maxY = stage.offsetHeight - slugEl.offsetHeight;
+
+            let curLeft = parseFloat(slugEl.style.left);
+            let curTop = parseFloat(slugEl.style.top);
+
+            // 如果海兔有離開過中心點（有絕對座標），就進行邊界檢查並推回畫面內
+            if (!isNaN(curLeft)) {
+                slugEl.style.left = Math.max(0, Math.min(maxX, curLeft)) + 'px';
+            }
+            if (!isNaN(curTop)) {
+                slugEl.style.top = Math.max(0, Math.min(maxY, curTop)) + 'px';
+            }
+        });
 // 🌟 洗掉前任記憶的忘情水！
         function clearTestLogin() {
             sessionStorage.removeItem('test_nudi_token');
@@ -2820,12 +3025,16 @@ function checkCleanCompleted() {
             floatingAlgae.style.top = targetFoodPos.y + 'px';
         }
 
-        function runSlugChaseLoop() {
+function runSlugChaseLoop() {
             if (!isFeedingActive) return;
 
             const slugEl = document.getElementById('slugContainer');
             const stage = document.getElementById('mainStage');
             const rect = slugEl.getBoundingClientRect();
+
+            // 防呆：確保海藻座標不超出目前的舞台範圍
+            targetFoodPos.x = Math.max(0, Math.min(stage.offsetWidth, targetFoodPos.x));
+            targetFoodPos.y = Math.max(0, Math.min(stage.offsetHeight, targetFoodPos.y));
 
             const slugCenterX = rect.left + rect.width / 2;
             const slugCenterY = rect.top + rect.height / 2;
@@ -2842,15 +3051,19 @@ function checkCleanCompleted() {
                 curLeft += (dx / dist) * stepSpeed;
                 curTop += (dy / dist) * stepSpeed;
 
-                const maxX = stage.offsetWidth - slugEl.offsetWidth;
-                const maxY = stage.offsetHeight - slugEl.offsetHeight;
+                // 🌟 關鍵修復：放寬海兔的「空氣牆」限制
+                // 讓海兔可以超出邊界一點點，這樣才能吃到角落的海藻，不會再卡住無限彈跳！
+                const minX = -slugEl.offsetWidth / 3;
+                const maxX = stage.offsetWidth - slugEl.offsetWidth * 0.6;
+                const minY = -slugEl.offsetHeight / 3;
+                const maxY = stage.offsetHeight - slugEl.offsetHeight * 0.6;
 
-                slugEl.style.left = Math.max(0, Math.min(maxX, curLeft)) + 'px';
-                slugEl.style.top = Math.max(0, Math.min(maxY, curTop)) + 'px';
+                slugEl.style.left = Math.max(minX, Math.min(maxX, curLeft)) + 'px';
+                slugEl.style.top = Math.max(minY, Math.min(maxY, curTop)) + 'px';
 
-                // 讓海兔正面朝向海藻方向（預設臉朝左，往右需翻轉為 -1）
+                // 轉向時，動態判斷是否為手機版，保留 scale(0.85) 的縮小設定
                 const direction = dx > 0 ? -1 : 1;
-                slugEl.style.transform = `scaleX(${direction})`;
+                slugEl.style.transform = window.innerWidth <= 768 ? `scale(0.85) scaleX(${direction})` : `scaleX(${direction})`;
             }
 
             if (dist < 70) {
@@ -2923,7 +3136,7 @@ function completeFeedingAction(isSuccess) {
 
                 setTimeout(() => {
                     slugEl.classList.remove('is-eating-munch');
-                    slugEl.style.transform = 'scaleX(1)';
+                    slugEl.style.transform = '';
                     if (faceGroup) faceGroup.innerHTML = originalFaceHTML;
                 }, 1800);
 
@@ -2945,7 +3158,7 @@ function completeFeedingAction(isSuccess) {
                 showFloatText('😋 嚼嚼嚼！美味海藻 +80');
                 fetchAPI('/pet-games/interact', 'POST', { action: 'feed' });
             } else {
-                slugEl.style.transform = 'scaleX(1)';
+             slugEl.style.transform = '';
                 showFloatText('海藻掉在路上了～再試一次吧！');
             }
         
@@ -3237,7 +3450,8 @@ function handleThrowBall(e) {
                 // 抵達判定的距離門檻（去撿球 35px，回碗放球 65px）
                 const arriveThreshold = fetchPhase === 'toBall' ? 35 : 65;
 
-                slugEl.style.transform = `scaleX(${dx > 0 ? -1 : 1})`;
+                const direction = dx > 0 ? -1 : 1;
+slugEl.style.transform = window.innerWidth <= 768 ? `scale(0.85) scaleX(${direction})` : `scaleX(${direction})`;
 
                 const runSpeed = 6.2;
                 if (dist > arriveThreshold) {
@@ -3312,7 +3526,7 @@ function handleThrowBall(e) {
             const slugEl = document.getElementById('slugContainer');
             if (slugEl) {
                 slugEl.classList.remove('is-exercising-run');
-                slugEl.style.transform = 'scaleX(1)';
+                slugEl.style.transform = '';
             }
         }
         // 🌟 【水質系統：隨時間自然變髒與渲染引擎】
@@ -3585,16 +3799,20 @@ function updateLangUI() {
             }, 1000);
         }
 
-        function startGame() {
-            document.getElementById('gachaScreen').style.opacity = 0;
-            setTimeout(() => {
-                document.getElementById('gachaScreen').style.display = 'none';
-                saveGame();
-                applySlugStyles();
-                renderShop();
-                updateUI();
-            }, 500);
-        }
+       function startGame() {
+    document.getElementById('gachaScreen').style.opacity = 0;
+    setTimeout(() => {
+        document.getElementById('gachaScreen').style.display = 'none';
+        saveGame();
+        applySlugStyles();
+        renderShop();
+        updateUI();
+        
+        // 🐣 新增這行：遊戲開始時，自動打開教學手冊讓玩家看！
+        openManual(); 
+        
+    }, 500);
+}
 
         const randomNames = {
             zh: ["不願意透露姓名的海兔", "代碼寫不完", "軟爛小麻糬", "霸道總裁的兔兔", "深海大鳳梨", "絕世好兔", "世界第一可愛", "拒絕 Debug", "寶寶的乖海兔", "不要吃我"],
@@ -3830,7 +4048,7 @@ function updateLangUI() {
 
 let trialTimeLeft = 10; // 全域記錄試用剩餘時間
 
-        function tryItem(key, type) {
+function tryItem(key, type) {
             trialState[type] = key;
             refreshAll();
             
@@ -3846,6 +4064,12 @@ let trialTimeLeft = 10; // 全域記錄試用剩餘時間
             showFloatText('⏱️ 試用開始', 2000);
             
             startTrialCountdown();
+
+            // 👇 新增這一段：自動把商店關起來，讓玩家馬上看效果！
+            const shopPanel = document.getElementById('uiPanel');
+            if (shopPanel && shopPanel.classList.contains('open')) {
+                shopPanel.classList.remove('open');
+            }
         }
 
         // 獨立出計時器啟動函式，方便暫停與恢復
@@ -10293,6 +10517,14 @@ let currentPaintPalette = 0;
                 stage.appendChild(slug); // 乖乖回魚缸
             }, 500); 
         }
+        // 🌟 打開與關閉手冊的函數
+function openManual() {
+    document.getElementById('manualOverlay').style.display = 'flex';
+}
+
+function closeManual() {
+    document.getElementById('manualOverlay').style.display = 'none';
+}
     </script>
 </body>
 </html>
