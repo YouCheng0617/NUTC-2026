@@ -20,9 +20,9 @@ export const gameConfig = {
         ]
     },
     actions: {
-        FEED: { reward: 80, cdSeconds: 8 },      // 餵食海藻
-        PURIFY: { reward: 100, cdSeconds: 15 },   // 淨化水質
-        PET: { reward: 50, cdSeconds: 5 }         // 撫摸雪兔
+        FEED: { reward: 80, cdSeconds: 8 },          // 餵食海藻
+        PURIFY: { reward: 100, cdSeconds: 15 },      // 淨化水質
+        PET: { reward: 80, cdSeconds: 10 }         // 撫摸雪兔
     },
     shop: {
         pet_color: {
@@ -86,111 +86,79 @@ export const gameConfig = {
             abyssSlug: 9000       // 深淵使者
         },
         background_color: {
-            sky: 0,                   // 基礎藍
-            tvStatic: 1000,           // 阿嬤的舊電視
-            ocean: 1000,              // 神祕海洋
-            beach: 1200,              // 陽光沙灘
-            sunset: 1500,             // 唯美落日
-            midnight: 1500,           // 靜謐星空
-            strawberryMilk: 1500,     // 草莓牛奶
-            desert: 1600,             // 無垠沙海
-            matchaLatte: 1600,        // 宇治抹茶
-            pudding: 1700,            // 焦糖布丁
-            forest: 1800,             // 精靈森林
-            snowfield: 1800,          // 極地雪原
-            blueberryJam: 1800,       // 藍莓果醬
-            taroPaste: 1800,          // 香芋泥泥
-            mintChoco: 1900,          // 薄荷巧克
-            aurora: 2000,             // 極光祕境
-            coffeeShop: 2000,         // 午後拿鐵
-            lavender: 2100,           // 薰衣草田
-            honeyPot: 2100,           // 小熊蜜罐
-            volcano: 2200,            // 烈焰火山
-            tomatoGarden: 2200,       // 番茄樂園
-            coralReef: 2300,          // 七彩珊瑚
-            autumnLeaves: 2400,       // 楓葉深秋
-            peachOrchard: 2400,       // 水蜜桃季
-            cherryBlossom: 2500,      // 櫻花小徑
-            toxicSwamp: 2500,         // 史萊姆毒沼
-            catCafe: 2800,            // 貓咪咖啡廳
-            abyss: 3000,              // 無底深淵
-            movieTheater: 3000,       // 午夜電影院
-            lunarBase: 3200,          // 月球基地
-            hauntedHouse: 3300,       // 幽靈洋館
-            bathhouse: 3400,          // 溫泉澡堂
-            galaxy: 3500,             // 銀河星系
-            candyLand: 3600,          // 魔法糖果屋
-            nebula: 3800,             // 粉紅星雲
-            cloudCastle: 3800,        // 雲端城堡
-            crystalCave: 4000,        // 水晶石洞
-            dragonNest: 4200,         // 巨龍巢穴
-            bloodMoon: 4400,          // 猩紅之月
-            supernova: 4500,          // 超新星爆發
-            artistCanvas: 4500,       // 畫布上的塗鴉
-            vaporwave: 4800,          // 蒸氣波迷夢
-            blackHole: 5000,          // 黑洞視界
-            neonCity: 5200,           // 霓虹不夜城
-            cyberpunk: 5500,          // 賽博龐克
-            matrix: 6000,             // 母體數據流
-            heartbeat: 6666,          // 心動小鎮
-            rainbowBridge: 7777,      // 彩虹樂園
-            noCodeParadise: 8888,     // 拒絕寫Code天堂
-            goldenMine: 9999          // 暴富金礦
+            // 🌟 01 ~ 04：基礎入門系列
+            none: 0,                         // 無背景
+            cozy_room: 200,                  // 溫馨房間
+            sunshine_grassland: 400,         // 陽光草原
+            sunny_park: 500,                 // 陽光公園
+
+            // 🌟 05 ~ 10：自然與日常系列
+            misty_forest: 600,               // 迷霧森林
+            breeze_morning: 800,             // 微風晨曦
+            afternoon_tea: 900,              // 午後茶會
+            cherry_park: 1000,               // 櫻花小徑
+            bamboo_grove: 1100,              // 翠綠竹林
+            rainy_street: 1200,              // 雨中街景
+
+            // 🌟 11 ~ 15：風景與探險系列
+            sunset_beach: 1400,              // 夕陽海灘
+            autumn_leaves: 1500,             // 秋日楓紅
+            deep_sea: 1600,                  // 深海秘境
+            snowy_mountain: 1800,            // 銀白雪山
+            starry_night: 2000,              // 璀璨星空
+
+            // 🌟 16 ~ 21：奇幻異想系列
+            candy_land: 2200,                // 糖果王國
+            magic_academy: 2400,             // 魔法學院
+            lavender_field: 2500,            // 薰衣草田
+            aurora_sky: 2600,                // 夢幻極光
+            retro_arcade: 2800,              // 復古街機
+            neon_city: 3000,                 // 賽博霓虹
+
+            // 🌟 22 ~ 27：宇宙與奇境系列
+            crystal_cave: 3200,              // 水晶洞穴
+            galaxy_space: 3400,              // 浩瀚銀河
+            desert_oasis: 3500,              // 沙漠綠洲
+            ancient_ruins: 3600,             // 遠古遺跡
+            volcano_core: 3800,              // 熔岩火山
+            floating_island: 4000,           // 浮空島嶼
+
+            // 🌟 28 ~ 32：頂級殿堂系列
+            underwater_temple: 4200,         // 亞特蘭提斯
+            cyber_matrix: 4500,              // 數位母體
+            celestial_realm: 4800,           // 雲端神域
+            dream_wonderland: 5000,          // 夢境仙境
+            royal_palace: 5200               // 皇家宮殿
         },
         background_effects: {
             none: 0,                 // 無特效
-            poop: 500,              // 黃金天降
-            rain: 800,              // 綿綿細雨
-            zzz: 1000,              // 強烈睡意
-            sweat: 1000,            // 尷尬流汗
-            tvStatic: 1000,         // 阿嬤的舊電視
-            bubble: 1200,           // 夢幻泡泡
-            math: 1200,             // 數學當機
-            leaf: 1400,             // 落葉紛飛
-            tomato: 1500,           // 小番茄煙火
-            snow: 1500,             // 初雪飄落
-            sun: 1500,              // 陽光普照
-            moon: 1500,             // 月光灑落
-            noClass: 1600,          // 不想上課
-            sheep: 1600,            // 數羊羊
-            cookie: 1600,           // 餅干碎屑
-            boba: 1700,             // 珍奶珍珠
-            heartbeat: 1800,        // 心動滿滿
-            star: 1800,             // 繁星閃爍
-            duck: 1800,             // 黃色小鴨
-            coffee: 1800,           // 咖啡續命
-            fish: 1900,             // 深海魚群
-            fries: 1900,            // 薯條雨
-            paint: 2000,            // 揮灑顏料
-            firefly: 2000,          // 螢火蟲
-            pizza: 2000,            // 披薩派對
-            balloon: 2000,          // 彩色氣球
-            sparkle: 2000,          // Bling閃光
-            butterfly: 2100,        // 蝴蝶翩翩
-            cake: 2100,             // 甜點時間
-            sakura: 2200,           // 櫻花飛舞
-            sushi: 2200,            // 迴轉壽司
-            music: 2200,            // 跳動音符
-            bat: 2300,              // 吸血蝙蝠
-            lightning: 2400,        // 閃電交加
-            feather: 2400,          // 天使羽毛
-            disco: 2500,            // 回程挑釁
-            ghost: 2500,            // 小幽靈
-            confetti: 2500,         // 派對拉炮
-            gear: 2600,             // 齒輪運轉
-            card: 2700,             // 魔術撲克
-            rainbowStars: 2800,     // 彩虹星塵
-            gift: 2800,             // 驚喜禮物
-            meteor: 3000,           // 流星雨
-            potion: 3200,           // 煉金藥水
-            magic: 3500,            // 魔法詠唱
-            clock: 3600,            // 時光倒流
-            sword: 3800,            // 勇者之劍
-            ufo: 4000,              // 外星綁架
-            planet: 4200,           // 行星軌道
-            crown: 5000,            // 加冕皇冠
-            bugFree: 8888,          // Bug退散
-            money: 9999             // 財富自由
+            poop: 500,               // 便便來襲
+            rain: 800,               // 綿綿細雨
+            zzz: 800,                // 睡意來襲 (依前端 effectData cost 改為 800)
+            cat: 1000,               // 貓貓降臨 (前端新增)
+            tvStatic: 1000,          // 阿嬤的舊電視
+            bubble: 1200,            // 夢幻泡泡
+            math: 1200,              // 數學當機
+            leaf: 1400,              // 落葉紛飛
+            tomato: 1500,            // 小番茄煙火
+            snow: 1500,              // 初雪飄落
+            sun: 1500,               // 陽光普照
+            moon: 1500,              // 月光灑落
+            sheep: 1600,             // 數羊羊
+            star: 1800,              // 繁星閃爍
+            duck: 1800,              // 黃色小鴨
+            fish: 1900,              // 深海魚群
+            paint: 2000,             // 揮灑顏料
+            butterfly: 2100,         // 蝴蝶翩翩
+            sakura: 2200,            // 櫻花飛舞
+            lightning: 2400,         // 閃電交加
+            disco: 2500,             // 回程挑釁
+            ghost: 2500,             // 小幽靈
+            confetti: 2500,          // 派對拉炮
+            gear: 2600,              // 齒輪運轉
+            bugFree: 4800,           // Bug退散 (依前端 effectData cost 改為 4800)
+            money: 5000,             // 財富自由 (依前端 effectData cost 改為 5000)
+            music: 5200              // 跳動音符 (依前端 effectData cost 改為 5200)
         }
     }
 }
