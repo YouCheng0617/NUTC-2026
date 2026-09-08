@@ -29,12 +29,27 @@ export class PetGameController {
     async interactPetController(req: AuthRequest, res: Response) {
         try {
             const memberId = req.user?.member_id;
-            const { actionType } = req.body;
-            if (!memberId || !actionType) {
-                return res.status(400).json({ error: "缺少必要參數" })
+            const rawAction = req.body.action || req.body.actionType;
+
+            // 1. 先確認有值存在
+            if (!memberId || !rawAction) {
+                return res.status(400).json({ error: "缺少必要參數" });
             }
 
-            const updatedPet = await interactPet(Number(memberId), actionType);
+            // 2. 轉大寫
+            const actionType = String(rawAction).toUpperCase();
+
+            // 3. 檢查動作是否合法（可選但推薦，避免非預期的動作傳入）
+            const validActions = ['FEED', 'PURIFY', 'PET'];
+            if (!validActions.includes(actionType)) {
+                return res.status(400).json({ error: "無效的互動類型！" });
+            }
+
+            const updatedPet = await interactPet(
+                Number(memberId),
+                actionType as 'FEED' | 'PURIFY' | 'PET'
+            );
+
             return res.status(200).json({
                 message: "互動成功！",
                 coin: updatedPet.coin,
