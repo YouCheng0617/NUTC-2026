@@ -184,6 +184,7 @@
     height: 72%; 
     margin-bottom: 25px; 
     position: relative;
+    touch-action: pan-y; /* 確保使用者在圖片上滑動時，網頁仍然可以正常上下捲動 */
   }
 
   .image-container {
@@ -475,7 +476,6 @@
     lightbox.classList.remove('show');
   };
 
-  // === 重新補齊全部需要的 DOM 變數 ===
   const subSidebar = document.getElementById('subSidebar');
   const carouselContainer = document.getElementById('carouselContainer');
   const displayImage = document.getElementById('displayImage');
@@ -485,7 +485,7 @@
   const prevBtn = document.getElementById('prevBtn');
   const nextBtn = document.getElementById('nextBtn');
 
-  // === 讓滑鼠滾輪可以直接水平滑動次選單 ===
+  // === 滑鼠滾輪水平滑動次選單 ===
   subSidebar.addEventListener('wheel', (evt) => {
     if (window.innerWidth <= 900) {
       evt.preventDefault();
@@ -493,7 +493,7 @@
     }
   });
 
-  // === 讓滑鼠滾輪可以直接切換圖片 (加入防呆冷卻機制) ===
+  // === 滑鼠滾輪切換圖片 ===
   let wheelTimeout;
   carouselContainer.addEventListener('wheel', (evt) => {
     evt.preventDefault(); 
@@ -510,6 +510,30 @@
       wheelTimeout = null;
     }, 400); 
   }, { passive: false });
+
+  // === 【新增】手機觸控滑動 (Swipe) 切換圖片 ===
+  let touchStartX = 0;
+  let touchEndX = 0;
+
+  carouselContainer.addEventListener('touchstart', (evt) => {
+    touchStartX = evt.changedTouches[0].screenX;
+  }, { passive: true });
+
+  carouselContainer.addEventListener('touchend', (evt) => {
+    touchEndX = evt.changedTouches[0].screenX;
+    handleSwipe();
+  }, { passive: true });
+
+  function handleSwipe() {
+    const threshold = 40; // 滑動距離超過 40px 才觸發切換
+    if (touchStartX - touchEndX > threshold) {
+      // 向左滑動 -> 下一張
+      if(nextBtn.style.visibility !== 'hidden') nextBtn.click();
+    } else if (touchEndX - touchStartX > threshold) {
+      // 向右滑動 -> 上一張
+      if(prevBtn.style.visibility !== 'hidden') prevBtn.click();
+    }
+  }
 
   const tutorialData = {
     main: [
