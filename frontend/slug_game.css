@@ -1,0 +1,1403 @@
+/* 🌟 【全域變數調色盤】這裡定義了整個遊戲的主要顏色，換這裡的色號，整個網頁風格就會跟著變哦！ */
+        :root {
+            --primary-bg: #fff0f5; 
+            --panel-bg: #ffffff;
+            --card-bg: #fff9fa;
+            --accent-color: #ffb6c1;
+            --text-dark: #6b4c4a;
+            --text-dim: #b89f9d;
+            --border-color: #ffd1dc;
+            --btn-hover: #ffedf0;
+            --shadow-color: rgba(255, 182, 193, 0.4);
+            
+            /* 海兔預設的身體顏色變數 */
+            --c-body: #ffffff;
+            --c-outline: #3f2a2a;
+            --c-ear-top: #3f2a2a;
+            --c-tail: #3f2a2a;
+            --c-spot: #3f2a2a;
+            --c-blush: #fca5a5;
+        }
+
+        /* 🌟 基礎排版設定，不讓玩家反白選取文字 */
+        * {
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-user-select: none;
+            font-family: 'Nunito', 'PingFang TC', 'Microsoft JhengHei', sans-serif;
+        }
+
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100vw;
+            height: 100dvh;
+            overflow: hidden;
+            background-color: var(--primary-bg);
+            color: var(--text-dark);
+        }
+
+        /* 🌟 【多人連線區塊 UI】包含右上角的連線按鈕、房間代碼顯示 */
+        .mp-panel {
+            position: absolute;
+            top: 75px;
+            right: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            z-index: 55;
+            background: rgba(255, 255, 255, 0.85);
+            padding: 15px;
+            border-radius: 20px;
+            border: 3px solid var(--border-color);
+            box-shadow: 0 5px 15px var(--shadow-color);
+            backdrop-filter: blur(4px);
+        }
+        .mp-info { font-size: 0.9rem; font-weight: 900; color: var(--text-dark); text-align: center; }
+        .mp-btn { background: var(--text-dark); color: white; border: none; padding: 8px 15px; border-radius: 15px; font-weight: 900; cursor: pointer; box-shadow: 0 4px 0 rgba(0,0,0,0.15); transition: 0.1s; }
+        .mp-btn:active { transform: translateY(4px); box-shadow: 0 0 0 transparent; }
+        .mp-btn.secondary { background: #ffffff; color: var(--text-dark); border: 2px solid var(--text-dark); box-shadow: 0 4px 0 var(--text-dark); }
+        
+        /* 🌟 【其他玩家與聊天泡泡】別人進來房間時的顯示設定 */
+        .other-player { position: absolute; width: 280px; height: 180px; pointer-events: none; transition: left 0.15s ease-out, top 0.15s ease-out; z-index: 8; }
+        .other-player-name { position: absolute; top: -10px; width: 100%; text-align: center; font-weight: 900; font-size: 1.1rem; color: var(--text-dark); text-shadow: 2px 2px 0 #fff, -2px -2px 0 #fff, 2px -2px 0 #fff, -2px 2px 0 #fff; z-index: 10; }  
+        .chat-bubble { position: absolute; top: -65px; left: 50%; transform: translateX(-50%); background: white; padding: 8px 15px; border-radius: 20px; border: 2px solid var(--accent-color); font-weight: 900; font-size: 1rem; color: var(--text-dark); white-space: nowrap; box-shadow: 0 5px 15px rgba(255, 182, 193, 0.4); animation: chatPop 0.3s cubic-bezier(0.18, 0.89, 0.32, 1.28); z-index: 30; }
+        .chat-bubble::after { content: ''; position: absolute; bottom: -8px; left: 50%; transform: translateX(-50%); border-width: 8px 8px 0; border-style: solid; border-color: white transparent transparent transparent; }
+        .chat-bubble::before { content: ''; position: absolute; bottom: -11px; left: 50%; transform: translateX(-50%); border-width: 10px 10px 0; border-style: solid; border-color: var(--accent-color) transparent transparent transparent; z-index: -1; }
+        @keyframes chatPop { 0% { transform: translateX(-50%) scale(0.5); opacity: 0; } 100% { transform: translateX(-50%) scale(1); opacity: 1; } }
+
+        /* 🌟 【最頂端資訊列】返回按鈕、積分顯示、語言切換 */
+        .top-bar {
+            position: absolute;
+            top: 0;
+            width: 100%;
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 50;
+        }
+        .points-display {
+            background: #ffffff;
+            padding: 8px 24px;
+            border-radius: 30px;
+            border: 3px solid var(--border-color);
+            font-weight: 900;
+            letter-spacing: 1px;
+            color: var(--text-dark);
+            box-shadow: 0 4px 0 var(--border-color);
+            backdrop-filter: blur(4px);
+            font-size: 1.1rem;
+        }
+        .lang-btn {
+            background: #ffffff;
+            border: 3px solid var(--border-color);
+            color: var(--text-dark);
+            padding: 8px 18px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: 900;
+            font-size: 0.9rem;
+            transition: 0.1s;
+            box-shadow: 0 4px 0 var(--border-color);
+        }
+        .lang-btn:active { transform: translateY(4px); box-shadow: 0 0 0 transparent; }
+
+        /* 🌟 【主要遊戲舞台】包含背景底色、網點、還有特效圖層 */
+        .stage {
+            position: absolute;
+            top: 0; left: 0; 
+            width: 100%; height: 58%; 
+            background: #dbeafe; overflow: hidden; transition: background 1s ease;
+        }
+        .dot-pattern {
+            position: absolute; width: 100%; height: 100%;
+            background-image: radial-gradient(rgba(255,255,255,0.7) 3px, transparent 3px);
+            background-size: 35px 35px; opacity: 0.9; pointer-events: none;
+            box-shadow: inset 0 0 50px rgba(255, 255, 255, 0.5); z-index: 2; transition: opacity 0.5s;
+        }
+        .effect-layer { position: absolute; width: 100%; height: 100%; top: 0; left: 0; pointer-events: none; z-index: 5; overflow: hidden; }
+/* 🌟 海兔跳躍與名片專屬模式 */
+        .slug-container.is-jumping {
+            /* 加入超 Q 彈的果凍跳躍曲線 (cubic-bezier) */
+            transition: top 0.5s cubic-bezier(0.34, 1.56, 0.64, 1), 
+                        left 0.5s cubic-bezier(0.34, 1.56, 0.64, 1), 
+                        transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+        }
+        
+        .slug-container.card-mode {
+            /* 讓海兔突破背景限制，定位到螢幕正中央的證件照框框裡 */
+            top: calc(50vh - 120px) !important;
+            left: calc(50vw - 170px) !important;
+            transform: translateY(-40px) scale(0.65) !important;
+            z-index: 10005 !important;
+            pointer-events: none !important; /* 拍照時乖乖不動，不能拖曳 */
+        }
+        /* 特效動畫：雨滴與泡泡 */
+        .rain-drop { position: absolute; width: 2px; height: 20px; background: rgba(255, 255, 255, 0.7); top: -20px; animation: rainFall linear infinite; }
+        @keyframes rainFall { to { transform: translateY(60vh); } }
+        .bubble { position: absolute; border-radius: 50%; border: 1.5px solid rgba(255, 255, 255, 0.7); background: rgba(255, 255, 255, 0.2); bottom: -20px; animation: bubbleRise ease-in infinite; }
+        @keyframes bubbleRise { to { transform: translateY(-60vh) scale(1.5); opacity: 0; } }
+/* 🫧 水質髒污圖層（遮住海兔） */
+        .water-dirt-overlay {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            pointer-events: none;
+            touch-action: none; /* 🌟 禁止手機預設手勢，確保擦拭不卡頓 */
+            z-index: 18;
+            transition: opacity 0.3s ease;
+            opacity: 0;
+            background: radial-gradient(circle at 50% 50%, rgba(101, 163, 13, 0.55) 0%, rgba(63, 98, 18, 0.8) 60%, rgba(20, 45, 10, 0.96) 100%);
+            backdrop-filter: blur(8px);
+        }
+
+        /* 🧽 擦玻璃抹布（跟隨滑鼠／手指移動） */
+        .cleaning-cloth-item {
+            position: fixed;
+            width: 70px;
+            height: 70px;
+            pointer-events: none;
+            z-index: 99999;
+            transform: translate(-50%, -50%);
+            filter: drop-shadow(0 8px 15px rgba(0, 0, 0, 0.3));
+            animation: clothSway 0.25s infinite alternate ease-in-out;
+        }
+        @keyframes clothSway {
+            0% { transform: translate(-50%, -50%) rotate(-12deg) scale(1); }
+            100% { transform: translate(-50%, -50%) rotate(12deg) scale(1.08); }
+        }
+
+        /* ✨ 抹布擦過時留下的乾淨透明水光圈 */
+        .cloth-wipe-trail {
+            position: absolute;
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 19;
+            transform: translate(-50%, -50%);
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.8) 0%, rgba(56, 189, 248, 0.4) 40%, transparent 80%);
+            animation: wipeSparkle 0.6s ease-out forwards;
+        }
+        @keyframes wipeSparkle {
+            0% { transform: translate(-50%, -50%) scale(0.6); opacity: 1; }
+            100% { transform: translate(-50%, -50%) scale(1.6); opacity: 0; }
+        }
+        /* 🏀 玩具水晶球（手持飛行與落地） */
+        .exercise-ball-item {
+            position: fixed;
+            width: 58px; /* 🌟 稍微放大至 58px，看小魚更清楚 */
+            height: 58px;
+            pointer-events: none;
+            touch-action: none;
+            z-index: 99999;
+            transform: translate(-50%, -50%);
+            filter: drop-shadow(0 8px 16px rgba(14, 165, 233, 0.4));
+            animation: ballPulse 0.4s infinite alternate ease-in-out;
+        }
+        @keyframes ballPulse {
+            0% { transform: translate(-50%, -50%) scale(0.95); }
+            100% { transform: translate(-50%, -50%) scale(1.08); }
+        }
+
+        .stage-landed-ball {
+            position: absolute;
+            width: 54px; /* 🌟 舞台上的球為 54px */
+            height: 54px;
+            pointer-events: none;
+            z-index: 12;
+            transform: translate(-50%, -50%);
+            filter: drop-shadow(0 6px 10px rgba(0, 0, 0, 0.25));
+        }
+
+/* 🥣 撿球目標小碗（出現在畫面下方，提升層級避免被擋） */
+        .ball-return-bowl {
+            position: absolute;
+            bottom: 15px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80px;
+            height: 50px;
+            pointer-events: none;
+            z-index: 15;
+            filter: drop-shadow(0 8px 15px rgba(0, 0, 0, 0.2));
+            animation: bowlPopIn 0.4s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+        }
+        @keyframes bowlPopIn {
+            0% { transform: translateX(-50%) scale(0); opacity: 0; }
+            100% { transform: translateX(-50%) scale(1); opacity: 1; }
+        }
+
+        /* 😫 【飢餓虛弱狀態】整隻海兔癱軟、無精打采慢速喘息 */
+        .slug-container.is-starving .slug-svg {
+            filter: drop-shadow(0 6px 10px rgba(0, 0, 0, 0.15)) grayscale(0.25) brightness(0.92);
+            animation: slugStarvingSlump 2.2s infinite ease-in-out !important;
+            transform-origin: center bottom;
+        }
+        @keyframes slugStarvingSlump {
+            0%, 100% { transform: scale(1.04, 0.86) translateY(14px); }
+            50% { transform: scale(0.96, 0.94) translateY(8px); }
+        }
+
+        /* 🫧 肚子咕嚕咕嚕飢餓氣泡字樣 */
+        .starving-belly-grumble {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            background: rgba(254, 242, 242, 0.92);
+            border: 2px dashed #ef4444;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 900;
+            color: #dc2626;
+            pointer-events: none;
+            z-index: 25;
+            box-shadow: 0 4px 10px rgba(239, 68, 68, 0.25);
+            animation: bellyGrumblePulse 1.4s infinite ease-in-out;
+        }
+        @keyframes bellyGrumblePulse {
+            0%, 100% { transform: translate(-50%, -50%) scale(0.92); opacity: 0.85; }
+            50% { transform: translate(-50%, -58%) scale(1.08); opacity: 1; filter: drop-shadow(0 0 6px rgba(239, 68, 68, 0.4)); }
+        }
+
+        /* 拒絕運動時的無奈小搖頭 */
+        .slug-container.is-refusing-exercise .slug-svg {
+            animation: slugRefuseShake 0.4s ease-in-out !important;
+        }
+        @keyframes slugRefuseShake {
+            0%, 100% { transform: translateX(0); }
+            20% { transform: translateX(-12px) rotate(-4deg); }
+            40% { transform: translateX(12px) rotate(4deg); }
+            60% { transform: translateX(-8px) rotate(-2deg); }
+            80% { transform: translateX(8px) rotate(2deg); }
+        }
+
+        /* 💦 狂奔時身邊飄出的小汗珠 */
+        .exercise-sweat-drop {
+            position: absolute;
+            width: 22px;
+            height: 22px;
+            pointer-events: none;
+            z-index: 25;
+            animation: sweatFly 0.6s ease-out forwards;
+        }
+        @keyframes sweatFly {
+            0% { transform: translate(0, 0) scale(0.5); opacity: 1; }
+            100% { transform: translate(var(--sw-dx), -35px) scale(1.2); opacity: 0; }
+        }
+        /* 🌟 愛心由下往上飄動與破掉的動畫 */
+@keyframes heartFloatAndPop {
+    0% {
+        transform: translateY(0vh) scale(0.3);
+        opacity: 0;
+    }
+    15% {
+        opacity: 0.9;
+        transform: translateY(-10vh) scale(1);
+    }
+    85% {
+        opacity: 0.9;
+        transform: translateY(-50vh) scale(1.1);
+    }
+    92% {
+        opacity: 1;
+        transform: translateY(-55vh) scale(1.3); /* 破裂前瞬間放大 */
+        filter: brightness(2) drop-shadow(0 0 10px #fff);
+    }
+    100% {
+        transform: translateY(-58vh) scale(0.2); /* 啵！縮小炸開消失 */
+        opacity: 0;
+    }
+}
+/* 📺 【阿嬤的舊電視】CRT 舊電視掃描線 + 噪點濾鏡 + 畫面閃爍效果 (清晰且柔和緩慢版) */
+    .tv-filter-overlay {
+        position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+        pointer-events: none; z-index: 99;
+        /* 加深掃描線的對比與網格感，讓濾鏡更清晰明顯 */
+        background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.45) 50%), 
+                    linear-gradient(90deg, rgba(255, 0, 0, 0.12), rgba(0, 255, 0, 0.04), rgba(0, 0, 255, 0.12));
+        background-size: 100% 4px, 3px 100%;
+        /* 提高不透明度，並將閃爍動畫時間拉長、採用柔和的呼吸漸變，避免太快造成不舒服 */
+        opacity: 0.5;
+        animation: flicker 0.8s infinite alternate ease-in-out;
+    }
+    @keyframes flicker {
+        0% { opacity: 0.45; } 
+        100% { opacity: 0.55; }
+    }
+    /* 🌟 【深海魚群專屬】中心透光深淵 ＋ 鯊魚漩渦風暴全域背景 */
+.shark-vortex-bg {
+    position: absolute;
+    top: 0; left: 0; width: 100%; height: 100%;
+    /* 100% 還原圖片：中心亮青藍透光，四周極致深海暗藍黑 */
+    background: radial-gradient(circle at 50% 50%, rgba(56, 189, 248, 0.45) 0%, rgba(2, 132, 199, 0.3) 25%, rgba(15, 23, 42, 0.75) 60%, rgba(2, 6, 23, 0.92) 100%);
+    pointer-events: none;
+    z-index: 1;
+    overflow: hidden;
+}
+
+/* 🌟 中心發光光柱核心 */
+.shark-center-glow {
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    width: 220px; height: 220px;
+    background: radial-gradient(circle, rgba(224, 242, 254, 0.8) 0%, rgba(56, 189, 248, 0.4) 45%, transparent 75%);
+    filter: blur(15px);
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 2;
+    animation: centerGlowPulse 4s ease-in-out infinite alternate;
+}
+@keyframes centerGlowPulse {
+    0% { transform: translate(-50%, -50%) scale(0.9); opacity: 0.7; }
+    100% { transform: translate(-50%, -50%) scale(1.15); opacity: 1.0; }
+}
+
+/* 🌟 旋轉軌道環容器（同心圓旋轉） */
+.shark-ring-track {
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+    border-radius: 50%;
+    transform-origin: center center;
+}
+
+/* 🌟 鯊魚本體：依照切線方向朝著圓周前方游動 */
+.vortex-shark {
+    position: absolute;
+    pointer-events: none;
+    transform-origin: center center;
+}
+
+/* 各層軌道旋轉動畫 */
+@keyframes ringSpinClockwise {
+    0% { transform: translate(-50%, -50%) rotate(0deg); }
+    100% { transform: translate(-50%, -50%) rotate(360deg); }
+}
+@keyframes ringSpinCounter {
+    0% { transform: translate(-50%, -50%) rotate(360deg); }
+    100% { transform: translate(-50%, -50%) rotate(0deg); }
+}
+/* 🌟 【深海點擊泡泡】晶瑩透亮反光 ＋ 自然左右搖曳慢速上升 */
+.deep-sea-click-bubble {
+    position: absolute;
+    pointer-events: none;
+    z-index: 25;
+    border-radius: 50%;
+    /* 水晶泡泡高光與透光水藍漸層 */
+    background: radial-gradient(circle at 32% 30%, rgba(255, 255, 255, 0.95) 0%, rgba(224, 242, 254, 0.45) 25%, rgba(56, 189, 248, 0.15) 65%, rgba(255, 255, 255, 0.7) 100%);
+    border: 1.2px solid rgba(255, 255, 255, 0.85);
+    box-shadow: 0 0 10px rgba(56, 189, 248, 0.7), inset 0 0 5px rgba(255, 255, 255, 0.9);
+    transform: translate(-50%, -50%);
+    animation: clickBubbleRise 2.8s cubic-bezier(0.2, 0.6, 0.35, 1) forwards;
+}
+
+@keyframes clickBubbleRise {
+    0% {
+        transform: translate(-50%, -50%) translate(0, 0) scale(0.3);
+        opacity: 0;
+    }
+    12% {
+        opacity: 0.95;
+        transform: translate(-50%, -50%) translate(var(--drift-x), -25px) scale(1);
+    }
+    60% {
+        opacity: 0.85;
+        transform: translate(-50%, -50%) translate(calc(var(--drift-x) * -0.6), -90px) scale(1.08);
+    }
+    100% {
+        transform: translate(-50%, -50%) translate(calc(var(--drift-x) * 1.4), -180px) scale(1.2);
+        opacity: 0;
+    }
+}
+/* 🌟 【蝴蝶翩翩專屬】微光幽境柔霧圖層 */
+.butterfly-mist-overlay {
+    position: absolute;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: radial-gradient(circle at 50% 50%, rgba(192, 132, 252, 0.12) 0%, rgba(76, 29, 149, 0.18) 60%, transparent 100%);
+    pointer-events: none;
+    z-index: 1;
+}
+
+/* 🌟 影子蝴蝶本體容器 (自帶柔和發光與深色剪影) */
+.shadow-butterfly {
+    position: absolute;
+    width: 32px; height: 32px;
+    pointer-events: none;
+    z-index: 4;
+    perspective: 400px;
+    transform-origin: center center;
+}
+
+/* 🌟 翅膀拍動（以 50px 中脊為軸心自然呼吸扇動） */
+.butterfly-wing-l {
+    transform-origin: 50px center;
+    animation: wingFlapPureL 1.1s infinite alternate ease-in-out;
+}
+.butterfly-wing-r {
+    transform-origin: 50px center;
+    animation: wingFlapPureR 1.1s infinite alternate ease-in-out;
+}
+
+@keyframes wingFlapPureL {
+    0% { transform: scaleX(1); }
+    100% { transform: scaleX(0.72) skewY(-3deg); }
+}
+@keyframes wingFlapPureR {
+    0% { transform: scaleX(1); }
+    100% { transform: scaleX(0.72) skewY(3deg); }
+}
+/* 🌟 蝴蝶飛行時身後留下的微光星塵粒子 */
+.butterfly-spark-trail {
+    position: absolute;
+    width: 4px; height: 4px;
+    background: #e9d5ff;
+    border-radius: 50%;
+    box-shadow: 0 0 6px #c084fc, 0 0 10px #fbcfe8;
+    pointer-events: none;
+    z-index: 3;
+    animation: sparkFade 1.2s ease-out forwards;
+}
+
+@keyframes sparkFade {
+    0% { transform: translate(-50%, -50%) scale(1.2); opacity: 0.9; }
+    50% { opacity: 0.6; }
+    100% { transform: translate(-50%, -50%) translateY(12px) scale(0.2); opacity: 0; }
+}
+/* 📐 【數學當機】清晰、正確且緩慢移動的數學公式與發光叉叉 */
+    .math-formula {
+        position: absolute; 
+        color: #ffffff; /* 使用純白色，並加上深色陰影確保在任何背景都絕對清晰 */
+        background: rgba(107, 76, 74, 0.85); /* 加上深色半透明膠囊底色，讓公式像教科書一樣超好辨識 */
+        padding: 6px 14px;
+        border-radius: 12px;
+        border: 2px solid #ffd1dc;
+        font-family: 'Courier New', monospace;
+        font-weight: 900; 
+        font-size: 1.4rem; 
+        pointer-events: none; 
+        z-index: 6;
+        white-space: nowrap;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.25);
+        animation: mathSprintVerySlow linear infinite;
+    }
+    @keyframes mathSprintVerySlow { 
+        0% { transform: translateX(-300px) translateY(var(--start-y)); opacity: 0; }
+        15% { opacity: 1; }
+        85% { opacity: 1; }
+        100% { transform: translateX(calc(100vw + 300px)) translateY(var(--end-y)); opacity: 0; }
+    }
+
+    .wrong-mark {
+        position: absolute; 
+        top: 0; left: 0; 
+        width: 100%; height: 100%;
+        display: flex; align-items: center; justify-content: center;
+        color: rgba(244, 63, 94, 0.65); 
+        font-size: 35vw; 
+        font-weight: 900;
+        z-index: 7; 
+        pointer-events: none;
+        /* 散發柔和光芒的滿版叉叉 */
+        filter: drop-shadow(0 0 30px rgba(244, 63, 94, 0.9)) blur(0.5px);
+        mix-blend-mode: overlay;
+        animation: glowingMarkPulse 2s ease-in-out infinite;
+    }
+    @keyframes glowingMarkPulse {
+        0% { transform: scale(1.05) rotate(-3deg); opacity: 0.5; filter: drop-shadow(0 0 20px rgba(244,63,94,0.6)) blur(1px); }
+        50% { transform: scale(1) rotate(0deg); opacity: 0.9; filter: drop-shadow(0 0 50px rgba(244, 63, 94, 1)) blur(0px); }
+        100% { transform: scale(1.05) rotate(3deg); opacity: 0.5; filter: drop-shadow(0 0 20px rgba(244,63,94,0.6)) blur(1px); }
+    }
+/* 🌟 【繁星閃爍專屬】四周淡淡金黃色光暈 + 背景明暗呼吸閃爍 */
+.star-golden-vignette-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0) 30%, rgba(254, 240, 138, 0.22) 65%, rgba(245, 158, 11, 0.38) 100%);
+    pointer-events: none;
+    z-index: 1;
+    animation: goldenShimmerPulse 4s ease-in-out infinite alternate;
+}
+@keyframes goldenShimmerPulse {
+    0% { opacity: 0.55; filter: brightness(0.95); }
+    50% { opacity: 0.85; filter: brightness(1.15) drop-shadow(0 0 15px rgba(254, 240, 138, 0.4)); }
+    100% { opacity: 0.65; filter: brightness(1.0); }
+}
+
+/* 🌟 背景定點一閃一閃的微光星芒 */
+.background-twinkle-sparkle {
+    position: absolute;
+    pointer-events: none;
+    z-index: 2;
+    transform-origin: center center;
+    animation: backgroundTwinkleBlink ease-in-out infinite;
+}
+@keyframes backgroundTwinkleBlink {
+    0% { transform: scale(0.2); opacity: 0; filter: drop-shadow(0 0 0px #fff); }
+    50% { transform: scale(1.15); opacity: 0.95; filter: drop-shadow(0 0 8px #fef08a); }
+    100% { transform: scale(0.2); opacity: 0; filter: drop-shadow(0 0 0px #fff); }
+}
+
+/* 🌟 飄落流星與星星的滑落動畫 */
+.twinkling-golden-star {
+    position: absolute;
+    pointer-events: none;
+    z-index: 8;
+    transform-origin: center center;
+    animation: starGlissando linear infinite;
+}
+@keyframes starGlissando {
+    0% { transform: translateY(-5vh) translateX(0px) rotate(0deg) scale(0.3); opacity: 0; }
+    15% { opacity: 1; }
+    85% { opacity: 1; }
+    100% { transform: translateY(108vh) translateX(var(--star-drift)) rotate(360deg) scale(0.9); opacity: 0; }
+}
+
+/* 🌟 滑鼠劃過殘留的流星與星星粒子動畫 */
+.star-cursor-trail {
+    position: absolute;
+    pointer-events: none;
+    z-index: 100;
+    transform-origin: center center;
+    animation: cursorStarPop 0.8s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+}
+@keyframes cursorStarPop {
+    0% {
+        transform: translate(-50%, -50%) translate(0, 0) scale(0.4) rotate(0deg);
+        opacity: 1;
+        filter: drop-shadow(0 0 8px #fff);
+    }
+    40% {
+        transform: translate(-50%, -50%) translate(var(--tx), var(--ty)) scale(1.1) rotate(45deg);
+        opacity: 0.95;
+        filter: drop-shadow(0 0 10px #fef08a);
+    }
+    100% {
+        transform: translate(-50%, -50%) translate(calc(var(--tx) * 1.6), calc(var(--ty) * 1.6 + 15px)) scale(0.1) rotate(90deg);
+        opacity: 0;
+        filter: drop-shadow(0 0 0px transparent);
+    }
+}
+        /* 🌟 【海兔本體的容器與動畫】 */
+        .slug-container {
+            position: absolute !important;
+            width: 340px !important; height: 240px !important;
+            cursor: grab !important; z-index: 10 !important; touch-action: none !important;
+            left: calc(50% - 170px); top: calc(50% - 120px);
+            user-select: none !important; -webkit-user-select: none !important; -webkit-user-drag: none !important;
+            perspective: 800px; /* 解鎖 3D 側翻視覺 */
+            transition: transform 0.25s ease-out;
+        }
+        body.is-dragging-global, body.is-dragging-global * { cursor: grabbing !important; user-select: none !important; -webkit-user-select: none !important; }
+        .slug-container.is-petting .slug-svg { transform: scale(1.06, 0.92) translateY(12px); filter: drop-shadow(0 5px 8px rgba(0,0,0,0.25)); }
+        
+        /* 🌟 【餵食互動：拖曳海藻、咀嚼特效與碎屑動畫】 */
+        .drag-algae-item {
+            position: fixed;
+            width: 55px;
+            height: 55px;
+            pointer-events: none;
+            z-index: 99999;
+            transform: translate(-50%, -50%);
+            filter: drop-shadow(0 6px 12px rgba(22, 101, 52, 0.4));
+            animation: algaeWobble 0.6s infinite alternate ease-in-out;
+        }
+        @keyframes algaeWobble {
+            0% { transform: translate(-50%, -50%) rotate(-8deg) scale(1); }
+            100% { transform: translate(-50%, -50%) rotate(8deg) scale(1.1); }
+        }
+
+        .slug-container.is-chasing-food .slug-svg {
+            animation: slugHungryHop 0.35s infinite alternate ease-in-out !important;
+        }
+        @keyframes slugHungryHop {
+            0% { transform: translateY(0) scale(1.08, 0.88); }
+            100% { transform: translateY(-32px) scale(0.92, 1.12); }
+        }
+
+        /* 😋 嚼嚼嚼本體：腮幫子快速一鼓一縮、上下 Q 彈搖晃 */
+        .slug-container.is-eating-munch .slug-svg {
+            animation: slugChewingShake 0.16s infinite alternate ease-in-out !important;
+        }
+        @keyframes slugChewingShake {
+            0% { transform: scale(1.1, 0.9) translateY(4px) rotate(-1.5deg); }
+            100% { transform: scale(0.95, 1.08) translateY(-4px) rotate(1.5deg); }
+        }
+
+        
+        /* 😋 吃到海藻時：連續 Q 彈咀嚼（嚼嚼嚼！Nom Nom Nom） */
+        .slug-container.is-eating-munch .slug-svg {
+            animation: slugNomNomMunch 0.22s infinite alternate ease-in-out !important;
+        }
+        @keyframes slugNomNomMunch {
+            0% { transform: scale(1.08, 0.92) translateY(4px); }
+            100% { transform: scale(0.96, 1.05) translateY(-2px); }
+        }
+
+        /* 🌟 幸福瞇瞇眼與咀嚼動畫強制覆蓋（摸摸海兔與進食時切換） */
+        .slug-container.is-petting .normal-eye,
+        .slug-container.is-eating-munch .normal-eye {
+            display: none !important;
+        }
+        .happy-eye {
+            display: none;
+        }
+        .slug-container.is-petting .happy-eye,
+        .slug-container.is-eating-munch .happy-eye {
+            display: block !important;
+        }
+
+        /* 🌟 細緻線條嘴巴：咀嚼時一開一張閉合動畫 */
+        #chewingLineMouth {
+            transform-box: fill-box;
+            transform-origin: center center;
+            animation: mouthLineChew 0.16s infinite alternate ease-in-out !important;
+        }
+        @keyframes mouthLineChew {
+            0% { 
+                /* 閉合咬下：壓平成一條細直小扁線 */
+                transform: scale(1.1, 0.2) translateY(1px); 
+            }
+            100% { 
+                /* 嚼開張嘴：拉伸成圓潤的微笑開口弧線 */
+                transform: scale(0.85, 1.6) translateY(-1px); 
+            }
+        }
+
+        /* 🌿 嘴邊柔軟水草：隨嘴巴咀嚼自然波浪甩動、一軟一飄被吸進去 */
+        #chewingAlgaePiece {
+            transform-box: fill-box;
+            transform-origin: 0px 4px; /* 以嘴巴銜接處為旋轉支點 */
+            animation: algaeSoftWiggle 0.28s infinite alternate ease-in-out, algaeSuckIn 1.8s forwards ease-in-out !important;
+        }
+        @keyframes algaeSoftWiggle {
+            0% { 
+                /* 咬下時：水草尾端受力向左下柔軟彎垂 */
+                transform: rotate(-18deg) skewX(-12deg) scale(1, 0.95); 
+            }
+            50% {
+                transform: rotate(-4deg) skewX(6deg) scale(0.98, 1.02);
+            }
+            100% { 
+                /* 嚼開時：水草隨嘴唇向上彈起波浪飄揚 */
+                transform: rotate(14deg) skewX(16deg) scale(0.95, 1.05); 
+            }
+        }
+        @keyframes algaeSuckIn {
+            0% { 
+                opacity: 1; 
+                clip-path: inset(0 0 0 0);
+            }
+            50% { 
+                opacity: 0.95; 
+            }
+            85% { 
+                opacity: 0.7; 
+            }
+            100% { 
+                /* 像吃麵條一樣，整根水草被完全吸進嘴中消失 */
+                transform: scale(0.15, 0.1) translate(12px, -8px); 
+                opacity: 0; 
+            }
+        }
+
+        /* 水草分叉葉片各自的微波浪晃動 */
+        .algae-soft-blade-1 {
+            transform-origin: 0% 0%;
+            animation: bladeWiggle1 0.22s infinite alternate ease-in-out;
+        }
+        .algae-soft-blade-2 {
+            transform-origin: 0% 0%;
+            animation: bladeWiggle2 0.3s infinite alternate ease-in-out;
+        }
+        @keyframes bladeWiggle1 {
+            0% { transform: rotate(-8deg); }
+            100% { transform: rotate(10deg); }
+        }
+        @keyframes bladeWiggle2 {
+            0% { transform: rotate(12deg); }
+            100% { transform: rotate(-10deg); }
+        }
+
+        /* 🌟 嘴邊叼著的海藻：從嘴邊慢慢嚼進肚子裡縮小消失 */
+        .eating-algae-prop {
+            display: none;
+            position: absolute;
+            width: 36px;
+            height: 36px;
+            left: 105px;
+            top: 145px;
+            z-index: 25;
+            pointer-events: none;
+        }
+        .slug-container.is-eating-munch .eating-algae-prop {
+            display: block !important;
+            animation: algaeGetEaten 1.4s forwards ease-in-out !important;
+        }
+        @keyframes algaeGetEaten {
+            0% { transform: scale(1.1) rotate(-15deg); opacity: 1; }
+            30% { transform: scale(0.85) rotate(10deg); opacity: 1; }
+            60% { transform: scale(0.55) rotate(-8deg); opacity: 0.9; }
+            85% { transform: scale(0.25) rotate(5deg); opacity: 0.7; }
+            100% { transform: scale(0) rotate(0deg); opacity: 0; }
+        }
+
+        /* 🌟 嘴裡咬著的海藻漸漸被吃掉縮小動畫 */
+        .eating-algae-prop {
+            display: none;
+            position: absolute;
+            width: 32px;
+            height: 32px;
+            left: 112px;
+            top: 148px;
+            z-index: 15;
+            pointer-events: none;
+            transform-origin: right bottom;
+        }
+        .slug-container.is-eating-munch .eating-algae-prop {
+            display: block !important;
+            animation: algaeDisappear 1.2s forwards ease-in-out;
+        }
+        @keyframes algaeDisappear {
+            0% { transform: scale(1) rotate(-15deg); opacity: 1; }
+            50% { transform: scale(0.6) rotate(10deg); opacity: 0.9; }
+            90% { transform: scale(0.2) rotate(-5deg); opacity: 0.8; }
+            100% { transform: scale(0) rotate(0deg); opacity: 0; }
+        }
+/* 🌟 細緻線條嘴巴：咀嚼時一開一張閉合動畫 */
+        #chewingLineMouth {
+            transform-box: fill-box;
+            transform-origin: center center;
+            animation: mouthLineChew 0.16s infinite alternate ease-in-out !important;
+        }
+        @keyframes mouthLineChew {
+            0% { transform: scale(1.1, 0.2) translateY(1px); } 
+            100% { transform: scale(0.85, 1.6) translateY(-1px); } 
+        }
+
+        /* 🌿 嘴邊柔軟水草：以嘴巴中心為支點自然擺動並被吸入 */
+        #chewingAlgaePiece {
+            transform-box: fill-box;
+            transform-origin: center top;
+            animation: algaeSoftWiggle 0.28s infinite alternate ease-in-out, algaeSuckIn 1.8s forwards ease-in-out !important;
+        }
+        @keyframes algaeSoftWiggle {
+            0% { transform: rotate(-18deg) skewX(-12deg) scale(1, 0.95); }
+            50% { transform: rotate(-4deg) skewX(6deg) scale(0.98, 1.02); }
+            100% { transform: rotate(14deg) skewX(16deg) scale(0.95, 1.05); }
+        }
+        @keyframes algaeSuckIn {
+            0% { opacity: 1; }
+            50% { opacity: 0.95; }
+            85% { opacity: 0.7; }
+            100% { transform: scale(0.15, 0.1) translate(12px, -8px); opacity: 0; }
+        }
+
+        /* 水草分叉葉片微幅飄動 */
+        .algae-soft-blade-1 {
+            transform-origin: 0% 0%;
+            animation: bladeWiggle1 0.22s infinite alternate ease-in-out;
+        }
+        .algae-soft-blade-2 {
+            transform-origin: 0% 0%;
+            animation: bladeWiggle2 0.3s infinite alternate ease-in-out;
+        }
+        @keyframes bladeWiggle1 {
+            0% { transform: rotate(-8deg); }
+            100% { transform: rotate(10deg); }
+        }
+        @keyframes bladeWiggle2 {
+            0% { transform: rotate(12deg); }
+            100% { transform: rotate(-10deg); }
+        }
+        .slug-svg { width: 100%; height: 100%; overflow: visible; filter: drop-shadow(0 15px 15px rgba(0,0,0,0.15)); transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1.2), filter 0.3s ease; pointer-events: none !important; }
+        
+        /* 兔子的耳朵與尾巴自動擺動動畫 */
+        @keyframes earTwitchL { 0%, 100% { transform: rotate(0deg); } 50% { transform: rotate(-6deg); } }
+        @keyframes earTwitchR { 0%, 100% { transform: rotate(0deg); } 50% { transform: rotate(6deg); } }
+        @keyframes tailFluff { 0%, 100% { transform: scale(1) rotate(0deg); } 50% { transform: scale(1.05) rotate(3deg); } }
+        .anim-earL { animation: earTwitchL 3s infinite ease-in-out; transform-origin: 100px 95px; }
+        .anim-earR { animation: earTwitchR 3.5s infinite ease-in-out; transform-origin: 145px 90px; }
+        .anim-tail { animation: tailFluff 4s infinite ease-in-out; transform-origin: 240px 120px; }
+
+       /* 🌟 【底部操作面板】餵食互動、切換商店與圖鑑 */
+        .ui-panel {
+            position: absolute; bottom: 0; left: 0; width: 100%; height: 45%;
+            background: var(--panel-bg); border-top: 3px solid white; display: flex; flex-direction: column;
+            padding: 30px 20px 20px 20px; z-index: 80; border-radius: 40px 40px 0 0; box-shadow: 0 -10px 40px var(--shadow-color);
+            /* 🪄 以下是新增的抽屜動畫魔法 */
+            transition: transform 0.4s cubic-bezier(0.18, 0.89, 0.32, 1.28); 
+        }
+        
+        /* 🌟 當面板被呼叫展開時的樣式 */
+        .ui-panel.open {
+            transform: translateY(0); /* 回到原位 */
+        }
+        .interaction-group { display: flex; gap: 15px; margin-bottom: 25px; }
+        .btn-interact { flex: 1; background: var(--card-bg); border: 3px solid var(--border-color); border-radius: 22px; padding: 16px 0; color: var(--text-dark); cursor: pointer; display: flex; flex-direction: column; align-items: center; transition: 0.1s; box-shadow: 0 5px 0 var(--border-color); }
+        .btn-interact:active:not(:disabled) { transform: translateY(5px); box-shadow: 0 0px 0 transparent; background: var(--btn-hover); }
+        .btn-interact:disabled { opacity: 0.6; cursor: not-allowed; background: #f1f5f9; border-color: #cbd5e1; box-shadow: 0 5px 0 #cbd5e1; color: #94a3b8; }
+        .btn-title { font-size: 1.05rem; font-weight: 900; margin-bottom: 6px; }
+        .btn-desc { font-size: 0.8rem; color: var(--text-dim); font-weight: 800;}
+/* 🌟 餵食按鈕專屬：膠囊飽食進度條 */
+        .hunger-bar-container {
+            width: 78%;
+            height: 6px;
+            background: #e2e8f0;
+            border-radius: 10px;
+            margin: 2px auto 4px auto;
+            overflow: hidden;
+            border: 1px solid #cbd5e1;
+            box-shadow: inset 0 1px 2px rgba(0,0,0,0.1);
+        }
+        .hunger-bar-fill {
+            height: 100%;
+            width: 100%;
+            border-radius: 10px;
+            background: linear-gradient(90deg, #4ade80, #22c55e);
+            transition: width 0.35s cubic-bezier(0.18, 0.89, 0.32, 1.28), background 0.4s ease;
+        }
+        /* 面板標籤與商品網格 */
+        .tabs { display: flex; gap: 10px; margin-bottom: 20px; border-bottom: 3px solid var(--border-color); padding-bottom: 10px; padding-left: 5px; align-items: center; }
+        .tab { background: transparent; border: none; color: var(--text-dim); font-size: 1.1rem; font-weight: 900; cursor: pointer; padding: 8px 16px; border-radius: 15px; transition: 0.2s; }
+        .tab:hover { background: var(--btn-hover); }
+        .tab.active { color: white; background: var(--text-dark); box-shadow: 0 3px 10px rgba(107, 76, 74, 0.2); }
+        .shop-grid { flex: 1; display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 15px; overflow-y: auto; padding: 5px 5px 20px 5px; }
+        .shop-grid::-webkit-scrollbar { width: 0; }
+        .item-card { background: var(--card-bg); border: 3px solid var(--border-color); border-radius: 22px; padding: 18px 10px; text-align: center; cursor: pointer; transition: 0.1s; display: flex; flex-direction: column; justify-content: space-between; box-shadow: 0 4px 0 var(--border-color); }
+        .item-card:active { transform: translateY(4px); box-shadow: 0 0 0 transparent; }
+        .item-card.equipped { border-color: var(--text-dark); background: #ffffff; box-shadow: 0 4px 0 var(--text-dark); }
+        .item-color-preview { width: 45px; height: 45px; border-radius: 15px; margin: 0 auto 15px auto; border: 3px solid rgba(0,0,0,0.08); }
+        .item-name { font-size: 0.85rem; font-weight: 900; margin-bottom: 10px; color: var(--text-dark); line-height: 1.3;}
+        .item-cost { font-size: 0.9rem; font-weight: 900; color: white; background: var(--accent-color); padding: 4px 8px; border-radius: 12px; display: inline-block; margin: 0 auto; }
+        .item-cost.owned { background: #e2e8f0; color: var(--text-dim); }
+        .item-card.equipped .item-cost.owned { background: var(--text-dark); color: white; }
+
+        /* 🌟 【第一次玩的新手抽獎畫面】 */
+        .gacha-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(255, 240, 245, 0.95); backdrop-filter: blur(5px); z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: opacity 0.5s; }
+        .gacha-box { width: 160px; height: 160px; background: white; border: 5px dashed var(--accent-color); border-radius: 40px; display: flex; align-items: center; justify-content: center; cursor: pointer; margin-bottom: 40px; transition: 0.2s; color: var(--accent-color); font-size: 1.4rem; font-weight: 900; box-shadow: 0 15px 35px rgba(255, 182, 193, 0.3); animation: breatheBox 2s infinite ease-in-out; }
+        @keyframes breatheBox { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }
+        .gacha-box:active { transform: scale(0.95); animation: none; }
+        .gacha-title { font-size: 2.2rem; margin-bottom: 30px; font-weight: 900; color: var(--text-dark); text-shadow: 0 4px 10px rgba(255,255,255,0.8); }
+        .start-btn { background: var(--text-dark); color: white; border: none; padding: 16px 50px; border-radius: 35px; font-weight: 900; font-size: 1.3rem; cursor: pointer; display: none; box-shadow: 0 6px 0 rgba(0,0,0,0.15); transition: 0.1s; }
+        .start-btn:active { transform: translateY(6px); box-shadow: 0 0 0 transparent; }
+
+        /* 🌟 【全域浮動通知文字：清晰停留版】 */
+        .float-text {
+            position: fixed;
+            top: 25%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: var(--text-dark);
+            background: rgba(255, 255, 255, 0.95);
+            border: 3px solid var(--border-color);
+            padding: 12px 28px;
+            border-radius: 30px;
+            font-weight: 900;
+            font-size: 1.25rem;
+            pointer-events: none;
+            box-shadow: 0 8px 25px var(--shadow-color);
+            backdrop-filter: blur(6px);
+            z-index: 999999;
+            white-space: nowrap;
+            animation: floatNoticeStay 2.5s cubic-bezier(0.18, 0.89, 0.32, 1.28) forwards;
+        }
+        @keyframes floatNoticeStay {
+            0% { opacity: 0; transform: translate(-50%, 15px) scale(0.7); }
+            15% { opacity: 1; transform: translate(-50%, 0) scale(1.05); }
+            25% { transform: translate(-50%, 0) scale(1); }
+            80% { opacity: 1; transform: translate(-50%, 0) scale(1); }
+            100% { opacity: 0; transform: translate(-50%, -25px) scale(0.9); }
+        }
+
+        /* 🌟 14天簽到網格樣式 */
+        .checkin-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin: 15px 0; max-height: 40vh; overflow-y: auto; padding-right: 5px; }
+        .checkin-grid::-webkit-scrollbar { width: 4px; }
+        .checkin-grid::-webkit-scrollbar-thumb { background: #ffd1dc; border-radius: 4px; }
+        
+        .checkin-day { background: #f8fafc; border: 2px solid #e2e8f0; border-radius: 12px; padding: 10px 4px; text-align: center; color: #94a3b8; font-weight: 900; transition: 0.3s; position: relative; }
+        
+        /* 🌟 簽到過的格子會亮黃色並打勾 */
+        .checkin-day.claimed { background: #fef08a; border-color: #fde047; color: #ca8a04; }
+        .checkin-day.claimed::after { content: '✔️'; position: absolute; top: -8px; right: -5px; font-size: 1.1rem; filter: drop-shadow(0 2px 2px rgba(0,0,0,0.2)); }
+        
+        /* 🌟 今天該簽到的那格會跳動提示 */
+        .checkin-day.today { border-color: #f43f5e; background: #fff1f2; color: #e11d48; animation: pulseDay 1.5s infinite; cursor: pointer; box-shadow: 0 0 10px rgba(244, 63, 94, 0.3); }
+        @keyframes pulseDay { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }
+
+        /* 🌟 只有純禮物盒的透明按鈕 */
+        .btn-pure-gift { background: transparent; border: none; padding: 0; margin-left: 10px; cursor: pointer; outline: none; -webkit-tap-highlight-color: transparent; transition: transform 0.1s; }
+        .btn-pure-gift:active { transform: scale(0.92); }
+        
+        /* 🌟 禮物盒 SVG 動畫設定 */
+        .gift-svg { width: 38px; height: 38px; filter: drop-shadow(0px 3px 5px rgba(244,63,94,0.4)); overflow: visible; }
+        
+        /* 蓋子的旋轉中心點設在右下角，這樣打開時會往右上方翻 */
+        .gift-lid { transform-origin: 80% 40%; transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        
+        /* 當被加上 is-opening 類別時，播放蓋子飛走的動畫 */
+        @keyframes lidPopOff {
+            0% { transform: translateY(0) rotate(0deg); opacity: 1; }
+            40% { transform: translateY(-15px) rotate(15deg); opacity: 1; }
+            100% { transform: translateY(-35px) translateX(10px) rotate(35deg); opacity: 0; }
+        }
+        .gift-svg.is-opening .gift-lid { animation: lidPopOff 0.5s forwards ease-in; }
+
+        /* 🌟 以下是新增的：禮物盒的呼吸發光誘惑 */
+        @keyframes giftBreathe {
+            0%, 100% { transform: scale(1) translateY(0); filter: drop-shadow(0px 3px 5px rgba(244,63,94,0.4)); }
+            50% { transform: scale(1.08) translateY(-3px); filter: drop-shadow(0px 8px 15px rgba(244,63,94,0.8)); }
+        }
+        /* 當按鈕被加上 needs-attention 標籤時，禮物盒就會開始呼吸 */
+        .btn-pure-gift.needs-attention .gift-svg { animation: giftBreathe 2s infinite ease-in-out; }
+
+        /* 🌟 以下是新增的：無法抗拒的靈魂小紅點 */
+        .gift-noti-dot { position: absolute; top: -2px; right: -5px; width: 12px; height: 12px; background: #ef4444; border: 2px solid #fff; border-radius: 50%; box-shadow: 0 2px 4px rgba(0,0,0,0.2); display: none; z-index: 10; }
+        /* 只有沒領獎時，小紅點才會出現並跳動 */
+        .btn-pure-gift.needs-attention .gift-noti-dot { display: block; animation: pulseDay 1.5s infinite; }
+        @keyframes floatUp { 0% { opacity: 1; transform: translate(-50%, 0) scale(0.5); } 50% { transform: translate(-50%, -50px) scale(1.2); } 100% { opacity: 0; transform: translate(-50%, -90px) scale(1); } }
+/* 🌟 隱蔽在左下角角落的精緻色系小方塊列 */
+    #paintPalettePanel {
+        position: absolute;
+        bottom: 47%;
+        left: 20px;
+        display: none;
+        gap: 8px;
+        z-index: 9999;
+        background: rgba(255, 255, 255, 0.75);
+        padding: 8px;
+        border-radius: 15px;
+        border: 2px solid var(--border-color);
+        box-shadow: 0 4px 12px var(--shadow-color);
+        backdrop-filter: blur(4px);
+    }
+    .palette-btn {
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
+        border: 2px solid #ffffff;
+        cursor: pointer;
+        transition: 0.2s;
+        padding: 0;
+        box-shadow: 0 0 10px rgba(255, 255, 255, 0.9), 0 2px 5px rgba(0,0,0,0.15);
+    }
+    .palette-btn:hover {
+        transform: scale(1.12);
+    }
+    .palette-btn.active {
+        border-color: var(--text-dark);
+        transform: scale(1.18);
+        box-shadow: 0 0 15px var(--accent-color), 0 0 5px rgba(0,0,0,0.3);
+    }
+    .palette-btn:nth-child(1) {
+        background: linear-gradient(135deg, #ff3b30, #ffcc00);
+    }
+    .palette-btn:nth-child(2) {
+        background: linear-gradient(135deg, #007aff, #38bdf8);
+    }
+    .palette-btn:nth-child(3) {
+        background: linear-gradient(135deg, #ec4899, #c084fc);
+    }
+        /* 🌟 【寵物名字標籤與命名彈窗】 */
+        .pet-name-tag { position: absolute; top: -45px; left: 50%; transform: translateX(-50%); background: transparent; border: none; padding: 0; font-weight: 900; color: var(--text-dark); font-size: 1.35rem; letter-spacing: 2px; text-shadow: 2px 2px 0 #fff, -2px -2px 0 #fff, 2px -2px 0 #fff, -2px 2px 0 #fff, 0px 2px 0 #fff, 0px -2px 0 #fff, 2px 0px 0 #fff, -2px 0px 0 #fff, 0px 5px 10px rgba(0,0,0,0.2); white-space: nowrap; pointer-events: auto; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: 0.3s cubic-bezier(0.18, 0.89, 0.32, 1.28); z-index: 20; }
+       /* 🌟 讓取好名字的標籤依然可以點擊，用來觸發警告 */
+        .pet-name-tag.named { cursor: pointer; }
+        .pet-name-tag:hover:not(.named) { transform: translateX(-50%) scale(1.1); text-shadow: 2px 2px 0 #fff, -2px -2px 0 #fff, 2px -2px 0 #fff, -2px 2px 0 #fff, 0px 2px 0 #fff, 0px -2px 0 #fff, 2px 0px 0 #fff, -2px 0px 0 #fff, 0px 6px 15px rgba(255, 182, 193, 0.8); }
+        .pet-name-tag:active:not(.named) { transform: translateX(-50%) scale(0.95); }
+
+        .name-modal-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(255, 240, 245, 0.8); backdrop-filter: blur(8px); z-index: 10000; display: none; align-items: center; justify-content: center; }
+        .name-modal { background: #fff; width: 85%; max-width: 340px; border-radius: 35px; border: 4px solid var(--border-color); padding: 30px 25px; text-align: center; box-shadow: 0 20px 50px rgba(255, 182, 193, 0.4); animation: popIn 0.4s cubic-bezier(0.18, 0.89, 0.32, 1.28); }
+        @keyframes popIn { 0% { transform: scale(0.8) translateY(20px); opacity: 0; } 100% { transform: scale(1) translateY(0); opacity: 1; } }
+        .name-input { width: 100%; padding: 14px 15px; border: 3px solid var(--border-color); border-radius: 20px; font-size: 1.1rem; font-weight: 900; color: var(--text-dark); margin: 15px 0 20px 0; text-align: center; outline: none; transition: 0.2s; background: var(--card-bg); }
+        .name-input:focus { border-color: var(--accent-color); background: #fff; }
+        .modal-btns { display: flex; gap: 12px; justify-content: center; }
+        .modal-btn { flex: 1; padding: 12px 0; border: none; border-radius: 20px; font-weight: 900; font-size: 1.1rem; cursor: pointer; transition: 0.1s; }
+        .btn-cancel { background: #f1f5f9; color: var(--text-dim); }
+        .btn-confirm { background: var(--text-dark); color: white; box-shadow: 0 5px 0 rgba(0,0,0,0.15); }
+        .btn-confirm:active { transform: translateY(5px); box-shadow: 0 0 0 transparent; }
+        .btn-random { background: var(--accent-color); color: white; margin-bottom: 5px; width: 100%; box-shadow: 0 5px 0 rgba(255, 182, 193, 0.8); }
+        .btn-random:active { transform: translateY(5px); box-shadow: 0 0 0 transparent; }
+
+        /* 🌟 【懸浮挑釁按鈕】裝備回城特效時才會顯示 */
+        #floatingRecallBtn { position: absolute; display: none; z-index: 25; background: #fef08a; color: #78350f; border: 3px solid #f59e0b; padding: 8px 16px; border-radius: 20px; font-weight: 900; font-size: 0.95rem; cursor: pointer; box-shadow: 0 4px 10px rgba(245, 158, 11, 0.4); transition: transform 0.1s; white-space: nowrap; }
+        #floatingRecallBtn:active { transform: scale(0.95); }
+        @keyframes trueHorizontalFlip { 0% { transform: scaleX(1); } 50% { transform: scaleX(-1); } 100% { transform: scaleX(1); } }
+        .slug-svg.is-spinning-taunt { animation: trueHorizontalFlip 0.6s ease-in-out; }
+#customTauntBtn {
+        position: fixed;
+        bottom: 48%; /* 讓它安全懸浮在下方商店面板的上方，絕不掉進選單裡！ */
+        right: 25px;
+        z-index: 999999;
+        background: linear-gradient(135deg, #38bdf8, #0284c7);
+        color: white;
+        border: 3px solid #e0f2fe;
+        padding: 12px 20px;
+        border-radius: 25px;
+        font-weight: 900;
+        font-size: 0.95rem;
+        cursor: pointer;
+        box-shadow: 0 6px 20px rgba(56, 189, 248, 0.6);
+        transition: 0.1s;
+        pointer-events: auto !important;
+    }
+    #customTauntBtn:active { transform: scale(0.95); }
+/* 🌟 踩水生成的水波漣漪（高圖層、晶瑩透亮擴散版） */
+.duck-step-ripple {
+    position: absolute;
+    width: 65px; 
+    height: 28px;
+    transform: translate(-50%, -50%);
+    border-radius: 50%;
+    /* 提升至高於濾鏡層的 z-index，保證不被水坑霧氣吃掉！ */
+    z-index: 10 !important;
+    pointer-events: none;
+    border: 2px solid rgba(255, 255, 255, 0.95);
+    box-shadow: 0 0 10px rgba(56, 189, 248, 0.7), inset 0 0 6px rgba(186, 230, 253, 0.6);
+    animation: stepRippleExpand 1.1s cubic-bezier(0.1, 0.7, 0.3, 1) forwards;
+}
+
+@keyframes stepRippleExpand {
+    0% { 
+        transform: translate(-50%, -50%) scale(0.3); 
+        opacity: 0.95; 
+        border-width: 2.5px; 
+    }
+    60% { 
+        opacity: 0.6; 
+    }
+    100% { 
+        transform: translate(-50%, -50%) scale(2.2); 
+        opacity: 0; 
+        border-width: 1px; 
+    }
+}
+
+/* 🌟 抱花小鴨本體容器 */
+.giant-roaming-duck {
+    position: absolute;
+    width: 165px; height: 165px;
+    pointer-events: auto;
+    cursor: pointer;
+    z-index: 12;
+    transform-origin: center bottom;
+    transition: transform 0.15s ease-out;
+}
+.giant-roaming-duck:active {
+    transform: scale(1.25) rotate(-12deg) !important;
+}
+
+/* 🌟 經典小鴨呆萌搖擺走姿 (身體大幅度左右搖晃 + 上下 Q 彈跳動) */
+.duck-waddle-body {
+    width: 100%; height: 100%;
+    transform-origin: 50% 90%;
+    animation: duckCuteWaddle 0.6s infinite alternate ease-in-out;
+}
+@keyframes duckCuteWaddle {
+    0% { transform: rotate(-9deg) translateY(-8px) scale(0.97, 1.03); }
+    50% { transform: rotate(0deg) translateY(0px) scale(1.04, 0.96); }
+    100% { transform: rotate(9deg) translateY(-8px) scale(0.97, 1.03); }
+}
+
+/* 🌟 左右橘色腳蹼一上一下交替抬起與踩地 */
+.duck-foot-left {
+    transform-origin: 50% 10%;
+    animation: duckStepL 0.6s infinite alternate ease-in-out;
+}
+.duck-foot-right {
+    transform-origin: 50% 10%;
+    animation: duckStepR 0.6s infinite alternate ease-in-out;
+}
+@keyframes duckStepL {
+    0% { transform: translateY(-14px) rotate(-22deg) scale(0.9); }
+    50% { transform: translateY(0px) rotate(0deg) scale(1); }
+    100% { transform: translateY(3px) rotate(8deg) scale(1.05); }
+}
+@keyframes duckStepR {
+    0% { transform: translateY(3px) rotate(-8deg) scale(1.05); }
+    50% { transform: translateY(0px) rotate(0deg) scale(1); }
+    100% { transform: translateY(-14px) rotate(22deg) scale(0.9); }
+}
+
+/* 鴨子兩側手繪動態搖擺線微震動 */
+.duck-vibe-lines {
+    animation: duckVibeShake 0.3s infinite alternate ease-in-out;
+}
+@keyframes duckVibeShake {
+    0% { opacity: 0.3; transform: scale(0.95); }
+    100% { opacity: 0.9; transform: scale(1.05); }
+}
+
+/* 🌟 鴨子身邊到處飄落的浪漫小花瓣 */
+.duck-flower-petal {
+    position: absolute;
+    font-size: 1.5rem;
+    font-weight: 900;
+    pointer-events: none;
+    z-index: 20;
+    animation: petalFloatUp 1.4s ease-out forwards;
+}
+@keyframes petalFloatUp {
+    0% { transform: translate(0, 0) scale(0.4) rotate(0deg); opacity: 0; }
+    20% { opacity: 1; transform: translate(var(--ndx), -15px) scale(1.2) rotate(15deg); }
+    80% { opacity: 0.9; }
+    100% { transform: translate(calc(var(--ndx) * 1.8), -65px) scale(0.8) rotate(-20deg); opacity: 0; }
+}
+/* 🌟 魔法 2：手機版專屬響應式排版 (當螢幕寬度小於 768px 時自動發動) */
+        @media screen and (max-width: 768px) {
+            /* 讓底板在手機上長高一點，才裝得下滿滿的特效商品 */
+            .ui-panel {
+                height: 55%; 
+                padding: 20px 15px 15px 15px; /* 把留白縮小，擠出更多實用空間 */
+                border-radius: 30px 30px 0 0; 
+            }
+            
+            /* 上半部舞台稍微縮小一點點，把空間讓給下面的面板 */
+            .stage {
+                height: 50%;
+            }
+
+            /* 讓上方的互動按鈕變緊湊一點 */
+            .interaction-group {
+                margin-bottom: 15px; 
+                gap: 10px;
+            }
+            .btn-interact {
+                padding: 12px 0;
+                border-radius: 18px;
+            }
+            .btn-title {
+                font-size: 0.95rem;
+                margin-bottom: 4px;
+            }
+
+            /* 讓海兔稍微縮小、往上站一點，才不會被長高的面板遮住可愛的臉 */
+            .slug-container {
+                transform: scale(0.85); 
+                top: calc(45% - 120px); 
+            }
+
+            /* 商店網格縮小間距，一排可以塞下更多商品，滑動更順暢 */
+            .shop-grid {
+                gap: 10px;
+                grid-template-columns: repeat(auto-fill, minmax(90px, 1fr)); 
+            }
+        }
+/* ========================================= */
+        /* 🌟 手機版與電腦版的分水嶺魔法開始 */
+        /* ========================================= */
+
+        /* 1. 預設電腦版：隱藏那兩顆召喚抽屜的按鈕 */
+        #btnOpenShop, 
+        #uiPanel > button[onclick="toggleShopPanel()"] {
+            display: none !important;
+        }
+
+        /* 2. 手機版專屬魔法 (螢幕寬度小於 768px 時自動發動) */
+        @media screen and (max-width: 768px) {
+            
+            /* 手機版背景拉滿 100% */
+            .stage { height: 100%; }
+
+            /* --- 🌟 頂部資訊列瘦身（解決重疊問題） --- */
+            .top-bar { padding: 10px 15px; }
+            .points-display { padding: 6px 12px; font-size: 0.95rem; }
+            .lang-btn { padding: 6px 12px; font-size: 0.85rem; }
+            #btnOpenManual { top: 65px; left: 10px; padding: 6px 12px; font-size: 0.85rem; }
+            #btnToggleMp { top: 65px !important; right: 10px !important; padding: 6px 12px !important; font-size: 0.85rem !important; }
+
+            /* --- 🌟 互動小按鈕 + 置中商店彈窗 完美排版 --- */
+
+            /* 把原本的底部抽屜變成「全螢幕的隱形容器」，方便定位裡面的東西 */
+            .ui-panel {
+                position: fixed !important;
+                top: 0; left: 0; width: 100vw; height: 100vh;
+                background: transparent !important;
+                border: none !important;
+                box-shadow: none !important;
+                padding: 0 !important;
+                transform: none !important; /* 關閉原本的上下滑動動畫 */
+                pointer-events: none; /* 讓點擊能穿透隱形背景 */
+                z-index: 80;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+            }
+
+            /* 當點擊打開商店時，加上黑色半透明遮罩 */
+            .ui-panel.open {
+                background: rgba(0, 0, 0, 0.6) !important;
+                pointer-events: auto; /* 擋住背後的點擊 */
+            }
+
+            /* --- 🔘 底部常駐互動小按鈕 --- */
+            .interaction-group {
+                position: absolute;
+                bottom: 15px;
+                left: 50%;
+                transform: translateX(-50%);
+                width: calc(100% - 30px);
+                flex-direction: row !important;
+                justify-content: space-between;
+                gap: 5px !important;
+                margin: 0 !important;
+                pointer-events: auto; /* 恢復按鈕點擊 */
+                z-index: 85;
+            }
+            .btn-interact {
+                padding: 10px 2px !important;
+                border-radius: 16px !important;
+                background: rgba(255, 255, 255, 0.95) !important;
+                box-shadow: 0 4px 10px rgba(0,0,0,0.1), 0 4px 0 var(--border-color) !important;
+                backdrop-filter: blur(4px);
+            }
+            .btn-desc { display: none !important; }
+            .btn-title { font-size: 0.75rem !important; margin-bottom: 2px !important; white-space: nowrap; }
+            .hunger-bar-container { width: 85% !important; height: 4px !important; margin-top: 4px !important; }
+
+            /* --- 🛒 置中滑動商店彈窗 --- */
+            /* 沒打開商店時，隱藏標籤、網格和關閉按鈕 */
+            .ui-panel:not(.open) .tabs,
+            .ui-panel:not(.open) .shop-grid,
+            .ui-panel:not(.open) > button[onclick="toggleShopPanel()"] {
+                display: none !important;
+            }
+
+            /* 商店的分類標籤 (彈窗的上半部) */
+            .ui-panel.open .tabs {
+                display: flex !important;
+                width: 85%;
+                background: #fff;
+                border-radius: 25px 25px 0 0; /* 只有上方圓角 */
+                padding: 25px 15px 10px 15px;
+                margin: 0;
+                border-bottom: 2px dashed #eee;
+                justify-content: center;
+                pointer-events: auto;
+            }
+
+            /* 商店的商品列表 (彈窗的下半部，可滑動) */
+            .ui-panel.open .shop-grid {
+                display: grid !important;
+                width: 85%;
+                max-height: 55vh; /* 限制高度，超過就滾動 */
+                background: #fff;
+                border-radius: 0 0 25px 25px; /* 只有下方圓角 */
+                padding: 15px 15px 20px 15px;
+                overflow-y: auto;
+                pointer-events: auto;
+                gap: 10px; 
+                grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
+            }
+
+            /* --- ❌ 商店的獨立叉叉按鈕 (與購物袋原位置重疊版) --- */
+            #uiPanel.open > button[onclick="toggleShopPanel()"] {
+                display: flex !important;
+                position: absolute !important;
+                bottom: 105px !important; /* 🌟 對齊原本的購物袋高度 */
+                right: 15px !important;   /* 🌟 對齊原本的購物袋右距 */
+                top: auto !important;
+                left: auto !important;
+                transform: none !important;
+                margin: 0 !important;
+                width: 55px !important;   /* 🌟 與購物袋一樣大 */
+                height: 55px !important;  /* 🌟 與購物袋一樣大 */
+                padding: 0 !important;
+                border-radius: 50% !important;
+                background: #ffffff !important; 
+                font-size: 0 !important; 
+                color: transparent !important;
+                border: 3px solid #ffd1dc !important;
+                box-shadow: 0 4px 15px rgba(255, 182, 193, 0.4) !important;
+                align-items: center;
+                justify-content: center;
+                z-index: 9999 !important;
+                pointer-events: auto !important;
+            }
+            
+            /* 畫出柔和深咖啡色的叉叉符號 */
+            #uiPanel.open > button[onclick="toggleShopPanel()"]::before {
+                content: '✖';
+                color: #6b4c4a;
+                font-size: 1.5rem; /* 🌟 字體稍微放大一點配合大按鈕 */
+                font-weight: 900;
+                position: absolute;
+            }
+/* --- 🛑 商店打開時，禁用底部互動按鈕 --- */
+            #uiPanel.open .interaction-group {
+                pointer-events: none !important; /* 徹底禁止點擊與拖曳 */
+                opacity: 0.4 !important;         /* 變暗一點，明確提示現在不能按 */
+            }
+            /* --- 🛒 喚醒商店的懸浮按鈕 (專屬粉紅風格與菜籃 SVG) --- */
+            #btnOpenShop {
+                display: flex !important;
+                align-items: center;
+                justify-content: center;
+                position: absolute !important;
+                bottom: 105px !important; /* 確保浮在互動按鈕上方 */
+                right: 15px !important;
+                left: auto !important;
+                transform: none !important;
+                width: 55px !important;
+                height: 55px !important;
+                padding: 0 !important;
+                border-radius: 50% !important;
+                font-size: 0 !important; 
+                
+                /* 保持遊戲專屬的粉紅底色與白邊！ */
+                background: var(--accent-color) !important; 
+                border: 3px solid #ffffff !important;
+                box-shadow: 0 4px 15px rgba(255, 182, 193, 0.6) !important;
+                z-index: 70 !important;
+            }
+            
+            /* 🌟 使用手繪感 SVG 購物菜籃取代原本的圖案 */
+            #btnOpenShop::after {
+                content: '';
+                width: 28px;
+                height: 28px;
+                /* 精緻的白色菜籃 SVG，格紋透出底部的粉紅色 (#ffb6c1) */
+                background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><path d="M 30 40 C 30 10, 70 10, 70 40" fill="none" stroke="%23ffffff" stroke-width="8" stroke-linecap="round"/><path d="M 15 40 L 85 40 L 75 90 L 25 90 Z" fill="%23ffffff" stroke="%23ffffff" stroke-width="4" stroke-linejoin="round"/><path d="M 35 40 L 35 90 M 50 40 L 50 90 M 65 40 L 65 90 M 20 56 L 80 56 M 22 73 L 78 73" fill="none" stroke="%23ffb6c1" stroke-width="4" stroke-linecap="round"/></svg>');
+                background-size: contain;
+                background-repeat: no-repeat;
+                background-position: center;
+                transition: transform 0.2s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+            }
+            
+            /* 點擊時的可愛小動畫 */
+            #btnOpenShop:active::after {
+                transform: scale(0.85);
+            }
+        }
+        /* --- 🤤 手機版專屬：餵食時原地流口水 --- */
+            .slug-container.is-chasing-food::after {
+                content: '';
+                position: absolute;
+                width: 10px;
+                height: 16px;
+                background: #bae6fd; /* 水藍色口水 */
+                border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%; /* 水滴形狀 */
+                left: 126px; /* 對齊嘴巴的相對 X 座標 */
+                top: 155px;  /* 對齊嘴巴的相對 Y 座標 */
+                opacity: 0;
+                animation: droolDripMobile 0.7s infinite;
+                z-index: 20;
+                box-shadow: inset -2px -2px 4px rgba(2, 132, 199, 0.3);
+                pointer-events: none;
+            }
+            
+            @keyframes droolDripMobile {
+                0% { transform: translateY(0) scale(0.6); opacity: 0.9; }
+                80% { transform: translateY(18px) scale(1.1); opacity: 0.9; }
+                100% { transform: translateY(22px) scale(0.8); opacity: 0; }
+            }
