@@ -658,13 +658,15 @@
             100% { transform: scale(0.96, 1.05) translateY(-2px); }
         }
 
-        /* 🌟 幸福瞇瞇眼與咀嚼動畫強制覆蓋 */
+        /* 🌟 幸福瞇瞇眼與咀嚼動畫強制覆蓋（摸摸海兔與進食時切換） */
+        .slug-container.is-petting .normal-eye,
         .slug-container.is-eating-munch .normal-eye {
             display: none !important;
         }
         .happy-eye {
             display: none;
         }
+        .slug-container.is-petting .happy-eye,
         .slug-container.is-eating-munch .happy-eye {
             display: block !important;
         }
@@ -1701,10 +1703,18 @@
                     <g transform="translate(130, 150)">
                         <ellipse cx="-35" cy="12" rx="14" ry="8" fill="var(--c-blush)" opacity="0.85"/>
                         <ellipse cx="35" cy="12" rx="14" ry="8" fill="var(--c-blush)" opacity="0.85"/>
-                        <circle cx="-20" cy="0" r="7" fill="#2c3e50" />
-                        <circle cx="20" cy="0" r="7" fill="#2c3e50" />
-                        <circle cx="-18" cy="-2" r="2.5" fill="#ffffff" />
-                        <circle cx="22" cy="-2" r="2.5" fill="#ffffff" />
+                        <!-- 正常水靈靈大眼 -->
+                        <g class="normal-eye">
+                            <circle cx="-20" cy="0" r="7" fill="#2c3e50" />
+                            <circle cx="20" cy="0" r="7" fill="#2c3e50" />
+                            <circle cx="-18" cy="-2" r="2.5" fill="#ffffff" />
+                            <circle cx="22" cy="-2" r="2.5" fill="#ffffff" />
+                        </g>
+                        <!-- 摸摸 / 幸福瞇瞇笑眼 ( > < ) -->
+                        <g class="happy-eye" stroke="#2c3e50" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round" fill="none">
+                            <path d="M -26 -2 L -18 3 L -26 8" />
+                            <path d="M 26 -2 L 18 3 L 26 8" />
+                        </g>
                         <path d="M -7 5 Q 0 12 7 5" fill="none" stroke="#2c3e50" stroke-width="3.5" stroke-linecap="round"/>
                     </g>
                 </g>
@@ -3886,9 +3896,15 @@ slugEl.style.transform = window.innerWidth <= 768 ? `scale(0.85) scaleX(${direct
                         <ellipse cx="35" cy="12" rx="10" ry="6" fill="var(--c-blush)" opacity="0.35"/>
                         
                         <!-- 沒精神的半垂垂眼 ( = = ) -->
-                        <g stroke="#2c3e50" stroke-width="3.5" stroke-linecap="round" fill="none">
+                        <g class="normal-eye" stroke="#2c3e50" stroke-width="3.5" stroke-linecap="round" fill="none">
                             <line x1="-26" y1="-2" x2="-14" y2="4"/>
                             <line x1="14" y1="4" x2="26" y2="-2"/>
+                        </g>
+
+                        <!-- 摸摸時依舊能幸福瞇瞇笑眼 ( > < ) -->
+                        <g class="happy-eye" stroke="#2c3e50" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round" fill="none">
+                            <path d="M -26 -2 L -18 3 L -26 8" />
+                            <path d="M 26 -2 L 18 3 L 26 8" />
                         </g>
 
                         <!-- 肚子餓的委屈波浪嘴 -->
@@ -3905,10 +3921,16 @@ slugEl.style.transform = window.innerWidth <= 768 ? `scale(0.85) scaleX(${direct
                     faceGroup.innerHTML = `
                         <ellipse cx="-35" cy="12" rx="14" ry="8" fill="var(--c-blush)" opacity="0.85"/>
                         <ellipse cx="35" cy="12" rx="14" ry="8" fill="var(--c-blush)" opacity="0.85"/>
-                        <circle cx="-20" cy="0" r="7" fill="#2c3e50" />
-                        <circle cx="20" cy="0" r="7" fill="#2c3e50" />
-                        <circle cx="-18" cy="-2" r="2.5" fill="#ffffff" />
-                        <circle cx="22" cy="-2" r="2.5" fill="#ffffff" />
+                        <g class="normal-eye">
+                            <circle cx="-20" cy="0" r="7" fill="#2c3e50" />
+                            <circle cx="20" cy="0" r="7" fill="#2c3e50" />
+                            <circle cx="-18" cy="-2" r="2.5" fill="#ffffff" />
+                            <circle cx="22" cy="-2" r="2.5" fill="#ffffff" />
+                        </g>
+                        <g class="happy-eye" stroke="#2c3e50" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round" fill="none">
+                            <path d="M -26 -2 L -18 3 L -26 8" />
+                            <path d="M 26 -2 L 18 3 L 26 8" />
+                        </g>
                         <path d="M -7 5 Q 0 12 7 5" fill="none" stroke="#2c3e50" stroke-width="3.5" stroke-linecap="round"/>
                     `;
                 }
@@ -9575,11 +9597,13 @@ default:
         
         // 🌟 處理餵食、洗澡、摸摸等賺積分的互動
         function interact(type, reward, cdSeconds) {
-            if (gameState.cooldowns[type] > 0) return;
+            if (gameState.cooldowns && gameState.cooldowns[type] > 0) return;
 
             gameState.points += reward;
             gameState.cooldowns[type] = cdSeconds; // 設定冷卻時間
-addDailyProgress(type);
+            if (!gameState.cooldownUntil) gameState.cooldownUntil = { feed: 0, clean: 0, pet: 0 };
+            gameState.cooldownUntil[type] = Date.now() + (cdSeconds * 1000);
+            addDailyProgress(type);
             showFloatText(`+${reward}`);
             saveGame();
             updateUI();
@@ -9771,8 +9795,17 @@ addDailyProgress(type);
 
             function onEnd(e) {
                 if (!isDragging) return;
-                isDragging = false; document.body.classList.remove('is-dragging-global'); slugEl.classList.remove('is-petting');
-                if (!moved && gameState.cooldowns['pet'] === 0) { interact('pet', 50, 5); } // 點一下沒拖動當作是摸摸
+                isDragging = false; 
+                document.body.classList.remove('is-dragging-global');
+                if (moved) {
+                    slugEl.classList.remove('is-petting');
+                } else {
+                    // 點擊撫摸：保持瞇瞇眼與開心表情 500ms，讓玩家看得清楚
+                    slugEl.classList.add('is-petting');
+                    clearTimeout(petTimer);
+                    petTimer = setTimeout(() => slugEl.classList.remove('is-petting'), 500);
+                }
+                // 點擊海兔僅觸發撫摸動畫與叫聲，不增加積分（修復進遊戲點擊海兔刷分漏洞）
                 broadcastMove(parseFloat(slugEl.style.left) || 0, parseFloat(slugEl.style.top) || 0);
             }
 
@@ -9781,7 +9814,7 @@ addDailyProgress(type);
                     slugEl.classList.add('is-petting');
                     if (Math.random() < 0.05) spawnMiniHeart(e.clientX, e.clientY);
                     clearTimeout(petTimer);
-                    petTimer = setTimeout(() => slugEl.classList.remove('is-petting'), 300);
+                    petTimer = setTimeout(() => slugEl.classList.remove('is-petting'), 400);
                 }
             }
 
