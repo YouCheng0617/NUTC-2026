@@ -592,14 +592,70 @@
         .slug-container {
             position: absolute !important;
             width: 340px !important; height: 240px !important;
-            cursor: grab !important; z-index: 10 !important; touch-action: none !important;
+            cursor: -webkit-grab !important;
+            cursor: grab !important;
+            z-index: 10 !important; touch-action: none !important;
             left: calc(50% - 170px); top: calc(50% - 120px);
             user-select: none !important; -webkit-user-select: none !important; -webkit-user-drag: none !important;
             perspective: 800px; /* 解鎖 3D 側翻視覺 */
             transition: transform 0.25s ease-out;
         }
-        body.is-dragging-global, body.is-dragging-global * { cursor: grabbing !important; user-select: none !important; -webkit-user-select: none !important; }
+        body.is-dragging-global, body.is-dragging-global * { 
+            cursor: -webkit-grabbing !important;
+            cursor: grabbing !important; 
+            user-select: none !important; -webkit-user-select: none !important; 
+        }
         .slug-container.is-petting .slug-svg { transform: scale(1.06, 0.92) translateY(12px); filter: drop-shadow(0 5px 8px rgba(0,0,0,0.25)); }
+
+        /* 🖐️ 摸摸與抓取海兔專屬生動小手掌 */
+        .pet-interactive-hand {
+            position: fixed;
+            top: 0;
+            left: 0;
+            pointer-events: none;
+            z-index: 999999;
+            transform: translate(-35%, -65%);
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.18s ease, transform 0.08s ease-out, visibility 0.18s;
+            filter: drop-shadow(0 6px 12px rgba(0, 0, 0, 0.22));
+        }
+
+        .pet-interactive-hand.is-visible {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .pet-interactive-hand .pet-hand-open,
+        .pet-interactive-hand .pet-hand-grab {
+            display: none;
+            filter: drop-shadow(0 3px 6px rgba(0,0,0,0.15));
+        }
+
+        /* 撫摸狀態（溫柔輕撫擺動） */
+        .pet-interactive-hand.is-petting .pet-hand-open {
+            display: block;
+            animation: handPetSway 0.38s infinite alternate ease-in-out;
+            transform-origin: 30% 70%;
+        }
+
+        @keyframes handPetSway {
+            0% { transform: rotate(-10deg) translateY(-2px); }
+            100% { transform: rotate(12deg) translateY(4px); }
+        }
+
+        /* 抓取狀態（緊緊抓握 + 抓握收縮彈性反饋） */
+        .pet-interactive-hand.is-grabbing .pet-hand-grab {
+            display: block;
+            animation: handGrabSnap 0.22s cubic-bezier(0.18, 0.89, 0.32, 1.28) forwards;
+            transform-origin: 50% 50%;
+        }
+
+        @keyframes handGrabSnap {
+            0% { transform: scale(1.22) rotate(-6deg); }
+            50% { transform: scale(0.92) rotate(4deg); }
+            100% { transform: scale(1) rotate(0deg); }
+        }
         
         /* 🌟 【餵食互動：拖曳海藻、咀嚼特效與碎屑動畫】 */
         .drag-algae-item {

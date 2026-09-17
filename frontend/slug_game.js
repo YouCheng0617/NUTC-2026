@@ -7966,8 +7966,10 @@ default:
         function initDragAndPetSystem() {
             const slugEl = document.getElementById('slugContainer');
             const stageEl = document.getElementById('mainStage');
+            const petHand = document.getElementById('petInteractiveHand');
             
             let isDragging = false; let moved = false; let startX = 0, startY = 0; let slugStartLeft = 0, slugStartTop = 0; let petTimer = null;
+            let isHovering = false;
 
             slugEl.oncontextmenu = (e) => { e.preventDefault(); return false; };
             slugEl.ondragstart = (e) => { e.preventDefault(); return false; };
@@ -7978,6 +7980,30 @@ default:
                 return { x: e.clientX, y: e.clientY };
             }
 
+            function updateHandPos(x, y) {
+                if (!petHand || isNaN(x) || isNaN(y)) return;
+                petHand.style.left = x + 'px';
+                petHand.style.top = y + 'px';
+            }
+
+            function showPetHand(x, y, mode = 'petting') {
+                if (!petHand) return;
+                updateHandPos(x, y);
+                petHand.classList.add('is-visible');
+                if (mode === 'grabbing') {
+                    petHand.classList.remove('is-petting');
+                    petHand.classList.add('is-grabbing');
+                } else {
+                    petHand.classList.remove('is-grabbing');
+                    petHand.classList.add('is-petting');
+                }
+            }
+
+            function hidePetHand() {
+                if (!petHand) return;
+                petHand.classList.remove('is-visible', 'is-grabbing', 'is-petting');
+            }
+
             function onStart(e) {
                 if (e.type === 'mousedown' && e.button !== 0) return;
                 isDragging = true; moved = false; document.body.classList.add('is-dragging-global');
@@ -7986,6 +8012,9 @@ default:
                 slugStartLeft = parseFloat(style.left) || (stageEl.clientWidth / 2 - 170);
                 slugStartTop = parseFloat(style.top) || (stageEl.clientHeight / 2 - 120);
                 slugEl.classList.add('is-petting');
+                
+                // 🌟 抓小海兔的抓取動作！手掌瞬間合攏抓握
+                showPetHand(pos.x, pos.y, 'grabbing');
                 spawnMiniHeart(pos.x, pos.y);
                 playMeowSound();
             }
@@ -7996,6 +8025,9 @@ default:
                 const pos = getPos(e); const dx = pos.x - startX; const dy = pos.y - startY;
                 if (Math.abs(dx) > 5 || Math.abs(dy) > 5) moved = true;
                 if (moved && Math.random() < 0.08) spawnMiniHeart(pos.x, pos.y); // 拖著跑會狂冒愛心
+
+                // 🌟 抓著海兔時，抓握小手緊緊跟隨游標/手指
+                updateHandPos(pos.x, pos.y);
 
                 let newLeft = slugStartLeft + dx; let newTop = slugStartTop + dy;
                 const stageRect = stageEl.getBoundingClientRect(); const slugRect = slugEl.getBoundingClientRect();
@@ -8015,13 +8047,27 @@ default:
                 if (!isDragging) return;
                 isDragging = false; 
                 document.body.classList.remove('is-dragging-global');
+                const pos = getPos(e);
+                const endX = pos.x || startX;
+                const endY = pos.y || startY;
+
                 if (moved) {
                     slugEl.classList.remove('is-petting');
-                } else {
-                    // 點擊撫摸：保持瞇瞇眼與開心表情 500ms，讓玩家看得清楚
-                    slugEl.classList.add('is-petting');
+                    // 拖曳放開後：抓取動作鬆開為撫摸手勢，稍後淡出
+                    showPetHand(endX, endY, 'petting');
                     clearTimeout(petTimer);
-                    petTimer = setTimeout(() => slugEl.classList.remove('is-petting'), 500);
+                    petTimer = setTimeout(() => {
+                        if (!isHovering) hidePetHand();
+                    }, 350);
+                } else {
+                    // 點擊撫摸：保持瞇瞇眼與撫摸手掌 500ms，讓玩家看得清楚可愛互動
+                    slugEl.classList.add('is-petting');
+                    showPetHand(endX, endY, 'petting');
+                    clearTimeout(petTimer);
+                    petTimer = setTimeout(() => {
+                        slugEl.classList.remove('is-petting');
+                        if (!isHovering) hidePetHand();
+                    }, 500);
                 }
                 // 點擊海兔僅觸發撫摸動畫與叫聲，不增加積分（修復進遊戲點擊海兔刷分漏洞）
                 broadcastMove(parseFloat(slugEl.style.left) || 0, parseFloat(slugEl.style.top) || 0);
@@ -8029,15 +8075,37 @@ default:
 
             function onHover(e) {
                 if (!isDragging && e.type === 'mousemove') {
+                    isHovering = true;
                     slugEl.classList.add('is-petting');
+                    showPetHand(e.clientX, e.clientY, 'petting');
                     if (Math.random() < 0.05) spawnMiniHeart(e.clientX, e.clientY);
-                    clearTimeout(petTimer);
-                    petTimer = setTimeout(() => slugEl.classList.remove('is-petting'), 400);
                 }
             }
 
-            slugEl.addEventListener('mousedown', onStart, { passive: false }); slugEl.addEventListener('touchstart', onStart, { passive: false }); slugEl.addEventListener('mousemove', onHover);
-            document.addEventListener('mousemove', onMove, { passive: false }); document.addEventListener('touchmove', onMove, { passive: false }); document.addEventListener('mouseup', onEnd); document.addEventListener('touchend', onEnd); document.addEventListener('touchcancel', onEnd);
+            slugEl.addEventListener('mouseenter', (e) => {
+                if (!isDragging) {
+                    isHovering = true;
+                    showPetHand(e.clientX, e.clientY, 'petting');
+                    slugEl.classList.add('is-petting');
+                }
+            });
+
+            slugEl.addEventListener('mouseleave', () => {
+                isHovering = false;
+                if (!isDragging) {
+                    hidePetHand();
+                    slugEl.classList.remove('is-petting');
+                }
+            });
+
+            slugEl.addEventListener('mousedown', onStart, { passive: false }); 
+            slugEl.addEventListener('touchstart', onStart, { passive: false }); 
+            slugEl.addEventListener('mousemove', onHover);
+            document.addEventListener('mousemove', onMove, { passive: false }); 
+            document.addEventListener('touchmove', onMove, { passive: false }); 
+            document.addEventListener('mouseup', onEnd); 
+            document.addEventListener('touchend', onEnd); 
+            document.addEventListener('touchcancel', onEnd);
             
             // 愛心特效產生器
             function spawnMiniHeart(x, y) {

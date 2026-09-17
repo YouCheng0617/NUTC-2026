@@ -372,6 +372,40 @@
     <!-- 🔊 音效資源標籤 -->
     <audio id="meowAudio" src="https://assets.mixkit.co/active_storage/sfx/2874/2874-preview.mp3" preload="auto"></audio>
 
+    <!-- 🖐️ 摸摸與抓取海兔專屬生動小手掌 -->
+    <div id="petInteractiveHand" class="pet-interactive-hand">
+        <!-- 🖐️ 摸摸手掌 (開掌撫摸手) -->
+        <svg class="pet-hand-svg pet-hand-open" viewBox="0 0 64 64" width="54" height="54">
+            <g fill="#ffffff" stroke="#3f2a2a" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round">
+                <!-- 手掌外觀：圓潤 Q 萌白手套造型 -->
+                <path d="M 18 40 C 13 34, 12 26, 17 22 C 20 19, 24 21, 25 26 L 27 32 C 26 24, 28 16, 33 14 C 36 12, 39 14, 39 20 L 39 31 C 40 23, 43 16, 47 15 C 50 14, 53 16, 52 22 L 51 32 C 53 26, 56 22, 60 23 C 63 24, 64 28, 61 34 L 57 42 C 53 50, 45 54, 35 54 C 25 54, 20 48, 18 40 Z" fill="#ffffff"/>
+                <!-- 掌心肉墊與腮紅 -->
+                <ellipse cx="36" cy="42" rx="7.5" ry="4.5" fill="#fca5a5" stroke="none" opacity="0.75"/>
+                <circle cx="23" cy="27" r="2" fill="#fca5a5" stroke="none" opacity="0.6"/>
+                <circle cx="34" cy="21" r="2" fill="#fca5a5" stroke="none" opacity="0.6"/>
+                <circle cx="44" cy="21" r="2" fill="#fca5a5" stroke="none" opacity="0.6"/>
+                <circle cx="53" cy="28" r="2" fill="#fca5a5" stroke="none" opacity="0.6"/>
+            </g>
+        </svg>
+        <!-- ✊ 抓取手掌 (抓緊握拳動作) -->
+        <svg class="pet-hand-svg pet-hand-grab" viewBox="0 0 64 64" width="54" height="54">
+            <g fill="#ffffff" stroke="#3f2a2a" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round">
+                <!-- 抓握時的手背圓弧 -->
+                <path d="M 20 42 C 17 34, 20 27, 27 24 C 32 22, 44 22, 48 26 C 52 30, 52 38, 49 44 C 45 50, 37 52, 30 52 C 23 52, 21 47, 20 42 Z" fill="#ffffff"/>
+                <!-- 緊扣海兔的四指指關節 -->
+                <path d="M 27 24 C 27 17, 33 17, 34 24 C 34 29, 29 30, 27 30" fill="#ffffff"/>
+                <path d="M 34 24 C 35 17, 41 17, 41 24 C 41 29, 36 30, 34 30" fill="#ffffff"/>
+                <path d="M 41 24 C 42 18, 48 18, 48 25 C 48 30, 43 31, 41 31" fill="#ffffff"/>
+                <!-- 扣在前方的拇指 -->
+                <path d="M 19 35 C 17 30, 21 26, 27 27 C 34 28, 37 33, 37 37 C 37 41, 32 42, 26 41 C 22 41, 20 38, 19 35 Z" fill="#ffffff"/>
+                <!-- 抓力肉墊反饋 -->
+                <ellipse cx="36" cy="43" rx="7" ry="3.8" fill="#fca5a5" stroke="none" opacity="0.65"/>
+                <!-- 抓取用力的小皺褶線 -->
+                <path d="M 28 34 L 34 34" stroke="#d1d5db" stroke-width="1.8" />
+            </g>
+        </svg>
+    </div>
+
     <!-- 🌟 ==========================================
          🌟 JavaScript 遊戲程式邏輯開始
          🌟 ========================================== -->
