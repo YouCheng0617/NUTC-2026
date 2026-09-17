@@ -1762,10 +1762,24 @@
         <div class="shop-grid" id="shopGrid"></div>
     </div>
 
+    <!-- 🔊 音效資源標籤 -->
+    <audio id="meowAudio" src="https://assets.mixkit.co/active_storage/sfx/2874/2874-preview.mp3" preload="auto"></audio>
+
     <!-- 🌟 ==========================================
          🌟 JavaScript 遊戲程式邏輯開始
          🌟 ========================================== -->
     <script>
+
+        // 🛡️ 安全解析 JSON 的小幫手 (防範 localStorage 資料異常導致頁面中斷崩潰)
+        function safeJsonParse(rawString, fallbackValue) {
+            if (!rawString) return fallbackValue;
+            try {
+                return JSON.parse(rawString);
+            } catch (e) {
+                console.warn('[SafeJSON] 解析 JSON 發生錯誤，使用預設值：', e);
+                return fallbackValue;
+            }
+        }
 
 // 🌟 【後台與網路連線資料】
         const API_BASE = 'https://api.drift-bottles.xyz'; // 伺服器網址
@@ -5683,7 +5697,7 @@ if (window.gearClockInterval) clearInterval(window.gearClockInterval);
                     const tauntLayer = document.createElement('div');
                     tauntLayer.className = 'background-taunt-layer';
                     
-                    let userTaunts = JSON.parse(localStorage.getItem('nudi_custom_taunts') || '["MISS! 打不到我~", "就這點傷害？我已經逃囉！", "哈哈，你抓不到我！"]');
+                    let userTaunts = safeJsonParse(localStorage.getItem('nudi_custom_taunts'), ["MISS! 打不到我~", "就這點傷害？我已經逃囉！", "哈哈，你抓不到我！"]);
                     
                     userTaunts.forEach((text, i) => {
                         let tEl = document.createElement('div');
@@ -9731,6 +9745,7 @@ addDailyProgress(type);
                 slugStartTop = parseFloat(style.top) || (stageEl.clientHeight / 2 - 120);
                 slugEl.classList.add('is-petting');
                 spawnMiniHeart(pos.x, pos.y);
+                playMeowSound();
             }
 
             function onMove(e) {
@@ -9920,7 +9935,7 @@ addDailyProgress(type);
             timerDisplay.innerHTML = `⏱️ 試用已暫停（輸入中...）`;
         }
 
-        let currentTaunts = JSON.parse(localStorage.getItem('nudi_custom_taunts') || '["MISS! 打不到我~", "就這點傷害？我已經逃囉！", "哈哈，你抓不到我！"]');
+        let currentTaunts = safeJsonParse(localStorage.getItem('nudi_custom_taunts'), ["MISS! 打不到我~", "就這點傷害？我已經逃囉！", "哈哈，你抓不到我！"]);
         
         let oldModal = document.getElementById('customTauntModal');
         if (oldModal) oldModal.remove();
