@@ -483,7 +483,7 @@ const i18n = {
             // 🌟 01 ~ 04：基礎入門系列（純白、暖黃、青綠、粉薄荷）
             none: { name: {zh: '無背景', en: 'Default'}, cost: 0, preview: '#ffffff', style: '#ffffff', hasDots: true },
            cozy_room: { name: {zh: '溫馨房間', en: 'Cozy Room'}, cost: 200, preview: '#e6dec3', style: "url('data:image/svg+xml;utf8,<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 800 600\" preserveAspectRatio=\"none\"><defs><pattern id=\"hl\" width=\"4\" height=\"4\" patternUnits=\"userSpaceOnUse\"><rect width=\"4\" height=\"4\" fill=\"%23e6dec3\"/><line x1=\"0\" y1=\"2\" x2=\"4\" y2=\"2\" stroke=\"%23d1c5a5\" stroke-width=\"1.2\"/></pattern><pattern id=\"vl\" width=\"4\" height=\"4\" patternUnits=\"userSpaceOnUse\"><rect width=\"4\" height=\"4\" fill=\"%23e6dec3\"/><line x1=\"2\" y1=\"0\" x2=\"2\" y2=\"4\" stroke=\"%23d1c5a5\" stroke-width=\"1.2\"/></pattern></defs><rect width=\"800\" height=\"360\" fill=\"%23fffbeb\"/><rect y=\"360\" width=\"800\" height=\"20\" fill=\"%236b4c2a\"/><g stroke=\"%234a3821\" stroke-width=\"8\"><rect x=\"-50\" y=\"380\" width=\"110\" height=\"220\" fill=\"url(%23hl)\"/><rect x=\"60\" y=\"380\" width=\"220\" height=\"110\" fill=\"url(%23vl)\"/><rect x=\"60\" y=\"490\" width=\"220\" height=\"110\" fill=\"url(%23vl)\"/><rect x=\"280\" y=\"380\" width=\"110\" height=\"220\" fill=\"url(%23hl)\"/><rect x=\"390\" y=\"380\" width=\"220\" height=\"110\" fill=\"url(%23vl)\"/><rect x=\"390\" y=\"490\" width=\"220\" height=\"110\" fill=\"url(%23vl)\"/><rect x=\"610\" y=\"380\" width=\"110\" height=\"220\" fill=\"url(%23hl)\"/><rect x=\"720\" y=\"380\" width=\"220\" height=\"110\" fill=\"url(%23vl)\"/><rect x=\"720\" y=\"490\" width=\"220\" height=\"110\" fill=\"url(%23vl)\"/></g><g transform=\"translate(60, 40)\"><rect width=\"220\" height=\"280\" fill=\"%23bae6fd\"/><circle cx=\"160\" cy=\"60\" r=\"30\" fill=\"%23ffffff\" opacity=\"0.8\"/><circle cx=\"190\" cy=\"70\" r=\"20\" fill=\"%23ffffff\" opacity=\"0.8\"/><rect width=\"220\" height=\"280\" fill=\"none\" stroke=\"%235a4425\" stroke-width=\"16\"/><line x1=\"110\" y1=\"0\" x2=\"110\" y2=\"280\" stroke=\"%235a4425\" stroke-width=\"12\"/><line x1=\"0\" y1=\"140\" x2=\"220\" y2=\"140\" stroke=\"%235a4425\" stroke-width=\"12\"/><polygon points=\"220,280 220,140 400,340 150,340\" fill=\"%23ffffff\" opacity=\"0.15\"/></g></svg>') center center / cover no-repeat", hasDots: false },
-            sunshine_grassland: { name: {zh: '陽光草原', en: 'Sunshine Grassland'}, cost: 400, preview: '#86efac', style: '#86efac', hasDots: true },
+sunshine_grassland: { name: {zh: '陽光草原', en: 'Sunshine Grassland'}, cost: 400, preview: 'linear-gradient(135deg, #7dd3fc 0%, #fef08a 40%, #4ade80 70%, #15803d 100%)', style: "url('data:image/svg+xml;utf8,<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1200 800\" preserveAspectRatio=\"none\"><defs><linearGradient id=\"sky\" x1=\"0\" y1=\"0\" x2=\"0\" y2=\"1\"><stop offset=\"0%\" stop-color=\"%2338bdf8\"/><stop offset=\"35%\" stop-color=\"%237dd3fc\"/><stop offset=\"65%\" stop-color=\"%23bae6fd\"/><stop offset=\"90%\" stop-color=\"%23fef08a\"/><stop offset=\"100%\" stop-color=\"%23d9f99d\"/></linearGradient><radialGradient id=\"sun\" cx=\"50%\" cy=\"50%\" r=\"50%\"><stop offset=\"0%\" stop-color=\"%23ffffff\"/><stop offset=\"30%\" stop-color=\"%23fffbeb\"/><stop offset=\"65%\" stop-color=\"%23fde047\"/><stop offset=\"88%\" stop-color=\"%23f59e0b\" stop-opacity=\"0.6\"/><stop offset=\"100%\" stop-color=\"%23fbbf24\" stop-opacity=\"0\"/></radialGradient><radialGradient id=\"sunGlow\" cx=\"50%\" cy=\"50%\" r=\"50%\"><stop offset=\"0%\" stop-color=\"%23ffffff\" stop-opacity=\"0.8\"/><stop offset=\"35%\" stop-color=\"%23fef08a\" stop-opacity=\"0.4\"/><stop offset=\"70%\" stop-color=\"%23facc15\" stop-opacity=\"0.15\"/><stop offset=\"100%\" stop-color=\"%23fde047\" stop-opacity=\"0\"/></radialGradient><linearGradient id=\"hDist\" x1=\"0\" y1=\"0\" x2=\"0\" y2=\"1\"><stop offset=\"0%\" stop-color=\"%23a7f3d0\"/><stop offset=\"100%\" stop-color=\"%236ee7b7\"/></linearGradient><linearGradient id=\"hMid\" x1=\"0\" y1=\"0\" x2=\"0\" y2=\"1\"><stop offset=\"0%\" stop-color=\"%2386efac\"/><stop offset=\"50%\" stop-color=\"%234ade80\"/><stop offset=\"100%\" stop-color=\"%2322c55e\"/></linearGradient><linearGradient id=\"hFore\" x1=\"0\" y1=\"0\" x2=\"0\" y2=\"1\"><stop offset=\"0%\" stop-color=\"%23a3e635\"/><stop offset=\"30%\" stop-color=\"%234ade80\"/><stop offset=\"70%\" stop-color=\"%2316a34a\"/><stop offset=\"100%\" stop-color=\"%2315803d\"/></linearGradient><linearGradient id=\"hFront\" x1=\"0\" y1=\"0\" x2=\"0\" y2=\"1\"><stop offset=\"0%\" stop-color=\"%23bef264\"/><stop offset=\"25%\" stop-color=\"%2322c55e\"/><stop offset=\"75%\" stop-color=\"%2315803d\"/><stop offset=\"100%\" stop-color=\"%2314532d\"/></linearGradient><linearGradient id=\"cloud\" x1=\"0\" y1=\"0\" x2=\"0\" y2=\"1\"><stop offset=\"0%\" stop-color=\"%23ffffff\"/><stop offset=\"85%\" stop-color=\"%23f1f5f9\"/><stop offset=\"100%\" stop-color=\"%23e2e8f0\"/></linearGradient></defs><rect width=\"1200\" height=\"800\" fill=\"url(%23sky)\"/><circle cx=\"180\" cy=\"130\" r=\"160\" fill=\"url(%23sunGlow)\"/><circle cx=\"180\" cy=\"130\" r=\"90\" fill=\"url(%23sun)\"/><circle cx=\"180\" cy=\"130\" r=\"42\" fill=\"%23ffffff\"/><g fill=\"%23ffffff\" opacity=\"0.09\"><polygon points=\"180,130 -100,300 -100,420\"/><polygon points=\"180,130 -40,550 80,620\"/><polygon points=\"180,130 200,800 320,800\"/><polygon points=\"180,130 460,800 620,800\"/><polygon points=\"180,130 820,800 980,750\"/><polygon points=\"180,130 1150,680 1250,600\"/><polygon points=\"180,130 1250,420 1250,280\"/><polygon points=\"180,130 1100,100 1200,50\"/></g><path d=\"M 180 60 Q 180 130 110 130 Q 180 130 180 200 Q 180 130 250 130 Q 180 130 180 60 Z\" fill=\"%23ffffff\" opacity=\"0.35\"/><circle cx=\"280\" cy=\"200\" r=\"12\" fill=\"%23ffffff\" opacity=\"0.3\"/><circle cx=\"340\" cy=\"245\" r=\"7\" fill=\"%23fef08a\" opacity=\"0.35\"/><circle cx=\"430\" cy=\"310\" r=\"18\" fill=\"%23fde047\" opacity=\"0.2\"/><g fill=\"url(%23cloud)\" opacity=\"0.95\"><path d=\"M 850 160 Q 850 110 900 100 Q 940 60 1010 70 Q 1070 50 1110 90 Q 1160 80 1180 130 Q 1220 150 1210 190 Q 1200 230 1150 230 L 870 230 Q 830 220 830 180 Q 830 160 850 160 Z\"/></g><g fill=\"url(%23cloud)\" opacity=\"0.9\"><path d=\"M 380 180 Q 390 140 430 140 Q 460 110 510 125 Q 550 110 580 140 Q 610 150 610 180 Q 600 210 560 210 L 400 210 Q 370 200 380 180 Z\"/></g><g fill=\"%23ffffff\" opacity=\"0.6\"><ellipse cx=\"140\" cy=\"280\" rx=\"60\" ry=\"14\"/><ellipse cx=\"120\" cy=\"275\" rx=\"35\" ry=\"18\"/><ellipse cx=\"720\" cy=\"260\" rx=\"80\" ry=\"16\"/><ellipse cx=\"745\" cy=\"254\" rx=\"45\" ry=\"20\"/></g><g stroke=\"%233b82f6\" stroke-width=\"2.5\" stroke-linecap=\"round\" fill=\"none\" opacity=\"0.45\"><path d=\"M 640 160 Q 652 150 664 160 Q 676 150 688 160\"/><path d=\"M 700 180 Q 709 172 718 180 Q 727 172 736 180\"/><path d=\"M 610 200 Q 617 193 624 200 Q 631 193 638 200\"/></g><path d=\"M -20 460 Q 150 370 380 430 Q 600 480 850 390 Q 1050 340 1220 420 L 1220 800 L -20 800 Z\" fill=\"url(%23hDist)\" opacity=\"0.85\"/><g fill=\"%23059669\" opacity=\"0.35\"><circle cx=\"360\" cy=\"425\" r=\"9\"/><circle cx=\"375\" cy=\"422\" r=\"12\"/><circle cx=\"390\" cy=\"427\" r=\"8\"/><circle cx=\"840\" cy=\"385\" r=\"10\"/><circle cx=\"855\" cy=\"380\" r=\"14\"/><circle cx=\"870\" cy=\"386\" r=\"9\"/></g><path d=\"M -20 540 Q 220 440 520 510 Q 820 570 1100 460 Q 1180 440 1220 470 L 1220 800 L -20 800 Z\" fill=\"url(%23hMid)\"/><rect x=\"236\" y=\"465\" width=\"8\" height=\"25\" rx=\"3\" fill=\"%2378350f\"/><circle cx=\"240\" cy=\"450\" r=\"28\" fill=\"%2315803d\"/><circle cx=\"232\" cy=\"445\" r=\"20\" fill=\"%2322c55e\"/><circle cx=\"246\" cy=\"440\" r=\"16\" fill=\"%234ade80\"/><circle cx=\"236\" cy=\"435\" r=\"10\" fill=\"%2386efac\"/><rect x=\"287\" y=\"485\" width=\"6\" height=\"18\" rx=\"2\" fill=\"%2378350f\"/><circle cx=\"290\" cy=\"475\" r=\"18\" fill=\"%2316a34a\"/><circle cx=\"286\" cy=\"470\" r=\"14\" fill=\"%234ade80\"/><rect x=\"976\" y=\"480\" width=\"8\" height=\"26\" rx=\"3\" fill=\"%2378350f\"/><circle cx=\"980\" cy=\"460\" r=\"26\" fill=\"%2315803d\"/><circle cx=\"974\" cy=\"454\" r=\"20\" fill=\"%2322c55e\"/><circle cx=\"988\" cy=\"450\" r=\"16\" fill=\"%234ade80\"/><circle cx=\"978\" cy=\"444\" r=\"10\" fill=\"%2386efac\"/><path d=\"M -20 540 Q 220 440 520 510 Q 820 570 1100 460 Q 1180 440 1220 470\" fill=\"none\" stroke=\"%23bef264\" stroke-width=\"4\" opacity=\"0.5\"/><path d=\"M -20 620 Q 300 520 700 590 Q 950 630 1220 540 L 1220 800 L -20 800 Z\" fill=\"url(%23hFore)\"/><path d=\"M -20 620 Q 300 520 700 590 Q 950 630 1220 540\" fill=\"none\" stroke=\"%23fef08a\" stroke-width=\"6\" opacity=\"0.45\"/><path d=\"M -20 680 Q 280 610 640 670 Q 980 720 1220 630 L 1220 800 L -20 800 Z\" fill=\"url(%23hFront)\"/><path d=\"M -20 680 Q 280 610 640 670 Q 980 720 1220 630\" fill=\"none\" stroke=\"%23d9f99d\" stroke-width=\"5\" opacity=\"0.6\"/><g fill=\"%23166534\" stroke=\"%2314532d\" stroke-width=\"1.5\" stroke-linejoin=\"round\"><path d=\"M 120 705 Q 112 680 102 672 Q 114 685 120 705 Z\"/><path d=\"M 122 705 Q 123 675 120 665 Q 126 680 124 705 Z\"/><path d=\"M 124 705 Q 134 682 142 676 Q 132 688 126 705 Z\"/><path d=\"M 450 725 Q 442 702 432 696 Q 444 707 450 725 Z\"/><path d=\"M 452 725 Q 453 695 450 685 Q 456 700 454 725 Z\"/><path d=\"M 454 725 Q 464 704 472 698 Q 462 710 456 725 Z\"/><path d=\"M 780 715 Q 772 692 762 686 Q 774 697 780 715 Z\"/><path d=\"M 782 715 Q 783 685 780 675 Q 786 690 784 715 Z\"/><path d=\"M 784 715 Q 794 694 802 688 Q 792 700 786 715 Z\"/><path d=\"M 1050 695 Q 1042 672 1032 666 Q 1044 677 1050 695 Z\"/><path d=\"M 1052 695 Q 1053 665 1050 655 Q 1056 670 1054 695 Z\"/><path d=\"M 1054 695 Q 1064 674 1072 668 Q 1062 680 1056 695 Z\"/></g><g transform=\"translate(180, 710)\"><path d=\"M 0 0 L 2 16\" stroke=\"%2315803d\" stroke-width=\"2.5\"/><circle cx=\"-8\" cy=\"0\" r=\"5\" fill=\"%23ffffff\"/><circle cx=\"8\" cy=\"0\" r=\"5\" fill=\"%23ffffff\"/><circle cx=\"0\" cy=\"-8\" r=\"5\" fill=\"%23ffffff\"/><circle cx=\"0\" cy=\"8\" r=\"5\" fill=\"%23ffffff\"/><circle cx=\"-5\" cy=\"-5\" r=\"4.5\" fill=\"%23ffffff\"/><circle cx=\"5\" cy=\"-5\" r=\"4.5\" fill=\"%23ffffff\"/><circle cx=\"-5\" cy=\"5\" r=\"4.5\" fill=\"%23ffffff\"/><circle cx=\"5\" cy=\"5\" r=\"4.5\" fill=\"%23ffffff\"/><circle cx=\"0\" cy=\"0\" r=\"5\" fill=\"%23facc15\"/></g><g transform=\"translate(680, 725) scale(0.9)\"><path d=\"M 0 0 L -2 16\" stroke=\"%2315803d\" stroke-width=\"2.5\"/><circle cx=\"-8\" cy=\"0\" r=\"5\" fill=\"%23ffffff\"/><circle cx=\"8\" cy=\"0\" r=\"5\" fill=\"%23ffffff\"/><circle cx=\"0\" cy=\"-8\" r=\"5\" fill=\"%23ffffff\"/><circle cx=\"0\" cy=\"8\" r=\"5\" fill=\"%23ffffff\"/><circle cx=\"-5\" cy=\"-5\" r=\"4.5\" fill=\"%23ffffff\"/><circle cx=\"5\" cy=\"-5\" r=\"4.5\" fill=\"%23ffffff\"/><circle cx=\"-5\" cy=\"5\" r=\"4.5\" fill=\"%23ffffff\"/><circle cx=\"5\" cy=\"5\" r=\"4.5\" fill=\"%23ffffff\"/><circle cx=\"0\" cy=\"0\" r=\"5\" fill=\"%23facc15\"/></g><g transform=\"translate(1120, 715) scale(0.85)\"><path d=\"M 0 0 L 1 14\" stroke=\"%2315803d\" stroke-width=\"2.5\"/><circle cx=\"-8\" cy=\"0\" r=\"5\" fill=\"%23ffffff\"/><circle cx=\"8\" cy=\"0\" r=\"5\" fill=\"%23ffffff\"/><circle cx=\"0\" cy=\"-8\" r=\"5\" fill=\"%23ffffff\"/><circle cx=\"0\" cy=\"8\" r=\"5\" fill=\"%23ffffff\"/><circle cx=\"0\" cy=\"0\" r=\"5\" fill=\"%23facc15\"/></g><g transform=\"translate(330, 685) scale(0.85)\"><path d=\"M 0 0 L 1 14\" stroke=\"%2315803d\" stroke-width=\"2.5\"/><circle cx=\"-6\" cy=\"-2\" r=\"5\" fill=\"%23f472b6\"/><circle cx=\"6\" cy=\"-2\" r=\"5\" fill=\"%23f472b6\"/><circle cx=\"0\" cy=\"-7\" r=\"5\" fill=\"%23f472b6\"/><circle cx=\"-4\" cy=\"5\" r=\"5\" fill=\"%23f472b6\"/><circle cx=\"4\" cy=\"5\" r=\"5\" fill=\"%23f472b6\"/><circle cx=\"0\" cy=\"0\" r=\"4\" fill=\"%23ffffff\"/></g><g transform=\"translate(890, 700) scale(0.8)\"><path d=\"M 0 0 L -1 14\" stroke=\"%2315803d\" stroke-width=\"2.5\"/><circle cx=\"-6\" cy=\"-2\" r=\"5\" fill=\"%23fb7185\"/><circle cx=\"6\" cy=\"-2\" r=\"5\" fill=\"%23fb7185\"/><circle cx=\"0\" cy=\"-7\" r=\"5\" fill=\"%23fb7185\"/><circle cx=\"-4\" cy=\"5\" r=\"5\" fill=\"%23fb7185\"/><circle cx=\"4\" cy=\"5\" r=\"5\" fill=\"%23fb7185\"/><circle cx=\"0\" cy=\"0\" r=\"4\" fill=\"%23fef08a\"/></g><g transform=\"translate(530, 740) scale(0.75)\"><circle cx=\"-5\" cy=\"-2\" r=\"4.5\" fill=\"%23fde047\"/><circle cx=\"5\" cy=\"-2\" r=\"4.5\" fill=\"%23fde047\"/><circle cx=\"0\" cy=\"-6\" r=\"4.5\" fill=\"%23fde047\"/><circle cx=\"0\" cy=\"0\" r=\"3\" fill=\"%23ea580c\"/></g><g transform=\"translate(960, 730) scale(0.75)\"><circle cx=\"-5\" cy=\"-2\" r=\"4.5\" fill=\"%23fde047\"/><circle cx=\"5\" cy=\"-2\" r=\"4.5\" fill=\"%23fde047\"/><circle cx=\"0\" cy=\"-6\" r=\"4.5\" fill=\"%23fde047\"/><circle cx=\"0\" cy=\"0\" r=\"3\" fill=\"%23ea580c\"/></g><g fill=\"%23ffffff\" opacity=\"0.8\"><circle cx=\"310\" cy=\"590\" r=\"2.5\"/><circle cx=\"410\" cy=\"520\" r=\"3\"/><circle cx=\"580\" cy=\"480\" r=\"2\"/><circle cx=\"630\" cy=\"410\" r=\"3.5\"/><circle cx=\"750\" cy=\"460\" r=\"2\"/><circle cx=\"820\" cy=\"380\" r=\"2.5\"/><circle cx=\"920\" cy=\"490\" r=\"3\"/></g><g stroke=\"%23ffffff\" stroke-width=\"1.2\" stroke-linecap=\"round\" fill=\"none\" opacity=\"0.85\"><path d=\"M 410 520 L 410 530 M 410 520 L 404 513 M 410 520 L 416 513 M 410 520 L 410 511\"/><path d=\"M 630 410 L 630 420 M 630 410 L 624 403 M 630 410 L 636 403 M 630 410 L 630 401\"/><path d=\"M 820 380 L 820 389 M 820 380 L 815 374 M 820 380 L 825 374 M 820 380 L 820 372\"/></g><g transform=\"translate(260, 600) rotate(-15)\"><ellipse cx=\"-7\" cy=\"-5\" rx=\"7\" ry=\"5\" fill=\"%23fde047\" opacity=\"0.9\"/><ellipse cx=\"-5\" cy=\"4\" rx=\"5\" ry=\"3.5\" fill=\"%23f59e0b\" opacity=\"0.9\"/><ellipse cx=\"7\" cy=\"-5\" rx=\"7\" ry=\"5\" fill=\"%23fde047\" opacity=\"0.9\"/><ellipse cx=\"5\" cy=\"4\" rx=\"5\" ry=\"3.5\" fill=\"%23f59e0b\" opacity=\"0.9\"/><line x1=\"0\" y1=\"-7\" x2=\"0\" y2=\"7\" stroke=\"%2378350f\" stroke-width=\"1.5\"/></g><g transform=\"translate(740, 640) rotate(20) scale(0.85)\"><ellipse cx=\"-7\" cy=\"-5\" rx=\"7\" ry=\"5\" fill=\"%2338bdf8\" opacity=\"0.9\"/><ellipse cx=\"-5\" cy=\"4\" rx=\"5\" ry=\"3.5\" fill=\"%230284c7\" opacity=\"0.9\"/><ellipse cx=\"7\" cy=\"-5\" rx=\"7\" ry=\"5\" fill=\"%2338bdf8\" opacity=\"0.9\"/><ellipse cx=\"5\" cy=\"4\" rx=\"5\" ry=\"3.5\" fill=\"%230284c7\" opacity=\"0.9\"/><line x1=\"0\" y1=\"-7\" x2=\"0\" y2=\"7\" stroke=\"%230f172a\" stroke-width=\"1.5\"/></g></svg>') center center / cover no-repeat", hasDots: false },
             sunny_park: { name: {zh: '陽光公園', en: 'Sunny Park'}, cost: 500, preview: '#a7f3d0', style: '#a7f3d0', hasDots: true },
 
             // 🌟 05 ~ 10：自然與日常系列（森林綠、天空藍、杏桃橘、櫻花粉、竹林翠、陰雨灰）
@@ -8016,7 +8016,6 @@ default:
                 // 🌟 抓小海兔的抓取動作！手掌瞬間合攏抓握
                 showPetHand(pos.x, pos.y, 'grabbing');
                 spawnMiniHeart(pos.x, pos.y);
-                playMeowSound();
             }
 
             function onMove(e) {
@@ -8069,7 +8068,7 @@ default:
                         if (!isHovering) hidePetHand();
                     }, 500);
                 }
-                // 點擊海兔僅觸發撫摸動畫與叫聲，不增加積分（修復進遊戲點擊海兔刷分漏洞）
+                // 點擊海兔僅觸發撫摸動畫，不增加積分（修復進遊戲點擊海兔刷分漏洞）
                 broadcastMove(parseFloat(slugEl.style.left) || 0, parseFloat(slugEl.style.top) || 0);
             }
 
@@ -8204,42 +8203,51 @@ default:
             }, 150); 
         }
         // 🌟 【真實喵喵叫】播放真正的貓咪音效，還會隨機變聲！
-        // 🌟 【終極殺手鐧】直接在網頁裡塞入一個隱藏的貓咪廣播器！
-        if (!document.getElementById('meowAudio')) {
-            const audioEl = document.createElement('audio');
-            audioEl.id = 'meowAudio';
-            // 換成超穩定的免版稅 MP3 音檔，保證不失效不迷路！
-            audioEl.src = 'https://assets.mixkit.co/active_storage/sfx/93/93-preview.mp3';
-            audioEl.preload = 'auto';
-            document.body.appendChild(audioEl);
+        const catMeowSources = [
+            'https://assets.mixkit.co/active_storage/sfx/93/93-preview.mp3', // 甜美小貓叫聲 (Sweet kitty meow)
+            'https://assets.mixkit.co/active_storage/sfx/91/91-preview.mp3', // 卡通小貓叫聲 (Cartoon little cat meow)
+            'https://assets.mixkit.co/active_storage/sfx/86/86-preview.mp3'  // 撒嬌貓咪叫聲 (Little cat attention meow)
+        ];
+
+        // 確保音效播放器存在且音源正確為貓叫聲
+        let primaryMeow = document.getElementById('meowAudio');
+        if (!primaryMeow) {
+            primaryMeow = document.createElement('audio');
+            primaryMeow.id = 'meowAudio';
+            primaryMeow.preload = 'auto';
+            document.body.appendChild(primaryMeow);
+        }
+        if (!primaryMeow.src || primaryMeow.src.includes('2874')) {
+            primaryMeow.src = catMeowSources[0];
         }
 
         let isMeowUnlocked = false;
 
-        // 🌟 破冰魔法：只要在畫面任何地方點擊一下，就立刻發放聲音通行證！
-        document.body.addEventListener('click', function unlockAudio() {
-            const audioEl = document.getElementById('meowAudio');
-            if (audioEl && !isMeowUnlocked) {
-                audioEl.volume = 0; // 先偷偷靜音播一次騙過瀏覽器
-                audioEl.play().then(() => {
-                    audioEl.pause();
-                    audioEl.currentTime = 0;
-                    audioEl.volume = 0.5; // 解鎖後恢復成溫柔的音量
-                    isMeowUnlocked = true;
-                }).catch(e => {});
-                document.body.removeEventListener('click', unlockAudio);
-            }
-        });
+        // 🌟 破冰魔法：只要在畫面任何地方點擊或觸控一下，就立刻發放聲音通行證！
+        function unlockMeowAudio() {
+            isMeowUnlocked = true;
+            ['meowAudio', 'meowAudio2', 'meowAudio3'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.volume = 0.5;
+            });
+        }
+        window.addEventListener('click', unlockMeowAudio, { passive: true });
+        window.addEventListener('touchstart', unlockMeowAudio, { passive: true });
 
-        // 🌟 【真實喵喵叫】背景穩定播放！
+        // 🌟 【真實喵喵叫】背景穩定播放，隨機從真實貓咪叫聲中選取並微調音調！
         function playMeowSound() {
-            const audioEl = document.getElementById('meowAudio');
-            // 如果還沒點擊畫面解鎖，就先不叫
-            if (audioEl && isMeowUnlocked) {
+            const meowIds = ['meowAudio', 'meowAudio2', 'meowAudio3'];
+            const chosenId = meowIds[Math.floor(Math.random() * meowIds.length)];
+            const audioEl = document.getElementById(chosenId) || document.getElementById('meowAudio');
+            
+            if (audioEl) {
                 audioEl.currentTime = 0;
-                // 隨機變聲魔法：讓叫聲有高有低，像好幾隻貓！
-                audioEl.playbackRate = 0.85 + Math.random() * 0.3;
-                audioEl.play().catch(e => console.log("主子還在睡"));
+                audioEl.volume = 0.5;
+                // 隨機變聲魔法：讓叫聲有高有低，像好幾隻不同的貓貓！
+                audioEl.playbackRate = 0.88 + Math.random() * 0.25;
+                audioEl.play().catch(e => {
+                    console.log("主子還在睡（等待使用者互動）");
+                });
             }
         }
 // 🌟 【自定義彈幕設定彈窗邏輯（已加入計時暫停與恢復）】
