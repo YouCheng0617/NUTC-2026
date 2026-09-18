@@ -376,6 +376,7 @@ model CustomerService {
   member_id  Int
   title      String
   message    String   @db.Text
+  images     String[] @default([]) // 使用者上傳的圖片路徑 (最多 3 張, /uploads/customer-service/xxx)
   status     Int      @default(0) // (0: 待處理, 1: 處理中, 2: 已回覆/結案)
   created_at DateTime @default(now())
   reply      String?  @db.Text // 管理員回覆內容 

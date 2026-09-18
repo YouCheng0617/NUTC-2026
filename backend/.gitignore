@@ -11,3 +11,6 @@ node_modules
 *.d.ts
 *.ts.map
 *.js.map
+
+
+/uploads/customer-service

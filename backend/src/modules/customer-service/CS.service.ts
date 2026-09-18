@@ -2,12 +2,13 @@ import prisma from "../../lib/prisma.js";
 import { createNotification } from "../notification/notification.service.js";
 
 // 1. 會員送出客服問題
-export const createCustomerServiceTicket = async (memberId: number, title: string, message: string) => {
+export const createCustomerServiceTicket = async (memberId: number, title: string, message: string, images: string[] = []) => {
     const ticket = await prisma.customerService.create({
         data: {
             member_id: memberId,
             title: title.trim(),
             message: message.trim(),
+            images,
             status: 0, // 0: 待處理
         }
     });

@@ -5,6 +5,7 @@ import {
     getUserCustomerServiceTickets,
     getCustomerServiceTicketById
 } from "./CS.service.js";
+import { saveCSImages, deleteCSImages } from "./CS.upload.js";
 
 export class CSController {
     // 會員送出客服問題
@@ -23,11 +24,23 @@ export class CSController {
                 return res.status(400).json({ message: "請填寫客服問題詳細內容" });
             }
 
-            const ticket = await createCustomerServiceTicket(memberId, title, message);
-            return res.status(201).json({
-                message: "客服問題已成功送出！",
-                data: ticket
-            });
+            const files = (req.files as Express.Multer.File[] | undefined) ?? [];
+            const images = await saveCSImages(files);
+            if (images === null) {
+                return res.status(400).json({ message: "圖片格式錯誤，僅接受 jpg、png、webp" });
+            }
+
+            try {
+                const ticket = await createCustomerServiceTicket(memberId, title, message, images);
+                return res.status(201).json({
+                    message: "客服問題已成功送出！",
+                    data: ticket
+                });
+            } catch (error) {
+                // 資料庫寫入失敗時，清掉已存的圖片避免變成孤兒檔案
+                await deleteCSImages(images);
+                throw error;
+            }
         } catch (error) {
             console.error("送出客服問題時發生錯誤:", error);
             return res.status(500).json({ message: "內部伺服器錯誤" });

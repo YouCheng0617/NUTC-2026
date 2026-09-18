@@ -14,6 +14,9 @@ const DEFAULT_UPLOADS_DIR = path.resolve(__dirname, '../../uploads');
 // 支援的圖片副檔名 (僅讀取 .webp)
 const ALLOWED_IMAGE_EXTENSIONS = new Set(['.webp']);
 
+// 不屬於圖鑑的資料夾 (使用者上傳的客服圖片)，掃描時略過
+const EXCLUDED_DIRS = new Set(['customer-service']);
+
 /**
  * 遞迴讀取資料夾內的所有圖片路徑
  * @param dir 目標資料夾路徑
@@ -38,6 +41,7 @@ export async function scanImageFiles(dir: string = DEFAULT_UPLOADS_DIR): Promise
       const fullPath = path.join(currentPath, entry.name);
 
       if (entry.isDirectory()) {
+        if (EXCLUDED_DIRS.has(entry.name)) continue;
         await walk(fullPath);
       } else if (entry.isFile()) {
         const ext = path.extname(entry.name).toLowerCase();

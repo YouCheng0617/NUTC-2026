@@ -1,5 +1,6 @@
 import prisma from "../../lib/prisma.js";
 import { createNotification } from "../notification/notification.service.js";
+import { deleteCSImages } from "../customer-service/CS.upload.js";
 
 export const getAllMembers = async () => {
     const members = await prisma.member.findMany({
@@ -340,8 +341,11 @@ export const updateCustomerServiceStatus = async (ticketId: number, status: numb
 
 // 5. 管理員刪除客服紀錄
 export const deleteCustomerServiceTicket = async (ticketId: number) => {
-    return await prisma.customerService.delete({
+    const deleted = await prisma.customerService.delete({
         where: { id: ticketId }
     });
+    // 一併刪除該筆客服的附件圖片
+    await deleteCSImages(deleted.images);
+    return deleted;
 };
 
