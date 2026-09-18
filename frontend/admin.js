@@ -23,7 +23,7 @@ function getItemTimestamp(item, idField) {
 // 🌟 點擊兩下開啟行內頁碼輸入框
 window.enableInlinePageInput = function (el, totalItems, currentPage, totalPages, containerId, changePageFuncName) {
     el.removeAttribute('ondblclick');
-    el.innerHTML = `第 <input type="text" id="inline-page-input" value="${currentPage}" style="width: 48px; padding: 2px 4px; text-align: center; border: 1.5px solid #3b82f6; border-radius: 6px; font-weight: bold; color: #1e293b; outline: none; font-size: 0.9rem; margin: 0 4px;" /> / ${totalPages} 頁 (共 ${totalItems} 筆)`;
+    el.innerHTML = `第 <input type="text" id="inline-page-input" value="${currentiPage}" style="width: 48px; padding: 2px 4px; text-align: center; border: 1.5px solid #3b82f6; border-radius: 6px; font-weight: bold; color: #1e293b; outline: none; font-size: 0.9rem; margin: 0 4px;" /> / ${totalPages} 頁 (共 ${totalItems} 筆)`;
 
     const input = document.getElementById('inline-page-input');
     if (!input) return;
@@ -1315,6 +1315,11 @@ function renderCustomerServices(tickets) {
 
         const rowBg = statusNum === 0 ? '#ffffff' : '#f8fafc';
 
+        const imageCount = Array.isArray(ticket.images) ? ticket.images.length : 0;
+        const imageTag = imageCount > 0
+            ? `<span class="badge" style="margin-top: 6px; display: inline-block; background:#f5f3ff; color:#7c3aed; border:1px solid #ddd6fe; font-size: 0.75rem;">📎 ${imageCount} 張圖片</span>`
+            : '';
+
         return `
         <tr style="background: ${rowBg}; transition: 0.25s;">
             <td data-label="案件 ID" style="color: #64748b; font-weight: 700;">#${id}</td>
@@ -1325,6 +1330,7 @@ function renderCustomerServices(tickets) {
             <td data-label="問題主旨" style="min-width: 200px; max-width: 320px;">
                 <div style="font-weight: 600; color: #0f172a; line-height: 1.4; word-break: break-word;">${escapeHTML(ticket.title)}</div>
                 <div style="font-size: 0.82rem; color: #64748b; margin-top: 4px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">${escapeHTML(ticket.message)}</div>
+                ${imageTag}
             </td>
             <td data-label="提交時間" style="color: #64748b; font-size: 0.85rem; white-space: nowrap;">${date}</td>
             <td data-label="案件狀態">${statusBadge}</td>
@@ -1361,6 +1367,16 @@ window.openCsReplyModal = function (ticketId) {
 
     document.getElementById('cs-modal-user-info').innerText = `👤 提問者：${memberName} (${memberEmail}) ｜ 📅 提交時間：${date}`;
     document.getElementById('cs-modal-message-box').innerText = ticket.message || '（無內容）';
+
+    // 附加圖片：有圖才顯示區塊，點縮圖開新分頁看原圖
+    const images = Array.isArray(ticket.images) ? ticket.images : [];
+    document.getElementById('cs-modal-images-wrap').style.display = images.length > 0 ? 'block' : 'none';
+    document.getElementById('cs-modal-images').innerHTML = images.map((url, i) => {
+        const fullUrl = escapeHTML(API_BASE_URL + url);
+        return `<a href="${fullUrl}" target="_blank" rel="noopener" title="查看原圖">
+            <img src="${fullUrl}" alt="附加圖片 ${i + 1}" style="width: 110px; height: 110px; object-fit: cover; border-radius: 10px; border: 1.5px solid #e2e8f0; display: block;" />
+        </a>`;
+    }).join('');
 
     const replyTextarea = document.getElementById('cs-reply-textarea');
     replyTextarea.value = ticket.reply || '';

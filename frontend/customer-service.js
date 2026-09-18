@@ -7,6 +7,12 @@ const API_BASE_URL = "https://api.drift-bottles.xyz";
 let allUserTickets = [];
 let currentFilterStatus = "all";
 
+// 🌟 附加圖片限制 (需與後端 CS.upload.ts 一致)
+const MAX_IMAGES = 3;
+const MAX_IMAGE_SIZE = 5 * 1024 * 1024;
+const ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp"];
+let selectedImages = []; // { file, previewUrl }
+
 // 🌟 HTML 跳脫防 XSS
 function escapeHTML(str) {
   if (typeof str !== "string") str = String(str || "");
@@ -35,6 +41,7 @@ function showToast(message, duration = 3000) {
 // ==========================================
 document.addEventListener("DOMContentLoaded", () => {
   initUserProfile();
+  renderSelectedImages();
   loadUserTickets(); // 預載客服紀錄
 });
 
@@ -142,7 +149,67 @@ window.resetCsForm = function () {
   if (form) form.reset();
   updateCharCount("cs-title", "title-counter", 80);
   updateCharCount("cs-message", "message-counter", 1000);
+  clearSelectedImages();
 };
+
+// ==========================================
+// 3-1. 附加圖片 (選取 / 預覽 / 移除)
+// ==========================================
+window.handleImageSelect = function (event) {
+  const input = event.target;
+  const files = Array.from(input.files || []);
+  input.value = ""; // 清空，讓同一張圖移除後可以再選
+
+  for (const file of files) {
+    if (selectedImages.length >= MAX_IMAGES) {
+      alert(`最多只能上傳 ${MAX_IMAGES} 張圖片！`);
+      break;
+    }
+    if (!ALLOWED_IMAGE_TYPES.includes(file.type)) {
+      alert(`「${file.name}」格式不支援，僅接受 JPG、PNG、WEBP！`);
+      continue;
+    }
+    if (file.size > MAX_IMAGE_SIZE) {
+      alert(`「${file.name}」超過 5MB，請壓縮後再上傳！`);
+      continue;
+    }
+    selectedImages.push({ file, previewUrl: URL.createObjectURL(file) });
+  }
+
+  renderSelectedImages();
+};
+
+window.removeSelectedImage = function (index) {
+  const [removed] = selectedImages.splice(index, 1);
+  if (removed) URL.revokeObjectURL(removed.previewUrl);
+  renderSelectedImages();
+};
+
+function clearSelectedImages() {
+  selectedImages.forEach(img => URL.revokeObjectURL(img.previewUrl));
+  selectedImages = [];
+  renderSelectedImages();
+}
+
+function renderSelectedImages() {
+  const list = document.getElementById("cs-image-list");
+  const counter = document.getElementById("image-counter");
+  if (!list) return;
+
+  const previews = selectedImages.map((img, i) => `
+    <div class="cs-image-item">
+      <img src="${img.previewUrl}" alt="附加圖片 ${i + 1}" />
+      <button type="button" class="cs-image-remove" onclick="removeSelectedImage(${i})" title="移除這張圖片">✕</button>
+    </div>
+  `).join("");
+
+  const addTile = selectedImages.length < MAX_IMAGES
+    ? `<label for="cs-image-input" class="cs-image-add" title="新增圖片"><span>＋</span><small>新增圖片</small></label>`
+    : "";
+
+  list.innerHTML = previews + addTile;
+  if (counter) counter.innerText = `${selectedImages.length} / ${MAX_IMAGES}`;
+}
 
 // ==========================================
 // 4. 送出客服表單 (POST /customer-service)
@@ -180,15 +247,20 @@ window.handleFormSubmit = async function (event) {
   submitText.innerText = "正在傳送中...";
   submitSpinner.style.display = "inline-block";
 
+  // 使用 FormData 才能同時傳送文字與圖片 (不可自行設定 Content-Type，瀏覽器會自動帶 boundary)
+  const formData = new FormData();
+  formData.append("title", title);
+  formData.append("message", message);
+  selectedImages.forEach(img => formData.append("images", img.file));
+
   try {
     const response = await fetch(`${API_BASE_URL}/customer-service`, {
       method: "POST",
       headers: {
-        "Content-Type": "application/json",
         "Authorization": `Bearer ${token}`,
         "ngrok-skip-browser-warning": "true"
       },
-      body: JSON.stringify({ title, message })
+      body: formData
     });
 
     const result = await response.json();
@@ -284,6 +356,19 @@ window.filterHistoryByStatus = function (status, btnEl) {
   renderTickets();
 };
 
+// 歷史紀錄中的附加圖片縮圖 (點擊開新分頁看原圖)
+function renderTicketImages(images) {
+  if (!Array.isArray(images) || images.length === 0) return "";
+  return `
+    <div class="ticket-images">
+      ${images.map((url, i) => {
+        const fullUrl = escapeHTML(API_BASE_URL + url);
+        return `<a href="${fullUrl}" target="_blank" rel="noopener" title="查看原圖"><img src="${fullUrl}" alt="附加圖片 ${i + 1}" loading="lazy" /></a>`;
+      }).join("")}
+    </div>
+  `;
+}
+
 function renderTickets() {
   const container = document.getElementById("cs-tickets-container");
   if (!container) return;
@@ -354,6 +439,8 @@ function renderTickets() {
         </div>
 
         <div class="ticket-message">${escapeHTML(ticket.message)}</div>
+
+        ${renderTicketImages(ticket.images)}
 
         ${replyHtml}
       </div>
