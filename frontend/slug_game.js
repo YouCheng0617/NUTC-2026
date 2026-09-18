@@ -853,20 +853,29 @@ const effectData = {
                 if (data && !data.error) {
                     console.log('成功從伺服器同步海兔資料！', data);
                     
-                    // 同步名字與金幣
-                    if (data.petName) gameState.petName = data.petName;
-                    if (data.coins !== undefined) gameState.points = data.coins;
-                    else if (data.coin !== undefined) gameState.points = data.coin;
-                    
-                    // 同步目前裝備 (以下屬性名稱 data.bgColor 等，需確認後端實際給的名稱)
-                    if (data.petColor) gameState.currentSpecies = data.petColor;
-                    if (data.bgColor) gameState.currentBg = data.bgColor;
-                    if (data.bgEffect) gameState.currentEffect = data.bgEffect;
-                    
-                    // 同步背包已解鎖清單 (這部分也需確認後端傳回的陣列名稱)
-                    if (data.unlockedPets) gameState.unlockedSpecies = data.unlockedPets;
-                    if (data.unlockedBgs) gameState.unlockedBgs = data.unlockedBgs;
-                    if (data.unlockedEffects) gameState.unlockedEffects = data.unlockedEffects;
+                    // ⚠️ 後端 /pet-games/my-pet 直接回傳資料庫 Pet 欄位 (snake_case)：
+                    //    pet_name、is_named、coin、pet_color、background_color、background_effects、
+                    //    PetInventory: [{ category, item_name }]
+
+                    // 同步名字與金幣 (還沒取過名時，資料庫是預設的「神秘雪兔」，不覆蓋)
+                    if (data.is_named && data.pet_name) gameState.petName = data.pet_name;
+                    if (data.coin !== undefined) gameState.points = data.coin;
+
+                    // 同步目前裝備：伺服器的值是有效商品才採用；
+                    // 資料庫預設值 (「經典雪兔」「基礎藍」) 不在商品清單裡，代表從沒透過伺服器換過裝，保留本機的 (例如抽到的寵物)
+                    if (speciesData[data.pet_color]) gameState.currentSpecies = data.pet_color;
+                    if (bgData[data.background_color]) gameState.currentBg = data.background_color;
+                    if (effectData[data.background_effects]) gameState.currentEffect = data.background_effects;
+
+                    // 同步背包已解鎖清單：合併伺服器 PetInventory 與本機清單 (抽到的寵物目前只存在本機，不能被蓋掉)
+                    if (Array.isArray(data.PetInventory)) {
+                        const owned = (category, dataObj) => data.PetInventory
+                            .filter(item => item.category === category && dataObj[item.item_name])
+                            .map(item => item.item_name);
+                        gameState.unlockedSpecies = [...new Set([...gameState.unlockedSpecies, ...owned('pet_color', speciesData)])];
+                        gameState.unlockedBgs = [...new Set([...gameState.unlockedBgs, ...owned('background_color', bgData)])];
+                        gameState.unlockedEffects = [...new Set([...gameState.unlockedEffects, ...owned('background_effects', effectData)])];
+                    }
                     
                     // 防呆：確保預設的經典兔一定在背包裡
                     if (!gameState.unlockedSpecies.includes(gameState.currentSpecies)) {
