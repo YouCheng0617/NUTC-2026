@@ -16,7 +16,8 @@ export class CSController {
                 return res.status(401).json({ message: "尚未登入或無效憑證" });
             }
 
-            const { title, message } = req.body;
+            // Express 5 在沒有可解析的 body 時 req.body 為 undefined
+            const { title, message } = req.body ?? {};
             if (!title || typeof title !== "string" || !title.trim()) {
                 return res.status(400).json({ message: "請填寫客服問題主旨" });
             }
