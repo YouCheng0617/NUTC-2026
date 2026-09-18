@@ -700,7 +700,7 @@ window.toggleUserSort = function () {
 async function loadUsers() {
     const tbody = document.getElementById('admin-users-body');
     const token = localStorage.getItem("authToken");
-    tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;">載入中...</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;">載入中...</td></tr>`;
 
     try {
         const response = await fetch(`${API_BASE_URL}/admin/members`, {
@@ -712,7 +712,7 @@ async function loadUsers() {
         window._allUsers = result.data || result || [];
         filterUsers();
     } catch (e) {
-        tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:red;">無法載入，請確認是否有管理員權限</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; color:red;">無法載入，請確認是否有管理員權限</td></tr>`;
     }
 }
 
@@ -773,11 +773,33 @@ function renderUsers(users) {
     const tbody = document.getElementById('admin-users-body');
     if (!tbody) return;
     if (users.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;">目前沒有符合條件的使用者</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;">目前沒有符合條件的使用者</td></tr>`;
         return;
     }
 
+    // 目前登入的管理員 ID：自己那一列不顯示權限按鈕 (後端也會擋)
+    let myMemberId = null;
+    try { myMemberId = Number(JSON.parse(localStorage.getItem("currentUser") || "{}").member_id) || null; } catch (e) {}
+
     tbody.innerHTML = users.map(u => {
+        const uid = u.member_id || u.id;
+        const safeName = escapeHTML(u.name || '未命名');
+        const isAdmin = u.role === 'ADMIN';
+        const isSelf = myMemberId !== null && Number(uid) === myMemberId;
+
+        const roleBadge = isAdmin
+            ? `<span class="badge" style="background:#f5f3ff; color:#6d28d9; border:1px solid #c4b5fd;">🛡️ 管理員</span>`
+            : `<span class="badge" style="background:#f8fafc; color:#64748b; border:1px solid #e2e8f0;">👤 一般會員</span>`;
+
+        let roleBtn = '';
+        if (isSelf) {
+            roleBtn = `<span style="margin-left: 5px; font-size: 0.8rem; color: #94a3b8;">（本人）</span>`;
+        } else if (isAdmin) {
+            roleBtn = `<button class="btn-action" style="margin-left: 5px; background:#fff7ed; color:#c2410c; border:1px solid #fed7aa;" onclick="changeUserRole('${uid}', '${safeName}', 'USER')">取消管理員</button>`;
+        } else {
+            roleBtn = `<button class="btn-action" style="margin-left: 5px; background:#f5f3ff; color:#6d28d9; border:1px solid #c4b5fd;" onclick="changeUserRole('${uid}', '${safeName}', 'ADMIN')">升為管理員</button>`;
+        }
+
         let currentStatus = u.status || 'ACTIVE';
         let statusBadge = currentStatus === 'BANNED' ? `<span class="badge" style="background:#fff1f0; color:#cf1322; border:1px solid #ffa39e;">🔴 ${currentStatus}</span>` :
                           currentStatus === 'INACTIVE' ? `<span class="badge" style="background:#fff7e6; color:#d46b08; border:1px solid #ffd591;">🟡 ${currentStatus}</span>` :
@@ -790,9 +812,11 @@ function renderUsers(users) {
             <td data-label="登入 Email">${escapeHTML(u.email || '無')}</td>
             <td data-label="註冊時間">${u.created_at ? new Date(u.created_at).toLocaleDateString() : '未知'}</td>
             <td data-label="帳號狀態">${statusBadge}</td>
-            <td data-label="項目操作">
-                <button class="btn-action btn-secondary" onclick="changeUserStatus('${u.member_id || u.id}', '${escapeHTML(u.name || '未命名')}')">更改狀態</button>
-                <button class="btn-action btn-danger" style="margin-left: 5px;" onclick="deleteUserAsAdmin('${u.member_id || u.id}', '${escapeHTML(u.name || '未命名')}')">刪除</button>
+            <td data-label="帳號權限">${roleBadge}</td>
+            <td data-label="項目操作" style="white-space: nowrap;">
+                <button class="btn-action btn-secondary" onclick="changeUserStatus('${uid}', '${safeName}')">更改狀態</button>
+                ${roleBtn}
+                <button class="btn-action btn-danger" style="margin-left: 5px;" onclick="deleteUserAsAdmin('${uid}', '${safeName}')">刪除</button>
             </td>
         </tr>
         `;
@@ -816,6 +840,32 @@ window.confirmChangeStatus = async function (newStatus) {
         if (response.ok) { alert('✅ 狀態已成功更新！'); closeStatusModal(); loadUsers(); } else { alert('更新失敗，請確認權限或網路狀態'); }
     } catch (e) { alert('伺服器連線失敗'); }
 }
+// 升為管理員 / 取消管理員
+window.changeUserRole = async function (userId, userName, newRole) {
+    const msg = newRole === 'ADMIN'
+        ? `🛡️ 確定要將「${userName} (ID: ${userId})」升為管理員嗎？\n升級後對方可以進入後台，管理所有會員、文章與客服。`
+        : `⚠️ 確定要取消「${userName} (ID: ${userId})」的管理員權限嗎？\n取消後對方將無法再進入後台。`;
+    if (!confirm(msg)) return;
+
+    const token = localStorage.getItem("authToken");
+    try {
+        const response = await fetch(`${API_BASE_URL}/admin/members/${userId}/role`, {
+            method: 'PUT',
+            headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' },
+            body: JSON.stringify({ role: newRole })
+        });
+        const res = await response.json().catch(() => ({}));
+        if (response.ok) {
+            alert(`✅ ${res.message || '權限已更新'}`);
+            loadUsers();
+        } else {
+            alert("變更權限失敗：" + (res.message || "權限不足或伺服器錯誤"));
+        }
+    } catch (e) {
+        alert("伺服器連線失敗，請檢查網路狀態！");
+    }
+};
+
 window.deleteUserAsAdmin = async function (userId, userName) {
     if (!confirm(`⚠️ 確定要強制刪除使用者「${userName} (ID: ${userId})」嗎？\n刪除後將無法復原，請三思！`)) return;
     const token = localStorage.getItem("authToken");

@@ -1,7 +1,9 @@
 import type { Response, Request } from "express";
+import type { AuthRequest } from "../middleware/auth.middleware.js";
 import {
     getAllMembers,
     changeMemberStatus,
+    changeMemberRole,
     getAllBottlesForAdmin,
     updateBottleStatus,
     deleteBottleByAdmin,
@@ -52,6 +54,42 @@ export class AdminController {
             });
         } catch (error) {
             console.error("Error updating member status:", error);
+            res.status(500).json({ message: "內部伺服器錯誤" });
+        }
+    }
+    /*變更會員權限 (升為管理員 / 取消管理員)*/
+    async updateMemberRole(req: AuthRequest, res: Response) {
+        try {
+            // 權限變更必須由真人管理員操作，AI 金鑰不可使用
+            const operatorId = req.user?.member_id;
+            if (!operatorId) {
+                return res.status(403).json({ message: "此操作需使用管理員帳號登入後執行" });
+            }
+
+            const memberId = Number(req.params.memberId);
+            const { role } = req.body ?? {};
+
+            if (!memberId || isNaN(memberId)) {
+                return res.status(400).json({ message: "無效的會員 ID" });
+            }
+            if (role !== "USER" && role !== "ADMIN") {
+                return res.status(400).json({ message: "無效的權限值，只能是 USER 或 ADMIN" });
+            }
+            // 不能改自己的權限，避免管理員不小心把自己降級而沒人能管理後台
+            if (memberId === operatorId) {
+                return res.status(400).json({ message: "不能變更自己的權限" });
+            }
+
+            const updatedMember = await changeMemberRole(memberId, role);
+            res.status(200).json({
+                message: role === "ADMIN" ? "已將該會員升為管理員" : "已取消該會員的管理員權限",
+                data: updatedMember
+            });
+        } catch (error: any) {
+            if (error.message === "MEMBER_NOT_FOUND") {
+                return res.status(404).json({ message: "找不到該會員，請檢查會員 ID" });
+            }
+            console.error("Error updating member role:", error);
             res.status(500).json({ message: "內部伺服器錯誤" });
         }
     }

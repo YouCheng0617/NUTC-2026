@@ -42,6 +42,28 @@ export const changeMemberStatus = async (member_id: number, newStatus: "ACTIVE" 
     return updatedMember;
 };
 
+// 變更會員權限 (升為管理員 / 取消管理員)
+export const changeMemberRole = async (member_id: number, newRole: "USER" | "ADMIN") => {
+    const member = await prisma.member.findUnique({
+        where: { member_id },
+        select: { member_id: true }
+    });
+    if (!member) {
+        throw new Error("MEMBER_NOT_FOUND");
+    }
+
+    return await prisma.member.update({
+        where: { member_id },
+        data: { role: newRole },
+        select: {
+            member_id: true,
+            email: true,
+            name: true,
+            role: true,
+        }
+    });
+};
+
 export const getAllBottlesForAdmin = async () => {
     const bottles = await prisma.bottle.findMany({
         orderBy: {

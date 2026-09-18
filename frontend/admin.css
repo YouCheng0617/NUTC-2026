@@ -758,6 +758,12 @@ html {
   }
 
   #section-users td:nth-child(6)::before {
+    content: "🛡️ 帳號權限";
+    font-weight: 600;
+    color: var(--text-muted);
+  }
+
+  #section-users td:nth-child(7)::before {
     content: "⚙️ 項目操作";
     font-weight: 600;
     color: var(--text-muted);
