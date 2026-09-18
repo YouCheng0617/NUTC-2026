@@ -610,11 +610,14 @@
   </div>
 
   <script>
+    // 側邊欄浮動模式的斷點 (需與 admin.css 的 @media (max-width: 1439px) 一致)
+    const SIDEBAR_OVERLAY_QUERY = window.matchMedia("(max-width: 1439px)");
+
     function toggleSidebar() {
       const sidebar = document.getElementById("admin-sidebar");
       const overlay = document.getElementById("sidebar-overlay");
 
-      if (window.innerWidth <= 1024) {
+      if (SIDEBAR_OVERLAY_QUERY.matches) {
         sidebar.classList.toggle("active-sidebar");
         overlay.classList.toggle("active-overlay");
       } else {
@@ -622,16 +625,17 @@
       }
     }
 
-    function toggleSidebarIfMobile() {
-      if (window.innerWidth <= 1024) {
-        document
-          .getElementById("admin-sidebar")
-          .classList.remove("active-sidebar");
-        document
-          .getElementById("sidebar-overlay")
-          .classList.remove("active-overlay");
-      }
+    function closeOverlaySidebar() {
+      document.getElementById("admin-sidebar").classList.remove("active-sidebar");
+      document.getElementById("sidebar-overlay").classList.remove("active-overlay");
     }
+
+    function toggleSidebarIfMobile() {
+      if (SIDEBAR_OVERLAY_QUERY.matches) closeOverlaySidebar();
+    }
+
+    // 視窗在斷點兩側切換時 (例如縮放視窗、平板轉向)，清掉浮動模式的開啟狀態，避免遮罩殘留
+    SIDEBAR_OVERLAY_QUERY.addEventListener("change", closeOverlaySidebar);
 
     document.addEventListener("DOMContentLoaded", async () => {
       const adminTodayElement = document.getElementById('stat-today');

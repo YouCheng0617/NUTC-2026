@@ -621,9 +621,9 @@ html {
   transition: opacity 0.3s;
 }
 
-@media screen and (max-width: 1024px) {
-
-  /* 🟢 手機版確保收合狀態不會影響正常滑出 */
+/* 🟢 1439px 以下 (手機、平板、一般筆電)：側邊欄改為浮在內容上方，不擠壓右側內容
+   1440px 以上的大螢幕空間足夠，維持固定在左側 (斷點需與 admin.html 的 SIDEBAR_OVERLAY_QUERY 一致) */
+@media screen and (max-width: 1439px) {
   .admin-sidebar {
     position: fixed;
     top: 0;
@@ -642,6 +642,9 @@ html {
     display: block;
     opacity: 1;
   }
+}
+
+@media screen and (max-width: 1024px) {
 
   .admin-header {
     padding: 16px 20px;
