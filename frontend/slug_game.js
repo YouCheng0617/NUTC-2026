@@ -2636,10 +2636,10 @@ function tryItem(key, type) {
         // 幫房間鋪上你選的背景
         function applyBg() {
             const bg = bgData[trialState.bg || gameState.currentBg];
-            if(bg) {
-                document.getElementById('mainStage').style.background = bg.style;
-                document.getElementById('dotPattern').style.opacity = bg.hasDots ? '0.9' : '0';
-            }
+            // 找不到對應背景時 (例如預設的 'sky' 不在 bgData 裡)，清掉行內樣式回到 CSS 預設的淺藍底，
+            // 否則試用結束後會一直卡在試用的背景
+            document.getElementById('mainStage').style.background = bg ? bg.style : '';
+            document.getElementById('dotPattern').style.opacity = bg ? (bg.hasDots ? '0.9' : '0') : '';
         }
 
  function applyEffect() {
