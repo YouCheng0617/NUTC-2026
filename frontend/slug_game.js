@@ -2505,8 +2505,9 @@ const effectData = {
             startCooldownTimer();
             startHungerSystem(); // 🌟 啟動飢餓度監控與更新
             startWaterPollutionSystem(); // 🌟 啟動水質自然變髒與渲染系統
-            initDragAndPetSystem(); 
+            initDragAndPetSystem();
             updateNameUI();
+            updateSlugScale();   // 依螢幕大小決定海兔要多大
             updateRecallButtonVisibility();
 
             // 🌟 3. 主動向後端拉取最新金幣數量
@@ -2706,6 +2707,27 @@ const effectData = {
                 }, 500);
             }
         }
+        // 🐌 【海兔大小自適應】依舞台尺寸算出縮放比例，螢幕越大海兔越大。
+        //     寫進 CSS 變數 --slug-scale，其他要改 transform 的地方都會沿用它。
+        function updateSlugScale() {
+            const slugEl = document.getElementById('slugContainer');
+            const stage = document.getElementById('mainStage');
+            if (!slugEl || !stage) return 1;
+
+            const w = stage.clientWidth, h = stage.clientHeight;
+            if (!w || !h) return 1;
+
+            // 直式舞台（手機）以寬度為準，讓海兔固定約佔畫面一半寬；
+            // 橫式舞台則寬高各算一次取較小值，避免在極寬或極扁的視窗爆版
+            const raw = h > w ? w / 680 : Math.min(w / 1150, h / 470);
+            const scale = Math.max(0.45, Math.min(1.4, raw));
+            slugEl.style.setProperty('--slug-scale', scale.toFixed(3));
+            return scale;
+        }
+
+        // 讓行內 transform 也帶上基礎縮放，否則會蓋掉 CSS 的 scale
+        const slugTransform = (extra = '') => `scale(var(--slug-scale)) ${extra}`.trim();
+
         // 🌟 【海兔防遮擋安全範圍】回傳海兔在舞台座標系裡可以待的極限值。
         //    下緣會避開會蓋住牠的介面（電腦版是商店面板，手機版是常駐互動按鈕列），
         //    避免海兔追海藻或被拖曳後卡在選單底下看不到。
@@ -2743,13 +2765,21 @@ const effectData = {
                 }
             }
 
-            const minY = Math.max(0, safeTop - stageRect.top);
-            const maxY = Math.max(minY, safeBottom - stageRect.top - slugEl.offsetHeight);
+            // 海兔會依螢幕縮放，所以用實際看到的大小來算邊界；
+            // 縮放以中心為軸，版面框與視覺框之間的差要補回來
+            const slugRect = slugEl.getBoundingClientRect();
+            const visW = slugRect.width || slugEl.offsetWidth;
+            const visH = slugRect.height || slugEl.offsetHeight;
+            const padX = (slugEl.offsetWidth - visW) / 2;
+            const padY = (slugEl.offsetHeight - visH) / 2;
+
+            const minY = Math.max(-padY, safeTop - stageRect.top - padY);
+            const maxY = Math.max(minY, safeBottom - stageRect.top - visH - padY);
 
             return {
-                minX: 0,
+                minX: -padX,
                 minY,
-                maxX: Math.max(0, stageRect.width - slugEl.offsetWidth),
+                maxX: Math.max(-padX, stageRect.width - visW - padX),
                 maxY
             };
         }
@@ -2774,6 +2804,7 @@ const effectData = {
         // 🌟 視窗大小改變時的「防走失與自動校正」機制
         let stageResizeTimer = null;
         window.addEventListener('resize', () => {
+            updateSlugScale();
             // 如果正在餵食或運動中，先不打擾牠
             if (!isFeedingActive && !isExercisingActive) clampSlugIntoSafeArea();
 
@@ -2785,6 +2816,7 @@ const effectData = {
         // 手機轉向後版面高度會變，也要重新校正一次
         window.addEventListener('orientationchange', () => {
             setTimeout(() => {
+                updateSlugScale();
                 clampSlugIntoSafeArea();
                 applyBg();
             }, 300);
@@ -3114,7 +3146,7 @@ function checkCleanCompleted() {
 
                 setTimeout(() => {
                     slugEl.classList.remove('is-eating-munch');
-                    slugEl.style.transform = 'scaleX(1)';
+                    slugEl.style.transform = slugTransform('scaleX(1)');
                     if (faceGroup) faceGroup.innerHTML = originalFaceHTML;
                 }, 1800);
 
@@ -3137,7 +3169,7 @@ function checkCleanCompleted() {
                 showFloatText('😋 嚼嚼嚼！美味海藻 +80');
                 fetchAPI('/pet-games/interact', 'POST', { action: 'feed' });
             } else {
-                slugEl.style.transform = 'scaleX(1)';
+                slugEl.style.transform = slugTransform('scaleX(1)');
                 showFloatText('海藻掉在路上了～再試一次吧！');
             }
         }
@@ -3231,10 +3263,10 @@ function runSlugChaseLoop() {
 
                     slugEl.style.left = Math.max(bounds.minX, Math.min(bounds.maxX, curLeft)) + 'px';
                     slugEl.style.top = Math.max(bounds.minY, Math.min(bounds.maxY, curTop)) + 'px';
-                    slugEl.style.transform = `scaleX(${direction})`;
+                    slugEl.style.transform = slugTransform(`scaleX(${direction})`);
                 } else {
                     // 📱 手機版專屬：留在原地跳躍流口水，只轉身面向海藻
-                    slugEl.style.transform = `scale(0.85) scaleX(${direction})`;
+                    slugEl.style.transform = slugTransform(`scaleX(${direction})`);
                 }
             }
 
@@ -3309,7 +3341,7 @@ function completeFeedingAction(isSuccess) {
 
                 setTimeout(() => {
                     slugEl.classList.remove('is-eating-munch');
-                    slugEl.style.transform = '';
+                    slugEl.style.transform = slugTransform();
                     if (faceGroup) faceGroup.innerHTML = originalFaceHTML;
                 }, 1800);
 
@@ -3331,7 +3363,7 @@ function completeFeedingAction(isSuccess) {
                 showFloatText('😋 嚼嚼嚼！美味海藻 +80');
                 fetchAPI('/pet-games/interact', 'POST', { action: 'feed' });
             } else {
-             slugEl.style.transform = '';
+             slugEl.style.transform = slugTransform();
                 showFloatText('海藻掉在路上了～再試一次吧！');
             }
         
@@ -3627,7 +3659,7 @@ function handleThrowBall(e) {
                 const arriveThreshold = fetchPhase === 'toBall' ? 35 : 65;
 
                 const direction = dx > 0 ? -1 : 1;
-slugEl.style.transform = window.innerWidth <= 768 ? `scale(0.85) scaleX(${direction})` : `scaleX(${direction})`;
+slugEl.style.transform = slugTransform(`scaleX(${direction})`);
 
                 const runSpeed = 6.2;
                 if (dist > arriveThreshold) {
@@ -3702,7 +3734,7 @@ slugEl.style.transform = window.innerWidth <= 768 ? `scale(0.85) scaleX(${direct
             const slugEl = document.getElementById('slugContainer');
             if (slugEl) {
                 slugEl.classList.remove('is-exercising-run');
-                slugEl.style.transform = '';
+                slugEl.style.transform = slugTransform();
             }
         }
         // 🌟 【水質系統：隨時間自然變髒與渲染引擎】
@@ -9981,8 +10013,16 @@ default:
         function updateFloatingButtonPosition() {
             const btn = document.getElementById('floatingRecallBtn'); const slugEl = document.getElementById('slugContainer');
             if (!btn || !slugEl || btn.style.display === 'none') return;
-            const left = parseFloat(slugEl.style.left) || (window.innerWidth / 2 - 170); const top = parseFloat(slugEl.style.top) || (window.innerHeight * 0.29 - 120); const width = slugEl.offsetWidth || 340;
-            btn.style.left = (left + width - 40) + 'px'; btn.style.top = (top + 20) + 'px';
+            const left = parseFloat(slugEl.style.left) || (window.innerWidth / 2 - 170);
+            const top = parseFloat(slugEl.style.top) || (window.innerHeight * 0.29 - 120);
+            const width = slugEl.offsetWidth || 340;
+            const height = slugEl.offsetHeight || 240;
+            // 海兔會依螢幕縮放（縮放以中心為軸），按鈕要貼著「看得到的」右上角
+            const scale = parseFloat(getComputedStyle(slugEl).getPropertyValue('--slug-scale')) || 1;
+            const visRight = left + width / 2 + (width * scale) / 2;
+            const visTop = top + height / 2 - (height * scale) / 2;
+            btn.style.left = (visRight - 40 * scale) + 'px';
+            btn.style.top = (visTop + 20 * scale) + 'px';
         }
 
         // 🌟 點擊挑釁按鈕觸發：海兔側翻 + 連續叮叮聲
