@@ -1,17 +1,18 @@
 import { Router } from "express";
 import { authCheck, type AuthRequest } from "../middleware/auth.middleware.js";
 import { authController } from "./auth.controller.js"
+import { registerLimiter, emailLimiter } from "../../lib/rateLimiter.js";
 
 export function authRouter() {
     const router = Router();
     // Define your authentication routes here
     router.post('/login', authController.login);
-    router.post('/register', authController.register);
+    router.post('/register', registerLimiter, authController.register);
     router.post("/logout", authCheck, authController.logout);
     router.post("/verify-email", authController.verifyEmail);
     router.get("/verify-email", authController.verifyEmail);
-    router.post("/resend-verification", authController.resendVerification);
-    router.post("/forgot-password", authController.forgotPassword);
+    router.post("/resend-verification", emailLimiter, authController.resendVerification);
+    router.post("/forgot-password", emailLimiter, authController.forgotPassword);
     router.post("/reset-password", authController.resetPassword);
     router.patch("/update-data", authCheck, authController.updateMemberData);
     router.post("/follow", authCheck, authController.followMembers);

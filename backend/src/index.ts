@@ -36,6 +36,9 @@ export const io = new Server(httpServer, {
     }
 });
 
+/*正式環境跑在 nginx 反向代理後面，信任一層代理才抓得到使用者的真實 IP（流量限制需要）*/
+app.set('trust proxy', 1);
+
 app.use(cors()); /*允許跨域請求(ngrok)*/
 app.use(express.json());
 
