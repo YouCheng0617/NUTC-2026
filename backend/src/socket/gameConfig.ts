@@ -94,7 +94,7 @@ export const gameConfig = {
 
             // 🌟 05 ~ 10：自然與日常系列
             misty_forest: 250,            // 迷霧森林
-            breeze_morning: 300,          // 微風晨曦
+            breeze_morning: 300,          // 碧紗庭院
             afternoon_tea: 350,           // 午後茶會
             cherry_park: 400,             // 櫻花小徑
             bamboo_grove: 450,            // 翠綠竹林

@@ -978,53 +978,397 @@ const i18n = {
         + `</g></g>`;
 
             return {
-    // 微風晨曦：清晨的柔光與草坡
+    // 陽光草原：只有陽光與一望無際的草原，草地上零星幾撮草
+    sunshineGrassland(mode) {
+        const { W, H } = canvasOf(mode);
+        const portrait = mode === 'portrait';
+        const hz = H * (portrait ? 0.46 : 0.5);
+        const sunX = portrait ? W * 0.66 : W * 0.24;
+        const sunY = H * (portrait ? 0.15 : 0.2);
+
+        // 一撮草：三片彎曲的草葉
+        const tuft = (x, y, s, color) => `<g transform="translate(${x},${y}) scale(${s})" stroke="${color}" stroke-width="5" stroke-linecap="round" fill="none"><path d="M 0 0 C -6 -14, -12 -22, -20 -30"/><path d="M 0 0 C -1 -16, -2 -28, -1 -40"/><path d="M 0 0 C 7 -14, 15 -23, 23 -32"/></g>`;
+
+        let tufts = '';
+        const n = portrait ? 6 : 7;
+        for (let i = 0; i < n; i++) {
+            const x = 40 + rnd(i, 11) * (W - 80);
+            const y = hz + (H - hz) * (0.34 + rnd(i, 12) * 0.5);
+            tufts += tuft(x.toFixed(0), y.toFixed(0), (0.85 + (i % 3) * 0.4).toFixed(2), i % 2 ? '#2f7a46' : '#3f9153');
+        }
+
+        return svgOf(W, H,
+            vg('sgSky', [[0, '#4fb8f0'], [58, '#a9e0fa'], [100, '#e2f6ff']])
+            + glowDef('sgSun', '#fff6c4')
+            + vg('sgRay', [[0, '#fff6c4', 0.32], [100, '#fff6c4', 0]])
+            + vg('sgFar', [[0, '#a3e08f'], [100, '#79c877']])
+            + vg('sgNear', [[0, '#6fc470'], [100, '#3f9153']]),
+            bg(W, H, 'url(#sgSky)')
+            + rays(W, H * 0.92, sunX, sunY, 5, 'url(#sgRay)')
+            + glow(sunX, sunY, H * 0.075, 'sgSun', '#fff3b0')
+            + hill(W, H, hz, H * 0.05, 'url(#sgFar)')
+            + hill(W, H, hz + H * 0.12, H * 0.055, 'url(#sgNear)', 1.6)
+            + tufts
+        );
+    },
+
+    // 碧紗庭院：中式亭台望出去的朦朧綠意，輕紗與垂枝被晨風吹動
         breezeMorning(mode) {
-            const { W, H } = canvasOf(mode), hz = H * 0.66;
+            const { W, H } = canvasOf(mode);
+            const portrait = mode === 'portrait';
+            const u = Math.min(W, H) / 520;
+            const railY = H * 0.9;
+
+            // 木格柵：柱子與上方橫楣
+            const lattice = (x, y, w, h, cols, rows) => {
+                let g = rect(x, y, w, h, '#5f5a3c', 'rx="3"');
+                const cw = w / cols, ch = h / rows;
+                for (let c = 0; c < cols; c++) for (let r = 0; r < rows; r++) {
+                    g += rect(x + c * cw + 5 * u, y + r * ch + 5 * u, cw - 10 * u, ch - 10 * u, '#9fc08f', 'opacity="0.45"');
+                }
+                return g;
+            };
+
+            // 隨風鼓起的輕紗
+            const veil = (x, w, y0, y1, sway, op) => {
+                const h = y1 - y0;
+                const edge = (ox, k) => `M ${x + ox} ${y0} C ${x + ox + sway * k} ${y0 + h * 0.34}, ${x + ox - sway * 0.8 * k} ${y0 + h * 0.68}, ${x + ox + sway * 0.6 * k} ${y1}`;
+                return `<path d="${edge(0, 1)} L ${x + w + sway * 0.6} ${y1} C ${x + w - sway * 0.8} ${y0 + h * 0.68}, ${x + w + sway} ${y0 + h * 0.34}, ${x + w} ${y0} Z" fill="url(#bmVeil)" opacity="${op}"/>`
+                    // 布面皺摺與邊緣的亮線，讓紗看得出飄動
+                    + `<g stroke="#ffffff" fill="none" stroke-linecap="round">`
+                    + `<path d="${edge(w * 0.3, 0.92)}" stroke-width="${(2.6 * u).toFixed(1)}" opacity="${(op * 0.55).toFixed(2)}"/>`
+                    + `<path d="${edge(w * 0.62, 0.86)}" stroke-width="${(2.2 * u).toFixed(1)}" opacity="${(op * 0.45).toFixed(2)}"/>`
+                    + `<path d="${edge(0, 1)}" stroke-width="${(3.4 * u).toFixed(1)}" opacity="${(op * 0.9).toFixed(2)}"/>`
+                    + `<path d="M ${x + w} ${y0} C ${x + w + sway} ${y0 + h * 0.34}, ${x + w - sway * 0.8} ${y0 + h * 0.68}, ${x + w + sway * 0.6} ${y1}" stroke-width="${(3.4 * u).toFixed(1)}" opacity="${(op * 0.9).toFixed(2)}"/>`
+                    + `</g>`;
+            };
+
+            // 柳條：細長下垂的枝條，沿途密生細長柳葉，末端被風吹向右
+            const willow = (x, y, len, sway, s, tint) => {
+                const tipX = x + sway * 1.5;
+                let b = `<path d="M ${x} ${y} C ${x + sway * 0.35} ${y + len * 0.42}, ${x + sway} ${y + len * 0.72}, ${tipX} ${y + len}" stroke="#7a9c58" stroke-width="${(2.4 * s).toFixed(1)}" fill="none" stroke-linecap="round" opacity="0.9"/>`;
+                const n = Math.max(6, Math.round(len / (17 * s)));
+                for (let i = 1; i <= n; i++) {
+                    const t = i / n;
+                    const bx = x + sway * (0.35 * t + 1.15 * t * t);
+                    const by = y + len * t;
+                    const side = i % 2 ? 1 : -1;
+                    // 葉片接近垂直懸掛，越往下越順著風向傾斜
+                    const rot = (72 - side * 16 + t * 16).toFixed(0);
+                    const lx = (bx + side * 5 * s).toFixed(1);
+                    const ly = by.toFixed(1);
+                    b += `<ellipse cx="${lx}" cy="${ly}" rx="${(11 * s).toFixed(1)}" ry="${(3.1 * s).toFixed(1)}" fill="${tint}" transform="rotate(${rot} ${lx} ${ly})"/>`;
+                }
+                return b;
+            };
+            const willowTints = ['#a8d77a', '#8cc45f', '#6faa4f', '#5b9447'];
+
+            // 成片柳條：沿寬度均勻分佈再加抖動，長短深淺交錯出層次
+            let willows = '';
+            const wn = portrait ? 26 : 38;
+            for (let i = 0; i < wn; i++) {
+                const wx = W * ((i + 0.5) / wn) + (rnd(i, 51) - 0.5) * W * 0.05;
+                const wy = H * 0.1 + rnd(i, 52) * H * 0.05;
+                const wlen = H * (0.3 + rnd(i, 53) * 0.46);
+                willows += willow(wx, wy, wlen, (16 + rnd(i, 54) * 30) * u, (0.78 + rnd(i, 55) * 0.5) * u, willowTints[i % willowTints.length]);
+            }
+
+            // 空中飄散的花瓣，越往右下越小，表現被風帶走
+            let petals = '';
+            for (let i = 0; i < (portrait ? 12 : 14); i++) {
+                const t = i / 13;
+                const px = W * 0.12 + rnd(i, 31) * W * 0.8;
+                const py = H * 0.1 + rnd(i, 32) * H * 0.72;
+                const s = (0.7 + rnd(i, 33) * 0.7) * u;
+                petals += `<ellipse cx="${px.toFixed(0)}" cy="${py.toFixed(0)}" rx="${(9 * s).toFixed(1)}" ry="${(5 * s).toFixed(1)}" fill="#ffd9e6" opacity="${(0.55 + rnd(i, 34) * 0.4).toFixed(2)}" transform="rotate(${(rnd(i, 35) * 140 - 30).toFixed(0)} ${px.toFixed(0)} ${py.toFixed(0)})"/>`;
+            }
+
+            // 風的流線
+            const gust = (x, y, len, op) => `<path d="M ${x} ${y} c ${(len * 0.3).toFixed(0)} -${(10 * u).toFixed(0)}, ${(len * 0.7).toFixed(0)} -${(10 * u).toFixed(0)}, ${len.toFixed(0)} 0" stroke="#ffffff" stroke-width="${(3.5 * u).toFixed(1)}" fill="none" stroke-linecap="round" opacity="${op}"/>`;
+
+            const pillarW = Math.max(22, W * 0.035);
             return svgOf(W, H,
-                vg('bmSky', [[0, '#a9dcff'], [58, '#ffe6cd'], [100, '#ffd6ae']]) + glowDef('bmGlow', '#fff6d0') + vg('bmG', [[0, '#a3dd92'], [100, '#4f9f5c']]),
-                bg(W, H, 'url(#bmSky)') + glow(W * 0.7, hz * 0.7, H * 0.07, 'bmGlow', '#fff3bd')
-                + cloud(W * 0.22, H * 0.18, 0.95, '#ffffff', 0.85) + cloud(W * 0.6, H * 0.12, 0.6, '#ffffff', 0.7)
-                + hill(W, H, hz - 34, 24, '#9fd9a8') + hill(W, H, hz + 12, 28, 'url(#bmG)', 1.4)
-                + times(5, (i, a, b) => `<path d="M ${(a * W).toFixed(0)} ${(H * 0.26 + b * H * 0.18).toFixed(0)} q 11 -9 22 0 q 11 9 22 0" stroke="#6f9fc0" stroke-width="3.5" fill="none" opacity="0.5"/>`)
+                rg('bmMist', [[0, '#fbffe8'], [38, '#dff2d2'], [72, '#8fc48a'], [100, '#4f8a5c']])
+                + vg('bmVeil', [[0, '#ffffff', 0.92], [45, '#f2fbef', 0.72], [100, '#dff2db', 0.48]])
+                + glowDef('bmGlow', '#fffbe0'),
+                bg(W, H, 'url(#bmMist)')
+                // 晨光
+                + glow(W * 0.5, H * 0.3, H * 0.1, 'bmGlow', '#fffde8')
+                // 遠景朦朧樹叢
+                + times(9, (i, a, b) => ell((a * W).toFixed(0), (H * 0.18 + b * H * 0.45).toFixed(0), (80 + b * 120) * u, (48 + b * 70) * u, i % 2 ? '#8fc48a' : '#6fae78', `opacity="${(0.3 + b * 0.3).toFixed(2)}"`))
+                // 主樹幹與垂枝
+                + `<path d="M ${W * 0.66} ${railY} C ${W * 0.6} ${H * 0.62}, ${W * 0.64} ${H * 0.4}, ${W * 0.58} ${H * 0.2}" stroke="#5f7a4f" stroke-width="${(26 * u).toFixed(0)}" fill="none" stroke-linecap="round" opacity="0.9"/>`
+                // 成片的柳條從上方橫楣下緣垂下來
+                + willows
+                // 霧氣
+                + times(3, (i, a) => ell((a * W).toFixed(0), (H * (0.5 + i * 0.16)).toFixed(0), W * 0.4, (26 * u).toFixed(0), '#ffffff', 'opacity="0.3"'))
+                + petals
+                // 亭台結構：上楣、左右柱、欄杆
+                + lattice(0, 0, W, H * 0.11, Math.max(6, Math.round(W / 130)), 1)
+                + lattice(0, 0, pillarW, H, 1, Math.max(5, Math.round(H / 150)))
+                + lattice(W - pillarW, 0, pillarW, H, 1, Math.max(5, Math.round(H / 150)))
+                + rect(0, railY, W, 10 * u, '#5f5a3c', 'rx="3"')
+                + times(Math.max(5, Math.round(W / 120)), (i) => rect((pillarW + 10 + i * ((W - pillarW * 2 - 20) / Math.max(5, Math.round(W / 120)))).toFixed(0), railY + 10 * u, 8 * u, H - railY, '#5f5a3c'))
+                // 飄動的輕紗
+                + veil(W * 0.05, W * 0.19, H * 0.09, H * 0.99, 40 * u, 0.9)
+                + veil(W * 0.31, W * 0.15, H * 0.09, H * 0.94, -32 * u, 0.75)
+                + veil(W * 0.72, W * 0.21, H * 0.09, H * 1.0, 46 * u, 0.85)
+                + gust(W * 0.42, H * 0.34, W * 0.14, 0.45)
+                + gust(W * 0.52, H * 0.52, W * 0.11, 0.35)
             );
         },
 
-        // 午後茶會：庭園裡的小圓桌與茶具
+        // 午後茶會：玫瑰拱門框景，正中央是鋪蕾絲桌巾的圓桌與兩張椅子
         afternoonTea(mode) {
-            const { W, H } = canvasOf(mode), hz = H * 0.6, cx = W / 2;
+            const { W, H } = canvasOf(mode);
+            const portrait = mode === 'portrait';
+            const u = Math.min(W, H) / 520;
+            const cx = W / 2;
+            const hz = H * (portrait ? 0.44 : 0.5);        // 草坪起點
+            const tableY = H * (portrait ? 0.7 : 0.72);     // 桌面高度
+
+            // 玫瑰花：外層花瓣 + 內層 + 花心
+            const rose = (x, y, s, c1, c2) => `<g transform="translate(${x},${y}) scale(${s})">`
+                + `<g fill="${c1}"><circle cx="-17" r="15"/><circle cx="17" r="15"/><circle cy="-17" r="15"/><circle cy="17" r="15"/><circle cx="-12" cy="-12" r="13"/><circle cx="12" cy="12" r="13"/></g>`
+                + `<g fill="${c2}"><circle cx="-8" cy="-6" r="10"/><circle cx="8" cy="-4" r="10"/><circle cy="8" r="10"/></g>`
+                + `<circle r="5.5" fill="#fff1f5"/></g>`;
+
+            const leafAt = (x, y, rot, s) => `<ellipse cx="${x}" cy="${y}" rx="${(17 * s).toFixed(1)}" ry="${(9 * s).toFixed(1)}" fill="#4f9f5c" transform="rotate(${rot} ${x} ${y})"/>`;
+
+            // 拱門：用一個超出畫布的橢圓當骨架，只有上半部會出現在畫面裡
+            const arcCx = cx, arcCy = H * 1.06, arcRx = W * 0.56, arcRy = H * 1.0;
+            let arch = `<ellipse cx="${arcCx}" cy="${arcCy}" rx="${arcRx}" ry="${arcRy}" fill="none" stroke="#6b8f4f" stroke-width="${(26 * u).toFixed(0)}"/>`
+                + `<ellipse cx="${arcCx}" cy="${arcCy}" rx="${arcRx}" ry="${arcRy}" fill="none" stroke="#8a6a3f" stroke-width="${(10 * u).toFixed(0)}"/>`;
+            const N = portrait ? 20 : 26;
+            for (let i = 0; i <= N; i++) {
+                const th = Math.PI + (Math.PI * i) / N;             // 180° → 360°：拱門上緣
+                const px = arcCx + arcRx * Math.cos(th);
+                const py = arcCy + arcRy * Math.sin(th);
+                const off = (18 + rnd(i, 41) * 16) * u;
+                arch += leafAt((px + (i % 2 ? off : -off)).toFixed(0), (py + (i % 3 ? off * 0.6 : -off * 0.6)).toFixed(0), (rnd(i, 42) * 180).toFixed(0), u * 1.1);
+                if (i % 2 === 0) {
+                    const rs = (0.75 + rnd(i, 43) * 0.55) * u;
+                    arch += rose((px - off * 0.4).toFixed(0), (py + off * 0.2).toFixed(0), rs.toFixed(2), i % 4 === 0 ? '#ef92b4' : '#f6b0c8', '#fbd0dd');
+                }
+            }
+
+            // 椅子：正面視角，椅背直條 + 椅面 + 前腳
+            const chair = (x, y, s) => `<g transform="translate(${x},${y}) scale(${s})" fill="#d9a86a" stroke="#a37d4c" stroke-width="3" stroke-linejoin="round">`
+                + `<rect x="-30" y="-116" width="9" height="82" rx="4"/><rect x="21" y="-116" width="9" height="82" rx="4"/>`
+                + `<rect x="-34" y="-124" width="68" height="12" rx="6"/>`
+                + `<g stroke-width="2.5"><rect x="-14" y="-108" width="7" height="62" rx="3"/><rect x="-3.5" y="-108" width="7" height="62" rx="3"/><rect x="7" y="-108" width="7" height="62" rx="3"/></g>`
+                + `<rect x="-38" y="-46" width="76" height="13" rx="6"/>`
+                + `<rect x="-32" y="-33" width="9" height="33" rx="4"/><rect x="23" y="-33" width="9" height="33" rx="4"/>`
+                + `</g>`;
+
+            // 三層點心架
+            const stand = (x, y, s, h) => `<g transform="translate(${x},${y}) scale(${s})">`
+                + `<ellipse cy="2" rx="30" ry="8" fill="#fff8ee" stroke="#e2c98f" stroke-width="2"/>`
+                + `<rect x="-2.5" y="${-h}" width="5" height="${h}" fill="#e0b95f"/>`
+                + `<ellipse cy="${-h * 0.5}" rx="26" ry="7" fill="#fff8ee" stroke="#e2c98f" stroke-width="2"/>`
+                + `<ellipse cy="${-h}" rx="19" ry="5.5" fill="#fff8ee" stroke="#e2c98f" stroke-width="2"/>`
+                + `<circle cy="${-h - 8}" r="4" fill="#e0b95f"/>`
+                + `<g fill="#fff0e2" stroke="#f0c9b0" stroke-width="1.6"><circle cx="-13" cy="-6" r="8"/><circle cx="4" cy="-8" r="9"/><circle cx="19" cy="-5" r="7"/>`
+                + `<circle cx="-9" cy="${-h * 0.5 - 6}" r="8"/><circle cx="9" cy="${-h * 0.5 - 7}" r="7"/><circle cx="0" cy="${-h - 6}" r="7"/></g>`
+                + `<g fill="#e2637f"><circle cx="4" cy="-14" r="3.4"/><circle cx="-13" cy="-12" r="3"/><circle cx="-9" cy="${-h * 0.5 - 12}" r="3"/><circle cx="0" cy="${-h - 11}" r="3"/></g></g>`;
+
+            // 茶杯與高腳杯
+            const cup = (x, y, s) => `<g transform="translate(${x},${y}) scale(${s})">`
+                + `<ellipse cy="6" rx="26" ry="7" fill="#ffffff" stroke="#e8c9d2" stroke-width="2"/>`
+                + `<path d="M -17 2 C -17 -16, 17 -16, 17 2 Z" fill="#ffffff" stroke="#e8c9d2" stroke-width="2"/>`
+                + `<path d="M 17 -8 C 27 -10, 27 2, 18 2" stroke="#ffffff" stroke-width="4" fill="none"/>`
+                + `<circle cx="-6" cy="-6" r="2.6" fill="#f2a0bd"/><circle cx="4" cy="-8" r="2.2" fill="#f2a0bd"/></g>`;
+            const glass = (x, y, s) => `<g transform="translate(${x},${y}) scale(${s})" fill="#eef7ff" opacity="0.9" stroke="#cfe4f2" stroke-width="2">`
+                + `<path d="M -11 -34 L 11 -34 L 8 -8 L -8 -8 Z"/><rect x="-2" y="-9" width="4" height="7"/><ellipse cy="0" rx="12" ry="4"/></g>`;
+
+            // 桌上的玫瑰花瓶
+            const vase = (x, y, s) => `<g transform="translate(${x},${y}) scale(${s})">`
+                + `<path d="M -13 0 C -16 -16, -10 -22, -9 -30 L 9 -30 C 10 -22, 16 -16, 13 0 Z" fill="#eef7ff" stroke="#cfe4f2" stroke-width="2"/>`
+                + rose(0, -44, 0.85, '#ef92b4', '#fbd0dd') + rose(-16, -34, 0.6, '#f6b0c8', '#fde2ea') + rose(15, -36, 0.55, '#f6b0c8', '#fde2ea')
+                + leafAt(-22, -24, 30, 0.7) + leafAt(22, -26, -30, 0.7) + `</g>`;
+
+            // 草地上的落花瓣，數量多但零散，越靠畫面下方越大
+            let fallen = '';
+            for (let i = 0; i < (portrait ? 26 : 30); i++) {
+                const fx = W * 0.02 + rnd(i, 61) * W * 0.96;
+                const t = rnd(i, 62);
+                const fy = hz + 12 * u + t * (H - hz - 16 * u);
+                const fs = (0.5 + t * 0.85) * u;
+                const fc = i % 3 === 0 ? '#fde2ea' : (i % 3 === 1 ? '#ef92b4' : '#f6b0c8');
+                fallen += `<ellipse cx="${fx.toFixed(0)}" cy="${fy.toFixed(0)}" rx="${(9 * fs).toFixed(1)}" ry="${(5.2 * fs).toFixed(1)}" fill="${fc}" opacity="${(0.72 + rnd(i, 63) * 0.28).toFixed(2)}" transform="rotate(${(rnd(i, 64) * 170 - 40).toFixed(0)} ${fx.toFixed(0)} ${fy.toFixed(0)})"/>`;
+            }
+
+            // 草地兩側的小花叢，中央留空才不會擋到桌椅
+            let clumps = '';
+            for (let i = 0; i < 8; i++) {
+                const side = i % 2 ? 1 : -1;
+                // 直式的可視寬度較窄，小花叢往內收才看得到
+                const gx = cx + side * (W * (portrait ? 0.22 : 0.3) + rnd(i, 65) * W * 0.16);
+                const gy = hz + 26 * u + rnd(i, 66) * (H - hz - 40 * u);
+                const gs = (0.42 + rnd(i, 67) * 0.3) * u;
+                clumps += `<g><ellipse cx="${gx.toFixed(0)}" cy="${(gy + 10 * gs).toFixed(0)}" rx="${(30 * gs).toFixed(0)}" ry="${(12 * gs).toFixed(0)}" fill="#6fae5c"/>`
+                    + rose(gx.toFixed(0), gy.toFixed(0), gs.toFixed(2), i % 3 === 0 ? '#ef92b4' : '#f6b0c8', '#fde2ea')
+                    + rose((gx - 26 * gs).toFixed(0), (gy + 12 * gs).toFixed(0), (gs * 0.75).toFixed(2), '#f6b0c8', '#fde2ea')
+                    + leafAt((gx + 26 * gs).toFixed(0), (gy + 14 * gs).toFixed(0), -24, gs * 1.4) + `</g>`;
+            }
+
+            const ts = u * 1.0;
             return svgOf(W, H,
-                vg('atSky', [[0, '#ffd9a8'], [60, '#ffe9cf'], [100, '#fff4e2']]) + vg('atG', [[0, '#b5d99a'], [100, '#7cb36a']]) + glowDef('atGlow', '#ffe9a8'),
-                bg(W, H, 'url(#atSky)') + glow(W * 0.16, H * 0.2, H * 0.055, 'atGlow', '#fff2c2')
-                + hill(W, H, hz, 18, 'url(#atG)')
-                + times(4, (i, a) => tree(a * W, hz + 12, 0.5, '#6cae63', '#9c6b3f', '#8fd07f'))
-                // 桌巾與桌子
-                + ell(cx, hz + H * 0.16, W * 0.17, H * 0.05, '#fff6e8')
-                + rect(cx - W * 0.16, hz + H * 0.16, W * 0.32, H * 0.13, '#f6d9c0')
-                + ell(cx, hz + H * 0.15, W * 0.17, H * 0.05, '#ffffff')
-                // 茶壺與杯子
-                + `<g transform="translate(${cx},${hz + H * 0.13})">`
-                + ell(0, -14, 30, 24, '#e8998f') + rect(-9, -46, 18, 12, '#e8998f', 'rx="4"')
-                + `<path d="M 28 -20 C 46 -26, 46 -6, 30 -4" stroke="#e8998f" stroke-width="7" fill="none"/>`
-                + `<path d="M -28 -20 C -46 -18, -44 -6, -30 -6" stroke="#e8998f" stroke-width="7" fill="none"/>`
-                + ell(-64, -6, 18, 12, '#ffffff') + ell(64, -6, 18, 12, '#ffffff')
-                + '</g>'
+                vg('atSky', [[0, '#eaf7d9'], [55, '#dff0c9'], [100, '#f6ffe8']])
+                + vg('atLawn', [[0, '#9ccf72'], [100, '#5da257']])
+                + glowDef('atGlow', '#fff6cf')
+                + vg('atCloth', [[0, '#fffdf8'], [100, '#f2e6d2']]),
+                bg(W, H, 'url(#atSky)')
+                + glow(cx, H * 0.3, H * 0.13, 'atGlow', '#fffbe8')
+                // 遠景：朦朧的庭園樹叢
+                + times(10, (i, a, b) => disc((a * W).toFixed(0), (H * 0.2 + b * H * 0.24).toFixed(0), (60 + b * 90) * u, i % 2 ? '#7fbf72' : '#5da257', `opacity="${(0.35 + b * 0.35).toFixed(2)}"`))
+                + rect(0, hz, W, H - hz, 'url(#atLawn)')
+                + ell(cx, hz + 6 * u, W * 0.42, 14 * u, '#b7dd8f', 'opacity="0.5"')
+                // 草地上的落花瓣與兩側小花叢
+                + fallen
+                + clumps
+                // 玫瑰拱門（只在畫面上緣與兩側，中央留空）
+                + arch
+                // 椅子畫在桌子後面，兩張都露出椅背。
+                // 手機直式只看得到畫布中間約七成五的寬度，椅距要收窄才不會被裁掉
+                + chair(cx - (portrait ? 118 : 150) * ts, tableY + 44 * ts, ts * 1.02)
+                + chair(cx + (portrait ? 118 : 150) * ts, tableY + 44 * ts, ts * 1.02)
+                // 圓桌與蕾絲桌巾
+                + `<g transform="translate(${cx},${tableY}) scale(${ts})">`
+                + `<ellipse cy="150" rx="186" ry="26" fill="#3f6b45" opacity="0.22"/>`
+                + `<path d="M -168 0 C -186 58, -190 108, -180 146 L 180 146 C 190 108, 186 58, 168 0 Z" fill="url(#atCloth)"/>`
+                + `<ellipse rx="168" ry="42" fill="#fffdf8"/>`
+                + `<g stroke="#e8d9bd" stroke-width="2.5" fill="none"><path d="M -180 140 C -90 154, 90 154, 180 140"/><path d="M -184 120 C -92 134, 92 134, 184 120"/></g>`
+                + `<g fill="#f2c4d2" opacity="0.75"><circle cx="-120" cy="70" r="7"/><circle cx="-44" cy="96" r="6"/><circle cx="52" cy="90" r="6.5"/><circle cx="130" cy="64" r="5.5"/></g>`
+                + `</g>`
+                // 桌上的茶具（正中央擺點心架，兩側茶杯與高腳杯）
+                + stand(cx - 52 * ts, tableY - 8 * ts, ts * 1.05, 96)
+                + stand(cx + 62 * ts, tableY + 2 * ts, ts * 0.9, 62)
+                + cup(cx - 138 * ts, tableY + 16 * ts, ts * 0.95)
+                + cup(cx + 140 * ts, tableY + 14 * ts, ts * 0.95)
+                + glass(cx - 96 * ts, tableY + 22 * ts, ts * 0.95)
+                + glass(cx + 104 * ts, tableY + 24 * ts, ts * 0.95)
+                + vase(cx - 6 * ts, tableY + 26 * ts, ts * 0.9)
             );
         },
 
-        // 櫻花小徑：兩側櫻花樹與飄落花瓣
+        // 櫻花小徑：兩排櫻花樹夾出的街道，樹冠在頭頂接成花隧道，滿地櫻花瓣
         cherryPark(mode) {
-            const { W, H } = canvasOf(mode), hz = H * 0.58;
+            const { W, H } = canvasOf(mode);
+            const portrait = mode === 'portrait';
+            const u = Math.min(W, H) / 520;
+            const cx = W / 2;
+            const hz = H * (portrait ? 0.38 : 0.42);        // 消失點
+            const hwTop = W * 0.035;                         // 街道在遠處的半寬
+            const hwBot = W * (portrait ? 0.4 : 0.28);       // 街道在眼前的半寬
+
+            const py = (t) => hz + (H - hz) * Math.pow(t, 1.6);
+            const phw = (t) => hwTop + (hwBot - hwTop) * Math.pow(t, 1.3);
+
+            // 櫻花花瓣：末端帶凹口的五瓣櫻花瓣型
+            const petal = (x, y, s, rot, c, op) =>
+                `<path d="M 0 0 C -7 -3, -10 -13, -4.5 -20 L 0 -15 L 4.5 -20 C 10 -13, 7 -3, 0 0 Z" fill="${c}" opacity="${op}" transform="translate(${x},${y}) rotate(${rot}) scale(${s})"/>`;
+
+            // 一朵完整的櫻花（五片花瓣 + 花蕊）
+            const flower = (x, y, s, c) => {
+                let f = `<g transform="translate(${x},${y}) scale(${s})">`;
+                for (let k = 0; k < 5; k++) f += `<path d="M 0 0 C -7 -3, -10 -13, -4.5 -20 L 0 -15 L 4.5 -20 C 10 -13, 7 -3, 0 0 Z" fill="${c}" transform="rotate(${k * 72})"/>`;
+                return f + `<circle r="3.4" fill="#fff6d6"/></g>`;
+            };
+
+            // 櫻花樹：樹幹微微朝街道傾斜，樹冠是一團團花雲
+            const sakura = (x, baseY, s, lean) => {
+                const th = 150 * s;                       // 樹幹高度
+                const tx = lean * 26 * s;                 // 樹冠偏移
+                let g = `<g transform="translate(${x.toFixed(1)},${baseY.toFixed(1)})">`;
+                g += `<path d="M ${(-15 * s).toFixed(1)} 0 C ${(-11 * s).toFixed(1)} ${(-th * 0.5).toFixed(1)}, ${(tx - 9 * s).toFixed(1)} ${(-th * 0.8).toFixed(1)}, ${(tx - 4 * s).toFixed(1)} ${(-th).toFixed(1)} L ${(tx + 13 * s).toFixed(1)} ${(-th).toFixed(1)} C ${(11 * s).toFixed(1)} ${(-th * 0.78).toFixed(1)}, ${(15 * s).toFixed(1)} ${(-th * 0.46).toFixed(1)}, ${(17 * s).toFixed(1)} 0 Z" fill="#5b4033"/>`;
+                g += `<g stroke="#5b4033" fill="none" stroke-linecap="round">`
+                    + `<path d="M ${(tx - 2 * s).toFixed(1)} ${(-th * 0.92).toFixed(1)} C ${(tx + lean * 40 * s).toFixed(1)} ${(-th * 1.1).toFixed(1)}, ${(tx + lean * 78 * s).toFixed(1)} ${(-th * 1.12).toFixed(1)}, ${(tx + lean * 110 * s).toFixed(1)} ${(-th * 1.02).toFixed(1)}" stroke-width="${(9 * s).toFixed(1)}"/>`
+                    + `<path d="M ${(tx * 0.4).toFixed(1)} ${(-th * 0.72).toFixed(1)} C ${(tx - lean * 26 * s).toFixed(1)} ${(-th * 0.92).toFixed(1)}, ${(tx - lean * 52 * s).toFixed(1)} ${(-th * 0.98).toFixed(1)}, ${(tx - lean * 74 * s).toFixed(1)} ${(-th * 0.9).toFixed(1)}" stroke-width="${(7 * s).toFixed(1)}"/>`
+                    + `</g>`;
+                // 樹冠：深淺兩層花雲
+                const cy0 = -th * 1.16;
+                const blobs = [[0, 0, 62], [-58, 16, 46], [58, 10, 48], [-30, -34, 44], [34, -30, 46], [lean * 104, 6, 40], [-lean * 78, 20, 36]];
+                g += `<g fill="#f095b8">` + blobs.map(([bx, by, r]) => `<circle cx="${(bx * s).toFixed(1)}" cy="${((cy0 / s + by) * s).toFixed(1)}" r="${(r * s).toFixed(1)}"/>`).join('') + `</g>`;
+                g += `<g fill="#f9bdd4">` + blobs.slice(0, 5).map(([bx, by, r]) => `<circle cx="${((bx - 10) * s).toFixed(1)}" cy="${((cy0 / s + by - 12) * s).toFixed(1)}" r="${(r * 0.66 * s).toFixed(1)}"/>`).join('') + `</g>`;
+                g += `<g fill="#ffe0ec">` + blobs.slice(0, 3).map(([bx, by, r]) => `<circle cx="${((bx - 18) * s).toFixed(1)}" cy="${((cy0 / s + by - 22) * s).toFixed(1)}" r="${(r * 0.4 * s).toFixed(1)}"/>`).join('') + `</g>`;
+                // 樹冠上點綴幾朵看得出花型的櫻花
+                g += flower((-24 * s).toFixed(1), (cy0 - 26 * s).toFixed(1), s * 0.5, '#ffffff')
+                    + flower((30 * s).toFixed(1), (cy0 + 6 * s).toFixed(1), s * 0.42, '#fff2f7');
+                return g + `</g>`;
+            };
+
+            // 由遠而近排出兩排樹，遠的先畫才不會蓋住近的；
+            // 每排再往外補一列，讓畫面最旁邊也是滿滿的櫻花
+            const ts = portrait ? [0.1, 0.2, 0.34, 0.54, 0.82, 1.15] : [0.1, 0.2, 0.34, 0.54, 0.8, 1.1];
+            let trees = '';
+            const treeSpots = [];   // 記下每棵樹的落點，等等在樹下堆花瓣
+            for (const t of ts) {
+                const tc = Math.min(t, 1);
+                const baseY = py(tc) + (t > 1 ? (H - py(1)) * (t - 1) : 0);
+                const s = (0.16 + t * 0.92) * u;
+                const offset = phw(tc) + (16 + 40 * tc) * u;
+                const outer = offset + (90 + 150 * tc) * u;
+                // 外側那列稍微矮一點、位置錯開，看起來像更遠的第二排
+                trees += sakura(cx - outer, baseY + 6 * u, s * 0.86, 1) + sakura(cx + outer, baseY + 6 * u, s * 0.86, -1);
+                trees += sakura(cx - offset, baseY, s, 1) + sakura(cx + offset, baseY, s, -1);
+                treeSpots.push([cx - offset, baseY, s], [cx + offset, baseY, s], [cx - outer, baseY, s * 0.86], [cx + outer, baseY, s * 0.86]);
+            }
+
+            // 地面花瓣：樹下堆得最厚，路緣成帶狀，路中央只有零星幾片
+            let ground = '';
+            let seed = 0;
+            const drop = (x, y, s, i) => {
+                if (x < -30 || x > W + 30 || y < hz - 4 * u) return '';
+                return petal(x.toFixed(0), y.toFixed(0), s.toFixed(2), (rnd(i, 73) * 360).toFixed(0),
+                    i % 5 === 0 ? '#ffffff' : (i % 3 === 0 ? '#f7b0ca' : '#fbd3e0'), (0.82 + rnd(i, 74) * 0.18).toFixed(2));
+            };
+            // 1. 每棵樹底下的落花堆
+            for (const [tx, ty, s] of treeSpots) {
+                const n = Math.max(6, Math.round(26 * s / u));
+                for (let k = 0; k < n; k++, seed++) {
+                    const a = rnd(seed, 61) * Math.PI * 2;
+                    const r = Math.sqrt(rnd(seed, 62));
+                    ground += drop(tx + Math.cos(a) * r * 132 * s, ty + Math.sin(a) * r * 34 * s, (0.3 + s / u * 0.55) * u, seed);
+                }
+            }
+            // 2. 路緣兩側的花瓣帶
+            for (let i = 0; i < (portrait ? 90 : 110); i++, seed++) {
+                const t = 0.06 + rnd(seed, 63) * 0.96;
+                const tc = Math.min(t, 1);
+                const side = i % 2 ? 1 : -1;
+                const x = cx + side * phw(tc) * (0.72 + rnd(seed, 64) * 0.42);
+                ground += drop(x, py(tc), (0.26 + tc * 0.55) * u, seed);
+            }
+            // 3. 路中央零星幾片
+            for (let i = 0; i < (portrait ? 22 : 26); i++, seed++) {
+                const tc = 0.1 + rnd(seed, 65) * 0.9;
+                ground += drop(cx + (rnd(seed, 66) - 0.5) * phw(tc) * 1.25, py(tc), (0.26 + tc * 0.55) * u, seed);
+            }
+
+            // 空中正在飄落的花瓣：上半部多、越往下越少，大小不一
+            let air = '';
+            for (let i = 0; i < (portrait ? 40 : 46); i++) {
+                const fy = Math.pow(rnd(i, 82), 0.7) * H * 0.95;
+                air += petal((rnd(i, 81) * W).toFixed(0), fy.toFixed(0), ((0.34 + rnd(i, 83) * 0.8) * u).toFixed(2), (rnd(i, 84) * 360).toFixed(0), i % 4 === 0 ? '#ffffff' : '#f9c6da', (0.6 + rnd(i, 85) * 0.4).toFixed(2));
+            }
+
             return svgOf(W, H,
-                vg('cpSky', [[0, '#ffd7e6'], [55, '#ffe9f1'], [100, '#fff6f8']]) + vg('cpG', [[0, '#9fd48c'], [100, '#6aab5f']]),
+                vg('cpSky', [[0, '#1f7fd4'], [45, '#5ab4ef'], [100, '#bfe4fa']])
+                + vg('cpRoad', [[0, '#b9ada1'], [100, '#8f8378']])
+                + vg('cpSide', [[0, '#7fa36a'], [100, '#4f6f47']]),
                 bg(W, H, 'url(#cpSky)')
-                + hill(W, H, hz, 16, 'url(#cpG)')
-                + `<path d="M ${W * 0.36} ${H} L ${W * 0.45} ${hz + 6} L ${W * 0.55} ${hz + 6} L ${W * 0.66} ${H} Z" fill="#e8d9bc"/>`
-                + tree(W * 0.16, hz + 26, 0.95, '#f6a8c8', '#8d6048', '#ffd0e2')
-                + tree(W * 0.84, hz + 34, 1.05, '#f39dbf', '#8d6048', '#ffd8e8')
-                + tree(W * 0.32, hz + 8, 0.6, '#f9bcd6', '#8d6048', '#ffe0ec')
-                + tree(W * 0.7, hz + 6, 0.55, '#f9bcd6', '#8d6048', '#ffe0ec')
-                + times(22, (i, a, b, c) => `<ellipse cx="${(a * W).toFixed(0)}" cy="${(b * H).toFixed(0)}" rx="${(5 + c * 5).toFixed(1)}" ry="${(3 + c * 3).toFixed(1)}" fill="#ffc2da" opacity="${(0.5 + c * 0.4).toFixed(2)}" transform="rotate(${(c * 80).toFixed(0)} ${(a * W).toFixed(0)} ${(b * H).toFixed(0)})"/>`)
+                // 遠景樹林與地面
+                + rect(0, hz - 6 * u, W, H - hz + 6 * u, 'url(#cpSide)')
+                + times(9, (i, a, b) => disc((a * W).toFixed(0), (hz - (16 + b * 40) * u).toFixed(0), (26 + b * 40) * u, i % 2 ? '#f7b8cf' : '#f095b8', 'opacity="0.9"'))
+                // 街道
+                + `<path d="M ${(cx - hwTop).toFixed(0)} ${hz.toFixed(0)} L ${(cx + hwTop).toFixed(0)} ${hz.toFixed(0)} L ${(cx + hwBot).toFixed(0)} ${H} L ${(cx - hwBot).toFixed(0)} ${H} Z" fill="url(#cpRoad)"/>`
+                // 路緣
+                + `<path d="M ${(cx - hwTop).toFixed(0)} ${hz.toFixed(0)} L ${(cx - hwBot).toFixed(0)} ${H}" stroke="#d9cfc2" stroke-width="${(5 * u).toFixed(1)}" fill="none"/>`
+                + `<path d="M ${(cx + hwTop).toFixed(0)} ${hz.toFixed(0)} L ${(cx + hwBot).toFixed(0)} ${H}" stroke="#d9cfc2" stroke-width="${(5 * u).toFixed(1)}" fill="none"/>`
+                + ground
+                + trees
+                + air
             );
         },
 
@@ -1418,229 +1762,6 @@ const i18n = {
             // 場景庫裡的其餘背景
             ...sceneArt,
 
-            // 陽光草原：同一張向量插畫，依用途切不同的可視範圍 (viewBox)，
-            // 手機直式因此不會被拉長變形，縮圖也看得到太陽與草坡。
-            sunshineGrassland(mode) {
-                const box = mode === 'portrait' ? '0 0 460 800'
-                    : (mode === 'thumb' ? '60 60 700 700' : '0 0 1200 800');
-                return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${box}" preserveAspectRatio="xMidYMid slice">
-<defs>
-<linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
-<stop offset="0%" stop-color="#38bdf8"/>
-<stop offset="35%" stop-color="#7dd3fc"/>
-<stop offset="65%" stop-color="#bae6fd"/>
-<stop offset="90%" stop-color="#fef08a"/>
-<stop offset="100%" stop-color="#d9f99d"/>
-</linearGradient>
-<radialGradient id="sun" cx="50%" cy="50%" r="50%">
-<stop offset="0%" stop-color="#ffffff"/>
-<stop offset="30%" stop-color="#fffbeb"/>
-<stop offset="65%" stop-color="#fde047"/>
-<stop offset="88%" stop-color="#f59e0b" stop-opacity="0.6"/>
-<stop offset="100%" stop-color="#fbbf24" stop-opacity="0"/>
-</radialGradient>
-<radialGradient id="sunGlow" cx="50%" cy="50%" r="50%">
-<stop offset="0%" stop-color="#ffffff" stop-opacity="0.8"/>
-<stop offset="35%" stop-color="#fef08a" stop-opacity="0.4"/>
-<stop offset="70%" stop-color="#facc15" stop-opacity="0.15"/>
-<stop offset="100%" stop-color="#fde047" stop-opacity="0"/>
-</radialGradient>
-<linearGradient id="hDist" x1="0" y1="0" x2="0" y2="1">
-<stop offset="0%" stop-color="#a7f3d0"/>
-<stop offset="100%" stop-color="#6ee7b7"/>
-</linearGradient>
-<linearGradient id="hMid" x1="0" y1="0" x2="0" y2="1">
-<stop offset="0%" stop-color="#86efac"/>
-<stop offset="50%" stop-color="#4ade80"/>
-<stop offset="100%" stop-color="#22c55e"/>
-</linearGradient>
-<linearGradient id="hFore" x1="0" y1="0" x2="0" y2="1">
-<stop offset="0%" stop-color="#a3e635"/>
-<stop offset="30%" stop-color="#4ade80"/>
-<stop offset="70%" stop-color="#16a34a"/>
-<stop offset="100%" stop-color="#15803d"/>
-</linearGradient>
-<linearGradient id="hFront" x1="0" y1="0" x2="0" y2="1">
-<stop offset="0%" stop-color="#bef264"/>
-<stop offset="25%" stop-color="#22c55e"/>
-<stop offset="75%" stop-color="#15803d"/>
-<stop offset="100%" stop-color="#14532d"/>
-</linearGradient>
-<linearGradient id="cloud" x1="0" y1="0" x2="0" y2="1">
-<stop offset="0%" stop-color="#ffffff"/>
-<stop offset="85%" stop-color="#f1f5f9"/>
-<stop offset="100%" stop-color="#e2e8f0"/>
-</linearGradient>
-</defs>
-<rect width="1200" height="800" fill="url(#sky)"/>
-<circle cx="180" cy="130" r="160" fill="url(#sunGlow)"/>
-<circle cx="180" cy="130" r="90" fill="url(#sun)"/>
-<circle cx="180" cy="130" r="42" fill="#ffffff"/>
-<g fill="#ffffff" opacity="0.09">
-<polygon points="180,130 -100,300 -100,420"/>
-<polygon points="180,130 -40,550 80,620"/>
-<polygon points="180,130 200,800 320,800"/>
-<polygon points="180,130 460,800 620,800"/>
-<polygon points="180,130 820,800 980,750"/>
-<polygon points="180,130 1150,680 1250,600"/>
-<polygon points="180,130 1250,420 1250,280"/>
-<polygon points="180,130 1100,100 1200,50"/>
-</g>
-<path d="M 180 60 Q 180 130 110 130 Q 180 130 180 200 Q 180 130 250 130 Q 180 130 180 60 Z" fill="#ffffff" opacity="0.35"/>
-<circle cx="280" cy="200" r="12" fill="#ffffff" opacity="0.3"/>
-<circle cx="340" cy="245" r="7" fill="#fef08a" opacity="0.35"/>
-<circle cx="430" cy="310" r="18" fill="#fde047" opacity="0.2"/>
-<g fill="url(#cloud)" opacity="0.95">
-<path d="M 850 160 Q 850 110 900 100 Q 940 60 1010 70 Q 1070 50 1110 90 Q 1160 80 1180 130 Q 1220 150 1210 190 Q 1200 230 1150 230 L 870 230 Q 830 220 830 180 Q 830 160 850 160 Z"/>
-</g>
-<g fill="url(#cloud)" opacity="0.9">
-<path d="M 380 180 Q 390 140 430 140 Q 460 110 510 125 Q 550 110 580 140 Q 610 150 610 180 Q 600 210 560 210 L 400 210 Q 370 200 380 180 Z"/>
-</g>
-<g fill="#ffffff" opacity="0.6">
-<ellipse cx="140" cy="280" rx="60" ry="14"/>
-<ellipse cx="120" cy="275" rx="35" ry="18"/>
-<ellipse cx="720" cy="260" rx="80" ry="16"/>
-<ellipse cx="745" cy="254" rx="45" ry="20"/>
-</g>
-<g stroke="#3b82f6" stroke-width="2.5" stroke-linecap="round" fill="none" opacity="0.45">
-<path d="M 640 160 Q 652 150 664 160 Q 676 150 688 160"/>
-<path d="M 700 180 Q 709 172 718 180 Q 727 172 736 180"/>
-<path d="M 610 200 Q 617 193 624 200 Q 631 193 638 200"/>
-</g>
-<path d="M -20 460 Q 150 370 380 430 Q 600 480 850 390 Q 1050 340 1220 420 L 1220 800 L -20 800 Z" fill="url(#hDist)" opacity="0.85"/>
-<g fill="#059669" opacity="0.35">
-<circle cx="360" cy="425" r="9"/>
-<circle cx="375" cy="422" r="12"/>
-<circle cx="390" cy="427" r="8"/>
-<circle cx="840" cy="385" r="10"/>
-<circle cx="855" cy="380" r="14"/>
-<circle cx="870" cy="386" r="9"/>
-</g>
-<path d="M -20 540 Q 220 440 520 510 Q 820 570 1100 460 Q 1180 440 1220 470 L 1220 800 L -20 800 Z" fill="url(#hMid)"/>
-<rect x="236" y="465" width="8" height="25" rx="3" fill="#78350f"/>
-<circle cx="240" cy="450" r="28" fill="#15803d"/>
-<circle cx="232" cy="445" r="20" fill="#22c55e"/>
-<circle cx="246" cy="440" r="16" fill="#4ade80"/>
-<circle cx="236" cy="435" r="10" fill="#86efac"/>
-<rect x="287" y="485" width="6" height="18" rx="2" fill="#78350f"/>
-<circle cx="290" cy="475" r="18" fill="#16a34a"/>
-<circle cx="286" cy="470" r="14" fill="#4ade80"/>
-<rect x="976" y="480" width="8" height="26" rx="3" fill="#78350f"/>
-<circle cx="980" cy="460" r="26" fill="#15803d"/>
-<circle cx="974" cy="454" r="20" fill="#22c55e"/>
-<circle cx="988" cy="450" r="16" fill="#4ade80"/>
-<circle cx="978" cy="444" r="10" fill="#86efac"/>
-<path d="M -20 540 Q 220 440 520 510 Q 820 570 1100 460 Q 1180 440 1220 470" fill="none" stroke="#bef264" stroke-width="4" opacity="0.5"/>
-<path d="M -20 620 Q 300 520 700 590 Q 950 630 1220 540 L 1220 800 L -20 800 Z" fill="url(#hFore)"/>
-<path d="M -20 620 Q 300 520 700 590 Q 950 630 1220 540" fill="none" stroke="#fef08a" stroke-width="6" opacity="0.45"/>
-<path d="M -20 680 Q 280 610 640 670 Q 980 720 1220 630 L 1220 800 L -20 800 Z" fill="url(#hFront)"/>
-<path d="M -20 680 Q 280 610 640 670 Q 980 720 1220 630" fill="none" stroke="#d9f99d" stroke-width="5" opacity="0.6"/>
-<g fill="#166534" stroke="#14532d" stroke-width="1.5" stroke-linejoin="round">
-<path d="M 120 705 Q 112 680 102 672 Q 114 685 120 705 Z"/>
-<path d="M 122 705 Q 123 675 120 665 Q 126 680 124 705 Z"/>
-<path d="M 124 705 Q 134 682 142 676 Q 132 688 126 705 Z"/>
-<path d="M 450 725 Q 442 702 432 696 Q 444 707 450 725 Z"/>
-<path d="M 452 725 Q 453 695 450 685 Q 456 700 454 725 Z"/>
-<path d="M 454 725 Q 464 704 472 698 Q 462 710 456 725 Z"/>
-<path d="M 780 715 Q 772 692 762 686 Q 774 697 780 715 Z"/>
-<path d="M 782 715 Q 783 685 780 675 Q 786 690 784 715 Z"/>
-<path d="M 784 715 Q 794 694 802 688 Q 792 700 786 715 Z"/>
-<path d="M 1050 695 Q 1042 672 1032 666 Q 1044 677 1050 695 Z"/>
-<path d="M 1052 695 Q 1053 665 1050 655 Q 1056 670 1054 695 Z"/>
-<path d="M 1054 695 Q 1064 674 1072 668 Q 1062 680 1056 695 Z"/>
-</g>
-<g transform="translate(180, 710)">
-<path d="M 0 0 L 2 16" stroke="#15803d" stroke-width="2.5"/>
-<circle cx="-8" cy="0" r="5" fill="#ffffff"/>
-<circle cx="8" cy="0" r="5" fill="#ffffff"/>
-<circle cx="0" cy="-8" r="5" fill="#ffffff"/>
-<circle cx="0" cy="8" r="5" fill="#ffffff"/>
-<circle cx="-5" cy="-5" r="4.5" fill="#ffffff"/>
-<circle cx="5" cy="-5" r="4.5" fill="#ffffff"/>
-<circle cx="-5" cy="5" r="4.5" fill="#ffffff"/>
-<circle cx="5" cy="5" r="4.5" fill="#ffffff"/>
-<circle cx="0" cy="0" r="5" fill="#facc15"/>
-</g>
-<g transform="translate(680, 725) scale(0.9)">
-<path d="M 0 0 L -2 16" stroke="#15803d" stroke-width="2.5"/>
-<circle cx="-8" cy="0" r="5" fill="#ffffff"/>
-<circle cx="8" cy="0" r="5" fill="#ffffff"/>
-<circle cx="0" cy="-8" r="5" fill="#ffffff"/>
-<circle cx="0" cy="8" r="5" fill="#ffffff"/>
-<circle cx="-5" cy="-5" r="4.5" fill="#ffffff"/>
-<circle cx="5" cy="-5" r="4.5" fill="#ffffff"/>
-<circle cx="-5" cy="5" r="4.5" fill="#ffffff"/>
-<circle cx="5" cy="5" r="4.5" fill="#ffffff"/>
-<circle cx="0" cy="0" r="5" fill="#facc15"/>
-</g>
-<g transform="translate(1120, 715) scale(0.85)">
-<path d="M 0 0 L 1 14" stroke="#15803d" stroke-width="2.5"/>
-<circle cx="-8" cy="0" r="5" fill="#ffffff"/>
-<circle cx="8" cy="0" r="5" fill="#ffffff"/>
-<circle cx="0" cy="-8" r="5" fill="#ffffff"/>
-<circle cx="0" cy="8" r="5" fill="#ffffff"/>
-<circle cx="0" cy="0" r="5" fill="#facc15"/>
-</g>
-<g transform="translate(330, 685) scale(0.85)">
-<path d="M 0 0 L 1 14" stroke="#15803d" stroke-width="2.5"/>
-<circle cx="-6" cy="-2" r="5" fill="#f472b6"/>
-<circle cx="6" cy="-2" r="5" fill="#f472b6"/>
-<circle cx="0" cy="-7" r="5" fill="#f472b6"/>
-<circle cx="-4" cy="5" r="5" fill="#f472b6"/>
-<circle cx="4" cy="5" r="5" fill="#f472b6"/>
-<circle cx="0" cy="0" r="4" fill="#ffffff"/>
-</g>
-<g transform="translate(890, 700) scale(0.8)">
-<path d="M 0 0 L -1 14" stroke="#15803d" stroke-width="2.5"/>
-<circle cx="-6" cy="-2" r="5" fill="#fb7185"/>
-<circle cx="6" cy="-2" r="5" fill="#fb7185"/>
-<circle cx="0" cy="-7" r="5" fill="#fb7185"/>
-<circle cx="-4" cy="5" r="5" fill="#fb7185"/>
-<circle cx="4" cy="5" r="5" fill="#fb7185"/>
-<circle cx="0" cy="0" r="4" fill="#fef08a"/>
-</g>
-<g transform="translate(530, 740) scale(0.75)">
-<circle cx="-5" cy="-2" r="4.5" fill="#fde047"/>
-<circle cx="5" cy="-2" r="4.5" fill="#fde047"/>
-<circle cx="0" cy="-6" r="4.5" fill="#fde047"/>
-<circle cx="0" cy="0" r="3" fill="#ea580c"/>
-</g>
-<g transform="translate(960, 730) scale(0.75)">
-<circle cx="-5" cy="-2" r="4.5" fill="#fde047"/>
-<circle cx="5" cy="-2" r="4.5" fill="#fde047"/>
-<circle cx="0" cy="-6" r="4.5" fill="#fde047"/>
-<circle cx="0" cy="0" r="3" fill="#ea580c"/>
-</g>
-<g fill="#ffffff" opacity="0.8">
-<circle cx="310" cy="590" r="2.5"/>
-<circle cx="410" cy="520" r="3"/>
-<circle cx="580" cy="480" r="2"/>
-<circle cx="630" cy="410" r="3.5"/>
-<circle cx="750" cy="460" r="2"/>
-<circle cx="820" cy="380" r="2.5"/>
-<circle cx="920" cy="490" r="3"/>
-</g>
-<g stroke="#ffffff" stroke-width="1.2" stroke-linecap="round" fill="none" opacity="0.85">
-<path d="M 410 520 L 410 530 M 410 520 L 404 513 M 410 520 L 416 513 M 410 520 L 410 511"/>
-<path d="M 630 410 L 630 420 M 630 410 L 624 403 M 630 410 L 636 403 M 630 410 L 630 401"/>
-<path d="M 820 380 L 820 389 M 820 380 L 815 374 M 820 380 L 825 374 M 820 380 L 820 372"/>
-</g>
-<g transform="translate(260, 600) rotate(-15)">
-<ellipse cx="-7" cy="-5" rx="7" ry="5" fill="#fde047" opacity="0.9"/>
-<ellipse cx="-5" cy="4" rx="5" ry="3.5" fill="#f59e0b" opacity="0.9"/>
-<ellipse cx="7" cy="-5" rx="7" ry="5" fill="#fde047" opacity="0.9"/>
-<ellipse cx="5" cy="4" rx="5" ry="3.5" fill="#f59e0b" opacity="0.9"/>
-<line x1="0" y1="-7" x2="0" y2="7" stroke="#78350f" stroke-width="1.5"/>
-</g>
-<g transform="translate(740, 640) rotate(20) scale(0.85)">
-<ellipse cx="-7" cy="-5" rx="7" ry="5" fill="#38bdf8" opacity="0.9"/>
-<ellipse cx="-5" cy="4" rx="5" ry="3.5" fill="#0284c7" opacity="0.9"/>
-<ellipse cx="7" cy="-5" rx="7" ry="5" fill="#38bdf8" opacity="0.9"/>
-<ellipse cx="5" cy="4" rx="5" ry="3.5" fill="#0284c7" opacity="0.9"/>
-<line x1="0" y1="-7" x2="0" y2="7" stroke="#0f172a" stroke-width="1.5"/>
-</g>
-</svg>`;
-            },
 
             // 溫馨房間：依用途挑版面。
             // 'wide' 給電腦版的寬扁舞台、'portrait' 給手機的直式滿版、
@@ -1912,7 +2033,7 @@ const i18n = {
 
             // 🌟 05 ~ 10：自然與日常系列（森林綠、天空藍、杏桃橘、櫻花粉、竹林翠、陰雨灰）
             misty_forest: { name: {zh: '迷霧森林', en: 'Misty Forest'}, cost: 250, ...illustratedBg('mistyForest') },
-            breeze_morning: { name: {zh: '微風晨曦', en: 'Breeze Morning'}, cost: 300, ...illustratedBg('breezeMorning') },
+            breeze_morning: { name: {zh: '碧紗庭院', en: 'Emerald Veil Court'}, cost: 300, ...illustratedBg('breezeMorning') },
             afternoon_tea: { name: {zh: '午後茶會', en: 'Afternoon Tea'}, cost: 350, ...illustratedBg('afternoonTea') },
             cherry_park: { name: {zh: '櫻花小徑', en: 'Cherry Park'}, cost: 400, ...illustratedBg('cherryPark') },
             bamboo_grove: { name: {zh: '翠綠竹林', en: 'Bamboo Grove'}, cost: 450, ...illustratedBg('bambooGrove') },
