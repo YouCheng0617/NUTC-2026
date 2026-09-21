@@ -627,51 +627,10 @@ const i18n = {
         // 把零件擺到指定位置並縮放
         const placePart = (part, x, y, scale) => `<g transform="translate(${x}, ${y}) scale(${scale})">${part}</g>`;
 
-        const bgArt = {
-            // 溫馨房間：依舞台比例挑版面。
-            // 'wide' 給電腦版的寬扁舞台、'portrait' 給手機的直式滿版，
-            // 兩種版面共用同一組家具零件，只是落點與縮放不同。
-            cozyRoom(mode) {
-                const wide = mode !== 'portrait';
-                const W = wide ? 1200 : 640;
-                const H = wide ? 520 : 1040;
-                const floorY = wide ? 318 : 640;
-
-                // 榻榻米：磚砌排列，每列交錯半格
-                const matW = wide ? 300 : 260;
-                const matH = 150;
-                let floor = '';
-                let row = 0;
-                for (let y = floorY + 22; y < H + matH; y += matH, row++) {
-                    const offset = row % 2 === 0 ? 0 : -matW / 2;
-                    for (let x = -matW + offset; x < W + matW; x += matW) {
-                        const fill = (row + Math.round(x / matW)) % 2 === 0 ? 'hl' : 'vl';
-                        floor += `<rect x="${x}" y="${y}" width="${matW}" height="${matH}" fill="url(#${fill})"/>`;
-                    }
-                }
-
-                // 窗戶
-                const win = wide
-                    ? { x: 96, y: 46, w: 250, h: 208 }
-                    : { x: 92, y: 132, w: 262, h: 280 };
-                const beam = `${win.x + win.w},${win.y + win.h} ${win.x + win.w},${win.y + win.h * 0.45} ${win.x + win.w + win.h * 0.8},${floorY + 30} ${win.x + win.w * 0.3},${floorY + 30}`;
-
-                const furniture = wide
-                    ? placePart(roomParts.rug, 620, 392, 0.8)
-                    + placePart(roomParts.plant, 392, 352, 0.7)
-                    + placePart(roomParts.sofa, 620, 350, 0.78)
-                    + placePart(roomParts.armchair, 886, 350, 0.74)
-                    + placePart(roomParts.lamp, 1062, 350, 0.72)
-                    + placePart(roomParts.table, 620, 404, 0.62)
-                    : placePart(roomParts.rug, 330, 754, 0.88)
-                    + placePart(roomParts.lamp, 140, 668, 0.6)
-                    + placePart(roomParts.plant, 506, 672, 0.6)
-                    + placePart(roomParts.sofa, 330, 672, 0.85)
-                    + placePart(roomParts.table, 330, 772, 0.7)
-                    // 這張椅子擺在前景，尺寸要比後排家具大才有遠近感
-                    + placePart(roomParts.armchair, 214, 948, 0.95);
-
-                return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid slice">
+        // 房間的共用外殼：牆面、踢腳板、榻榻米、窗戶與灑進來的陽光
+        const wrapRoomSvg = (W, H, floorY, floor, win, furniture) => {
+            const beam = `${win.x + win.w},${win.y + win.h} ${win.x + win.w},${win.y + win.h * 0.45} ${win.x + win.w + win.h * 0.8},${floorY + 30} ${win.x + win.w * 0.3},${floorY + 30}`;
+            return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid slice">
   <defs>
     <pattern id="hl" width="6" height="6" patternUnits="userSpaceOnUse">
       <rect width="6" height="6" fill="#e6dec3"/>
@@ -708,19 +667,536 @@ const i18n = {
 
   ${furniture}
 </svg>`;
+        };
+
+        // 🏞️ 【陽光公園零件】同樣以「底部中央」為原點
+        const parkParts = {
+            tree: `<g>
+    <rect x="-11" y="-86" width="22" height="88" rx="6" fill="#a2703f" stroke="#6b4423" stroke-width="5"/>
+    <g fill="#3f9e57" stroke="#2c7a42" stroke-width="5" stroke-linejoin="round">
+      <circle cx="-46" cy="-104" r="44"/>
+      <circle cx="48" cy="-108" r="42"/>
+      <circle cx="0" cy="-146" r="58"/>
+    </g>
+    <g fill="#63c47a" stroke="none">
+      <circle cx="-16" cy="-168" r="28"/>
+      <circle cx="30" cy="-140" r="20"/>
+      <circle cx="-44" cy="-120" r="18"/>
+    </g>
+  </g>`,
+            // 溜滑梯遊具：藍色爬梯 + 平台 + 尖屋頂 + 粉色滑道
+            slideTower: `<g stroke="#5b6b7a" stroke-width="5" stroke-linejoin="round" stroke-linecap="round">
+    <g stroke="#3f8fd0" stroke-width="11" fill="none">
+      <path d="M -96 -152 L -150 -4"/>
+      <path d="M -62 -152 L -116 -4"/>
+      <path d="M -142 -26 L -108 -26"/>
+      <path d="M -129 -62 L -95 -62"/>
+      <path d="M -116 -98 L -82 -98"/>
+      <path d="M -103 -132 L -69 -132"/>
+    </g>
+    <rect x="-88" y="-212" width="15" height="212" fill="#c7d2dc"/>
+    <rect x="73" y="-212" width="15" height="212" fill="#c7d2dc"/>
+    <g stroke="#b06274" stroke-width="5" fill="none" stroke-linecap="round">
+      <path d="M 86 -150 C 142 -138, 168 -80, 196 -8" stroke="#f0798e" stroke-width="44"/>
+      <path d="M 86 -150 C 142 -138, 168 -80, 196 -8" stroke="#f9a8b5" stroke-width="14"/>
+    </g>
+    <rect x="-98" y="-164" width="196" height="24" rx="7" fill="#e0a94a"/>
+    <rect x="-98" y="-206" width="196" height="13" rx="6" fill="#7ec8e3"/>
+    <path d="M -114 -210 L 0 -302 L 114 -210 Z" fill="#2a9d8f"/>
+    <path d="M -114 -210 L 114 -210" stroke="#1f7a70"/>
+    <circle cx="0" cy="-312" r="10" fill="#f6bd60"/>
+  </g>`,
+            swingSet: `<g stroke="#3f8fd0" stroke-width="11" stroke-linecap="round" fill="none">
+    <path d="M -118 -2 L -62 -172"/>
+    <path d="M -8 -2 L -62 -172"/>
+    <path d="M 118 -2 L 62 -172"/>
+    <path d="M 8 -2 L 62 -172"/>
+    <path d="M -66 -172 L 66 -172"/>
+    <g stroke="#94a3b8" stroke-width="5">
+      <path d="M -34 -170 L -34 -66"/>
+      <path d="M -6 -170 L -6 -66"/>
+      <path d="M 34 -170 L 34 -66"/>
+      <path d="M 62 -170 L 62 -66"/>
+    </g>
+    <g stroke="#e0a94a" stroke-width="12" stroke-linecap="round">
+      <path d="M -36 -64 L -4 -64"/>
+      <path d="M 32 -64 L 64 -64"/>
+    </g>
+  </g>`,
+            climbFrame: `<g stroke="#4fa65b" stroke-width="10" stroke-linecap="round" fill="none">
+    <path d="M -92 -2 L -92 -108"/>
+    <path d="M -30 -2 L -30 -108"/>
+    <path d="M 32 -2 L 32 -108"/>
+    <path d="M 94 -2 L 94 -108"/>
+    <path d="M -96 -108 L 98 -108"/>
+    <g stroke="#f6bd60" stroke-width="8">
+      <path d="M -96 -74 L 98 -74"/>
+      <path d="M -96 -40 L 98 -40"/>
+    </g>
+  </g>`,
+            bench: `<g stroke="#6b4423" stroke-width="5" stroke-linejoin="round">
+    <g stroke="#5b6b7a" stroke-width="7" fill="none" stroke-linecap="round">
+      <path d="M -44 -2 L -44 -34"/>
+      <path d="M 44 -2 L 44 -34"/>
+    </g>
+    <rect x="-58" y="-42" width="116" height="12" rx="5" fill="#c58b52"/>
+    <rect x="-58" y="-66" width="116" height="10" rx="5" fill="#c58b52"/>
+    <rect x="-58" y="-82" width="116" height="10" rx="5" fill="#c58b52"/>
+  </g>`,
+            house: `<g stroke="#8a7461" stroke-width="4" stroke-linejoin="round">
+    <rect x="-46" y="-62" width="92" height="62" fill="#f1e5d4"/>
+    <path d="M -56 -60 L 0 -98 L 56 -60 Z" fill="#c08457"/>
+    <g fill="#9ec9e8" stroke="#8a7461" stroke-width="3">
+      <rect x="-32" y="-48" width="22" height="20" rx="3"/>
+      <rect x="10" y="-48" width="22" height="20" rx="3"/>
+      <rect x="-12" y="-22" width="24" height="22" rx="3"/>
+    </g>
+  </g>`,
+            // 雲與太陽的原點在中心
+            cloud: `<g fill="#ffffff">
+    <ellipse cx="-44" cy="6" rx="46" ry="26"/>
+    <ellipse cx="34" cy="8" rx="40" ry="24"/>
+    <ellipse cx="-6" cy="-14" rx="44" ry="32"/>
+    <ellipse cx="0" cy="14" rx="62" ry="20"/>
+  </g>`,
+            sun: `<g>
+    <circle r="132" fill="url(#sunGlow)"/>
+    <circle r="66" fill="#fef3c7"/>
+    <circle r="50" fill="#fde047"/>
+  </g>`
+        };
+
+        // 地平線上的遠景樹林：一排圓弧，下半截會被草地蓋住
+        const parkTreeLine = (W, skyY, layer) => {
+            let out = '';
+            if (layer === 'far') {
+                for (let x = -40, i = 0; x < W + 60; x += 46, i++) {
+                    const r = 26 + (i % 3) * 9;
+                    out += `<circle cx="${x}" cy="${skyY - r * 0.55}" r="${r}"/>`;
+                }
+                return `<g fill="#3b8f55">${out}</g>`;
+            }
+            for (let x = -20, i = 0; x < W + 60; x += 62, i++) {
+                const r = 20 + (i % 2) * 8;
+                out += `<circle cx="${x + 18}" cy="${skyY - r * 0.35}" r="${r}"/>`;
+            }
+            return `<g fill="#2f7a46">${out}</g>`;
+        };
+
+        // 草地上的小草叢與野花
+        const parkLawnDetails = (W, H, skyY) => {
+            let out = '';
+            const tuftY = skyY + (H - skyY) * 0.62;
+            for (let i = 0; i < 14; i++) {
+                const x = ((i * 137) % (W - 40)) + 20;
+                const y = tuftY + ((i * 53) % Math.max(40, (H - tuftY) * 0.8));
+                out += `<g transform="translate(${x}, ${y})" stroke="#2f7a46" stroke-width="4" stroke-linecap="round" fill="none"><path d="M 0 0 L -7 -13"/><path d="M 0 0 L 0 -16"/><path d="M 0 0 L 7 -13"/></g>`;
+                if (i % 3 === 0) {
+                    const color = i % 2 === 0 ? '#fde047' : '#f9a8d4';
+                    out += `<g transform="translate(${x + 26}, ${y - 6})" fill="${color}"><circle cx="-6" r="5"/><circle cx="6" r="5"/><circle cy="-6" r="5"/><circle cy="6" r="5"/><circle r="4" fill="#fff7ed"/></g>`;
+                }
+            }
+            return out;
+        };
+
+        const bgArt = {
+            // 陽光草原：同一張向量插畫，依用途切不同的可視範圍 (viewBox)，
+            // 手機直式因此不會被拉長變形，縮圖也看得到太陽與草坡。
+            sunshineGrassland(mode) {
+                const box = mode === 'portrait' ? '0 0 460 800'
+                    : (mode === 'thumb' ? '60 60 700 700' : '0 0 1200 800');
+                return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${box}" preserveAspectRatio="xMidYMid slice">
+<defs>
+<linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+<stop offset="0%" stop-color="#38bdf8"/>
+<stop offset="35%" stop-color="#7dd3fc"/>
+<stop offset="65%" stop-color="#bae6fd"/>
+<stop offset="90%" stop-color="#fef08a"/>
+<stop offset="100%" stop-color="#d9f99d"/>
+</linearGradient>
+<radialGradient id="sun" cx="50%" cy="50%" r="50%">
+<stop offset="0%" stop-color="#ffffff"/>
+<stop offset="30%" stop-color="#fffbeb"/>
+<stop offset="65%" stop-color="#fde047"/>
+<stop offset="88%" stop-color="#f59e0b" stop-opacity="0.6"/>
+<stop offset="100%" stop-color="#fbbf24" stop-opacity="0"/>
+</radialGradient>
+<radialGradient id="sunGlow" cx="50%" cy="50%" r="50%">
+<stop offset="0%" stop-color="#ffffff" stop-opacity="0.8"/>
+<stop offset="35%" stop-color="#fef08a" stop-opacity="0.4"/>
+<stop offset="70%" stop-color="#facc15" stop-opacity="0.15"/>
+<stop offset="100%" stop-color="#fde047" stop-opacity="0"/>
+</radialGradient>
+<linearGradient id="hDist" x1="0" y1="0" x2="0" y2="1">
+<stop offset="0%" stop-color="#a7f3d0"/>
+<stop offset="100%" stop-color="#6ee7b7"/>
+</linearGradient>
+<linearGradient id="hMid" x1="0" y1="0" x2="0" y2="1">
+<stop offset="0%" stop-color="#86efac"/>
+<stop offset="50%" stop-color="#4ade80"/>
+<stop offset="100%" stop-color="#22c55e"/>
+</linearGradient>
+<linearGradient id="hFore" x1="0" y1="0" x2="0" y2="1">
+<stop offset="0%" stop-color="#a3e635"/>
+<stop offset="30%" stop-color="#4ade80"/>
+<stop offset="70%" stop-color="#16a34a"/>
+<stop offset="100%" stop-color="#15803d"/>
+</linearGradient>
+<linearGradient id="hFront" x1="0" y1="0" x2="0" y2="1">
+<stop offset="0%" stop-color="#bef264"/>
+<stop offset="25%" stop-color="#22c55e"/>
+<stop offset="75%" stop-color="#15803d"/>
+<stop offset="100%" stop-color="#14532d"/>
+</linearGradient>
+<linearGradient id="cloud" x1="0" y1="0" x2="0" y2="1">
+<stop offset="0%" stop-color="#ffffff"/>
+<stop offset="85%" stop-color="#f1f5f9"/>
+<stop offset="100%" stop-color="#e2e8f0"/>
+</linearGradient>
+</defs>
+<rect width="1200" height="800" fill="url(#sky)"/>
+<circle cx="180" cy="130" r="160" fill="url(#sunGlow)"/>
+<circle cx="180" cy="130" r="90" fill="url(#sun)"/>
+<circle cx="180" cy="130" r="42" fill="#ffffff"/>
+<g fill="#ffffff" opacity="0.09">
+<polygon points="180,130 -100,300 -100,420"/>
+<polygon points="180,130 -40,550 80,620"/>
+<polygon points="180,130 200,800 320,800"/>
+<polygon points="180,130 460,800 620,800"/>
+<polygon points="180,130 820,800 980,750"/>
+<polygon points="180,130 1150,680 1250,600"/>
+<polygon points="180,130 1250,420 1250,280"/>
+<polygon points="180,130 1100,100 1200,50"/>
+</g>
+<path d="M 180 60 Q 180 130 110 130 Q 180 130 180 200 Q 180 130 250 130 Q 180 130 180 60 Z" fill="#ffffff" opacity="0.35"/>
+<circle cx="280" cy="200" r="12" fill="#ffffff" opacity="0.3"/>
+<circle cx="340" cy="245" r="7" fill="#fef08a" opacity="0.35"/>
+<circle cx="430" cy="310" r="18" fill="#fde047" opacity="0.2"/>
+<g fill="url(#cloud)" opacity="0.95">
+<path d="M 850 160 Q 850 110 900 100 Q 940 60 1010 70 Q 1070 50 1110 90 Q 1160 80 1180 130 Q 1220 150 1210 190 Q 1200 230 1150 230 L 870 230 Q 830 220 830 180 Q 830 160 850 160 Z"/>
+</g>
+<g fill="url(#cloud)" opacity="0.9">
+<path d="M 380 180 Q 390 140 430 140 Q 460 110 510 125 Q 550 110 580 140 Q 610 150 610 180 Q 600 210 560 210 L 400 210 Q 370 200 380 180 Z"/>
+</g>
+<g fill="#ffffff" opacity="0.6">
+<ellipse cx="140" cy="280" rx="60" ry="14"/>
+<ellipse cx="120" cy="275" rx="35" ry="18"/>
+<ellipse cx="720" cy="260" rx="80" ry="16"/>
+<ellipse cx="745" cy="254" rx="45" ry="20"/>
+</g>
+<g stroke="#3b82f6" stroke-width="2.5" stroke-linecap="round" fill="none" opacity="0.45">
+<path d="M 640 160 Q 652 150 664 160 Q 676 150 688 160"/>
+<path d="M 700 180 Q 709 172 718 180 Q 727 172 736 180"/>
+<path d="M 610 200 Q 617 193 624 200 Q 631 193 638 200"/>
+</g>
+<path d="M -20 460 Q 150 370 380 430 Q 600 480 850 390 Q 1050 340 1220 420 L 1220 800 L -20 800 Z" fill="url(#hDist)" opacity="0.85"/>
+<g fill="#059669" opacity="0.35">
+<circle cx="360" cy="425" r="9"/>
+<circle cx="375" cy="422" r="12"/>
+<circle cx="390" cy="427" r="8"/>
+<circle cx="840" cy="385" r="10"/>
+<circle cx="855" cy="380" r="14"/>
+<circle cx="870" cy="386" r="9"/>
+</g>
+<path d="M -20 540 Q 220 440 520 510 Q 820 570 1100 460 Q 1180 440 1220 470 L 1220 800 L -20 800 Z" fill="url(#hMid)"/>
+<rect x="236" y="465" width="8" height="25" rx="3" fill="#78350f"/>
+<circle cx="240" cy="450" r="28" fill="#15803d"/>
+<circle cx="232" cy="445" r="20" fill="#22c55e"/>
+<circle cx="246" cy="440" r="16" fill="#4ade80"/>
+<circle cx="236" cy="435" r="10" fill="#86efac"/>
+<rect x="287" y="485" width="6" height="18" rx="2" fill="#78350f"/>
+<circle cx="290" cy="475" r="18" fill="#16a34a"/>
+<circle cx="286" cy="470" r="14" fill="#4ade80"/>
+<rect x="976" y="480" width="8" height="26" rx="3" fill="#78350f"/>
+<circle cx="980" cy="460" r="26" fill="#15803d"/>
+<circle cx="974" cy="454" r="20" fill="#22c55e"/>
+<circle cx="988" cy="450" r="16" fill="#4ade80"/>
+<circle cx="978" cy="444" r="10" fill="#86efac"/>
+<path d="M -20 540 Q 220 440 520 510 Q 820 570 1100 460 Q 1180 440 1220 470" fill="none" stroke="#bef264" stroke-width="4" opacity="0.5"/>
+<path d="M -20 620 Q 300 520 700 590 Q 950 630 1220 540 L 1220 800 L -20 800 Z" fill="url(#hFore)"/>
+<path d="M -20 620 Q 300 520 700 590 Q 950 630 1220 540" fill="none" stroke="#fef08a" stroke-width="6" opacity="0.45"/>
+<path d="M -20 680 Q 280 610 640 670 Q 980 720 1220 630 L 1220 800 L -20 800 Z" fill="url(#hFront)"/>
+<path d="M -20 680 Q 280 610 640 670 Q 980 720 1220 630" fill="none" stroke="#d9f99d" stroke-width="5" opacity="0.6"/>
+<g fill="#166534" stroke="#14532d" stroke-width="1.5" stroke-linejoin="round">
+<path d="M 120 705 Q 112 680 102 672 Q 114 685 120 705 Z"/>
+<path d="M 122 705 Q 123 675 120 665 Q 126 680 124 705 Z"/>
+<path d="M 124 705 Q 134 682 142 676 Q 132 688 126 705 Z"/>
+<path d="M 450 725 Q 442 702 432 696 Q 444 707 450 725 Z"/>
+<path d="M 452 725 Q 453 695 450 685 Q 456 700 454 725 Z"/>
+<path d="M 454 725 Q 464 704 472 698 Q 462 710 456 725 Z"/>
+<path d="M 780 715 Q 772 692 762 686 Q 774 697 780 715 Z"/>
+<path d="M 782 715 Q 783 685 780 675 Q 786 690 784 715 Z"/>
+<path d="M 784 715 Q 794 694 802 688 Q 792 700 786 715 Z"/>
+<path d="M 1050 695 Q 1042 672 1032 666 Q 1044 677 1050 695 Z"/>
+<path d="M 1052 695 Q 1053 665 1050 655 Q 1056 670 1054 695 Z"/>
+<path d="M 1054 695 Q 1064 674 1072 668 Q 1062 680 1056 695 Z"/>
+</g>
+<g transform="translate(180, 710)">
+<path d="M 0 0 L 2 16" stroke="#15803d" stroke-width="2.5"/>
+<circle cx="-8" cy="0" r="5" fill="#ffffff"/>
+<circle cx="8" cy="0" r="5" fill="#ffffff"/>
+<circle cx="0" cy="-8" r="5" fill="#ffffff"/>
+<circle cx="0" cy="8" r="5" fill="#ffffff"/>
+<circle cx="-5" cy="-5" r="4.5" fill="#ffffff"/>
+<circle cx="5" cy="-5" r="4.5" fill="#ffffff"/>
+<circle cx="-5" cy="5" r="4.5" fill="#ffffff"/>
+<circle cx="5" cy="5" r="4.5" fill="#ffffff"/>
+<circle cx="0" cy="0" r="5" fill="#facc15"/>
+</g>
+<g transform="translate(680, 725) scale(0.9)">
+<path d="M 0 0 L -2 16" stroke="#15803d" stroke-width="2.5"/>
+<circle cx="-8" cy="0" r="5" fill="#ffffff"/>
+<circle cx="8" cy="0" r="5" fill="#ffffff"/>
+<circle cx="0" cy="-8" r="5" fill="#ffffff"/>
+<circle cx="0" cy="8" r="5" fill="#ffffff"/>
+<circle cx="-5" cy="-5" r="4.5" fill="#ffffff"/>
+<circle cx="5" cy="-5" r="4.5" fill="#ffffff"/>
+<circle cx="-5" cy="5" r="4.5" fill="#ffffff"/>
+<circle cx="5" cy="5" r="4.5" fill="#ffffff"/>
+<circle cx="0" cy="0" r="5" fill="#facc15"/>
+</g>
+<g transform="translate(1120, 715) scale(0.85)">
+<path d="M 0 0 L 1 14" stroke="#15803d" stroke-width="2.5"/>
+<circle cx="-8" cy="0" r="5" fill="#ffffff"/>
+<circle cx="8" cy="0" r="5" fill="#ffffff"/>
+<circle cx="0" cy="-8" r="5" fill="#ffffff"/>
+<circle cx="0" cy="8" r="5" fill="#ffffff"/>
+<circle cx="0" cy="0" r="5" fill="#facc15"/>
+</g>
+<g transform="translate(330, 685) scale(0.85)">
+<path d="M 0 0 L 1 14" stroke="#15803d" stroke-width="2.5"/>
+<circle cx="-6" cy="-2" r="5" fill="#f472b6"/>
+<circle cx="6" cy="-2" r="5" fill="#f472b6"/>
+<circle cx="0" cy="-7" r="5" fill="#f472b6"/>
+<circle cx="-4" cy="5" r="5" fill="#f472b6"/>
+<circle cx="4" cy="5" r="5" fill="#f472b6"/>
+<circle cx="0" cy="0" r="4" fill="#ffffff"/>
+</g>
+<g transform="translate(890, 700) scale(0.8)">
+<path d="M 0 0 L -1 14" stroke="#15803d" stroke-width="2.5"/>
+<circle cx="-6" cy="-2" r="5" fill="#fb7185"/>
+<circle cx="6" cy="-2" r="5" fill="#fb7185"/>
+<circle cx="0" cy="-7" r="5" fill="#fb7185"/>
+<circle cx="-4" cy="5" r="5" fill="#fb7185"/>
+<circle cx="4" cy="5" r="5" fill="#fb7185"/>
+<circle cx="0" cy="0" r="4" fill="#fef08a"/>
+</g>
+<g transform="translate(530, 740) scale(0.75)">
+<circle cx="-5" cy="-2" r="4.5" fill="#fde047"/>
+<circle cx="5" cy="-2" r="4.5" fill="#fde047"/>
+<circle cx="0" cy="-6" r="4.5" fill="#fde047"/>
+<circle cx="0" cy="0" r="3" fill="#ea580c"/>
+</g>
+<g transform="translate(960, 730) scale(0.75)">
+<circle cx="-5" cy="-2" r="4.5" fill="#fde047"/>
+<circle cx="5" cy="-2" r="4.5" fill="#fde047"/>
+<circle cx="0" cy="-6" r="4.5" fill="#fde047"/>
+<circle cx="0" cy="0" r="3" fill="#ea580c"/>
+</g>
+<g fill="#ffffff" opacity="0.8">
+<circle cx="310" cy="590" r="2.5"/>
+<circle cx="410" cy="520" r="3"/>
+<circle cx="580" cy="480" r="2"/>
+<circle cx="630" cy="410" r="3.5"/>
+<circle cx="750" cy="460" r="2"/>
+<circle cx="820" cy="380" r="2.5"/>
+<circle cx="920" cy="490" r="3"/>
+</g>
+<g stroke="#ffffff" stroke-width="1.2" stroke-linecap="round" fill="none" opacity="0.85">
+<path d="M 410 520 L 410 530 M 410 520 L 404 513 M 410 520 L 416 513 M 410 520 L 410 511"/>
+<path d="M 630 410 L 630 420 M 630 410 L 624 403 M 630 410 L 636 403 M 630 410 L 630 401"/>
+<path d="M 820 380 L 820 389 M 820 380 L 815 374 M 820 380 L 825 374 M 820 380 L 820 372"/>
+</g>
+<g transform="translate(260, 600) rotate(-15)">
+<ellipse cx="-7" cy="-5" rx="7" ry="5" fill="#fde047" opacity="0.9"/>
+<ellipse cx="-5" cy="4" rx="5" ry="3.5" fill="#f59e0b" opacity="0.9"/>
+<ellipse cx="7" cy="-5" rx="7" ry="5" fill="#fde047" opacity="0.9"/>
+<ellipse cx="5" cy="4" rx="5" ry="3.5" fill="#f59e0b" opacity="0.9"/>
+<line x1="0" y1="-7" x2="0" y2="7" stroke="#78350f" stroke-width="1.5"/>
+</g>
+<g transform="translate(740, 640) rotate(20) scale(0.85)">
+<ellipse cx="-7" cy="-5" rx="7" ry="5" fill="#38bdf8" opacity="0.9"/>
+<ellipse cx="-5" cy="4" rx="5" ry="3.5" fill="#0284c7" opacity="0.9"/>
+<ellipse cx="7" cy="-5" rx="7" ry="5" fill="#38bdf8" opacity="0.9"/>
+<ellipse cx="5" cy="4" rx="5" ry="3.5" fill="#0284c7" opacity="0.9"/>
+<line x1="0" y1="-7" x2="0" y2="7" stroke="#0f172a" stroke-width="1.5"/>
+</g>
+</svg>`;
+            },
+
+            // 溫馨房間：依用途挑版面。
+            // 'wide' 給電腦版的寬扁舞台、'portrait' 給手機的直式滿版、
+            // 'thumb' 給商店卡片的正方形小縮圖（45px 見方，所以只留最好認的家具）。
+            // 三種版面共用同一組家具零件，只是落點與縮放不同。
+            cozyRoom(mode) {
+                const thumb = mode === 'thumb';
+                const portrait = mode === 'portrait';
+                const wide = !thumb && !portrait;
+                const W = thumb ? 900 : (wide ? 1200 : 640);
+                const H = thumb ? 900 : (wide ? 520 : 1040);
+                const floorY = thumb ? 470 : (wide ? 318 : 640);
+
+                // 榻榻米：磚砌排列，每列交錯半格
+                const matW = thumb ? 300 : (wide ? 300 : 260);
+                const matH = thumb ? 190 : 150;
+                let floor = '';
+                let row = 0;
+                for (let y = floorY + 22; y < H + matH; y += matH, row++) {
+                    const offset = row % 2 === 0 ? 0 : -matW / 2;
+                    for (let x = -matW + offset; x < W + matW; x += matW) {
+                        const fill = (row + Math.round(x / matW)) % 2 === 0 ? 'hl' : 'vl';
+                        floor += `<rect x="${x}" y="${y}" width="${matW}" height="${matH}" fill="url(#${fill})"/>`;
+                    }
+                }
+
+                // 窗戶
+                const win = thumb
+                    ? { x: 96, y: 74, w: 260, h: 230 }
+                    : (wide
+                        ? { x: 96, y: 46, w: 250, h: 208 }
+                        : { x: 92, y: 132, w: 262, h: 280 });
+
+                if (thumb) {
+                    // 縮圖只留窗戶、沙發、地毯、茶几與盆栽，縮到 45px 還認得出是房間
+                    const furniture = placePart(roomParts.rug, 470, 596, 1.25)
+                        + placePart(roomParts.plant, 762, 502, 0.95)
+                        + placePart(roomParts.sofa, 470, 500, 1.2)
+                        + placePart(roomParts.table, 470, 628, 1);
+                    return wrapRoomSvg(W, H, floorY, floor, win, furniture);
+                }
+
+                const furniture = wide
+                    ? placePart(roomParts.rug, 620, 392, 0.8)
+                    + placePart(roomParts.plant, 392, 352, 0.7)
+                    + placePart(roomParts.sofa, 620, 350, 0.78)
+                    + placePart(roomParts.armchair, 886, 350, 0.74)
+                    + placePart(roomParts.lamp, 1062, 350, 0.72)
+                    + placePart(roomParts.table, 620, 404, 0.62)
+                    : placePart(roomParts.rug, 330, 754, 0.88)
+                    + placePart(roomParts.lamp, 140, 668, 0.6)
+                    + placePart(roomParts.plant, 506, 672, 0.6)
+                    + placePart(roomParts.sofa, 330, 672, 0.85)
+                    + placePart(roomParts.table, 330, 772, 0.7)
+                    // 這張椅子擺在前景，尺寸要比後排家具大才有遠近感
+                    + placePart(roomParts.armchair, 214, 948, 0.95);
+
+                return wrapRoomSvg(W, H, floorY, floor, win, furniture);
+            },
+
+            // 陽光公園：藍天白雲、遠景樹林與住宅，沙地上擺著溜滑梯、盪鞦韆與攀爬架
+            sunnyPark(mode) {
+                const thumb = mode === 'thumb';
+                const portrait = mode === 'portrait';
+                const wide = !thumb && !portrait;
+
+                const W = thumb ? 900 : (wide ? 1200 : 640);
+                const H = thumb ? 900 : (wide ? 520 : 1040);
+                const skyY = thumb ? 430 : (wide ? 250 : 470);   // 地平線
+                const sandY = thumb ? 620 : (wide ? 360 : 700);  // 沙地中心高度
+
+                const sun = thumb
+                    ? placePart(parkParts.sun, 690, 150, 1)
+                    : (wide ? placePart(parkParts.sun, 980, 96, 1) : placePart(parkParts.sun, 470, 150, 1));
+
+                const clouds = wide
+                    ? placePart(parkParts.cloud, 210, 96, 1) + placePart(parkParts.cloud, 560, 62, 0.8) + placePart(parkParts.cloud, 830, 150, 0.62)
+                    : (portrait
+                        ? placePart(parkParts.cloud, 170, 120, 0.92) + placePart(parkParts.cloud, 430, 260, 0.7) + placePart(parkParts.cloud, 110, 330, 0.55)
+                        : placePart(parkParts.cloud, 230, 130, 0.95) + placePart(parkParts.cloud, 620, 300, 0.62));
+
+                // 遠處住宅：屋頂剛好從樹林上緣露出來
+                const skyline = wide
+                    ? placePart(parkParts.house, 150, skyY + 2, 0.76) + placePart(parkParts.house, 370, skyY, 0.62) + placePart(parkParts.house, 1010, skyY + 2, 0.7)
+                    : (portrait
+                        ? placePart(parkParts.house, 120, skyY + 2, 0.7) + placePart(parkParts.house, 500, skyY, 0.6)
+                        : placePart(parkParts.house, 180, skyY + 2, 0.66) + placePart(parkParts.house, 700, skyY, 0.58));
+
+                const sand = wide
+                    ? `<ellipse cx="640" cy="${sandY + 40}" rx="470" ry="118" fill="#f0dcae" stroke="#d9bd86" stroke-width="6"/>`
+                    : (portrait
+                        ? `<ellipse cx="330" cy="${sandY + 60}" rx="330" ry="186" fill="#f0dcae" stroke="#d9bd86" stroke-width="6"/>`
+                        : `<ellipse cx="450" cy="${sandY + 50}" rx="400" ry="170" fill="#f0dcae" stroke="#d9bd86" stroke-width="6"/>`);
+
+                const equipment = wide
+                    ? placePart(parkParts.tree, 176, skyY + 64, 0.86)
+                    + placePart(parkParts.tree, 1064, skyY + 72, 0.94)
+                    + placePart(parkParts.swingSet, 372, sandY + 34, 0.82)
+                    + placePart(parkParts.climbFrame, 560, sandY + 58, 0.7)
+                    + placePart(parkParts.slideTower, 790, sandY + 74, 0.86)
+                    + placePart(parkParts.bench, 1004, sandY + 96, 0.9)
+                    : (portrait
+                        ? placePart(parkParts.tree, 96, skyY + 80, 0.8)
+                        + placePart(parkParts.tree, 560, skyY + 90, 0.86)
+                        + placePart(parkParts.swingSet, 170, sandY + 16, 0.72)
+                        + placePart(parkParts.slideTower, 380, sandY + 66, 0.84)
+                        + placePart(parkParts.climbFrame, 196, sandY + 150, 0.72)
+                        + placePart(parkParts.bench, 470, sandY + 178, 0.9)
+                        : placePart(parkParts.tree, 150, skyY + 80, 0.92)
+                        + placePart(parkParts.tree, 790, skyY + 96, 0.84)
+                        + placePart(parkParts.swingSet, 250, sandY + 40, 0.82)
+                        + placePart(parkParts.slideTower, 560, sandY + 70, 0.96));
+
+                return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid slice">
+  <defs>
+    <linearGradient id="parkSky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#3fb0ef"/>
+      <stop offset="55%" stop-color="#8ed3f7"/>
+      <stop offset="100%" stop-color="#d8f0fb"/>
+    </linearGradient>
+    <radialGradient id="sunGlow">
+      <stop offset="0%" stop-color="#fef9c3" stop-opacity="0.95"/>
+      <stop offset="45%" stop-color="#fde68a" stop-opacity="0.45"/>
+      <stop offset="100%" stop-color="#fde68a" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="parkLawn" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#8ed977"/>
+      <stop offset="100%" stop-color="#4fae53"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="${W}" height="${skyY + 4}" fill="url(#parkSky)"/>
+  ${sun}
+  ${clouds}
+  ${parkTreeLine(W, skyY, 'far')}
+  ${skyline}
+  ${parkTreeLine(W, skyY, 'near')}
+
+  <rect y="${skyY}" width="${W}" height="${H - skyY}" fill="url(#parkLawn)"/>
+  <path d="M 0 ${skyY + 2} L ${W} ${skyY + 2}" stroke="#6bbf62" stroke-width="10"/>
+  ${parkLawnDetails(W, H, skyY)}
+  ${sand}
+  ${equipment}
+</svg>`;
             }
         };
 
-        // 把 SVG 原始碼包成可以直接餵給 CSS background 的字串
-        const toBgUrl = (svg) => `url("data:image/svg+xml,${encodeURIComponent(svg)}") center center / cover no-repeat`;
+        // 把 SVG 原始碼包成可以直接餵給 CSS background 的字串。
+        // fit 用 cover 會填滿並裁掉超出的部分，用 contain 則是完整顯示、周圍留白。
+        const toBgUrl = (svg, fit = 'cover') => `url("data:image/svg+xml,${encodeURIComponent(svg)}") center center / ${fit} no-repeat`;
+
+        // 🖼️ 【插畫型背景的共用設定】新畫好的背景只要在 bgArt 裡加一筆，
+        //     然後在 bgData 寫 `...illustratedBg('該筆的名字')`，就會自動具備：
+        //       1. 舞台背景依比例挑版面（函式型的 bgArt 會收到 'wide' / 'portrait'）
+        //       2. 商店卡片的小方塊顯示整個背景的縮小畫面（函式型會收到 'thumb'）
+        //     bgArt 也可以直接放固定的 SVG 字串，此時縮圖會完整縮放顯示不裁切。
+        const illustratedBg = (artKey) => {
+            const art = bgArt[artKey];
+            const isResponsive = typeof art === 'function';
+            return {
+                preview: () => isResponsive
+                    ? toBgUrl(art('thumb'))
+                    : `#fffbeb ${toBgUrl(art, 'contain')}`,
+                style: (mode) => isResponsive ? toBgUrl(art(mode)) : toBgUrl(art),
+                hasDots: false
+            };
+        };
 
        const bgData = {
             // 🌟 01 ~ 04：基礎入門系列（純白、暖黃、青綠、粉薄荷）
             none: { name: {zh: '無背景', en: 'Default'}, cost: 0, preview: '#ffffff', style: '#ffffff', hasDots: true },
-            // style 寫成函式：套用當下才依舞台比例挑橫式或直式版面
-            cozy_room: { name: {zh: '溫馨房間', en: 'Cozy Room'}, cost: 200, preview: '#e6dec3', style: (mode) => toBgUrl(bgArt.cozyRoom(mode)), hasDots: false },
-sunshine_grassland: { name: {zh: '陽光草原', en: 'Sunshine Grassland'}, cost: 400, preview: 'linear-gradient(135deg, #7dd3fc 0%, #fef08a 40%, #4ade80 70%, #15803d 100%)', style: "url('data:image/svg+xml;utf8,<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1200 800\" preserveAspectRatio=\"none\"><defs><linearGradient id=\"sky\" x1=\"0\" y1=\"0\" x2=\"0\" y2=\"1\"><stop offset=\"0%\" stop-color=\"%2338bdf8\"/><stop offset=\"35%\" stop-color=\"%237dd3fc\"/><stop offset=\"65%\" stop-color=\"%23bae6fd\"/><stop offset=\"90%\" stop-color=\"%23fef08a\"/><stop offset=\"100%\" stop-color=\"%23d9f99d\"/></linearGradient><radialGradient id=\"sun\" cx=\"50%\" cy=\"50%\" r=\"50%\"><stop offset=\"0%\" stop-color=\"%23ffffff\"/><stop offset=\"30%\" stop-color=\"%23fffbeb\"/><stop offset=\"65%\" stop-color=\"%23fde047\"/><stop offset=\"88%\" stop-color=\"%23f59e0b\" stop-opacity=\"0.6\"/><stop offset=\"100%\" stop-color=\"%23fbbf24\" stop-opacity=\"0\"/></radialGradient><radialGradient id=\"sunGlow\" cx=\"50%\" cy=\"50%\" r=\"50%\"><stop offset=\"0%\" stop-color=\"%23ffffff\" stop-opacity=\"0.8\"/><stop offset=\"35%\" stop-color=\"%23fef08a\" stop-opacity=\"0.4\"/><stop offset=\"70%\" stop-color=\"%23facc15\" stop-opacity=\"0.15\"/><stop offset=\"100%\" stop-color=\"%23fde047\" stop-opacity=\"0\"/></radialGradient><linearGradient id=\"hDist\" x1=\"0\" y1=\"0\" x2=\"0\" y2=\"1\"><stop offset=\"0%\" stop-color=\"%23a7f3d0\"/><stop offset=\"100%\" stop-color=\"%236ee7b7\"/></linearGradient><linearGradient id=\"hMid\" x1=\"0\" y1=\"0\" x2=\"0\" y2=\"1\"><stop offset=\"0%\" stop-color=\"%2386efac\"/><stop offset=\"50%\" stop-color=\"%234ade80\"/><stop offset=\"100%\" stop-color=\"%2322c55e\"/></linearGradient><linearGradient id=\"hFore\" x1=\"0\" y1=\"0\" x2=\"0\" y2=\"1\"><stop offset=\"0%\" stop-color=\"%23a3e635\"/><stop offset=\"30%\" stop-color=\"%234ade80\"/><stop offset=\"70%\" stop-color=\"%2316a34a\"/><stop offset=\"100%\" stop-color=\"%2315803d\"/></linearGradient><linearGradient id=\"hFront\" x1=\"0\" y1=\"0\" x2=\"0\" y2=\"1\"><stop offset=\"0%\" stop-color=\"%23bef264\"/><stop offset=\"25%\" stop-color=\"%2322c55e\"/><stop offset=\"75%\" stop-color=\"%2315803d\"/><stop offset=\"100%\" stop-color=\"%2314532d\"/></linearGradient><linearGradient id=\"cloud\" x1=\"0\" y1=\"0\" x2=\"0\" y2=\"1\"><stop offset=\"0%\" stop-color=\"%23ffffff\"/><stop offset=\"85%\" stop-color=\"%23f1f5f9\"/><stop offset=\"100%\" stop-color=\"%23e2e8f0\"/></linearGradient></defs><rect width=\"1200\" height=\"800\" fill=\"url(%23sky)\"/><circle cx=\"180\" cy=\"130\" r=\"160\" fill=\"url(%23sunGlow)\"/><circle cx=\"180\" cy=\"130\" r=\"90\" fill=\"url(%23sun)\"/><circle cx=\"180\" cy=\"130\" r=\"42\" fill=\"%23ffffff\"/><g fill=\"%23ffffff\" opacity=\"0.09\"><polygon points=\"180,130 -100,300 -100,420\"/><polygon points=\"180,130 -40,550 80,620\"/><polygon points=\"180,130 200,800 320,800\"/><polygon points=\"180,130 460,800 620,800\"/><polygon points=\"180,130 820,800 980,750\"/><polygon points=\"180,130 1150,680 1250,600\"/><polygon points=\"180,130 1250,420 1250,280\"/><polygon points=\"180,130 1100,100 1200,50\"/></g><path d=\"M 180 60 Q 180 130 110 130 Q 180 130 180 200 Q 180 130 250 130 Q 180 130 180 60 Z\" fill=\"%23ffffff\" opacity=\"0.35\"/><circle cx=\"280\" cy=\"200\" r=\"12\" fill=\"%23ffffff\" opacity=\"0.3\"/><circle cx=\"340\" cy=\"245\" r=\"7\" fill=\"%23fef08a\" opacity=\"0.35\"/><circle cx=\"430\" cy=\"310\" r=\"18\" fill=\"%23fde047\" opacity=\"0.2\"/><g fill=\"url(%23cloud)\" opacity=\"0.95\"><path d=\"M 850 160 Q 850 110 900 100 Q 940 60 1010 70 Q 1070 50 1110 90 Q 1160 80 1180 130 Q 1220 150 1210 190 Q 1200 230 1150 230 L 870 230 Q 830 220 830 180 Q 830 160 850 160 Z\"/></g><g fill=\"url(%23cloud)\" opacity=\"0.9\"><path d=\"M 380 180 Q 390 140 430 140 Q 460 110 510 125 Q 550 110 580 140 Q 610 150 610 180 Q 600 210 560 210 L 400 210 Q 370 200 380 180 Z\"/></g><g fill=\"%23ffffff\" opacity=\"0.6\"><ellipse cx=\"140\" cy=\"280\" rx=\"60\" ry=\"14\"/><ellipse cx=\"120\" cy=\"275\" rx=\"35\" ry=\"18\"/><ellipse cx=\"720\" cy=\"260\" rx=\"80\" ry=\"16\"/><ellipse cx=\"745\" cy=\"254\" rx=\"45\" ry=\"20\"/></g><g stroke=\"%233b82f6\" stroke-width=\"2.5\" stroke-linecap=\"round\" fill=\"none\" opacity=\"0.45\"><path d=\"M 640 160 Q 652 150 664 160 Q 676 150 688 160\"/><path d=\"M 700 180 Q 709 172 718 180 Q 727 172 736 180\"/><path d=\"M 610 200 Q 617 193 624 200 Q 631 193 638 200\"/></g><path d=\"M -20 460 Q 150 370 380 430 Q 600 480 850 390 Q 1050 340 1220 420 L 1220 800 L -20 800 Z\" fill=\"url(%23hDist)\" opacity=\"0.85\"/><g fill=\"%23059669\" opacity=\"0.35\"><circle cx=\"360\" cy=\"425\" r=\"9\"/><circle cx=\"375\" cy=\"422\" r=\"12\"/><circle cx=\"390\" cy=\"427\" r=\"8\"/><circle cx=\"840\" cy=\"385\" r=\"10\"/><circle cx=\"855\" cy=\"380\" r=\"14\"/><circle cx=\"870\" cy=\"386\" r=\"9\"/></g><path d=\"M -20 540 Q 220 440 520 510 Q 820 570 1100 460 Q 1180 440 1220 470 L 1220 800 L -20 800 Z\" fill=\"url(%23hMid)\"/><rect x=\"236\" y=\"465\" width=\"8\" height=\"25\" rx=\"3\" fill=\"%2378350f\"/><circle cx=\"240\" cy=\"450\" r=\"28\" fill=\"%2315803d\"/><circle cx=\"232\" cy=\"445\" r=\"20\" fill=\"%2322c55e\"/><circle cx=\"246\" cy=\"440\" r=\"16\" fill=\"%234ade80\"/><circle cx=\"236\" cy=\"435\" r=\"10\" fill=\"%2386efac\"/><rect x=\"287\" y=\"485\" width=\"6\" height=\"18\" rx=\"2\" fill=\"%2378350f\"/><circle cx=\"290\" cy=\"475\" r=\"18\" fill=\"%2316a34a\"/><circle cx=\"286\" cy=\"470\" r=\"14\" fill=\"%234ade80\"/><rect x=\"976\" y=\"480\" width=\"8\" height=\"26\" rx=\"3\" fill=\"%2378350f\"/><circle cx=\"980\" cy=\"460\" r=\"26\" fill=\"%2315803d\"/><circle cx=\"974\" cy=\"454\" r=\"20\" fill=\"%2322c55e\"/><circle cx=\"988\" cy=\"450\" r=\"16\" fill=\"%234ade80\"/><circle cx=\"978\" cy=\"444\" r=\"10\" fill=\"%2386efac\"/><path d=\"M -20 540 Q 220 440 520 510 Q 820 570 1100 460 Q 1180 440 1220 470\" fill=\"none\" stroke=\"%23bef264\" stroke-width=\"4\" opacity=\"0.5\"/><path d=\"M -20 620 Q 300 520 700 590 Q 950 630 1220 540 L 1220 800 L -20 800 Z\" fill=\"url(%23hFore)\"/><path d=\"M -20 620 Q 300 520 700 590 Q 950 630 1220 540\" fill=\"none\" stroke=\"%23fef08a\" stroke-width=\"6\" opacity=\"0.45\"/><path d=\"M -20 680 Q 280 610 640 670 Q 980 720 1220 630 L 1220 800 L -20 800 Z\" fill=\"url(%23hFront)\"/><path d=\"M -20 680 Q 280 610 640 670 Q 980 720 1220 630\" fill=\"none\" stroke=\"%23d9f99d\" stroke-width=\"5\" opacity=\"0.6\"/><g fill=\"%23166534\" stroke=\"%2314532d\" stroke-width=\"1.5\" stroke-linejoin=\"round\"><path d=\"M 120 705 Q 112 680 102 672 Q 114 685 120 705 Z\"/><path d=\"M 122 705 Q 123 675 120 665 Q 126 680 124 705 Z\"/><path d=\"M 124 705 Q 134 682 142 676 Q 132 688 126 705 Z\"/><path d=\"M 450 725 Q 442 702 432 696 Q 444 707 450 725 Z\"/><path d=\"M 452 725 Q 453 695 450 685 Q 456 700 454 725 Z\"/><path d=\"M 454 725 Q 464 704 472 698 Q 462 710 456 725 Z\"/><path d=\"M 780 715 Q 772 692 762 686 Q 774 697 780 715 Z\"/><path d=\"M 782 715 Q 783 685 780 675 Q 786 690 784 715 Z\"/><path d=\"M 784 715 Q 794 694 802 688 Q 792 700 786 715 Z\"/><path d=\"M 1050 695 Q 1042 672 1032 666 Q 1044 677 1050 695 Z\"/><path d=\"M 1052 695 Q 1053 665 1050 655 Q 1056 670 1054 695 Z\"/><path d=\"M 1054 695 Q 1064 674 1072 668 Q 1062 680 1056 695 Z\"/></g><g transform=\"translate(180, 710)\"><path d=\"M 0 0 L 2 16\" stroke=\"%2315803d\" stroke-width=\"2.5\"/><circle cx=\"-8\" cy=\"0\" r=\"5\" fill=\"%23ffffff\"/><circle cx=\"8\" cy=\"0\" r=\"5\" fill=\"%23ffffff\"/><circle cx=\"0\" cy=\"-8\" r=\"5\" fill=\"%23ffffff\"/><circle cx=\"0\" cy=\"8\" r=\"5\" fill=\"%23ffffff\"/><circle cx=\"-5\" cy=\"-5\" r=\"4.5\" fill=\"%23ffffff\"/><circle cx=\"5\" cy=\"-5\" r=\"4.5\" fill=\"%23ffffff\"/><circle cx=\"-5\" cy=\"5\" r=\"4.5\" fill=\"%23ffffff\"/><circle cx=\"5\" cy=\"5\" r=\"4.5\" fill=\"%23ffffff\"/><circle cx=\"0\" cy=\"0\" r=\"5\" fill=\"%23facc15\"/></g><g transform=\"translate(680, 725) scale(0.9)\"><path d=\"M 0 0 L -2 16\" stroke=\"%2315803d\" stroke-width=\"2.5\"/><circle cx=\"-8\" cy=\"0\" r=\"5\" fill=\"%23ffffff\"/><circle cx=\"8\" cy=\"0\" r=\"5\" fill=\"%23ffffff\"/><circle cx=\"0\" cy=\"-8\" r=\"5\" fill=\"%23ffffff\"/><circle cx=\"0\" cy=\"8\" r=\"5\" fill=\"%23ffffff\"/><circle cx=\"-5\" cy=\"-5\" r=\"4.5\" fill=\"%23ffffff\"/><circle cx=\"5\" cy=\"-5\" r=\"4.5\" fill=\"%23ffffff\"/><circle cx=\"-5\" cy=\"5\" r=\"4.5\" fill=\"%23ffffff\"/><circle cx=\"5\" cy=\"5\" r=\"4.5\" fill=\"%23ffffff\"/><circle cx=\"0\" cy=\"0\" r=\"5\" fill=\"%23facc15\"/></g><g transform=\"translate(1120, 715) scale(0.85)\"><path d=\"M 0 0 L 1 14\" stroke=\"%2315803d\" stroke-width=\"2.5\"/><circle cx=\"-8\" cy=\"0\" r=\"5\" fill=\"%23ffffff\"/><circle cx=\"8\" cy=\"0\" r=\"5\" fill=\"%23ffffff\"/><circle cx=\"0\" cy=\"-8\" r=\"5\" fill=\"%23ffffff\"/><circle cx=\"0\" cy=\"8\" r=\"5\" fill=\"%23ffffff\"/><circle cx=\"0\" cy=\"0\" r=\"5\" fill=\"%23facc15\"/></g><g transform=\"translate(330, 685) scale(0.85)\"><path d=\"M 0 0 L 1 14\" stroke=\"%2315803d\" stroke-width=\"2.5\"/><circle cx=\"-6\" cy=\"-2\" r=\"5\" fill=\"%23f472b6\"/><circle cx=\"6\" cy=\"-2\" r=\"5\" fill=\"%23f472b6\"/><circle cx=\"0\" cy=\"-7\" r=\"5\" fill=\"%23f472b6\"/><circle cx=\"-4\" cy=\"5\" r=\"5\" fill=\"%23f472b6\"/><circle cx=\"4\" cy=\"5\" r=\"5\" fill=\"%23f472b6\"/><circle cx=\"0\" cy=\"0\" r=\"4\" fill=\"%23ffffff\"/></g><g transform=\"translate(890, 700) scale(0.8)\"><path d=\"M 0 0 L -1 14\" stroke=\"%2315803d\" stroke-width=\"2.5\"/><circle cx=\"-6\" cy=\"-2\" r=\"5\" fill=\"%23fb7185\"/><circle cx=\"6\" cy=\"-2\" r=\"5\" fill=\"%23fb7185\"/><circle cx=\"0\" cy=\"-7\" r=\"5\" fill=\"%23fb7185\"/><circle cx=\"-4\" cy=\"5\" r=\"5\" fill=\"%23fb7185\"/><circle cx=\"4\" cy=\"5\" r=\"5\" fill=\"%23fb7185\"/><circle cx=\"0\" cy=\"0\" r=\"4\" fill=\"%23fef08a\"/></g><g transform=\"translate(530, 740) scale(0.75)\"><circle cx=\"-5\" cy=\"-2\" r=\"4.5\" fill=\"%23fde047\"/><circle cx=\"5\" cy=\"-2\" r=\"4.5\" fill=\"%23fde047\"/><circle cx=\"0\" cy=\"-6\" r=\"4.5\" fill=\"%23fde047\"/><circle cx=\"0\" cy=\"0\" r=\"3\" fill=\"%23ea580c\"/></g><g transform=\"translate(960, 730) scale(0.75)\"><circle cx=\"-5\" cy=\"-2\" r=\"4.5\" fill=\"%23fde047\"/><circle cx=\"5\" cy=\"-2\" r=\"4.5\" fill=\"%23fde047\"/><circle cx=\"0\" cy=\"-6\" r=\"4.5\" fill=\"%23fde047\"/><circle cx=\"0\" cy=\"0\" r=\"3\" fill=\"%23ea580c\"/></g><g fill=\"%23ffffff\" opacity=\"0.8\"><circle cx=\"310\" cy=\"590\" r=\"2.5\"/><circle cx=\"410\" cy=\"520\" r=\"3\"/><circle cx=\"580\" cy=\"480\" r=\"2\"/><circle cx=\"630\" cy=\"410\" r=\"3.5\"/><circle cx=\"750\" cy=\"460\" r=\"2\"/><circle cx=\"820\" cy=\"380\" r=\"2.5\"/><circle cx=\"920\" cy=\"490\" r=\"3\"/></g><g stroke=\"%23ffffff\" stroke-width=\"1.2\" stroke-linecap=\"round\" fill=\"none\" opacity=\"0.85\"><path d=\"M 410 520 L 410 530 M 410 520 L 404 513 M 410 520 L 416 513 M 410 520 L 410 511\"/><path d=\"M 630 410 L 630 420 M 630 410 L 624 403 M 630 410 L 636 403 M 630 410 L 630 401\"/><path d=\"M 820 380 L 820 389 M 820 380 L 815 374 M 820 380 L 825 374 M 820 380 L 820 372\"/></g><g transform=\"translate(260, 600) rotate(-15)\"><ellipse cx=\"-7\" cy=\"-5\" rx=\"7\" ry=\"5\" fill=\"%23fde047\" opacity=\"0.9\"/><ellipse cx=\"-5\" cy=\"4\" rx=\"5\" ry=\"3.5\" fill=\"%23f59e0b\" opacity=\"0.9\"/><ellipse cx=\"7\" cy=\"-5\" rx=\"7\" ry=\"5\" fill=\"%23fde047\" opacity=\"0.9\"/><ellipse cx=\"5\" cy=\"4\" rx=\"5\" ry=\"3.5\" fill=\"%23f59e0b\" opacity=\"0.9\"/><line x1=\"0\" y1=\"-7\" x2=\"0\" y2=\"7\" stroke=\"%2378350f\" stroke-width=\"1.5\"/></g><g transform=\"translate(740, 640) rotate(20) scale(0.85)\"><ellipse cx=\"-7\" cy=\"-5\" rx=\"7\" ry=\"5\" fill=\"%2338bdf8\" opacity=\"0.9\"/><ellipse cx=\"-5\" cy=\"4\" rx=\"5\" ry=\"3.5\" fill=\"%230284c7\" opacity=\"0.9\"/><ellipse cx=\"7\" cy=\"-5\" rx=\"7\" ry=\"5\" fill=\"%2338bdf8\" opacity=\"0.9\"/><ellipse cx=\"5\" cy=\"4\" rx=\"5\" ry=\"3.5\" fill=\"%230284c7\" opacity=\"0.9\"/><line x1=\"0\" y1=\"-7\" x2=\"0\" y2=\"7\" stroke=\"%230f172a\" stroke-width=\"1.5\"/></g></svg>') center center / cover no-repeat", hasDots: false },
-            sunny_park: { name: {zh: '陽光公園', en: 'Sunny Park'}, cost: 500, preview: '#a7f3d0', style: '#a7f3d0', hasDots: true },
+            cozy_room: { name: {zh: '溫馨房間', en: 'Cozy Room'}, cost: 200, ...illustratedBg('cozyRoom') },
+            sunshine_grassland: { name: {zh: '陽光草原', en: 'Sunshine Grassland'}, cost: 400, ...illustratedBg('sunshineGrassland') },
+            sunny_park: { name: {zh: '陽光公園', en: 'Sunny Park'}, cost: 500, ...illustratedBg('sunnyPark') },
 
             // 🌟 05 ~ 10：自然與日常系列（森林綠、天空藍、杏桃橘、櫻花粉、竹林翠、陰雨灰）
             misty_forest: { name: {zh: '迷霧森林', en: 'Misty Forest'}, cost: 600, preview: '#34d399', style: '#34d399', hasDots: true },
@@ -2745,6 +3221,14 @@ function updateLangUI() {
             document.getElementById('tabEffect').className = tab === 'effect' ? 'tab active' : 'tab';
         }
 
+        // 🌟 把商品小方塊的底色填上。插畫型背景的 preview 是函式，回傳整個房間的縮圖，
+        //    因為 data URI 不能塞進 HTML 的 style 屬性，所以改用 DOM 直接設定。
+        function applyPreviewSwatch(card, item) {
+            const swatch = card.querySelector('.item-color-preview');
+            if (!swatch) return;
+            swatch.style.background = typeof item.preview === 'function' ? item.preview() : item.preview;
+        }
+
         // 🌟 【商店總管】幫你把商品排好，判斷你買過了沒
         function renderShop() {
             const grid = document.getElementById('shopGrid');
@@ -2786,15 +3270,16 @@ function updateLangUI() {
                     card.onclick = () => tryItem(key, typeKey);
                 }
                 
-                let previewStyle = typeKey === 'species' 
+                let previewStyle = typeKey === 'species'
                     ? `background:${item.body}; border: 3px solid ${item.outline}`
-                    : `background: ${item.preview}; border: 3px solid #cbd5e1`;
+                    : `border: 3px solid #cbd5e1`;
 
                 card.innerHTML = `
                     <div class="item-color-preview" style="${previewStyle}"></div>
                     <div class="item-name">${item.name[currLang]}</div>
                     ${actionHTML}
                 `;
+                if (typeKey !== 'species') applyPreviewSwatch(card, item);
                 grid.appendChild(card);
             });
         }
@@ -2840,15 +3325,16 @@ function updateLangUI() {
                     renderCatalog(); // 點擊換上後馬上刷新按鈕狀態
                 };
 
-                let previewStyle = typeKey === 'species' 
+                let previewStyle = typeKey === 'species'
                     ? `background:${item.body}; border: 3px solid ${item.outline}`
-                    : `background: ${item.preview}; border: 3px solid #cbd5e1`;
+                    : `border: 3px solid #cbd5e1`;
 
                 card.innerHTML = `
                     <div class="item-color-preview" style="${previewStyle}"></div>
                     <div class="item-name">${item.name[currLang]}</div>
                     <div class="item-cost owned">${btnText}</div>
                 `;
+                if (typeKey !== 'species') applyPreviewSwatch(card, item);
                 grid.appendChild(card);
             });
         }
