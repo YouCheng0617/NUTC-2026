@@ -404,7 +404,13 @@ const i18n = {
                 editNameTitle: "修改名字",
                 closeIdCardBtn: "收起名片",
                 unknownSpecies: "未知品種",
-                defaultPetName: "神祕海兔"
+                defaultPetName: "神祕海兔",
+
+                // 🎨 自選純色背景
+                pickColor: "換顏色",
+                colorTitle: "挑一個喜歡的顏色",
+                colorCustom: "自訂顏色",
+                colorDone: "完成"
             },
             en: {
                 backBtn: "🏠 Home", points: "Pts", langBtn: "中文", 
@@ -453,7 +459,13 @@ const i18n = {
                 editNameTitle: "Rename",
                 closeIdCardBtn: "Close Card",
                 unknownSpecies: "Unknown Species",
-                defaultPetName: "Mystic Slug"
+                defaultPetName: "Mystic Slug",
+
+                // 🎨 Custom color background
+                pickColor: "Change Color",
+                colorTitle: "Pick a color you like",
+                colorCustom: "Custom",
+                colorDone: "Done"
             }
         };
         let currLang = 'zh';
@@ -470,7 +482,8 @@ const i18n = {
             lastDirtTime: Date.now(), // 記錄上次計算髒污的時間戳記
             hunger: 100, // 🌟 100 代表吃飽飽，0 代表肚子快餓扁了
             lastHungerTime: Date.now(), // 記錄上次計算飢餓度的時間戳記
-            unlockedSpecies: [], 
+            unlockedSpecies: [],
+            customBgColor: '#dbeafe', // 🎨 免費的自選純色背景，玩家挑的顏色存在這
             unlockedBgs: ['sky'],
             unlockedEffects: ['none'],
             cooldowns: { feed: 0, clean: 0, pet: 0 }
@@ -1372,21 +1385,126 @@ const i18n = {
             );
         },
 
-        // 翠綠竹林：直立竹竿與竹葉
+        // 翠綠竹林：中央土徑往深處延伸，兩側是密不透風的竹牆，竹葉在頭頂蓋成綠蔭
         bambooGrove(mode) {
             const { W, H } = canvasOf(mode);
-            const stalk = (x, w, fill, dark) => {
-                let o = rect(x - w / 2, -20, w, H + 40, fill, 'rx="4"');
-                for (let y = 20; y < H; y += 120) o += rect(x - w / 2 - 3, y, w + 6, 7, dark, 'rx="3"');
-                return o;
+            const portrait = mode === 'portrait';
+            const u = Math.min(W, H) / 520;
+            const cx = W / 2;
+            const hz = H * (portrait ? 0.58 : 0.62);          // 消失點
+            const hwTop = W * 0.055;
+            const hwBot = W * (portrait ? 0.42 : 0.32);
+
+            const py = (t) => hz + (H - hz) * Math.pow(t, 1.7);
+            const phw = (t) => hwTop + (hwBot - hwTop) * Math.pow(t, 1.35);
+
+            // 單片竹葉
+            const leaf = (x, y, s, rot, fill, op = 1) =>
+                `<path d="M 0 0 C 12 -5, 30 -7, 46 0 C 30 7, 12 5, 0 0 Z" fill="${fill}" opacity="${op}" transform="translate(${x},${y}) rotate(${rot}) scale(${s})"/>`;
+
+            // 一叢竹葉：從一點放射出去的細長葉子
+            const cluster = (x, y, s, fill, n = 9) => {
+                let g = '';
+                for (let k = 0; k < n; k++) {
+                    const ang = -150 + (300 / n) * k + rnd(k + x * 0.01, 111) * 24;
+                    g += leaf(x.toFixed(0), y.toFixed(0), (s * (0.7 + rnd(k + x * 0.01, 112) * 0.6)).toFixed(2), ang.toFixed(0), fill, 0.95);
+                }
+                return g;
             };
-            const leaf = (x, y, s, fill) => `<g transform="translate(${x},${y}) scale(${s})" fill="${fill}"><path d="M 0 0 C 26 -12, 58 -10, 78 6 C 52 16, 22 12, 0 0 Z"/><path d="M 0 0 C -24 -14, -56 -14, -78 2 C -52 14, -22 12, 0 0 Z"/></g>`;
+
+            // 竹竿：由地面往上超出畫面，帶竹節與側枝
+            const stalk = (x, baseY, w, tint, dark, lean) => {
+                const top = -30;
+                let g = `<path d="M ${(x - w / 2).toFixed(1)} ${baseY.toFixed(1)} C ${(x - w / 2 + lean * 0.3).toFixed(1)} ${(baseY * 0.6).toFixed(1)}, ${(x - w / 2 + lean * 0.7).toFixed(1)} ${(baseY * 0.3).toFixed(1)}, ${(x - w / 2 + lean).toFixed(1)} ${top} L ${(x + w / 2 + lean).toFixed(1)} ${top} C ${(x + w / 2 + lean * 0.7).toFixed(1)} ${(baseY * 0.3).toFixed(1)}, ${(x + w / 2 + lean * 0.3).toFixed(1)} ${(baseY * 0.6).toFixed(1)}, ${(x + w / 2).toFixed(1)} ${baseY.toFixed(1)} Z" fill="${tint}"/>`;
+                const seg = Math.max(34 * u, w * 5.2);
+                for (let y = top + seg * 0.5, k = 0; y < baseY; y += seg, k++) {
+                    const off = lean * (1 - y / baseY);
+                    g += `<rect x="${(x - w / 2 - 1.5 + off).toFixed(1)}" y="${y.toFixed(1)}" width="${(w + 3).toFixed(1)}" height="${Math.max(2, w * 0.24).toFixed(1)}" fill="${dark}" rx="1.5"/>`;
+                }
+                return g;
+            };
+
+            // 兩側竹牆：每側由遠而近排一整排，離小徑越遠的排在更外面
+            const wall = (dir) => {
+                let g = '';
+                const n = portrait ? 16 : 22;
+                for (let i = 0; i < n; i++) {
+                    const t = 0.08 + (i / n) * 1.0;
+                    const tc = Math.min(t, 1);
+                    const baseY = py(tc) + (t > 1 ? (H - py(1)) * (t - 1) * 2 : 0);
+                    const spread = rnd(i + (dir > 0 ? 50 : 0), 121);
+                    const x = cx + dir * (phw(tc) + (6 + spread * 300 * tc) * u);
+                    const w = (3.5 + tc * 15 * (0.7 + rnd(i, 122) * 0.6)) * u;
+                    const shade = rnd(i, 123);
+                    const tint = shade > 0.66 ? '#9fd45f' : (shade > 0.33 ? '#7cc44f' : '#5aa844');
+                    const dark = shade > 0.5 ? '#4f8f3f' : '#3d7a35';
+                    g += stalk(x, baseY + 4 * u, w, tint, dark, dir * (4 + tc * 20) * u);
+                }
+                return g;
+            };
+
+            // 頭頂的竹葉綠蔭
+            // 上方的綠蔭：先鋪一層深綠底，再疊上大量葉叢
+            let canopy = times(14, (i, a, b) => ell((a * W).toFixed(0), (-20 + b * H * 0.22).toFixed(0), (90 + b * 90) * u, (46 + b * 50) * u, i % 2 ? '#4f9640' : '#3f7d36', 'opacity="0.9"'));
+            const cn = portrait ? 30 : 42;
+            for (let i = 0; i < cn; i++) {
+                const x = W * ((i + 0.5) / cn) + (rnd(i, 131) - 0.5) * W * 0.09;
+                const y = -16 + Math.pow(rnd(i, 132), 1.3) * H * 0.46;
+                const s = (0.85 + rnd(i, 133) * 1.0) * u;
+                canopy += cluster(x, y, s, i % 3 === 0 ? '#5aa844' : (i % 3 === 1 ? '#7cc44f' : '#48963c'), 11);
+            }
+
+            // 小徑上的落葉、青苔與石頭
+            let litter = '';
+            for (let i = 0; i < (portrait ? 90 : 110); i++) {
+                const t = 0.05 + rnd(i, 141) * 0.98;
+                const tc = Math.min(t, 1);
+                const x = cx + (rnd(i, 142) - 0.5) * phw(tc) * 2.1;
+                litter += leaf(x.toFixed(0), py(tc).toFixed(0), ((0.22 + tc * 0.5) * u).toFixed(2), (rnd(i, 143) * 360).toFixed(0), i % 4 === 0 ? '#c9b06a' : (i % 3 === 0 ? '#8fae4f' : '#a8964f'), 0.95);
+            }
+            let rocks = '';
+            for (let i = 0; i < 14; i++) {
+                const t = 0.15 + rnd(i, 151) * 0.85;
+                const side = i % 2 ? 1 : -1;
+                const x = cx + side * phw(t) * (0.85 + rnd(i, 152) * 0.5);
+                rocks += ell(x.toFixed(0), py(t).toFixed(0), ((10 + rnd(i, 153) * 26) * t * u).toFixed(1), ((5 + rnd(i, 154) * 12) * t * u).toFixed(1), i % 3 === 0 ? '#6f7a52' : '#8a8f6a', 'opacity="0.95"');
+            }
+
+            // 空中緩緩飄落的竹葉
+            let falling = '';
+            for (let i = 0; i < (portrait ? 20 : 26); i++) {
+                const y = Math.pow(rnd(i, 161), 0.75) * H * 0.92;
+                falling += leaf((rnd(i, 162) * W).toFixed(0), y.toFixed(0), ((0.6 + rnd(i, 163) * 0.8) * u).toFixed(2), (10 + rnd(i, 164) * 70 + (y / H) * 40).toFixed(0), i % 3 === 0 ? '#cfe8a8' : '#8fc45a', (0.75 + rnd(i, 165) * 0.25).toFixed(2));
+            }
+
             return svgOf(W, H,
-                vg('bgv', [[0, '#d9f5c9'], [55, '#8fd08a'], [100, '#3f8f58']]),
-                bg(W, H, 'url(#bgv)')
-                + times(7, (i, a, b) => stalk(a * W, 16 + b * 14, '#7cc47a', '#4e9459'))
-                + times(5, (i, a, b) => stalk(a * W, 30 + b * 22, '#4f9c5f', '#2f6f45'))
-                + times(10, (i, a, b, c) => leaf(a * W, b * H, 0.5 + c * 0.6, c > 0.5 ? '#2f7a49' : '#63b06f'))
+                vg('bgSky', [[0, '#d9f5a8'], [40, '#a8dd6f'], [100, '#4f8f3f']])
+                + glowDef('bgGlow', '#f7ffd9')
+                + vg('bgRay', [[0, '#f2ffcf', 0.3], [100, '#f2ffcf', 0]])
+                + vg('bgPath', [[0, '#8a7a56'], [100, '#5f5436']])
+                + vg('bgFloor', [[0, '#5f8f42'], [100, '#39602f']]),
+                bg(W, H, 'url(#bgSky)')
+                + glow(cx, H * 0.16, H * 0.12, 'bgGlow', '#fbffe8')
+                + rays(W, H * 0.9, cx, H * 0.12, 5, 'url(#bgRay)')
+                // 林地：先鋪滿地面再畫小徑，否則土徑會像浮在半空
+                + rect(0, hz - 6 * u, W, H - hz + 6 * u, 'url(#bgFloor)')
+                + times(12, (i, a, b) => ell((a * W).toFixed(0), (hz + b * (H - hz)).toFixed(0), (60 + b * 160) * u, (16 + b * 40) * u, i % 2 ? '#3f6b35' : '#4f7a3f', 'opacity="0.85"'))
+                // 小徑
+                + `<path d="M ${(cx - hwTop).toFixed(0)} ${hz.toFixed(0)} L ${(cx + hwTop).toFixed(0)} ${hz.toFixed(0)} L ${(cx + hwBot).toFixed(0)} ${H} L ${(cx - hwBot).toFixed(0)} ${H} Z" fill="url(#bgPath)"/>`
+                // 地面橫向紋理，強化「平面往後延伸」的感覺
+                + times(6, (i, a) => {
+                    const t = 0.16 + (i / 6) * 0.88;
+                    const yy = py(Math.min(t, 1));
+                    return `<path d="M 0 ${yy.toFixed(0)} C ${(W * 0.3).toFixed(0)} ${(yy - 6 * u * t).toFixed(0)}, ${(W * 0.7).toFixed(0)} ${(yy + 6 * u * t).toFixed(0)}, ${W} ${yy.toFixed(0)}" stroke="#2f5b2a" stroke-width="${(2.5 * u * t).toFixed(1)}" fill="none" opacity="0.35"/>`;
+                })
+                // 路兩旁的青苔
+                + times(10, (i, a, b) => ell((cx + (i % 2 ? 1 : -1) * phw(0.2 + b * 0.8) * 1.15).toFixed(0), py(0.2 + b * 0.8).toFixed(0), (30 + b * 80) * u * (0.3 + b), (10 + b * 24) * u * (0.3 + b), i % 2 ? '#4f7a3f' : '#3f6b35', 'opacity="0.9"'))
+                + rocks
+                + litter
+                // 兩側竹牆與頭頂綠蔭
+                + wall(-1) + wall(1)
+                + canopy
+                + falling
             );
         },
 
@@ -2026,7 +2144,8 @@ const i18n = {
 
        const bgData = {
             // 🌟 01 ~ 04：基礎入門系列（純白、暖黃、青綠、粉薄荷）
-            none: { name: {zh: '無背景', en: 'Default'}, cost: 0, preview: '#ffffff', style: '#ffffff', hasDots: true },
+            // 免費的自選純色：顏色由玩家自己挑，存在 gameState.customBgColor
+            none: { name: {zh: '自選純色', en: 'Custom Color'}, cost: 0, preview: () => gameState.customBgColor, style: () => gameState.customBgColor, hasDots: false },
             cozy_room: { name: {zh: '溫馨房間', en: 'Cozy Room'}, cost: 100, ...illustratedBg('cozyRoom') },
             sunshine_grassland: { name: {zh: '陽光草原', en: 'Sunshine Grassland'}, cost: 150, ...illustratedBg('sunshineGrassland') },
             sunny_park: { name: {zh: '陽光公園', en: 'Sunny Park'}, cost: 200, ...illustratedBg('sunnyPark') },
@@ -2036,7 +2155,7 @@ const i18n = {
             breeze_morning: { name: {zh: '碧紗庭院', en: 'Emerald Veil Court'}, cost: 300, ...illustratedBg('breezeMorning') },
             afternoon_tea: { name: {zh: '午後茶會', en: 'Afternoon Tea'}, cost: 350, ...illustratedBg('afternoonTea') },
             cherry_park: { name: {zh: '櫻花小徑', en: 'Cherry Park'}, cost: 400, ...illustratedBg('cherryPark') },
-            bamboo_grove: { name: {zh: '翠綠竹林', en: 'Bamboo Grove'}, cost: 450, ...illustratedBg('bambooGrove') },
+            bamboo_grove: { name: {zh: '翠綠竹林', en: 'Bamboo Grove'}, cost: 300, ...illustratedBg('bambooGrove') },
             rainy_street: { name: {zh: '雨中街景', en: 'Rainy Street'}, cost: 500, ...illustratedBg('rainyStreet') },
 
             // 🌟 11 ~ 15：風景與探險系列（晚霞橘、楓葉紅、深海藍、雪山白、星夜藍）
@@ -3879,6 +3998,13 @@ function updateLangUI() {
             if (btnEditPetName && t.editNameTitle) btnEditPetName.title = t.editNameTitle;
             updateNameUI();
 
+            // 🎨 調色盤文字
+            const colorTexts = { txtColorTitle: t.colorTitle, txtColorCustom: t.colorCustom, btnCloseColor: t.colorDone };
+            for (const [id, text] of Object.entries(colorTexts)) {
+                const el = document.getElementById(id);
+                if (el && text) el.innerText = text;
+            }
+
             document.getElementById('tabSpecies').innerText = t.tabSpecies;
             document.getElementById('tabBg').innerText = t.tabBg;
             document.getElementById('tabEffect').innerText = t.tabEffect;
@@ -4089,8 +4215,15 @@ function updateLangUI() {
                 let actionHTML = '';
                 if (isUnlocked) { // 買過了
                     let btnText = isEquipped ? t.equip : t.owned;
+                    // 自選純色：穿上之後再點一次就打開調色盤
+                    const isCustomColor = typeKey === 'bg' && key === 'none';
+                    if (isCustomColor) btnText = isEquipped ? t.pickColor : t.owned;
                     actionHTML = `<div class="item-cost owned">${btnText}</div>`;
-                    card.onclick = () => equipItem(key, typeKey); // 點了直接穿上
+                    card.onclick = () => {
+                        const wasEquipped = isEquipped;
+                        equipItem(key, typeKey); // 點了直接穿上
+                        if (isCustomColor && wasEquipped) openColorModal();
+                    };
                 } else if (isTrialing) { // 試用中
                     actionHTML = `
                         <div style="display:flex; gap:6px; justify-content:center; margin-top:5px;">
@@ -10763,6 +10896,48 @@ let currentPaintPalette = 0;
             requestAnimationFrame(() => {
                 slug.classList.add('card-mode');
             });
+        }
+
+        // 🎨 【自選純色背景的調色盤】
+        const bgColorPresets = [
+            '#ffffff', '#fde2e4', '#ffd6a5', '#fdffb6', '#caffbf', '#9bf6ff',
+            '#dbeafe', '#bdb2ff', '#ffc6ff', '#f1f5f9', '#c7d2fe', '#fecaca',
+            '#a7f3d0', '#fed7aa', '#e9d5ff', '#94a3b8', '#3f3f46', '#0f172a'
+        ];
+
+        function openColorModal() {
+            const grid = document.getElementById('colorSwatchGrid');
+            const overlay = document.getElementById('colorModalOverlay');
+            if (!grid || !overlay) return;
+
+            grid.innerHTML = '';
+            bgColorPresets.forEach(color => {
+                const swatch = document.createElement('button');
+                const picked = color.toLowerCase() === (gameState.customBgColor || '').toLowerCase();
+                swatch.style.cssText = `width:100%; aspect-ratio:1; border-radius:12px; background:${color}; cursor:pointer;`
+                    + `border:3px solid ${picked ? 'var(--text-dark)' : 'rgba(0,0,0,0.12)'}; box-shadow:${picked ? '0 0 0 3px var(--accent-color)' : 'none'};`;
+                swatch.onclick = () => pickBgColor(color);
+                grid.appendChild(swatch);
+            });
+
+            const input = document.getElementById('customColorInput');
+            if (input) input.value = gameState.customBgColor || '#ffffff';
+            overlay.style.display = 'flex';
+        }
+
+        function closeColorModal() {
+            const overlay = document.getElementById('colorModalOverlay');
+            if (overlay) overlay.style.display = 'none';
+        }
+
+        // 選色後立刻套用到舞台，並刷新商店的小方塊
+        function pickBgColor(color) {
+            gameState.customBgColor = color;
+            if (gameState.currentBg !== 'none') equipItem('none', 'bg');
+            applyBg();
+            saveGame();
+            renderShop();
+            openColorModal();   // 重畫調色盤，讓選中的顏色有外框
         }
 
         // 🌟 【關閉身份證：海兔跳回舞台！】

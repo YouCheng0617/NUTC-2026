@@ -87,7 +87,7 @@ export const gameConfig = {
         },
         background_color: {
             // 🌟 01 ~ 04：基礎入門系列
-            none: 0,                      // 無背景
+            none: 0,                      // 自選純色（顏色存在前端，後端只認這個免費項目）
             cozy_room: 100,               // 溫馨房間
             sunshine_grassland: 150,      // 陽光草原
             sunny_park: 200,              // 陽光公園
@@ -97,7 +97,7 @@ export const gameConfig = {
             breeze_morning: 300,          // 碧紗庭院
             afternoon_tea: 350,           // 午後茶會
             cherry_park: 400,             // 櫻花小徑
-            bamboo_grove: 450,            // 翠綠竹林
+            bamboo_grove: 300,            // 翠綠竹林
             rainy_street: 500,            // 雨中街景
 
             // 🌟 11 ~ 15：風景與探險系列

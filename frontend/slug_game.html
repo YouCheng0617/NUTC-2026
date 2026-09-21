@@ -204,6 +204,21 @@
             </div>
         </div>
     </div>
+    <!-- 🎨 4. 自選純色背景的調色盤 -->
+    <div class="name-modal-overlay" id="colorModalOverlay" style="z-index: 10040; display: none;">
+        <div class="name-modal" style="width: 88%; max-width: 340px; text-align: center;">
+            <h2 style="margin-top:0; font-weight:900; color: var(--text-dark);" id="txtColorTitle">挑一個喜歡的顏色</h2>
+            <div id="colorSwatchGrid" style="display:grid; grid-template-columns: repeat(6, 1fr); gap: 10px; margin: 16px 0;"></div>
+            <label style="display:flex; align-items:center; justify-content:center; gap:10px; font-weight:900; color: var(--text-dim); font-size:0.9rem;">
+                <span id="txtColorCustom">自訂顏色</span>
+                <input type="color" id="customColorInput" oninput="pickBgColor(this.value)" style="width:56px; height:38px; border:3px solid var(--border-color); border-radius:12px; background:none; cursor:pointer; padding:2px;">
+            </label>
+            <div class="modal-btns" style="margin-top:18px;">
+                <button class="modal-btn btn-confirm" id="btnCloseColor" onclick="closeColorModal()" style="width:100%;">完成</button>
+            </div>
+        </div>
+    </div>
+
     <!-- 🌟 【試用倒數計時器】點擊尚未解鎖的商品時會出現 -->
     <div id="trialTimerDisplay" style="display:none; position: absolute; top: 15%; left: 50%; transform: translateX(-50%); font-size: 1.2rem; font-weight: 900; color: var(--text-dark); background: rgba(255, 255, 255, 0.85); border: 3px solid var(--accent-color); padding: 8px 24px; border-radius: 30px; box-shadow: 0 5px 15px var(--shadow-color); backdrop-filter: blur(4px); z-index: 100; pointer-events: none;">
         ⏱️ 試用中 <span id="trialCountdownNum" style="color: var(--accent-color); font-size: 1.4rem;">10</span>s
