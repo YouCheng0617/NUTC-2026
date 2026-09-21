@@ -133,27 +133,27 @@
     <!-- 🌟 【全新：14天日曆簽到彈窗】 -->
     <div class="name-modal-overlay" id="checkInModalOverlay" style="z-index: 10010; display: none;">
         <div class="name-modal" style="width: 95%; max-width: 380px;">
-            <h2 style="margin-top:0; font-weight:900; color: #eab308;">🎁 14天簽到獎勵</h2>
-            <div style="font-size: 0.9rem; color: var(--text-dim); margin-bottom: 10px;">連續簽到拿大獎，第7與14天翻倍！</div>
+            <h2 style="margin-top:0; font-weight:900; color: #eab308;" id="modalCheckInHeader">🎁 14天簽到獎勵</h2>
+            <div style="font-size: 0.9rem; color: var(--text-dim); margin-bottom: 10px;" id="modalCheckInSub">連續簽到拿大獎，第7與14天翻倍！</div>
             <div id="checkInGrid" class="checkin-grid"></div>
             <button class="modal-btn btn-confirm" id="btnClaimCheckIn" onclick="claimCheckIn()" style="width: 100%; background: #eab308; box-shadow: 0 5px 0 #ca8a04; color: white; margin-top: 15px;">馬上簽到！</button>
-            <button class="modal-btn" onclick="document.getElementById('checkInModalOverlay').style.display='none'" style="width: 100%; background: #f1f5f9; color: var(--text-dim); margin-top: 10px; border: none; font-weight: 900; padding: 12px; border-radius: 20px; cursor: pointer;">關閉日曆</button>
+            <button class="modal-btn" id="btnCloseCheckInModal" onclick="document.getElementById('checkInModalOverlay').style.display='none'" style="width: 100%; background: #f1f5f9; color: var(--text-dim); margin-top: 10px; border: none; font-weight: 900; padding: 12px; border-radius: 20px; cursor: pointer;">關閉日曆</button>
         </div>
     </div>
 
     <!-- 🌟 【全新：累計簽到大禮包彈窗】 -->
     <div class="name-modal-overlay" id="streakRewardModalOverlay" style="z-index: 10005; display: none;">
         <div class="name-modal" style="width: 85%; max-width: 320px; text-align: center;">
-            <h2 style="margin-top:0; font-weight:900; color: #eab308; text-shadow: 0 2px 5px rgba(253, 224, 71, 0.5);">📅 每日簽到</h2>
-            <div style="font-size: 1.1rem; color: var(--text-dim); margin-bottom: 15px; font-weight: 900;">
-                累計簽到第 <span id="txtStreakDays" style="color: #ef4444; font-size: 1.6rem;">1</span> 天
+            <h2 style="margin-top:0; font-weight:900; color: #eab308; text-shadow: 0 2px 5px rgba(253, 224, 71, 0.5);" id="modalStreakHeader">📅 每日簽到</h2>
+            <div style="font-size: 1.1rem; color: var(--text-dim); margin-bottom: 15px; font-weight: 900;" id="txtStreakContainer">
+                <span id="txtStreakPrefix">累計簽到第</span> <span id="txtStreakDays" style="color: #ef4444; font-size: 1.6rem;">1</span> <span id="txtStreakSuffix">天</span>
             </div>
             <div style="font-size: 4rem; margin: 10px 0; animation: tailFluff 2s infinite ease-in-out;">🎁</div>
             <div style="font-size: 1.1rem; color: var(--text-dark); font-weight: 800; margin-bottom: 25px; line-height: 1.5;">
-                今日獎勵<br>
+                <span id="txtTodayRewardTitle">今日獎勵</span><br>
                 <span id="txtTodayReward" style="color: #ef4444; font-size: 1.8rem; font-weight: 900;">+100 積分</span>
             </div>
-            <button class="modal-btn btn-confirm" onclick="document.getElementById('streakRewardModalOverlay').style.display='none'" style="width: 100%; background: #eab308; box-shadow: 0 5px 0 #ca8a04; color: white; font-size: 1.2rem;">開心收下！💰</button>
+            <button class="modal-btn btn-confirm" id="btnClaimStreakReward" onclick="document.getElementById('streakRewardModalOverlay').style.display='none'" style="width: 100%; background: #eab308; box-shadow: 0 5px 0 #ca8a04; color: white; font-size: 1.2rem;">開心收下！💰</button>
         </div>
     </div>
 
@@ -326,7 +326,6 @@
     <div class="ui-panel" id="uiPanel">
         <!-- 🌟 【新增：收起面板按鈕】像個小耳朵一樣長在面板正上方 -->
         <button onclick="toggleShopPanel()" style="position: absolute; top: -20px; left: 50%; transform: translateX(-50%); background: white; color: var(--text-dark); border: 3px solid var(--border-color); padding: 5px 20px; border-radius: 20px; font-weight: 900; cursor: pointer; box-shadow: 0 4px 10px var(--shadow-color); z-index: 85;">⬇️ 收起</button>
-<button onclick="toggleShopPanel()" style="position: absolute; top: -20px; left: 50%; transform: translateX(-50%); background: white; color: var(--text-dark); border: 3px solid var(--border-color); padding: 5px 20px; border-radius: 20px; font-weight: 900; cursor: pointer; box-shadow: 0 4px 10px var(--shadow-color); z-index: 85;">⬇️ 收起</button>
         <div class="interaction-group">
             <!-- 🌟 新增的身份證按鈕 -->
             <button class="btn-interact" id="btnIdCard" onclick="openIdCardModal()" style="background: #eff6ff; border-color: #bfdbfe; box-shadow: 0 5px 0 #bfdbfe; color: #1d4ed8;">
@@ -374,36 +373,86 @@
     <audio id="meowAudio2" src="https://assets.mixkit.co/active_storage/sfx/91/91-preview.mp3" preload="auto"></audio>
     <audio id="meowAudio3" src="https://assets.mixkit.co/active_storage/sfx/86/86-preview.mp3" preload="auto"></audio>
 
-    <!-- 🖐️ 摸摸與抓取海兔專屬生動小手掌 -->
+    <!-- 🖐️ 摸摸與抓取海兔專屬手掌 (標準系統游標風格：白底深色描邊) -->
     <div id="petInteractiveHand" class="pet-interactive-hand">
-        <!-- 🖐️ 摸摸手掌 (開掌撫摸手) -->
+        <!-- 🖐️ 張開手掌 (自然手指長短與張角，準備撫摸) -->
         <svg class="pet-hand-svg pet-hand-open" viewBox="0 0 64 64" width="54" height="54">
-            <g fill="#ffffff" stroke="#3f2a2a" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round">
-                <!-- 手掌外觀：圓潤 Q 萌白手套造型 -->
-                <path d="M 18 40 C 13 34, 12 26, 17 22 C 20 19, 24 21, 25 26 L 27 32 C 26 24, 28 16, 33 14 C 36 12, 39 14, 39 20 L 39 31 C 40 23, 43 16, 47 15 C 50 14, 53 16, 52 22 L 51 32 C 53 26, 56 22, 60 23 C 63 24, 64 28, 61 34 L 57 42 C 53 50, 45 54, 35 54 C 25 54, 20 48, 18 40 Z" fill="#ffffff"/>
-                <!-- 掌心肉墊與腮紅 -->
-                <ellipse cx="36" cy="42" rx="7.5" ry="4.5" fill="#fca5a5" stroke="none" opacity="0.75"/>
-                <circle cx="23" cy="27" r="2" fill="#fca5a5" stroke="none" opacity="0.6"/>
-                <circle cx="34" cy="21" r="2" fill="#fca5a5" stroke="none" opacity="0.6"/>
-                <circle cx="44" cy="21" r="2" fill="#fca5a5" stroke="none" opacity="0.6"/>
-                <circle cx="53" cy="28" r="2" fill="#fca5a5" stroke="none" opacity="0.6"/>
+            <!-- 外輪廓層：整隻手合併成單一剪影，避免手指與手掌之間出現接縫 -->
+            <g fill="#2c2c2c" stroke="#2c2c2c" stroke-linecap="round" stroke-linejoin="round">
+                <path stroke-width="3.6" d="
+                    M 19 36
+                    C 19 31, 21.5 29, 26 29
+                    L 40 29
+                    C 45 29, 47.5 32, 47.5 37
+                    C 47.5 43, 47 47, 45 50.5
+                    C 42.5 55, 37 57, 31 57
+                    C 24.5 57, 20.3 54, 19 48.5
+                    C 18.2 44, 18.6 40, 19 36 Z
+                "/>
+                <g fill="none">
+                    <!-- 拇指：與其他手指相同的等寬圓頭畫法，向左上方翹起 -->
+                    <path stroke-width="10.8" d="M 22 44 C 19 44.4, 15.5 43.8, 11.8 41.6"/>
+                    <path stroke-width="10.4" d="M 21.5 34 C 20.5 28, 18.5 21, 17 16.8"/>
+                    <path stroke-width="11"   d="M 29 33 C 28.6 26, 28 18.5, 27.6 13.6"/>
+                    <path stroke-width="10.2" d="M 36.5 34 C 37.3 27.5, 38.3 20, 38.8 16.2"/>
+                    <path stroke-width="9.2"  d="M 43 37 C 44.5 32, 46 26.5, 46.6 22.4"/>
+                </g>
+            </g>
+            <!-- 填色層：以相同路徑內縮填白，留下等寬描邊 -->
+            <g fill="#ffffff" stroke="#ffffff" stroke-linecap="round" stroke-linejoin="round">
+                <path stroke="none" d="
+                    M 19 36
+                    C 19 31, 21.5 29, 26 29
+                    L 40 29
+                    C 45 29, 47.5 32, 47.5 37
+                    C 47.5 43, 47 47, 45 50.5
+                    C 42.5 55, 37 57, 31 57
+                    C 24.5 57, 20.3 54, 19 48.5
+                    C 18.2 44, 18.6 40, 19 36 Z
+                "/>
+                <g fill="none">
+                    <path stroke-width="7.2" d="M 22 44 C 19 44.4, 15.5 43.8, 11.8 41.6"/>
+                    <path stroke-width="6.8" d="M 21.5 34 C 20.5 28, 18.5 21, 17 16.8"/>
+                    <path stroke-width="7.4" d="M 29 33 C 28.6 26, 28 18.5, 27.6 13.6"/>
+                    <path stroke-width="6.6" d="M 36.5 34 C 37.3 27.5, 38.3 20, 38.8 16.2"/>
+                    <path stroke-width="5.6" d="M 43 37 C 44.5 32, 46 26.5, 46.6 22.4"/>
+                </g>
+            </g>
+            <!-- 指根與虎口摺線 -->
+            <g fill="none" stroke="#2c2c2c" stroke-width="1.6" stroke-linecap="round">
+                <path d="M 25.2 31.5 C 25.05 32.8, 24.95 34, 24.9 35"/>
+                <path d="M 32.8 31.5 C 32.9 32.8, 32.95 34, 33 35"/>
+                <path d="M 40 34 C 40.15 35.2, 40.3 36.2, 40.4 37.2"/>
+                <path d="M 23.6 39.5 C 24.6 41.6, 24.6 44.2, 23.6 46.4"/>
             </g>
         </svg>
-        <!-- ✊ 抓取手掌 (抓緊握拳動作) -->
+
+        <!-- ✊ 抓取手勢：握拳，上緣四顆指節、下緣露出收進手心的指尖，拇指橫扣在前 -->
         <svg class="pet-hand-svg pet-hand-grab" viewBox="0 0 64 64" width="54" height="54">
-            <g fill="#ffffff" stroke="#3f2a2a" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round">
-                <!-- 抓握時的手背圓弧 -->
-                <path d="M 20 42 C 17 34, 20 27, 27 24 C 32 22, 44 22, 48 26 C 52 30, 52 38, 49 44 C 45 50, 37 52, 30 52 C 23 52, 21 47, 20 42 Z" fill="#ffffff"/>
-                <!-- 緊扣海兔的四指指關節 -->
-                <path d="M 27 24 C 27 17, 33 17, 34 24 C 34 29, 29 30, 27 30" fill="#ffffff"/>
-                <path d="M 34 24 C 35 17, 41 17, 41 24 C 41 29, 36 30, 34 30" fill="#ffffff"/>
-                <path d="M 41 24 C 42 18, 48 18, 48 25 C 48 30, 43 31, 41 31" fill="#ffffff"/>
-                <!-- 扣在前方的拇指 -->
-                <path d="M 19 35 C 17 30, 21 26, 27 27 C 34 28, 37 33, 37 37 C 37 41, 32 42, 26 41 C 22 41, 20 38, 19 35 Z" fill="#ffffff"/>
-                <!-- 抓力肉墊反饋 -->
-                <ellipse cx="36" cy="43" rx="7" ry="3.8" fill="#fca5a5" stroke="none" opacity="0.65"/>
-                <!-- 抓取用力的小皺褶線 -->
-                <path d="M 28 34 L 34 34" stroke="#d1d5db" stroke-width="1.8" />
+            <g stroke-linecap="round" stroke-linejoin="round">
+                <!-- 拳頭主體 (上緣平滑，不做指節凸起) -->
+                <path stroke="#2c2c2c" stroke-width="3.6" fill="#2c2c2c" d="
+                    M 15.5 37
+                    C 15.5 29.5, 22.5 24.5, 32.5 24.5
+                    C 42.5 24.5, 49.2 29.5, 49.2 37
+                    C 49.2 46, 42.5 51, 32.5 51
+                    C 22 51, 15.5 46, 15.5 37 Z
+                "/>
+                <path fill="#ffffff" stroke="none" d="
+                    M 15.5 37
+                    C 15.5 29.5, 22.5 24.5, 32.5 24.5
+                    C 42.5 24.5, 49.2 29.5, 49.2 37
+                    C 49.2 46, 42.5 51, 32.5 51
+                    C 22 51, 15.5 46, 15.5 37 Z
+                "/>
+
+                <!-- 指節之間的捲曲摺線 -->
+                <g fill="none" stroke="#2c2c2c" stroke-width="1.7">
+                    <path d="M 23.6 30.5 C 23.3 33.5, 23.3 36.2, 23.8 38.5"/>
+                    <path d="M 31 29.5 C 30.9 33, 31 36, 31.4 38.5"/>
+                    <path d="M 38.4 30.2 C 38.4 33.4, 38.6 36.2, 39 38"/>
+                </g>
+
             </g>
         </svg>
     </div>

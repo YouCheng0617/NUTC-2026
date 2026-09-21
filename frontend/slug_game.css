@@ -607,18 +607,20 @@
         }
         .slug-container.is-petting .slug-svg { transform: scale(1.06, 0.92) translateY(12px); filter: drop-shadow(0 5px 8px rgba(0,0,0,0.25)); }
 
-        /* 🖐️ 摸摸與抓取海兔專屬生動小手掌 */
+        /* 🖐️ 摸摸與抓取海兔專屬手掌 (標準游標風格，符合人體工學的手指比例) */
         .pet-interactive-hand {
             position: fixed;
             top: 0;
             left: 0;
+            width: 54px;
+            height: 54px;
             pointer-events: none;
             z-index: 999999;
-            transform: translate(-35%, -65%);
+            transform: translate(-30%, -28%);
             opacity: 0;
             visibility: hidden;
-            transition: opacity 0.18s ease, transform 0.08s ease-out, visibility 0.18s;
-            filter: drop-shadow(0 6px 12px rgba(0, 0, 0, 0.22));
+            transition: opacity 0.12s ease, visibility 0.12s;
+            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
         }
 
         .pet-interactive-hand.is-visible {
@@ -626,34 +628,44 @@
             visibility: visible;
         }
 
+        /* 抓取時讓拳心落在游標，也就是海兔被抓住的位置 */
+        .pet-interactive-hand.is-grabbing {
+            transform: translate(-50%, -58%);
+        }
+
+        .pet-interactive-hand .pet-hand-svg {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+
         .pet-interactive-hand .pet-hand-open,
         .pet-interactive-hand .pet-hand-grab {
             display: none;
-            filter: drop-shadow(0 3px 6px rgba(0,0,0,0.15));
         }
 
-        /* 撫摸狀態（溫柔輕撫擺動） */
+        /* 撫摸狀態（以手腕為軸心輕柔搖擺） */
         .pet-interactive-hand.is-petting .pet-hand-open {
             display: block;
-            animation: handPetSway 0.38s infinite alternate ease-in-out;
-            transform-origin: 30% 70%;
+            animation: handPetSway 0.42s infinite alternate ease-in-out;
+            transform-origin: 50% 88%;
         }
 
-        @keyframes handPetSway {
-            0% { transform: rotate(-10deg) translateY(-2px); }
-            100% { transform: rotate(12deg) translateY(4px); }
-        }
-
-        /* 抓取狀態（緊緊抓握 + 抓握收縮彈性反饋） */
+        /* 抓取狀態（圓潤手掌捏抓彈性反饋） */
         .pet-interactive-hand.is-grabbing .pet-hand-grab {
             display: block;
-            animation: handGrabSnap 0.22s cubic-bezier(0.18, 0.89, 0.32, 1.28) forwards;
+            animation: handGrabElastic 0.26s cubic-bezier(0.18, 1.25, 0.32, 1) forwards;
             transform-origin: 50% 50%;
         }
 
-        @keyframes handGrabSnap {
-            0% { transform: scale(1.22) rotate(-6deg); }
-            50% { transform: scale(0.92) rotate(4deg); }
+        @keyframes handPetSway {
+            0% { transform: rotate(-8deg) translateY(-2px); }
+            100% { transform: rotate(7deg) translateY(3px); }
+        }
+
+        @keyframes handGrabElastic {
+            0% { transform: scale(1.16) rotate(-4deg); }
+            65% { transform: scale(0.92) rotate(2deg); }
             100% { transform: scale(1) rotate(0deg); }
         }
         

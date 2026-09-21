@@ -374,7 +374,25 @@ const i18n = {
                 cooldown: "冷卻", ready: "可互動",
                 tabSpecies: "圖鑑", tabBg: "背景", tabEffect: "特效",
                 equip: "使用中", owned: "已解鎖",
-                mpBtn: "📡 連線", roomNotConnected: "尚未連線", createRoom: "創立房間", joinRoom: "加入房間", chat: "💬 聊天", leaveRoom: "離開房間"
+                mpBtn: "📡 連線", roomNotConnected: "尚未連線", createRoom: "創立房間", joinRoom: "加入房間", chat: "💬 聊天", leaveRoom: "離開房間",
+
+                // 🌟 14天簽到與累計簽到
+                dailyGiftTitle: "14天簽到",
+                modalCheckInHeader: "🎁 14天簽到獎勵",
+                modalCheckInSub: "連續簽到拿大獎，第7與14天翻倍！",
+                dayPrefix: "第 ",
+                daySuffix: " 天",
+                checkInBtn: "馬上簽到！",
+                checkInClaimed: "今天已簽到 (明天再來)",
+                closeCalendarBtn: "關閉日曆",
+                checkInSuccessToast: "✨ 簽到成功 +",
+                alreadyCheckedInToast: "今天已經簽到過囉！",
+                serverErrorToast: "伺服器連線異常，請稍後再試！",
+                modalStreakHeader: "📅 每日簽到",
+                streakPrefix: "累計簽到第",
+                streakSuffix: "天",
+                todayRewardTitle: "今日獎勵",
+                claimStreakRewardBtn: "開心收下！💰"
             },
             en: {
                 backBtn: "🏠 Home", points: "Pts", langBtn: "中文", 
@@ -393,7 +411,25 @@ const i18n = {
                 cooldown: "CD", ready: "Ready",
                 tabSpecies: "Species", tabBg: "Background", tabEffect: "Effects",
                 equip: "Active", owned: "Unlocked",
-                mpBtn: "📡 Connect", roomNotConnected: "Not Connected", createRoom: "Create Room", joinRoom: "Join Room", chat: "💬 Chat", leaveRoom: "Leave Room"
+                mpBtn: "📡 Connect", roomNotConnected: "Not Connected", createRoom: "Create Room", joinRoom: "Join Room", chat: "💬 Chat", leaveRoom: "Leave Room",
+
+                // 🌟 14-day check-in and streak reward
+                dailyGiftTitle: "14-Day Check-in",
+                modalCheckInHeader: "🎁 14-Day Check-in Rewards",
+                modalCheckInSub: "Check in daily for rewards! Doubled on Day 7 & 14!",
+                dayPrefix: "Day ",
+                daySuffix: "",
+                checkInBtn: "Check In Now!",
+                checkInClaimed: "Checked in today (Come back tomorrow)",
+                closeCalendarBtn: "Close Calendar",
+                checkInSuccessToast: "✨ Check-in successful +",
+                alreadyCheckedInToast: "You have already checked in today!",
+                serverErrorToast: "Server connection failed, please try again later!",
+                modalStreakHeader: "📅 Daily Check-in",
+                streakPrefix: "Checked in for",
+                streakSuffix: "day(s)",
+                todayRewardTitle: "Today's Reward",
+                claimStreakRewardBtn: "Claim Reward! 💰"
             }
         };
         let currLang = 'zh';
@@ -934,6 +970,7 @@ const effectData = {
             if (!grid) return;
             grid.innerHTML = '';
             
+            const t = i18n[currLang] || i18n.zh;
             // ⚠️ 這裡要確認後端傳來的「目前累積天數」是不是 currentDay
             let currentDay = data.currentDay || 0; 
             let isSignedToday = data.todaySigned || false;
@@ -945,9 +982,10 @@ const effectData = {
                 // 第 7 天與 14 天獎勵是 200，其餘 100
                 let reward = (i === 7 || i === 14) ? 200 : 100;
                 let icon = (i === 7 || i === 14) ? '🎁' : '🪙';
+                let dayText = `${t.dayPrefix || 'Day '}${i}${t.daySuffix || ''}`;
                 
                 dayEl.innerHTML = `
-                    <div style="font-size:0.8rem;">第 ${i} 天</div>
+                    <div style="font-size:0.8rem;">${dayText}</div>
                     <div style="font-size:1.1rem; margin:4px 0;">${icon}</div>
                     <div style="font-size:0.75rem;">${reward}</div>
                 `;
@@ -965,12 +1003,20 @@ const effectData = {
                 
                 grid.appendChild(dayEl);
             }
+
+            const headerEl = document.getElementById('modalCheckInHeader');
+            const subEl = document.getElementById('modalCheckInSub');
+            const closeEl = document.getElementById('btnCloseCheckInModal');
+            if (headerEl) headerEl.innerText = t.modalCheckInHeader;
+            if (subEl) subEl.innerText = t.modalCheckInSub;
+            if (closeEl) closeEl.innerText = t.closeCalendarBtn;
         }
 
         // 🌟 3. 送出簽到請求 (POST)
         async function claimCheckIn() {
             try {
                 const result = await fetchAPI('/pet-games/sign-in', 'POST');
+                const t = i18n[currLang] || i18n.zh;
                 
                 if (result && !result.error) {
                     // 簽到成功，關閉日曆
@@ -991,17 +1037,18 @@ const effectData = {
                     
                     // 顯示大禮包畫面
                     document.getElementById('txtStreakDays').innerText = currentDay;
-                    document.getElementById('txtTodayReward').innerText = '+' + gainedCoins + ' 積分';
+                    document.getElementById('txtTodayReward').innerText = '+' + gainedCoins + ' ' + (t.points || '積分');
                     document.getElementById('streakRewardModalOverlay').style.display = 'flex';
                     
                     // 重新抓取一次最新狀態
                     checkDaily();
                 } else {
-                    showFloatText(result.message || result.error || '今天已經簽到過囉！');
+                    showFloatText(result.message || result.error || (t.alreadyCheckedInToast || '今天已經簽到過囉！'));
                 }
             } catch (e) {
                 console.error("簽到請求失敗", e);
-                showFloatText('伺服器連線異常，請稍後再試！');
+                const t = i18n[currLang] || i18n.zh;
+                showFloatText(t.serverErrorToast || '伺服器連線異常，請稍後再試！');
             }
         }
 
@@ -2198,6 +2245,52 @@ function updateLangUI() {
             if (modalHeader) modalHeader.innerText = t.modalDailyHeader;
             if (modalSub) modalSub.innerText = t.modalDailySub;
             if (modalClose) modalClose.innerText = t.closeBtn;
+
+            // 🌟 14天簽到彈窗雙語文字
+            const btnGift = document.getElementById('btnDailyGift');
+            if (btnGift && t.dailyGiftTitle) btnGift.title = t.dailyGiftTitle;
+            const checkInHeader = document.getElementById('modalCheckInHeader');
+            if (checkInHeader && t.modalCheckInHeader) checkInHeader.innerText = t.modalCheckInHeader;
+            const checkInSub = document.getElementById('modalCheckInSub');
+            if (checkInSub && t.modalCheckInSub) checkInSub.innerText = t.modalCheckInSub;
+            const closeCheckInBtn = document.getElementById('btnCloseCheckInModal');
+            if (closeCheckInBtn && t.closeCalendarBtn) closeCheckInBtn.innerText = t.closeCalendarBtn;
+
+            // 🌟 累計簽到大禮包雙語文字
+            const modalStreakHeader = document.getElementById('modalStreakHeader');
+            if (modalStreakHeader && t.modalStreakHeader) modalStreakHeader.innerText = t.modalStreakHeader;
+            const txtStreakPrefix = document.getElementById('txtStreakPrefix');
+            if (txtStreakPrefix && t.streakPrefix) txtStreakPrefix.innerText = t.streakPrefix;
+            const txtStreakSuffix = document.getElementById('txtStreakSuffix');
+            if (txtStreakSuffix && t.streakSuffix) txtStreakSuffix.innerText = t.streakSuffix;
+            const txtTodayRewardTitle = document.getElementById('txtTodayRewardTitle');
+            if (txtTodayRewardTitle && t.todayRewardTitle) txtTodayRewardTitle.innerText = t.todayRewardTitle;
+            const btnClaimStreakReward = document.getElementById('btnClaimStreakReward');
+            if (btnClaimStreakReward && t.claimStreakRewardBtn) btnClaimStreakReward.innerText = t.claimStreakRewardBtn;
+
+            // 🌟 簽到按鈕文字更新
+            const btnClaimCheckIn = document.getElementById('btnClaimCheckIn');
+            if (btnClaimCheckIn) {
+                const todayClaimed = (gameState.daily && gameState.daily.todayClaimed) || (gameState.checkInData && gameState.checkInData.todaySigned);
+                btnClaimCheckIn.innerText = todayClaimed ? t.checkInClaimed : t.checkInBtn;
+            }
+
+            // 🌟 如果 14 天簽到面板正在開啟，即時刷新格子語言
+            const checkInOverlay = document.getElementById('checkInModalOverlay');
+            if (checkInOverlay && checkInOverlay.style.display !== 'none') {
+                if (typeof openCheckInModal === 'function') {
+                    openCheckInModal();
+                } else if (gameState.checkInData && typeof renderCheckInGrid === 'function') {
+                    renderCheckInGrid(gameState.checkInData);
+                }
+            }
+
+            // 🌟 如果每日任務彈窗開著，也重新渲染任務清單以更新任務語言
+            const dailyModal = document.getElementById('dailyModalOverlay');
+            if (dailyModal && dailyModal.style.display !== 'none' && typeof openDailyModal === 'function') {
+                openDailyModal();
+            }
+
             document.getElementById('tabSpecies').innerText = t.tabSpecies;
             document.getElementById('tabBg').innerText = t.tabBg;
             document.getElementById('tabEffect').innerText = t.tabEffect;
@@ -8403,10 +8496,12 @@ function checkDaily() {
 // 打開日曆並把 14 天的格子畫出來
 function openCheckInModal() {
     const grid = document.getElementById('checkInGrid');
+    if (!grid) return;
     grid.innerHTML = '';
     
-    let streak = gameState.daily.streakDays || 0;
-    let todayClaimed = gameState.daily.todayClaimed || false;
+    const t = i18n[currLang] || i18n.zh;
+    let streak = (gameState.daily && gameState.daily.streakDays) || 0;
+    let todayClaimed = (gameState.daily && gameState.daily.todayClaimed) || false;
 
     // 繪製 14 個格子
     for (let i = 1; i <= 14; i++) {
@@ -8419,8 +8514,9 @@ function openCheckInModal() {
         if (isClaimed) classes += ' claimed'; // 已簽到的格子會發光變黃
         if (isToday) classes += ' today';     // 今天的格子會跳動
 
+        let dayText = `${t.dayPrefix || 'Day '}${i}${t.daySuffix || ''}`;
         let innerHtml = `
-            <div style="font-size:0.75rem;">Day ${i}</div>
+            <div style="font-size:0.75rem;">${dayText}</div>
             <div style="font-size:1.4rem; margin:4px 0;">${icon}</div>
             <div style="font-size:0.9rem;">${reward}</div>
         `;
@@ -8428,20 +8524,29 @@ function openCheckInModal() {
     }
     
     const btn = document.getElementById('btnClaimCheckIn');
-    if (todayClaimed) {
-        btn.disabled = true;
-        btn.innerText = '今天已簽到 (明天再來)';
-        btn.style.background = '#cbd5e1';
-        btn.style.boxShadow = '0 5px 0 #94a3b8';
-        btn.style.cursor = 'not-allowed';
-        btn.style.transform = 'none';
-    } else {
-        btn.disabled = false;
-        btn.innerText = '馬上簽到！';
-        btn.style.background = '#eab308';
-        btn.style.boxShadow = '0 5px 0 #ca8a04';
-        btn.style.cursor = 'pointer';
+    if (btn) {
+        if (todayClaimed) {
+            btn.disabled = true;
+            btn.innerText = t.checkInClaimed || '今天已簽到 (明天再來)';
+            btn.style.background = '#cbd5e1';
+            btn.style.boxShadow = '0 5px 0 #94a3b8';
+            btn.style.cursor = 'not-allowed';
+            btn.style.transform = 'none';
+        } else {
+            btn.disabled = false;
+            btn.innerText = t.checkInBtn || '馬上簽到！';
+            btn.style.background = '#eab308';
+            btn.style.boxShadow = '0 5px 0 #ca8a04';
+            btn.style.cursor = 'pointer';
+        }
     }
+
+    const headerEl = document.getElementById('modalCheckInHeader');
+    const subEl = document.getElementById('modalCheckInSub');
+    const closeEl = document.getElementById('btnCloseCheckInModal');
+    if (headerEl) headerEl.innerText = t.modalCheckInHeader || '🎁 14天簽到獎勵';
+    if (subEl) subEl.innerText = t.modalCheckInSub || '連續簽到拿大獎，第7與14天翻倍！';
+    if (closeEl) closeEl.innerText = t.closeCalendarBtn || '關閉日曆';
     
     document.getElementById('checkInModalOverlay').style.display = 'flex';
 }
@@ -8461,11 +8566,13 @@ function claimCheckIn() {
     updateUI();
     
     // 🌟 新增：領完錢了，把小紅點跟呼吸燈關掉
-    document.getElementById('btnDailyGift').classList.remove('needs-attention');
+    const btnGift = document.getElementById('btnDailyGift');
+    if (btnGift) btnGift.classList.remove('needs-attention');
 
     // 重新繪製網格（讓剛簽到的那一格瞬間打上勾勾 ✔️）
     openCheckInModal();
-    showFloatText(`✨ 簽到成功 +${reward} ✨`);
+    const t = i18n[currLang] || i18n.zh;
+    showFloatText(`${t.checkInSuccessToast || '✨ 簽到成功 +'}${reward} ✨`);
 }
 // 記錄任務做了幾次
 function addDailyProgress(type) {
