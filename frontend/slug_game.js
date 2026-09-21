@@ -9854,6 +9854,9 @@ default:
             
             let isDragging = false; let moved = false; let startX = 0, startY = 0; let slugStartLeft = 0, slugStartTop = 0; let petTimer = null;
             let isHovering = false;
+            // 觸控後瀏覽器會補送滑鼠事件，用時間戳記分辨是不是「觸控的回音」
+            let lastTouchTime = 0;
+            const isTouchEcho = () => Date.now() - lastTouchTime < 900;
 
             slugEl.oncontextmenu = (e) => { e.preventDefault(); return false; };
             slugEl.ondragstart = (e) => { e.preventDefault(); return false; };
@@ -9890,6 +9893,9 @@ default:
 
             function onStart(e) {
                 if (e.type === 'mousedown' && e.button !== 0) return;
+                if (e.type.startsWith('touch')) lastTouchTime = Date.now();
+                // 手機瀏覽器在觸控後會補送一組滑鼠事件，會把剛顯示的撫摸手掌換回抓握手掌，直接忽略
+                else if (isTouchEcho()) return;
                 isDragging = true; moved = false; document.body.classList.add('is-dragging-global');
                 const pos = getPos(e); startX = pos.x; startY = pos.y;
                 const style = window.getComputedStyle(slugEl);
@@ -9903,8 +9909,9 @@ default:
             }
 
             function onMove(e) {
-                if (!isDragging) return; 
-                if (e.cancelable) e.preventDefault(); 
+                if (e.type.startsWith('touch')) lastTouchTime = Date.now();
+                if (!isDragging) return;
+                if (e.cancelable) e.preventDefault();
                 const pos = getPos(e); const dx = pos.x - startX; const dy = pos.y - startY;
                 if (Math.abs(dx) > 5 || Math.abs(dy) > 5) moved = true;
                 if (moved && Math.random() < 0.08) spawnMiniHeart(pos.x, pos.y); // 拖著跑會狂冒愛心
@@ -9929,21 +9936,27 @@ default:
             }
 
             function onEnd(e) {
+                if (e.type.startsWith('touch')) lastTouchTime = Date.now();
                 if (!isDragging) return;
-                isDragging = false; 
+                isDragging = false;
                 document.body.classList.remove('is-dragging-global');
                 const pos = getPos(e);
                 const endX = pos.x || startX;
                 const endY = pos.y || startY;
+
+                // 先記下這次是不是觸控操作，計時器跑完時再判斷就來不及了
+                const viaTouch = isTouchEcho();
 
                 if (moved) {
                     slugEl.classList.remove('is-petting');
                     // 拖曳放開後：抓取動作鬆開為撫摸手勢，稍後淡出
                     showPetHand(endX, endY, 'petting');
                     clearTimeout(petTimer);
+                    // 手機沒有滑鼠停留，手掌要多留一會兒才看得到
                     petTimer = setTimeout(() => {
-                        if (!isHovering) hidePetHand();
-                    }, 350);
+                        // 觸控沒有「滑鼠移開」事件，isHovering 會卡住，所以觸控時一律收起手掌
+                        if (!isHovering || viaTouch) hidePetHand();
+                    }, viaTouch ? 700 : 350);
                 } else {
                     // 點擊撫摸：保持瞇瞇眼與撫摸手掌 500ms，讓玩家看得清楚可愛互動
                     slugEl.classList.add('is-petting');
@@ -9951,14 +9964,16 @@ default:
                     clearTimeout(petTimer);
                     petTimer = setTimeout(() => {
                         slugEl.classList.remove('is-petting');
-                        if (!isHovering) hidePetHand();
-                    }, 500);
+                        if (!isHovering || viaTouch) hidePetHand();
+                    }, viaTouch ? 1000 : 500);
                 }
                 // 點擊海兔僅觸發撫摸動畫，不增加積分（修復進遊戲點擊海兔刷分漏洞）
                 broadcastMove(parseFloat(slugEl.style.left) || 0, parseFloat(slugEl.style.top) || 0);
             }
 
             function onHover(e) {
+                // 觸控裝置沒有真正的滑鼠移入／移出，補送的滑鼠事件會讓手掌卡住不消失
+                if (isTouchEcho()) return;
                 if (!isDragging && e.type === 'mousemove') {
                     isHovering = true;
                     slugEl.classList.add('is-petting');
@@ -9968,6 +9983,7 @@ default:
             }
 
             slugEl.addEventListener('mouseenter', (e) => {
+                if (isTouchEcho()) return;
                 if (!isDragging) {
                     isHovering = true;
                     showPetHand(e.clientX, e.clientY, 'petting');

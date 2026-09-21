@@ -677,10 +677,12 @@
             .pet-interactive-hand {
                 width: 44px;
                 height: 44px;
-                transform: translate(-28%, -132%);
+                /* 手掌下緣稍微高於指尖：看得到又不會跟手指脫節 */
+                transform: translate(-38%, -105%);
             }
             .pet-interactive-hand.is-grabbing {
-                transform: translate(-50%, -150%);
+                /* 抓取時拳心貼著手指上方，海兔就在拳頭下面 */
+                transform: translate(-50%, -88%);
             }
         }
 
