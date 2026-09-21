@@ -799,6 +799,73 @@ const i18n = {
             return out;
         };
 
+        // 🌲 【迷霧森林零件】逆光森林靠三層樹幹製造縱深
+        // 一根樹幹：底寬頂窄、可以傾斜，並長出幾根細枝
+        const forestTrunk = (x, groundY, h, w, lean, fill, branch) => {
+            const topY = groundY - h;
+            const topX = x + lean;
+            const half = w / 2;
+            const halfTop = w * 0.34;
+            let out = `<path d="M ${x - half} ${groundY} C ${x - half + 2} ${groundY - h * 0.4}, ${topX - halfTop - 2} ${topY + h * 0.3}, ${topX - halfTop} ${topY} L ${topX + halfTop} ${topY} C ${topX + halfTop + 2} ${topY + h * 0.3}, ${x + half - 2} ${groundY - h * 0.4}, ${x + half} ${groundY} Z" fill="${fill}"/>`;
+            if (branch) {
+                const by = topY + h * 0.2;
+                const bw = Math.max(5, w * 0.42);
+                out += `<g stroke="${fill}" stroke-width="${bw}" stroke-linecap="round" fill="none">`
+                    + `<path d="M ${topX - halfTop + 2} ${by} C ${topX - w * 0.9} ${by - 10}, ${topX - w * 1.3} ${by - 24}, ${topX - w * 1.6} ${by - 42}"/>`
+                    + `<path d="M ${topX + halfTop - 2} ${by + h * 0.1} C ${topX + w * 0.8} ${by + h * 0.06}, ${topX + w * 1.2} ${by - 6}, ${topX + w * 1.5} ${by - 26}"/>`
+                    + `</g>`;
+            }
+            return out;
+        };
+
+        // 一整排樹幹：越遠越細越淡
+        const forestTrunkRow = (W, groundY, layer) => {
+            const cfg = {
+                far: { step: 86, w: 13, h: 0.74, fill: '#a8d8bd', lean: 5, branch: false, offset: 18 },
+                mid: { step: 138, w: 24, h: 0.88, fill: '#5f9c76', lean: -8, branch: true, offset: 64 },
+                near: { step: 232, w: 46, h: 1.06, fill: '#2f5d43', lean: 10, branch: true, offset: 8 }
+            }[layer];
+
+            let out = '';
+            for (let i = 0, x = -40 + cfg.offset; x < W + 60; x += cfg.step, i++) {
+                const jitter = ((i * 37) % 23) - 11;
+                const hMul = cfg.h * (0.86 + ((i * 17) % 9) / 32);
+                out += forestTrunk(x + jitter, groundY + 6, groundY * hMul + 40, cfg.w + ((i * 13) % 7), cfg.lean * (i % 2 ? 1 : -1), cfg.fill, cfg.branch);
+            }
+            return out;
+        };
+
+        // 樹冠：頂端兩層深綠葉團，中間刻意留縫讓光透下來
+        const forestCanopy = (W, lightX) => {
+            let back = '', front = '';
+            for (let x = -40, i = 0; x < W + 70; x += 54, i++) {
+                const gap = Math.abs(x - lightX) < 130;
+                const r = (gap ? 34 : 64) + (i % 4) * 13;
+                const y = (gap ? -42 : 18) - (i % 3) * 20;
+                back += `<circle cx="${x}" cy="${y}" r="${r}"/>`;
+            }
+            for (let x = -20, i = 0; x < W + 70; x += 74, i++) {
+                const gap = Math.abs(x - lightX) < 150;
+                const r = (gap ? 24 : 46) + (i % 3) * 14;
+                const y = (gap ? -58 : -6) - (i % 2) * 24;
+                front += `<circle cx="${x + 26}" cy="${y}" r="${r}"/>`;
+            }
+            return `<g fill="#2b5c3c">${back}</g><g fill="#1a3f2a">${front}</g>`;
+        };
+
+        const forestParts = {
+            bush: `<g>
+    <g fill="#2a5a3c"><ellipse cx="-28" cy="-14" rx="34" ry="24"/><ellipse cx="26" cy="-12" rx="30" ry="21"/><ellipse cx="0" cy="-30" rx="34" ry="26"/></g>
+    <g fill="#3f7d53"><ellipse cx="-16" cy="-30" rx="18" ry="13"/><ellipse cx="18" cy="-24" rx="15" ry="11"/></g>
+  </g>`,
+            fern: `<g stroke="#4c8c60" stroke-width="5" stroke-linecap="round" fill="none">
+    <path d="M 0 0 C -6 -22, -20 -36, -40 -44"/>
+    <path d="M 0 0 C -2 -26, -4 -46, -2 -64"/>
+    <path d="M 0 0 C 8 -22, 22 -36, 42 -42"/>
+    <path d="M 0 0 C 6 -26, 16 -44, 26 -58"/>
+  </g>`
+        };
+
         const bgArt = {
             // 陽光草原：同一張向量插畫，依用途切不同的可視範圍 (viewBox)，
             // 手機直式因此不會被拉長變形，縮圖也看得到太陽與草坡。
@@ -1167,6 +1234,92 @@ const i18n = {
   ${sand}
   ${equipment}
 </svg>`;
+            },
+
+            // 迷霧森林：正中央透下來的逆光、三層樹幹、地面霧氣與光斑
+            mistyForest(mode) {
+                const thumb = mode === 'thumb';
+                const portrait = mode === 'portrait';
+                const wide = !thumb && !portrait;
+
+                const W = thumb ? 900 : (wide ? 1200 : 640);
+                const H = thumb ? 900 : (wide ? 520 : 1040);
+                const groundY = thumb ? 660 : (wide ? 392 : 790);
+                const lightX = W / 2;
+                const lightY = thumb ? 300 : (wide ? 170 : 380);
+
+                // 光束：從光源往下散開的細長梯形
+                let rays = '';
+                const rayCount = 7;
+                for (let i = 0; i < rayCount; i++) {
+                    const spread = (i - (rayCount - 1) / 2) / ((rayCount - 1) / 2);
+                    const baseX = lightX + spread * W * 0.62;
+                    const width = 26 + (i % 3) * 16;
+                    rays += `<polygon points="${lightX - 16},${lightY} ${lightX + 16},${lightY} ${baseX + width},${groundY + 40} ${baseX - width},${groundY + 40}" fill="url(#forestRay)"/>`;
+                }
+
+                // 地面上的光斑
+                let dapples = '';
+                for (let i = 0; i < 10; i++) {
+                    const x = ((i * 211) % (W - 60)) + 30;
+                    const y = groundY + 22 + ((i * 47) % Math.max(30, (H - groundY) * 0.7));
+                    const rx = 26 + (i % 4) * 14;
+                    dapples += `<ellipse cx="${x}" cy="${y}" rx="${rx}" ry="${rx * 0.32}" fill="#eaffc4" opacity="${0.22 + (i % 3) * 0.1}"/>`;
+                }
+
+                // 空氣中的光點（逆光的粉塵感）
+                let motes = '<g fill="#f7ffd9">';
+                for (let i = 0; i < 18; i++) {
+                    const x = lightX + (((i * 173) % 100) - 50) / 50 * W * 0.44;
+                    const y = lightY - 60 + ((i * 97) % Math.max(80, groundY - lightY + 120));
+                    const r = 2.5 + (i % 4) * 1.8;
+                    motes += `<circle cx="${x.toFixed(0)}" cy="${y.toFixed(0)}" r="${r}" opacity="${(0.3 + (i % 3) * 0.16).toFixed(2)}"/>`;
+                }
+                motes += '</g>';
+
+                const mist = `<g fill="#ffffff">
+    <ellipse cx="${W * 0.3}" cy="${groundY - 26}" rx="${W * 0.36}" ry="34" opacity="0.3"/>
+    <ellipse cx="${W * 0.72}" cy="${groundY - 8}" rx="${W * 0.34}" ry="30" opacity="0.26"/>
+    <ellipse cx="${W * 0.5}" cy="${groundY + 30}" rx="${W * 0.44}" ry="30" opacity="0.2"/>
+  </g>`;
+
+                const undergrowth = wide
+                    ? placePart(forestParts.bush, 130, groundY + 66, 1) + placePart(forestParts.fern, 340, groundY + 84, 1) + placePart(forestParts.bush, 900, groundY + 74, 1.15) + placePart(forestParts.fern, 1080, groundY + 60, 0.9)
+                    : (portrait
+                        ? placePart(forestParts.bush, 120, groundY + 90, 1.05) + placePart(forestParts.fern, 330, groundY + 140, 1.1) + placePart(forestParts.bush, 540, groundY + 70, 1) + placePart(forestParts.fern, 90, groundY + 200, 0.9)
+                        : placePart(forestParts.bush, 170, groundY + 80, 1.1) + placePart(forestParts.fern, 470, groundY + 120, 1.1) + placePart(forestParts.bush, 730, groundY + 70, 1));
+
+                return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid slice">
+  <defs>
+    <radialGradient id="forestLight" cx="50%" cy="${(lightY / H * 100).toFixed(0)}%" r="72%">
+      <stop offset="0%" stop-color="#f7ffd9"/>
+      <stop offset="28%" stop-color="#cdeb9c"/>
+      <stop offset="62%" stop-color="#5aa46a"/>
+      <stop offset="100%" stop-color="#1d4430"/>
+    </radialGradient>
+    <linearGradient id="forestRay" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#f4ffd6" stop-opacity="0.5"/>
+      <stop offset="100%" stop-color="#f4ffd6" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="forestFloor" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#3f7d53"/>
+      <stop offset="100%" stop-color="#1c3f2b"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="${W}" height="${H}" fill="url(#forestLight)"/>
+  ${forestTrunkRow(W, groundY, 'far')}
+  ${rays}
+  ${forestTrunkRow(W, groundY, 'mid')}
+  ${forestCanopy(W, lightX)}
+
+  <path d="M 0 ${groundY + 14} C ${W * 0.2} ${groundY - 12}, ${W * 0.36} ${groundY + 18}, ${W * 0.54} ${groundY + 4} C ${W * 0.72} ${groundY - 10}, ${W * 0.88} ${groundY + 16}, ${W} ${groundY + 2} L ${W} ${H} L 0 ${H} Z" fill="url(#forestFloor)"/>
+  ${dapples}
+  ${mist}
+  ${forestTrunkRow(W, groundY, 'near')}
+  ${undergrowth}
+  ${motes}
+</svg>`;
             }
         };
 
@@ -1199,7 +1352,7 @@ const i18n = {
             sunny_park: { name: {zh: '陽光公園', en: 'Sunny Park'}, cost: 500, ...illustratedBg('sunnyPark') },
 
             // 🌟 05 ~ 10：自然與日常系列（森林綠、天空藍、杏桃橘、櫻花粉、竹林翠、陰雨灰）
-            misty_forest: { name: {zh: '迷霧森林', en: 'Misty Forest'}, cost: 600, preview: '#34d399', style: '#34d399', hasDots: true },
+            misty_forest: { name: {zh: '迷霧森林', en: 'Misty Forest'}, cost: 600, ...illustratedBg('mistyForest') },
             breeze_morning: { name: {zh: '微風晨曦', en: 'Breeze Morning'}, cost: 800, preview: '#bae6fd', style: '#bae6fd', hasDots: true },
             afternoon_tea: { name: {zh: '午後茶會', en: 'Afternoon Tea'}, cost: 900, preview: '#fed7aa', style: '#fed7aa', hasDots: true },
             cherry_park: { name: {zh: '櫻花小徑', en: 'Cherry Park'}, cost: 1000, preview: '#fbcfe8', style: '#fbcfe8', hasDots: true },
