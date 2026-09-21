@@ -392,7 +392,19 @@ const i18n = {
                 streakPrefix: "累計簽到第",
                 streakSuffix: "天",
                 todayRewardTitle: "今日獎勵",
-                claimStreakRewardBtn: "開心收下！💰"
+                claimStreakRewardBtn: "開心收下！💰",
+
+                // 🪪 海兔身份證名片
+                idCardTitle: "🪪 身份證",
+                idCardDesc: "海兔檔案",
+                idCardHeader: "🪪 海兔名片",
+                idCardPhotoHint: "證件照拍攝中...",
+                idCardNameLabel: "名字：",
+                idCardSpeciesLabel: "品種：",
+                editNameTitle: "修改名字",
+                closeIdCardBtn: "收起名片",
+                unknownSpecies: "未知品種",
+                defaultPetName: "神祕海兔"
             },
             en: {
                 backBtn: "🏠 Home", points: "Pts", langBtn: "中文", 
@@ -429,7 +441,19 @@ const i18n = {
                 streakPrefix: "Checked in for",
                 streakSuffix: "day(s)",
                 todayRewardTitle: "Today's Reward",
-                claimStreakRewardBtn: "Claim Reward! 💰"
+                claimStreakRewardBtn: "Claim Reward! 💰",
+
+                // 🪪 Slug ID card
+                idCardTitle: "🪪 ID Card",
+                idCardDesc: "Slug Profile",
+                idCardHeader: "🪪 Slug ID Card",
+                idCardPhotoHint: "Taking ID photo...",
+                idCardNameLabel: "Name: ",
+                idCardSpeciesLabel: "Species: ",
+                editNameTitle: "Rename",
+                closeIdCardBtn: "Close Card",
+                unknownSpecies: "Unknown Species",
+                defaultPetName: "Mystic Slug"
             }
         };
         let currLang = 'zh';
@@ -515,10 +539,186 @@ const i18n = {
             abyssSlug: { name: {zh: '深淵使者', en: 'Abyss Herald'}, cost: 9000, body: '#030712', outline: '#14b8a6', earTop: '#0d9488', tail: '#0f766e', spot: '#115e59', blush: '#2dd4bf' }
         };
 
+        // 🏠 【背景插畫零件】每件家具都以「底部中央」為原點繪製，
+        //    擺放時 translate 決定落地位置、scale 決定大小，
+        //    所以同一組家具能在電腦版橫幅與手機版直幅裡各自重新排版，
+        //    而且整張圖是向量，螢幕越大家具就等比例跟著放大。
+        const roomParts = {
+            rug: `<g>
+    <ellipse rx="212" ry="54" fill="#efe6cd" stroke="#c2ad82" stroke-width="4"/>
+    <ellipse rx="178" ry="41" fill="none" stroke="#d8c89c" stroke-width="3"/>
+    <g stroke="#cbb88e" stroke-width="3" stroke-linecap="round">
+      <line x1="-120" y1="-16" x2="-106" y2="-7"/>
+      <line x1="-64" y1="-29" x2="-50" y2="-20"/>
+      <line x1="48" y1="-27" x2="62" y2="-18"/>
+      <line x1="100" y1="-10" x2="114" y2="-1"/>
+      <line x1="-44" y1="22" x2="-30" y2="31"/>
+      <line x1="40" y1="24" x2="54" y2="33"/>
+    </g>
+  </g>`,
+            sofa: `<g stroke="#5b7a94" stroke-width="5" stroke-linejoin="round">
+    <g fill="#6b4c2a" stroke="#4a3821">
+      <rect x="-114" y="-28" width="13" height="28" rx="4"/>
+      <rect x="101" y="-28" width="13" height="28" rx="4"/>
+    </g>
+    <rect x="-126" y="-154" width="252" height="80" rx="24" fill="#a9c3d9"/>
+    <rect x="-118" y="-98" width="236" height="76" rx="18" fill="#c6dae9"/>
+    <line x1="0" y1="-88" x2="0" y2="-28" stroke="#8fb0c9" stroke-width="4"/>
+    <rect x="-144" y="-128" width="36" height="106" rx="18" fill="#9ab7cf"/>
+    <rect x="108" y="-128" width="36" height="106" rx="18" fill="#9ab7cf"/>
+    <g stroke="#b08968" stroke-width="4">
+      <rect x="-92" y="-136" width="52" height="50" rx="13" fill="#f1e2c6" transform="rotate(-8 -66 -111)"/>
+      <rect x="42" y="-136" width="52" height="50" rx="13" fill="#e8cfae" transform="rotate(7 68 -111)"/>
+    </g>
+  </g>`,
+            armchair: `<g stroke="#5b7a94" stroke-width="5" stroke-linejoin="round">
+    <g fill="#6b4c2a" stroke="#4a3821">
+      <rect x="-59" y="-26" width="12" height="26" rx="4"/>
+      <rect x="47" y="-26" width="12" height="26" rx="4"/>
+    </g>
+    <rect x="-67" y="-136" width="134" height="76" rx="22" fill="#a9c3d9"/>
+    <rect x="-59" y="-86" width="118" height="66" rx="17" fill="#c6dae9"/>
+    <rect x="-83" y="-114" width="32" height="94" rx="16" fill="#9ab7cf"/>
+    <rect x="51" y="-114" width="32" height="94" rx="16" fill="#9ab7cf"/>
+  </g>`,
+            table: `<g stroke="#4a3821" stroke-width="5" stroke-linejoin="round">
+    <g stroke-width="6" stroke-linecap="round">
+      <line x1="-52" y1="-46" x2="-64" y2="-4"/>
+      <line x1="54" y1="-46" x2="66" y2="-4"/>
+      <line x1="1" y1="-40" x2="1" y2="0"/>
+    </g>
+    <ellipse cy="-56" rx="82" ry="19" fill="#a67c4a"/>
+    <g stroke-width="4">
+      <rect x="-32" y="-80" width="58" height="12" rx="4" fill="#d98080"/>
+      <rect x="-27" y="-91" width="49" height="11" rx="4" fill="#e8cfae"/>
+      <rect x="-22" y="-102" width="41" height="11" rx="4" fill="#8fb0c9"/>
+    </g>
+  </g>`,
+            lamp: `<g stroke="#8a6a3f" stroke-width="5" stroke-linejoin="round">
+    <g stroke="none">
+      <path d="M -44 -186 L 44 -186 L 104 -14 L -104 -14 Z" fill="url(#lampCone)"/>
+      <ellipse cy="-192" rx="86" ry="58" fill="url(#lampGlow)"/>
+    </g>
+    <ellipse cy="-11" rx="36" ry="11" fill="#8b6136"/>
+    <rect x="-6" y="-185" width="11" height="174" fill="#a67c4a"/>
+    <path d="M -30 -241 L 30 -241 L 46 -185 L -46 -185 Z" fill="#fdf6e3" stroke="#c9a227"/>
+  </g>`,
+            plant: `<g>
+    <g stroke="#2f6b43" stroke-width="5" fill="none" stroke-linecap="round">
+      <path d="M -6 -86 C -12 -134, -28 -170, -50 -190"/>
+      <path d="M 0 -86 C 4 -138, 12 -174, 26 -198"/>
+      <path d="M -3 -86 C -6 -122, -16 -148, -28 -168"/>
+    </g>
+    <g fill="#4b8b5a" stroke="#2f6b43" stroke-width="4" stroke-linejoin="round">
+      <path d="M -50 -190 C -84 -198, -104 -228, -90 -254 C -64 -262, -36 -244, -30 -218 C -27 -202, -36 -188, -50 -190 Z"/>
+      <path d="M 26 -198 C 60 -204, 84 -236, 70 -262 C 42 -270, 12 -250, 6 -224 C 3 -208, 12 -196, 26 -198 Z"/>
+      <path d="M -28 -168 C -52 -190, -56 -226, -34 -244 C -10 -238, 6 -210, -4 -184 C -9 -172, -18 -166, -28 -168 Z"/>
+    </g>
+    <g fill="#3f7a4e" stroke="#2f6b43" stroke-width="4" stroke-linejoin="round">
+      <path d="M -10 -214 C -30 -228, -38 -252, -24 -270 C -2 -266, 12 -244, 4 -222 C 1 -214, -4 -210, -10 -214 Z"/>
+    </g>
+    <g stroke="#9c5338" stroke-width="5" stroke-linejoin="round">
+      <path d="M -40 -80 L 40 -80 L 27 0 L -27 0 Z" fill="#c97b5a"/>
+      <rect x="-48" y="-96" width="96" height="20" rx="7" fill="#d98e6b"/>
+    </g>
+  </g>`
+        };
+
+        // 把零件擺到指定位置並縮放
+        const placePart = (part, x, y, scale) => `<g transform="translate(${x}, ${y}) scale(${scale})">${part}</g>`;
+
+        const bgArt = {
+            // 溫馨房間：依舞台比例挑版面。
+            // 'wide' 給電腦版的寬扁舞台、'portrait' 給手機的直式滿版，
+            // 兩種版面共用同一組家具零件，只是落點與縮放不同。
+            cozyRoom(mode) {
+                const wide = mode !== 'portrait';
+                const W = wide ? 1200 : 640;
+                const H = wide ? 520 : 1040;
+                const floorY = wide ? 318 : 640;
+
+                // 榻榻米：磚砌排列，每列交錯半格
+                const matW = wide ? 300 : 260;
+                const matH = 150;
+                let floor = '';
+                let row = 0;
+                for (let y = floorY + 22; y < H + matH; y += matH, row++) {
+                    const offset = row % 2 === 0 ? 0 : -matW / 2;
+                    for (let x = -matW + offset; x < W + matW; x += matW) {
+                        const fill = (row + Math.round(x / matW)) % 2 === 0 ? 'hl' : 'vl';
+                        floor += `<rect x="${x}" y="${y}" width="${matW}" height="${matH}" fill="url(#${fill})"/>`;
+                    }
+                }
+
+                // 窗戶
+                const win = wide
+                    ? { x: 96, y: 46, w: 250, h: 208 }
+                    : { x: 92, y: 132, w: 262, h: 280 };
+                const beam = `${win.x + win.w},${win.y + win.h} ${win.x + win.w},${win.y + win.h * 0.45} ${win.x + win.w + win.h * 0.8},${floorY + 30} ${win.x + win.w * 0.3},${floorY + 30}`;
+
+                const furniture = wide
+                    ? placePart(roomParts.rug, 620, 392, 0.8)
+                    + placePart(roomParts.plant, 392, 352, 0.7)
+                    + placePart(roomParts.sofa, 620, 350, 0.78)
+                    + placePart(roomParts.armchair, 886, 350, 0.74)
+                    + placePart(roomParts.lamp, 1062, 350, 0.72)
+                    + placePart(roomParts.table, 620, 404, 0.62)
+                    : placePart(roomParts.rug, 330, 754, 0.88)
+                    + placePart(roomParts.lamp, 140, 668, 0.6)
+                    + placePart(roomParts.plant, 506, 672, 0.6)
+                    + placePart(roomParts.sofa, 330, 672, 0.85)
+                    + placePart(roomParts.table, 330, 772, 0.7)
+                    // 這張椅子擺在前景，尺寸要比後排家具大才有遠近感
+                    + placePart(roomParts.armchair, 214, 948, 0.95);
+
+                return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid slice">
+  <defs>
+    <pattern id="hl" width="6" height="6" patternUnits="userSpaceOnUse">
+      <rect width="6" height="6" fill="#e6dec3"/>
+      <line x1="0" y1="3" x2="6" y2="3" stroke="#d1c5a5" stroke-width="1.8"/>
+    </pattern>
+    <pattern id="vl" width="6" height="6" patternUnits="userSpaceOnUse">
+      <rect width="6" height="6" fill="#e6dec3"/>
+      <line x1="3" y1="0" x2="3" y2="6" stroke="#d1c5a5" stroke-width="1.8"/>
+    </pattern>
+    <radialGradient id="lampGlow">
+      <stop offset="0%" stop-color="#fde68a" stop-opacity="0.6"/>
+      <stop offset="55%" stop-color="#fde68a" stop-opacity="0.22"/>
+      <stop offset="100%" stop-color="#fde68a" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="lampCone" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#fde68a" stop-opacity="0.34"/>
+      <stop offset="100%" stop-color="#fde68a" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="${W}" height="${floorY}" fill="#fffbeb"/>
+  <rect y="${floorY}" width="${W}" height="22" fill="#6b4c2a"/>
+  <g stroke="#4a3821" stroke-width="9">${floor}</g>
+
+  <g transform="translate(${win.x}, ${win.y})">
+    <rect width="${win.w}" height="${win.h}" fill="#bae6fd"/>
+    <circle cx="${win.w * 0.72}" cy="${win.h * 0.22}" r="${win.h * 0.11}" fill="#ffffff" opacity="0.8"/>
+    <circle cx="${win.w * 0.86}" cy="${win.h * 0.26}" r="${win.h * 0.075}" fill="#ffffff" opacity="0.8"/>
+    <rect width="${win.w}" height="${win.h}" fill="none" stroke="#5a4425" stroke-width="18"/>
+    <line x1="${win.w / 2}" y1="0" x2="${win.w / 2}" y2="${win.h}" stroke="#5a4425" stroke-width="13"/>
+    <line x1="0" y1="${win.h / 2}" x2="${win.w}" y2="${win.h / 2}" stroke="#5a4425" stroke-width="13"/>
+  </g>
+  <polygon points="${beam}" fill="#ffffff" opacity="0.16"/>
+
+  ${furniture}
+</svg>`;
+            }
+        };
+
+        // 把 SVG 原始碼包成可以直接餵給 CSS background 的字串
+        const toBgUrl = (svg) => `url("data:image/svg+xml,${encodeURIComponent(svg)}") center center / cover no-repeat`;
+
        const bgData = {
             // 🌟 01 ~ 04：基礎入門系列（純白、暖黃、青綠、粉薄荷）
             none: { name: {zh: '無背景', en: 'Default'}, cost: 0, preview: '#ffffff', style: '#ffffff', hasDots: true },
-           cozy_room: { name: {zh: '溫馨房間', en: 'Cozy Room'}, cost: 200, preview: '#e6dec3', style: "url('data:image/svg+xml;utf8,<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 800 600\" preserveAspectRatio=\"none\"><defs><pattern id=\"hl\" width=\"4\" height=\"4\" patternUnits=\"userSpaceOnUse\"><rect width=\"4\" height=\"4\" fill=\"%23e6dec3\"/><line x1=\"0\" y1=\"2\" x2=\"4\" y2=\"2\" stroke=\"%23d1c5a5\" stroke-width=\"1.2\"/></pattern><pattern id=\"vl\" width=\"4\" height=\"4\" patternUnits=\"userSpaceOnUse\"><rect width=\"4\" height=\"4\" fill=\"%23e6dec3\"/><line x1=\"2\" y1=\"0\" x2=\"2\" y2=\"4\" stroke=\"%23d1c5a5\" stroke-width=\"1.2\"/></pattern></defs><rect width=\"800\" height=\"360\" fill=\"%23fffbeb\"/><rect y=\"360\" width=\"800\" height=\"20\" fill=\"%236b4c2a\"/><g stroke=\"%234a3821\" stroke-width=\"8\"><rect x=\"-50\" y=\"380\" width=\"110\" height=\"220\" fill=\"url(%23hl)\"/><rect x=\"60\" y=\"380\" width=\"220\" height=\"110\" fill=\"url(%23vl)\"/><rect x=\"60\" y=\"490\" width=\"220\" height=\"110\" fill=\"url(%23vl)\"/><rect x=\"280\" y=\"380\" width=\"110\" height=\"220\" fill=\"url(%23hl)\"/><rect x=\"390\" y=\"380\" width=\"220\" height=\"110\" fill=\"url(%23vl)\"/><rect x=\"390\" y=\"490\" width=\"220\" height=\"110\" fill=\"url(%23vl)\"/><rect x=\"610\" y=\"380\" width=\"110\" height=\"220\" fill=\"url(%23hl)\"/><rect x=\"720\" y=\"380\" width=\"220\" height=\"110\" fill=\"url(%23vl)\"/><rect x=\"720\" y=\"490\" width=\"220\" height=\"110\" fill=\"url(%23vl)\"/></g><g transform=\"translate(60, 40)\"><rect width=\"220\" height=\"280\" fill=\"%23bae6fd\"/><circle cx=\"160\" cy=\"60\" r=\"30\" fill=\"%23ffffff\" opacity=\"0.8\"/><circle cx=\"190\" cy=\"70\" r=\"20\" fill=\"%23ffffff\" opacity=\"0.8\"/><rect width=\"220\" height=\"280\" fill=\"none\" stroke=\"%235a4425\" stroke-width=\"16\"/><line x1=\"110\" y1=\"0\" x2=\"110\" y2=\"280\" stroke=\"%235a4425\" stroke-width=\"12\"/><line x1=\"0\" y1=\"140\" x2=\"220\" y2=\"140\" stroke=\"%235a4425\" stroke-width=\"12\"/><polygon points=\"220,280 220,140 400,340 150,340\" fill=\"%23ffffff\" opacity=\"0.15\"/></g></svg>') center center / cover no-repeat", hasDots: false },
+            // style 寫成函式：套用當下才依舞台比例挑橫式或直式版面
+            cozy_room: { name: {zh: '溫馨房間', en: 'Cozy Room'}, cost: 200, preview: '#e6dec3', style: (mode) => toBgUrl(bgArt.cozyRoom(mode)), hasDots: false },
 sunshine_grassland: { name: {zh: '陽光草原', en: 'Sunshine Grassland'}, cost: 400, preview: 'linear-gradient(135deg, #7dd3fc 0%, #fef08a 40%, #4ade80 70%, #15803d 100%)', style: "url('data:image/svg+xml;utf8,<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1200 800\" preserveAspectRatio=\"none\"><defs><linearGradient id=\"sky\" x1=\"0\" y1=\"0\" x2=\"0\" y2=\"1\"><stop offset=\"0%\" stop-color=\"%2338bdf8\"/><stop offset=\"35%\" stop-color=\"%237dd3fc\"/><stop offset=\"65%\" stop-color=\"%23bae6fd\"/><stop offset=\"90%\" stop-color=\"%23fef08a\"/><stop offset=\"100%\" stop-color=\"%23d9f99d\"/></linearGradient><radialGradient id=\"sun\" cx=\"50%\" cy=\"50%\" r=\"50%\"><stop offset=\"0%\" stop-color=\"%23ffffff\"/><stop offset=\"30%\" stop-color=\"%23fffbeb\"/><stop offset=\"65%\" stop-color=\"%23fde047\"/><stop offset=\"88%\" stop-color=\"%23f59e0b\" stop-opacity=\"0.6\"/><stop offset=\"100%\" stop-color=\"%23fbbf24\" stop-opacity=\"0\"/></radialGradient><radialGradient id=\"sunGlow\" cx=\"50%\" cy=\"50%\" r=\"50%\"><stop offset=\"0%\" stop-color=\"%23ffffff\" stop-opacity=\"0.8\"/><stop offset=\"35%\" stop-color=\"%23fef08a\" stop-opacity=\"0.4\"/><stop offset=\"70%\" stop-color=\"%23facc15\" stop-opacity=\"0.15\"/><stop offset=\"100%\" stop-color=\"%23fde047\" stop-opacity=\"0\"/></radialGradient><linearGradient id=\"hDist\" x1=\"0\" y1=\"0\" x2=\"0\" y2=\"1\"><stop offset=\"0%\" stop-color=\"%23a7f3d0\"/><stop offset=\"100%\" stop-color=\"%236ee7b7\"/></linearGradient><linearGradient id=\"hMid\" x1=\"0\" y1=\"0\" x2=\"0\" y2=\"1\"><stop offset=\"0%\" stop-color=\"%2386efac\"/><stop offset=\"50%\" stop-color=\"%234ade80\"/><stop offset=\"100%\" stop-color=\"%2322c55e\"/></linearGradient><linearGradient id=\"hFore\" x1=\"0\" y1=\"0\" x2=\"0\" y2=\"1\"><stop offset=\"0%\" stop-color=\"%23a3e635\"/><stop offset=\"30%\" stop-color=\"%234ade80\"/><stop offset=\"70%\" stop-color=\"%2316a34a\"/><stop offset=\"100%\" stop-color=\"%2315803d\"/></linearGradient><linearGradient id=\"hFront\" x1=\"0\" y1=\"0\" x2=\"0\" y2=\"1\"><stop offset=\"0%\" stop-color=\"%23bef264\"/><stop offset=\"25%\" stop-color=\"%2322c55e\"/><stop offset=\"75%\" stop-color=\"%2315803d\"/><stop offset=\"100%\" stop-color=\"%2314532d\"/></linearGradient><linearGradient id=\"cloud\" x1=\"0\" y1=\"0\" x2=\"0\" y2=\"1\"><stop offset=\"0%\" stop-color=\"%23ffffff\"/><stop offset=\"85%\" stop-color=\"%23f1f5f9\"/><stop offset=\"100%\" stop-color=\"%23e2e8f0\"/></linearGradient></defs><rect width=\"1200\" height=\"800\" fill=\"url(%23sky)\"/><circle cx=\"180\" cy=\"130\" r=\"160\" fill=\"url(%23sunGlow)\"/><circle cx=\"180\" cy=\"130\" r=\"90\" fill=\"url(%23sun)\"/><circle cx=\"180\" cy=\"130\" r=\"42\" fill=\"%23ffffff\"/><g fill=\"%23ffffff\" opacity=\"0.09\"><polygon points=\"180,130 -100,300 -100,420\"/><polygon points=\"180,130 -40,550 80,620\"/><polygon points=\"180,130 200,800 320,800\"/><polygon points=\"180,130 460,800 620,800\"/><polygon points=\"180,130 820,800 980,750\"/><polygon points=\"180,130 1150,680 1250,600\"/><polygon points=\"180,130 1250,420 1250,280\"/><polygon points=\"180,130 1100,100 1200,50\"/></g><path d=\"M 180 60 Q 180 130 110 130 Q 180 130 180 200 Q 180 130 250 130 Q 180 130 180 60 Z\" fill=\"%23ffffff\" opacity=\"0.35\"/><circle cx=\"280\" cy=\"200\" r=\"12\" fill=\"%23ffffff\" opacity=\"0.3\"/><circle cx=\"340\" cy=\"245\" r=\"7\" fill=\"%23fef08a\" opacity=\"0.35\"/><circle cx=\"430\" cy=\"310\" r=\"18\" fill=\"%23fde047\" opacity=\"0.2\"/><g fill=\"url(%23cloud)\" opacity=\"0.95\"><path d=\"M 850 160 Q 850 110 900 100 Q 940 60 1010 70 Q 1070 50 1110 90 Q 1160 80 1180 130 Q 1220 150 1210 190 Q 1200 230 1150 230 L 870 230 Q 830 220 830 180 Q 830 160 850 160 Z\"/></g><g fill=\"url(%23cloud)\" opacity=\"0.9\"><path d=\"M 380 180 Q 390 140 430 140 Q 460 110 510 125 Q 550 110 580 140 Q 610 150 610 180 Q 600 210 560 210 L 400 210 Q 370 200 380 180 Z\"/></g><g fill=\"%23ffffff\" opacity=\"0.6\"><ellipse cx=\"140\" cy=\"280\" rx=\"60\" ry=\"14\"/><ellipse cx=\"120\" cy=\"275\" rx=\"35\" ry=\"18\"/><ellipse cx=\"720\" cy=\"260\" rx=\"80\" ry=\"16\"/><ellipse cx=\"745\" cy=\"254\" rx=\"45\" ry=\"20\"/></g><g stroke=\"%233b82f6\" stroke-width=\"2.5\" stroke-linecap=\"round\" fill=\"none\" opacity=\"0.45\"><path d=\"M 640 160 Q 652 150 664 160 Q 676 150 688 160\"/><path d=\"M 700 180 Q 709 172 718 180 Q 727 172 736 180\"/><path d=\"M 610 200 Q 617 193 624 200 Q 631 193 638 200\"/></g><path d=\"M -20 460 Q 150 370 380 430 Q 600 480 850 390 Q 1050 340 1220 420 L 1220 800 L -20 800 Z\" fill=\"url(%23hDist)\" opacity=\"0.85\"/><g fill=\"%23059669\" opacity=\"0.35\"><circle cx=\"360\" cy=\"425\" r=\"9\"/><circle cx=\"375\" cy=\"422\" r=\"12\"/><circle cx=\"390\" cy=\"427\" r=\"8\"/><circle cx=\"840\" cy=\"385\" r=\"10\"/><circle cx=\"855\" cy=\"380\" r=\"14\"/><circle cx=\"870\" cy=\"386\" r=\"9\"/></g><path d=\"M -20 540 Q 220 440 520 510 Q 820 570 1100 460 Q 1180 440 1220 470 L 1220 800 L -20 800 Z\" fill=\"url(%23hMid)\"/><rect x=\"236\" y=\"465\" width=\"8\" height=\"25\" rx=\"3\" fill=\"%2378350f\"/><circle cx=\"240\" cy=\"450\" r=\"28\" fill=\"%2315803d\"/><circle cx=\"232\" cy=\"445\" r=\"20\" fill=\"%2322c55e\"/><circle cx=\"246\" cy=\"440\" r=\"16\" fill=\"%234ade80\"/><circle cx=\"236\" cy=\"435\" r=\"10\" fill=\"%2386efac\"/><rect x=\"287\" y=\"485\" width=\"6\" height=\"18\" rx=\"2\" fill=\"%2378350f\"/><circle cx=\"290\" cy=\"475\" r=\"18\" fill=\"%2316a34a\"/><circle cx=\"286\" cy=\"470\" r=\"14\" fill=\"%234ade80\"/><rect x=\"976\" y=\"480\" width=\"8\" height=\"26\" rx=\"3\" fill=\"%2378350f\"/><circle cx=\"980\" cy=\"460\" r=\"26\" fill=\"%2315803d\"/><circle cx=\"974\" cy=\"454\" r=\"20\" fill=\"%2322c55e\"/><circle cx=\"988\" cy=\"450\" r=\"16\" fill=\"%234ade80\"/><circle cx=\"978\" cy=\"444\" r=\"10\" fill=\"%2386efac\"/><path d=\"M -20 540 Q 220 440 520 510 Q 820 570 1100 460 Q 1180 440 1220 470\" fill=\"none\" stroke=\"%23bef264\" stroke-width=\"4\" opacity=\"0.5\"/><path d=\"M -20 620 Q 300 520 700 590 Q 950 630 1220 540 L 1220 800 L -20 800 Z\" fill=\"url(%23hFore)\"/><path d=\"M -20 620 Q 300 520 700 590 Q 950 630 1220 540\" fill=\"none\" stroke=\"%23fef08a\" stroke-width=\"6\" opacity=\"0.45\"/><path d=\"M -20 680 Q 280 610 640 670 Q 980 720 1220 630 L 1220 800 L -20 800 Z\" fill=\"url(%23hFront)\"/><path d=\"M -20 680 Q 280 610 640 670 Q 980 720 1220 630\" fill=\"none\" stroke=\"%23d9f99d\" stroke-width=\"5\" opacity=\"0.6\"/><g fill=\"%23166534\" stroke=\"%2314532d\" stroke-width=\"1.5\" stroke-linejoin=\"round\"><path d=\"M 120 705 Q 112 680 102 672 Q 114 685 120 705 Z\"/><path d=\"M 122 705 Q 123 675 120 665 Q 126 680 124 705 Z\"/><path d=\"M 124 705 Q 134 682 142 676 Q 132 688 126 705 Z\"/><path d=\"M 450 725 Q 442 702 432 696 Q 444 707 450 725 Z\"/><path d=\"M 452 725 Q 453 695 450 685 Q 456 700 454 725 Z\"/><path d=\"M 454 725 Q 464 704 472 698 Q 462 710 456 725 Z\"/><path d=\"M 780 715 Q 772 692 762 686 Q 774 697 780 715 Z\"/><path d=\"M 782 715 Q 783 685 780 675 Q 786 690 784 715 Z\"/><path d=\"M 784 715 Q 794 694 802 688 Q 792 700 786 715 Z\"/><path d=\"M 1050 695 Q 1042 672 1032 666 Q 1044 677 1050 695 Z\"/><path d=\"M 1052 695 Q 1053 665 1050 655 Q 1056 670 1054 695 Z\"/><path d=\"M 1054 695 Q 1064 674 1072 668 Q 1062 680 1056 695 Z\"/></g><g transform=\"translate(180, 710)\"><path d=\"M 0 0 L 2 16\" stroke=\"%2315803d\" stroke-width=\"2.5\"/><circle cx=\"-8\" cy=\"0\" r=\"5\" fill=\"%23ffffff\"/><circle cx=\"8\" cy=\"0\" r=\"5\" fill=\"%23ffffff\"/><circle cx=\"0\" cy=\"-8\" r=\"5\" fill=\"%23ffffff\"/><circle cx=\"0\" cy=\"8\" r=\"5\" fill=\"%23ffffff\"/><circle cx=\"-5\" cy=\"-5\" r=\"4.5\" fill=\"%23ffffff\"/><circle cx=\"5\" cy=\"-5\" r=\"4.5\" fill=\"%23ffffff\"/><circle cx=\"-5\" cy=\"5\" r=\"4.5\" fill=\"%23ffffff\"/><circle cx=\"5\" cy=\"5\" r=\"4.5\" fill=\"%23ffffff\"/><circle cx=\"0\" cy=\"0\" r=\"5\" fill=\"%23facc15\"/></g><g transform=\"translate(680, 725) scale(0.9)\"><path d=\"M 0 0 L -2 16\" stroke=\"%2315803d\" stroke-width=\"2.5\"/><circle cx=\"-8\" cy=\"0\" r=\"5\" fill=\"%23ffffff\"/><circle cx=\"8\" cy=\"0\" r=\"5\" fill=\"%23ffffff\"/><circle cx=\"0\" cy=\"-8\" r=\"5\" fill=\"%23ffffff\"/><circle cx=\"0\" cy=\"8\" r=\"5\" fill=\"%23ffffff\"/><circle cx=\"-5\" cy=\"-5\" r=\"4.5\" fill=\"%23ffffff\"/><circle cx=\"5\" cy=\"-5\" r=\"4.5\" fill=\"%23ffffff\"/><circle cx=\"-5\" cy=\"5\" r=\"4.5\" fill=\"%23ffffff\"/><circle cx=\"5\" cy=\"5\" r=\"4.5\" fill=\"%23ffffff\"/><circle cx=\"0\" cy=\"0\" r=\"5\" fill=\"%23facc15\"/></g><g transform=\"translate(1120, 715) scale(0.85)\"><path d=\"M 0 0 L 1 14\" stroke=\"%2315803d\" stroke-width=\"2.5\"/><circle cx=\"-8\" cy=\"0\" r=\"5\" fill=\"%23ffffff\"/><circle cx=\"8\" cy=\"0\" r=\"5\" fill=\"%23ffffff\"/><circle cx=\"0\" cy=\"-8\" r=\"5\" fill=\"%23ffffff\"/><circle cx=\"0\" cy=\"8\" r=\"5\" fill=\"%23ffffff\"/><circle cx=\"0\" cy=\"0\" r=\"5\" fill=\"%23facc15\"/></g><g transform=\"translate(330, 685) scale(0.85)\"><path d=\"M 0 0 L 1 14\" stroke=\"%2315803d\" stroke-width=\"2.5\"/><circle cx=\"-6\" cy=\"-2\" r=\"5\" fill=\"%23f472b6\"/><circle cx=\"6\" cy=\"-2\" r=\"5\" fill=\"%23f472b6\"/><circle cx=\"0\" cy=\"-7\" r=\"5\" fill=\"%23f472b6\"/><circle cx=\"-4\" cy=\"5\" r=\"5\" fill=\"%23f472b6\"/><circle cx=\"4\" cy=\"5\" r=\"5\" fill=\"%23f472b6\"/><circle cx=\"0\" cy=\"0\" r=\"4\" fill=\"%23ffffff\"/></g><g transform=\"translate(890, 700) scale(0.8)\"><path d=\"M 0 0 L -1 14\" stroke=\"%2315803d\" stroke-width=\"2.5\"/><circle cx=\"-6\" cy=\"-2\" r=\"5\" fill=\"%23fb7185\"/><circle cx=\"6\" cy=\"-2\" r=\"5\" fill=\"%23fb7185\"/><circle cx=\"0\" cy=\"-7\" r=\"5\" fill=\"%23fb7185\"/><circle cx=\"-4\" cy=\"5\" r=\"5\" fill=\"%23fb7185\"/><circle cx=\"4\" cy=\"5\" r=\"5\" fill=\"%23fb7185\"/><circle cx=\"0\" cy=\"0\" r=\"4\" fill=\"%23fef08a\"/></g><g transform=\"translate(530, 740) scale(0.75)\"><circle cx=\"-5\" cy=\"-2\" r=\"4.5\" fill=\"%23fde047\"/><circle cx=\"5\" cy=\"-2\" r=\"4.5\" fill=\"%23fde047\"/><circle cx=\"0\" cy=\"-6\" r=\"4.5\" fill=\"%23fde047\"/><circle cx=\"0\" cy=\"0\" r=\"3\" fill=\"%23ea580c\"/></g><g transform=\"translate(960, 730) scale(0.75)\"><circle cx=\"-5\" cy=\"-2\" r=\"4.5\" fill=\"%23fde047\"/><circle cx=\"5\" cy=\"-2\" r=\"4.5\" fill=\"%23fde047\"/><circle cx=\"0\" cy=\"-6\" r=\"4.5\" fill=\"%23fde047\"/><circle cx=\"0\" cy=\"0\" r=\"3\" fill=\"%23ea580c\"/></g><g fill=\"%23ffffff\" opacity=\"0.8\"><circle cx=\"310\" cy=\"590\" r=\"2.5\"/><circle cx=\"410\" cy=\"520\" r=\"3\"/><circle cx=\"580\" cy=\"480\" r=\"2\"/><circle cx=\"630\" cy=\"410\" r=\"3.5\"/><circle cx=\"750\" cy=\"460\" r=\"2\"/><circle cx=\"820\" cy=\"380\" r=\"2.5\"/><circle cx=\"920\" cy=\"490\" r=\"3\"/></g><g stroke=\"%23ffffff\" stroke-width=\"1.2\" stroke-linecap=\"round\" fill=\"none\" opacity=\"0.85\"><path d=\"M 410 520 L 410 530 M 410 520 L 404 513 M 410 520 L 416 513 M 410 520 L 410 511\"/><path d=\"M 630 410 L 630 420 M 630 410 L 624 403 M 630 410 L 636 403 M 630 410 L 630 401\"/><path d=\"M 820 380 L 820 389 M 820 380 L 815 374 M 820 380 L 825 374 M 820 380 L 820 372\"/></g><g transform=\"translate(260, 600) rotate(-15)\"><ellipse cx=\"-7\" cy=\"-5\" rx=\"7\" ry=\"5\" fill=\"%23fde047\" opacity=\"0.9\"/><ellipse cx=\"-5\" cy=\"4\" rx=\"5\" ry=\"3.5\" fill=\"%23f59e0b\" opacity=\"0.9\"/><ellipse cx=\"7\" cy=\"-5\" rx=\"7\" ry=\"5\" fill=\"%23fde047\" opacity=\"0.9\"/><ellipse cx=\"5\" cy=\"4\" rx=\"5\" ry=\"3.5\" fill=\"%23f59e0b\" opacity=\"0.9\"/><line x1=\"0\" y1=\"-7\" x2=\"0\" y2=\"7\" stroke=\"%2378350f\" stroke-width=\"1.5\"/></g><g transform=\"translate(740, 640) rotate(20) scale(0.85)\"><ellipse cx=\"-7\" cy=\"-5\" rx=\"7\" ry=\"5\" fill=\"%2338bdf8\" opacity=\"0.9\"/><ellipse cx=\"-5\" cy=\"4\" rx=\"5\" ry=\"3.5\" fill=\"%230284c7\" opacity=\"0.9\"/><ellipse cx=\"7\" cy=\"-5\" rx=\"7\" ry=\"5\" fill=\"%2338bdf8\" opacity=\"0.9\"/><ellipse cx=\"5\" cy=\"4\" rx=\"5\" ry=\"3.5\" fill=\"%230284c7\" opacity=\"0.9\"/><line x1=\"0\" y1=\"-7\" x2=\"0\" y2=\"7\" stroke=\"%230f172a\" stroke-width=\"1.5\"/></g></svg>') center center / cover no-repeat", hasDots: false },
             sunny_park: { name: {zh: '陽光公園', en: 'Sunny Park'}, cost: 500, preview: '#a7f3d0', style: '#a7f3d0', hasDots: true },
 
@@ -1077,28 +1277,88 @@ const effectData = {
                 }, 500);
             }
         }
-        // 🌟 視窗大小改變時的「防走失與自動校正」機制
-        window.addEventListener('resize', () => {
+        // 🌟 【海兔防遮擋安全範圍】回傳海兔在舞台座標系裡可以待的極限值。
+        //    下緣會避開會蓋住牠的介面（電腦版是商店面板，手機版是常駐互動按鈕列），
+        //    避免海兔追海藻或被拖曳後卡在選單底下看不到。
+        function getSlugSafeBounds() {
             const slugEl = document.getElementById('slugContainer');
             const stage = document.getElementById('mainStage');
-            
-            // 如果正在餵食或運動中，先不打擾牠
-            if (!slugEl || !stage || isFeedingActive || isExercisingActive) return;
+            if (!slugEl || !stage) return null;
 
-            // 計算縮小後視窗的安全極限
-            const maxX = stage.offsetWidth - slugEl.offsetWidth;
-            const maxY = stage.offsetHeight - slugEl.offsetHeight;
+            const stageRect = stage.getBoundingClientRect();
+            const stageMiddle = stageRect.top + stageRect.height / 2;
 
-            let curLeft = parseFloat(slugEl.style.left);
-            let curTop = parseFloat(slugEl.style.top);
+            let safeTop = stageRect.top;
+            let safeBottom = stageRect.bottom;
 
-            // 如果海兔有離開過中心點（有絕對座標），就進行邊界檢查並推回畫面內
+            // 電腦版與手機版共用同一份清單，實際存在且看得見的才會被算進去
+            const blockers = [
+                '.top-bar', '#btnOpenManual', '#btnToggleMp', '.mp-panel',
+                '#btnOpenShop', '.interaction-group', '#uiPanel'
+            ];
+
+            for (const selector of blockers) {
+                const el = document.querySelector(selector);
+                if (!el) continue;
+
+                const rect = el.getBoundingClientRect();
+                // 隱藏的元件高度是 0；手機版的 uiPanel 是整頁透明容器，會蓋滿舞台所以要跳過
+                if (rect.height <= 0 || rect.height > stageRect.height * 0.8) continue;
+                // 水平方向完全沒有跟舞台重疊的就不影響海兔
+                if (rect.right <= stageRect.left || rect.left >= stageRect.right) continue;
+
+                if (rect.bottom <= stageMiddle) {
+                    safeTop = Math.max(safeTop, rect.bottom);
+                } else if (rect.top >= stageMiddle) {
+                    safeBottom = Math.min(safeBottom, rect.top);
+                }
+            }
+
+            const minY = Math.max(0, safeTop - stageRect.top);
+            const maxY = Math.max(minY, safeBottom - stageRect.top - slugEl.offsetHeight);
+
+            return {
+                minX: 0,
+                minY,
+                maxX: Math.max(0, stageRect.width - slugEl.offsetWidth),
+                maxY
+            };
+        }
+
+        // 🌟 把海兔推回安全範圍內（餵食結束、視窗縮放、裝置轉向時呼叫）
+        function clampSlugIntoSafeArea() {
+            const slugEl = document.getElementById('slugContainer');
+            const bounds = getSlugSafeBounds();
+            if (!slugEl || !bounds) return;
+
+            const curLeft = parseFloat(slugEl.style.left);
+            const curTop = parseFloat(slugEl.style.top);
+
             if (!isNaN(curLeft)) {
-                slugEl.style.left = Math.max(0, Math.min(maxX, curLeft)) + 'px';
+                slugEl.style.left = Math.min(Math.max(curLeft, bounds.minX), bounds.maxX) + 'px';
             }
             if (!isNaN(curTop)) {
-                slugEl.style.top = Math.max(0, Math.min(maxY, curTop)) + 'px';
+                slugEl.style.top = Math.min(Math.max(curTop, bounds.minY), bounds.maxY) + 'px';
             }
+        }
+
+        // 🌟 視窗大小改變時的「防走失與自動校正」機制
+        let stageResizeTimer = null;
+        window.addEventListener('resize', () => {
+            // 如果正在餵食或運動中，先不打擾牠
+            if (!isFeedingActive && !isExercisingActive) clampSlugIntoSafeArea();
+
+            // 舞台從寬扁變直立（或反過來）時，插畫背景要換成對應版面
+            clearTimeout(stageResizeTimer);
+            stageResizeTimer = setTimeout(applyBg, 200);
+        });
+
+        // 手機轉向後版面高度會變，也要重新校正一次
+        window.addEventListener('orientationchange', () => {
+            setTimeout(() => {
+                clampSlugIntoSafeArea();
+                applyBg();
+            }, 300);
         });
 // 🌟 洗掉前任記憶的忘情水！
         function clearTestLogin() {
@@ -1537,13 +1797,11 @@ function runSlugChaseLoop() {
                     curLeft += (dx / dist) * stepSpeed;
                     curTop += (dy / dist) * stepSpeed;
 
-                    const minX = -slugEl.offsetWidth / 3;
-                    const maxX = stage.offsetWidth - slugEl.offsetWidth * 0.6;
-                    const minY = -slugEl.offsetHeight / 3;
-                    const maxY = stage.offsetHeight - slugEl.offsetHeight * 0.6;
+                    // 追海藻時也不能衝出舞台或鑽進商店面板底下
+                    const bounds = getSlugSafeBounds() || { minX: 0, minY: 0, maxX: stage.offsetWidth, maxY: stage.offsetHeight };
 
-                    slugEl.style.left = Math.max(minX, Math.min(maxX, curLeft)) + 'px';
-                    slugEl.style.top = Math.max(minY, Math.min(maxY, curTop)) + 'px';
+                    slugEl.style.left = Math.max(bounds.minX, Math.min(bounds.maxX, curLeft)) + 'px';
+                    slugEl.style.top = Math.max(bounds.minY, Math.min(bounds.maxY, curTop)) + 'px';
                     slugEl.style.transform = `scaleX(${direction})`;
                 } else {
                     // 📱 手機版專屬：留在原地跳躍流口水，只轉身面向海藻
@@ -1662,6 +1920,9 @@ function completeFeedingAction(isSuccess) {
                 updateUI();
                 showFloatText('😋 嚼嚼嚼！美味海藻 +80');
                 fetchAPI('/pet-games/interact', 'POST', { action: 'feed' });
+
+                // 吃完後把海兔推回安全範圍，避免牠停在商店面板底下被擋住
+                clampSlugIntoSafeArea();
         }
         // 🌟 【活力運動：拋接球與海兔流汗撿球收納系統】
         let isExercisingActive = false;
@@ -2291,6 +2552,24 @@ function updateLangUI() {
                 openDailyModal();
             }
 
+            // 🪪 身份證按鈕與名片彈窗（名字以外全部跟著語言切換）
+            const idCardTexts = {
+                txtIdCardTitle: t.idCardTitle,
+                txtIdCardDesc: t.idCardDesc,
+                idCardHeader: t.idCardHeader,
+                idCardPhotoHint: t.idCardPhotoHint,
+                idCardNameLabel: t.idCardNameLabel,
+                idCardSpeciesLabel: t.idCardSpeciesLabel,
+                btnCloseIdCard: t.closeIdCardBtn
+            };
+            for (const [id, text] of Object.entries(idCardTexts)) {
+                const el = document.getElementById(id);
+                if (el && text) el.innerText = text;
+            }
+            const btnEditPetName = document.getElementById('btnEditPetName');
+            if (btnEditPetName && t.editNameTitle) btnEditPetName.title = t.editNameTitle;
+            updateNameUI();
+
             document.getElementById('tabSpecies').innerText = t.tabSpecies;
             document.getElementById('tabBg').innerText = t.tabBg;
             document.getElementById('tabEffect').innerText = t.tabEffect;
@@ -2371,17 +2650,19 @@ function updateLangUI() {
 
         // 🌟 【名字與名片顯示小幫手】
         function updateNameUI() {
-            // 更新名片上的名字
+            const t = i18n[currLang] || i18n.zh;
+
+            // 更新名片上的名字（玩家取的名字保持原樣，只有預設名字跟著語言走）
             const idCardNameDisplay = document.getElementById('idCardNameDisplay');
             if (idCardNameDisplay) {
-                idCardNameDisplay.innerText = gameState.petName || (currLang === 'zh' ? '神祕海兔' : 'Mystic Slug');
+                idCardNameDisplay.innerText = gameState.petName || t.defaultPetName;
             }
-            
+
             // 同時偷偷更新一下名片上的品種，讓名片更專業
             const idCardSpeciesDisplay = document.getElementById('idCardSpeciesDisplay');
             if (idCardSpeciesDisplay) {
                 const spec = speciesData[gameState.currentSpecies];
-                idCardSpeciesDisplay.innerText = spec ? spec.name[currLang] : '未知品種';
+                idCardSpeciesDisplay.innerText = spec ? spec.name[currLang] : t.unknownSpecies;
             }
         }
 
@@ -2738,10 +3019,26 @@ function tryItem(key, type) {
         // 幫房間鋪上你選的背景
         function applyBg() {
             const bg = bgData[trialState.bg || gameState.currentBg];
+            const stage = document.getElementById('mainStage');
+
             // 找不到對應背景時 (例如預設的 'sky' 不在 bgData 裡)，清掉行內樣式回到 CSS 預設的淺藍底，
             // 否則試用結束後會一直卡在試用的背景
-            document.getElementById('mainStage').style.background = bg ? bg.style : '';
-            document.getElementById('dotPattern').style.opacity = bg ? (bg.hasDots ? '0.9' : '0') : '';
+            if (!bg) {
+                stage.style.background = '';
+                document.getElementById('dotPattern').style.opacity = '';
+                return;
+            }
+
+            // 插畫型背景的 style 是函式，依舞台是寬扁還是直立挑版面
+            let styleValue = bg.style;
+            if (typeof styleValue === 'function') {
+                const rect = stage.getBoundingClientRect();
+                const mode = rect.height > 0 && rect.width / rect.height < 1.1 ? 'portrait' : 'wide';
+                styleValue = styleValue(mode);
+            }
+
+            stage.style.background = styleValue;
+            document.getElementById('dotPattern').style.opacity = bg.hasDots ? '0.9' : '0';
         }
 
  function applyEffect() {
@@ -8131,11 +8428,13 @@ default:
                 updateHandPos(pos.x, pos.y);
 
                 let newLeft = slugStartLeft + dx; let newTop = slugStartTop + dy;
-                const stageRect = stageEl.getBoundingClientRect(); const slugRect = slugEl.getBoundingClientRect();
 
-                // 避免被丟出畫面外
-                newLeft = Math.max(0, Math.min(newLeft, stageRect.width - slugRect.width));
-                newTop = Math.max(0, Math.min(newTop, stageRect.height - slugRect.height));
+                // 避免被丟出畫面外，也不讓牠被拖到商店面板／互動按鈕底下
+                const bounds = getSlugSafeBounds();
+                if (bounds) {
+                    newLeft = Math.max(bounds.minX, Math.min(newLeft, bounds.maxX));
+                    newTop = Math.max(bounds.minY, Math.min(newTop, bounds.maxY));
+                }
 
                 slugEl.style.left = newLeft + 'px'; slugEl.style.top = newTop + 'px';
                 updateFloatingButtonPosition(); // 讓挑釁按鈕乖乖跟著海兔一起跑

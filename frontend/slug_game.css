@@ -668,7 +668,19 @@
             65% { transform: scale(0.92) rotate(2deg); }
             100% { transform: scale(1) rotate(0deg); }
         }
-        
+
+        /* 手機版：手掌縮小並移到指尖上方，否則整隻手掌會被手指蓋住看不見 */
+        @media screen and (max-width: 768px) {
+            .pet-interactive-hand {
+                width: 44px;
+                height: 44px;
+                transform: translate(-28%, -132%);
+            }
+            .pet-interactive-hand.is-grabbing {
+                transform: translate(-50%, -150%);
+            }
+        }
+
         /* 🌟 【餵食互動：拖曳海藻、咀嚼特效與碎屑動畫】 */
         .drag-algae-item {
             position: fixed;

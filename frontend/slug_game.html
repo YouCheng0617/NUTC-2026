@@ -160,19 +160,19 @@
     <!-- 🌟 1. 海兔專屬身份證名片 -->
     <div class="name-modal-overlay" id="idCardModalOverlay" style="z-index: 10000; display: none;">
         <div class="name-modal" style="width: 85%; max-width: 320px; text-align: center;">
-            <h2 style="margin-top:0; font-weight:900; color: #1d4ed8;">🪪 海兔名片</h2>
+            <h2 style="margin-top:0; font-weight:900; color: #1d4ed8;" id="idCardHeader">🪪 海兔名片</h2>
             <div style="height: 150px; margin: 15px auto; border: 4px dashed #bfdbfe; border-radius: 25px; background: #f8fafc; display: flex; align-items: center; justify-content: center;">
-                <span style="color: #93c5fd; font-weight: 900; font-size: 1.2rem; opacity: 0.5;">證件照拍攝中...</span>
+                <span style="color: #93c5fd; font-weight: 900; font-size: 1.2rem; opacity: 0.5;" id="idCardPhotoHint">證件照拍攝中...</span>
             </div>
             <div style="font-size: 1.2rem; color: var(--text-dark); font-weight: 900; margin-bottom: 10px;">
-                名字：<span id="idCardNameDisplay" style="color: #ef4444;">神祕海兔</span> 
-                <button onclick="openNameModal()" style="background:none; border:none; cursor:pointer; font-size:1.2rem;" title="修改名字">✏️</button>
+                <span id="idCardNameLabel">名字：</span><span id="idCardNameDisplay" style="color: #ef4444;">神祕海兔</span>
+                <button onclick="openNameModal()" id="btnEditPetName" style="background:none; border:none; cursor:pointer; font-size:1.2rem;" title="修改名字">✏️</button>
             </div>
             <div style="font-size: 1rem; color: var(--text-dim); font-weight: 800; margin-bottom: 25px;">
-                品種：<span id="idCardSpeciesDisplay">經典雪兔</span>
+                <span id="idCardSpeciesLabel">品種：</span><span id="idCardSpeciesDisplay">經典雪兔</span>
             </div>
             <div class="modal-btns">
-                <button class="modal-btn btn-confirm" onclick="closeIdCardModal()" style="width: 100%; background: #3b82f6; box-shadow: 0 5px 0 #2563eb; color: white;">收起名片</button>
+                <button class="modal-btn btn-confirm" onclick="closeIdCardModal()" id="btnCloseIdCard" style="width: 100%; background: #3b82f6; box-shadow: 0 5px 0 #2563eb; color: white;">收起名片</button>
             </div>
         </div>
     </div>
