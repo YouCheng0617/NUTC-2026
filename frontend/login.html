@@ -838,14 +838,44 @@
               window.location.href = "test.html";
             }
           } else {
-            showModalError(
-              "❌ 登入失敗：" + (responseData.message || "帳號或密碼錯誤"),
-            );
+            const failMessage = responseData.message || "帳號或密碼錯誤";
+            // 🌟 帳號尚未通過信箱驗證，詢問是否要重寄驗證信
+            if (failMessage.includes("未啟用")) {
+              showModalError("❌ 登入失敗：" + failMessage);
+              if (confirm("此帳號尚未完成信箱驗證。\n要重新發送一封驗證信到 " + email + " 嗎？")) {
+                await resendVerificationMail(email);
+              }
+            } else {
+              showModalError("❌ 登入失敗：" + failMessage);
+            }
             document.getElementById("captcha-input").value = "";
             loadCaptcha();
           }
         } catch (error) {
           showModalError("📡 無法連接到後端伺服器！");
+        }
+      }
+
+      // 重新發送信箱驗證信
+      async function resendVerificationMail(email) {
+        try {
+          const response = await fetch(
+            `${API_BASE_URL}/auth/resend-verification`,
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                "ngrok-skip-browser-warning": "true",
+              },
+              body: JSON.stringify({ email: email }),
+            },
+          );
+          const data = await response.json();
+          alert(
+            (response.ok ? "📬 " : "❌ ") + (data.message || "請稍後再試"),
+          );
+        } catch (error) {
+          alert("📡 無法連接到後端伺服器！");
         }
       }
 
@@ -904,7 +934,11 @@
           });
           const data = await response.json();
           if (response.ok) {
-            alert("🎉 註冊成功！請登入以開啟新手導覽指南。");
+            alert(
+              "🎉 註冊成功！\n\n我們已寄出驗證信到 " +
+                email +
+                "\n請點擊信中的連結完成驗證，帳號啟用後才能登入喔！\n（驗證連結 30 分鐘內有效，若沒收到請檢查垃圾郵件）",
+            );
             // 標記新註冊標籤，登入後自動導向 tutorial.html
             localStorage.setItem("isNewUserTutorial", "true");
             document.getElementById("email").value = email;

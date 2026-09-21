@@ -1,6 +1,6 @@
 import type { Request, Response } from "express";
 import { type AuthRequest } from "../middleware/auth.middleware.js";
-import { createMember, loginMember, forgotPassword, resetPassword, updateMember, followMember, getFollowedMembers, getFollowerList } from "./auth.service.js";
+import { createMember, loginMember, forgotPassword, resetPassword, updateMember, followMember, getFollowedMembers, getFollowerList, verifyEmail, resendVerification } from "./auth.service.js";
 import { countHelper } from "../../lib/countHelper.js";
 import { verifyCaptcha } from "../../lib/captchaHelper.js";
 import prisma from "../../lib/prisma.js";
@@ -27,7 +27,7 @@ export class AuthController {
             });
         } catch (error) {
             res.status(400).json({
-                message: "登入失敗",
+                message: error instanceof Error ? error.message : "登入失敗",
                 data: String(error)
             });
         }
@@ -43,14 +43,60 @@ export class AuthController {
                 name: newMember.name,
             };
             res.status(201).json({
-                message: "註冊成功!請前往登入",
+                message: "註冊成功!我們已寄出驗證信，請至信箱完成驗證後才能登入",
                 data: displayData
             });
         } catch (error) {
             res.status(400).json({
-                message: "註冊失敗",
+                message: error instanceof Error ? error.message : "註冊失敗",
                 data: String(error)
             });
+        }
+    }
+
+    /*點擊信件連結，驗證信箱並啟用帳號*/
+    async verifyEmail(req: Request, res: Response) {
+        try {
+            const token = (req.body?.token ?? req.query?.token) as string;
+            if (!token) {
+                return res.status(400).json({ message: "缺少驗證憑證，請從信件中的連結進入。" });
+            }
+
+            const result = await verifyEmail(token);
+            return res.status(200).json({
+                message: result.alreadyVerified ? "此信箱已完成驗證，請直接登入" : "信箱驗證成功!帳號已啟用，請前往登入",
+                data: { alreadyVerified: result.alreadyVerified }
+            });
+
+        } catch (error) {
+            if (error instanceof Error) {
+                return res.status(400).json({ message: error.message });
+            }
+            console.error('verifyEmail Controller 錯誤:', error);
+            return res.status(500).json({ message: '伺服器發生錯誤，請稍後再試' });
+        }
+    }
+
+    /*重新發送驗證信*/
+    async resendVerification(req: Request, res: Response) {
+        try {
+            const { email } = req.body;
+            if (!email) {
+                return res.status(400).json({ message: "請提供註冊的信箱" });
+            }
+
+            await resendVerification(email);
+            /*不論帳號是否存在都回相同訊息，避免被探測會員信箱*/
+            return res.status(200).json({
+                message: "若該信箱尚未完成驗證，我們已重新寄出驗證信，請檢查您的信箱"
+            });
+
+        } catch (error) {
+            if (error instanceof Error) {
+                return res.status(400).json({ message: error.message });
+            }
+            console.error('resendVerification Controller 錯誤:', error);
+            return res.status(500).json({ message: '伺服器發生錯誤，請稍後再試' });
         }
     }
     async logout(req: Request, res: Response) {

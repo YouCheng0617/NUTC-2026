@@ -2,7 +2,7 @@ import prisma from "../../lib/prisma.js";
 import { signHelper } from "../../lib/signHelper.js";   /*星座計算的工具函式*/
 import { hashPassword, comparePassword } from "../../lib/passWord.js"; /*密碼加密與比對的工具函式*/
 import { generateToken } from "../../lib/LogIn.js"; /*JWT的工具函式*/
-import { sendEmailResetPassword } from "../../lib/mailer.js";
+import { sendEmailResetPassword, sendEmailVerification } from "../../lib/mailer.js";
 import { createNotification } from "../notification/notification.service.js";
 const crypto = await import("crypto");
 
@@ -17,8 +17,45 @@ interface MemberData {
     bio?: string;
 }
 
+/*信箱格式檢查*/
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[a-zA-Z]{2,}$/;
+
+/*建立信箱驗證憑證並寄出驗證信*/
+const issueEmailVerification = async (email: string) => {
+    const verifyToken = crypto.randomBytes(32).toString("hex");
+    const verifyTokenExpiry = new Date(Date.now() + 30 * 60 * 1000); // 30分鐘後過期
+
+    await prisma.$transaction([
+        /*清除該信箱過去申請的驗證憑證*/
+        prisma.emailVerification.deleteMany({
+            where: { email: email }
+        }),
+        prisma.emailVerification.create({
+            data: {
+                email: email,
+                token: verifyToken,
+                expiresAt: verifyTokenExpiry,
+            }
+        })
+    ]);
+
+    const emailSent = await sendEmailVerification(email, verifyToken);
+    if (!emailSent) {
+        throw new Error("驗證信發送失敗，請確認信箱是否正確或稍後再試。");
+    }
+
+    return verifyToken;
+};
+
 /*註冊會員的服務函式*/
 export const createMember = async (memberData: MemberData) => {
+    /*信箱格式檢查，避免填入假信箱*/
+    const email = (memberData.email ?? "").trim().toLowerCase();
+    if (!EMAIL_REGEX.test(email)) {
+        throw new Error("信箱格式錯誤，請填寫可收信的真實電子信箱!");
+    }
+    memberData.email = email;
+
     /*檢查email有無重複*/
     const existMember = await prisma.member.findUnique({
         where: {
@@ -27,6 +64,9 @@ export const createMember = async (memberData: MemberData) => {
     });
     /*如果有就丟出一個錯誤訊息 */
     if (existMember) {
+        if (existMember.status === "INACTIVE") {
+            throw new Error("此信箱已註冊但尚未驗證，請至信箱收取驗證信，或點選「重新發送驗證信」。");
+        }
         throw new Error("此信箱已註冊!");
     }
 
@@ -55,6 +95,7 @@ export const createMember = async (memberData: MemberData) => {
             blood_type: memberData.blood_type ?? "",
             constellation: memberData.constellation ?? "",
             bio: memberData.bio ?? "",
+            status: "INACTIVE", /*尚未通過信箱驗證，一律為未啟用*/
         }, select: {
             member_id: true,
             email: true,
@@ -67,23 +108,106 @@ export const createMember = async (memberData: MemberData) => {
         }
     });
 
+    /*寄出驗證信，若寄送失敗就把剛建立的帳號收回，讓使用者可以重新註冊*/
+    try {
+        await issueEmailVerification(newMember.email);
+    } catch (error) {
+        await prisma.member.delete({
+            where: { member_id: newMember.member_id }
+        }).catch(err => console.error("回收未驗證帳號失敗:", err));
+        throw error;
+    }
+
+    return newMember;
+};
+
+/*驗證信箱並啟用帳號的服務函式*/
+export const verifyEmail = async (token: string) => {
+    const verifyRecord = await prisma.emailVerification.findUnique({
+        where: { token: token }
+    });
+
+    if (!verifyRecord) {
+        throw new Error("無效的驗證連結，請重新發送驗證信。");
+    }
+    if (verifyRecord.expiresAt < new Date()) {
+        await prisma.emailVerification.delete({ where: { token: token } });
+        throw new Error("驗證連結已過期，請重新發送驗證信。");
+    }
+
+    const member = await prisma.member.findUnique({
+        where: { email: verifyRecord.email }
+    });
+    if (!member) {
+        throw new Error("找不到對應的會員資料，請重新註冊。");
+    }
+    if (member.status === "BANNED") {
+        throw new Error("此帳號已被封鎖，無法啟用。若有疑問請聯繫客服。");
+    }
+
+    /*已經啟用過就直接清掉憑證，不重複發歡迎通知*/
+    if (member.status === "ACTIVE") {
+        await prisma.emailVerification.delete({ where: { token: token } });
+        return { alreadyVerified: true, email: member.email };
+    }
+
+    await prisma.$transaction([
+        prisma.member.update({
+            where: { member_id: member.member_id },
+            data: { status: "ACTIVE" }
+        }),
+        prisma.emailVerification.deleteMany({
+            where: { email: verifyRecord.email }
+        })
+    ]);
+
     await createNotification(
-        newMember.member_id,
+        member.member_id,
         'SYSTEM',
-        `歡迎來到瓶中信，${newMember.name}！快去投擲你的第一個漂流瓶吧！🌊`
+        `歡迎來到瓶中信，${member.name}！快去投擲你的第一個漂流瓶吧！🌊`
         // actorId 預設為 undefined，代表系統
         // targetId 預設為 undefined
     ).catch(err => console.error("新手通知發送失敗:", err));
 
-    return newMember;
+    return { alreadyVerified: false, email: member.email };
+};
+
+/*重新發送驗證信的服務函式*/
+export const resendVerification = async (email: string) => {
+    const normalizedEmail = (email ?? "").trim().toLowerCase();
+    if (!EMAIL_REGEX.test(normalizedEmail)) {
+        throw new Error("信箱格式錯誤，請填寫可收信的真實電子信箱!");
+    }
+
+    const member = await prisma.member.findUnique({
+        where: { email: normalizedEmail }
+    });
+
+    /*查無帳號或已啟用都不透露狀態，避免被拿來探測會員信箱*/
+    if (!member || member.status !== "INACTIVE") {
+        return false;
+    }
+
+    /*同一個信箱 60 秒內只能重寄一次，避免被濫用狂發信*/
+    const lastVerification = await prisma.emailVerification.findFirst({
+        where: { email: normalizedEmail },
+        orderBy: { createdAt: "desc" }
+    });
+    if (lastVerification && Date.now() - lastVerification.createdAt.getTime() < 60 * 1000) {
+        throw new Error("驗證信剛剛才寄出，請稍候 1 分鐘再試。");
+    }
+
+    await issueEmailVerification(normalizedEmail);
+    return true;
 };
 
 
 /*登入會員的服務函式*/
 export const loginMember = async (email: string, password: string) => {
-    const member = await prisma.member.findUnique({
+    /*註冊時信箱一律轉小寫，登入時不分大小寫比對*/
+    const member = await prisma.member.findFirst({
         where: {
-            email: email,
+            email: { equals: (email ?? "").trim(), mode: "insensitive" },
         }
     });
 

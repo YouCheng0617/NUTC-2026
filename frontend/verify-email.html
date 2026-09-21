@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="zh-TW">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>信箱驗證 - 心情漂流瓶</title>
+  <link rel="stylesheet" href="login.css" />
+</head>
+
+<body>
+  <div class="login-container">
+    <img src="images/background.png" class="bg-img" alt="背景" />
+
+    <div class="css-bubbles">
+      <div class="bubble"></div>
+      <div class="bubble"></div>
+      <div class="bubble"></div>
+      <div class="bubble"></div>
+      <div class="bubble"></div>
+    </div>
+
+    <div class="cute-modal"
+      style="display: flex; position: relative; z-index: 1000; background: transparent; backdrop-filter: none;">
+      <div class="cute-modal-content">
+
+        <div class="auth-form bubble-layout"
+          style="display: flex; flex-direction: column; align-items: center; width: 100%;">
+
+          <div class="bg-watermark" style="margin-top: -10px;">心情漂流瓶</div>
+          <h2
+            style="color: #ffffff; margin-top: 20px; margin-bottom: 10px; font-weight: 900; letter-spacing: 2px; text-shadow: 0 2px 6px rgba(0, 0, 0, 0.5);">
+            信箱驗證</h2>
+
+          <p id="status-message"
+            style="color: #ffffff; font-size: 0.95rem; text-align: center; font-weight: bold; margin-bottom: 25px; text-shadow: 0 1px 4px rgba(0, 0, 0, 0.6);">
+            驗證中，請稍候…</p>
+
+          <!-- 驗證失敗時才出現：重新發送驗證信 -->
+          <div class="b-row" id="resend-row" style="width: 100%; display: none;">
+            <div class="b-item b-pill" style="width: 100%;">
+              <label>註冊信箱 (Email):</label>
+              <input type="email" id="resend-email" style="width: 100%; box-sizing: border-box;" />
+            </div>
+          </div>
+
+          <button type="button" id="resend-btn" class="b-check-btn" title="重新發送驗證信"
+            style="margin-top: 25px; display: none;" onclick="resendVerification()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>
+          </button>
+
+          <a href="login.html" id="login-link"
+            style="display: none; margin-top: 25px; color: #ffffff; font-weight: bold; text-decoration: underline; text-shadow: 0 1px 4px rgba(0, 0, 0, 0.6);">
+            前往登入 →
+          </a>
+
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const API_BASE_URL = "https://api.drift-bottles.xyz";
+
+    // 🟢 從網址列抓取信件連結帶來的 Token
+    const urlParams = new URLSearchParams(window.location.search);
+    const urlToken = urlParams.get("token");
+
+    const statusEl = document.getElementById("status-message");
+    const resendRow = document.getElementById("resend-row");
+    const resendBtn = document.getElementById("resend-btn");
+    const loginLink = document.getElementById("login-link");
+
+    function showSuccess(message) {
+      statusEl.innerText = message;
+      statusEl.style.color = "#ffffff";
+      loginLink.style.display = "inline-block";
+    }
+
+    function showFailure(message) {
+      statusEl.innerText = message;
+      statusEl.style.color = "#ff4d4d";
+      resendRow.style.display = "flex";
+      resendBtn.style.display = "flex";
+    }
+
+    async function verifyEmail() {
+      // 擋住亂闖入的訪客
+      if (!urlToken) {
+        showFailure("⚠️ 找不到驗證憑證，請確認您是從信箱的連結點擊進入的。");
+        return;
+      }
+
+      try {
+        const response = await fetch(`${API_BASE_URL}/auth/verify-email`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "ngrok-skip-browser-warning": "true",
+          },
+          body: JSON.stringify({ token: urlToken }),
+        });
+        const data = await response.json();
+
+        if (response.ok) {
+          showSuccess("🎉 " + (data.message || "信箱驗證成功!帳號已啟用，請前往登入"));
+        } else {
+          showFailure("❌ " + (data.message || "驗證連結可能已失效或過期，請重新發送驗證信。"));
+        }
+      } catch (error) {
+        console.error("連線錯誤:", error);
+        showFailure("📡 無法連接到後端伺服器，請稍後再試。");
+      }
+    }
+
+    async function resendVerification() {
+      const email = document.getElementById("resend-email").value;
+      if (email.trim() === "") {
+        alert("請填寫註冊時使用的信箱！");
+        return;
+      }
+
+      resendBtn.disabled = true;
+      try {
+        const response = await fetch(`${API_BASE_URL}/auth/resend-verification`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "ngrok-skip-browser-warning": "true",
+          },
+          body: JSON.stringify({ email: email }),
+        });
+        const data = await response.json();
+        alert((response.ok ? "📬 " : "❌ ") + (data.message || "請稍後再試"));
+      } catch (error) {
+        console.error("連線錯誤:", error);
+        alert("📡 無法連接到後端伺服器！");
+      } finally {
+        resendBtn.disabled = false;
+      }
+    }
+
+    verifyEmail();
+  </script>
+</body>
+
+</html>

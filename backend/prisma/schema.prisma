@@ -99,6 +99,17 @@ model PasswordReset {
   @@index([email])
 }
 
+// 信箱驗證
+model EmailVerification {
+  id        Int      @id @default(autoincrement())
+  email     String
+  token     String   @unique
+  expiresAt DateTime // 過期時間
+  createdAt DateTime @default(now())
+
+  @@index([email])
+}
+
 // 漂流瓶
 model Bottle {
   bottle_id        Int      @id @default(autoincrement())

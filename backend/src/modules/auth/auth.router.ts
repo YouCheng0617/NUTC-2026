@@ -8,6 +8,9 @@ export function authRouter() {
     router.post('/login', authController.login);
     router.post('/register', authController.register);
     router.post("/logout", authCheck, authController.logout);
+    router.post("/verify-email", authController.verifyEmail);
+    router.get("/verify-email", authController.verifyEmail);
+    router.post("/resend-verification", authController.resendVerification);
     router.post("/forgot-password", authController.forgotPassword);
     router.post("/reset-password", authController.resetPassword);
     router.patch("/update-data", authCheck, authController.updateMemberData);
