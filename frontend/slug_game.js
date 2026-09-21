@@ -1392,10 +1392,11 @@ const i18n = {
             const u = Math.min(W, H) / 520;
             const cx = W / 2;
             const hz = H * (portrait ? 0.58 : 0.62);          // 消失點
-            const hwTop = W * 0.055;
+            // 直式畫布較高，小徑遠端要寬一點、透視收斂放緩，否則會看起來像一座土丘
+            const hwTop = W * (portrait ? 0.1 : 0.055);
             const hwBot = W * (portrait ? 0.42 : 0.32);
 
-            const py = (t) => hz + (H - hz) * Math.pow(t, 1.7);
+            const py = (t) => hz + (H - hz) * Math.pow(t, portrait ? 1.35 : 1.7);
             const phw = (t) => hwTop + (hwBot - hwTop) * Math.pow(t, 1.35);
 
             // 單片竹葉
@@ -10914,7 +10915,8 @@ let currentPaintPalette = 0;
             bgColorPresets.forEach(color => {
                 const swatch = document.createElement('button');
                 const picked = color.toLowerCase() === (gameState.customBgColor || '').toLowerCase();
-                swatch.style.cssText = `width:100%; aspect-ratio:1; border-radius:12px; background:${color}; cursor:pointer;`
+                // box-sizing 要設 border-box，否則 3px 外框會把六欄色票撐出容器外
+                swatch.style.cssText = `box-sizing:border-box; width:100%; aspect-ratio:1; border-radius:12px; background:${color}; cursor:pointer;`
                     + `border:3px solid ${picked ? 'var(--text-dark)' : 'rgba(0,0,0,0.12)'}; box-shadow:${picked ? '0 0 0 3px var(--accent-color)' : 'none'};`;
                 swatch.onclick = () => pickBgColor(color);
                 grid.appendChild(swatch);

@@ -208,7 +208,8 @@
     <div class="name-modal-overlay" id="colorModalOverlay" style="z-index: 10040; display: none;">
         <div class="name-modal" style="width: 88%; max-width: 340px; text-align: center;">
             <h2 style="margin-top:0; font-weight:900; color: var(--text-dark);" id="txtColorTitle">挑一個喜歡的顏色</h2>
-            <div id="colorSwatchGrid" style="display:grid; grid-template-columns: repeat(6, 1fr); gap: 10px; margin: 16px 0;"></div>
+            <!-- 色票自動換欄：手機上每格至少 44px，才好點 -->
+            <div id="colorSwatchGrid" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(44px, 1fr)); gap: 10px; margin: 16px 0;"></div>
             <label style="display:flex; align-items:center; justify-content:center; gap:10px; font-weight:900; color: var(--text-dim); font-size:0.9rem;">
                 <span id="txtColorCustom">自訂顏色</span>
                 <input type="color" id="customColorInput" oninput="pickBgColor(this.value)" style="width:56px; height:38px; border:3px solid var(--border-color); border-radius:12px; background:none; cursor:pointer; padding:2px;">
