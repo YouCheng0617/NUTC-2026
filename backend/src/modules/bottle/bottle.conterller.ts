@@ -15,6 +15,7 @@ import {
     getPopularBottles,
     votePoll
 } from "./bottle.service.js";
+import { getBlockedMemberIds } from "../block/block.service.js";
 
 export interface TokenPayload {
     member_id: number;
@@ -121,9 +122,10 @@ export const bottleController = {
                 status: 1, // 只撈取審核通過的瓶子
             };
 
-            // 🌟 如果是會員，就不撈自己的瓶子
+            // 🌟 如果是會員，就不撈自己的瓶子，也不撈有封鎖關係的人的瓶子
             if (memberId) {
-                whereCondition.member_id = { not: memberId };
+                const blockedIds = await getBlockedMemberIds(memberId);
+                whereCondition.member_id = { notIn: [memberId, ...blockedIds] };
             }
 
             // 處理分類過濾
@@ -308,7 +310,10 @@ export const bottleController = {
                 isLiked: result.isLiked,
                 totalLikes: result.totalLikes
             });
-        } catch (error) {
+        } catch (error: any) {
+            if (error.message === "找不到該漂流瓶") {
+                return res.status(404).json({ message: error.message });
+            }
             console.error("Error liking bottle:", error);
             res.status(500).json({ message: "內部伺服器錯誤" });
         }
@@ -333,7 +338,10 @@ export const bottleController = {
                 isSaved: result.isSaved,
                 totalSaves: result.totalSaves // 🌟 這裡修正為 totalSaves
             });
-        } catch (error) {
+        } catch (error: any) {
+            if (error.message === "找不到該漂流瓶") {
+                return res.status(404).json({ message: error.message });
+            }
             console.error("Error saving bottle:", error);
             res.status(500).json({ message: "內部伺服器錯誤" });
         }
@@ -454,7 +462,7 @@ export const bottleController = {
             }
 
             // 呼叫 Service
-            const searchResults = await searchBottle(keyword);
+            const searchResults = await searchBottle(keyword, req.user?.member_id);
 
             return res.status(200).json({
                 message: `搜尋成功，共找到 ${searchResults.length} 筆結果`,
@@ -475,7 +483,7 @@ export const bottleController = {
             const parsedLimit = parseInt(limitParam);
             const limit = (!isNaN(parsedLimit) && parsedLimit > 0) ? parsedLimit : 10;
 
-            const popularBottles = await getPopularBottles(limit);
+            const popularBottles = await getPopularBottles(limit, req.user?.member_id);
 
             return res.status(200).json({
                 message: `成功獲取 ${popularBottles.length} 篇熱門文章`,
@@ -515,6 +523,9 @@ export const bottleController = {
 
             if (error.message === "無效的選項或該選項不屬於此漂流瓶") {
                 return res.status(400).json({ message: error.message });
+            }
+            if (error.message === "找不到該漂流瓶") {
+                return res.status(404).json({ message: error.message });
             }
             return res.status(500).json({ message: "伺服器內部錯誤，投票失敗" });
         }

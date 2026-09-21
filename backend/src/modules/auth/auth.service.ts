@@ -4,6 +4,7 @@ import { hashPassword, comparePassword } from "../../lib/passWord.js"; /*密碼�
 import { generateToken } from "../../lib/LogIn.js"; /*JWT的工具函式*/
 import { sendEmailResetPassword, sendEmailVerification } from "../../lib/mailer.js";
 import { createNotification } from "../notification/notification.service.js";
+import { isBlockedBetween } from "../block/block.service.js";
 const crypto = await import("crypto");
 
 interface MemberData {
@@ -411,7 +412,8 @@ export const followMember = async (followerId: number, followedId: number) => {
         where: { member_id: followedId },
     })
 
-    if (!targetMember) {
+    // 有封鎖關係時當作找不到會員，不讓對方知道被封鎖
+    if (!targetMember || await isBlockedBetween(followerId, followedId)) {
         throw new Error("TARGET_NOT_FOUND");
     }
     const follower = await prisma.member.findUnique({

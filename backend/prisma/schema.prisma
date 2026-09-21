@@ -59,6 +59,8 @@ model Member {
 
   following    Follow[]        @relation("UserFollows") // 這個會員追蹤了哪些人 (我追蹤的人)
   followers    Follow[]        @relation("UserFollowedBy") // 哪些人追蹤了這個會員 (我的粉絲)
+  blocking     Block[]         @relation("UserBlocks") // 這個會員封鎖了哪些人
+  blockedBy    Block[]         @relation("UserBlockedBy") // 哪些人封鎖了這個會員
   PollVote     PollVote[]
   Notification Notification[]
   Pet          Pet?
@@ -265,6 +267,20 @@ model Follow {
 
   // 複合主鍵，確保同一個使用者不會重複追蹤同一個人兩次
   @@id([follower_id, following_id])
+}
+
+// 封鎖：雙方互相看不到對方的文章，被封鎖的人不會收到任何通知
+model Block {
+  blocker_id Int // 封鎖者 (誰按下封鎖)
+  blocked_id Int // 被封鎖者
+  created_at DateTime @default(now()) // 封鎖時間
+
+  blocker Member @relation("UserBlocks", fields: [blocker_id], references: [member_id], onDelete: Cascade)
+  blocked Member @relation("UserBlockedBy", fields: [blocked_id], references: [member_id], onDelete: Cascade)
+
+  // 複合主鍵，確保同一個人不會重複封鎖同一個人
+  @@id([blocker_id, blocked_id])
+  @@index([blocked_id])
 }
 
 model PollOption {

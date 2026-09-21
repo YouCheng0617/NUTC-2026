@@ -2,6 +2,7 @@ import { count } from "node:console";
 import prisma from "../../lib/prisma.js";
 import dotenv from "dotenv";
 import { createNotification } from "../notification/notification.service.js";
+import { getBlockedMemberIds, isBlockedBetween } from "../block/block.service.js";
 
 /*獲取我丟的瓶子清單*/
 export const getMybottles = async (memberId: number) => {
@@ -46,7 +47,8 @@ export const likeBottles = async (bottleId: number, memberId: number) => {
         select: { name: true }
     });
 
-    if (!bottle) {
+    // 有封鎖關係時當作文章不存在，不讓對方知道被封鎖
+    if (!bottle || await isBlockedBetween(memberId, bottle.member_id)) {
         throw new Error("找不到該漂流瓶");
     }
 
@@ -107,8 +109,12 @@ export const likeBottles = async (bottleId: number, memberId: number) => {
 
 /*獲取我按過讚的瓶子清單*/
 export const getMyLikedBottles = async (memberId: number) => {
+    const blockedIds = await getBlockedMemberIds(memberId);
     const likedRecords = await prisma.bottleLike.findMany({
-        where: { member_id: memberId },
+        where: {
+            member_id: memberId,
+            bottle: { member_id: { notIn: blockedIds } }
+        },
         include: {
             bottle: {
                 include: {
@@ -155,7 +161,8 @@ export const saveBottles = async (bottleId: number, memberId: number) => {
         select: { name: true }
     });
 
-    if (!bottle) {
+    // 有封鎖關係時當作文章不存在，不讓對方知道被封鎖
+    if (!bottle || await isBlockedBetween(memberId, bottle.member_id)) {
         throw new Error("找不到該漂流瓶");
     }
 
@@ -219,8 +226,12 @@ export const saveBottles = async (bottleId: number, memberId: number) => {
 
 /*獲取我儲存的瓶子清單*/
 export const getMySavedBottles = async (memberId: number) => {
+    const blockedIds = await getBlockedMemberIds(memberId);
     const savedRecords = await prisma.bottleSave.findMany({
-        where: { member_id: memberId },
+        where: {
+            member_id: memberId,
+            bottle: { member_id: { notIn: blockedIds } }
+        },
         include: {
             bottle: {
                 include: {
@@ -408,17 +419,19 @@ export const reportBottle = async (bottleId: number, memberId: number, reason: s
     }
 };
 
-export const searchBottle = async (keyword: string) => {
+export const searchBottle = async (keyword: string, memberId?: number) => {
     const searchTerm = keyword.trim();
 
     if (!searchTerm) {
         return [];
     }
 
+    const blockedIds = await getBlockedMemberIds(memberId);
     const searchResults = await prisma.bottle.findMany({
         where: {
 
             status: 1,
+            member_id: { notIn: blockedIds }, // 排除有封鎖關係的人的文章
 
             OR: [
                 { title: { contains: searchTerm } },
@@ -465,10 +478,12 @@ export const searchBottle = async (keyword: string) => {
 };
 
 /*獲取熱門瓶子 (依收藏數排序)*/
-export const getPopularBottles = async (limit: number = 10) => {
+export const getPopularBottles = async (limit: number = 10, memberId?: number) => {
+    const blockedIds = await getBlockedMemberIds(memberId);
     const popularBottles = await prisma.bottle.findMany({
         where: {
             status: 1, // 只抓取審核通過的文章
+            member_id: { notIn: blockedIds }, // 排除有封鎖關係的人的文章
         },
         orderBy: {
             saves: {
@@ -512,6 +527,14 @@ export const votePoll = async (bottleId: number, memberId: number, optionId: num
 
     if (!option || option.bottle_id !== bottleId) {
         throw new Error("無效的選項或該選項不屬於此漂流瓶");
+    }
+
+    const bottle = await prisma.bottle.findUnique({
+        where: { bottle_id: bottleId },
+        select: { member_id: true }
+    });
+    if (!bottle || await isBlockedBetween(memberId, bottle.member_id)) {
+        throw new Error("找不到該漂流瓶");
     }
 
     const existingVote = await prisma.pollVote.findFirst({

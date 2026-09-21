@@ -540,6 +540,97 @@ Query 參數 (必填)：?keyword=你要找的字
 
 ---
 
+### 🚫 封鎖會員 API (`/block`)
+
+> **功能說明**：
+> 封鎖是**雙向**的：封鎖後，我看不到對方的文章，對方也看不到我的文章（包含匿名發的文章）。
+> 封鎖時**不會通知被封鎖的人**，封鎖的同時會自動解除雙方的追蹤關係（也不會發通知）。
+
+#### 1. 封鎖會員
+
+* **方法與路徑**：`POST /block/:memberId`
+* **身份驗證**：需要帶 Token (`Bearer Token`)
+* **路徑參數**：`memberId` = 要封鎖的會員 ID（可從撈瓶子回傳的 `author_id` 取得，匿名文章的 `author_id` 為 `null`，無法封鎖）
+* **Request Body**：不需要
+* **備註**：重複封鎖同一個人不會報錯，一樣回傳成功
+* **Response 範例** (200)：
+
+```json
+{
+  "message": "已封鎖該會員",
+  "data": {
+    "isBlocked": true
+  }
+}
+```
+
+* **錯誤回應**：
+  * `400`：`{ "message": "不能封鎖自己喔！" }` 或 `{ "message": "請提供有效的會員 ID" }`
+  * `404`：`{ "message": "找不到該名會員" }`
+
+#### 2. 解除封鎖
+
+* **方法與路徑**：`DELETE /block/:memberId`
+* **身份驗證**：需要帶 Token (`Bearer Token`)
+* **路徑參數**：`memberId` = 要解除封鎖的會員 ID
+* **備註**：解除封鎖**不會**恢復原本的追蹤關係，需要的話要重新追蹤
+* **Response 範例** (200)：
+
+```json
+{
+  "message": "已解除封鎖",
+  "data": {
+    "isBlocked": false
+  }
+}
+```
+
+#### 3. 取得我的封鎖名單
+
+* **方法與路徑**：`GET /block`
+* **身份驗證**：需要帶 Token (`Bearer Token`)
+* **備註**：只會列出「我封鎖的人」，不會列出「誰封鎖了我」
+* **Response 範例** (200)：
+
+```json
+{
+  "message": "你總共封鎖了 1 位會員",
+  "data": [
+    {
+      "block_time": "2026-09-21T08:30:00.000Z", // 封鎖時間
+      "member_id": 5,
+      "name": "小明",
+      "bio": "自我介紹內容"
+    }
+  ]
+}
+```
+
+#### 4. 封鎖後其他 API 的行為變化（前端不用另外處理）
+
+以下 API 會自動排除有封鎖關係的人的文章，前端照原本方式呼叫即可：
+
+| API | 行為 |
+|---|---|
+| `GET /bottles/random` | 撈不到對方的瓶子 |
+| `GET /bottles/search` | 搜尋結果不含對方的瓶子 |
+| `GET /bottles/popular` | 熱門列表不含對方的瓶子 |
+| `GET /bottles/liked`、`GET /bottles/saved` | 之前按讚、收藏過的對方瓶子會被隱藏（解除封鎖後會再出現） |
+| `GET /comments/bottles/:bottleId` | 對方瓶子的留言回傳空陣列 |
+
+以下操作如果對象是有封鎖關係的人，會回傳「找不到」，**和文章不存在時的回應一樣**，讓對方無法察覺被封鎖：
+
+| API | 回應 |
+|---|---|
+| `POST /bottles/:bottleId/like`、`/save`、`/vote` | `404` `{ "message": "找不到該漂流瓶" }` |
+| `POST /comments/bottles/:bottleId` | `404` `{ "message": "瓶子不存在" }` |
+| `POST /comments/bottles/:bottleId/comments/:parentId/reply` | `404` `{ "message": "要回覆的留言不存在" }` |
+| `POST /auth/follow` | `404` `{ "message": "找不到該名會員" }` |
+
+> ⚠️ **前端注意**：封鎖成功後，畫面上已經顯示的對方瓶子不會自動消失，請在前端自行把該作者的瓶子從目前列表移除。
+
+---
+
 ## 🐾 寵物多人連線 WebSocket (Socket.IO) 使用說明
 
 ### 🔌 連線位址

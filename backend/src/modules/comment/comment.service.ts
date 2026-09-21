@@ -1,5 +1,6 @@
 import prisma from "../../lib/prisma.js";
 import { createNotification } from "../notification/notification.service.js";
+import { isBlockedBetween } from "../block/block.service.js";
 /*新增留言*/
 export const createComment = async (bottleId: number, memberId: number, content: string, isAnonymous: boolean = false) => {
     // 防呆：確認瓶子存不存在，以及狀態是不是可以被留言的 (例如: 1 通過)
@@ -7,7 +8,8 @@ export const createComment = async (bottleId: number, memberId: number, content:
         where: { bottle_id: bottleId }
     });
 
-    if (!bottle) {
+    // 有封鎖關係時當作瓶子不存在，不讓對方知道被封鎖
+    if (!bottle || await isBlockedBetween(memberId, bottle.member_id)) {
         throw new Error("瓶子不存在");
     }
     if (bottle.status !== 1) {
@@ -40,6 +42,17 @@ export const createComment = async (bottleId: number, memberId: number, content:
 
 /*取得留言*/
 export const getCommentsByBottleId = async (bottleId: number, memberId: number | undefined) => {
+    // 有封鎖關係的人的瓶子，留言一律不回傳
+    if (memberId) {
+        const bottle = await prisma.bottle.findUnique({
+            where: { bottle_id: bottleId },
+            select: { member_id: true }
+        });
+        if (bottle && await isBlockedBetween(memberId, bottle.member_id)) {
+            return [];
+        }
+    }
+
     // 🌟 1. 動態組裝子回覆 (replies) 的 include 物件
     const replyInclude: any = {
         member: { select: { name: true } },
@@ -172,6 +185,15 @@ export const createReply = async (bottleId: number, memberId: number, content: s
     // 🛡️ 防呆 3：防止無限巢狀，限制只能回覆「主留言」
     if (parentComment.parent_id !== null) {
         throw new Error("只能回覆主留言，無法針對子留言進行回覆");
+    }
+
+    // 🛡️ 防呆 4：與瓶子作者有封鎖關係時，當作留言不存在
+    const bottle = await prisma.bottle.findUnique({
+        where: { bottle_id: bottleId },
+        select: { member_id: true }
+    });
+    if (!bottle || await isBlockedBetween(memberId, bottle.member_id)) {
+        throw new Error("要回覆的留言不存在");
     }
 
     const newReply = await prisma.comment.create({
