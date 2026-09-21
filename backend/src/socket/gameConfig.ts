@@ -87,48 +87,48 @@ export const gameConfig = {
         },
         background_color: {
             // 🌟 01 ~ 04：基礎入門系列
-            none: 0,                         // 無背景
-            cozy_room: 200,                  // 溫馨房間
-            sunshine_grassland: 400,         // 陽光草原
-            sunny_park: 500,                 // 陽光公園
+            none: 0,                      // 無背景
+            cozy_room: 100,               // 溫馨房間
+            sunshine_grassland: 150,      // 陽光草原
+            sunny_park: 200,              // 陽光公園
 
             // 🌟 05 ~ 10：自然與日常系列
-            misty_forest: 600,               // 迷霧森林
-            breeze_morning: 800,             // 微風晨曦
-            afternoon_tea: 900,              // 午後茶會
-            cherry_park: 1000,               // 櫻花小徑
-            bamboo_grove: 1100,              // 翠綠竹林
-            rainy_street: 1200,              // 雨中街景
+            misty_forest: 250,            // 迷霧森林
+            breeze_morning: 300,          // 微風晨曦
+            afternoon_tea: 350,           // 午後茶會
+            cherry_park: 400,             // 櫻花小徑
+            bamboo_grove: 450,            // 翠綠竹林
+            rainy_street: 500,            // 雨中街景
 
             // 🌟 11 ~ 15：風景與探險系列
-            sunset_beach: 1400,              // 夕陽海灘
-            autumn_leaves: 1500,             // 秋日楓紅
-            deep_sea: 1600,                  // 深海秘境
-            snowy_mountain: 1800,            // 銀白雪山
-            starry_night: 2000,              // 璀璨星空
+            sunset_beach: 550,            // 夕陽海灘
+            autumn_leaves: 600,           // 秋日楓紅
+            deep_sea: 650,                // 深海秘境
+            snowy_mountain: 700,          // 銀白雪山
+            starry_night: 800,            // 璀璨星空
 
             // 🌟 16 ~ 21：奇幻異想系列
-            candy_land: 2200,                // 糖果王國
-            magic_academy: 2400,             // 魔法學院
-            lavender_field: 2500,            // 薰衣草田
-            aurora_sky: 2600,                // 夢幻極光
-            retro_arcade: 2800,              // 復古街機
-            neon_city: 3000,                 // 賽博霓虹
+            candy_land: 900,              // 糖果王國
+            magic_academy: 950,           // 魔法學院
+            lavender_field: 1000,         // 薰衣草田
+            aurora_sky: 1050,             // 夢幻極光
+            retro_arcade: 1100,           // 復古街機
+            neon_city: 1200,              // 賽博霓虹
 
             // 🌟 22 ~ 27：宇宙與奇境系列
-            crystal_cave: 3200,              // 水晶洞穴
-            galaxy_space: 3400,              // 浩瀚銀河
-            desert_oasis: 3500,              // 沙漠綠洲
-            ancient_ruins: 3600,             // 遠古遺跡
-            volcano_core: 3800,              // 熔岩火山
-            floating_island: 4000,           // 浮空島嶼
+            crystal_cave: 1300,           // 水晶洞穴
+            galaxy_space: 1350,           // 浩瀚銀河
+            desert_oasis: 1400,           // 沙漠綠洲
+            ancient_ruins: 1450,          // 遠古遺跡
+            volcano_core: 1500,           // 熔岩火山
+            floating_island: 1600,        // 浮空島嶼
 
             // 🌟 28 ~ 32：頂級殿堂系列
-            underwater_temple: 4200,         // 亞特蘭提斯
-            cyber_matrix: 4500,              // 數位母體
-            celestial_realm: 4800,           // 雲端神域
-            dream_wonderland: 5000,          // 夢境仙境
-            royal_palace: 5200               // 皇家宮殿
+            underwater_temple: 1700,      // 亞特蘭提斯
+            cyber_matrix: 1800,           // 數位母體
+            celestial_realm: 1900,        // 雲端神域
+            dream_wonderland: 2000,       // 夢境仙境
+            royal_palace: 2100            // 皇家宮殿
         },
         background_effects: {
             none: 0,                 // 無特效
