@@ -4213,6 +4213,15 @@ function updateLangUI() {
             document.getElementById('tabEffect').className = tab === 'effect' ? 'tab active' : 'tab';
         }
 
+        // 🌟 商品一律由便宜到貴排序；同價時維持原本的定義順序
+        function sortByCost(dataObj) {
+            const order = Object.keys(dataObj);
+            return order.slice().sort((a, b) => {
+                const diff = (dataObj[a].cost || 0) - (dataObj[b].cost || 0);
+                return diff !== 0 ? diff : order.indexOf(a) - order.indexOf(b);
+            });
+        }
+
         // 🌟 把商品小方塊的底色填上。插畫型背景的 preview 是函式，回傳整個房間的縮圖，
         //    因為 data URI 不能塞進 HTML 的 style 屬性，所以改用 DOM 直接設定。
         function applyPreviewSwatch(card, item) {
@@ -4236,7 +4245,7 @@ function updateLangUI() {
             else if (currentTab === 'bg') { dataObj = bgData; unlockedArr = gameState.unlockedBgs; currentActive = gameState.currentBg; typeKey = 'bg'; currentTrial = trialState.bg; }
             else { dataObj = effectData; unlockedArr = gameState.unlockedEffects; currentActive = gameState.currentEffect; typeKey = 'effect'; currentTrial = trialState.effect; }
 
-            Object.keys(dataObj).forEach(key => {
+            sortByCost(dataObj).forEach(key => {
                 const item = dataObj[key];
                 let isUnlocked = unlockedArr.includes(key); // 買過了沒
                 let isEquipped = (currentActive === key) && !currentTrial; // 正穿著嗎
@@ -4308,7 +4317,7 @@ function updateLangUI() {
             else if (currentTab === 'bg') { dataObj = bgData; unlockedArr = gameState.unlockedBgs; currentActive = gameState.currentBg; typeKey = 'bg'; }
             else { dataObj = effectData; unlockedArr = gameState.unlockedEffects; currentActive = gameState.currentEffect; typeKey = 'effect'; }
 
-            Object.keys(dataObj).forEach(key => {
+            sortByCost(dataObj).forEach(key => {
                 const item = dataObj[key];
                 
                 // 🌟 核心：如果沒擁有的直接跳過不顯示！
@@ -4526,7 +4535,15 @@ function tryItem(key, type) {
             document.getElementById('dotPattern').style.opacity = bg.hasDots ? '0.9' : '0';
         }
 
- function applyEffect() {
+        // 記住畫面上正在播的特效，切換商店分頁時才不會把特效重播一次
+        let renderedEffectKey = null;
+
+        function applyEffect(force = false) {
+            const activeEffectKey = trialState.effect || gameState.currentEffect || 'none';
+            // 特效沒換就別重建圖層，讓它繼續播下去
+            if (!force && activeEffectKey === renderedEffectKey) return;
+            renderedEffectKey = activeEffectKey;
+
             const layer = document.getElementById('effectLayer');
             
             // 🧹 1. 徹底清空圖層與「隱形滑鼠點擊事件」！(解決點擊螢幕還會落雷的關鍵)
@@ -4550,6 +4567,11 @@ function tryItem(key, type) {
             if (window.heartbeatAnimFrame) cancelAnimationFrame(window.heartbeatAnimFrame);
             if (window.heartbeatTimeout) clearTimeout(window.heartbeatTimeout);
             if (window.recallAnimFrame) cancelAnimationFrame(window.recallAnimFrame);
+            // 💰 財富自由清道夫
+            if (window.moneyAnimFrame) cancelAnimationFrame(window.moneyAnimFrame);
+            if (window.moneyDropTimer) clearInterval(window.moneyDropTimer);
+            if (window.moneyBurstTimer) clearTimeout(window.moneyBurstTimer);
+            window.moneySessionId = null;
             
             // 🛑 櫻花音樂徹底停止清道夫
             if (window.sakuraMusicTimer) clearTimeout(window.sakuraMusicTimer);
@@ -4600,7 +4622,7 @@ if (window.gearClockInterval) clearInterval(window.gearClockInterval);
                 if (el) el.remove();
             });
             // 🧹 移除舊特效殘留的 CSS 樣式表
-            ['stormLightningStyle', 'ghostEffectStyle', 'partyEffectStyle'].forEach(id => {
+            ['stormLightningStyle', 'ghostEffectStyle', 'partyEffectStyle', 'moneyEffectStyle'].forEach(id => {
                 const el = document.getElementById(id);
                 if (el) el.remove();
             });
@@ -9667,6 +9689,347 @@ case 'fish': {
     spawnProjectorHeart();
     setTimeout(spawnProjectorHeart, 500);
     break;
+                // 💰 【財富自由】金幣與鈔票灑落、底部越堆越高的金幣山、可點擊收集的金光爆開
+                case 'money': {
+                    if (window.moneyAnimFrame) cancelAnimationFrame(window.moneyAnimFrame);
+                    if (window.moneyBurstTimer) clearTimeout(window.moneyBurstTimer);
+                    const moneySession = Math.random();
+                    window.moneySessionId = moneySession;
+
+                    if (!document.getElementById('moneyEffectStyle')) {
+                        const style = document.createElement('style');
+                        style.id = 'moneyEffectStyle';
+                        style.innerHTML = `
+                            .money-layer { position:absolute; inset:0; overflow:hidden; pointer-events:none; }
+                            /* 底部的金色財氣光暈 */
+                            .money-aura {
+                                position:absolute; left:50%; bottom:-14%; width:130%; height:46%;
+                                transform:translateX(-50%);
+                                background:radial-gradient(ellipse at 50% 100%, rgba(255,214,102,0.55) 0%, rgba(255,196,60,0.28) 38%, rgba(255,196,60,0) 72%);
+                                animation:moneyAuraBreath 4.5s ease-in-out infinite;
+                            }
+                            @keyframes moneyAuraBreath { 0%,100%{opacity:.75; transform:translateX(-50%) scaleY(1);} 50%{opacity:1; transform:translateX(-50%) scaleY(1.12);} }
+                            /* 由下往上的財氣光柱 */
+                            .money-ray {
+                                position:absolute; bottom:0; width:8%; height:52%;
+                                background:linear-gradient(0deg, rgba(255,222,120,0.42) 0%, rgba(255,222,120,0) 100%);
+                                filter:blur(2px); animation:moneyRayFloat 6s ease-in-out infinite;
+                            }
+                            @keyframes moneyRayFloat { 0%,100%{opacity:.25; transform:scaleY(.85);} 50%{opacity:.6; transform:scaleY(1.15);} }
+                            /* 落下的金幣：邊掉邊翻面 */
+                            .money-coin {
+                                position:absolute; top:-90px; pointer-events:auto; cursor:pointer;
+                                will-change:transform; animation:moneyFall linear forwards;
+                            }
+                            .money-coin .coin-face { display:block; width:100%; height:100%; animation:coinFlip 1.1s linear infinite; transform-style:preserve-3d; }
+                            @keyframes coinFlip { 0%{transform:rotateY(0deg);} 100%{transform:rotateY(360deg);} }
+                            /* 落下的鈔票：飄擺著掉 */
+                            .money-bill { position:absolute; top:-90px; pointer-events:auto; cursor:pointer; will-change:transform; animation:moneyFall linear forwards; }
+                            .money-bill .bill-face { display:block; width:100%; height:100%; animation:billSway 2.4s ease-in-out infinite; }
+                            @keyframes billSway { 0%,100%{transform:rotate(-16deg) translateX(-8px);} 50%{transform:rotate(14deg) translateX(8px);} }
+                            @keyframes moneyFall { to { transform:translateY(var(--fall-dist)); } }
+                            /* 堆在底部的金幣山 */
+                            .money-pile { position:absolute; left:0; bottom:0; width:100%; height:32%; pointer-events:none; }
+                            .money-pile .pile-coin { position:absolute; animation:pilePop .34s cubic-bezier(.2,1.6,.4,1) both; }
+                            @keyframes pilePop { 0%{transform:translateY(-26px) scale(.6); opacity:0;} 100%{transform:translateY(0) scale(1); opacity:1;} }
+                            /* 點擊爆開的金光 */
+                            .money-spark { position:absolute; width:10px; height:10px; border-radius:50%; background:radial-gradient(circle,#fff6c4 0%,#ffd24a 55%,rgba(255,210,74,0) 72%); animation:sparkFly .62s ease-out forwards; }
+                            @keyframes sparkFly { to { transform:translate(var(--sx), var(--sy)) scale(.2); opacity:0; } }
+                            .money-pop-text { position:absolute; font-weight:900; font-size:1.1rem; color:#b8860b; text-shadow:0 2px 0 #fff6c4, 0 0 12px rgba(255,214,102,.9); animation:popUp .8s ease-out forwards; }
+                            @keyframes popUp { 0%{transform:translate(-50%,0) scale(.6); opacity:0;} 25%{transform:translate(-50%,-14px) scale(1.15); opacity:1;} 100%{transform:translate(-50%,-46px) scale(1); opacity:0;} }
+                            /* 右上角財富計數器 */
+                            .money-counter {
+                                position:absolute; top:112px; right:16px; z-index:40; pointer-events:none;
+                                display:flex; align-items:center; gap:6px; padding:6px 14px; border-radius:22px;
+                                background:linear-gradient(135deg, rgba(255,246,214,.95), rgba(255,226,140,.95));
+                                border:3px solid #e0b100; box-shadow:0 6px 16px rgba(180,130,0,.3);
+                                font-weight:900; color:#8a6100; font-size:1rem;
+                            }
+                            .money-counter.bump { animation:counterBump .3s ease-out; }
+                            @keyframes counterBump { 50%{transform:scale(1.18);} }
+                            .money-counter .counter-goal { font-size:.8em; opacity:.75; }
+                            /* 接滿可兌換時：變成會呼吸的按鈕 */
+                            .money-counter.ready {
+                                background:linear-gradient(135deg,#ffe9a8,#ffcf3d);
+                                border-color:#b8860b; color:#6b4a00;
+                                animation:counterReady 1.3s ease-in-out infinite;
+                            }
+                            .money-counter.ready .counter-goal { font-size:.92em; opacity:1; }
+                            @keyframes counterReady { 0%,100%{box-shadow:0 6px 16px rgba(180,130,0,.3);} 50%{box-shadow:0 6px 24px rgba(255,200,40,.85);} }
+                            /* 開場操作提示 */
+                            .money-hint {
+                                position:absolute; left:50%; bottom:16%; transform:translateX(-50%);
+                                padding:8px 18px; border-radius:22px; white-space:nowrap;
+                                background:rgba(255,246,214,.94); border:3px solid #e0b100;
+                                color:#8a6100; font-weight:900; font-size:1rem; z-index:41;
+                                box-shadow:0 6px 16px rgba(180,130,0,.3);
+                                animation:hintFade 5.2s ease-in-out forwards;
+                            }
+                            @keyframes hintFade { 0%{opacity:0; transform:translate(-50%,10px);} 10%,80%{opacity:1; transform:translate(-50%,0);} 100%{opacity:0; transform:translate(-50%,-8px);} }
+                            @media screen and (max-width:768px) {
+                                .money-counter { top:104px; right:10px; padding:5px 11px; font-size:.85rem; border-width:2px; }
+                                .money-pile { height:26%; }
+                                .money-hint { font-size:.85rem; padding:7px 14px; bottom:22%; border-width:2px; }
+                            }
+                        `;
+                        document.head.appendChild(style);
+                    }
+
+                    const isPhone = window.innerWidth <= 768;
+                    const moneyLayer = document.createElement('div');
+                    moneyLayer.className = 'money-layer';
+                    moneyLayer.innerHTML = `
+                        <div class="money-aura"></div>
+                        <div class="money-ray" style="left:12%; animation-delay:0s;"></div>
+                        <div class="money-ray" style="left:38%; animation-delay:1.4s;"></div>
+                        <div class="money-ray" style="left:64%; animation-delay:2.6s;"></div>
+                        <div class="money-ray" style="left:86%; animation-delay:3.8s;"></div>
+                        <div class="money-pile"></div>
+                    `;
+                    layer.appendChild(moneyLayer);
+                    const pile = moneyLayer.querySelector('.money-pile');
+
+                    // 財富計數器：接滿一定數量就能點它兌換積分
+                    const COINS_PER_EXCHANGE = 50;   // 接幾枚換一次
+                    const POINTS_PER_EXCHANGE = 120; // 每次換多少積分（與後端 gameConfig 一致）
+                    const counter = document.createElement('div');
+                    counter.className = 'money-counter';
+                    counter.innerHTML = `<span>💰</span><span id="moneyCounterNum">0</span><span class="counter-goal">/${COINS_PER_EXCHANGE}</span>`;
+                    moneyLayer.appendChild(counter);
+                    let collected = 0;
+                    let exchanging = false;
+
+                    // 達標時counter變成可點的兌換鈕
+                    const refreshCounter = () => {
+                        const num = document.getElementById('moneyCounterNum');
+                        if (num) num.textContent = collected;
+                        const ready = collected >= COINS_PER_EXCHANGE && !exchanging;
+                        counter.classList.toggle('ready', ready);
+                        counter.style.pointerEvents = ready ? 'auto' : 'none';
+                        counter.style.cursor = ready ? 'pointer' : 'default';
+                        const goal = counter.querySelector('.counter-goal');
+                        if (goal) goal.textContent = ready
+                            ? (currLang === 'zh' ? ` → 兌換 ${POINTS_PER_EXCHANGE} 積分` : ` → Claim ${POINTS_PER_EXCHANGE}`)
+                            : `/${COINS_PER_EXCHANGE}`;
+                    };
+
+                    // 點擊兌換：扣掉金幣數，跟伺服器換積分（後端有冷卻與每日上限）
+                    counter.addEventListener('click', async () => {
+                        if (exchanging || collected < COINS_PER_EXCHANGE) return;
+                        exchanging = true;
+                        refreshCounter();
+                        try {
+                            const result = await fetchAPI('/pet-games/interact', 'POST', { action: 'MONEY_EXCHANGE' });
+                            if (result && !result.error) {
+                                collected -= COINS_PER_EXCHANGE;
+                                if (result.coin !== undefined) gameState.points = result.coin;
+                                else gameState.points += POINTS_PER_EXCHANGE;
+                                saveGame();
+                                updateUI();
+                                playDingSound(3);
+                                const lr = moneyLayer.getBoundingClientRect();
+                                for (let i = 0; i < 3; i++) burstAt(lr.width * (0.3 + Math.random() * 0.4), lr.height * (0.2 + Math.random() * 0.2), null);
+                                showFloatText(currLang === 'zh' ? `💰 兌換成功！+${POINTS_PER_EXCHANGE} 積分` : `💰 Exchanged! +${POINTS_PER_EXCHANGE}`, 4000);
+                            } else {
+                                showFloatText(result?.error || (currLang === 'zh' ? '兌換失敗，稍後再試' : 'Exchange failed'), 4000);
+                            }
+                        } catch (e) {
+                            showFloatText(currLang === 'zh' ? '伺服器連線異常' : 'Server error', 4000);
+                        }
+                        exchanging = false;
+                        refreshCounter();
+                    });
+
+                    const coinSVG = (size) => `<svg class="coin-face" viewBox="0 0 64 64" width="${size}" height="${size}">
+                        <defs>
+                            <radialGradient id="mcG" cx="35%" cy="30%">
+                                <stop offset="0%" stop-color="#fff3c0"/><stop offset="55%" stop-color="#ffd24a"/><stop offset="100%" stop-color="#d79a11"/>
+                            </radialGradient>
+                        </defs>
+                        <circle cx="32" cy="32" r="29" fill="url(#mcG)" stroke="#b8860b" stroke-width="3"/>
+                        <circle cx="32" cy="32" r="22" fill="none" stroke="#f3e2a0" stroke-width="2.5" opacity="0.9"/>
+                        <path d="M 32 15 L 32 49 M 24 23 C 24 18, 40 18, 40 24 C 40 30, 24 30, 24 37 C 24 44, 40 44, 40 39" fill="none" stroke="#8a6100" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>`;
+
+                    const billSVG = (w) => `<svg class="bill-face" viewBox="0 0 96 48" width="${w}" height="${w * 0.5}">
+                        <rect x="2" y="2" width="92" height="44" rx="5" fill="#8fd9a8" stroke="#2f7a52" stroke-width="3"/>
+                        <rect x="9" y="9" width="78" height="30" rx="3" fill="none" stroke="#2f7a52" stroke-width="1.6" opacity="0.7"/>
+                        <circle cx="48" cy="24" r="11" fill="#d8f3e3" stroke="#2f7a52" stroke-width="2.4"/>
+                        <path d="M 48 17 L 48 31 M 44 20 C 44 17.5, 52 17.5, 52 20.5 C 52 23.5, 44 23.5, 44 27 C 44 30, 52 30, 52 28" fill="none" stroke="#2f7a52" stroke-width="2.2" stroke-linecap="round"/>
+                        <text x="17" y="28" font-size="12" font-weight="900" fill="#2f7a52">$</text>
+                        <text x="73" y="28" font-size="12" font-weight="900" fill="#2f7a52">$</text>
+                    </svg>`;
+
+                    // 金光爆開 + 飄字
+                    const burstAt = (x, y, label) => {
+                        for (let i = 0; i < 9; i++) {
+                            const sp = document.createElement('div');
+                            sp.className = 'money-spark';
+                            const ang = (Math.PI * 2 * i) / 9 + Math.random() * 0.5;
+                            const dist = 34 + Math.random() * 46;
+                            sp.style.cssText += `left:${x}px; top:${y}px; --sx:${Math.cos(ang) * dist}px; --sy:${Math.sin(ang) * dist}px;`;
+                            moneyLayer.appendChild(sp);
+                            setTimeout(() => sp.remove(), 700);
+                        }
+                        if (label) {
+                            const txt = document.createElement('div');
+                            txt.className = 'money-pop-text';
+                            txt.textContent = label;
+                            txt.style.cssText += `left:${x}px; top:${y - 10}px;`;
+                            moneyLayer.appendChild(txt);
+                            setTimeout(() => txt.remove(), 900);
+                        }
+                    };
+
+                    // 清脆的金幣聲
+                    const coinSound = () => {
+                        try {
+                            if (!sharedAudioCtx || sharedAudioCtx.state === 'closed') sharedAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                            if (sharedAudioCtx.state === 'suspended') sharedAudioCtx.resume();
+                            [1480, 2100].forEach((f, i) => {
+                                const osc = sharedAudioCtx.createOscillator(), g = sharedAudioCtx.createGain();
+                                osc.type = 'triangle';
+                                osc.frequency.setValueAtTime(f, sharedAudioCtx.currentTime + i * 0.05);
+                                g.gain.setValueAtTime(0.09, sharedAudioCtx.currentTime + i * 0.05);
+                                g.gain.exponentialRampToValueAtTime(0.001, sharedAudioCtx.currentTime + i * 0.05 + 0.26);
+                                osc.connect(g); g.connect(sharedAudioCtx.destination);
+                                osc.start(sharedAudioCtx.currentTime + i * 0.05);
+                                osc.stop(sharedAudioCtx.currentTime + i * 0.05 + 0.28);
+                            });
+                        } catch (e) { }
+                    };
+
+                    // 堆到底部的金幣山（有上限，不會無限長高）
+                    const pileCoins = [];
+                    const addToPile = (xPercent) => {
+                        if (pileCoins.length >= (isPhone ? 26 : 40)) {
+                            const old = pileCoins.shift();
+                            if (old) old.remove();
+                        }
+                        const c = document.createElement('div');
+                        c.className = 'pile-coin';
+                        const size = (isPhone ? 20 : 27) + Math.random() * (isPhone ? 8 : 12);
+                        const row = Math.floor(Math.random() * 3);
+                        c.innerHTML = coinSVG(size);
+                        c.querySelector('.coin-face').style.animation = 'none';
+                        c.style.cssText += `left:${Math.max(1, Math.min(96, xPercent + (Math.random() - 0.5) * 7))}%; bottom:${row * (isPhone ? 9 : 11) + Math.random() * 6}px; width:${size}px; height:${size}px; z-index:${10 - row};`;
+                        pile.appendChild(c);
+                        pileCoins.push(c);
+                    };
+
+                    // 收錢：不管是點到還是被海兔接到，都走同一套（純視覺，不加遊戲積分）
+                    const fallingItems = new Set();
+                    let comboCount = 0, comboTimer = null;
+                    const collectOne = (el, isCoin, label) => {
+                        const r = el.getBoundingClientRect(), lr = moneyLayer.getBoundingClientRect();
+                        burstAt(r.left - lr.left + r.width / 2, r.top - lr.top + r.height / 2, label);
+                        coinSound();
+                        collected++;
+                        refreshCounter();
+                        counter.classList.remove('bump');
+                        void counter.offsetWidth;
+                        counter.classList.add('bump');
+                        fallingItems.delete(el);
+                        el.remove();
+                    };
+
+                    // 灑落一枚金幣或鈔票
+                    const dropOne = () => {
+                        if (window.moneySessionId !== moneySession) return;
+                        const isCoin = Math.random() < 0.62;
+                        const el = document.createElement('div');
+                        const size = isCoin
+                            ? (isPhone ? 26 : 34) + Math.random() * (isPhone ? 12 : 18)
+                            : (isPhone ? 42 : 56) + Math.random() * (isPhone ? 16 : 24);
+                        const xPercent = Math.random() * 96;
+                        const dur = 4.6 + Math.random() * 3.4;
+                        const dist = layer.clientHeight + 140;
+
+                        el.className = isCoin ? 'money-coin' : 'money-bill';
+                        el.innerHTML = isCoin ? coinSVG(size) : billSVG(size);
+                        el.style.cssText += `left:${xPercent}%; width:${size}px; height:${isCoin ? size : size * 0.5}px; --fall-dist:${dist}px; animation-duration:${dur}s;`;
+
+                        // 點一下也能收（電腦用滑鼠、手機用手指）
+                        el.addEventListener('pointerdown', (ev) => {
+                            ev.stopPropagation();
+                            collectOne(el, isCoin, isCoin ? '+$' : '+$$');
+                            addToPile(xPercent);
+                        });
+
+                        el.addEventListener('animationend', () => {
+                            if (window.moneySessionId !== moneySession) return;
+                            fallingItems.delete(el);
+                            addToPile(xPercent);
+                            el.remove();
+                        });
+
+                        el.dataset.isCoin = isCoin ? '1' : '0';
+                        fallingItems.add(el);
+                        moneyLayer.appendChild(el);
+                    };
+
+                    // 🐌 拖著海兔去接錢：每一幀檢查落下的錢有沒有碰到海兔身上
+                    const slugCatcher = document.getElementById('slugContainer');
+                    const checkCatch = () => {
+                        if (window.moneySessionId !== moneySession) return;
+                        window.moneyAnimFrame = requestAnimationFrame(checkCatch);
+                        if (!slugCatcher || !fallingItems.size) return;
+
+                        const s = slugCatcher.getBoundingClientRect();
+                        if (!s.width) return;
+                        // 接錢範圍取海兔的上半身，看起來像用頭頂接
+                        const zone = { left: s.left + s.width * 0.14, right: s.right - s.width * 0.14, top: s.top - 6, bottom: s.top + s.height * 0.55 };
+
+                        fallingItems.forEach(el => {
+                            const r = el.getBoundingClientRect();
+                            const cxp = r.left + r.width / 2, cyp = r.top + r.height / 2;
+                            if (cxp < zone.left || cxp > zone.right || cyp < zone.top || cyp > zone.bottom) return;
+
+                            const isCoin = el.dataset.isCoin === '1';
+                            comboCount++;
+                            clearTimeout(comboTimer);
+                            comboTimer = setTimeout(() => { comboCount = 0; }, 2200);
+                            const label = comboCount >= 3
+                                ? (currLang === 'zh' ? `連擊 x${comboCount}！` : `Combo x${comboCount}!`)
+                                : (isCoin ? '+$' : '+$$');
+                            collectOne(el, isCoin, label);
+                        });
+                    };
+                    window.moneyAnimFrame = requestAnimationFrame(checkCatch);
+
+                    // 開場提示：告訴玩家可以拖海兔接錢
+                    const hint = document.createElement('div');
+                    hint.className = 'money-hint';
+                    hint.textContent = currLang === 'zh'
+                        ? `拖著海兔去接錢！接滿 ${COINS_PER_EXCHANGE} 枚可兌換 ${POINTS_PER_EXCHANGE} 積分`
+                        : `Drag the slug to catch coins! ${COINS_PER_EXCHANGE} coins = ${POINTS_PER_EXCHANGE} points`;
+                    moneyLayer.appendChild(hint);
+                    setTimeout(() => hint.remove(), 5200);
+
+                    // 開場先灑一批，之後持續穩定落下
+                    const initial = isPhone ? 7 : 11;
+                    for (let i = 0; i < initial; i++) setTimeout(dropOne, i * 320);
+                    const dropTimer = setInterval(() => {
+                        if (window.moneySessionId !== moneySession) { clearInterval(dropTimer); return; }
+                        dropOne();
+                    }, isPhone ? 900 : 620);
+                    window.moneyDropTimer = dropTimer;
+
+                    // 每隔一陣子金幣山爆出一波金光
+                    const scheduleBurst = () => {
+                        window.moneyBurstTimer = setTimeout(() => {
+                            if (window.moneySessionId !== moneySession) return;
+                            const lr = moneyLayer.getBoundingClientRect();
+                            for (let i = 0; i < 3; i++) {
+                                burstAt(lr.width * (0.2 + Math.random() * 0.6), lr.height * (0.82 + Math.random() * 0.12), null);
+                            }
+                            scheduleBurst();
+                        }, 7000 + Math.random() * 4000);
+                    };
+                    scheduleBurst();
+                    break;
+                }
+
                 // 🛠️ 其他通用的純 SVG 特效飄落
 default:
     let count = effect.count || 15;
