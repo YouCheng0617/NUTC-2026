@@ -3418,3 +3418,85 @@ body:has(#profile-modal[style*="display: flex"]) .ocean-rules-board {
     z-index: 100002 !important;
   }
 }
+/* =========================================
+   📌 Dcard 核心佈局：中間滑動 + 底部打字固定
+   ========================================= */
+
+/* 1. 外層白色大卡片：固定高度、垂直三層排列 */
+.ocean-detail-card {
+  position: fixed !important;
+  top: 70px !important;
+  bottom: 0 !important;
+  left: 50% !important;
+  transform: translateX(-50%) !important;
+  width: 100% !important;
+  max-width: 720px !important;
+  height: calc(100vh - 70px) !important;
+  max-height: none !important;
+  background: #ffffff !important;
+  border-radius: 20px 20px 0 0 !important;
+  box-shadow: 0 -5px 30px rgba(0, 20, 50, 0.2) !important;
+  display: flex !important;
+  flex-direction: column !important; /* 上中下三層結構 */
+  overflow: hidden !important;       /* 外框不滾動，由中間滾動 */
+  z-index: 1000 !important;
+  padding: 0 !important;
+  margin: 0 !important;
+}
+
+/* 2. 頂部導覽列：不被壓縮 */
+.detail-nav-bar {
+  flex-shrink: 0 !important;
+  background: #ffffff !important;
+  z-index: 10 !important;
+}
+
+/* 3. 中間滑動區 (最關鍵)：文章與留言在這裡獨立滑動 */
+.detail-scroll-body {
+  flex: 1 1 auto !important;
+  overflow-y: auto !important;
+  -webkit-overflow-scrolling: touch !important;
+  padding: 0 !important;
+}
+
+/* 滑動區卷軸美化 */
+.detail-scroll-body::-webkit-scrollbar {
+  width: 6px;
+}
+.detail-scroll-body::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 10px;
+}
+
+/* 留言列表底部的 padding，避免最後一則留言貼太近 */
+.detail-comments-wrapper {
+  padding: 20px 25px 40px 25px !important;
+  background: #ffffff !important;
+}
+
+/* 4. 底部打字輸入列 (最關鍵)：牢牢固定在卡片底部，不浮動、不被壓縮 */
+.comment-action-bar {
+  position: static !important; /* 取消 fixed，回歸 flex 佈局釘在底部 */
+  transform: none !important;
+  flex-shrink: 0 !important;   /* 高度不被內容擠壓 */
+  width: 100% !important;
+  background: #ffffff !important;
+  border-top: 1px solid #e2e8f0 !important;
+  box-shadow: 0 -4px 15px rgba(0, 0, 0, 0.05) !important;
+  padding: 12px 18px !important;
+  box-sizing: border-box !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 10px !important;
+  margin: 0 !important;
+  z-index: 20 !important;
+}
+
+/* 手機版 (寬度 <= 768px) 滿版無縫適配 */
+@media screen and (max-width: 768px) {
+  .ocean-detail-card {
+    top: 50px !important;
+    height: calc(100vh - 50px) !important;
+    border-radius: 0 !important;
+  }
+}

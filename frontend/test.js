@@ -763,10 +763,13 @@ window.submitComment = async function () {
       await renderComments(currentOpenPostId);
       const detailView = document.getElementById("detail-view");
       if (detailView && detailView.offsetParent !== null) {
-        window.scrollTo({
-          top: document.body.scrollHeight,
-          behavior: "smooth",
-        });
+        const scrollBody = document.querySelector(".detail-scroll-body");
+if (scrollBody) {
+  scrollBody.scrollTo({
+    top: scrollBody.scrollHeight,
+    behavior: "smooth",
+  });
+}
       }
     } else {
       const err = await response.json();
@@ -982,7 +985,8 @@ window.openPostDetail = function (id) {
   // 🌟 渲染此文章的投票卡片
   renderPollWidget(p);
 
-  renderComments(id);
+  renderComments(id);document.body.classList.add("in-detail-view");
+
 
   const saveBtn = document.getElementById("save-bottle-btn");
   if (saveBtn) {

@@ -228,6 +228,7 @@
           id="detail-view"
           style="display: none"
         >
+          <!-- 1. 頂部導覽列 (固定在上方) -->
           <div class="detail-nav-bar">
             <div class="back-action" onclick="closePostDetail()">
               <span class="back-arrow">&larr;</span>
@@ -249,71 +250,75 @@
             </div>
           </div>
 
-          <h2 id="detail-post-title" class="detail-title"></h2>
+          <!-- 2. 中間滑動區 (文章內文與留言在此滑動) -->
+          <div class="detail-scroll-body">
+            <h2 id="detail-post-title" class="detail-title"></h2>
 
-          <div class="detail-author-box">
-            <img src="images/fish_logo.png" class="detail-avatar" />
-            <div class="detail-author-text">
-              <div id="detail-author-tag" class="detail-author-name"></div>
-              <div class="detail-post-time">今天發布</div>
-              <button
-                id="follow-author-btn"
-                class="follow-btn"
-                onclick="toggleFollow()"
-              >
-                + 追蹤
-              </button>
+            <div class="detail-author-box">
+              <img src="images/fish_logo.png" class="detail-avatar" />
+              <div class="detail-author-text">
+                <div id="detail-author-tag" class="detail-author-name"></div>
+                <div class="detail-post-time">今天發布</div>
+                <button
+                  id="follow-author-btn"
+                  class="follow-btn"
+                  onclick="toggleFollow()"
+                >
+                  + 追蹤
+                </button>
+              </div>
+            </div>
+
+            <div id="detail-post-content" class="detail-content"></div>
+            <div
+              id="detail-post-poll"
+              class="ocean-poll-box"
+              style="display: none"
+            ></div>
+
+            <div class="detail-comments-wrapper">
+              <h3 class="comments-title">
+                💬 共 <span id="detail-comment-count">0</span> 則留言
+              </h3>
+              <div id="detail-comments-list" class="comments-list"></div>
             </div>
           </div>
 
-          <div id="detail-post-content" class="detail-content"></div>
-          <div
-            id="detail-post-poll"
-            class="ocean-poll-box"
-            style="display: none"
-          ></div>
-          <div class="detail-comments-wrapper">
-            <h3 class="comments-title">
-              💬 共 <span id="detail-comment-count">0</span> 則留言
-            </h3>
-
-            <div id="detail-comments-list" class="comments-list"></div>
-
-            <div class="comment-action-bar">
-              <button
-                type="button"
-                id="save-bottle-btn"
-                class="save-btn"
-                title="收藏這個瓶子"
-                onclick="this.classList.toggle('active')"
-              >
-                ⭐
-              </button>
-              <input
-                type="text"
-                id="new-comment-input"
-                placeholder="寫下溫暖的留言..."
-                class="comment-input"
-                autocomplete="off"
-              />
-              <label
-                style="
-                  font-size: 0.9rem;
-                  color: #6688aa;
-                  display: flex;
-                  align-items: center;
-                  gap: 4px;
-                  cursor: pointer;
-                  user-select: none;
-                  white-space: nowrap;
-                "
-              >
-                <input type="checkbox" id="main-comment-anon" /> 🎭 匿名
-              </label>
-              <button type="button" onclick="submitComment()" class="send-btn">
-                送出
-              </button>
-            </div>
+          <!-- 3. 底部打字區 (固定在最下方) -->
+          <div class="comment-action-bar">
+            <button
+              type="button"
+              id="save-bottle-btn"
+              class="save-btn"
+              title="收藏這個瓶子"
+              onclick="this.classList.toggle('active')"
+            >
+              ⭐
+            </button>
+            <input
+              type="text"
+              id="new-comment-input"
+              placeholder="寫下溫暖的留言..."
+              class="comment-input"
+              autocomplete="off"
+            />
+            <label
+              style="
+                font-size: 0.9rem;
+                color: #6688aa;
+                display: flex;
+                align-items: center;
+                gap: 4px;
+                cursor: pointer;
+                user-select: none;
+                white-space: nowrap;
+              "
+            >
+              <input type="checkbox" id="main-comment-anon" /> 🎭 匿名
+            </label>
+            <button type="button" onclick="submitComment()" class="send-btn">
+              送出
+            </button>
           </div>
         </main>
 

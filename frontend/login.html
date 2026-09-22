@@ -159,7 +159,7 @@
             <div
               class="b-item b-captcha-img"
               style="flex: 1"
-              onclick="loadCaptcha()"
+              onclick="loadCaptcha(true)"
               title="看不清楚？點擊換一張"
             >
               <div id="captcha-container"><span>載入中...</span></div>
@@ -757,8 +757,42 @@
         if (zodiac) zodiacSelect.value = zodiac;
       }
 
-      // 載入驗證碼
-      async function loadCaptcha() {
+      // 🌟 2 分鐘內最多手動刷新 5 次驗證碼
+      const CAPTCHA_LIMIT = 5;
+      const CAPTCHA_WINDOW_MS = 2 * 60 * 1000; // 2 分鐘 (120,000 毫秒)
+
+      async function loadCaptcha(isManual = false) {
+        // 只有使用者主動點擊圖片時才進行次數判定
+        if (isManual) {
+          const now = Date.now();
+          let history = JSON.parse(
+            localStorage.getItem("captcha_refresh_history") || "[]",
+          );
+
+          // 1. 過濾掉超過 2 分鐘（120秒）之前的過期紀錄
+          history = history.filter((time) => now - time < CAPTCHA_WINDOW_MS);
+
+          // 2. 檢查 2 分鐘內是否已達 5 次
+          if (history.length >= CAPTCHA_LIMIT) {
+            // 計算距離最早一次刷新還要等幾秒解鎖
+            const waitSeconds = Math.ceil(
+              (history[0] + CAPTCHA_WINDOW_MS - now) / 1000,
+            );
+            showModalError(
+              `⚠️ 刷新過於頻繁！每 2 分鐘只能刷新 5 次，請等待 ${waitSeconds} 秒後再試。`,
+            );
+            return; // 攔截請求，不向後端抓取
+          }
+
+          // 3. 未達上限，記錄本次刷新時間並存入本地儲存
+          history.push(now);
+          localStorage.setItem(
+            "captcha_refresh_history",
+            JSON.stringify(history),
+          );
+          clearErrorMessage();
+        }
+
         const container = document.getElementById("captcha-container");
         const idInput = document.getElementById("captcha-id");
         try {
@@ -842,7 +876,13 @@
             // 🌟 帳號尚未通過信箱驗證，詢問是否要重寄驗證信
             if (failMessage.includes("未啟用")) {
               showModalError("❌ 登入失敗：" + failMessage);
-              if (confirm("此帳號尚未完成信箱驗證。\n要重新發送一封驗證信到 " + email + " 嗎？")) {
+              if (
+                confirm(
+                  "此帳號尚未完成信箱驗證。\n要重新發送一封驗證信到 " +
+                    email +
+                    " 嗎？",
+                )
+              ) {
                 await resendVerificationMail(email);
               }
             } else {
@@ -871,9 +911,7 @@
             },
           );
           const data = await response.json();
-          alert(
-            (response.ok ? "📬 " : "❌ ") + (data.message || "請稍後再試"),
-          );
+          alert((response.ok ? "📬 " : "❌ ") + (data.message || "請稍後再試"));
         } catch (error) {
           alert("📡 無法連接到後端伺服器！");
         }
