@@ -32,8 +32,19 @@ export const renamePet = async (memberId: number, newName: string) => {
 };
 // 財富自由兌換的冷卻與每日次數：放在記憶體即可，不需要動到資料表
 const moneyExchangeLog = new Map<number, { last: number; date: string; count: number }>();
+// 跳動音符收集的冷卻（上次收集的時間戳）
+const musicNoteLog = new Map<number, number>();
 
-export const interactPet = async (memberId: number, actionType: 'FEED' | 'PURIFY' | 'PET' | 'MONEY_EXCHANGE') => {
+export type PetActionType = keyof typeof gameConfig.actions;
+
+// 查詢是否已購買某個特效
+const ownsEffect = async (petId: number, effect: string) => {
+    return !!(await prisma.petInventory.findUnique({
+        where: { pet_id_category_item_name: { pet_id: petId, category: 'background_effects', item_name: effect } }
+    }));
+};
+
+export const interactPet = async (memberId: number, actionType: PetActionType) => {
     const action = gameConfig.actions[actionType];
     if (!action) {
         throw new Error("無效的互動類型！");
@@ -52,10 +63,7 @@ export const interactPet = async (memberId: number, actionType: 'FEED' | 'PURIFY
         const { dailyLimit } = gameConfig.moneyGame;
 
         // 沒買財富自由特效的人不可能玩這個小遊戲
-        const owned = await prisma.petInventory.findUnique({
-            where: { pet_id_category_item_name: { pet_id: pet.pet_id, category: 'background_effects', item_name: 'money' } }
-        });
-        if (!owned) {
+        if (!(await ownsEffect(pet.pet_id, 'money'))) {
             throw new Error("尚未擁有財富自由特效，無法兌換！");
         }
 
@@ -80,6 +88,38 @@ export const interactPet = async (memberId: number, actionType: 'FEED' | 'PURIFY
             where: { member_id: memberId },
             data: { coin: { increment: action.reward } }
         });
+    }
+
+    // 跳動音符：點飄浮音符 +15（0.5 秒冷卻）、商店買音符 -1，都沒有次數限制
+    if (actionType === 'MUSIC_NOTE' || actionType === 'MUSIC_BUY_NOTE') {
+        if (!(await ownsEffect(pet.pet_id, 'music'))) {
+            throw new Error("尚未擁有跳動音符特效！");
+        }
+
+        if (actionType === 'MUSIC_NOTE') {
+            // 檢查與寫入冷卻之間沒有 await，同時送多個請求也只會通過一個
+            const waited = (now.getTime() - (musicNoteLog.get(memberId) ?? 0)) / 1000;
+            if (waited < action.cdSeconds) {
+                throw new Error("收集太快了，請稍等一下！");
+            }
+            musicNoteLog.set(memberId, now.getTime());
+
+            return await prisma.pet.update({
+                where: { member_id: memberId },
+                data: { coin: { increment: action.reward } }
+            });
+        }
+
+        // 買音符：帶條件扣款，金幣不夠就不會扣成負數
+        const cost = -action.reward;
+        const { count } = await prisma.pet.updateMany({
+            where: { member_id: memberId, coin: { gte: cost } },
+            data: { coin: { decrement: cost } }
+        });
+        if (count === 0) {
+            throw new Error(`積分不足 ${cost} 分！`);
+        }
+        return await prisma.pet.findUniqueOrThrow({ where: { member_id: memberId } });
     }
 
     let lastActionTime: Date;
@@ -361,4 +401,81 @@ export const getSignInStatusService = async (memberId: number) => {
         today_date: todayStr,
         schedule
     };
-};
+};
+// 每日任務對應的欄位：做過互動的時間 (interactPet 會更新) 與領獎時間
+const dailyTaskFields = {
+    pet: { doneField: 'last_pet_time', claimField: 'last_pet_task_claim' },
+    feed: { doneField: 'last_feed_time', claimField: 'last_feed_task_claim' },
+    clean: { doneField: 'last_purify_time', claimField: 'last_clean_task_claim' }
+} as const;
+
+export type DailyTaskKey = keyof typeof dailyTaskFields;
+
+/**
+ * 取得今天三個每日任務的狀態 (是否完成、是否已領)
+ */
+export const getDailyTaskStatusService = async (memberId: number) => {
+    const pet = await prisma.pet.findUnique({ where: { member_id: memberId } });
+    if (!pet) {
+        throw new Error("找不到該會員的寵物！");
+    }
+
+    const todayStr = getTodayDateStr();
+    const tasks = Object.fromEntries(
+        (Object.keys(dailyTaskFields) as DailyTaskKey[]).map(key => {
+            const { doneField, claimField } = dailyTaskFields[key];
+            const claimedAt = pet[claimField];
+            return [key, {
+                reward: gameConfig.dailyTasks[key].reward,
+                done: getTodayDateStr(pet[doneField]) === todayStr,
+                claimed: !!claimedAt && getTodayDateStr(claimedAt) === todayStr
+            }];
+        })
+    );
+
+    return { date: todayStr, tasks };
+};
+
+/**
+ * 領取每日任務獎勵：今天要真的做過該互動，而且今天還沒領過
+ */
+export const claimDailyTaskService = async (memberId: number, task: DailyTaskKey) => {
+    const { doneField, claimField } = dailyTaskFields[task];
+    const reward = gameConfig.dailyTasks[task].reward;
+
+    const pet = await prisma.pet.findUnique({ where: { member_id: memberId } });
+    if (!pet) {
+        throw new Error("找不到該會員的寵物！");
+    }
+
+    const now = new Date();
+    const todayStr = getTodayDateStr(now);
+    const todayStart = new Date(`${todayStr}T00:00:00+08:00`);
+
+    // 任務完成與否以伺服器記錄的互動時間為準，前端的進度不算數
+    if (getTodayDateStr(pet[doneField]) !== todayStr) {
+        throw new Error("今天還沒完成這個任務喔！");
+    }
+
+    // 帶條件更新：只有今天還沒領過才會成功，同時送多個請求也只會領到一次
+    const { count } = await prisma.pet.updateMany({
+        where: {
+            member_id: memberId,
+            OR: [{ [claimField]: null }, { [claimField]: { lt: todayStart } }]
+        },
+        data: {
+            coin: { increment: reward },
+            [claimField]: now
+        }
+    });
+    if (count === 0) {
+        throw new Error("今天已經領過這個任務的獎勵囉！明天再來～");
+    }
+
+    const updatedPet = await prisma.pet.findUniqueOrThrow({ where: { member_id: memberId } });
+    return {
+        message: `🎉 領取成功！獲得 ${reward} 金幣！`,
+        rewardCoin: reward,
+        coin: updatedPet.coin
+    };
+};

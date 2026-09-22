@@ -19,6 +19,10 @@ export function petGameRouter() {
     router.post("/sign-in", authCheck, petGameController.signInPetController);
     router.get("/sign-in-status", authCheck, petGameController.getSignInStatusController);
 
+    // 每日任務相關路由
+    router.get("/daily-task", authCheck, petGameController.getDailyTaskStatusController);
+    router.post("/daily-task/claim", authCheck, petGameController.claimDailyTaskController);
+
     return router;
 }
 

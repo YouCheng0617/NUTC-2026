@@ -7,7 +7,11 @@ import {
     getMyPetWithInventory,
     getPetCoin,
     signInPetService,
-    getSignInStatusService
+    getSignInStatusService,
+    getDailyTaskStatusService,
+    claimDailyTaskService,
+    type PetActionType,
+    type DailyTaskKey
 } from "./petGame.service.js";
 
 export class PetGameController {
@@ -42,14 +46,14 @@ export class PetGameController {
             const actionType = upperAction === 'CLEAN' ? 'PURIFY' : upperAction;
 
             // 3. 檢查動作是否合法（可選但推薦，避免非預期的動作傳入）
-            const validActions = ['FEED', 'PURIFY', 'PET', 'MONEY_EXCHANGE'];
+            const validActions = ['FEED', 'PURIFY', 'PET', 'MONEY_EXCHANGE', 'MUSIC_NOTE', 'MUSIC_BUY_NOTE'];
             if (!validActions.includes(actionType)) {
                 return res.status(400).json({ error: "無效的互動類型！" });
             }
 
             const updatedPet = await interactPet(
                 Number(memberId),
-                actionType as 'FEED' | 'PURIFY' | 'PET' | 'MONEY_EXCHANGE'
+                actionType as PetActionType
             );
 
             return res.status(200).json({
@@ -122,6 +126,37 @@ export class PetGameController {
 
             const status = await getSignInStatusService(Number(memberId));
             return res.status(200).json(status);
+        } catch (error: any) {
+            return res.status(400).json({ error: error.message });
+        }
+    }
+
+    async getDailyTaskStatusController(req: AuthRequest, res: Response) {
+        try {
+            const memberId = req.user?.member_id;
+            if (!memberId) return res.status(401).json({ error: "尚未登入" });
+
+            const status = await getDailyTaskStatusService(Number(memberId));
+            return res.status(200).json(status);
+        } catch (error: any) {
+            return res.status(400).json({ error: error.message });
+        }
+    }
+
+    async claimDailyTaskController(req: AuthRequest, res: Response) {
+        try {
+            const memberId = req.user?.member_id;
+            if (!memberId) return res.status(401).json({ error: "尚未登入" });
+
+            // 前端任務 key 是 pet / feed / clean，也接受互動的名稱 (PET / FEED / PURIFY)
+            const raw = String(req.body.task ?? "").toLowerCase();
+            const task = raw === 'purify' ? 'clean' : raw;
+            if (!['pet', 'feed', 'clean'].includes(task)) {
+                return res.status(400).json({ error: "無效的任務類型！(pet / feed / clean)" });
+            }
+
+            const result = await claimDailyTaskService(Number(memberId), task as DailyTaskKey);
+            return res.status(200).json(result);
         } catch (error: any) {
             return res.status(400).json({ error: error.message });
         }

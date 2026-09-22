@@ -234,6 +234,14 @@ Query 參數 (必填)：?keyword=你要找的字
 | PURIFY 淨化水質 | +100 | 15 秒 | |
 | PET 溫柔撫摸 | +60 | 10 秒 | |
 | MONEY_EXCHANGE 財富自由兌換 | +120 | 5 秒 | 必須已購買 `background_effects` 的 `money` 特效；沒有每日次數限制 |
+| MUSIC_NOTE 跳動音符：點飄浮音符 | +15 | 0.5 秒 | 必須已購買 `music` 特效；沒有次數限制 |
+| MUSIC_BUY_NOTE 跳動音符：商店買音符 | -1 | 無 | 必須已購買 `music` 特效；金幣不足回 `積分不足 1 分！` |
+
+#### 🎵 跳動音符 (MUSIC_NOTE / MUSIC_BUY_NOTE)
+- 點到飄浮音符 → `{ "action": "MUSIC_NOTE" }`，成功 +15；距離上次不到 0.5 秒會回 `收集太快了，請稍等一下！`
+- 商店買一個音符 → `{ "action": "MUSIC_BUY_NOTE" }`，成功 -1
+- 兩者都用回傳的 `coin` 覆蓋畫面積分；試用中（沒買 music 特效）不要呼叫，會回 `尚未擁有跳動音符特效！`
+- 音符最多 32 個是前端的限制，後端不檢查
 
 #### 💰 財富自由接錢小遊戲 (MONEY_EXCHANGE)
 玩家裝備「財富自由」特效後，拖著海兔接住掉下來的金幣，**前端自己計數**，每接滿 50 枚就呼叫一次：
@@ -260,6 +268,27 @@ POST /pet-games/interact
 (每日限簽到 1 次，14 天一週期循環：每滿 7 天即第 7、14 天獲得 200 金幣，其餘天數每天 100 金幣)
 
 查詢簽到狀態與 14 天獎勵預覽 GET 給Token /pet-games/sign-in-status
+
+每日任務狀態 GET 給Token /pet-games/daily-task
+回傳範例：
+{
+  "date": "2026-09-22",
+  "tasks": {
+    "pet":   { "reward": 60,  "done": true,  "claimed": false },
+    "feed":  { "reward": 80,  "done": false, "claimed": false },
+    "clean": { "reward": 100, "done": true,  "claimed": true }
+  }
+}
+- `done`：今天 (台北時間) 有沒有成功做過對應的互動 (以 /pet-games/interact 成功為準)
+- `claimed`：今天領過獎勵了沒；每天台北時間 00:00 重置
+
+領取每日任務獎勵 POST 給Token /pet-games/daily-task/claim
+{
+  "task": "pet" /* 可選值: "pet(跟寵物玩)", "feed(餵食)", "clean(清理魚缸)" */
+}
+- 成功 200：`{ "message": "🎉 領取成功！獲得 60 金幣！", "rewardCoin": 60, "coin": 領完後的總金幣 }`
+- 失敗 400：`今天還沒完成這個任務喔！`、`今天已經領過這個任務的獎勵囉！明天再來～`
+- 獎勵金額在 `src/socket/gameConfig.ts` 的 `dailyTasks`
 
 取得使用者現在金幣數量 GET 給Token /pet-games/coin (亦支援 /pet-games/coins)
 回傳範例：
