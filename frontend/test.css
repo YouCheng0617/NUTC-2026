@@ -3418,3 +3418,81 @@ body:has(#profile-modal[style*="display: flex"]) .ocean-rules-board {
     z-index: 100002 !important;
   }
 }
+/* =========================================
+   🎯 徹底鎖死底部打字框 + 中間獨立滑動
+   ========================================= */
+
+/* 1. 外層白色大卡片：只有在看文章時 (in-detail-view) 才顯示 flex，關閉時保證隱藏 */
+body.in-detail-view #detail-view.ocean-detail-card {
+  display: flex !important;
+}
+
+/* 🌟 核心關鍵：點擊返回或有 display: none 時，強制隱藏關閉！ */
+#detail-view[style*="display: none"],
+body:not(.in-detail-view) #detail-view.ocean-detail-card {
+  display: none !important;
+}
+
+#detail-view.ocean-detail-card {
+  flex-direction: column !important; /* 嚴格垂直三層排列 */
+  overflow: hidden !important;       /* 核心：外框絕對禁止滾動！ */
+  height: calc(100vh - 60px) !important;
+  max-height: none !important;
+  position: fixed !important;
+  top: 60px !important;
+  bottom: 0 !important;
+  left: 50% !important;
+  transform: translateX(-50%) !important;
+  width: 100% !important;
+  max-width: 720px !important;
+  border-radius: 16px 16px 0 0 !important;
+  box-shadow: 0 -4px 30px rgba(0, 0, 0, 0.2) !important;
+  z-index: 99999 !important;
+  padding: 0 !important;
+  box-sizing: border-box !important;
+}
+
+/* 2. 頂部導覽列：不被壓縮 */
+#detail-view .detail-nav-bar {
+  flex-shrink: 0 !important;
+  background: #ffffff !important;
+  position: static !important;
+}
+
+/* 3. 中間文章與留言區：【全畫面唯一可以滑動的地方】 */
+#detail-view .detail-scroll-body {
+  flex: 1 1 auto !important;
+  min-height: 0 !important;    /* 核心：避免 flex 容器被留言撐破 */
+  overflow-y: auto !important; /* 只有留言文章在中間滾動！ */
+  -webkit-overflow-scrolling: touch !important;
+  padding: 0 !important;
+}
+
+/* 4. 底下打字框：永遠鎖定在卡片最底端，絕不隨滾輪滑動 */
+#detail-view .comment-action-bar {
+  flex-shrink: 0 !important;   /* 高度不被內容壓縮 */
+  position: relative !important; /* 取消 fixed，讓它老老實實釘在 Flex 底部 */
+  bottom: auto !important;
+  left: auto !important;
+  transform: none !important;
+  width: 100% !important;
+  background: #ffffff !important;
+  border-top: 1px solid #e2e8f0 !important;
+  box-shadow: 0 -3px 10px rgba(0, 0, 0, 0.05) !important;
+  z-index: 100 !important;
+  margin: 0 !important;
+  padding: 10px 14px !important;
+  display: flex !important;
+  box-sizing: border-box !important;
+}
+
+/* 5. 閱讀模式時自動清空背景按鈕與小窩 */
+body.in-detail-view .sidebar,
+body.in-detail-view .ocean-refresh-btn,
+body.in-detail-view #mobile-board-btn,
+body.in-detail-view #mascot-home,
+body.in-detail-view #svg-mermecat-mascot,
+body.in-detail-view .ocean-popular-board,
+body.in-detail-view .ocean-rules-board {
+  display: none !important;
+}
