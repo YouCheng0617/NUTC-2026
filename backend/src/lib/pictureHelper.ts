@@ -20,7 +20,7 @@ const EXCLUDED_DIRS = new Set(['customer-service']);
 /**
  * 遞迴讀取資料夾內的所有圖片路徑
  * @param dir 目標資料夾路徑
- * @returns 圖片檔案的相對路徑清單 (例如: ['/uploads/pic1.png', '/uploads/sub/pic2.jpg'])
+ * @returns 圖片檔案的相對路徑清單 (例如: ['/uploads/pic1.webp', '/uploads/sub/pic2.jpg'])
  */
 export async function scanImageFiles(dir: string = DEFAULT_UPLOADS_DIR): Promise<string[]> {
   const imagePaths: string[] = [];

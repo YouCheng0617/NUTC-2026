@@ -158,7 +158,7 @@ const ITEMS_PER_PAGE = 6;
 let isDrawing = false;
 
 function getFullImageUrl(url) {
-  if (!url) return "images/fish_logo.png";
+  if (!url) return "images/fish_logo.webp";
   if (url.startsWith("http://") || url.startsWith("https://")) return url;
   return `${API_BASE_URL}${url.startsWith("/") ? "" : "/"}${url}`;
 }
@@ -175,7 +175,7 @@ function renderPuzzleFrameHTML(unlockedPieces, fullImg, isCompleted, isLocked) {
   if (isLocked) {
     return `
       <div class="puzzle-board-frame">
-        <img src="${fullImg}" class="locked-preview-img" onerror="this.src='images/fish_logo.png'" />
+        <img src="${fullImg}" class="locked-preview-img" onerror="this.src='images/fish_logo.webp'" />
         <div class="lock-icon">🔒</div>
       </div>
     `;
@@ -184,7 +184,7 @@ function renderPuzzleFrameHTML(unlockedPieces, fullImg, isCompleted, isLocked) {
   if (isCompleted) {
     return `
       <div class="puzzle-board-frame completed">
-        <img src="${fullImg}" class="completed-img" onerror="this.src='images/fish_logo.png'" />
+        <img src="${fullImg}" class="completed-img" onerror="this.src='images/fish_logo.webp'" />
         <div class="frame-shine"></div>
       </div>
     `;
@@ -399,7 +399,7 @@ async function performDraw() {
         }
 
         const cardDisplayContent = isCompletedNow
-          ? `<img src="${fullImg}" alt="${pic.title}" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.src='images/fish_logo.png'" />`
+          ? `<img src="${fullImg}" alt="${pic.title}" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.src='images/fish_logo.webp'" />`
           : `<div style="width: 100%; height: 100%; ${getPieceCropStyle(drawnPiece, fullImg)}"></div>`;
 
         const descText = isCompletedNow

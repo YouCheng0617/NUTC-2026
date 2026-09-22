@@ -7,7 +7,7 @@ html {
   padding: 0;
   font-family: "PingFang TC", sans-serif;
   background-color: #f0f7ff;
-  background-image: url("images/background.png");
+  background-image: url("images/background.webp");
   background-size: cover;
   background-attachment: fixed;
   background-position: center;
@@ -1549,7 +1549,7 @@ textarea {
     opacity 0.3s ease,
     box-shadow 0.3s ease;
   user-select: none;
-  background-image: url("images/watermarked_img_11133072913409157599.png");
+  background-image: url("images/watermarked_img_11133072913409157599.webp");
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;

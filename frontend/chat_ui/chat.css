@@ -79,7 +79,7 @@ textarea {
 body {
 
     /* ✨ 2. 背景圖片與智慧日夜濾鏡 (請在這裡修改妳的圖片檔名！) */
-    background-image: linear-gradient(var(--bg-overlay), var(--bg-overlay)), url('../images/background.png');
+    background-image: linear-gradient(var(--bg-overlay), var(--bg-overlay)), url('../images/background.webp');
     background-size: cover;
     background-position: center;
     background-attachment: fixed;

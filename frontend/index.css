@@ -14,7 +14,7 @@ body, html {
 
 /* --- 2. 完美的深海背景 --- */
 body {
-    background: url("images/background.png") no-repeat center center fixed;
+    background: url("images/background.webp") no-repeat center center fixed;
     background-size: cover; 
     background-color: #0d4b75; 
     /* 🌟 加入這兩行，就不會反白選取了！ */
@@ -223,7 +223,7 @@ body {
 .bottle {
     position: fixed;
     width: 60px;
-    background-image: url('bottle.png'); /* 請換成妳的圖片路徑 */
+    background-image: url('bottle.webp'); /* 請換成妳的圖片路徑 */
     background-size: contain;
     background-repeat: no-repeat;
     opacity: 0.15;
