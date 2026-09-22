@@ -757,40 +757,49 @@
         if (zodiac) zodiacSelect.value = zodiac;
       }
 
-      // 🌟 2 分鐘內最多手動刷新 5 次驗證碼
+      // 🌟 2 分鐘內最多手動刷新 5 次驗證碼 (自動偵測點擊版，免改 HTML)
       const CAPTCHA_LIMIT = 5;
       const CAPTCHA_WINDOW_MS = 2 * 60 * 1000; // 2 分鐘 (120,000 毫秒)
 
       async function loadCaptcha(isManual = false) {
-        // 只有使用者主動點擊圖片時才進行次數判定
-        if (isManual) {
-          const now = Date.now();
-          let history = JSON.parse(
-            localStorage.getItem("captcha_refresh_history") || "[]",
-          );
+        // 🌟 自動偵測：只要是使用者滑鼠點擊圖片觸發的，一律攔截計次！
+        const isUserClick =
+          isManual === true || (window.event && window.event.type === "click");
 
-          // 1. 過濾掉超過 2 分鐘（120秒）之前的過期紀錄
+        if (isUserClick) {
+          const now = Date.now();
+          let history = [];
+          try {
+            history = JSON.parse(
+              localStorage.getItem("captcha_refresh_history") || "[]",
+            );
+            if (!Array.isArray(history)) history = [];
+          } catch (e) {
+            history = [];
+          }
+
+          // 1. 過濾掉 2 分鐘前的過期紀錄
           history = history.filter((time) => now - time < CAPTCHA_WINDOW_MS);
 
-          // 2. 檢查 2 分鐘內是否已達 5 次
+          // 2. 檢查 2 分鐘內是否已滿 5 次
           if (history.length >= CAPTCHA_LIMIT) {
-            // 計算距離最早一次刷新還要等幾秒解鎖
             const waitSeconds = Math.ceil(
               (history[0] + CAPTCHA_WINDOW_MS - now) / 1000,
             );
-            showModalError(
-              `⚠️ 刷新過於頻繁！每 2 分鐘只能刷新 5 次，請等待 ${waitSeconds} 秒後再試。`,
-            );
-            return; // 攔截請求，不向後端抓取
+            const msg = `⚠️ 刷新太頻繁囉！每 2 分鐘只能刷新 5 次，請等待 ${waitSeconds} 秒後再試。`;
+
+            alert(msg); // 🌟 改用直接彈跳視窗，最明顯！
+            if (typeof showModalError === "function") showModalError(msg);
+            return; // 擋下請求，不向後端拿新的驗證碼
           }
 
-          // 3. 未達上限，記錄本次刷新時間並存入本地儲存
+          // 3. 記錄本次點擊時間
           history.push(now);
           localStorage.setItem(
             "captcha_refresh_history",
             JSON.stringify(history),
           );
-          clearErrorMessage();
+          if (typeof clearErrorMessage === "function") clearErrorMessage();
         }
 
         const container = document.getElementById("captcha-container");
@@ -799,11 +808,13 @@
           const response = await fetch(`${API_BASE_URL}/captcha`);
           if (!response.ok) throw new Error("驗證碼載入失敗");
           const data = await response.json();
-          container.innerHTML = data.image;
+          if (container) container.innerHTML = data.image;
           if (idInput) idInput.value = data.captchaId;
         } catch (error) {
-          container.innerHTML =
-            "<span style='color:#0055a5; font-weight:bold;'>載入失敗，點擊重試</span>";
+          if (container) {
+            container.innerHTML =
+              "<span style='color:#0055a5; font-weight:bold;'>載入失敗，點擊重試</span>";
+          }
         }
       }
 
