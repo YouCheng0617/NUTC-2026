@@ -221,8 +221,34 @@ Query 參數 (必填)：?keyword=你要找的字
 
 與寵物互動(賺金幣) POST 給Token /pet-games/interact
 {
-  "actionType": "FEED" /* 可選值: "FEED(餵食海藻)", "PURIFY(淨化水質)", "PET(溫柔撫摸)" */
+  "actionType": "FEED" /* 可選值: "FEED(餵食海藻)", "PURIFY(淨化水質)", "PET(溫柔撫摸)", "MONEY_EXCHANGE(財富自由兌換)" */
 }
+- 欄位名稱用 `action` 或 `actionType` 都可以，大小寫不拘（`"feed"` 也行）
+- `"CLEAN"` / `"clean"` 會自動當成 `"PURIFY"`
+- 成功回傳 200：`{ "message": "互動成功！", "coin": 加完後的總金幣, "pet": {...} }`，前端請用回傳的 `coin` 覆蓋畫面上的數字
+- 失敗回傳 400：`{ "error": "錯誤訊息" }`，可直接顯示給玩家
+
+| actionType | 獎勵 | 冷卻 | 其他限制 |
+|---|---|---|---|
+| FEED 餵食海藻 | +80 | 8 秒 | |
+| PURIFY 淨化水質 | +100 | 15 秒 | |
+| PET 溫柔撫摸 | +60 | 10 秒 | |
+| MONEY_EXCHANGE 財富自由兌換 | +120 | 5 秒 | 必須已購買 `background_effects` 的 `money` 特效；沒有每日次數限制 |
+
+#### 💰 財富自由接錢小遊戲 (MONEY_EXCHANGE)
+玩家裝備「財富自由」特效後，拖著海兔接住掉下來的金幣，**前端自己計數**，每接滿 50 枚就呼叫一次：
+```json
+POST /pet-games/interact
+{ "action": "MONEY_EXCHANGE" }
+```
+- 一次請求 = 換一次 = +120，**不需要也不接受傳金幣數量**，加多少分由後端決定（防止改前端作弊）
+- 前端流程：接滿 50 → 呼叫 API → **成功才** `collected -= 50` 並用回傳的 `coin` 更新積分；失敗則保留已接的金幣，稍後再試
+- 若一次接超過 100 枚，要分開呼叫，兩次之間要間隔 5 秒以上
+- 可能的錯誤訊息：
+  - `尚未擁有財富自由特效，無法兌換！` → 沒買 money 特效
+  - `兌換冷卻中！還需等待 N 秒。` → 距離上次兌換不到 5 秒
+- 參數調整在 `src/socket/gameConfig.ts`：獎勵與冷卻 `actions.MONEY_EXCHANGE`、幾枚換一次 `moneyGame.coinsPerExchange`（改了前端的 `COINS_PER_EXCHANGE` 也要跟著改）、每日上限 `moneyGame.dailyLimit`（0 = 不限）
+- 冷卻紀錄存在伺服器記憶體，後端重啟會重置（不影響玩家積分）
 
 購買或裝備商店物品 POST 給Token /pet-games/buy
 {

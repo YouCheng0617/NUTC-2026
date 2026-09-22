@@ -49,6 +49,17 @@ export const interactPet = async (memberId: number, actionType: 'FEED' | 'PURIFY
 
     // 財富自由兌換走自己的限制：不佔用餵食／清潔／撫摸的冷卻欄位
     if (actionType === 'MONEY_EXCHANGE') {
+        const { dailyLimit } = gameConfig.moneyGame;
+
+        // 沒買財富自由特效的人不可能玩這個小遊戲
+        const owned = await prisma.petInventory.findUnique({
+            where: { pet_id_category_item_name: { pet_id: pet.pet_id, category: 'background_effects', item_name: 'money' } }
+        });
+        if (!owned) {
+            throw new Error("尚未擁有財富自由特效，無法兌換！");
+        }
+
+        // 以下檢查與寫入冷卻之間沒有 await，同一個人同時送多個請求也不會重複通過
         const today = now.toISOString().slice(0, 10);
         const log = moneyExchangeLog.get(memberId) ?? { last: 0, date: today, count: 0 };
         if (log.date !== today) { log.date = today; log.count = 0; }
@@ -57,8 +68,8 @@ export const interactPet = async (memberId: number, actionType: 'FEED' | 'PURIFY
         if (waited < action.cdSeconds) {
             throw new Error(`兌換冷卻中！還需等待 ${Math.ceil(action.cdSeconds - waited)} 秒。`);
         }
-        if (log.count >= gameConfig.moneyGame.dailyLimit) {
-            throw new Error(`今天的兌換次數已用完（每天 ${gameConfig.moneyGame.dailyLimit} 次），明天再來！`);
+        if (dailyLimit > 0 && log.count >= dailyLimit) {
+            throw new Error(`今天的兌換次數已用完（每天 ${dailyLimit} 次），明天再來！`);
         }
 
         log.last = now.getTime();
