@@ -1509,47 +1509,298 @@ const i18n = {
             );
         },
 
-        // 雨中街景：灰藍街屋、路燈與雨絲
+        // 雨中街景：夜裡的濕街道，暖色路燈、滿城散景光點與地面倒影
         rainyStreet(mode) {
-            const { W, H } = canvasOf(mode), hz = H * 0.74;
+            const { W, H } = canvasOf(mode);
+            const portrait = mode === 'portrait';
+            const u = Math.min(W, H) / 520;
+            const roadY = H * (portrait ? 0.64 : 0.62);
+
+            // 散景光點：模糊的圓形光暈，夜景的靈魂
+            const bokeh = (x, y, r, color, op) =>
+                `<circle cx="${x}" cy="${y}" r="${r}" fill="${color}" opacity="${op}" filter="url(#rsBlur)"/>`;
+
+            // 路燈：燈柱 + 三顆燈頭 + 大片光暈
+            // 古典單燈街燈：階梯底座、帶裝飾環的錐形燈柱、六角玻璃燈籠與屋頂尖飾
+            const lamp = (x, baseY, s, glowId) => {
+                const iron = '#16303c', ironDark = '#0e2029', ironLight = '#23465a';
+                let g = `<g transform="translate(${x},${baseY}) scale(${s})">`;
+                // 光暈與向下的光錐
+                g += `<ellipse cy="-296" rx="200" ry="170" fill="url(#${glowId})"/>`;
+                g += `<path d="M -34 -286 L 34 -286 L 104 4 L -104 4 Z" fill="#ffd591" opacity="0.1" filter="url(#rsBlur)"/>`;
+                // 階梯底座
+                g += rect(-34, -14, 68, 16, ironDark, 'rx="4"')
+                    + rect(-26, -28, 52, 16, iron, 'rx="4"')
+                    + rect(-18, -38, 36, 12, ironLight, 'rx="3"');
+                // 錐形燈柱 + 兩道裝飾環
+                g += `<path d="M -11 -36 L 11 -36 L 7 -244 L -7 -244 Z" fill="${iron}"/>`
+                    + `<path d="M -4 -36 L 0 -36 L -1 -244 L -4 -244 Z" fill="${ironLight}" opacity="0.55"/>`
+                    + rect(-15, -110, 30, 9, ironLight, 'rx="3"')
+                    + rect(-13, -196, 26, 8, ironLight, 'rx="3"');
+                // 燈籠底座與托架
+                g += `<path d="M -30 -244 L 30 -244 L 22 -258 L -22 -258 Z" fill="${iron}"/>`
+                    + `<path d="M -22 -256 C -34 -248, -40 -236, -38 -226 L -30 -228 C -31 -238, -27 -248, -18 -252 Z" fill="${ironDark}"/>`
+                    + `<path d="M 22 -256 C 34 -248, 40 -236, 38 -226 L 30 -228 C 31 -238, 27 -248, 18 -252 Z" fill="${ironDark}"/>`;
+                // 玻璃燈體：上窄下寬，內有亮芯
+                g += `<path d="M -30 -258 L 30 -258 L 24 -330 L -24 -330 Z" fill="#ffd591" opacity="0.92"/>`
+                    + `<path d="M -19 -262 L 19 -262 L 15 -324 L -15 -324 Z" fill="#fff6dd"/>`
+                    + `<ellipse cy="-292" rx="11" ry="20" fill="#ffffff" opacity="0.95"/>`
+                    + `<path d="M -30 -258 L 30 -258 L 30 -252 L -30 -252 Z" fill="${iron}"/>`
+                    + `<path d="M -8 -258 L -6 -330" stroke="${iron}" stroke-width="3" opacity="0.5"/>`
+                    + `<path d="M 8 -258 L 6 -330" stroke="${iron}" stroke-width="3" opacity="0.5"/>`;
+                // 燈罩屋頂與尖飾
+                g += `<path d="M -36 -330 L 36 -330 L 20 -352 L -20 -352 Z" fill="${iron}"/>`
+                    + `<path d="M -36 -330 L 36 -330 L 36 -324 L -36 -324 Z" fill="${ironLight}"/>`
+                    + `<circle cy="-358" r="7" fill="${ironLight}"/>`
+                    + `<path d="M -2 -364 L 2 -364 L 0 -378 Z" fill="${ironLight}"/>`;
+                return g + `</g>`;
+            };
+
+            // 遠景大樓剪影與零星窗光
+            let blocks = '';
+            const bn = portrait ? 7 : 11;
+            for (let i = 0; i < bn; i++) {
+                const bw = (70 + rnd(i, 171) * 90) * u;
+                const bh = (110 + rnd(i, 172) * 230) * u;
+                const bx = W * ((i + 0.5) / bn) - bw / 2 + (rnd(i, 173) - 0.5) * 40 * u;
+                blocks += rect(bx.toFixed(0), (roadY - bh).toFixed(0), bw.toFixed(0), bh.toFixed(0), i % 2 ? '#0d2029' : '#112833', 'rx="3"');
+                for (let r = 0; r < Math.floor(bh / (34 * u)); r++) {
+                    for (let c = 0; c < 3; c++) {
+                        if (rnd(i * 31 + r * 7 + c, 174) < 0.64) continue;
+                        const wx = bx + 10 * u + c * (bw - 20 * u) / 3;
+                        const wy = roadY - bh + 14 * u + r * 34 * u;
+                        const warm = rnd(i * 13 + r + c, 175);
+                        blocks += rect(wx.toFixed(0), wy.toFixed(0), (10 * u).toFixed(1), (13 * u).toFixed(1),
+                            warm > 0.66 ? '#ffca6b' : (warm > 0.33 ? '#8fe3e0' : '#ffe6a8'), `rx="2" opacity="${(0.55 + warm * 0.45).toFixed(2)}"`);
+                    }
+                }
+            }
+
+            // 滿街散景
+            let lights = '';
+            const ln = portrait ? 26 : 34;
+            for (let i = 0; i < ln; i++) {
+                const x = rnd(i, 181) * W;
+                const y = H * 0.1 + rnd(i, 182) * (roadY - H * 0.08);
+                const r = (7 + rnd(i, 183) * 26) * u;
+                const tone = rnd(i, 184);
+                const color = tone > 0.62 ? '#ffb74d' : (tone > 0.34 ? '#ffd79a' : (tone > 0.18 ? '#7fe3e8' : '#ff7a6b'));
+                lights += bokeh(x.toFixed(0), y.toFixed(0), r.toFixed(1), color, (0.35 + rnd(i, 185) * 0.5).toFixed(2));
+            }
+
+            // 地面倒影：每個光點在濕路面上拉出一條長長的倒影
+            let reflections = '';
+            for (let i = 0; i < (portrait ? 18 : 24); i++) {
+                const x = rnd(i, 191) * W;
+                const len = (70 + rnd(i, 192) * 190) * u;
+                const tone = rnd(i, 193);
+                const color = tone > 0.6 ? '#ffb74d' : (tone > 0.3 ? '#ffe0a8' : '#7fe3e8');
+                reflections += `<rect x="${(x - 7 * u).toFixed(0)}" y="${roadY.toFixed(0)}" width="${(14 * u).toFixed(1)}" height="${len.toFixed(0)}" fill="${color}" opacity="${(0.3 + rnd(i, 194) * 0.38).toFixed(2)}" rx="${(7 * u).toFixed(1)}" filter="url(#rsBlur)"/>`;
+            }
+
+            // 雨絲
+            let rainLines = '';
+            for (let i = 0; i < (portrait ? 70 : 90); i++) {
+                const x = rnd(i, 201) * W * 1.1 - W * 0.05;
+                const y = rnd(i, 202) * H;
+                const len = (18 + rnd(i, 203) * 26) * u;
+                rainLines += `<path d="M ${x.toFixed(0)} ${y.toFixed(0)} l ${(-4 * u).toFixed(1)} ${len.toFixed(0)}" stroke="#dbeeff" stroke-width="${(1.6 * u).toFixed(1)}" stroke-linecap="round" opacity="${(0.2 + rnd(i, 204) * 0.4).toFixed(2)}"/>`;
+            }
+
+            // 路面水窪的亮邊
+            let puddles = '';
+            for (let i = 0; i < 7; i++) {
+                const x = rnd(i, 211) * W;
+                const y = roadY + (0.15 + rnd(i, 212) * 0.8) * (H - roadY);
+                puddles += ell(x.toFixed(0), y.toFixed(0), ((30 + rnd(i, 213) * 70) * u).toFixed(0), ((5 + rnd(i, 214) * 8) * u).toFixed(0), '#5b8ea8', `opacity="${(0.16 + rnd(i, 215) * 0.2).toFixed(2)}" filter="url(#rsBlur)"`);
+            }
+
             return svgOf(W, H,
-                vg('rsSky', [[0, '#7c93ab'], [100, '#c3d3de']]) + vg('rsRoad', [[0, '#5b6b7a'], [100, '#3d4a57']]),
+                vg('rsSky', [[0, '#050f17'], [45, '#0b2430'], [100, '#123645']])
+                + vg('rsRoad', [[0, '#0a1a22'], [55, '#12303c'], [100, '#081419']])
+                + rg('rsLampGlow', [[0, '#ffd591', 0.85], [35, '#ffb74d', 0.34], [100, '#ffb74d', 0]])
+                + rg('rsLampGlow2', [[0, '#ffe3b0', 0.7], [40, '#ffb74d', 0.26], [100, '#ffb74d', 0]])
+                + `<filter id="rsBlur" x="-60%" y="-60%" width="220%" height="220%"><feGaussianBlur stdDeviation="${(7 * u).toFixed(1)}"/></filter>`
+                + `<filter id="rsSoftBlur" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="${(2.6 * u).toFixed(1)}"/></filter>`,
                 bg(W, H, 'url(#rsSky)')
-                + buildings(W, hz, '#6b7f92', '#ffe9a8', 3)
-                + rect(0, hz, W, H - hz, 'url(#rsRoad)')
-                + times(5, (i, a) => ell(a * W, hz + H * 0.12 + (i % 2) * H * 0.07, W * 0.07, H * 0.018, '#8fa6b8', 'opacity="0.55"'))
-                // 路燈
-                + `<g transform="translate(${W * 0.78},${hz + 10})"><rect x="-5" y="-190" width="10" height="190" fill="#3f4c59"/><path d="M -26 -196 L 26 -196 L 16 -166 L -16 -166 Z" fill="#ffe9a8"/><ellipse cx="0" cy="-168" rx="60" ry="40" fill="#ffe9a8" opacity="0.22"/></g>`
-                + rain(W, H, 46, '#dbe8f2')
+                // 遠景大樓帶一點景深模糊，焦點才會落在燈光上
+                + `<g filter="url(#rsSoftBlur)" opacity="0.92">${blocks}</g>`
+                + lights
+                + rect(0, roadY, W, H - roadY, 'url(#rsRoad)')
+                + reflections
+                + puddles
+                // 路燈：近的在前、遠的在後
+                + lamp(W * (portrait ? 0.22 : 0.13), roadY + (H - roadY) * 0.16, (portrait ? 0.9 : 1.0) * u, 'rsLampGlow')
+                + lamp(W * (portrait ? 0.8 : 0.84), roadY + (H - roadY) * 0.05, (portrait ? 0.56 : 0.6) * u, 'rsLampGlow2')
+                + rainLines
             );
         },
 
-        // 夕陽海灘：落日、海面反光與沙灘
-        sunsetBeach(mode) {
-            const { W, H } = canvasOf(mode), hz = H * 0.56;
-            return svgOf(W, H,
-                vg('sbSky', [[0, '#5d4b9e'], [38, '#f4786b'], [72, '#ffb15c'], [100, '#ffe1a8']])
-                + glowDef('sbGlow', '#fff0b8') + vg('sbSea', [[0, '#f0a05f'], [55, '#d4694f'], [100, '#8f4a63']]) + vg('sbSand', [[0, '#f2dcb0'], [100, '#d9bd86']]),
-                bg(W, H, 'url(#sbSky)') + glow(W * 0.52, hz - H * 0.02, H * 0.13, 'sbGlow', '#ffe9a0')
-                + rect(0, hz, W, H * 0.22, 'url(#sbSea)')
-                + times(9, (i, a, b) => rect(W * 0.52 - (10 + b * 60), hz + 8 + i * (H * 0.021), 20 + b * 120, 5, '#ffe6ad', 'opacity="0.7" rx="2"'))
-                + `<path d="M 0 ${hz + H * 0.2} C ${W * 0.3} ${hz + H * 0.16}, ${W * 0.62} ${hz + H * 0.26}, ${W} ${hz + H * 0.19} L ${W} ${H} L 0 ${H} Z" fill="url(#sbSand)"/>`
-                + palm(W * 0.14, H * 0.96, mode === 'wide' ? 1.1 : 1.3, '#2f6b43', '#7a4a2a')
-                + times(3, (i, a) => cloud(a * W, H * (0.12 + i * 0.07), 0.6, '#ff9d7a', 0.55))
-            );
-        },
-
-        // 秋日楓紅：紅黃楓樹與落葉
+        // 秋日楓紅：兩排楓樹在頭頂接成火紅的隧道，盡頭透著暖光，滿地都是落葉
         autumnLeaves(mode) {
-            const { W, H } = canvasOf(mode), hz = H * 0.62;
+            const { W, H } = canvasOf(mode);
+            const portrait = mode === 'portrait';
+            const u = Math.min(W, H) / 520;
+            const cx = W / 2;
+            const hz = H * (portrait ? 0.44 : 0.46);          // 消失點
+            const hwTop = W * 0.022;                          // 小徑在遠處的半寬
+            const hwBot = W * (portrait ? 0.28 : 0.2);        // 小徑在眼前的半寬
+
+            const py = (t) => hz + (H - hz) * Math.pow(t, 1.7);
+            const phw = (t) => hwTop + (hwBot - hwTop) * Math.pow(t, 1.4);
+
+            // 樹冠色階：0 最亮（靠近光）、越後面越深
+            const canopyTones = ['#ffc247', '#f79a1e', '#ee7418', '#dd4f16', '#c33a14', '#a32b13', '#7d1f0f'];
+            const litter = ['#c9431a', '#b33417', '#e2661c', '#f08a22', '#8f2712', '#6d1d0e'];
+            const bark = '#40251a';
+
+            // 楓葉共用同一條路徑，畫面上再用 use 引用，省下大量字元
+            const leaf = (x, y, s, rot, c, op) =>
+                `<use href="#alLeaf" transform="translate(${x},${y}) rotate(${rot}) scale(${s})" fill="${c}" opacity="${op}"/>`;
+            // 葉片色斑：遠一點的葉子在畫面上只是一小片斜斜的色塊
+            const fleck = (x, y, r, c, op, rot) =>
+                `<ellipse cx="${x.toFixed(0)}" cy="${y.toFixed(0)}" rx="${r.toFixed(1)}" ry="${(r * 0.6).toFixed(1)}" fill="${c}" opacity="${op}" transform="rotate(${rot} ${x.toFixed(0)} ${y.toFixed(0)})"/>`;
+
+            // 楓樹樹幹：接近等寬、微微朝小徑傾斜，受光那側留一條亮邊
+            const trunk = (x, baseY, h, w, lean) => {
+                const tx = x + lean * h * 0.05;
+                const wt = w * 0.8;
+                let g = ell(x, baseY, w * 1.8, w * 0.5, '#331c11', 'opacity="0.5"');
+                g += `<path d="M ${(x - w).toFixed(1)} ${baseY.toFixed(1)} C ${(x - w * 0.96).toFixed(1)} ${(baseY - h * 0.45).toFixed(1)}, ${(tx - wt).toFixed(1)} ${(baseY - h * 0.72).toFixed(1)}, ${(tx - wt * 0.92).toFixed(1)} ${(baseY - h).toFixed(1)} L ${(tx + wt * 0.92).toFixed(1)} ${(baseY - h).toFixed(1)} C ${(tx + wt).toFixed(1)} ${(baseY - h * 0.72).toFixed(1)}, ${(x + w * 0.96).toFixed(1)} ${(baseY - h * 0.45).toFixed(1)}, ${(x + w).toFixed(1)} ${baseY.toFixed(1)} Z" fill="${bark}"/>`;
+                g += `<path d="M ${(x - lean * w * 0.8).toFixed(1)} ${baseY.toFixed(1)} C ${(x - lean * w * 0.78).toFixed(1)} ${(baseY - h * 0.5).toFixed(1)}, ${(tx - lean * wt * 0.74).toFixed(1)} ${(baseY - h * 0.78).toFixed(1)}, ${(tx - lean * wt * 0.7).toFixed(1)} ${(baseY - h).toFixed(1)} L ${(tx - lean * wt * 0.34).toFixed(1)} ${(baseY - h).toFixed(1)} C ${(x - lean * w * 0.38).toFixed(1)} ${(baseY - h * 0.58).toFixed(1)}, ${(x - lean * w * 0.4).toFixed(1)} ${(baseY - h * 0.3).toFixed(1)}, ${(x - lean * w * 0.42).toFixed(1)} ${baseY.toFixed(1)} Z" fill="#79492a" opacity="0.45"/>`;
+                return g;
+            };
+
+            // 樹冠下緣：中央高、兩側低，圍出隧道口
+            const ceil = (x) => {
+                const d = Math.min(1.35, Math.abs(x - cx) / (W * 0.5));
+                return hz * 0.16 + (H * (portrait ? 1.15 : 1.05)) * Math.pow(d, 1.85);
+            };
+
+            // 樹冠：一欄一欄把葉子堆滿，下緣自然參差，不用實心色塊去封
+            let canopy = '';
+            const cols = portrait ? 38 : 50;
+            for (let c0 = 0; c0 <= cols; c0++) {
+                const x0 = -W * 0.06 + (c0 / cols) * W * 1.12;
+                const lim = Math.min(H * 1.02, ceil(x0));
+                if (lim < -H * 0.02) continue;
+                const d = Math.min(1, Math.abs(x0 - cx) / (W * 0.5));
+                const step = (16 + d * 11) * u;
+                for (let y0 = -H * 0.06; y0 < lim; y0 += step) {
+                    const seed = c0 * 41 + Math.round(y0 / step);
+                    const x = x0 + (rnd(seed, 11) - 0.5) * step * 2.4;
+                    const y = y0 + (rnd(seed, 12) - 0.5) * step * 1.3;
+                    const r = (13 + rnd(seed, 13) * 18) * u * (0.6 + d * 0.7);
+                    // 越靠近隧道口越亮，越往外、越往上越深
+                    const depth = Math.min(1, (1 - y / Math.max(1, lim)) * 0.55 + d * 0.6);
+                    const idx = Math.min(canopyTones.length - 1, Math.floor(depth * 6 + rnd(seed, 14) * 1.6));
+                    canopy += disc(x.toFixed(0), y.toFixed(0), r.toFixed(1), canopyTones[idx], `opacity="${(0.72 + rnd(seed, 15) * 0.28).toFixed(2)}"`);
+                }
+            }
+            // 下緣再撒一排看得出葉形的楓葉，把輪廓打散
+            let canopyLeaves = '';
+            for (let k = 0; k < (portrait ? 70 : 92); k++) {
+                const x = (-0.04 + rnd(k, 21) * 1.08) * W;
+                const lim = ceil(x);
+                if (lim < 0 || lim > H) continue;
+                const y = lim * (0.82 + rnd(k, 22) * 0.3);
+                canopyLeaves += leaf(x.toFixed(0), y.toFixed(0), ((0.26 + rnd(k, 23) * 0.42) * u).toFixed(2), (rnd(k, 24) * 360).toFixed(0),
+                    canopyTones[Math.floor(rnd(k, 25) * canopyTones.length)], (0.85 + rnd(k, 26) * 0.15).toFixed(2));
+            }
+
+            // 隧道深處：一排排被光吃掉的小樹與葉團
+            let farWood = '';
+            for (let k = 0; k < (portrait ? 46 : 60); k++) {
+                const x = cx + (rnd(k, 31) - 0.5) * W * 0.62;
+                const y = hz - H * 0.12 + rnd(k, 32) * H * 0.2;
+                const r = (5 + rnd(k, 33) * 14) * u;
+                const near = Math.abs(x - cx) < W * 0.1;
+                farWood += disc(x.toFixed(0), y.toFixed(0), r.toFixed(1), near ? '#ffcf72' : canopyTones[Math.floor(rnd(k, 34) * 4)], `opacity="${(0.35 + rnd(k, 35) * 0.4).toFixed(2)}"`);
+            }
+            for (let k = 0; k < (portrait ? 10 : 14); k++) {
+                const x = cx + (rnd(k, 36) - 0.5) * W * 0.5;
+                const h = (30 + rnd(k, 37) * 60) * u;
+                farWood += rect(x.toFixed(0), (hz - h).toFixed(0), (2 + rnd(k, 38) * 3).toFixed(1), h.toFixed(0), '#7a4526', `opacity="${(0.3 + rnd(k, 39) * 0.3).toFixed(2)}"`);
+            }
+
+            // 兩排樹幹：由遠而近，越近越高越粗
+            const ts = portrait ? [0.07, 0.14, 0.24, 0.38, 0.58, 0.85, 1.12] : [0.07, 0.14, 0.24, 0.38, 0.58, 0.82, 1.08];
+            let trunks = '';
+            const spots = [];
+            for (const t of ts) {
+                const tc = Math.min(t, 1);
+                const baseY = py(tc) + (t > 1 ? (H - py(1)) * (t - 1) : 0);
+                const off = phw(tc) + (12 + 46 * tc) * u;
+                const outer = off + (60 + 116 * tc) * u;
+                const h = (66 + 470 * tc) * u;
+                const w = (2.4 + 15 * tc) * u;
+                trunks += trunk(cx - outer, baseY + 4 * u, h * 0.88, w * 0.78, 1) + trunk(cx + outer, baseY + 4 * u, h * 0.88, w * 0.78, -1);
+                trunks += trunk(cx - off, baseY, h, w, 1) + trunk(cx + off, baseY, h, w, -1);
+                spots.push([cx - off, baseY, tc], [cx + off, baseY, tc], [cx - outer, baseY, tc], [cx + outer, baseY, tc]);
+            }
+
+            // 滿地落葉：遠處只是一片片色斑，近景才看得出葉形
+            let ground = '';
+            let seed = 0;
+            for (let i = 0; i < (portrait ? 380 : 460); i++, seed++) {
+                const t = 0.02 + Math.pow(rnd(seed, 63), 0.85) * 1.02;
+                const tc = Math.min(t, 1);
+                const side = i % 2 ? 1 : -1;
+                const x = cx + side * phw(tc) * (0.86 + rnd(seed, 64) * 2.2);
+                const y = py(tc) + (rnd(seed, 67) - 0.5) * 16 * u * tc;
+                if (x < -30 || x > W + 30 || y < hz - 2 * u) continue;
+                if (tc > 0.74 && rnd(seed, 69) > 0.68) {
+                    ground += leaf(x.toFixed(0), y.toFixed(0), ((0.2 + tc * 0.46) * u).toFixed(2), (rnd(seed, 73) * 360).toFixed(0),
+                        litter[Math.floor(rnd(seed, 74) * litter.length)], (0.9 + rnd(seed, 75) * 0.1).toFixed(2));
+                } else {
+                    ground += fleck(x, y, (2.4 + tc * 6.5 + rnd(seed, 70) * 2.6) * u, litter[Math.floor(rnd(seed, 71) * litter.length)],
+                        (0.45 + rnd(seed, 72) * 0.55).toFixed(2), (rnd(seed, 76) * 180).toFixed(0));
+                }
+            }
+            for (const [tx, ty, tc] of spots) {                          // 樹腳下再堆一圈
+                const n = Math.max(5, Math.round(14 * tc));
+                for (let k = 0; k < n; k++, seed++) {
+                    const a = rnd(seed, 61) * Math.PI * 2;
+                    const r = Math.sqrt(rnd(seed, 62));
+                    ground += fleck(tx + Math.cos(a) * r * 120 * tc * u, ty + Math.sin(a) * r * 26 * tc * u,
+                        (2.6 + tc * 6) * u, litter[Math.floor(rnd(seed, 71) * litter.length)], (0.7 + rnd(seed, 72) * 0.3).toFixed(2), (rnd(seed, 76) * 180).toFixed(0));
+                }
+            }
+            for (let i = 0; i < (portrait ? 46 : 54); i++, seed++) {     // 小徑上零星幾片
+                const tc = 0.1 + rnd(seed, 65) * 0.9;
+                const x = cx + (rnd(seed, 66) - 0.5) * phw(tc) * 1.5;
+                ground += leaf(x.toFixed(0), py(tc).toFixed(0), ((0.18 + tc * 0.5) * u).toFixed(2), (rnd(seed, 73) * 360).toFixed(0),
+                    litter[Math.floor(rnd(seed, 74) * litter.length)], '0.90');
+            }
+
+            // 空中正在飄落的楓葉
+            let air = '';
+            for (let k = 0; k < (portrait ? 30 : 36); k++) {
+                const fy = Math.pow(rnd(k, 82), 0.75) * H * 0.95;
+                air += leaf((rnd(k, 81) * W).toFixed(0), fy.toFixed(0), ((0.32 + rnd(k, 83) * 0.8) * u).toFixed(2), (rnd(k, 84) * 360).toFixed(0),
+                    canopyTones[Math.floor(rnd(k, 85) * canopyTones.length)], (0.75 + rnd(k, 86) * 0.25).toFixed(2));
+            }
+
             return svgOf(W, H,
-                vg('alSky', [[0, '#ffd28a'], [55, '#ffe3b8'], [100, '#fff1d9']]) + vg('alG', [[0, '#d9a85f'], [100, '#a97b42']]),
-                bg(W, H, 'url(#alSky)')
-                + hill(W, H, hz, 18, '#c9915a') + hill(W, H, hz + H * 0.08, 22, 'url(#alG)', 1.1)
-                + tree(W * 0.2, hz + 24, 0.95, '#e2643f', '#7a4a2a', '#f59b52')
-                + tree(W * 0.82, hz + 32, 1.05, '#d4512f', '#7a4a2a', '#f0863f')
-                + tree(W * 0.52, hz + 4, 0.62, '#f0a03f', '#7a4a2a', '#ffc766')
-                + times(20, (i, a, b, c) => `<path d="M 0 -9 L 8 0 L 0 9 L -8 0 Z" fill="${c > 0.5 ? '#e2643f' : '#f0a03f'}" opacity="${(0.55 + c * 0.4).toFixed(2)}" transform="translate(${(a * W).toFixed(0)},${(b * H).toFixed(0)}) rotate(${(c * 120).toFixed(0)})"/>`)
+                `<path id="alLeaf" d="M 0 -19 C 2 -13, 5 -10, 9 -10 L 14 -13 L 12 -4 C 15 -3, 18 -4, 21 -6 L 15 2 L 19 8 L 11 8 C 10 11, 10 14, 11 17 L 4 12 L 1 19 L -1 19 L -4 12 L -11 17 C -10 14, -10 11, -11 8 L -19 8 L -15 2 L -21 -6 C -18 -4, -15 -3, -12 -4 L -14 -13 L -9 -10 C -5 -10, -2 -13, 0 -19 Z M -1.3 18 L 1.3 18 L 1.3 25 L -1.3 25 Z"/>`
+                // 以消失點為中心的輻射光：同一張漸層給了隧道盡頭的亮與四周的暗角
+                + `<radialGradient id="alAir" cx="50%" cy="${((hz / H) * 100).toFixed(1)}%" r="78%"><stop offset="0%" stop-color="#fffdf2"/><stop offset="9%" stop-color="#ffeeb8"/><stop offset="22%" stop-color="#ffb84d"/><stop offset="42%" stop-color="#e9701a"/><stop offset="68%" stop-color="#a82d12"/><stop offset="100%" stop-color="#5c170a"/></radialGradient>`
+                + vg('alPath', [[0, '#f7dfa4'], [18, '#d8a25f'], [52, '#ab7440'], [100, '#7d5029']])
+                + vg('alFloor', [[0, '#d9701f', 0], [8, '#a83f18', 0.85], [40, '#872f14', 1], [100, '#4a180b', 1]])
+                + rg('alGlow', [[0, '#fffdf4', 1], [22, '#fff3c8', 0.9], [52, '#ffbe58', 0.42], [100, '#ef7a1a', 0]])
+                + `<filter id="alSoft" x="-60%" y="-60%" width="220%" height="220%"><feGaussianBlur stdDeviation="${(4 * u).toFixed(1)}"/></filter>`,
+                bg(W, H, 'url(#alAir)')
+                // 地面：兩側鋪滿落葉的林地，中央一條小徑通往光裡
+                + rect(0, hz - 12 * u, W, H - hz + 12 * u, 'url(#alFloor)')
+                + `<path d="M ${(cx - hwTop).toFixed(0)} ${hz.toFixed(0)} L ${(cx + hwTop).toFixed(0)} ${hz.toFixed(0)} L ${(cx + hwBot).toFixed(0)} ${H} L ${(cx - hwBot).toFixed(0)} ${H} Z" fill="url(#alPath)" opacity="0.8"/>`
+                + farWood
+                // 隧道盡頭的暖光
+                + ell(cx, hz, W * 0.2, H * 0.2, 'url(#alGlow)')
+                + ell(cx, hz + 8 * u, W * 0.06, H * 0.055, '#fffbe6', 'opacity="0.95" filter="url(#alSoft)"')
+                + ground
+                + trunks
+                + canopy + canopyLeaves
+                + air
             );
         },
 
@@ -2160,7 +2411,6 @@ const i18n = {
             rainy_street: { name: {zh: '雨中街景', en: 'Rainy Street'}, cost: 500, ...illustratedBg('rainyStreet') },
 
             // 🌟 11 ~ 15：風景與探險系列（晚霞橘、楓葉紅、深海藍、雪山白、星夜藍）
-            sunset_beach: { name: {zh: '夕陽海灘', en: 'Sunset Beach'}, cost: 550, ...illustratedBg('sunsetBeach') },
             autumn_leaves: { name: {zh: '秋日楓紅', en: 'Autumn Leaves'}, cost: 600, ...illustratedBg('autumnLeaves') },
             deep_sea: { name: {zh: '深海秘境', en: 'Deep Ocean'}, cost: 650, ...illustratedBg('deepSea') },
             snowy_mountain: { name: {zh: '銀白雪山', en: 'Snow Mountain'}, cost: 700, ...illustratedBg('snowyMountain') },
@@ -9798,6 +10048,10 @@ case 'fish': {
                     moneyLayer.appendChild(counter);
                     let collected = 0;
                     let exchanging = false;
+                    let lastExchangeAt = 0;                 // 兩次兌換至少間隔 5 秒（後端也會再擋一次）
+                    const EXCHANGE_CD_MS = 5000;
+                    // 沒買特效（試用中）後端不會給分，前端先擋下來省一次請求
+                    const ownsMoneyEffect = () => (gameState.unlockedEffects || []).includes('money');
 
                     // 達標時counter變成可點的兌換鈕
                     const refreshCounter = () => {
@@ -9813,28 +10067,47 @@ case 'fish': {
                             : `/${COINS_PER_EXCHANGE}`;
                     };
 
-                    // 點擊兌換：扣掉金幣數，跟伺服器換積分（後端有冷卻與每日上限）
+                    // 點擊兌換：只送 action，加多少分由後端決定；成功才扣掉手上的金幣
                     counter.addEventListener('click', async () => {
                         if (exchanging || collected < COINS_PER_EXCHANGE) return;
+
+                        if (!ownsMoneyEffect()) {
+                            showFloatText(currLang === 'zh'
+                                ? '尚未擁有財富自由特效，無法兌換！'
+                                : 'You need to own the Wealth Freedom effect to exchange!', 4000);
+                            return;
+                        }
+                        const waitMs = EXCHANGE_CD_MS - (Date.now() - lastExchangeAt);
+                        if (waitMs > 0) {
+                            const waitSec = Math.ceil(waitMs / 1000);
+                            showFloatText(currLang === 'zh'
+                                ? `兌換冷卻中！還需等待 ${waitSec} 秒。`
+                                : `Exchange cooling down! Wait ${waitSec}s.`, 2500);
+                            return;
+                        }
+
                         exchanging = true;
                         refreshCounter();
-                        try {
-                            const result = await fetchAPI('/pet-games/interact', 'POST', { action: 'MONEY_EXCHANGE' });
-                            if (result && !result.error) {
-                                collected -= COINS_PER_EXCHANGE;
-                                if (result.coin !== undefined) gameState.points = result.coin;
-                                else gameState.points += POINTS_PER_EXCHANGE;
-                                saveGame();
-                                updateUI();
-                                playDingSound(3);
-                                const lr = moneyLayer.getBoundingClientRect();
-                                for (let i = 0; i < 3; i++) burstAt(lr.width * (0.3 + Math.random() * 0.4), lr.height * (0.2 + Math.random() * 0.2), null);
-                                showFloatText(currLang === 'zh' ? `💰 兌換成功！+${POINTS_PER_EXCHANGE} 積分` : `💰 Exchanged! +${POINTS_PER_EXCHANGE}`, 4000);
-                            } else {
-                                showFloatText(result?.error || (currLang === 'zh' ? '兌換失敗，稍後再試' : 'Exchange failed'), 4000);
-                            }
-                        } catch (e) {
-                            showFloatText(currLang === 'zh' ? '伺服器連線異常' : 'Server error', 4000);
+                        const result = await fetchAPI('/pet-games/interact', 'POST', { action: 'MONEY_EXCHANGE' });
+                        if (result && !result.error) {
+                            lastExchangeAt = Date.now();
+                            collected -= COINS_PER_EXCHANGE;
+                            // 積分一律以後端回傳的 coin 為準
+                            if (result.coin !== undefined && !isNaN(Number(result.coin))) gameState.points = Number(result.coin);
+                            else gameState.points += POINTS_PER_EXCHANGE;
+                            saveGame();
+                            updateUI();
+                            playDingSound(3);
+                            const lr = moneyLayer.getBoundingClientRect();
+                            for (let i = 0; i < 3; i++) burstAt(lr.width * (0.3 + Math.random() * 0.4), lr.height * (0.2 + Math.random() * 0.2), null);
+                            showFloatText(currLang === 'zh' ? `💰 兌換成功！+${POINTS_PER_EXCHANGE} 積分` : `💰 Exchanged! +${POINTS_PER_EXCHANGE}`, 4000);
+                        } else if (result && result.error) {
+                            // 後端的錯誤訊息直接給玩家看，金幣保留讓他稍後再試
+                            showFloatText(result.error, 4000);
+                        } else {
+                            showFloatText(currLang === 'zh'
+                                ? '連線異常，金幣先留著，稍後再兌換'
+                                : 'Connection error — your coins are safe, try again later', 4000);
                         }
                         exchanging = false;
                         refreshCounter();
