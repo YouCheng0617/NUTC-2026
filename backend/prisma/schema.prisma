@@ -344,6 +344,11 @@ model Pet {
   sign_in_streak     Int       @default(0) // 當前連續簽到天數 (1~7 循環)
   total_sign_in_days Int       @default(0) // 累計簽到總天數
 
+  // 每日任務：各任務上次領獎時間，同一天 (台北時間) 只能領一次
+  last_pet_task_claim   DateTime? // 跟寵物玩
+  last_feed_task_claim  DateTime? // 餵食
+  last_clean_task_claim DateTime? // 清理魚缸
+
   member       Member         @relation(fields: [member_id], references: [member_id], onDelete: Cascade)
   PetInventory PetInventory[]
 }

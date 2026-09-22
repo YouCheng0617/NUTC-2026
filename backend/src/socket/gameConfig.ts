@@ -23,12 +23,20 @@ export const gameConfig = {
         FEED: { reward: 80, cdSeconds: 8 },          // 餵食海藻
         PURIFY: { reward: 100, cdSeconds: 15 },      // 淨化水質
         PET: { reward: 60, cdSeconds: 10 },          // 撫摸雪兔
-        MONEY_EXCHANGE: { reward: 120, cdSeconds: 20 } // 財富自由小遊戲：接滿金幣後兌換
+        MONEY_EXCHANGE: { reward: 120, cdSeconds: 5 }, // 財富自由小遊戲：接滿金幣後兌換，5 秒冷卻防止連發
+        MUSIC_NOTE: { reward: 15, cdSeconds: 0.5 },    // 跳動音符：點飄浮音符收集，0.5 秒冷卻防止連發
+        MUSIC_BUY_NOTE: { reward: -1, cdSeconds: 0 }   // 跳動音符：商店買一個音符扣 1 分
+    },
+    // 每日任務：當天 (台北時間) 做過對應互動就能領一次額外獎勵，數字與前端 getDailyTaskData 一致
+    dailyTasks: {
+        pet: { reward: 60 },    // 跟寵物玩
+        feed: { reward: 80 },   // 餵食
+        clean: { reward: 100 }  // 清理魚缸
     },
     // 財富自由兌換規則：接滿幾枚換一次、每天最多換幾次
     moneyGame: {
         coinsPerExchange: 50,
-        dailyLimit: 5
+        dailyLimit: 0           // 每天最多換幾次（0 = 不限制）
     },
     shop: {
         pet_color: {
