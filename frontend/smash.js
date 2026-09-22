@@ -348,13 +348,13 @@ function spawnTarget() {
         } else {
             const normalImg = document.createElement('img');
             normalImg.className = 'normal-img';
-            normalImg.src = type === 'fish' ? 'images/fish.png' : 'images/bottle.png';
+            normalImg.src = type === 'fish' ? 'images/fish.webp' : 'images/bottle.webp';
             if (type === 'bottle') normalImg.classList.add('camouflaged');
 
             const brokenImg = document.createElement('img');
             brokenImg.className = 'broken-img';
             if (type === 'bottle') {
-                brokenImg.src = 'images/bottle2.png';
+                brokenImg.src = 'images/bottle2.webp';
                 brokenImg.style.display = 'none';
             }
             targetContainer.appendChild(normalImg);

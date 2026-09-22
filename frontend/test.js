@@ -607,7 +607,7 @@ window.renderComments = async function (postId) {
         const isLiked = c.isLiked || c.is_liked || c.liked || false;
         const commentId = c.id || c.comment_id || c.commentId || c._id;
         const content = c.content || c.text || "";
-        const avatar = c.avatar || "images/fish_logo.png";
+        const avatar = c.avatar || "images/fish_logo.webp";
 
         const replies = c.replies || c.children || c.subComments || [];
         let repliesHtml = "";
@@ -616,7 +616,7 @@ window.renderComments = async function (postId) {
           replies.forEach((reply) => {
             const rAuthor = reply.member_name || "未知使用者";
             const rContent = reply.content || reply.text || "";
-            const rAvatar = reply.avatar || "images/fish_logo.png";
+            const rAvatar = reply.avatar || "images/fish_logo.webp";
 
             repliesHtml += `
                             <div class="ocean-reply-item">
@@ -2797,7 +2797,7 @@ window.openFollowingModal = async function () {
             user.id || user.followed_id || user.followedId || user.member_id,
           );
           const uName = user.name || user.username || "神秘海友";
-          const uAvatar = user.avatar || "images/fish_logo.png";
+          const uAvatar = user.avatar || "images/fish_logo.webp";
 
           return `
             <div class="following-item" id="following-user-${uId}">
