@@ -40,14 +40,14 @@ export class PetGameController {
             const actionType = String(rawAction).toUpperCase();
 
             // 3. 檢查動作是否合法（可選但推薦，避免非預期的動作傳入）
-            const validActions = ['FEED', 'PURIFY', 'PET'];
+            const validActions = ['FEED', 'PURIFY', 'PET', 'MONEY_EXCHANGE'];
             if (!validActions.includes(actionType)) {
                 return res.status(400).json({ error: "無效的互動類型！" });
             }
 
             const updatedPet = await interactPet(
                 Number(memberId),
-                actionType as 'FEED' | 'PURIFY' | 'PET'
+                actionType as 'FEED' | 'PURIFY' | 'PET' | 'MONEY_EXCHANGE'
             );
 
             return res.status(200).json({

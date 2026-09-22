@@ -22,7 +22,13 @@ export const gameConfig = {
     actions: {
         FEED: { reward: 80, cdSeconds: 8 },          // 餵食海藻
         PURIFY: { reward: 100, cdSeconds: 15 },      // 淨化水質
-        PET: { reward: 60, cdSeconds: 10 }         // 撫摸雪兔
+        PET: { reward: 60, cdSeconds: 10 },          // 撫摸雪兔
+        MONEY_EXCHANGE: { reward: 120, cdSeconds: 20 } // 財富自由小遊戲：接滿金幣後兌換
+    },
+    // 財富自由兌換規則：接滿幾枚換一次、每天最多換幾次
+    moneyGame: {
+        coinsPerExchange: 50,
+        dailyLimit: 5
     },
     shop: {
         pet_color: {

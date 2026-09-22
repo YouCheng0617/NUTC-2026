@@ -30,7 +30,10 @@ export const renamePet = async (memberId: number, newName: string) => {
         }
     });
 };
-export const interactPet = async (memberId: number, actionType: 'FEED' | 'PURIFY' | 'PET') => {
+// 財富自由兌換的冷卻與每日次數：放在記憶體即可，不需要動到資料表
+const moneyExchangeLog = new Map<number, { last: number; date: string; count: number }>();
+
+export const interactPet = async (memberId: number, actionType: 'FEED' | 'PURIFY' | 'PET' | 'MONEY_EXCHANGE') => {
     const action = gameConfig.actions[actionType];
     if (!action) {
         throw new Error("無效的互動類型！");
@@ -43,6 +46,31 @@ export const interactPet = async (memberId: number, actionType: 'FEED' | 'PURIFY
         throw new Error("找不到該會員的寵物！");
     }
     const now = new Date();
+
+    // 財富自由兌換走自己的限制：不佔用餵食／清潔／撫摸的冷卻欄位
+    if (actionType === 'MONEY_EXCHANGE') {
+        const today = now.toISOString().slice(0, 10);
+        const log = moneyExchangeLog.get(memberId) ?? { last: 0, date: today, count: 0 };
+        if (log.date !== today) { log.date = today; log.count = 0; }
+
+        const waited = (now.getTime() - log.last) / 1000;
+        if (waited < action.cdSeconds) {
+            throw new Error(`兌換冷卻中！還需等待 ${Math.ceil(action.cdSeconds - waited)} 秒。`);
+        }
+        if (log.count >= gameConfig.moneyGame.dailyLimit) {
+            throw new Error(`今天的兌換次數已用完（每天 ${gameConfig.moneyGame.dailyLimit} 次），明天再來！`);
+        }
+
+        log.last = now.getTime();
+        log.count += 1;
+        moneyExchangeLog.set(memberId, log);
+
+        return await prisma.pet.update({
+            where: { member_id: memberId },
+            data: { coin: { increment: action.reward } }
+        });
+    }
+
     let lastActionTime: Date;
     let updateField: Record<string, any> = {};
 
