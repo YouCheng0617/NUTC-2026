@@ -1851,21 +1851,6 @@ const i18n = {
             );
         },
 
-        // 銀白雪山：雪峰、針葉樹與飄雪
-        snowyMountain(mode) {
-            const { W, H } = canvasOf(mode), hz = H * 0.64;
-            return svgOf(W, H,
-                vg('smSky', [[0, '#9fd6f5'], [60, '#d6ecfa'], [100, '#f2fbff']]) + vg('smG', [[0, '#ffffff'], [100, '#d6e6f2']]),
-                bg(W, H, 'url(#smSky)')
-                + peaks(W, H, hz - H * 0.04, H * 0.3, 4, '#b9d4e8') + peaks(W, H, hz, H * 0.22, 5, '#e8f4fb')
-                + hill(W, H, hz + H * 0.09, 16, 'url(#smG)')
-                + pine(W * 0.16, hz + H * 0.16, 0.8, '#2f6b52', '#eaf6ff')
-                + pine(W * 0.3, hz + H * 0.2, 0.6, '#2f6b52', '#eaf6ff')
-                + pine(W * 0.82, hz + H * 0.18, 0.9, '#2f6b52', '#eaf6ff')
-                + flakes(W, H, 34, '#ffffff', 3.4)
-            );
-        },
-
         // 璀璨星空：銀河、月亮與遠山
         starryNight(mode) {
             const { W, H } = canvasOf(mode), hz = H * 0.76;
@@ -1911,66 +1896,6 @@ const i18n = {
             );
         },
 
-        // 薰衣草田：一畦畦紫色花田
-        lavenderField(mode) {
-            const { W, H } = canvasOf(mode), hz = H * 0.44;
-            let rows = '';
-            for (let i = 0; i < 7; i++) {
-                const t = i / 6;
-                const y = hz + (H - hz) * (t * t * 0.95 + 0.05);
-                rows += `<path d="M ${-W * 0.1} ${y} C ${W * 0.3} ${y - 14 - t * 22}, ${W * 0.7} ${y + 12 + t * 20}, ${W * 1.1} ${y}" stroke="${i % 2 ? '#8b6fd6' : '#a98cf0'}" stroke-width="${10 + t * 46}" fill="none" stroke-linecap="round"/>`;
-            }
-            return svgOf(W, H,
-                vg('lfSky', [[0, '#bfd9ff'], [60, '#e4dcff'], [100, '#f6efff']]) + glowDef('lfGlow', '#fff3c9'),
-                bg(W, H, 'url(#lfSky)') + glow(W * 0.76, H * 0.16, H * 0.06, 'lfGlow', '#fff0b8')
-                + times(2, (i, a) => cloud(a * W, H * 0.16, 0.7, '#ffffff', 0.8))
-                + rect(0, hz, W, H - hz, '#b7d38f') + rows
-                + times(10, (i, a, b, c) => disc((a * W).toFixed(0), (hz + b * (H - hz)).toFixed(0), (3 + c * 4).toFixed(1), '#e9d5ff', 'opacity="0.8"'))
-            );
-        },
-
-        // 夢幻極光：極光帶、星空與雪原
-        auroraSky(mode) {
-            const { W, H } = canvasOf(mode), hz = H * 0.76;
-            const ribbon = (y, amp, color, w) => `<path d="M ${-W * 0.1} ${y} C ${W * 0.25} ${y - amp}, ${W * 0.55} ${y + amp}, ${W * 1.1} ${y - amp * 0.5}" stroke="${color}" stroke-width="${w}" fill="none" stroke-linecap="round" opacity="0.55"/>`;
-            return svgOf(W, H,
-                vg('asSky', [[0, '#071b38'], [60, '#0e3550'], [100, '#1b5a6b']]) + vg('asG', [[0, '#d6f0f5'], [100, '#8fb9cc']]),
-                bg(W, H, 'url(#asSky)') + stars(W, H, 60, '#ffffff')
-                + ribbon(H * 0.24, H * 0.16, '#5ef0b8', 58) + ribbon(H * 0.34, H * 0.12, '#7ad8ff', 44) + ribbon(H * 0.44, H * 0.1, '#b78cff', 32)
-                + hill(W, H, hz, 18, '#b9dae6') + hill(W, H, hz + H * 0.08, 14, 'url(#asG)', 1.2)
-                + pine(W * 0.2, hz + H * 0.12, 0.55, '#1f4a3f', '#e8f6fb') + pine(W * 0.84, hz + H * 0.14, 0.62, '#1f4a3f', '#e8f6fb')
-            );
-        },
-
-        // 復古街機：霓虹格線地板與像素方塊
-        retroArcade(mode) {
-            const { W, H } = canvasOf(mode), hz = H * 0.5;
-            let grid = '';
-            for (let i = 0; i <= 12; i++) grid += `<path d="M ${W / 2} ${hz} L ${(i / 12) * W * 2.4 - W * 0.7} ${H}" stroke="#ff4fd8" stroke-width="2.6" opacity="0.7"/>`;
-            for (let i = 1; i <= 7; i++) { const y = hz + (H - hz) * Math.pow(i / 7, 2); grid += `<path d="M 0 ${y} L ${W} ${y}" stroke="#4fe3ff" stroke-width="2.6" opacity="0.65"/>`; }
-            return svgOf(W, H,
-                vg('raSky', [[0, '#1b0836'], [60, '#3d1063'], [100, '#7a1f83']]) + glowDef('raSun', '#ff7ad8'),
-                bg(W, H, 'url(#raSky)') + stars(W, H, 40, '#ffd6ff')
-                + glow(W * 0.5, hz - H * 0.06, H * 0.14, 'raSun', '#ffb15c')
-                + rect(0, hz, W, H - hz, '#1a0630') + grid
-                + times(7, (i, a, b, c) => rect((a * W).toFixed(0), (b * hz * 0.8).toFixed(0), (16 + c * 18).toFixed(0), (16 + c * 18).toFixed(0), c > 0.5 ? '#4fe3ff' : '#ffe066', 'opacity="0.85"'))
-            );
-        },
-
-        // 賽博霓虹：夜城剪影與霓虹招牌
-        neonCity(mode) {
-            const { W, H } = canvasOf(mode), hz = H * 0.78;
-            return svgOf(W, H,
-                vg('ncSky', [[0, '#06132e'], [55, '#12305c'], [100, '#3f2f6e']]) + vg('ncRoad', [[0, '#12224a'], [100, '#070f24']]),
-                bg(W, H, 'url(#ncSky)') + stars(W, H, 36, '#9fd8ff')
-                + buildings(W, hz, '#10224a', '#4fe3ff', 11)
-                + buildings(W, hz, '#0a1738', '#ff6fd8', 5)
-                + rect(0, hz, W, H - hz, 'url(#ncRoad)')
-                + times(6, (i, a, b) => rect((a * W).toFixed(0), (hz + 10 + b * (H - hz) * 0.7).toFixed(0), 10, 46, i % 2 ? '#4fe3ff' : '#ff6fd8', 'opacity="0.35" rx="5"'))
-                + `<g opacity="0.9">${rect(W * 0.12, hz - H * 0.3, 16, H * 0.2, '#ff4fd8', 'rx="8"')}${rect(W * 0.86, hz - H * 0.26, 14, H * 0.16, '#4fe3ff', 'rx="7"')}</g>`
-            );
-        },
-
         // 水晶洞穴：鐘乳石與發光水晶
         crystalCave(mode) {
             const { W, H } = canvasOf(mode), floorY = H * 0.76;
@@ -1985,52 +1910,6 @@ const i18n = {
                 + crystal(W * 0.24, floorY + 20, 1.1, '#a78bfa', '#c4b5fd') + crystal(W * 0.36, floorY + 26, 0.7, '#7dd3fc', '#bae6fd')
                 + crystal(W * 0.72, floorY + 22, 1.25, '#f0abfc', '#f5d0fe') + crystal(W * 0.84, floorY + 28, 0.8, '#a78bfa', '#ddd6fe')
                 + sparkles(W, H * 0.9, 12, '#e9d5ff')
-            );
-        },
-
-        // 浩瀚銀河：星雲、行星與星環
-        galaxySpace(mode) {
-            const { W, H } = canvasOf(mode);
-            return svgOf(W, H,
-                vg('gsSky', [[0, '#05061f'], [55, '#160b3f'], [100, '#2c0f4f']]) + glowDef('gsNeb', '#b06bff') + glowDef('gsNeb2', '#3fa8ff') + glowDef('gsStar', '#fff3c4'),
-                bg(W, H, 'url(#gsSky)')
-                + disc(W * 0.3, H * 0.34, H * 0.42, 'url(#gsNeb)') + disc(W * 0.72, H * 0.6, H * 0.36, 'url(#gsNeb2)')
-                + stars(W, H, 110, '#ffffff')
-                + `<g transform="translate(${W * 0.7},${H * 0.36})">${disc(0, 0, H * 0.11, '#f4a259')}${ell(0, 0, H * 0.2, H * 0.05, 'none', 'stroke="#ffd7a8" stroke-width="7" opacity="0.85" transform="rotate(-22)"')}</g>`
-                + disc(W * 0.22, H * 0.72, H * 0.055, '#7dd3fc')
-                + sparkles(W, H, 10, '#ffffff')
-            );
-        },
-
-        // 沙漠綠洲：沙丘、水池與棕櫚
-        desertOasis(mode) {
-            const { W, H } = canvasOf(mode), hz = H * 0.52;
-            return svgOf(W, H,
-                vg('doSky', [[0, '#7fd4f5'], [55, '#ffe9a8'], [100, '#ffd98a']]) + glowDef('doSun', '#fff4c4') + vg('doSand', [[0, '#f5d98f'], [100, '#d9a95f']]),
-                bg(W, H, 'url(#doSky)') + glow(W * 0.24, H * 0.2, H * 0.075, 'doSun', '#fff2a8')
-                + hill(W, H, hz, 22, '#f0cf8a') + hill(W, H, hz + H * 0.1, 26, 'url(#doSand)', 1.5)
-                + ell(W * 0.58, H * 0.82, W * 0.22, H * 0.075, '#45b6d9')
-                + ell(W * 0.58, H * 0.815, W * 0.17, H * 0.05, '#7ad0ea')
-                + palm(W * 0.42, H * 0.83, mode === 'wide' ? 0.95 : 1.15, '#3f8f58', '#8a5a34')
-                + palm(W * 0.76, H * 0.85, mode === 'wide' ? 0.8 : 1, '#2f7a4a', '#7a4a2a')
-                + times(4, (i, a) => `<path d="M ${(a * W).toFixed(0)} ${(hz + H * 0.24).toFixed(0)} q 14 -6 28 0" stroke="#c9a05f" stroke-width="4" fill="none" opacity="0.7"/>`)
-            );
-        },
-
-        // 遠古遺跡：斷柱、石階與藤蔓
-        ancientRuins(mode) {
-            const { W, H } = canvasOf(mode), baseY = H * 0.8;
-            return svgOf(W, H,
-                vg('arSky', [[0, '#c9b28f'], [55, '#e8d6b4'], [100, '#f5ead2']]) + vg('arG', [[0, '#a98f6b'], [100, '#7a6647']]),
-                bg(W, H, 'url(#arSky)')
-                + times(3, (i, a) => cloud(a * W, H * 0.15, 0.6, '#fff8e8', 0.7))
-                + rect(0, baseY, W, H - baseY, 'url(#arG)')
-                + column(W * 0.16, baseY, H * 0.4, W * 0.05, '#d9c7a3', '#c2ab84')
-                + column(W * 0.3, baseY, H * 0.26, W * 0.045, '#cfbc97', '#b89f78')
-                + column(W * 0.72, baseY, H * 0.46, W * 0.052, '#d9c7a3', '#c2ab84')
-                + column(W * 0.86, baseY, H * 0.2, W * 0.042, '#c9b694', '#b09774')
-                + rect(W * 0.34, baseY - H * 0.5, W * 0.4, H * 0.06, '#d9c7a3', 'rx="4"')
-                + times(6, (i, a, b) => `<path d="M ${(a * W).toFixed(0)} ${(baseY - b * H * 0.3).toFixed(0)} c 12 20, -10 34, 4 56" stroke="#5f8f52" stroke-width="7" fill="none" stroke-linecap="round" opacity="0.85"/>`)
             );
         },
 
@@ -2082,58 +1961,6 @@ const i18n = {
                 + `<path d="M ${W * 0.14} ${baseY - H * 0.46} L ${W * 0.5} ${baseY - H * 0.58} L ${W * 0.86} ${baseY - H * 0.46} L ${W * 0.86} ${baseY - H * 0.4} L ${W * 0.14} ${baseY - H * 0.4} Z" fill="#cfe8ee"/>`
                 + times(3, (i, a, b) => `<g transform="translate(${(a * W).toFixed(0)},${(H * 0.3 + b * H * 0.4).toFixed(0)}) scale(0.8)" fill="#ffd166"><path d="M 0 0 C 16 -14, 44 -14, 58 0 C 44 14, 16 14, 0 0 Z"/><path d="M 58 0 L 76 -14 L 76 14 Z"/></g>`)
                 + bubbles(W, H, 14, '#d6f7ff')
-            );
-        },
-
-        // 數位母體：落下的綠色字碼與網格
-        cyberMatrix(mode) {
-            const { W, H } = canvasOf(mode);
-            let cols = '';
-            const n = Math.ceil(W / 46);
-            for (let i = 0; i < n; i++) {
-                const x = i * 46 + 12, len = 3 + Math.floor(rnd(i, 3) * 7), y0 = rnd(i, 6) * H * 0.6;
-                for (let j = 0; j < len; j++) cols += rect(x, y0 + j * 34, 16, 22, j === len - 1 ? '#d6ffe4' : '#22c55e', `rx="3" opacity="${(0.25 + j / len * 0.7).toFixed(2)}"`);
-            }
-            let grid = '';
-            for (let i = 0; i <= 10; i++) grid += `<path d="M 0 ${H * 0.72 + Math.pow(i / 10, 2) * H * 0.3} L ${W} ${H * 0.72 + Math.pow(i / 10, 2) * H * 0.3}" stroke="#16a34a" stroke-width="2" opacity="0.5"/>`;
-            return svgOf(W, H,
-                vg('cmBg', [[0, '#020c07'], [60, '#052e16'], [100, '#0a4023']]) + glowDef('cmGlow', '#22c55e'),
-                bg(W, H, 'url(#cmBg)') + disc(W * 0.5, H * 0.45, H * 0.4, 'url(#cmGlow)') + cols + grid
-            );
-        },
-
-        // 雲端神域：金色雲海、光柱與神殿階梯
-        celestialRealm(mode) {
-            const { W, H } = canvasOf(mode), baseY = H * 0.74;
-            return svgOf(W, H,
-                vg('crSky', [[0, '#7fd4f5'], [45, '#ffeab8'], [100, '#fff6e0']]) + glowDef('crGlow', '#fff3c4') + vg('crRay', [[0, '#fff6d0', 0.5], [100, '#fff6d0', 0]]),
-                bg(W, H, 'url(#crSky)') + glow(W * 0.5, H * 0.2, H * 0.1, 'crGlow', '#fff8dc')
-                + rays(W, H, W * 0.5, H * 0.18, 6, 'url(#crRay)')
-                + times(5, (i, a, b) => cloud(a * W, H * (0.12 + b * 0.3), 0.8 + b * 0.6, '#ffffff', 0.9))
-                + `<path d="M ${W * 0.2} ${H} L ${W * 0.3} ${baseY} L ${W * 0.7} ${baseY} L ${W * 0.8} ${H} Z" fill="#fff1d0"/>`
-                + times(4, (i) => rect(W * (0.26 - i * 0.02), baseY + i * (H - baseY) / 4, W * (0.48 + i * 0.04), (H - baseY) / 4 - 4, '#ffe8b8', 'rx="4"'))
-                + column(W * 0.3, baseY, H * 0.34, W * 0.045, '#fff8e8', '#ffe8b8')
-                + column(W * 0.7, baseY, H * 0.34, W * 0.045, '#fff8e8', '#ffe8b8')
-                + sparkles(W, H * 0.7, 10, '#fff3c4')
-            );
-        },
-
-        // 夢境仙境：巨大蘑菇、泡泡與粉紫霧氣
-        dreamWonderland(mode) {
-            const { W, H } = canvasOf(mode), hz = H * 0.66;
-            const mushroom = (x, y, s, cap, dot) => `<g transform="translate(${x},${y}) scale(${s})">`
-                + `<path d="M -22 0 C -26 -40, -16 -58, 0 -60 C 16 -58, 26 -40, 22 0 Z" fill="#fff1f7"/>`
-                + `<path d="M -74 -56 C -74 -104, 74 -104, 74 -56 C 40 -40, -40 -40, -74 -56 Z" fill="${cap}"/>`
-                + `<g fill="${dot}"><circle cx="-34" cy="-70" r="12"/><circle cx="8" cy="-80" r="14"/><circle cx="42" cy="-64" r="10"/></g></g>`;
-            return svgOf(W, H,
-                vg('dwSky', [[0, '#f6c8f0'], [50, '#e2b6f7'], [100, '#c4a8f0']]) + glowDef('dwGlow', '#ffe6ff') + vg('dwG', [[0, '#c98fe0'], [100, '#9a6cc4']]),
-                bg(W, H, 'url(#dwSky)') + disc(W * 0.7, H * 0.22, H * 0.2, 'url(#dwGlow)')
-                + stars(W, H * 0.6, 28, '#fff1ff')
-                + hill(W, H, hz, 20, '#d6a8ea') + hill(W, H, hz + H * 0.1, 22, 'url(#dwG)', 1.4)
-                + mushroom(W * 0.22, hz + H * 0.2, mode === 'wide' ? 0.95 : 1.15, '#ff7ab8', '#fff1f7')
-                + mushroom(W * 0.78, hz + H * 0.26, mode === 'wide' ? 1.15 : 1.35, '#a78bfa', '#f3e8ff')
-                + mushroom(W * 0.52, hz + H * 0.12, 0.6, '#7dd3fc', '#e0f2fe')
-                + bubbles(W, H * 0.9, 14, '#ffffff')
             );
         },
 
@@ -2444,30 +2271,19 @@ const i18n = {
             // 🌟 11 ~ 15：風景與探險系列（晚霞橘、楓葉紅、深海藍、雪山白、星夜藍）
             autumn_leaves: { name: {zh: '秋日楓紅', en: 'Autumn Leaves'}, cost: 600, ...illustratedBg('autumnLeaves') },
             deep_sea: { name: {zh: '深海秘境', en: 'Deep Ocean'}, cost: 650, ...illustratedBg('deepSea') },
-            snowy_mountain: { name: {zh: '銀白雪山', en: 'Snow Mountain'}, cost: 700, ...illustratedBg('snowyMountain') },
             starry_night: { name: {zh: '璀璨星空', en: 'Starry Night'}, cost: 800, ...illustratedBg('starryNight') },
 
             // 🌟 16 ~ 21：奇幻異想系列（糖果粉、魔法紫、薰衣草、極光綠、街機桃紅、霓虹青）
             candy_land: { name: {zh: '糖果王國', en: 'Candy Land'}, cost: 900, ...illustratedBg('candyLand') },
             magic_academy: { name: {zh: '魔法學院', en: 'Magic Academy'}, cost: 950, ...illustratedBg('magicAcademy') },
-            lavender_field: { name: {zh: '薰衣草田', en: 'Lavender Field'}, cost: 1000, ...illustratedBg('lavenderField') },
-            aurora_sky: { name: {zh: '夢幻極光', en: 'Aurora Sky'}, cost: 1050, ...illustratedBg('auroraSky') },
-            retro_arcade: { name: {zh: '復古街機', en: 'Retro Arcade'}, cost: 1100, ...illustratedBg('retroArcade') },
-            neon_city: { name: {zh: '賽博霓虹', en: 'Cyber Neon'}, cost: 1200, ...illustratedBg('neonCity') },
 
             // 🌟 22 ~ 27：宇宙與奇境系列（水晶紫、銀河靛藍、綠洲金黃、遺跡棕、熔岩烈紅、浮島天藍）
             crystal_cave: { name: {zh: '水晶洞穴', en: 'Crystal Cave'}, cost: 1300, ...illustratedBg('crystalCave') },
-            galaxy_space: { name: {zh: '浩瀚銀河', en: 'Galaxy Space'}, cost: 1350, ...illustratedBg('galaxySpace') },
-            desert_oasis: { name: {zh: '沙漠綠洲', en: 'Desert Oasis'}, cost: 1400, ...illustratedBg('desertOasis') },
-            ancient_ruins: { name: {zh: '遠古遺跡', en: 'Ancient Ruins'}, cost: 1450, ...illustratedBg('ancientRuins') },
             volcano_core: { name: {zh: '熔岩火山', en: 'Lava Volcano'}, cost: 1500, ...illustratedBg('volcanoCore') },
             floating_island: { name: {zh: '浮空島嶼', en: 'Floating Island'}, cost: 1600, ...illustratedBg('floatingIsland') },
 
             // 🌟 28 ~ 32：頂級殿堂系列（海神藍、母體翠綠、神域暖黃、仙境洋紅、皇家金）
             underwater_temple: { name: {zh: '亞特蘭提斯', en: 'Atlantis'}, cost: 1700, ...illustratedBg('underwaterTemple') },
-            cyber_matrix: { name: {zh: '數位母體', en: 'Digital Matrix'}, cost: 1800, ...illustratedBg('cyberMatrix') },
-            celestial_realm: { name: {zh: '雲端神域', en: 'Celestial Realm'}, cost: 1900, ...illustratedBg('celestialRealm') },
-            dream_wonderland: { name: {zh: '夢境仙境', en: 'Dreamland'}, cost: 2000, ...illustratedBg('dreamWonderland') },
             royal_palace: { name: {zh: '皇家宮殿', en: 'Royal Palace'}, cost: 2100, ...illustratedBg('royalPalace') }
         };
 
