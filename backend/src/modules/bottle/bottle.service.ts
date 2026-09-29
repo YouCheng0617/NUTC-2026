@@ -32,6 +32,12 @@ const formatPoll = (bottle: {
     user_voted_option_id: bottle.PollVote[0]?.option_id ?? null
 });
 
+/* 匿名文章不回傳作者 ID，避免被反查出發文者 (自己的文章清單不需要) */
+const hideAnonymousAuthor = <T extends { is_anonymous: boolean; member_id: number }>(bottle: T) => ({
+    ...bottle,
+    member_id: bottle.is_anonymous ? null : bottle.member_id
+});
+
 /*獲取我丟的瓶子清單*/
 export const getMybottles = async (memberId: number) => {
     const myBottles = await prisma.bottle.findMany({
@@ -171,10 +177,10 @@ export const getMyLikedBottles = async (memberId: number) => {
     return likedRecords.map(record => {
         const { _count, author, PollOption, PollVote, ...bottleData } = record.bottle;
         return {
-            ...bottleData,
+            ...hideAnonymousAuthor(bottleData),
             like_count: _count.likes,
             save_count: _count.saves,
-            member_name: author?.name || "匿名使用者",
+            member_name: bottleData.is_anonymous ? "匿名使用者" : (author?.name || "未知使用者"),
             category_list: record.bottle.categories.map(c => c.category?.name || "未知類別"),
             ...formatPoll(record.bottle)
         };
@@ -290,10 +296,10 @@ export const getMySavedBottles = async (memberId: number) => {
     return savedRecords.map(record => {
         const { _count, author, PollOption, PollVote, ...bottleData } = record.bottle;
         return {
-            ...bottleData,
+            ...hideAnonymousAuthor(bottleData),
             like_count: _count.likes,
             save_count: _count.saves,
-            member_name: author?.name || "匿名使用者",
+            member_name: bottleData.is_anonymous ? "匿名使用者" : (author?.name || "未知使用者"),
             category_list: record.bottle.categories.map(c => c.category?.name || "未知類別"),
             ...formatPoll(record.bottle)
         };
@@ -502,7 +508,7 @@ export const searchBottle = async (keyword: string, memberId?: number) => {
     return searchResults.map(bottle => {
         const { _count, categories, author, PollOption, PollVote, ...bottleData } = bottle;
         return {
-            ...bottleData,
+            ...hideAnonymousAuthor(bottleData),
             like_count: _count.likes,
             save_count: _count.saves,
             // 💡 重要：處理匿名邏輯，保護發文者
@@ -548,7 +554,7 @@ export const getPopularBottles = async (limit: number = 10, memberId?: number) =
     return popularBottles.map(bottle => {
         const { _count, categories, author, PollOption, PollVote, ...bottleData } = bottle;
         return {
-            ...bottleData,
+            ...hideAnonymousAuthor(bottleData),
             like_count: _count.likes,
             save_count: _count.saves,
             member_name: bottleData.is_anonymous ? "匿名使用者" : (author?.name || "未知使用者"),

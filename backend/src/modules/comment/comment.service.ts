@@ -88,6 +88,8 @@ export const getCommentsByBottleId = async (bottleId: number, memberId: number |
     // 🌟 4. 整理回傳格式
     return comments.map((comment: any) => ({
         ...comment,
+        // 匿名留言不回傳留言者 ID，避免被反查身分
+        member_id: comment.is_anonymous ? null : comment.member_id,
         member_name: comment.is_anonymous ? "匿名使用者" : comment.member?.name,
         likeCount: comment._count?.likes ?? 0,
         isLiked: comment.likes ? comment.likes.length > 0 : false,
@@ -97,6 +99,7 @@ export const getCommentsByBottleId = async (bottleId: number, memberId: number |
 
         replies: comment.replies?.map((reply: any) => ({
             ...reply,
+            member_id: reply.is_anonymous ? null : reply.member_id,
             member_name: reply.is_anonymous ? "匿名使用者" : reply.member?.name,
             likeCount: reply._count?.likes ?? 0,
             isLiked: reply.likes ? reply.likes.length > 0 : false,
