@@ -1,3 +1,4 @@
+import { parseLimit } from "../../lib/validateHelper.js";
 import type { Response, Request } from "express";
 import type { AuthRequest } from "../middleware/auth.middleware.js";
 import { saveGameRecord, getHighScore, getAllGameRecords } from "./game-record/game-record.service.js";
@@ -65,14 +66,11 @@ export class GameController {
         try {
             const game_name = req.params.gameName;
             const difficulty = req.params.difficulty as string;
-            const limit = req.query.limit ? Number(req.query.limit) : 10;
+            const limit = parseLimit(req.query.limit, 10, 100);
 
             if (!game_name || !difficulty) {
                 return res.status(400).json({ message: "請提供遊戲名稱和難度" });
 
-            }
-            if (isNaN(limit)) {
-                return res.status(400).json({ message: "limit 必須是數字" });
             }
 
             const records = await getAllGameRecords(game_name as string, difficulty, limit);

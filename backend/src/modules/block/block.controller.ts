@@ -1,3 +1,4 @@
+import { isValidId } from "../../lib/validateHelper.js";
 import type { Response } from "express";
 import { type AuthRequest } from "../middleware/auth.middleware.js";
 import { blockMember, unblockMember, getMyBlockList } from "./block.service.js";
@@ -13,7 +14,7 @@ export const blockController = {
             if (!blockerId) {
                 return res.status(401).json({ message: "未授權，請先登入" });
             }
-            if (!blockedId || isNaN(blockedId)) {
+            if (!isValidId(blockedId)) {
                 return res.status(400).json({ message: "請提供有效的會員 ID" });
             }
 
@@ -43,7 +44,7 @@ export const blockController = {
             if (!blockerId) {
                 return res.status(401).json({ message: "未授權，請先登入" });
             }
-            if (!blockedId || isNaN(blockedId)) {
+            if (!isValidId(blockedId)) {
                 return res.status(400).json({ message: "請提供有效的會員 ID" });
             }
 

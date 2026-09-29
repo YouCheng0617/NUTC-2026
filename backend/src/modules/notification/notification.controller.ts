@@ -1,3 +1,4 @@
+import { isValidId } from "../../lib/validateHelper.js";
 import type { Request, Response } from 'express';
 import type { AuthRequest } from '../middleware/auth.middleware.js';
 import { getUserNotifications, markNotificationAsRead, markAllNotificationsAsRead } from './notification.service.js';
@@ -32,7 +33,7 @@ export class NotificationController {
             if (!memberId) {
                 return res.status(401).json({ message: "請先登入" });
             }
-            if (isNaN(notificationId)) {
+            if (!isValidId(notificationId)) {
                 return res.status(400).json({ message: "無效的通知 ID" });
             }
 

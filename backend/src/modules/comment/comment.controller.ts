@@ -1,3 +1,4 @@
+import { isValidId } from "../../lib/validateHelper.js";
 import type { Response, Request } from "express";
 import type { AuthRequest } from "../middleware/auth.middleware.js";
 import { createComment, getCommentsByBottleId, likeComment, createReply } from "./comment.service.js";
@@ -13,7 +14,7 @@ export class CommentController {
             if (!memberId) {
                 return res.status(401).json({ message: "請先登入" });
             }
-            if (isNaN(bottleId)) {
+            if (!isValidId(bottleId)) {
                 return res.status(400).json({ message: "無效的瓶子 ID" });
             }
             if (!content || typeof content !== "string" || content.trim() === "") {
@@ -42,7 +43,7 @@ export class CommentController {
         try {
             const bottleId = Number(req.params.bottleId);
             const memberId = req.user?.member_id as number;
-            if (isNaN(bottleId)) {
+            if (!isValidId(bottleId)) {
                 return res.status(400).json({ message: "無效的瓶子 ID" });
             }
 
@@ -66,7 +67,7 @@ export class CommentController {
             if (!memberId) {
                 return res.status(401).json({ message: "請先登入" });
             }
-            if (isNaN(commentId)) {
+            if (!isValidId(commentId)) {
                 return res.status(400).json({ message: "無效的留言 ID" });
             }
 
@@ -98,10 +99,10 @@ export class CommentController {
             if (!memberId) {
                 return res.status(401).json({ message: "請先登入" });
             }
-            if (isNaN(bottleId)) {
+            if (!isValidId(bottleId)) {
                 return res.status(400).json({ message: "無效的瓶子 ID" });
             }
-            if (isNaN(parentId)) {
+            if (!isValidId(parentId)) {
                 return res.status(400).json({ message: "無效的留言 ID" });
             }
             if (!content || typeof content !== "string" || content.trim() === "") {

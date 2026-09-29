@@ -1,3 +1,4 @@
+import { isValidId, parseLimit } from "../../lib/validateHelper.js";
 import { Router } from "express";
 import type { Request, Response } from "express";
 import prisma from "../../lib/prisma.js";
@@ -115,7 +116,12 @@ export const bottleController = {
             const memberId = req.user?.member_id; // 💡 訪客會是 undefined
             const limit = 10;
             const categoryIdParam = req.query.categoryId as string;
-            const targetCategoryId = categoryIdParam ? parseInt(categoryIdParam) : undefined;
+            const targetCategoryId = categoryIdParam ? Number(categoryIdParam) : undefined;
+
+            // 分類 ID 必須是 32 位元範圍內的正整數，避免亂傳的值讓 Prisma 噴錯
+            if (targetCategoryId !== undefined && !isValidId(targetCategoryId)) {
+                return res.status(400).json({ message: "無效的分類 ID" });
+            }
 
             // 🌟 1. 動態組裝 where 條件
             const whereCondition: any = {
@@ -297,10 +303,10 @@ export const bottleController = {
             const memberId = req.user?.member_id as number;
             const bottleId = Number(req.params.bottleId);
 
-            if (!bottleId || isNaN(bottleId)) {
+            if (!isValidId(bottleId)) {
                 return res.status(400).json({ message: "無效的瓶子 ID" });
             }
-            if (!memberId || isNaN(memberId)) {
+            if (!isValidId(memberId)) {
                 return res.status(400).json({ message: "無效的會員，請重新登入" });
             }
 
@@ -325,10 +331,10 @@ export const bottleController = {
             const memberId = req.user?.member_id as number;
             const bottleId = Number(req.params.bottleId);
 
-            if (!bottleId || isNaN(bottleId)) {
+            if (!isValidId(bottleId)) {
                 return res.status(400).json({ message: "無效的瓶子 ID" });
             }
-            if (!memberId || isNaN(memberId)) {
+            if (!isValidId(memberId)) {
                 return res.status(400).json({ message: "無效的會員，請重新登入" });
             }
 
@@ -351,7 +357,7 @@ export const bottleController = {
     async getMyLikedBottlesList(req: AuthRequest, res: Response) {
         try {
             const memberId = req.user?.member_id as number;
-            if (!memberId || isNaN(memberId)) {
+            if (!isValidId(memberId)) {
                 return res.status(400).json({ message: "無效的會員，請重新登入" });
             }
 
@@ -367,7 +373,7 @@ export const bottleController = {
     async getMySavedBottlesList(req: AuthRequest, res: Response) {
         try {
             const memberId = req.user?.member_id as number;
-            if (!memberId || isNaN(memberId)) {
+            if (!isValidId(memberId)) {
                 return res.status(400).json({ message: "無效的會員，請重新登入" });
             }
 
@@ -387,7 +393,7 @@ export const bottleController = {
             if (!memberId) {
                 return res.status(401).json({ message: "未授權，請先登入" });
             }
-            if (isNaN(bottleId)) {
+            if (!isValidId(bottleId)) {
                 return res.status(400).json({ message: "無效的瓶子 ID" });
             }
 
@@ -416,13 +422,13 @@ export const bottleController = {
     async reportBottleController(req: AuthRequest, res: Response) {
         try {
             const memberId = req.user?.member_id as number;
-            if (!memberId || isNaN(memberId)) {
+            if (!isValidId(memberId)) {
                 return res.status(400).json({ message: "無效的會員，請重新登入" });
             }
 
             const bottleId = Number(req.params.bottleId);
             const { reason } = req.body;
-            if (isNaN(bottleId)) {
+            if (!isValidId(bottleId)) {
                 return res.status(400).json({ message: "無效的瓶子 ID" });
             }
             if (!reason || reason.trim() === "") {
@@ -480,8 +486,7 @@ export const bottleController = {
         try {
             // 可以從 Query 讀取想要回傳的數量，沒傳預設 10
             const limitParam = req.query.limit as string;
-            const parsedLimit = parseInt(limitParam);
-            const limit = (!isNaN(parsedLimit) && parsedLimit > 0) ? parsedLimit : 10;
+            const limit = parseLimit(limitParam, 10, 50);
 
             const popularBottles = await getPopularBottles(limit, req.user?.member_id);
 
@@ -501,13 +506,13 @@ export const bottleController = {
             const bottleId = Number(req.params.bottleId);
             const { optionId } = req.body;
 
-            if (!memberId || isNaN(memberId)) {
+            if (!isValidId(memberId)) {
                 return res.status(401).json({ message: "請先登入才能投票" });
             }
-            if (isNaN(bottleId)) {
+            if (!isValidId(bottleId)) {
                 return res.status(400).json({ message: "無效的漂流瓶 ID" });
             }
-            if (!optionId || isNaN(Number(optionId))) {
+            if (!isValidId(Number(optionId))) {
                 return res.status(400).json({ message: "無效的選項 ID" });
             }
 

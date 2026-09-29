@@ -1,3 +1,4 @@
+import { isValidId } from "../../lib/validateHelper.js";
 import type { Response, Request } from "express";
 import type { AuthRequest } from "../middleware/auth.middleware.js";
 import {
@@ -73,7 +74,7 @@ export class CSController {
             const memberId = req.user?.member_id;
             const ticketId = Number(req.params.id);
 
-            if (!ticketId || isNaN(ticketId)) {
+            if (!isValidId(ticketId)) {
                 return res.status(400).json({ message: "無效的客服問題 ID" });
             }
 
