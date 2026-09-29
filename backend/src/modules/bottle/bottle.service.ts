@@ -21,16 +21,33 @@ export const getMybottles = async (memberId: number) => {
             },
             _count: {
                 select: { likes: true, saves: true }
+            },
+            PollOption: {
+                select: {
+                    id: true,
+                    text: true,
+                    _count: { select: { votes: true } }
+                }
+            },
+            PollVote: {
+                where: { member_id: memberId },
+                select: { option_id: true }
             }
         }
     });
     return myBottles.map(bottle => {
-        const { _count, categories, ...bottleData } = bottle;
+        const { _count, categories, PollOption, PollVote, ...bottleData } = bottle;
         return {
             ...bottleData,
             like_count: _count.likes,
             save_count: _count.saves,
-            category_list: categories.map(c => c.category?.name || "未知類別")
+            category_list: categories.map(c => c.category?.name || "未知類別"),
+            poll_options: PollOption.map(opt => ({
+                option_id: opt.id,
+                text: opt.text,
+                vote_count: opt._count.votes
+            })),
+            user_voted_option_id: PollVote[0]?.option_id ?? null
         };
     });
 };

@@ -349,21 +349,27 @@ async function fetchBottles() {
         if (!realAuthorId && rawItem.author?.id)
           realAuthorId = rawItem.author.id;
 
-        // 🌟 解析內文中的投票標籤
+        // 🌟 投票資料：優先使用後端回傳的 poll_options
         let itemContent = item.content || rawItem.content || "";
         let itemPoll = null;
+        const rawPollOptions = item.poll_options || rawItem.poll_options;
+        if (Array.isArray(rawPollOptions) && rawPollOptions.length > 0) {
+          const options = rawPollOptions.map((opt) => ({
+            id: opt.option_id,
+            text: opt.text,
+            votes: opt.vote_count || 0,
+          }));
+          itemPoll = {
+            options,
+            totalVotes: options.reduce((sum, o) => sum + o.votes, 0),
+            userVotedOptionId:
+              item.user_voted_option_id ?? rawItem.user_voted_option_id ?? null,
+          };
+        }
+        // 相容舊資料：內文裡的投票標籤一律移除，避免顯示在內文
         const pollMatch = itemContent.match(/<!--POLL_JSON:(.*?):POLL_JSON-->/);
         if (pollMatch) {
-          try {
-            itemPoll = JSON.parse(pollMatch[1]);
-            itemContent = itemContent.replace(pollMatch[0], "").trim();
-          } catch (e) {}
-        }
-        const cachedPoll = localStorage.getItem(`poll_data_${safeId}`);
-        if (cachedPoll) {
-          try {
-            itemPoll = JSON.parse(cachedPoll);
-          } catch (e) {}
+          itemContent = itemContent.replace(pollMatch[0], "").trim();
         }
 
         return {
@@ -1304,10 +1310,7 @@ function setupNewPost() {
           return;
         }
 
-        pollData = {
-          options: validOptions.map((t) => ({ text: t, votes: 0 })),
-          totalVotes: 0,
-        };
+        pollData = validOptions;
       }
 
       const boardSelect = form.querySelector("#post-board");
@@ -1323,17 +1326,12 @@ function setupNewPost() {
         return;
       }
 
-      // 將投票結構藏進內文發送
-      let finalContent = content;
-      if (pollData) {
-        finalContent += `\n<!--POLL_JSON:${JSON.stringify(pollData)}:POLL_JSON-->`;
-      }
-
       const postData = {
         title: title,
-        content: finalContent,
+        content: content,
         isAnonymous: isAnonymous,
         category_id: categoryPayload,
+        ...(pollData && { pollOptions: pollData }),
       };
 
       try {
@@ -3308,21 +3306,19 @@ function renderPollWidget(post) {
   pollBox.style.display = "block";
   const poll = post.poll;
   const totalVotes = poll.totalVotes || 0;
-
-  const votedStorageKey = `voted_poll_${post.id}`;
-  const userVotedIndex = localStorage.getItem(votedStorageKey);
-  const hasVoted = userVotedIndex !== null;
+  const votedId = poll.userVotedOptionId;
+  const hasVoted = votedId !== null && votedId !== undefined;
 
   let optionsHtml = poll.options
-    .map((opt, idx) => {
+    .map((opt) => {
       const votes = opt.votes || 0;
       const percentage =
         totalVotes > 0 ? Math.round((votes / totalVotes) * 100) : 0;
-      const isChoice = hasVoted && String(userVotedIndex) === String(idx);
+      const isChoice = hasVoted && String(votedId) === String(opt.id);
 
       return `
             <div class="poll-option-row ${hasVoted ? "has-voted" : ""} ${isChoice ? "voted-choice" : ""}" 
-                 onclick="handlePollVote('${post.id}', ${idx})">
+                 onclick="handlePollVote('${post.id}', ${Number(opt.id)})">
                 <div class="poll-progress-bar" style="width: ${hasVoted ? percentage : 0}%;"></div>
                 <span class="poll-opt-text">${escapeHTML(opt.text)}</span>
                 <span class="poll-opt-percentage">${hasVoted ? percentage + "%" : "0%"}</span>
@@ -3335,37 +3331,62 @@ function renderPollWidget(post) {
         ${optionsHtml}
         <div class="poll-meta-footer">
             <span>📊 共 ${totalVotes} 票</span>
-            <span>24 小時活動</span>
+            <span>${hasVoted ? "點其他選項可改票" : "點選項投票"}</span>
         </div>
     `;
 }
 
-// 4. 點擊選項觸發投票
-window.handlePollVote = function (postId, choiceIndex) {
-  const votedStorageKey = `voted_poll_${postId}`;
-  if (localStorage.getItem(votedStorageKey) !== null) {
-    if (typeof showOceanToast === "function") {
-      showOceanToast("你已經投過票囉！🫧");
-    } else {
-      alert("你已經投過票囉！");
-    }
+// 4. 點擊選項觸發投票（呼叫後端，可改票）
+window.handlePollVote = async function (postId, optionId) {
+  const toast = (msg) =>
+    typeof showOceanToast === "function" ? showOceanToast(msg) : alert(msg);
+
+  const token = localStorage.getItem("authToken");
+  if (!token) {
+    toast("請先登入才能投票喔！");
     return;
   }
 
   const post = posts.find((p) => String(p.id) === String(postId));
   if (!post || !post.poll) return;
+  const poll = post.poll;
+  const prevId = poll.userVotedOptionId;
+  if (String(prevId) === String(optionId)) return;
 
-  post.poll.options[choiceIndex].votes =
-    (post.poll.options[choiceIndex].votes || 0) + 1;
-  post.poll.totalVotes = (post.poll.totalVotes || 0) + 1;
+  try {
+    const response = await fetch(`${API_BASE_URL}/bottles/${postId}/vote`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+        "ngrok-skip-browser-warning": "true",
+      },
+      body: JSON.stringify({ optionId }),
+    });
 
-  localStorage.setItem(votedStorageKey, choiceIndex);
-  localStorage.setItem(`poll_data_${postId}`, JSON.stringify(post.poll));
+    if (!response.ok) {
+      const err = await response.json().catch(() => ({}));
+      toast(err.message || "投票失敗，請稍後再試");
+      return;
+    }
 
-  renderPollWidget(post);
+    // 依後端結果更新本地票數
+    const hadVoted = prevId !== null && prevId !== undefined;
+    if (hadVoted) {
+      const prevOpt = poll.options.find((o) => String(o.id) === String(prevId));
+      if (prevOpt) prevOpt.votes = Math.max(0, prevOpt.votes - 1);
+    } else {
+      poll.totalVotes = (poll.totalVotes || 0) + 1;
+    }
+    const newOpt = poll.options.find((o) => String(o.id) === String(optionId));
+    if (newOpt) newOpt.votes = (newOpt.votes || 0) + 1;
+    poll.userVotedOptionId = optionId;
 
-  if (typeof showOceanToast === "function") {
-    showOceanToast("投票成功！📊");
+    renderPollWidget(post);
+    toast(hadVoted ? "已改票！📊" : "投票成功！📊");
+  } catch (error) {
+    console.error("投票連線錯誤:", error);
+    toast("無法連線至伺服器，投票失敗");
   }
 };
 
