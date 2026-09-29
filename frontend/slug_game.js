@@ -9913,7 +9913,7 @@ case 'fish': {
                             @keyframes popUp { 0%{transform:translate(-50%,0) scale(.6); opacity:0;} 25%{transform:translate(-50%,-14px) scale(1.15); opacity:1;} 100%{transform:translate(-50%,-46px) scale(1); opacity:0;} }
                             /* 右上角財富計數器 */
                             .money-counter {
-                                position:absolute; top:112px; right:16px; z-index:40; pointer-events:none;
+                                position:absolute; top:126px; right:16px; z-index:40; pointer-events:none;
                                 display:flex; align-items:center; gap:6px; padding:6px 14px; border-radius:22px;
                                 background:linear-gradient(135deg, rgba(255,246,214,.95), rgba(255,226,140,.95));
                                 border:3px solid #e0b100; box-shadow:0 6px 16px rgba(180,130,0,.3);
@@ -9941,7 +9941,7 @@ case 'fish': {
                             }
                             @keyframes hintFade { 0%{opacity:0; transform:translate(-50%,10px);} 6%,90%{opacity:1; transform:translate(-50%,0);} 100%{opacity:0; transform:translate(-50%,-8px);} }
                             @media screen and (max-width:768px) {
-                                .money-counter { top:104px; right:10px; padding:5px 11px; font-size:.85rem; border-width:2px; }
+                                .money-counter { top:calc(126px + env(safe-area-inset-top, 0px)); right:calc(10px + env(safe-area-inset-right, 0px)); padding:9px 14px; min-height:44px; font-size:.85rem; border-width:2px; }
                                 .money-pile { height:26%; }
                                 .money-hint { font-size:.85rem; padding:7px 14px; bottom:22%; border-width:2px; }
                             }

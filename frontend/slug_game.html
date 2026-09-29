@@ -2,7 +2,7 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>海兔養成記</title>
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;800;900&display=swap" rel="stylesheet">
     
@@ -141,6 +141,16 @@
         <div class="intro-title" id="introTitle">海兔養成記</div>
         <div class="intro-skip" id="introSkip">點一下跳過</div>
     </div>
+    <script>
+        // 保險絲：不管主程式有沒有載入成功，開場動畫最多 6 秒就會被移除，避免擋住操作
+        (function () {
+            var intro = document.getElementById('introOverlay');
+            if (!intro) return;
+            var kill = function () { if (intro && intro.parentNode) intro.parentNode.removeChild(intro); };
+            setTimeout(kill, 6000);
+            intro.addEventListener('touchstart', function () { setTimeout(kill, 400); }, { passive: true });
+        })();
+    </script>
 
     <!-- 🌟 召喚手冊的懸浮按鈕 (放在左上角) -->
 <button id="btnOpenManual" onclick="openManual()">📖 飼養手冊</button>
