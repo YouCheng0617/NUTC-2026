@@ -3958,7 +3958,10 @@ slugEl.style.transform = slugTransform(`scaleX(${direction})`);
             const dirt = gameState.dirtiness || 0;
             // 髒污度 0 ~ 100 轉換為遮罩透明度與模糊度
             overlay.style.opacity = (dirt / 100) * 0.96;
-            overlay.style.backdropFilter = `blur(${(dirt / 100) * 12}px)`;
+            // 水乾淨時要寫 none 而不是 blur(0px)：只要還掛著 backdrop-filter，
+            // 換背景時這層滿版遮罩會殘留一格舊背景的取樣，畫面上就會閃過一塊怪色
+            overlay.style.backdropFilter = dirt > 0 ? `blur(${(dirt / 100) * 12}px)` : 'none';
+            overlay.style.webkitBackdropFilter = overlay.style.backdropFilter;
         }
 
 // 🌟 【一般互動系統：淨化水質與溫柔撫摸的動作總管】
@@ -4744,10 +4747,36 @@ function tryItem(key, type) {
             const bg = bgData[trialState.bg || gameState.currentBg];
             const stage = document.getElementById('mainStage');
 
+            // 換背景時要不要走那 1 秒的漸變：
+            // 插畫背景的行內樣式只有 url()，底色其實是透明的，
+            // 一旦直接漸變到純色，圖片會瞬間消失、底色卻慢慢過渡，
+            // 中間那一秒就會看到一塊明顯偏掉的顏色。所以只有「純色 → 純色」才漸變。
+            const setStageBg = (value) => {
+                const prev = stage.dataset.bgStyle || '';
+                const hasImg = (s) => String(s).includes('url(');
+                const fade = prev !== '' && !hasImg(prev) && !hasImg(value);
+                if (!fade) stage.style.transition = 'none';
+                stage.style.background = value;
+                stage.dataset.bgStyle = String(value);
+                if (!fade) {
+                    void stage.offsetWidth;          // 先讓瀏覽器畫完再把漸變還回去
+                    stage.style.transition = '';
+                }
+
+                // 舞台上那層滿版的水質遮罩會快取底下的畫面，背景換掉後要逼它重畫一次，
+                // 不然會殘留一塊舊背景的顏色
+                const dirt = document.getElementById('dirtOverlay');
+                if (dirt) {
+                    dirt.style.display = 'none';
+                    void dirt.offsetWidth;
+                    dirt.style.display = '';
+                }
+            };
+
             // 找不到對應背景時 (例如預設的 'sky' 不在 bgData 裡)，清掉行內樣式回到 CSS 預設的淺藍底，
             // 否則試用結束後會一直卡在試用的背景
             if (!bg) {
-                stage.style.background = '';
+                setStageBg('');
                 document.getElementById('dotPattern').style.opacity = '';
                 return;
             }
@@ -4760,7 +4789,7 @@ function tryItem(key, type) {
                 styleValue = styleValue(mode);
             }
 
-            stage.style.background = styleValue;
+            setStageBg(styleValue);
             document.getElementById('dotPattern').style.opacity = bg.hasDots ? '0.9' : '0';
         }
 

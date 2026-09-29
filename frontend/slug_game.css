@@ -86,8 +86,7 @@
             letter-spacing: 1px;
             color: var(--text-dark);
             box-shadow: 0 4px 0 var(--border-color);
-            backdrop-filter: blur(4px);
-            font-size: 1.1rem;
+            font-size: 1.1rem;   /* 底色本來就是不透明白，不需要 backdrop-filter（留著反而會在換背景時殘影） */
         }
         .lang-btn {
             background: #ffffff;
@@ -1398,7 +1397,9 @@
             text-align: center;
             pointer-events: none;
             box-shadow: 0 8px 25px var(--shadow-color);
-            backdrop-filter: blur(6px);
+            /* 這裡刻意不用 backdrop-filter：底色本來就接近不透明，
+               但換背景的瞬間 backdrop-filter 會殘留上一張背景的取樣，
+               在畫面上留下一塊顏色明顯偏掉的方形，直到提示消失 */
             white-space: normal;
             word-break: break-word;
             animation: floatNoticeStay 2.6s cubic-bezier(0.18, 0.89, 0.32, 1.28) forwards;
