@@ -15,6 +15,133 @@
 
 </head>
 <body>
+    <!-- 🌟 【開場動畫】鏡頭掉進海裡 → 盲盒沉下來 → 啪一聲打開，結束後才看到遊戲 -->
+    <div id="introOverlay" onclick="typeof skipIntro === 'function' && skipIntro()">
+    <!-- 問號海兔：沿用遊戲裡海兔的輪廓，整隻塗黑中間一個問號 -->
+    <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+        <symbol id="introQBunny" viewBox="0 0 340 240">
+            <g fill="#12131a" stroke="#12131a" stroke-width="6" stroke-linejoin="round">
+                <path d="M 250 170 C 270 180, 300 190, 290 140 C 280 100, 250 140, 240 170 Z"/>
+                <path d="M 260 150 C 290 160, 320 120, 280 80 C 260 60, 230 110, 250 150 Z"/>
+                <path d="M 240 130 C 260 100, 270 70, 240 50 C 210 30, 200 90, 230 120 Z"/>
+                <path d="M 100 105 C 80 50, 95 20, 110 25 C 125 30, 120 90, 115 105 Z"/>
+                <path d="M 145 100 C 135 45, 160 15, 175 25 C 190 35, 165 85, 160 100 Z"/>
+                <path d="M 70 190 C 20 180, 30 120, 90 110 C 160 100, 220 105, 260 130 C 290 150, 280 200, 200 210 C 130 220, 90 200, 70 190 Z"/>
+            </g>
+            <text x="163" y="198" text-anchor="middle" font-family="Nunito, system-ui, sans-serif"
+                  font-size="112" font-weight="900" fill="#ffffff">?</text>
+        </symbol>
+    </svg>
+        <div class="intro-world">
+            <div class="intro-sky"></div>
+            <div class="intro-sea"></div>
+            <div class="intro-surface"></div>
+            <div class="intro-ray" style="left:18%; animation-delay:.1s;"></div>
+            <div class="intro-ray" style="left:46%; animation-delay:.5s;"></div>
+            <div class="intro-ray" style="left:72%; animation-delay:.9s;"></div>
+            <div class="intro-splash"></div>
+        </div>
+        <div class="intro-bubbles">
+            <span style="left:8%; width:9px; height:9px; animation-delay:0s;"></span>
+            <span style="left:18%; width:6px; height:6px; animation-delay:1.1s;"></span>
+            <span style="left:27%; width:12px; height:12px; animation-delay:0.5s;"></span>
+            <span style="left:38%; width:7px; height:7px; animation-delay:1.7s;"></span>
+            <span style="left:46%; width:10px; height:10px; animation-delay:0.2s;"></span>
+            <span style="left:57%; width:8px; height:8px; animation-delay:1.3s;"></span>
+            <span style="left:66%; width:13px; height:13px; animation-delay:0.7s;"></span>
+            <span style="left:74%; width:6px; height:6px; animation-delay:1.9s;"></span>
+            <span style="left:83%; width:10px; height:10px; animation-delay:0.4s;"></span>
+            <span style="left:92%; width:8px; height:8px; animation-delay:1.5s;"></span>
+        </div>
+        <!-- 漂流瓶：沉下來之後慢慢脹大，最後炸開噴出一堆問號海兔 -->
+        <div class="intro-bottle">
+            <div class="bottle-bob">
+                <div class="bottle-grow">
+                    <div class="bottle-shake">
+                        <svg class="bunny-inside" viewBox="0 0 340 240"><use href="#introQBunny"/></svg>
+                        <svg class="bottle-glass" viewBox="0 0 140 250" aria-hidden="true">
+                            <defs>
+                                <linearGradient id="introGlass" x1="0" y1="0" x2="1" y2="0">
+                                    <stop offset="0%" stop-color="#bff0e4" stop-opacity="0.6"/>
+                                    <stop offset="45%" stop-color="#8fd9d2" stop-opacity="0.32"/>
+                                    <stop offset="100%" stop-color="#5fb9bd" stop-opacity="0.5"/>
+                                </linearGradient>
+                            </defs>
+                            <path d="M 54 34 L 86 34 L 86 66 C 86 78, 116 92, 116 122 L 116 214 C 116 230, 104 240, 88 240 L 52 240 C 36 240, 24 230, 24 214 L 24 122 C 24 92, 54 78, 54 66 Z"
+                                  fill="url(#introGlass)" stroke="#e8fbff" stroke-width="4" stroke-linejoin="round"/>
+                            <rect x="48" y="24" width="44" height="16" rx="7" fill="#d7f5f2" stroke="#e8fbff" stroke-width="3"/>
+                            <path d="M 38 118 C 34 140, 34 190, 38 218" stroke="#ffffff" stroke-width="7" stroke-linecap="round" fill="none" opacity="0.5"/>
+                            <path d="M 100 130 C 104 152, 104 186, 100 206" stroke="#ffffff" stroke-width="4" stroke-linecap="round" fill="none" opacity="0.28"/>
+                        </svg>
+                        <div class="bottle-cork"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 爆炸：全螢幕白閃、衝擊波、碎玻璃與細碎水花 -->
+        <div class="blast-white"></div>
+        <div class="blast">
+            <div class="blast-flash"></div>
+            <div class="blast-ring"></div>
+            <div class="blast-ring delay"></div>
+            <span class="shard" style="--sx:25.5vmin; --sy:5.2vmin; --sr:-120deg; animation-delay:3.20s;"></span>
+            <span class="shard" style="--sx:26.3vmin; --sy:19.9vmin; --sr:137deg; animation-delay:3.22s;"></span>
+            <span class="shard" style="--sx:18.2vmin; --sy:35.6vmin; --sr:-154deg; animation-delay:3.24s;"></span>
+            <span class="shard" style="--sx:1.1vmin; --sy:47.0vmin; --sr:171deg; animation-delay:3.20s;"></span>
+            <span class="shard" style="--sx:-10.7vmin; --sy:23.7vmin; --sr:-188deg; animation-delay:3.22s;"></span>
+            <span class="shard" style="--sx:-25.3vmin; --sy:21.2vmin; --sr:205deg; animation-delay:3.24s;"></span>
+            <span class="shard" style="--sx:-38.8vmin; --sy:9.8vmin; --sr:-222deg; animation-delay:3.20s;"></span>
+            <span class="shard" style="--sx:-46.1vmin; --sy:-9.3vmin; --sr:239deg; animation-delay:3.22s;"></span>
+            <span class="shard" style="--sx:-20.7vmin; --sy:-15.7vmin; --sr:-256deg; animation-delay:3.24s;"></span>
+            <span class="shard" style="--sx:-15.0vmin; --sy:-29.4vmin; --sr:273deg; animation-delay:3.20s;"></span>
+            <span class="shard" style="--sx:-1.0vmin; --sy:-40.0vmin; --sr:-290deg; animation-delay:3.22s;"></span>
+            <span class="shard" style="--sx:19.4vmin; --sy:-42.8vmin; --sr:307deg; animation-delay:3.24s;"></span>
+            <span class="shard" style="--sx:19.9vmin; --sy:-16.7vmin; --sr:-324deg; animation-delay:3.20s;"></span>
+            <span class="shard" style="--sx:32.0vmin; --sy:-8.1vmin; --sr:341deg; animation-delay:3.22s;"></span>
+            <span class="debris" style="--dx:26.3vmin; --dy:14.4vmin; width:0.80vmin; animation-delay:3.200s;"></span>
+            <span class="debris" style="--dx:27.6vmin; --dy:27.6vmin; width:1.25vmin; animation-delay:3.215s;"></span>
+            <span class="debris" style="--dx:23.0vmin; --dy:42.1vmin; width:1.70vmin; animation-delay:3.230s;"></span>
+            <span class="debris" style="--dx:12.1vmin; --dy:55.7vmin; width:2.15vmin; animation-delay:3.245s;"></span>
+            <span class="debris" style="--dx:-4.7vmin; --dy:65.8vmin; width:0.80vmin; animation-delay:3.200s;"></span>
+            <span class="debris" style="--dx:-10.5vmin; --dy:28.1vmin; width:1.25vmin; animation-delay:3.215s;"></span>
+            <span class="debris" style="--dx:-23.4vmin; --dy:31.2vmin; width:1.70vmin; animation-delay:3.230s;"></span>
+            <span class="debris" style="--dx:-38.4vmin; --dy:28.8vmin; width:2.15vmin; animation-delay:3.245s;"></span>
+            <span class="debris" style="--dx:-53.4vmin; --dy:19.9vmin; width:0.80vmin; animation-delay:3.200s;"></span>
+            <span class="debris" style="--dx:-65.8vmin; --dy:4.7vmin; width:1.25vmin; animation-delay:3.215s;"></span>
+            <span class="debris" style="--dx:-29.3vmin; --dy:-6.4vmin; width:1.70vmin; animation-delay:3.230s;"></span>
+            <span class="debris" style="--dx:-34.2vmin; --dy:-18.7vmin; width:2.15vmin; animation-delay:3.245s;"></span>
+            <span class="debris" style="--dx:-33.9vmin; --dy:-33.9vmin; width:0.80vmin; animation-delay:3.200s;"></span>
+            <span class="debris" style="--dx:-27.3vmin; --dy:-50.0vmin; width:1.25vmin; animation-delay:3.215s;"></span>
+            <span class="debris" style="--dx:-14.0vmin; --dy:-64.5vmin; width:1.70vmin; animation-delay:3.230s;"></span>
+            <span class="debris" style="--dx:2.1vmin; --dy:-29.9vmin; width:2.15vmin; animation-delay:3.245s;"></span>
+            <span class="debris" style="--dx:13.6vmin; --dy:-36.5vmin; width:0.80vmin; animation-delay:3.200s;"></span>
+            <span class="debris" style="--dx:28.8vmin; --dy:-38.4vmin; width:1.25vmin; animation-delay:3.215s;"></span>
+            <span class="debris" style="--dx:45.6vmin; --dy:-34.1vmin; width:1.70vmin; animation-delay:3.230s;"></span>
+            <span class="debris" style="--dx:61.8vmin; --dy:-23.1vmin; width:2.15vmin; animation-delay:3.245s;"></span>
+            <span class="debris" style="--dx:29.9vmin; --dy:-2.1vmin; width:0.80vmin; animation-delay:3.200s;"></span>
+            <span class="debris" style="--dx:38.1vmin; --dy:8.3vmin; width:1.25vmin; animation-delay:3.215s;"></span>
+        </div>
+
+        <!-- 炸出來的一堆問號海兔 -->
+        <div class="q-burst">
+            <svg class="q-fly" viewBox="0 0 340 240" style="--tx:-30vmin; --ty:-22vmin; --rot:-52deg; --s:1.15; width:18vmin; animation-delay:3.200s;"><use href="#introQBunny"/></svg>
+            <svg class="q-fly" viewBox="0 0 340 240" style="--tx:6vmin; --ty:-44vmin; --rot:44deg; --s:0.8; width:12vmin; animation-delay:3.214s;"><use href="#introQBunny"/></svg>
+            <svg class="q-fly" viewBox="0 0 340 240" style="--tx:42vmin; --ty:-16vmin; --rot:-38deg; --s:1.05; width:16vmin; animation-delay:3.228s;"><use href="#introQBunny"/></svg>
+            <svg class="q-fly" viewBox="0 0 340 240" style="--tx:-50vmin; --ty:6vmin; --rot:40deg; --s:0.75; width:11vmin; animation-delay:3.206s;"><use href="#introQBunny"/></svg>
+            <svg class="q-fly" viewBox="0 0 340 240" style="--tx:38vmin; --ty:12vmin; --rot:-30deg; --s:1.25; width:19vmin; animation-delay:3.234s;"><use href="#introQBunny"/></svg>
+            <svg class="q-fly" viewBox="0 0 340 240" style="--tx:-24vmin; --ty:30vmin; --rot:34deg; --s:0.95; width:14vmin; animation-delay:3.220s;"><use href="#introQBunny"/></svg>
+            <svg class="q-fly" viewBox="0 0 340 240" style="--tx:4vmin; --ty:40vmin; --rot:-42deg; --s:1.35; width:20vmin; animation-delay:3.239s;"><use href="#introQBunny"/></svg>
+            <svg class="q-fly" viewBox="0 0 340 240" style="--tx:46vmin; --ty:30vmin; --rot:32deg; --s:0.8; width:11vmin; animation-delay:3.208s;"><use href="#introQBunny"/></svg>
+            <svg class="q-fly" viewBox="0 0 340 240" style="--tx:-14vmin; --ty:-52vmin; --rot:28deg; --s:0.7; width:10vmin; animation-delay:3.245s;"><use href="#introQBunny"/></svg>
+            <svg class="q-fly" viewBox="0 0 340 240" style="--tx:26vmin; --ty:-30vmin; --rot:-36deg; --s:0.9; width:13vmin; animation-delay:3.250s;"><use href="#introQBunny"/></svg>
+            <svg class="q-fly" viewBox="0 0 340 240" style="--tx:-44vmin; --ty:-14vmin; --rot:26deg; --s:1.1; width:15vmin; animation-delay:3.225s;"><use href="#introQBunny"/></svg>
+            <svg class="q-fly" viewBox="0 0 340 240" style="--tx:54vmin; --ty:-4vmin; --rot:-28deg; --s:0.72; width:10vmin; animation-delay:3.217s;"><use href="#introQBunny"/></svg>
+        </div>
+        <div class="intro-title" id="introTitle">海兔養成記</div>
+        <div class="intro-skip" id="introSkip">點一下跳過</div>
+    </div>
+
     <!-- 🌟 召喚手冊的懸浮按鈕 (放在左上角) -->
 <button id="btnOpenManual" onclick="openManual()">📖 飼養手冊</button>
 

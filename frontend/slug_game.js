@@ -32,6 +32,23 @@ let GAME_TOKEN = localStorage.getItem('authToken') || localStorage.getItem('acce
         let isMockMode = false;
         let mockIntervals = [];
 
+        // 🌊 【開場動畫】播完或被點掉之後，把整層拿掉，不擋住遊戲操作
+        function endIntro(fast) {
+            const intro = document.getElementById('introOverlay');
+            if (!intro || intro.dataset.done) return;
+            intro.dataset.done = '1';
+            if (fast) intro.classList.add('is-skipping');
+            setTimeout(() => intro.remove(), fast ? 380 : 900);
+        }
+        function skipIntro() { endIntro(true); }
+
+        (function setupIntro() {
+            const intro = document.getElementById('introOverlay');
+            if (!intro) return;
+            const slow = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+            setTimeout(() => endIntro(false), slow ? 1100 : 5500);   // 動畫跑完就自動收掉
+        })();
+
         // 🌟 【呼叫伺服器 API 的小幫手】
         async function fetchAPI(endpoint, method = 'GET', payload = null) {
             try {
@@ -405,6 +422,7 @@ const i18n = {
                 cooldown: "冷卻", ready: "可互動",
                 tabSpecies: "圖鑑", tabBg: "背景", tabEffect: "特效",
                 equip: "使用中", owned: "已解鎖",
+                introTitle: "海兔養成記", introSkip: "點一下跳過",
                 // ✨ 敬請期待卡
                 comingSoon: "敬請期待", comingSoonTag: "即將登場",
                 comingSoonHints: {
@@ -467,6 +485,7 @@ const i18n = {
                 cooldown: "CD", ready: "Ready",
                 tabSpecies: "Species", tabBg: "Background", tabEffect: "Effects",
                 equip: "Active", owned: "Unlocked",
+                introTitle: "Sea Bunny Life", introSkip: "Tap to skip",
                 // ✨ Coming soon card
                 comingSoon: "Coming Soon", comingSoonTag: "Almost here",
                 comingSoonHints: {
@@ -4058,6 +4077,11 @@ function updateLangUI() {
             document.getElementById('btnBack').innerText = t.backBtn;
             document.getElementById('btnLang').innerText = t.langBtn;
             document.getElementById('txtPts').innerText = t.points;
+            // 開場動畫還在畫面上的話，字樣也跟著語系走
+            const introTitleEl = document.getElementById('introTitle');
+            const introSkipEl = document.getElementById('introSkip');
+            if (introTitleEl) introTitleEl.innerText = t.introTitle || introTitleEl.innerText;
+            if (introSkipEl) introSkipEl.innerText = t.introSkip || introSkipEl.innerText;
             document.getElementById('gachaTitle').innerText = t.gachaTitle;
             if(document.getElementById('gachaBox').innerText !== '' && !document.getElementById('gachaBox').innerHTML.includes('div')) {
                 document.getElementById('gachaBox').innerText = t.gachaBox;
