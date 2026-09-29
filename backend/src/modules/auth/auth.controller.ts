@@ -27,8 +27,7 @@ export class AuthController {
             });
         } catch (error) {
             res.status(400).json({
-                message: error instanceof Error ? error.message : "登入失敗",
-                data: String(error)
+                message: error instanceof Error ? error.message : "登入失敗"
             });
         }
     }
@@ -48,8 +47,7 @@ export class AuthController {
             });
         } catch (error) {
             res.status(400).json({
-                message: error instanceof Error ? error.message : "註冊失敗",
-                data: String(error)
+                message: error instanceof Error ? error.message : "註冊失敗"
             });
         }
     }

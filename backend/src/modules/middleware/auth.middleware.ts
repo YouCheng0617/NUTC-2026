@@ -11,11 +11,25 @@ interface TokenPayload {
     role: string;
 }
 
+/*
+ * AI 服務的身分驗證：只收 x-ai-api-key 這個 header。
+ * 原本還接受 ?key=xxx，但放在網址上的金鑰會被 nginx access log、
+ * 瀏覽器歷史與 Referer 記下來，等於把管理員權限公開，所以移除。
+ * AI 端 (AI/src/ai_db_worker.py) 本來就只帶 header，不受影響。
+ */
+const isAiRequest = (req: Request): boolean => {
+    const secret = process.env.AI_SECRT_KEY;
+    /*環境變數沒設定時一律不放行，避免兩邊都是 undefined 就通過*/
+    if (!secret) return false;
+
+    const aiApiKey = req.headers["x-ai-api-key"];
+    return typeof aiApiKey === "string" && aiApiKey === secret;
+};
+
 
 export const authCheck = async (req: AuthRequest, res: Response, next: NextFunction) => {
     /*給AI用的*/
-    const aiApiKey = req.headers["x-ai-api-key"] || req.query.key;
-    if (aiApiKey && aiApiKey === process.env.AI_SECRT_KEY) {
+    if (isAiRequest(req)) {
         console.log("系統提示：AI通過驗證");
         return next();
     }
@@ -63,11 +77,9 @@ export const authCheck = async (req: AuthRequest, res: Response, next: NextFunct
 
         next();
     } catch (error: any) {
-        return res.status(401).json({
-            message: "憑證無效或過期，請重新登入",
-            real_error_name: error.name,
-            real_error_message: error.message
-        });
+        /*細節只留在伺服器 log，不回傳給前端，避免洩漏 JWT 的內部錯誤訊息*/
+        console.error("JWT 驗證失敗:", error.name, error.message);
+        return res.status(401).json({ message: "憑證無效或過期，請重新登入" });
     }
 }
 
@@ -75,13 +87,10 @@ export const authCheck = async (req: AuthRequest, res: Response, next: NextFunct
 /*辨識對方是不是管理員 (Schema 升級版)*/
 export const adminCheck = async (req: AuthRequest, res: Response, next: NextFunction) => {
     try {
-        const aiApiKey = req.headers["x-ai-api-key"] || req.query.key;
-
-        if (aiApiKey && aiApiKey === process.env.AI_SECRT_KEY) {
+        if (isAiRequest(req)) {
             console.log("系統提示：AI通過驗證");
             return next();
         }
-
 
         if (!req.user) {
             return res.status(401).json({ message: "尚未登入" });

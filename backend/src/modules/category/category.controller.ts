@@ -20,10 +20,7 @@ export class CategoryController {
 
 
             console.error("Error creating category:", error);
-            res.status(500).json({
-                message: "內部伺服器錯誤",
-                real_error: error.message || error.toString()
-            });
+            res.status(500).json({ message: "內部伺服器錯誤" });
         }
     };
 }

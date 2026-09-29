@@ -34,7 +34,7 @@ export class CommentController {
             if (error.message === "瓶子狀態不允許留言") {
                 return res.status(400).json({ message: "瓶子狀態不允許留言" });
             }
-            return res.status(500).json({ message: error.message || "伺服器錯誤" });
+            return res.status(500).json({ message: "伺服器錯誤" });
         }
     }
 
@@ -126,7 +126,7 @@ export class CommentController {
                 return res.status(400).json({ message: error.message });
             }
 
-            return res.status(500).json({ message: error.message || "伺服器錯誤" });
+            return res.status(500).json({ message: "伺服器錯誤" });
         }
     }
 }

@@ -13,9 +13,9 @@
     "build": "npx tsc && cp -r src/generated dist/generated"
   },
   "dependencies": {
+    "@prisma/client": "^6.19.3",
     "bcrypt": "^6.0.0",
     "cors": "^2.8.6",
-    "cros": "^1.1.0",
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
     "express-rate-limit": "^8.3.2",
@@ -30,7 +30,6 @@
     "uuid": "^14.0.0"
   },
   "devDependencies": {
-    "@prisma/client": "^6.0.0",
     "@types/bcrypt": "^6.0.0",
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.6",

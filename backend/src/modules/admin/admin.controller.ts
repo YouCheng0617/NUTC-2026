@@ -153,11 +153,7 @@ export class AdminController {
                 return res.status(404).json({ message: "找不到該漂流瓶，請檢查瓶子 ID" });
             }
             console.error("Error deleting bottle:", error);
-            return res.status(500).json({
-                message: "內部伺服器錯誤",
-                real_error: error.message || error.toString(),
-                stack: error.stack
-            });
+            return res.status(500).json({ message: "內部伺服器錯誤" });
         }
     }
     /*刪除會員*/
@@ -176,11 +172,7 @@ export class AdminController {
                 return res.status(404).json({ message: "找不到該會員，請檢查會員 ID" });
             }
             console.error("Error deleting member:", error);
-            return res.status(500).json({
-                message: "內部伺服器錯誤",
-                real_error: error.message || error.toString(),
-                stack: error.stack
-            });
+            return res.status(500).json({ message: "內部伺服器錯誤" });
         }
     }
     /*獲取被檢舉的瓶子列表*/
@@ -194,11 +186,7 @@ export class AdminController {
             });
         } catch (error: any) {
             console.error("Error fetching reported bottles:", error);
-            return res.status(500).json({
-                message: "內部伺服器錯誤",
-                real_error: error.message || error.toString(),
-                stack: error.stack
-            });
+            return res.status(500).json({ message: "內部伺服器錯誤" });
         }
     }
     async getAllCommentsController(req: Request, res: Response) {
@@ -210,11 +198,7 @@ export class AdminController {
             });
         } catch (error: any) {
             console.error("Error fetching comments:", error);
-            return res.status(500).json({
-                message: "內部伺服器錯誤",
-                real_error: error.message || error.toString(),
-                stack: error.stack
-            });
+            return res.status(500).json({ message: "內部伺服器錯誤" });
         }
     }
 
