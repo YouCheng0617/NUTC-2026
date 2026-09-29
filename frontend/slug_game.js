@@ -1990,17 +1990,93 @@ const i18n = {
             );
         },
 
-        // 璀璨星空：銀河、月亮與遠山
+        // 璀璨星空：深藍夜空鋪滿星星，右上一彎弦月，月光把雲的邊緣打亮
         starryNight(mode) {
-            const { W, H } = canvasOf(mode), hz = H * 0.76;
+            const { W, H } = canvasOf(mode);
+            const portrait = mode === 'portrait';
+            const u = Math.min(W, H) / 520;
+            const n = (v) => Number(v).toFixed(1);
+            const moonX = W * (portrait ? 0.74 : 0.79);
+            const moonY = H * (portrait ? 0.2 : 0.25);
+            const moonR = 34 * u;
+
+            // 星星：大小與亮度都拉開差距，越靠近月亮越被光洗掉
+            let stars = '';
+            const starN = portrait ? 260 : 320;
+            for (let i = 0; i < starN; i++) {
+                const x = rnd(i, 11) * W;
+                const y = rnd(i, 12) * H * 0.92;
+                const dm = Math.hypot(x - moonX, y - moonY) / (W * 0.5);
+                const fade = Math.min(1, 0.35 + dm * 1.2);          // 月亮附近的星星比較淡
+                const big = rnd(i, 13);
+                const r = (0.5 + big * big * 2.3) * u;
+                const op = (0.06 + rnd(i, 14) * 0.3) * fade;       // 更淡，似有似無
+                stars += disc(n(x), n(y), n(r), rnd(i, 15) > 0.9 ? '#cfe4ff' : '#ffffff', `opacity="${op.toFixed(2)}"`);
+            }
+            // 比較亮的幾顆：畫成柔和的四角星芒（凹邊菱星），不用十字線也不畫光圈
+            let bright = '';
+            for (let i = 0; i < (portrait ? 10 : 13); i++) {
+                const x = rnd(i, 21) * W;
+                const y = rnd(i, 22) * H * 0.8;
+                const r = (1.5 + rnd(i, 23) * 1.5) * u;
+                const R = r * 3.6, m = r * 0.34;          // R = 星芒長度、m = 腰身
+                bright += `<path d="M ${n(x)} ${n(y - R)} L ${n(x + m)} ${n(y - m)} L ${n(x + R)} ${n(y)} L ${n(x + m)} ${n(y + m)} L ${n(x)} ${n(y + R)} L ${n(x - m)} ${n(y + m)} L ${n(x - R)} ${n(y)} L ${n(x - m)} ${n(y - m)} Z" fill="#eaf3ff" opacity="${(0.2 + rnd(i, 24) * 0.16).toFixed(2)}"/>`;
+                bright += disc(n(x), n(y), n(r * 0.85), '#ffffff', `opacity="${(0.45 + rnd(i, 25) * 0.2).toFixed(2)}"`);
+            }
+
+            // 雲：一整團用同一個底色，再分別打亮上緣、壓深下緣，最後整團糊一次
+            const cloud = (cx0, cy0, w, h, lit, seed) => {
+                const puffs = [];
+                const count = 9;
+                for (let k = 0; k < count; k++) {
+                    const t = k / (count - 1);
+                    const arc = Math.sin(t * Math.PI);                       // 中間鼓、兩側扁
+                    const px = cx0 + (t - 0.5) * w + (rnd(seed + k, 34) - 0.5) * w * 0.12;
+                    const py = cy0 - arc * h * 0.45 + (rnd(seed + k, 31) - 0.5) * h * 0.3;
+                    const pr = h * (0.34 + arc * 0.5 + rnd(seed + k, 32) * 0.3);
+                    puffs.push([px, py, pr]);
+                }
+                const body = puffs.map(([px, py, pr]) => ell(n(px), n(py), n(pr * 1.7), n(pr * 1.02), '#3c4f74')).join('')
+                    + ell(n(cx0), n(cy0 + h * 0.5), n(w * 0.6), n(h * 0.62), '#3c4f74');
+                // 上緣受月光
+                const top = puffs.map(([px, py, pr], k) => ell(n(px + pr * 0.16), n(py - pr * 0.42), n(pr * 1.25), n(pr * 0.44), '#c3d6f2',
+                    `opacity="${(0.28 + rnd(seed + k, 33) * 0.26).toFixed(2)}"`)).join('');
+                // 下緣壓深
+                const bottom = puffs.map(([px, py, pr]) => ell(n(px), n(py + pr * 0.52), n(pr * 1.4), n(pr * 0.44), '#17203c', 'opacity="0.45"')).join('');
+                return `<g filter="url(#snCloudBlur)"><g opacity="0.96">${body}</g><g filter="url(#snCloudLight)" opacity="${lit.toFixed(2)}">${top}</g><g filter="url(#snCloudLight)">${bottom}</g></g>`;
+            };
+
             return svgOf(W, H,
-                vg('snSky', [[0, '#0b1140'], [55, '#23306e'], [100, '#4a4e8c']]) + glowDef('snMoon', '#fff6d0') + vg('snG', [[0, '#1e2450'], [100, '#0c0f2c']]),
+                vg('snSky', [[0, '#050c1c'], [30, '#0d1b38'], [62, '#172a4f'], [88, '#233a64'], [100, '#2c456f']])
+                + rg('snMoonGlow', [[0, '#e6f0ff', 0.38], [26, '#b9d1f5', 0.25], [60, '#6d8dc4', 0.08], [100, '#3d5a8c', 0]])
+                + vg('snCloud', [[0, '#8ea6c9'], [42, '#4a5f85'], [100, '#1d2b4a']])
+                + `<filter id="snCloudBlur" x="-40%" y="-60%" width="180%" height="240%"><feGaussianBlur stdDeviation="${n(5.5 * u)}"/></filter>`
+                + `<g id="snStarField">${stars}${bright}</g>`
+                + `<filter id="snStarGlow" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="${n(4.6 * u)}"/></filter>`
+                + `<filter id="snCloudLight" x="-50%" y="-80%" width="200%" height="260%"><feGaussianBlur stdDeviation="${n(13 * u)}"/></filter>`
+                + `<filter id="snSoft" x="-60%" y="-60%" width="220%" height="220%"><feGaussianBlur stdDeviation="${n(2.6 * u)}"/></filter>`,
+
                 bg(W, H, 'url(#snSky)')
-                + `<ellipse cx="${W * 0.5}" cy="${H * 0.36}" rx="${W * 0.62}" ry="${H * 0.13}" fill="#7b83d8" opacity="0.28" transform="rotate(-12 ${W * 0.5} ${H * 0.36})"/>`
-                + stars(W, H, 80, '#ffffff')
-                + glow(W * 0.74, H * 0.2, H * 0.07, 'snMoon', '#fff3c4')
-                + peaks(W, H, hz, H * 0.16, 4, '#2a3060')
-                + hill(W, H, hz + H * 0.08, 12, 'url(#snG)')
+                // 星光：先鋪一層糊掉的當光暈，再疊上清晰的星點
+                + `<use href="#snStarField" filter="url(#snStarGlow)" opacity="0.6"/>`
+                + `<use href="#snStarField"/>`
+                // 月亮周圍的大光暈
+                + ell(n(moonX), n(moonY), n(moonR * 6), n(moonR * 6), 'url(#snMoonGlow)')
+                // 弦月：一個圓扣掉另一個偏移的圓
+                + `<path d="M ${n(moonX + moonR * 0.34)} ${n(moonY - moonR * 0.94)} `
+                + `A ${n(moonR)} ${n(moonR)} 0 1 0 ${n(moonX + moonR * 0.34)} ${n(moonY + moonR * 0.94)} `
+                + `A ${n(moonR * 1.16)} ${n(moonR * 1.16)} 0 1 1 ${n(moonX + moonR * 0.34)} ${n(moonY - moonR * 0.94)} Z" `
+                + `fill="#f2f7ff" filter="url(#snSoft)" opacity="0.3"/>`
+                + `<path d="M ${n(moonX + moonR * 0.34)} ${n(moonY - moonR * 0.94)} `
+                + `A ${n(moonR)} ${n(moonR)} 0 1 0 ${n(moonX + moonR * 0.34)} ${n(moonY + moonR * 0.94)} `
+                + `A ${n(moonR * 1.16)} ${n(moonR * 1.16)} 0 1 1 ${n(moonX + moonR * 0.34)} ${n(moonY - moonR * 0.94)} Z" `
+                + `fill="#fbfdff"/>`
+                // 雲：底部一大排、左右各一團、上緣幾絲薄雲
+                + cloud(W * 0.12, H * 0.28, W * 0.34, H * 0.1, 0.5, 5)
+                + cloud(W * 0.9, H * 0.62, W * 0.34, H * 0.11, 0.75, 11)
+                + cloud(W * 0.24, H * 0.9, W * 0.62, H * 0.2, 0.7, 17)
+                + cloud(W * 0.72, H * 0.97, W * 0.66, H * 0.2, 0.85, 23)
+                + cloud(W * 0.5, H * 1.04, W * 0.8, H * 0.18, 0.6, 29)
             );
         },
 
