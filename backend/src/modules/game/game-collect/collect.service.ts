@@ -27,6 +27,7 @@ export interface UnlockPieceResult {
         premium_fragments: number; // 當前高級碎片餘額
         normal_chests: number; // 普通寶箱數
         premium_chests: number; // 高級寶箱數
+        awaken_stones: number; // 喚醒石剩餘數量
     };
     stats: {
         completedPuzzles: number; // 已完整拼出的總圖鑑數
@@ -169,7 +170,21 @@ export async function unlockRandomPicturePieceService(
             normal_fragments: true,
             premium_fragments: true,
             normal_chests: true,
-            premium_chests: true
+            premium_chests: true,
+            awaken_stones: true
+        }
+    });
+
+    // 寫入抽卡紀錄 (喚醒石抽卡、開寶箱都會經過這裡)
+    await prisma.puzzleDrawRecord.create({
+        data: {
+            member_id: memberId,
+            picture_id: selectedPicture.id,
+            piece_number: drawnPiece,
+            rarity: selectedPicture.rarity,
+            is_new_piece: isNewPiece,
+            is_completed_now: isCompletedNow,
+            obtained_from: obtainedFrom
         }
     });
 
@@ -402,7 +417,8 @@ export async function getUserInventoryService(memberId: number) {
             normal_fragments: true,
             premium_fragments: true,
             normal_chests: true,
-            premium_chests: true
+            premium_chests: true,
+            awaken_stones: true
         }
     });
     if (!member) {

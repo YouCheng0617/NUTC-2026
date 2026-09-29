@@ -1,7 +1,6 @@
 import type { Response } from "express";
 import type { AuthRequest } from "../../middleware/auth.middleware.js";
 import {
-    unlockRandomPicturePieceService,
     exchangeChestService,
     openChestService,
     getUserInventoryService,
@@ -10,11 +9,20 @@ import {
     puzzleSignInService,
     getPuzzleSignInStatusService
 } from "./collect.service.js";
+import {
+    PuzzleError,
+    getPuzzleTasksService,
+    claimPuzzleTaskService,
+    drawWithAwakenStoneService,
+    getDrawRecordsService,
+    withMemberDrawLock
+} from "./puzzleTask.service.js";
 
 export class CollectController {
     /**
      * POST /game/collect/unlock
-     * 隨機抽取一張圖片的拼圖碎片 (1~9號碎片，95% 普通 / 5% 高級，每抽碎片可累積碎片庫存)
+     * 消耗 1 顆喚醒石，隨機抽取一張圖片的拼圖碎片 (1~9號碎片，95% 普通 / 5% 高級)
+     * 喚醒石由後端記錄，不夠就回 400；來源固定記為 AWAKEN_STONE，不再相信前端傳的 obtained_from
      */
     async unlockRandomPicture(req: AuthRequest, res: Response) {
         try {
@@ -23,8 +31,7 @@ export class CollectController {
                 return res.status(401).json({ message: "尚未登入" });
             }
 
-            const { obtained_from } = req.body || {};
-            const result = await unlockRandomPicturePieceService(memberId, obtained_from);
+            const result = await drawWithAwakenStoneService(memberId);
 
             let message = "";
             if (result.isCompletedNow) {
@@ -40,10 +47,87 @@ export class CollectController {
                 data: result
             });
         } catch (error: any) {
+            if (error instanceof PuzzleError) {
+                return res.status(400).json({ message: error.message });
+            }
             console.error("Unlock puzzle piece error:", error);
             return res.status(500).json({
-                message: error.message || "抽取拼圖碎片失敗，請稍後再試"
+                message: "抽取拼圖碎片失敗，請稍後再試"
             });
+        }
+    }
+
+    /**
+     * GET /game/collect/tasks
+     * 查詢今日拼圖任務進度 (每日簽到、今日發文 3 / 6 / 10 篇) 與喚醒石數量
+     */
+    async getPuzzleTasks(req: AuthRequest, res: Response) {
+        try {
+            const memberId = req.user?.member_id;
+            if (!memberId) {
+                return res.status(401).json({ message: "尚未登入" });
+            }
+
+            const result = await getPuzzleTasksService(memberId);
+            return res.status(200).json({
+                message: "取得今日任務成功",
+                data: result
+            });
+        } catch (error: any) {
+            if (error instanceof PuzzleError) {
+                return res.status(400).json({ message: error.message });
+            }
+            console.error("Get puzzle tasks error:", error);
+            return res.status(500).json({ message: "取得今日任務失敗" });
+        }
+    }
+
+    /**
+     * POST /game/collect/tasks/:taskKey/claim
+     * 領取任務獎勵 (+1 顆喚醒石)，每個任務每天限領一次
+     */
+    async claimPuzzleTask(req: AuthRequest, res: Response) {
+        try {
+            const memberId = req.user?.member_id;
+            if (!memberId) {
+                return res.status(401).json({ message: "尚未登入" });
+            }
+
+            const result = await claimPuzzleTaskService(memberId, String(req.params.taskKey));
+            return res.status(200).json({
+                message: `💎 領取成功！獲得 ${result.reward} 顆喚醒石`,
+                data: result
+            });
+        } catch (error: any) {
+            if (error instanceof PuzzleError) {
+                return res.status(400).json({ message: error.message });
+            }
+            console.error("Claim puzzle task error:", error);
+            return res.status(500).json({ message: "領取任務獎勵失敗" });
+        }
+    }
+
+    /**
+     * GET /game/collect/draw-records?page=1&limit=20
+     * 查詢抽卡紀錄 (喚醒石抽卡與開寶箱)，新到舊排序
+     */
+    async getDrawRecords(req: AuthRequest, res: Response) {
+        try {
+            const memberId = req.user?.member_id;
+            if (!memberId) {
+                return res.status(401).json({ message: "尚未登入" });
+            }
+
+            const page = Number(req.query.page) || 1;
+            const limit = Number(req.query.limit) || 20;
+            const result = await getDrawRecordsService(memberId, page, limit);
+            return res.status(200).json({
+                message: "取得抽卡紀錄成功",
+                data: result
+            });
+        } catch (error: any) {
+            console.error("Get draw records error:", error);
+            return res.status(500).json({ message: "取得抽卡紀錄失敗" });
         }
     }
 
@@ -103,10 +187,9 @@ export class CollectController {
                 return res.status(400).json({ message: "請提供正確的寶箱類型 (chest_type: 'NORMAL' 或 'PREMIUM')" });
             }
 
-            const result = await openChestService(
-                memberId,
-                chest_type,
-                count ? Number(count) : 1
+            /*開寶箱也會抽碎片，跟喚醒石抽卡排同一個隊，避免同時寫入拼圖進度*/
+            const result = await withMemberDrawLock(memberId, () =>
+                openChestService(memberId, chest_type, count ? Number(count) : 1)
             );
 
             return res.status(200).json({

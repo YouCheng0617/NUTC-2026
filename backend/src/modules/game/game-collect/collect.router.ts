@@ -7,7 +7,7 @@ const collectController = new CollectController();
 export function collectRouter() {
     const router = Router();
 
-    // 1. 隨機抽取拼圖碎片 (普通 95% / 稀有 5%) - 需登入
+    // 1. 消耗 1 顆喚醒石，隨機抽取拼圖碎片 (普通 95% / 稀有 5%) - 需登入
     router.post("/unlock", authCheck, collectController.unlockRandomPicture.bind(collectController));
 
     // 2. 碎片兌換寶箱 (4種規則) - 需登入
@@ -30,6 +30,15 @@ export function collectRouter() {
 
     // 8. 查詢拼圖簽到狀態與 30 天獎勵清單 - 需登入
     router.get("/sign-in-status", authCheck, collectController.getPuzzleSignInStatus.bind(collectController));
+
+    // 9. 今日拼圖任務進度 (每日簽到、今日發文 3 / 6 / 10 篇，每天 00:00 重置) - 需登入
+    router.get("/tasks", authCheck, collectController.getPuzzleTasks.bind(collectController));
+
+    // 10. 領取任務獎勵 (+1 顆喚醒石，每個任務每天限領一次) - 需登入
+    router.post("/tasks/:taskKey/claim", authCheck, collectController.claimPuzzleTask.bind(collectController));
+
+    // 11. 抽卡紀錄 (喚醒石抽卡與開寶箱，分頁) - 需登入
+    router.get("/draw-records", authCheck, collectController.getDrawRecords.bind(collectController));
 
     return router;
 }

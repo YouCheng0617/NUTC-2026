@@ -18,11 +18,11 @@ const translations = {
     "claim-1-stone": "領取 1 顆",
     "claimed-btn": "已領取 ✔️",
     "task-2-title": "漂流初探",
-    "task-2-desc": "累積發文 3 篇",
+    "task-2-desc": "今日發文 3 篇",
     "task-3-title": "侃侃而談",
-    "task-3-desc": "累積發文 6 篇",
+    "task-3-desc": "今日發文 6 篇",
     "task-4-title": "海洋話匣子",
-    "task-4-desc": "累積發文 10 篇",
+    "task-4-desc": "今日發文 10 篇",
     "task-locked": "未達成",
     "workshop-modal-title": "📦 碎片工坊與寶箱",
     "inv-normal-frag": "🧩 普通碎片：",
@@ -55,7 +55,14 @@ const translations = {
     "draw-congrats": "🎉 恭喜集齊完整拼圖！",
     "draw-progress": "收集進度：{count} / 9 ({rate})",
     "err-no-login": "請先登入後再進行碎片喚醒唷！🌊",
-    "err-signin-done": "今天已經領取過簽到獎勵囉！明天再來吧～🌊",
+    "err-claim-failed": "領取失敗，請稍後再試",
+    "history-empty": "目前尚無抽取紀錄，快去喚醒碎片吧！🌊",
+    "history-load-more": "⬇️ 載入更多",
+    "history-new": "✨ 新碎片",
+    "history-completed": "🎉 集齊",
+    "history-source-AWAKEN_STONE": "💎 喚醒石",
+    "history-source-CHEST_NORMAL": "🎁 普通寶箱",
+    "history-source-CHEST_PREMIUM": "👑 高級寶箱",
     "empty-gallery": "目前還沒有圖鑑資料唷！🌊",
     "server-error": "伺服器連線中斷 😢",
   },
@@ -75,11 +82,11 @@ const translations = {
     "claim-1-stone": "Claim 1",
     "claimed-btn": "Claimed ✔️",
     "task-2-title": "First Drift",
-    "task-2-desc": "Post 3 bottles",
+    "task-2-desc": "Post 3 bottles today",
     "task-3-title": "Chatterbox",
-    "task-3-desc": "Post 6 bottles",
+    "task-3-desc": "Post 6 bottles today",
     "task-4-title": "Ocean Speaker",
-    "task-4-desc": "Post 10 bottles",
+    "task-4-desc": "Post 10 bottles today",
     "task-locked": "Locked",
     "workshop-modal-title": "📦 Fragment Workshop",
     "inv-normal-frag": "🧩 Normal Frags: ",
@@ -112,7 +119,14 @@ const translations = {
     "draw-congrats": "🎉 Puzzle Complete!",
     "draw-progress": "Progress: {count} / 9 ({rate})",
     "err-no-login": "Please log in before summoning shards! 🌊",
-    "err-signin-done": "Already claimed today! Come back tomorrow~ 🌊",
+    "err-claim-failed": "Claim failed, please try again later",
+    "history-empty": "No summon records yet. Go awaken some shards! 🌊",
+    "history-load-more": "⬇️ Load more",
+    "history-new": "✨ New",
+    "history-completed": "🎉 Completed",
+    "history-source-AWAKEN_STONE": "💎 Stone",
+    "history-source-CHEST_NORMAL": "🎁 Normal Chest",
+    "history-source-CHEST_PREMIUM": "👑 Premium Chest",
     "empty-gallery": "No puzzle collections yet! 🌊",
     "server-error": "Server connection interrupted 😢",
   },
@@ -134,7 +148,8 @@ function applyTranslations() {
     toggleBtn.innerText = dict["toggle-btn"];
   }
 
-  checkDailySignInStatus();
+  renderTasks();
+  renderHistoryList();
   if (galleryPictures.length > 0) {
     renderGalleryPage(currentGalleryPage);
   }
@@ -151,7 +166,7 @@ window.toggleLanguage = function () {
 // ==================================================
 const API_BASE_URL = "https://api.drift-bottles.xyz";
 
-let drawTokens = parseInt(localStorage.getItem("puzzle_tokens") || "0", 10);
+let drawTokens = 0; // 喚醒石數量，以後端的 awaken_stones 為準
 let galleryPictures = [];
 let currentGalleryPage = 1;
 const ITEMS_PER_PAGE = 6;
@@ -228,56 +243,101 @@ function getAuthHeaders() {
 }
 
 // ==================================================
-// 💎 喚醒石、庫存與簽到任務
+// 💎 喚醒石、庫存與每日任務 (全部由後端記錄，每天 00:00 重置)
 // ==================================================
-function getTodayDateString() {
-  const now = new Date();
-  const year = now.getFullYear();
-  const month = String(now.getMonth() + 1).padStart(2, "0");
-  const day = String(now.getDate()).padStart(2, "0");
-  return `${year}-${month}-${day}`;
-}
+let puzzleTasks = []; // 後端回傳的今日任務：{ key, target, progress, completed, claimed }
+let claimingTaskKey = null;
 
-function checkDailySignInStatus() {
-  const signBtn = document.getElementById("daily-sign-btn");
-  if (!signBtn) return;
-
-  const dict = translations[currentLang] || translations.zh;
-  const today = getTodayDateString();
-  const lastSignDate = localStorage.getItem("puzzle_last_sign_date");
-
-  if (lastSignDate === today) {
-    signBtn.disabled = true;
-    signBtn.classList.remove("active");
-    signBtn.innerText = dict["claimed-btn"];
-    signBtn.style.background = "rgba(255, 255, 255, 0.1)";
-    signBtn.style.color = "#4facfe";
-  } else {
-    signBtn.disabled = false;
-    signBtn.classList.add("active");
-    signBtn.innerHTML = `<span>${dict["claim-1-stone"]}</span>`;
-    signBtn.style.background = "";
-    signBtn.style.color = "";
-  }
-}
-
-function claimToken(btnElement, amount) {
-  const dict = translations[currentLang] || translations.zh;
-  const today = getTodayDateString();
-  const lastSignDate = localStorage.getItem("puzzle_last_sign_date");
-
-  if (lastSignDate === today) {
-    alert(dict["err-signin-done"]);
-    checkDailySignInStatus();
+async function fetchTasks() {
+  const token = localStorage.getItem("authToken");
+  if (!token) {
+    renderTasks();
     return;
   }
 
-  localStorage.setItem("puzzle_last_sign_date", today);
-  drawTokens += amount;
-  localStorage.setItem("puzzle_tokens", drawTokens);
+  try {
+    const res = await fetch(`${API_BASE_URL}/game/collect/tasks`, {
+      method: "GET",
+      headers: getAuthHeaders(),
+    });
+    if (res.ok) {
+      const { data } = await res.json();
+      puzzleTasks = data.tasks || [];
+      drawTokens = data.awaken_stones || 0;
+      updateTokenDisplay();
+    }
+  } catch (e) {
+    console.error("載入每日任務失敗:", e);
+  }
+  renderTasks();
+}
 
-  checkDailySignInStatus();
-  updateTokenDisplay();
+// 依任務狀態更新每張任務卡的進度條與按鈕 (未達成 / 領取 1 顆 / 已領取)
+function renderTasks() {
+  const dict = translations[currentLang] || translations.zh;
+
+  document.querySelectorAll(".task-card[data-task-key]").forEach((card) => {
+    const task = puzzleTasks.find((t) => t.key === card.dataset.taskKey);
+    const target = task ? task.target : Number(card.dataset.target) || 1;
+    const progress = task ? task.progress : 0;
+
+    const fill = card.querySelector(".progress-bar-fill");
+    const num = card.querySelector(".progress-num");
+    const btn = card.querySelector(".claim-btn");
+    if (fill) fill.style.width = `${Math.min(progress / target, 1) * 100}%`;
+    if (num) num.innerText = `${progress} / ${target}`;
+    if (!btn) return;
+
+    if (task && task.claimed) {
+      btn.disabled = true;
+      btn.classList.remove("active");
+      btn.innerText = dict["claimed-btn"];
+      btn.style.background = "rgba(255, 255, 255, 0.1)";
+      btn.style.color = "#4facfe";
+    } else if (task && task.completed) {
+      btn.disabled = claimingTaskKey === task.key;
+      btn.classList.add("active");
+      btn.innerHTML = `<span>${dict["claim-1-stone"]}</span>`;
+      btn.style.background = "";
+      btn.style.color = "";
+    } else {
+      btn.disabled = true;
+      btn.classList.remove("active");
+      btn.innerText = dict["task-locked"];
+      btn.style.background = "";
+      btn.style.color = "";
+    }
+  });
+}
+
+async function claimTask(taskKey) {
+  const dict = translations[currentLang] || translations.zh;
+  const token = localStorage.getItem("authToken");
+  if (!token) {
+    alert(dict["err-no-login"]);
+    window.location.href = "login.html";
+    return;
+  }
+  if (claimingTaskKey) return; // 領取中再按一次就不理它
+
+  claimingTaskKey = taskKey;
+  renderTasks();
+
+  try {
+    const res = await fetch(
+      `${API_BASE_URL}/game/collect/tasks/${encodeURIComponent(taskKey)}/claim`,
+      { method: "POST", headers: getAuthHeaders() },
+    );
+    const data = await res.json();
+    if (!res.ok) {
+      alert(data.message || dict["err-claim-failed"]);
+    }
+  } catch (e) {
+    alert(dict["server-error"]);
+  } finally {
+    claimingTaskKey = null;
+    fetchTasks(); // 不管成功失敗都以後端狀態為準
+  }
 }
 
 function updateTokenDisplay() {
@@ -299,6 +359,9 @@ async function fetchInventory() {
     });
     if (res.ok) {
       const { data } = await res.json();
+      drawTokens = data.awaken_stones || 0;
+      updateTokenDisplay();
+
       const fragEl = document.getElementById("fragment-counts");
       if (fragEl) {
         fragEl.innerText = `${data.normal_fragments || 0} / ${data.premium_fragments || 0}`;
@@ -354,10 +417,10 @@ async function performDraw() {
   `;
 
   try {
+    // 後端會扣 1 顆喚醒石，不夠會回 400
     const response = await fetch(`${API_BASE_URL}/game/collect/unlock`, {
       method: "POST",
       headers: getAuthHeaders(),
-      body: JSON.stringify({ obtained_from: "DAILY_TASK" }),
     });
 
     if (!response.ok) {
@@ -375,11 +438,9 @@ async function performDraw() {
     const isCompletedNow = Boolean(result.isCompletedNow);
     const rarity = pic.rarity || "NORMAL";
 
-    drawTokens--;
-    localStorage.setItem("puzzle_tokens", drawTokens);
+    drawTokens = result.inventory?.awaken_stones ?? Math.max(drawTokens - 1, 0);
     updateTokenDisplay();
     fetchInventory();
-    recordGachaHistory(pic.title || "海洋拼圖", drawnPiece, rarity); // 🌟 新增這行：記錄抽卡
     const isPremium = rarity === "PREMIUM";
     const rarityColor = isPremium ? "#ffd200" : "#00f2fe";
     const rarityTag = isPremium ? dict["rarity-prem"] : dict["rarity-normal"];
@@ -447,7 +508,7 @@ async function performDraw() {
       <span class="idle-text">${dict["idle-summon"]}</span>
       <span class="idle-sub">TAP TO SUMMON</span>
     `;
-    if (drawTokens > 0) drawBtn.disabled = false;
+    fetchInventory(); // 以後端的喚醒石數量為準
   }
 }
 
@@ -505,11 +566,6 @@ async function openChest(chestType) {
     if (res.ok) {
       const result = data.data?.results?.[0];
       if (result) {
-        recordGachaHistory(
-          result.picture?.title || "海洋拼圖",
-          result.drawnPiece,
-          "寶箱獲得",
-        );
         alert(
           `🎁 開啟成功！獲得【${result.picture?.title}】的第 ${result.drawnPiece} 號碎片！`,
         );
@@ -829,9 +885,14 @@ function createOceanSparkles() {
 
 // 頁面初次載入
 document.addEventListener("DOMContentLoaded", () => {
+  // 喚醒石、簽到、抽卡紀錄都改由後端記錄，清掉舊版留在瀏覽器裡的資料
+  ["puzzle_tokens", "puzzle_last_sign_date", "gacha_puzzle_history"].forEach(
+    (key) => localStorage.removeItem(key),
+  );
+
   applyTranslations();
   updateTokenDisplay();
-  checkDailySignInStatus();
+  fetchTasks();
   fetchInventory();
   createOceanSparkles();
 
@@ -848,24 +909,41 @@ document.addEventListener("DOMContentLoaded", () => {
 // 📜 歷史紀錄與搜尋篩選邏輯
 // ==================================================
 
-// 1. 儲存抽卡歷史
-function recordGachaHistory(title, pieceNumber, rarity) {
-  const history = JSON.parse(
-    localStorage.getItem("gacha_puzzle_history") || "[]",
-  );
-  const now = new Date();
-  const timeStr = `${now.getMonth() + 1}/${now.getDate()} ${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
+// 1. 抽卡紀錄由後端記錄 (喚醒石抽卡與開寶箱都會記)，這裡只負責分頁載入
+const HISTORY_PAGE_SIZE = 20;
+let historyRecords = [];
+let historyPage = 0;
+let historyTotalPages = 0;
+let isHistoryLoading = false;
 
-  history.unshift({
-    title: title,
-    piece: pieceNumber,
-    rarity: rarity,
-    time: timeStr,
-  });
+async function loadHistoryPage(page) {
+  const token = localStorage.getItem("authToken");
+  if (!token || isHistoryLoading) return;
 
-  if (history.length > 80) history.pop();
-  localStorage.setItem("gacha_puzzle_history", JSON.stringify(history));
+  isHistoryLoading = true;
+  try {
+    const res = await fetch(
+      `${API_BASE_URL}/game/collect/draw-records?page=${page}&limit=${HISTORY_PAGE_SIZE}`,
+      { method: "GET", headers: getAuthHeaders() },
+    );
+    if (res.ok) {
+      const { data } = await res.json();
+      const records = data.records || [];
+      historyRecords = page === 1 ? records : historyRecords.concat(records);
+      historyPage = data.pagination?.page || page;
+      historyTotalPages = data.pagination?.totalPages || 0;
+    }
+  } catch (e) {
+    console.error("載入抽卡紀錄失敗:", e);
+  } finally {
+    isHistoryLoading = false;
+  }
+  renderHistoryList();
 }
+
+window.loadMoreHistory = function () {
+  if (historyPage < historyTotalPages) loadHistoryPage(historyPage + 1);
+};
 
 // 2. 切換展示櫃與歷史分頁
 window.switchCollectionTab = function (tab) {
@@ -885,46 +963,53 @@ window.switchCollectionTab = function (tab) {
     .classList.toggle("active", !isGallery);
 
   if (!isGallery) {
-    renderHistoryList();
+    loadHistoryPage(1); // 每次打開都重新抓第一頁，才看得到剛抽的
   }
 };
 
 // 3. 渲染歷史紀錄清單
+function formatHistoryTime(isoString) {
+  const d = new Date(isoString);
+  return `${d.getMonth() + 1}/${d.getDate()} ${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
+}
+
 function renderHistoryList() {
   const container = document.getElementById("historyListContainer");
+  const loadMoreBtn = document.getElementById("historyLoadMoreBtn");
+  const dict = translations[currentLang] || translations.zh;
   if (!container) return;
 
-  const history = JSON.parse(
-    localStorage.getItem("gacha_puzzle_history") || "[]",
-  );
-  if (history.length === 0) {
-    container.innerHTML =
-      '<div style="text-align:center; color:#88bbff; padding: 40px 0;">目前尚無抽取紀錄，快去喚醒碎片吧！🌊</div>';
+  if (loadMoreBtn) {
+    loadMoreBtn.style.display = historyPage < historyTotalPages ? "" : "none";
+  }
+
+  if (historyRecords.length === 0) {
+    container.innerHTML = `<div style="text-align:center; color:#88bbff; padding: 40px 0;">${dict["history-empty"]}</div>`;
     return;
   }
 
-  container.innerHTML = history
-    .map(
-      (item) => `
+  container.innerHTML = historyRecords
+    .map((item) => {
+      const title = item.picture?.title || "海洋拼圖";
+      const source = dict[`history-source-${item.obtained_from}`] || item.obtained_from;
+      const pieceTag = dict["shard-num-tag"].replace("{num}", item.piece_number);
+      const badges = item.is_completed_now
+        ? ` · ${dict["history-completed"]}`
+        : item.is_new_piece
+          ? ` · ${dict["history-new"]}`
+          : "";
+      return `
     <div class="history-card">
       <div>
-        <div class="title-text">${item.title} · 第 ${item.piece} 號碎片</div>
-        <div class="time-text">喚醒時間：${item.time}</div>
+        <div class="title-text">${title} · ${pieceTag}${badges}</div>
+        <div class="time-text">${source} · ${formatHistoryTime(item.created_at)}</div>
       </div>
       <div class="rarity-tag">${item.rarity}</div>
     </div>
-  `,
-    )
+  `;
+    })
     .join("");
 }
-
-// 4. 清空歷史紀錄
-window.clearDrawHistory = function () {
-  if (confirm("確定要清空所有的喚醒歷史紀錄嗎？")) {
-    localStorage.removeItem("gacha_puzzle_history");
-    renderHistoryList();
-  }
-};
 
 // 5. 碎片編號與關鍵字篩選
 let searchFilterKeyword = "";

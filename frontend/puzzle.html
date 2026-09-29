@@ -275,7 +275,7 @@
         </div>
 
         <div class="task-grid">
-          <div class="task-card">
+          <div class="task-card" data-task-key="DAILY_SIGN_IN" data-target="1">
             <div class="task-head">
               <div class="task-icon-box">📅</div>
               <div class="task-info">
@@ -292,18 +292,18 @@
             <button
               id="daily-sign-btn"
               class="claim-btn"
-              onclick="claimToken(this, 1)"
+              onclick="claimTask('DAILY_SIGN_IN')"
             >
               <span data-i18n="claim-1-stone">領取 1 顆</span>
             </button>
           </div>
 
-          <div class="task-card">
+          <div class="task-card" data-task-key="POST_3" data-target="3">
             <div class="task-head">
               <div class="task-icon-box">✉️</div>
               <div class="task-info">
                 <h4 data-i18n="task-2-title">漂流初探</h4>
-                <p data-i18n="task-2-desc">累積發文 3 篇</p>
+                <p data-i18n="task-2-desc">今日發文 3 篇</p>
               </div>
             </div>
             <div class="task-progress-wrap">
@@ -312,17 +312,17 @@
               </div>
               <span class="progress-num">0 / 3</span>
             </div>
-            <button class="claim-btn" disabled data-i18n="task-locked">
+            <button class="claim-btn" disabled onclick="claimTask('POST_3')">
               未達成
             </button>
           </div>
 
-          <div class="task-card">
+          <div class="task-card" data-task-key="POST_6" data-target="6">
             <div class="task-head">
               <div class="task-icon-box">💬</div>
               <div class="task-info">
                 <h4 data-i18n="task-3-title">侃侃而談</h4>
-                <p data-i18n="task-3-desc">累積發文 6 篇</p>
+                <p data-i18n="task-3-desc">今日發文 6 篇</p>
               </div>
             </div>
             <div class="task-progress-wrap">
@@ -331,17 +331,17 @@
               </div>
               <span class="progress-num">0 / 6</span>
             </div>
-            <button class="claim-btn" disabled data-i18n="task-locked">
+            <button class="claim-btn" disabled onclick="claimTask('POST_6')">
               未達成
             </button>
           </div>
 
-          <div class="task-card">
+          <div class="task-card" data-task-key="POST_10" data-target="10">
             <div class="task-head">
               <div class="task-icon-box">🌊</div>
               <div class="task-info">
                 <h4 data-i18n="task-4-title">海洋話匣子</h4>
-                <p data-i18n="task-4-desc">累積發文 10 篇</p>
+                <p data-i18n="task-4-desc">今日發文 10 篇</p>
               </div>
             </div>
             <div class="task-progress-wrap">
@@ -350,7 +350,7 @@
               </div>
               <span class="progress-num">0 / 10</span>
             </div>
-            <button class="claim-btn" disabled data-i18n="task-locked">
+            <button class="claim-btn" disabled onclick="claimTask('POST_10')">
               未達成
             </button>
           </div>
@@ -541,14 +541,20 @@
         <div id="tabHistoryContent" class="tab-page" style="display: none">
           <div class="history-list-box" id="historyListContainer"></div>
           <div class="history-footer">
-            <button class="btn-clear-history" onclick="clearDrawHistory()">
-              🗑️ 清空歷史紀錄
+            <button
+              id="historyLoadMoreBtn"
+              class="btn-load-more-history"
+              onclick="loadMoreHistory()"
+              data-i18n="history-load-more"
+              style="display: none"
+            >
+              ⬇️ 載入更多
             </button>
           </div>
         </div>
       </div>
     </div>
 
-    <script src="puzzle.js?v=20260831_i18n_v1"></script>
+    <script src="puzzle.js?v=20260929_tasks_v1"></script>
   </body>
 </html>
