@@ -154,6 +154,40 @@ let GAME_TOKEN = localStorage.getItem('authToken') || localStorage.getItem('acce
             } catch (e) { console.log('Socket.IO 未連線'); }
         }
 
+        // 🌟 【假的加載畫面】進度條跑滿 3 秒後才真的送出請求，不用等後端回應
+        const FAKE_LOADING_MS = 3000;
+        let isRoomLoading = false;
+
+        function showFakeLoading(text, onDone) {
+            if (isRoomLoading) return;   // 加載中再按一次就不理它，避免重複開房
+            isRoomLoading = true;
+
+            const overlay = document.getElementById('roomLoadingOverlay');
+            const bar = document.getElementById('roomLoadingBar');
+            const percent = document.getElementById('roomLoadingPercent');
+            document.getElementById('roomLoadingText').innerText = text;
+            bar.style.width = '0%';
+            percent.innerText = '0%';
+            overlay.style.display = 'flex';
+
+            const start = performance.now();
+            function step(now) {
+                const ratio = Math.min((now - start) / FAKE_LOADING_MS, 1);
+                const eased = 1 - Math.pow(1 - ratio, 2);   // 前面跑快、後面慢下來，看起來比較像真的在載
+                bar.style.width = `${eased * 100}%`;
+                percent.innerText = `${Math.floor(eased * 100)}%`;
+
+                if (ratio < 1) {
+                    requestAnimationFrame(step);
+                } else {
+                    overlay.style.display = 'none';
+                    isRoomLoading = false;
+                    onDone();
+                }
+            }
+            requestAnimationFrame(step);
+        }
+
         function getPlayerData() { return { memberId: Math.floor(Math.random() * 1000), petName: gameState.petName || '小可愛', petColor: gameState.currentSpecies }; }
         
         function createSocketRoom() { 
@@ -163,7 +197,9 @@ let GAME_TOKEN = localStorage.getItem('authToken') || localStorage.getItem('acce
                 }
                 return;
             }
-            socket.emit('create_room', { playerData: getPlayerData(), maxPlayers: 6 }); 
+            showFakeLoading('正在建立房間...', () => {
+                socket.emit('create_room', { playerData: getPlayerData(), maxPlayers: 6 });
+            });
         }
 
         function joinSocketRoom() {
@@ -174,7 +210,12 @@ let GAME_TOKEN = localStorage.getItem('authToken') || localStorage.getItem('acce
                 return;
             }
             const code = prompt("請輸入 6 碼房間邀請碼 (大寫英數):");
-            if (code && code.trim().length > 0) socket.emit('join_room', { roomId: code.trim().toUpperCase(), playerData: getPlayerData() });
+            if (code && code.trim().length > 0) {
+                const roomId = code.trim().toUpperCase();
+                showFakeLoading('正在進入房間...', () => {
+                    socket.emit('join_room', { roomId, playerData: getPlayerData() });
+                });
+            }
         }
 
         function leaveSocketRoom() { 
