@@ -4,7 +4,304 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>心情漂流瓶 - 論壇</title>
-    <link rel="stylesheet" href="test.css?v=22" />
+    <link rel="stylesheet" href="test.css?v=23" />
+    <style>
+      /* ==================================================
+         🌊 頂部 Header 全新配置：左側 Logo + 鈴鐺
+         ================================================== */
+      .light-header {
+        display: flex !important;
+        align-items: center !important;
+        justify-content: space-between !important;
+        padding: 10px 18px !important;
+        gap: 10px !important;
+      }
+
+      .header-left-box {
+        display: flex !important;
+        align-items: center !important;
+        gap: 12px !important;
+        flex-shrink: 0 !important;
+      }
+
+      .header-left-box .logo {
+        margin: 0 !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        font-size: 1.25rem !important;
+        cursor: pointer !important;
+      }
+
+      /* 🔔 移到 Logo 右邊的鈴鐺按鈕 */
+      .header-bell-wrapper {
+        position: relative !important;
+        display: inline-flex !important;
+        align-items: center !important;
+      }
+
+      .header-bell-wrapper .notification-bell {
+        width: 36px !important;
+        height: 36px !important;
+        font-size: 1rem !important;
+        background: rgba(255, 255, 255, 0.25) !important;
+        border: 1px solid rgba(255, 255, 255, 0.45) !important;
+        border-radius: 50% !important;
+        cursor: pointer !important;
+      }
+
+      /* 右上角：整合按鈕 (🎮 探索中心) */
+      .header-hub-btn {
+        background: linear-gradient(135deg, #ff7e5f, #feb47b) !important;
+        border: 1.5px solid #ffffff !important;
+        color: #ffffff !important;
+        padding: 6px 14px !important;
+        border-radius: 20px !important;
+        font-size: 0.92rem !important;
+        font-weight: 800 !important;
+        cursor: pointer !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        gap: 5px !important;
+        box-shadow: 0 4px 12px rgba(255, 126, 95, 0.35) !important;
+        transition: 0.2s !important;
+        white-space: nowrap !important;
+      }
+
+      .header-hub-btn:hover {
+        transform: scale(1.05) !important;
+        filter: brightness(1.1) !important;
+      }
+
+      /* ==================================================
+         🪟 整合控制台視窗 (Hub Modal)
+         ================================================== */
+      #hub-modal.modal {
+        position: fixed !important;
+        inset: 0 !important;
+        width: 100vw !important;
+        height: 100vh !important;
+        background: rgba(0, 15, 35, 0.75) !important;
+        backdrop-filter: blur(8px) !important;
+        -webkit-backdrop-filter: blur(8px) !important;
+        z-index: 150000 !important;
+        display: none;
+        justify-content: center !important;
+        align-items: center !important;
+        padding: 15px !important;
+        box-sizing: border-box !important;
+      }
+
+      .hub-card {
+        background: linear-gradient(
+          160deg,
+          rgba(10, 35, 65, 0.96) 0%,
+          rgba(2, 20, 45, 0.98) 100%
+        ) !important;
+        border: 1.5px solid rgba(77, 166, 255, 0.5) !important;
+        box-shadow:
+          0 20px 50px rgba(0, 0, 0, 0.6),
+          inset 0 0 25px rgba(77, 166, 255, 0.2) !important;
+        border-radius: 24px !important;
+        width: 100% !important;
+        max-width: 480px !important;
+        max-height: 90vh !important;
+        overflow-y: auto !important;
+        padding: 24px 20px !important;
+        position: relative !important;
+        box-sizing: border-box !important;
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 16px !important;
+        animation: hubFadeIn 0.25s ease-out !important;
+      }
+
+      @keyframes hubFadeIn {
+        from {
+          opacity: 0;
+          transform: scale(0.92) translateY(10px);
+        }
+        to {
+          opacity: 1;
+          transform: scale(1) translateY(0);
+        }
+      }
+
+      .hub-close-btn {
+        position: absolute !important;
+        top: 14px !important;
+        right: 16px !important;
+        font-size: 22px !important;
+        color: #94a3b8 !important;
+        cursor: pointer !important;
+        line-height: 1 !important;
+        transition: 0.2s !important;
+        z-index: 20 !important;
+      }
+      .hub-close-btn:hover {
+        color: #ff4d4d !important;
+      }
+
+      /* 1. 視窗頂部列：左邊使用者資訊，旁邊獨立客服 */
+      .hub-top-row {
+        display: flex !important;
+        align-items: center !important;
+        justify-content: space-between !important;
+        gap: 10px !important;
+        padding-right: 28px !important; /* 避開右上角叉叉 */
+        position: relative !important;
+      }
+
+      .hub-user-trigger {
+        display: flex !important;
+        align-items: center !important;
+        gap: 8px !important;
+        background: rgba(255, 255, 255, 0.1) !important;
+        border: 1px solid rgba(255, 255, 255, 0.25) !important;
+        padding: 6px 12px !important;
+        border-radius: 20px !important;
+        cursor: pointer !important;
+        transition: 0.2s !important;
+      }
+      .hub-user-trigger:hover {
+        background: rgba(255, 255, 255, 0.2) !important;
+      }
+
+      .hub-avatar-img {
+        width: 32px !important;
+        height: 32px !important;
+        border-radius: 50% !important;
+        object-fit: cover !important;
+        border: 1.5px solid #fff !important;
+      }
+
+      .hub-name-text {
+        font-size: 0.95rem !important;
+        font-weight: 800 !important;
+        color: #ffffff !important;
+        max-width: 130px !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+        white-space: nowrap !important;
+      }
+
+      /* 獨立的客服按鈕 */
+      .hub-cs-btn {
+        background: rgba(2, 132, 199, 0.3) !important;
+        border: 1px solid #38bdf8 !important;
+        color: #e0f2fe !important;
+        padding: 6px 14px !important;
+        border-radius: 18px !important;
+        font-size: 0.88rem !important;
+        font-weight: 800 !important;
+        cursor: pointer !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        gap: 4px !important;
+        transition: 0.2s !important;
+      }
+      .hub-cs-btn:hover {
+        background: #0284c7 !important;
+        color: #ffffff !important;
+        transform: translateY(-1px) !important;
+      }
+
+      /* 2. 中間發文長條按鈕 */
+      .hub-new-post-bar {
+        width: 100% !important;
+        padding: 13px !important;
+        background: linear-gradient(135deg, #00b4db, #0083b0) !important;
+        border: 1px solid rgba(255, 255, 255, 0.4) !important;
+        color: #ffffff !important;
+        font-size: 1.05rem !important;
+        font-weight: 900 !important;
+        border-radius: 14px !important;
+        cursor: pointer !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        gap: 8px !important;
+        box-shadow: 0 4px 15px rgba(0, 180, 219, 0.35) !important;
+        transition: 0.2s !important;
+        box-sizing: border-box !important;
+      }
+      .hub-new-post-bar:hover {
+        transform: translateY(-2px) !important;
+        box-shadow: 0 6px 20px rgba(0, 180, 219, 0.5) !important;
+      }
+
+      /* 3. 下方六個遊戲網格卡片 */
+      .hub-section-title {
+        font-size: 0.88rem !important;
+        color: #94a3b8 !important;
+        font-weight: 700 !important;
+        margin: 2px 0 -6px 2px !important;
+      }
+
+      .hub-games-grid {
+        display: grid !important;
+        grid-template-columns: repeat(3, 1fr) !important;
+        gap: 10px !important;
+      }
+
+      .hub-game-tile {
+        background: rgba(255, 255, 255, 0.08) !important;
+        border: 1px solid rgba(255, 255, 255, 0.18) !important;
+        border-radius: 14px !important;
+        padding: 12px 6px !important;
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: center !important;
+        justify-content: center !important;
+        gap: 6px !important;
+        cursor: pointer !important;
+        text-decoration: none !important;
+        color: #ffffff !important;
+        transition: 0.25s cubic-bezier(0.25, 0.8, 0.25, 1) !important;
+      }
+      .hub-game-tile:hover {
+        background: rgba(77, 166, 255, 0.25) !important;
+        border-color: #38bdf8 !important;
+        transform: translateY(-3px) scale(1.03) !important;
+      }
+
+      .hub-game-emoji {
+        font-size: 2rem !important;
+        line-height: 1 !important;
+      }
+
+      .hub-game-label {
+        font-size: 0.82rem !important;
+        font-weight: 800 !important;
+        text-align: center !important;
+        color: #e2e8f0 !important;
+        line-height: 1.2 !important;
+      }
+
+      /* 下拉選單樣式微調 */
+      .hub-card .user-dropdown-menu {
+        top: 48px !important;
+        left: 0 !important;
+        right: auto !important;
+        background: #ffffff !important;
+        border-radius: 14px !important;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4) !important;
+        width: 170px !important;
+        z-index: 200 !important;
+      }
+
+      /* 📱 極窄手機螢幕 (<= 360px) 微調 */
+      @media screen and (max-width: 360px) {
+        .header-left-box .logo {
+          font-size: 1.05rem !important;
+        }
+        .header-left-box .logo img {
+          width: 24px !important;
+        }
+        .hub-games-grid {
+          grid-template-columns: repeat(2, 1fr) !important;
+        }
+      }
+    </style>
   </head>
 
   <body>
@@ -15,24 +312,11 @@
     ></div>
 
     <div id="forum-view">
+      <!-- ==================================================
+           🌊 頂部導覽列 (電腦版豪華大氣 + 手機版精簡整潔)
+           ================================================== -->
       <header class="light-header">
-        <button
-          class="hamburger-btn"
-          id="mobile-menu-btn"
-          onclick="toggleMobileSidebar()"
-          style="
-            display: none;
-            background: none;
-            border: none;
-            color: white;
-            font-size: 1.8rem;
-            cursor: pointer;
-            margin-right: 15px;
-            padding: 0;
-          "
-        >
-          ☰
-        </button>
+        <!-- 1. 左側：Logo -->
         <div
           class="logo"
           onclick="window.location.href = 'test.html'"
@@ -40,32 +324,47 @@
         >
           <img
             src="images/fish_logo.webp"
-            style="width: 30px; margin-right: 10px; vertical-align: middle"
+            style="width: 28px; margin-right: 8px; vertical-align: middle"
           />心情漂流瓶
+        </div>
 
+        <!-- 2. 電腦版專屬：遊樂場 & 新手教學按鈕 (手機自動隱藏) -->
+        <div class="desktop-nav-links">
           <button
             class="header-game-btn"
             onclick="
               event.stopPropagation();
               window.location.href = 'games.html';
             "
-            title="前往秘密海域遊樂場"
           >
             🎮 <span>遊樂場</span>
           </button>
-
           <button
             class="header-tutorial-btn"
             onclick="
               event.stopPropagation();
               window.location.href = 'tutorial.html';
             "
-            title="查看新手指南與特色教學"
           >
             📖 <span>新手教學</span>
           </button>
         </div>
 
+        <!-- 3. 手機版專屬：Logo 右側鈴鐺 (電腦版自動隱藏) -->
+        <div class="mobile-bell-wrapper">
+          <div
+            class="notification-bell"
+            onclick="toggleNotificationPopup(event)"
+            title="查看最新通知"
+          >
+            🔔
+            <span class="badge notification-badge-sync" style="display: none"
+              >0</span
+            >
+          </div>
+        </div>
+
+        <!-- 4. 搜尋列 (電腦版居中自適應，手機版自動換至第二行滿版) -->
         <div class="search-container">
           <div class="search-box-wrapper">
             <input
@@ -89,15 +388,16 @@
           </div>
         </div>
 
+        <!-- 5. 右側動作區 -->
         <div class="nav-actions">
           <button id="login-trigger" class="btn-login">註冊 / 登入</button>
 
+          <!-- 電腦版專屬：鈴鐺 + 個人名字下拉選單 + 發文按鈕 (手機自動隱藏) -->
           <div
             id="user-profile"
-            class="user-menu-wrapper"
-            style="display: none; align-items: center; gap: 15px"
+            class="desktop-user-profile"
+            style="display: none"
           >
-            <!-- 🔔 鈴鐺與通知小視窗區塊 -->
             <div style="position: relative; display: flex; align-items: center">
               <div
                 class="notification-bell"
@@ -108,99 +408,228 @@
                 🔔
                 <span
                   id="notification-badge"
-                  class="badge"
+                  class="badge notification-badge-sync"
                   style="display: none"
                   >0</span
                 >
               </div>
+            </div>
 
-              <!-- 🌟 懸浮深海通知小視窗 (預設隱藏) -->
+            <div class="user-menu-wrapper">
               <div
-                class="notif-popup-container"
-                id="notif-popup"
+                class="user-info-trigger"
+                id="user-menu-btn"
+                onclick="toggleDesktopUserMenu(event)"
+              >
+                <img
+                  id="user-avatar"
+                  src="images/fish_logo.webp"
+                  alt="頭像"
+                  class="avatar-img"
+                />
+                <span id="user-name" class="user-name-text"></span>
+                <span class="menu-arrow">▼</span>
+              </div>
+
+              <div class="user-dropdown-menu" id="user-dropdown">
+                <div class="menu-item" id="open-profile">👤 個人資料</div>
+                <div class="menu-item" onclick="openFollowingModal()">
+                  🫂 我的追蹤
+                </div>
+                <div
+                  class="menu-item"
+                  onclick="window.location.href = 'saved.html'"
+                >
+                  ⭐ 收藏瓶子
+                </div>
+                <div
+                  class="menu-item"
+                  onclick="window.location.href = 'post.html'"
+                >
+                  📝 我的瓶子
+                </div>
+                <div
+                  class="menu-item"
+                  onclick="window.location.href = 'customer-service.html'"
+                >
+                  💬 線上客服
+                </div>
+                <div
+                  class="menu-item"
+                  onclick="window.location.href = 'tutorial.html'"
+                >
+                  📖 新手教學
+                </div>
+                <div class="menu-item" onclick="openSettingsModal()">
+                  ⚙️ 網站設定
+                </div>
+                <div class="menu-divider"></div>
+                <div class="menu-item logout-item" id="logout-btn">
+                  🚪 退出登入
+                </div>
+              </div>
+            </div>
+
+            <button id="btn-new-post" class="btn-post">✏️ 發文</button>
+          </div>
+
+          <!-- 手機版專屬：[ ☰ 整合按鈕 ] (電腦版自動隱藏) -->
+          <button
+            class="mobile-hub-btn"
+            onclick="openHubModal()"
+            title="開啟選單"
+          >
+            更多
+          </button>
+        </div>
+
+        <!-- 通用通知彈窗 -->
+        <div
+          class="notif-popup-container"
+          id="notif-popup"
+          style="display: none"
+        >
+          <div class="notif-popup-header">
+            <span class="title">通知中心</span>
+            <button
+              class="mark-all-btn"
+              onclick="markAllAsReadAPI(event)"
+              title="將所有通知標記為已讀"
+            >
+              🫧 全部已讀
+            </button>
+          </div>
+          <div class="notif-popup-list" id="notif-list-container">
+            <div style="text-align: center; color: #88bbff; padding: 30px 0">
+              載入中...🌊
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <!-- ==================================================
+           📱 手機版專屬彈出控制台 (Hub Modal)
+           ================================================== -->
+      <div id="hub-modal" class="modal">
+        <div class="hub-card">
+          <span class="hub-close-btn" onclick="closeHubModal()">&times;</span>
+
+          <!-- 1. 頂部列：使用者頭像/名字 + 獨立客服按鈕 -->
+          <div class="hub-top-row">
+            <div style="position: relative">
+              <div class="hub-user-trigger" onclick="toggleHubDropdown(event)">
+                <img
+                  id="hub-avatar"
+                  src="images/fish_logo.webp"
+                  class="hub-avatar-img"
+                />
+                <span id="hub-name" class="hub-name-text">請先登入</span>
+                <span style="color: #fff; font-size: 0.7rem">▼</span>
+              </div>
+
+              <div
+                class="user-dropdown-menu"
+                id="hub-user-dropdown"
                 style="display: none"
               >
-                <div class="notif-popup-header">
-                  <span class="title">通知中心</span>
-                  <button
-                    class="mark-all-btn"
-                    onclick="markAllAsReadAPI(event)"
-                    title="將所有通知標記為已讀"
-                  >
-                    🫧 全部已讀
-                  </button>
+                <div
+                  class="menu-item"
+                  onclick="
+                    closeHubModal();
+                    document.getElementById('open-profile').click();
+                  "
+                >
+                  👤 個人資料
                 </div>
-                <div class="notif-popup-list" id="notif-list-container">
-                  <!-- JS 會把通知卡片塞在這裡 -->
-                  <div
-                    style="text-align: center; color: #88bbff; padding: 30px 0"
-                  >
-                    載入中...🌊
-                  </div>
+                <div
+                  class="menu-item"
+                  onclick="
+                    closeHubModal();
+                    openFollowingModal();
+                  "
+                >
+                  🫂 我的追蹤
                 </div>
-              </div>
-            </div>
-
-            <!-- 👤 這是原本的使用者大頭貼與名字區塊 -->
-            <div class="user-info-trigger" id="user-menu-btn">
-              <img
-                id="user-avatar"
-                src="images/fish_logo.webp"
-                alt="頭像"
-                class="avatar-img"
-              />
-              <span id="user-name" class="user-name-text"></span>
-              <span class="menu-arrow">▼</span>
-            </div>
-
-            <div class="user-dropdown-menu" id="user-dropdown">
-              <div class="menu-item" id="open-profile">👤 個人資料</div>
-              <div class="menu-item" onclick="openFollowingModal()">
-                🫂 我的追蹤
-              </div>
-              <div
-                class="menu-item"
-                onclick="window.location.href = 'saved.html'"
-              >
-                ⭐ 收藏瓶子
-              </div>
-              <div
-                class="menu-item"
-                onclick="window.location.href = 'post.html'"
-              >
-                📝 我的瓶子
-              </div>
-              <div
-                class="menu-item"
-                onclick="window.location.href = 'customer-service.html'"
-              >
-                💬 線上客服
-              </div>
-              <div
-                class="menu-item"
-                onclick="window.location.href = 'tutorial.html'"
-              >
-                📖 新手教學
-              </div>
-              <div class="menu-item" onclick="openSettingsModal()">
-                ⚙️ 網站設定
-              </div>
-              <div class="menu-divider"></div>
-              <div class="menu-item logout-item" id="logout-btn">
-                🚪 退出登入
+                <div
+                  class="menu-item"
+                  onclick="window.location.href = 'saved.html'"
+                >
+                  ⭐ 收藏瓶子
+                </div>
+                <div
+                  class="menu-item"
+                  onclick="window.location.href = 'post.html'"
+                >
+                  📝 我的瓶子
+                </div>
+                <div
+                  class="menu-item"
+                  onclick="window.location.href = 'tutorial.html'"
+                >
+                  📖 新手教學
+                </div>
+                <div
+                  class="menu-item"
+                  onclick="
+                    closeHubModal();
+                    openSettingsModal();
+                  "
+                >
+                  ⚙️ 網站設定
+                </div>
+                <div class="menu-divider"></div>
+                <div
+                  class="menu-item logout-item"
+                  onclick="document.getElementById('logout-btn').click()"
+                >
+                  🚪 退出登入
+                </div>
               </div>
             </div>
 
             <button
-              id="btn-new-post"
-              class="btn-post"
-              style="margin-left: 10px"
+              class="hub-cs-btn"
+              onclick="window.location.href = 'customer-service.html'"
             >
-              ✏️ 發文
+              💬 客服
             </button>
           </div>
+
+          <!-- 2. 中間：長條發文按鈕 -->
+          <button class="hub-new-post-bar" onclick="handleHubPostClick()">
+            ✏️ 撰寫漂流瓶
+          </button>
+
+          <!-- 3. 下方：六款遊戲入口 -->
+          <div class="hub-section-title">🎮 秘密海域遊樂場</div>
+          <div class="hub-games-grid">
+            <a class="hub-game-tile" href="slug_game.html"
+              ><span class="hub-game-emoji">🐰</span
+              ><span class="hub-game-label">海兔養成記</span></a
+            >
+            <a class="hub-game-tile" href="Tarot_Bottle_Project/index.html"
+              ><span class="hub-game-emoji">🔮</span
+              ><span class="hub-game-label">今日塔羅瓶</span></a
+            >
+            <a class="hub-game-tile" href="puzzle.html"
+              ><span class="hub-game-emoji">🧩</span
+              ><span class="hub-game-label">突然想拼圖</span></a
+            >
+            <a class="hub-game-tile" href="notes.html"
+              ><span class="hub-game-emoji">📝</span
+              ><span class="hub-game-label">每日便利貼</span></a
+            >
+            <a class="hub-game-tile" href="smash.html"
+              ><span class="hub-game-emoji">💥</span
+              ><span class="hub-game-label">瓶命射擊</span></a
+            >
+            <a class="hub-game-tile" href="catch-bottle.html"
+              ><span class="hub-game-emoji">🤲</span
+              ><span class="hub-game-label">接住小瓶</span></a
+            >
+          </div>
         </div>
-      </header>
+      </div>
 
       <div class="container light-container">
         <aside class="sidebar light-sidebar">
@@ -228,7 +657,6 @@
           id="detail-view"
           style="display: none"
         >
-          <!-- 1. 頂部導覽列 (固定在上方) -->
           <div class="detail-nav-bar">
             <div class="back-action" onclick="closePostDetail()">
               <span class="back-arrow">&larr;</span>
@@ -244,81 +672,77 @@
                 ⚠️ 檢舉
               </div>
               <div class="board-badge">
-                <img src="images/fish_logo.webp" class="board-icon" />
+                <img src="images/fish_logo.png" class="board-icon" />
                 <span id="detail-board-tag">綜合閒聊</span>
               </div>
             </div>
           </div>
 
-          <!-- 2. 中間滑動區 (文章內文與留言在此滑動) -->
-          <div class="detail-scroll-body">
-            <h2 id="detail-post-title" class="detail-title"></h2>
+          <h2 id="detail-post-title" class="detail-title"></h2>
 
-            <div class="detail-author-box">
-              <img src="images/fish_logo.webp" class="detail-avatar" />
-              <div class="detail-author-text">
-                <div id="detail-author-tag" class="detail-author-name"></div>
-                <div class="detail-post-time">今天發布</div>
-                <button
-                  id="follow-author-btn"
-                  class="follow-btn"
-                  onclick="toggleFollow()"
-                >
-                  + 追蹤
-                </button>
-              </div>
-            </div>
-
-            <div id="detail-post-content" class="detail-content"></div>
-            <div
-              id="detail-post-poll"
-              class="ocean-poll-box"
-              style="display: none"
-            ></div>
-
-            <div class="detail-comments-wrapper">
-              <h3 class="comments-title">
-                💬 共 <span id="detail-comment-count">0</span> 則留言
-              </h3>
-              <div id="detail-comments-list" class="comments-list"></div>
+          <div class="detail-author-box">
+            <img src="images/fish_logo.png" class="detail-avatar" />
+            <div class="detail-author-text">
+              <div id="detail-author-tag" class="detail-author-name"></div>
+              <div class="detail-post-time">今天發布</div>
+              <button
+                id="follow-author-btn"
+                class="follow-btn"
+                onclick="toggleFollow()"
+              >
+                + 追蹤
+              </button>
             </div>
           </div>
 
-          <!-- 3. 底部打字區 (固定在最下方) -->
-          <div class="comment-action-bar">
-            <button
-              type="button"
-              id="save-bottle-btn"
-              class="save-btn"
-              title="收藏這個瓶子"
-              onclick="this.classList.toggle('active')"
-            >
-              ⭐
-            </button>
-            <input
-              type="text"
-              id="new-comment-input"
-              placeholder="寫下溫暖的留言..."
-              class="comment-input"
-              autocomplete="off"
-            />
-            <label
-              style="
-                font-size: 0.9rem;
-                color: #6688aa;
-                display: flex;
-                align-items: center;
-                gap: 4px;
-                cursor: pointer;
-                user-select: none;
-                white-space: nowrap;
-              "
-            >
-              <input type="checkbox" id="main-comment-anon" /> 🎭 匿名
-            </label>
-            <button type="button" onclick="submitComment()" class="send-btn">
-              送出
-            </button>
+          <div id="detail-post-content" class="detail-content"></div>
+          <div
+            id="detail-post-poll"
+            class="ocean-poll-box"
+            style="display: none"
+          ></div>
+          <div class="detail-comments-wrapper">
+            <h3 class="comments-title">
+              💬 共 <span id="detail-comment-count">0</span> 則留言
+            </h3>
+
+            <div id="detail-comments-list" class="comments-list"></div>
+
+            <div class="comment-action-bar">
+              <button
+                type="button"
+                id="save-bottle-btn"
+                class="save-btn"
+                title="收藏這個瓶子"
+                onclick="this.classList.toggle('active')"
+              >
+                ⭐
+              </button>
+              <input
+                type="text"
+                id="new-comment-input"
+                placeholder="寫下溫暖的留言..."
+                class="comment-input"
+                autocomplete="off"
+              />
+              <label
+                style="
+                  font-size: 0.9rem;
+                  color: #6688aa;
+                  display: flex;
+                  align-items: center;
+                  gap: 4px;
+                  cursor: pointer;
+                  user-select: none;
+                  white-space: nowrap;
+                "
+              >
+                <input type="checkbox" id="main-comment-anon" /> 🎭 匿名
+              </label>
+              <button type="button" onclick="submitComment()" class="send-btn">
+                送出
+              </button>
+            </div>
           </div>
         </main>
 
@@ -331,6 +755,126 @@
       </div>
     </div>
 
+    <!-- ==================================================
+         🌟 全新整合控制台視窗 (Hub Modal)
+         ================================================== -->
+    <div id="hub-modal" class="modal">
+      <div class="hub-card">
+        <span class="hub-close-btn" onclick="closeHubModal()">&times;</span>
+
+        <!-- 1. 頂部列：左邊名字下拉 + 旁邊獨立客服 -->
+        <div class="hub-top-row">
+          <!-- 名字與下拉選單容器 -->
+          <div style="position: relative">
+            <div class="hub-user-trigger" id="user-menu-btn">
+              <img
+                id="user-avatar"
+                src="images/fish_logo.png"
+                alt="頭像"
+                class="hub-avatar-img"
+              />
+              <span id="user-name" class="hub-name-text">請先登入</span>
+              <span class="menu-arrow" style="color: #fff; font-size: 0.75rem"
+                >▼</span
+              >
+            </div>
+
+            <!-- 下拉選單 -->
+            <div class="user-dropdown-menu" id="user-dropdown">
+              <div class="menu-item" id="open-profile">👤 個人資料</div>
+              <div
+                class="menu-item"
+                onclick="
+                  closeHubModal();
+                  openFollowingModal();
+                "
+              >
+                🫂 我的追蹤
+              </div>
+              <div
+                class="menu-item"
+                onclick="window.location.href = 'saved.html'"
+              >
+                ⭐ 收藏瓶子
+              </div>
+              <div
+                class="menu-item"
+                onclick="window.location.href = 'post.html'"
+              >
+                📝 我的瓶子
+              </div>
+              <div
+                class="menu-item"
+                onclick="window.location.href = 'tutorial.html'"
+              >
+                📖 新手教學
+              </div>
+              <div
+                class="menu-item"
+                onclick="
+                  closeHubModal();
+                  openSettingsModal();
+                "
+              >
+                ⚙️ 網站設定
+              </div>
+              <div class="menu-divider"></div>
+              <div class="menu-item logout-item" id="logout-btn">
+                🚪 退出登入
+              </div>
+            </div>
+          </div>
+
+          <!-- 獨立客服按鈕 -->
+          <button
+            class="hub-cs-btn"
+            onclick="window.location.href = 'customer-service.html'"
+          >
+            💬 客服
+          </button>
+        </div>
+
+        <!-- 2. 中間：發文長條按鈕 -->
+        <button
+          id="btn-new-post"
+          class="hub-new-post-bar"
+          onclick="handleHubPostClick()"
+        >
+          ✏️ 撰寫漂流瓶
+        </button>
+
+        <!-- 3. 下方：六個遊戲按鈕 -->
+        <div class="hub-section-title">🎮 秘密海域遊樂場</div>
+        <div class="hub-games-grid">
+          <a class="hub-game-tile" href="slug_game.html">
+            <span class="hub-game-emoji">🐰</span>
+            <span class="hub-game-label">海兔養成記</span>
+          </a>
+          <a class="hub-game-tile" href="Tarot_Bottle_Project/index.html">
+            <span class="hub-game-emoji">🔮</span>
+            <span class="hub-game-label">今日塔羅瓶</span>
+          </a>
+          <a class="hub-game-tile" href="puzzle.html">
+            <span class="hub-game-emoji">🧩</span>
+            <span class="hub-game-label">突然想拼圖</span>
+          </a>
+          <a class="hub-game-tile" href="notes.html">
+            <span class="hub-game-emoji">📝</span>
+            <span class="hub-game-label">每日便利貼</span>
+          </a>
+          <a class="hub-game-tile" href="smash.html">
+            <span class="hub-game-emoji">💥</span>
+            <span class="hub-game-label">瓶命射擊</span>
+          </a>
+          <a class="hub-game-tile" href="catch-bottle.html">
+            <span class="hub-game-emoji">🤲</span>
+            <span class="hub-game-label">接住小瓶</span>
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- 📝 發文視窗 -->
     <div id="post-modal" class="modal">
       <div class="modal-content ocean-post-modal">
         <span class="close-btn" id="close-post-modal">&times;</span>
@@ -414,6 +958,8 @@
         </form>
       </div>
     </div>
+
+    <!-- 👤 個人資訊視窗 -->
     <div id="profile-modal" class="modal">
       <div
         class="modal-content light-modal"
@@ -594,6 +1140,7 @@
       </div>
     </div>
 
+    <!-- ⚠️ 檢舉視窗 -->
     <div id="report-modal" class="modal">
       <div
         class="modal-content light-modal"
@@ -626,6 +1173,7 @@
       </div>
     </div>
 
+    <!-- 🫂 我的追蹤視窗 -->
     <div id="following-modal" class="modal">
       <div
         class="modal-content light-modal"
@@ -651,7 +1199,8 @@
         </div>
       </div>
     </div>
-    <!-- ⚙️ 網站設定小彈窗 (單一完整版) -->
+
+    <!-- ⚙️ 網站設定小彈窗 -->
     <div id="settings-modal" class="modal">
       <div
         class="modal-content light-modal"
@@ -671,7 +1220,6 @@
         </h2>
 
         <div class="settings-list">
-          <!-- 設定 1：顯示留言時間 -->
           <div
             class="setting-item"
             style="
@@ -700,7 +1248,6 @@
             </label>
           </div>
 
-          <!-- 設定 2：允許他人追蹤 (實名時) -->
           <div
             class="setting-item"
             style="
@@ -798,43 +1345,17 @@
       </div>
     </div>
 
-    <script type="module" src="test.js?v=23"></script>
     <div class="ocean-refresh-btn" onclick="callOceanCurrent()">
       🌊 呼喚海流
     </div>
-    <div
-      class="back-to-home-btn"
-      onclick="window.location.href = 'test.html'"
-      style="display: none !important"
-    >
-      🏠 回到主頁
-    </div>
 
-    <script>
-      function toggleMobileSidebar() {
-        const sidebar = document.querySelector(".sidebar");
-        const overlay = document.getElementById("mobile-sidebar-overlay");
-        if (sidebar && overlay) {
-          sidebar.classList.toggle("active-sidebar");
-          overlay.classList.toggle("active-overlay");
-        }
-      }
-      document.querySelectorAll(".sidebar li").forEach((item) => {
-        item.addEventListener("click", () => {
-          if (window.innerWidth <= 768) {
-            toggleMobileSidebar();
-          }
-        });
-      });
-    </script>
-    <!-- 🌟 1. 手機版專屬：海域選擇彈出選單的黑色半透明遮罩 -->
+    <!-- 🌟 手機版海域選擇遮罩與按鈕 -->
     <div
       id="board-sheet-overlay"
       class="board-sheet-overlay"
       onclick="toggleBoardSheet()"
     ></div>
 
-    <!-- 🌟 2. 手機版專屬：常駐在底部的海域選擇按鈕 -->
     <div
       id="mobile-board-btn"
       class="mobile-board-trigger"
@@ -844,43 +1365,67 @@
       <span class="board-arrow">▲</span>
     </div>
 
-    <!-- 🌟 3. 專屬的抽屜開關邏輯 (請確保這段一定要貼上！) -->
-    <script>
-      // 控制抽屜開關
-      window.toggleBoardSheet = function () {
-        const sidebar = document.querySelector(".sidebar.light-sidebar");
-        const overlay = document.getElementById("board-sheet-overlay");
-        const btn = document.getElementById("mobile-board-btn");
+    <script type="module" src="test.js?v=24"></script>
 
-        if (sidebar && overlay && btn) {
-          sidebar.classList.toggle("sheet-open");
-          overlay.classList.toggle("sheet-open");
-          btn.classList.toggle("sheet-open");
-        }
+    <!-- 🌟 整合面板專屬交互控制 -->
+    <script>
+      window.openHubModal = function () {
+        const modal = document.getElementById("hub-modal");
+        if (modal) modal.style.display = "flex";
+        syncUserInfoToHub();
       };
 
-      // 自動更新按鈕文字與點擊收合
-      document.addEventListener("DOMContentLoaded", () => {
-        const boardItems = document.querySelectorAll(".sidebar li");
-        const mobileNameDisplay = document.getElementById("mobile-board-name");
+      window.closeHubModal = function () {
+        const modal = document.getElementById("hub-modal");
+        if (modal) modal.style.display = "none";
+        const dropdown = document.getElementById("hub-user-dropdown");
+        if (dropdown) dropdown.style.display = "none";
+      };
 
-        if (mobileNameDisplay) {
-          const activeLi = document.querySelector(".sidebar li.active");
-          if (activeLi) mobileNameDisplay.innerText = activeLi.innerText.trim();
+      window.toggleDesktopUserMenu = function (e) {
+        e.stopPropagation();
+        const dropdown = document.getElementById("user-dropdown");
+        if (dropdown) dropdown.classList.toggle("show-dropdown");
+      };
+
+      window.toggleHubDropdown = function (e) {
+        e.stopPropagation();
+        const dropdown = document.getElementById("hub-user-dropdown");
+        if (dropdown)
+          dropdown.style.display =
+            dropdown.style.display === "none" ? "block" : "none";
+      };
+
+      window.handleHubPostClick = function () {
+        const token = localStorage.getItem("authToken");
+        if (!token) {
+          alert("請先登入才能發文喔！");
+          window.location.href = "login.html";
+          return;
         }
+        closeHubModal();
+        const postModal = document.getElementById("post-modal");
+        if (postModal)
+          postModal.style.setProperty("display", "flex", "important");
+      };
 
-        boardItems.forEach((li) => {
-          li.addEventListener("click", (e) => {
-            // 把按鈕文字換成點選的海域
-            if (mobileNameDisplay)
-              mobileNameDisplay.innerText = e.target.innerText.trim();
+      function syncUserInfoToHub() {
+        const user = JSON.parse(localStorage.getItem("currentUser") || "{}");
+        const nameEl = document.getElementById("hub-name");
+        const avatarEl = document.getElementById("hub-avatar");
+        if (nameEl)
+          nameEl.innerText =
+            user.name || (user.email ? user.email.split("@")[0] : "請先登入");
+        if (avatarEl && user.avatar) avatarEl.src = user.avatar;
+      }
 
-            // 點選後自動收起抽屜
-            if (window.innerWidth <= 768) {
-              window.toggleBoardSheet();
-            }
-          });
-        });
+      window.addEventListener("click", (e) => {
+        const hubModal = document.getElementById("hub-modal");
+        if (hubModal && e.target === hubModal) closeHubModal();
+        const desktopDropdown = document.getElementById("user-dropdown");
+        if (desktopDropdown) desktopDropdown.classList.remove("show-dropdown");
+        const hubDropdown = document.getElementById("hub-user-dropdown");
+        if (hubDropdown) hubDropdown.style.display = "none";
       });
     </script>
   </body>

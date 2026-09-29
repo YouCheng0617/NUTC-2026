@@ -3496,3 +3496,459 @@ body.in-detail-view .ocean-popular-board,
 body.in-detail-view .ocean-rules-board {
   display: none !important;
 }
+/* ==================================================
+   🌟 全新頂部列：[Logo] [🔔] ... [ ☰ 整合按鈕 ]
+   ================================================== */
+.light-header {
+  display: flex !important;
+  flex-direction: row !important;
+  flex-wrap: nowrap !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  padding: 10px 16px !important;
+  gap: 10px !important;
+}
+
+/* 1. 左側群組：Logo + 鈴鐺 */
+.header-left-group {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 10px !important;
+  flex-shrink: 0 !important;
+}
+
+.header-left-group .logo {
+  margin: 0 !important;
+  font-size: 1.15rem !important;
+  display: inline-flex !important;
+  align-items: center !important;
+}
+
+.header-bell-box {
+  position: relative !important;
+  display: inline-flex !important;
+  align-items: center !important;
+}
+
+.header-bell-box .notification-bell {
+  width: 36px !important;
+  height: 36px !important;
+  font-size: 1rem !important;
+  background: rgba(255, 255, 255, 0.25) !important;
+  border: 1px solid rgba(255, 255, 255, 0.5) !important;
+  border-radius: 50% !important;
+  cursor: pointer !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+/* 2. 中間搜尋欄位 (自適應寬度) */
+.light-header .search-container {
+  flex: 1 1 auto !important;
+  max-width: 480px !important;
+  order: 0 !important;
+  margin: 0 !important;
+  padding: 0 5px !important;
+}
+
+.light-header .search-box-wrapper {
+  width: 100% !important;
+  max-width: 100% !important;
+}
+
+.light-header .light-search {
+  padding: 8px 40px 8px 14px !important;
+  font-size: 0.88rem !important;
+}
+
+/* 3. 右側 ☰ 整合按鈕 */
+.light-header .nav-actions {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  flex-shrink: 0 !important;
+}
+
+.header-menu-btn {
+  width: 40px !important;
+  height: 40px !important;
+  border-radius: 50% !important;
+  background: rgba(255, 255, 255, 0.2) !important;
+  border: 1.5px solid rgba(255, 255, 255, 0.5) !important;
+  color: #ffffff !important;
+  font-size: 1.35rem !important;
+  font-weight: 900 !important;
+  cursor: pointer !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  box-shadow: 0 4px 12px rgba(0, 30, 60, 0.25) !important;
+  transition: all 0.2s ease !important;
+  line-height: 1 !important;
+}
+
+.header-menu-btn:hover {
+  background: rgba(255, 255, 255, 0.35) !important;
+  transform: scale(1.08) !important;
+  border-color: #ffffff !important;
+}
+
+/* 📱 徹底覆蓋舊版強制換行的 @media 設定 */
+@media screen and (max-width: 768px) {
+  .light-header {
+    flex-wrap: nowrap !important;
+    padding: 8px 12px !important;
+  }
+  .light-header .logo {
+    font-size: 1.05rem !important;
+  }
+  .header-menu-btn {
+    width: 36px !important;
+    height: 36px !important;
+    font-size: 1.2rem !important;
+  }
+}
+/* 🌟 徹底清除手機頂部多出來的搜尋框殘影或空白格子 */
+@media screen and (max-width: 768px) {
+  .light-header .search-container {
+    display: none !important;
+  }
+}
+/* =========================================
+   🔍 手機版搜尋列：自動換行到第二行完整顯示
+   ========================================= */
+@media screen and (max-width: 768px) {
+  /* 1. 讓 Header 允許換行 */
+  .light-header {
+    flex-wrap: wrap !important;
+    padding: 8px 12px !important;
+  }
+
+  /* 2. 將搜尋列強制排到最下方 (第二行)，並佔滿 100% 寬度 */
+  .light-header .search-container {
+    display: flex !important;
+    order: 99 !important;
+    flex: 0 0 100% !important;
+    width: 100% !important;
+    margin-top: 8px !important;
+    padding: 0 !important;
+  }
+
+  .light-header .search-box-wrapper {
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+
+  .light-header .light-search {
+    width: 100% !important;
+    padding: 8px 45px 8px 14px !important;
+    font-size: 0.9rem !important;
+    box-sizing: border-box !important;
+  }
+}
+/* =========================================
+   🌊 桌面版與手機版完美分離響應式控制
+   ========================================= */
+
+/* 1. 電腦版預設：確保搜尋列與完整導覽列正常顯示 */
+.light-header {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  padding: 0.8rem 2rem !important;
+}
+
+.search-container {
+  display: flex !important;
+}
+
+/* 2. 手機版專屬 (寬度 <= 768px)：自動收合為手機排版 */
+@media screen and (max-width: 768px) {
+  .light-header {
+    padding: 8px 12px !important;
+  }
+}
+/* ==================================================
+   🌟 電腦版與手機版 Header 完美分離規則
+   ================================================== */
+
+/* 💻 1. 電腦版預設 (螢幕寬度 > 768px) */
+@media screen and (min-width: 769px) {
+  .light-header {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    padding: 0.8rem 2rem !important;
+  }
+  .desktop-nav-links {
+    display: flex !important;
+    align-items: center !important;
+    gap: 10px !important;
+    margin-left: 10px !important;
+  }
+  .desktop-user-profile {
+    display: flex !important;
+    align-items: center !important;
+    gap: 15px !important;
+  }
+  .search-container {
+    display: flex !important;
+    flex: 2 !important;
+    max-width: 500px !important;
+  }
+  /* 電腦版上隱藏手機專用按鈕 */
+  .mobile-bell-wrapper,
+  .mobile-hub-btn,
+  #hub-modal {
+    display: none !important;
+  }
+}
+
+/* 📱 2. 手機版專屬 (螢幕寬度 <= 768px，即 320px 模式) */
+@media screen and (max-width: 768px) {
+  .light-header {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    padding: 8px 12px !important;
+  }
+  .logo {
+    font-size: 1.15rem !important;
+    margin: 0 !important;
+    display: inline-flex !important;
+    align-items: center !important;
+  }
+  /* 手機版：Logo 右邊緊接著鈴鐺 */
+  .mobile-bell-wrapper {
+    display: inline-flex !important;
+    align-items: center !important;
+    margin-left: 8px !important;
+  }
+  .mobile-bell-wrapper .notification-bell {
+    width: 32px !important;
+    height: 32px !important;
+    font-size: 0.9rem !important;
+  }
+  /* 手機版：隱藏電腦版繁雜導覽按鈕 */
+  .desktop-nav-links,
+  .desktop-user-profile {
+    display: none !important;
+  }
+  /* 手機版：右上角 ☰ 按鈕 */
+  .mobile-hub-btn {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: 36px !important;
+    height: 36px !important;
+    border-radius: 50% !important;
+    background: rgba(255, 255, 255, 0.2) !important;
+    border: 1.5px solid rgba(255, 255, 255, 0.45) !important;
+    color: #ffffff !important;
+    font-size: 1.25rem !important;
+    cursor: pointer !important;
+  }
+  /* 手機版：搜尋欄自動掉到第二行填滿 */
+  .light-header .search-container {
+    order: 99 !important;
+    flex: 0 0 100% !important;
+    width: 100% !important;
+    margin-top: 8px !important;
+    padding: 0 !important;
+    display: flex !important;
+  }
+  .light-header .search-box-wrapper {
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+  .light-header .light-search {
+    width: 100% !important;
+    padding: 8px 45px 8px 14px !important;
+    font-size: 0.88rem !important;
+  }
+}
+
+/* ==================================================
+   🪟 手機版控制台 (Hub Modal) 樣式
+   ================================================== */
+#hub-modal.modal {
+  position: fixed !important;
+  inset: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  background: rgba(0, 15, 35, 0.75) !important;
+  backdrop-filter: blur(8px) !important;
+  -webkit-backdrop-filter: blur(8px) !important;
+  z-index: 150000 !important;
+  display: none;
+  justify-content: center !important;
+  align-items: center !important;
+  padding: 15px !important;
+  box-sizing: border-box !important;
+}
+
+.hub-card {
+  background: linear-gradient(160deg, rgba(10, 35, 65, 0.96) 0%, rgba(2, 20, 45, 0.98) 100%) !important;
+  border: 1.5px solid rgba(77, 166, 255, 0.5) !important;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6) !important;
+  border-radius: 24px !important;
+  width: 100% !important;
+  max-width: 440px !important;
+  max-height: 85vh !important;
+  overflow-y: auto !important;
+  padding: 22px 18px !important;
+  position: relative !important;
+  box-sizing: border-box !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 14px !important;
+}
+
+.hub-close-btn {
+  position: absolute !important;
+  top: 14px !important;
+  right: 16px !important;
+  font-size: 22px !important;
+  color: #94a3b8 !important;
+  cursor: pointer !important;
+}
+
+.hub-top-row {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  padding-right: 28px !important;
+}
+
+.hub-user-trigger {
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  background: rgba(255, 255, 255, 0.1) !important;
+  border: 1px solid rgba(255, 255, 255, 0.25) !important;
+  padding: 5px 12px !important;
+  border-radius: 20px !important;
+  cursor: pointer !important;
+}
+
+.hub-avatar-img {
+  width: 30px !important;
+  height: 30px !important;
+  border-radius: 50% !important;
+  object-fit: cover !important;
+}
+
+.hub-name-text {
+  font-size: 0.9rem !important;
+  font-weight: 800 !important;
+  color: #ffffff !important;
+  max-width: 120px !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+}
+
+.hub-cs-btn {
+  background: rgba(2, 132, 199, 0.3) !important;
+  border: 1px solid #38bdf8 !important;
+  color: #e0f2fe !important;
+  padding: 6px 14px !important;
+  border-radius: 18px !important;
+  font-size: 0.85rem !important;
+  font-weight: 800 !important;
+  cursor: pointer !important;
+}
+
+.hub-new-post-bar {
+  width: 100% !important;
+  padding: 12px !important;
+  background: linear-gradient(135deg, #00b4db, #0083b0) !important;
+  border: 1px solid rgba(255, 255, 255, 0.4) !important;
+  color: #ffffff !important;
+  font-size: 1rem !important;
+  font-weight: 900 !important;
+  border-radius: 14px !important;
+  cursor: pointer !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 8px !important;
+}
+
+.hub-section-title {
+  font-size: 0.85rem !important;
+  color: #94a3b8 !important;
+  font-weight: 700 !important;
+}
+
+.hub-games-grid {
+  display: grid !important;
+  grid-template-columns: repeat(3, 1fr) !important;
+  gap: 8px !important;
+}
+
+.hub-game-tile {
+  background: rgba(255, 255, 255, 0.08) !important;
+  border: 1px solid rgba(255, 255, 255, 0.18) !important;
+  border-radius: 12px !important;
+  padding: 10px 4px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 4px !important;
+  text-decoration: none !important;
+  color: #ffffff !important;
+}
+
+.hub-game-emoji {
+  font-size: 1.8rem !important;
+}
+
+.hub-game-label {
+  font-size: 0.78rem !important;
+  font-weight: 800 !important;
+  text-align: center !important;
+  color: #e2e8f0 !important;
+}
+
+#hub-user-dropdown {
+  position: absolute !important;
+  top: 45px !important;
+  left: 0 !important;
+  background: #ffffff !important;
+  border-radius: 12px !important;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3) !important;
+  width: 160px !important;
+  z-index: 300 !important;
+}
+/* =========================================
+   🍊 手機版右上角「更多」橘粉色膠囊按鈕
+   ========================================= */
+@media screen and (max-width: 768px) {
+  .mobile-hub-btn {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: auto !important; /* 取消原本固定 36px 寬度 */
+    height: auto !important; /* 取消原本固定 36px 高度 */
+    padding: 5px 14px !important; /* 膠囊內距 */
+    border-radius: 20px !important; /* 圓角膠囊造型 */
+    background: linear-gradient(135deg, #ff7e5f, #feb47b) !important; /* 珊瑚橘漸層 */
+    border: 1.5px solid #ffffff !important; /* 純白外框 */
+    color: #ffffff !important;
+    font-size: 0.88rem !important;
+    font-weight: 800 !important;
+    letter-spacing: 1px !important;
+    box-shadow: 0 3px 10px rgba(255, 126, 95, 0.4) !important;
+    cursor: pointer !important;
+    white-space: nowrap !important;
+    transition: transform 0.2s ease !important;
+  }
+
+  .mobile-hub-btn:active {
+    transform: scale(0.94) !important;
+  }
+}
