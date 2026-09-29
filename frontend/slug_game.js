@@ -119,17 +119,18 @@ let GAME_TOKEN = localStorage.getItem('authToken') || localStorage.getItem('acce
             try {
                 socket = io(API_BASE, { reconnectionAttempts: 3, timeout: 2000, transports: ['websocket', 'polling'] });
                 socket.on('connect', () => { console.log('Socket 連線成功!'); });
-                
+                socket.on('disconnect', () => { isRoomRequesting = false; });   // 等回應時斷線，按鈕才不會卡住
+
                 // 創立房間成功 -> 代表我是房主
-                socket.on('room_created', (data) => { 
+                socket.on('room_created', (data) => deferUntilLoaded('正在建立房間...', () => { 
                     isRoomHost = true; 
                     currentRoomId = data.roomId; 
                     updateRoomUI(`房間代碼: ${currentRoomId} (房主)`); 
                     showFloatText('創立房間成功！'); 
-                });
+                }));
                 
                 // 加入別人的房間 -> 代表我是作客的
-                socket.on('room_joined', (data) => {
+                socket.on('room_joined', (data) => deferUntilLoaded('正在進入房間...', () => {
                     console.log("偷看後端傳來的房間資料：", data); // 👈 加上這行！132
                     isRoomHost = false; 
                     currentRoomId = data.roomId; 
@@ -141,7 +142,7 @@ let GAME_TOKEN = localStorage.getItem('authToken') || localStorage.getItem('acce
                     if(data.players) { 
                         data.players.forEach(p => { if(p.socketId !== socket.id) addOtherPlayer(p); }); 
                     }
-                });
+                }));
 
                 socket.on('player_joined', (p) => { addOtherPlayer(p); showFloatText(`${p.petName} 來串門子了！`); });
                 socket.on('player_moved', (data) => { /* 寶寶專屬護法陣型，不吃原本亂跑的設定 */ });
@@ -150,16 +151,35 @@ let GAME_TOKEN = localStorage.getItem('authToken') || localStorage.getItem('acce
                     if(el) { el.remove(); delete otherPlayersData[data.socketId]; }
                 });
                 socket.on('receive_message', (data) => { showChatBubble(data.senderName, data.message); });
-                socket.on('error', (err) => { alert(err.message || "發生錯誤"); });
+                socket.on('error', (err) => {
+                    isRoomRequesting = false;   // 房號錯、房間滿之類的，直接跳提示，不會出現加載畫面
+                    alert(err.message || "發生錯誤");
+                });
             } catch (e) { console.log('Socket.IO 未連線'); }
         }
 
-        // 🌟 【假的加載畫面】進度條跑滿 3 秒後才真的送出請求，不用等後端回應
+        // 🌟 【假的加載畫面】後端確定進得去房間後，才跑 3 秒進度條再把房間畫出來
+        //     房號打錯這類錯誤會直接跳提示，不會白等 3 秒
         const FAKE_LOADING_MS = 3000;
         let isRoomLoading = false;
+        let isRoomRequesting = false;   // 已送出請求、還在等後端回應
+        let roomLoadingQueue = null;    // 加載期間收到的房間事件，進度條跑完再依序處理
+
+        function deferUntilLoaded(text, handler) {
+            isRoomRequesting = false;
+            // 房主會連續收到 room_created 和 room_joined，第二個直接排進同一次加載，不再跑一次
+            if (roomLoadingQueue) { roomLoadingQueue.push(handler); return; }
+            roomLoadingQueue = [handler];
+            showFakeLoading(text, () => {
+                const queue = roomLoadingQueue;
+                roomLoadingQueue = null;
+                queue.forEach(fn => fn());
+            });
+        }
+
+        function isRoomBusy() { return isRoomLoading || isRoomRequesting; }
 
         function showFakeLoading(text, onDone) {
-            if (isRoomLoading) return;   // 加載中再按一次就不理它，避免重複開房
             isRoomLoading = true;
 
             const overlay = document.getElementById('roomLoadingOverlay');
@@ -197,9 +217,9 @@ let GAME_TOKEN = localStorage.getItem('authToken') || localStorage.getItem('acce
                 }
                 return;
             }
-            showFakeLoading('正在建立房間...', () => {
-                socket.emit('create_room', { playerData: getPlayerData(), maxPlayers: 6 });
-            });
+            if (isRoomBusy()) return;   // 加載中再按一次就不理它，避免重複開房
+            isRoomRequesting = true;
+            socket.emit('create_room', { playerData: getPlayerData(), maxPlayers: 6 });
         }
 
         function joinSocketRoom() {
@@ -209,12 +229,11 @@ let GAME_TOKEN = localStorage.getItem('authToken') || localStorage.getItem('acce
                 }
                 return;
             }
+            if (isRoomBusy()) return;
             const code = prompt("請輸入 6 碼房間邀請碼 (大寫英數):");
             if (code && code.trim().length > 0) {
-                const roomId = code.trim().toUpperCase();
-                showFakeLoading('正在進入房間...', () => {
-                    socket.emit('join_room', { roomId, playerData: getPlayerData() });
-                });
+                isRoomRequesting = true;
+                socket.emit('join_room', { roomId: code.trim().toUpperCase(), playerData: getPlayerData() });
             }
         }
 
