@@ -2192,36 +2192,43 @@ html {
   }
 }
 /* ==================================================
-   🌟 收藏櫃分頁標籤、篩選列與歷史紀錄樣式
+   🌟 收藏櫃分頁標籤、篩選列與歷史紀錄樣式 (修復跑版 RWD 版)
    ================================================== */
 .modal-tab-header {
+  position: relative;
   display: flex;
   justify-content: center;
   align-items: center;
-  margin-bottom: 20px;
+  margin-top: 18px; /* 🌟 預留頂部空間，避開右上角關閉叉叉 */
+  margin-bottom: 18px;
   border-bottom: 1.5px solid rgba(0, 242, 254, 0.25);
-  padding-bottom: 12px;
+  padding-bottom: 14px;
 }
 
 .tabs-group {
   display: inline-flex;
-  background: rgba(2, 15, 33, 0.7);
+  background: rgba(2, 15, 33, 0.85);
   padding: 4px;
   border-radius: 30px;
-  border: 1px solid rgba(0, 242, 254, 0.3);
+  border: 1.5px solid rgba(0, 242, 254, 0.35);
   gap: 6px;
+  box-shadow: inset 0 0 15px rgba(0, 0, 0, 0.6);
 }
 
 .tab-pill {
   background: transparent;
   border: none;
   color: #8cb4ff;
-  font-size: 0.95rem;
+  font-size: 0.9rem;
   font-weight: 800;
-  padding: 8px 20px;
+  padding: 8px 18px;
   border-radius: 25px;
   cursor: pointer;
   transition: all 0.25s ease;
+  white-space: nowrap !important; /* 🌟 強制禁止文字被折成兩行 */
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
 }
 
 .tab-pill.active {
@@ -2230,30 +2237,41 @@ html {
   box-shadow: 0 0 15px rgba(0, 242, 254, 0.6);
 }
 
-/* 篩選工具列 */
+/* 篩選工具列：彈性並排 */
 .clean-filter-bar {
   display: flex;
   justify-content: center;
-  gap: 12px;
+  align-items: center;
+  gap: 8px;
   margin-bottom: 20px;
-  flex-wrap: wrap;
+  width: 100%;
 }
 
-.clean-filter-bar input,
-.clean-filter-bar select {
+.clean-filter-bar input {
+  flex: 1;
+  max-width: 240px;
+  min-width: 120px;
   background: rgba(3, 20, 45, 0.85);
   border: 1.5px solid rgba(0, 242, 254, 0.4);
   color: #fff;
-  padding: 8px 16px;
+  padding: 8px 14px;
   border-radius: 25px;
-  font-size: 0.9rem;
-  font-weight: 600;
+  font-size: 0.85rem;
   outline: none;
   box-shadow: inset 0 0 10px rgba(0, 242, 254, 0.15);
 }
 
-.clean-filter-bar input {
-  width: 240px;
+.clean-filter-bar select {
+  background: rgba(3, 20, 45, 0.85);
+  border: 1.5px solid rgba(0, 242, 254, 0.4);
+  color: #00f2fe;
+  padding: 8px 12px;
+  border-radius: 25px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  outline: none;
+  cursor: pointer;
+  box-shadow: inset 0 0 10px rgba(0, 242, 254, 0.15);
 }
 
 .clean-filter-bar select option {
@@ -2261,7 +2279,7 @@ html {
   color: #fff;
 }
 
-/* 歷史紀錄彈窗內部清單 */
+/* 歷史紀錄清單樣式 */
 .history-list-box {
   display: flex;
   flex-direction: column;
@@ -2283,7 +2301,7 @@ html {
 }
 
 .history-card .title-text {
-  font-size: 1rem;
+  font-size: 0.95rem;
   font-weight: 800;
   color: #fff;
 }
@@ -2302,26 +2320,107 @@ html {
   background: rgba(0, 242, 254, 0.15);
   color: #00f2fe;
   border: 1px solid rgba(0, 242, 254, 0.4);
+  white-space: nowrap;
 }
 
 .history-footer {
   display: flex;
-  justify-content: flex-end;
-  margin-top: 15px;
+  justify-content: center;
+  margin-top: 20px;
 }
 
 .btn-clear-history {
-  background: transparent;
-  border: 1px solid #ff5252;
+  background: rgba(255, 82, 82, 0.1);
+  border: 1.5px solid #ff5252;
   color: #ff5252;
-  padding: 6px 14px;
-  border-radius: 16px;
+  padding: 7px 18px;
+  border-radius: 20px;
   cursor: pointer;
-  font-size: 0.8rem;
+  font-size: 0.85rem;
+  font-weight: 700;
   transition: 0.2s;
 }
 
 .btn-clear-history:hover {
   background: #ff5252;
   color: #fff;
+  box-shadow: 0 0 12px rgba(255, 82, 82, 0.6);
+}
+
+/* 📱 手機窄螢幕 (<= 550px) 專屬防護 */
+@media screen and (max-width: 550px) {
+  .close-gallery {
+    top: 10px !important;
+    right: 14px !important;
+    font-size: 1.9rem !important;
+    z-index: 100 !important;
+  }
+
+  .modal-tab-header {
+    margin-top: 28px !important; /* 確保徹底閃過右上角的叉叉 */
+    margin-bottom: 14px !important;
+    padding-bottom: 10px !important;
+  }
+
+  .tabs-group {
+    padding: 3px !important;
+    gap: 4px !important;
+  }
+
+  .tab-pill {
+    padding: 6px 12px !important;
+    font-size: 0.82rem !important;
+  }
+
+  .clean-filter-bar {
+    gap: 6px !important;
+    margin-bottom: 15px !important;
+  }
+
+  .clean-filter-bar input {
+    padding: 6px 12px !important;
+    font-size: 0.8rem !important;
+  }
+
+  .clean-filter-bar select {
+    padding: 6px 8px !important;
+    font-size: 0.78rem !important;
+  }
+}
+/* 🌟 無此碎片提示框樣式 */
+.no-piece-box {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 35px 20px;
+  background: rgba(3, 20, 45, 0.6);
+  border: 1.5px dashed rgba(0, 242, 254, 0.4);
+  border-radius: 20px;
+  margin: 30px auto;
+  width: 90%;
+  max-width: 320px;
+  text-align: center;
+  box-shadow: 0 0 25px rgba(0, 242, 254, 0.15);
+}
+
+.no-piece-icon {
+  font-size: 2.8rem;
+  margin-bottom: 10px;
+  filter: drop-shadow(0 0 10px rgba(0, 242, 254, 0.7));
+}
+
+.no-piece-text {
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: #00f2fe;
+  margin-bottom: 6px;
+  text-shadow: 0 0 12px rgba(0, 242, 254, 0.6);
+}
+
+.no-piece-sub {
+  font-size: 0.8rem;
+  color: #8cb4ff;
+  line-height: 1.4;
 }

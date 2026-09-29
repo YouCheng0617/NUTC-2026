@@ -564,23 +564,69 @@ async function fetchGalleryData() {
   }
 }
 
+// 🌟 篩選全域資料：同時支援名稱搜尋與特定碎片編號
+function getFilteredPictures() {
+  const keyword = (document.getElementById("puzzleSearchInput")?.value || "")
+    .trim()
+    .toLowerCase();
+  const pieceFilter =
+    document.getElementById("pieceSelectFilter")?.value || "all";
+
+  return galleryPictures.filter((item) => {
+    const title = String(item.title || "").toLowerCase();
+    const matchKeyword = !keyword || title.includes(keyword);
+
+    let matchPiece = true;
+    if (pieceFilter !== "all") {
+      const targetNum = parseInt(pieceFilter, 10);
+      const prog = item.user_progress || {};
+      const unlocked = prog.unlocked_pieces || [];
+      const isCompleted = Boolean(prog.is_completed);
+
+      // 已集齊(9/9)包含全碎片，或已解鎖陣列中含有該碎片號碼
+      matchPiece = isCompleted || unlocked.includes(targetNum);
+    }
+
+    return matchKeyword && matchPiece;
+  });
+}
+
 function renderGalleryPage(page) {
   const container = document.querySelector(".gallery-grid");
   const paginationContainer = document.querySelector(".pagination-container");
   const dict = translations[currentLang] || translations.zh;
   if (!container) return;
 
-  if (galleryPictures.length === 0) {
-    container.innerHTML = `<div style="grid-column: 1/-1; text-align:center; color:#88bbff; padding: 40px 0;">${dict["empty-gallery"]}</div>`;
+  // 1. 取得過濾後的拼圖清單
+  const filteredData = getFilteredPictures();
+  const currentPiece =
+    document.getElementById("pieceSelectFilter")?.value || "all";
+
+  // 2. 🌟 若沒有任何拼圖擁有該碎片，顯示「尚無此碎片」提示框
+  if (filteredData.length === 0) {
+    const noPieceTitle =
+      currentPiece !== "all"
+        ? `🧩 尚無第 ${currentPiece} 號碎片`
+        : "🔍 查無符合的拼圖";
+
+    container.innerHTML = `
+      <div class="no-piece-box">
+        <div class="no-piece-icon">🌊</div>
+        <div class="no-piece-text">${noPieceTitle}</div>
+        <div class="no-piece-sub">目前尚未喚醒此碎片，快去抽卡或開寶箱吧！</div>
+      </div>
+    `;
+
     if (paginationContainer) paginationContainer.style.display = "none";
     return;
   }
 
-  const totalPages = Math.ceil(galleryPictures.length / ITEMS_PER_PAGE);
+  // 3. 正常分頁渲染
+  const totalPages = Math.ceil(filteredData.length / ITEMS_PER_PAGE);
   currentGalleryPage = Math.max(1, Math.min(page, totalPages));
 
   const start = (currentGalleryPage - 1) * ITEMS_PER_PAGE;
-  const pageData = galleryPictures.slice(start, start + ITEMS_PER_PAGE);
+  const pageData = filteredData.slice(start, start + ITEMS_PER_PAGE);
 
   container.innerHTML = pageData
     .map((item) => {
@@ -884,17 +930,14 @@ window.clearDrawHistory = function () {
 let searchFilterKeyword = "";
 let searchFilterPiece = "all";
 
-document.getElementById("puzzleSearchInput")?.addEventListener("input", (e) => {
-  searchFilterKeyword = e.target.value.trim().toLowerCase();
-  applyGalleryFilter();
+// 監聽下拉選單與輸入框，切換時即時過濾並重設至第 1 頁
+document.getElementById("puzzleSearchInput")?.addEventListener("input", () => {
+  renderGalleryPage(1);
 });
 
-document
-  .getElementById("pieceSelectFilter")
-  ?.addEventListener("change", (e) => {
-    searchFilterPiece = e.target.value;
-    applyGalleryFilter();
-  });
+document.getElementById("pieceSelectFilter")?.addEventListener("change", () => {
+  renderGalleryPage(1);
+});
 
 function applyGalleryFilter() {
   const items = document.querySelectorAll(".gallery-grid .gallery-item");
