@@ -507,126 +507,543 @@
         </div>
       </header>
 
-      <!-- ==================================================
-           📱 手機版專屬彈出控制台 (Hub Modal)
-           ================================================== -->
-      <div id="hub-modal" class="modal">
-        <div class="hub-card">
-          <span class="hub-close-btn" onclick="closeHubModal()">&times;</span>
-
-          <!-- 1. 頂部列：使用者頭像/名字 + 獨立客服按鈕 -->
-          <div class="hub-top-row">
-            <div style="position: relative">
-              <div class="hub-user-trigger" onclick="toggleHubDropdown(event)">
+      <!-- 📱 手機版專屬彈出控制台 (新手教學 + 客服雙排寬敞版) -->
+      <div
+        id="hub-modal"
+        class="modal"
+        style="display: none"
+        onclick="
+          if (event.target === this)
+            this.style.setProperty('display', 'none', 'important');
+        "
+      >
+        <div
+          class="hub-card"
+          style="
+            display: flex !important;
+            flex-direction: column !important;
+            width: 92% !important;
+            max-width: 340px !important;
+            box-sizing: border-box !important;
+            gap: 12px !important;
+            position: relative !important;
+          "
+        >
+          <!-- 1. 第一排：使用者資訊 ── 獨立大顆 ✕ (絕不重疊) -->
+          <div
+            class="hub-header-bar"
+            style="
+              display: flex !important;
+              flex-direction: row !important;
+              align-items: center !important;
+              justify-content: space-between !important;
+              width: 100% !important;
+              gap: 12px !important;
+              box-sizing: border-box !important;
+            "
+          >
+            <!-- 👤 使用者資訊與下拉選單容器 -->
+            <div style="position: relative; flex: 1; min-width: 0">
+              <div
+                class="hub-user-trigger"
+                onclick="
+                  event.stopPropagation();
+                  toggleHubDropdown(event);
+                "
+                style="
+                  display: inline-flex !important;
+                  align-items: center !important;
+                  gap: 6px !important;
+                  padding: 6px 12px !important;
+                  border-radius: 20px !important;
+                  background: rgba(255, 255, 255, 0.12) !important;
+                  border: 1.5px solid rgba(255, 255, 255, 0.28) !important;
+                  cursor: pointer !important;
+                  max-width: 100% !important;
+                  box-sizing: border-box !important;
+                "
+              >
                 <img
                   id="hub-avatar"
                   src="images/fish_logo.webp"
                   class="hub-avatar-img"
+                  style="
+                    width: 24px;
+                    height: 24px;
+                    border-radius: 50%;
+                    object-fit: cover;
+                    flex-shrink: 0;
+                  "
                 />
-                <span id="hub-name" class="hub-name-text">請先登入</span>
-                <span style="color: #fff; font-size: 0.7rem">▼</span>
+                <span
+                  id="hub-name"
+                  class="hub-name-text"
+                  style="
+                    font-size: 0.85rem;
+                    font-weight: 700;
+                    color: #fff;
+                    overflow: hidden;
+                    text-overflow: ellipsis;
+                    white-space: nowrap;
+                  "
+                  >載入中...</span
+                >
+                <span
+                  style="
+                    color: #fff;
+                    font-size: 0.7rem;
+                    margin-left: 2px;
+                    flex-shrink: 0;
+                  "
+                  >▼</span
+                >
               </div>
 
+              <!-- 下拉選單 (純白底 ＋ 純黑字) -->
               <div
-                class="user-dropdown-menu"
                 id="hub-user-dropdown"
-                style="display: none"
+                style="
+                  display: none;
+                  position: absolute;
+                  top: calc(100% + 8px);
+                  left: 0;
+                  min-width: 180px;
+                  background: #ffffff !important;
+                  border-radius: 14px;
+                  box-shadow: 0 12px 35px rgba(0, 0, 0, 0.35);
+                  z-index: 999999;
+                  padding: 6px 0;
+                  overflow: hidden;
+                  border: 1px solid #e2e8f0;
+                "
               >
                 <div
                   class="menu-item"
+                  style="
+                    padding: 10px 18px;
+                    color: #000000 !important;
+                    font-size: 0.9rem;
+                    font-weight: 600;
+                    cursor: pointer;
+                    display: flex;
+                    align-items: center;
+                    gap: 8px;
+                  "
                   onclick="
-                    closeHubModal();
-                    document.getElementById('open-profile').click();
+                    document
+                      .getElementById('hub-modal')
+                      .style.setProperty('display', 'none', 'important');
+                    document.getElementById('open-profile')?.click();
                   "
                 >
-                  👤 個人資料
+                  👤 <span style="color: #000000 !important">個人資料</span>
                 </div>
                 <div
                   class="menu-item"
+                  style="
+                    padding: 10px 18px;
+                    color: #000000 !important;
+                    font-size: 0.9rem;
+                    font-weight: 600;
+                    cursor: pointer;
+                    display: flex;
+                    align-items: center;
+                    gap: 8px;
+                  "
                   onclick="
-                    closeHubModal();
-                    openFollowingModal();
+                    document
+                      .getElementById('hub-modal')
+                      .style.setProperty('display', 'none', 'important');
+                    typeof openFollowingModal === 'function' &&
+                      openFollowingModal();
                   "
                 >
-                  🫂 我的追蹤
+                  🫂 <span style="color: #000000 !important">我的追蹤</span>
                 </div>
                 <div
                   class="menu-item"
+                  style="
+                    padding: 10px 18px;
+                    color: #000000 !important;
+                    font-size: 0.9rem;
+                    font-weight: 600;
+                    cursor: pointer;
+                    display: flex;
+                    align-items: center;
+                    gap: 8px;
+                  "
                   onclick="window.location.href = 'saved.html'"
                 >
-                  ⭐ 收藏瓶子
+                  ⭐ <span style="color: #000000 !important">收藏瓶子</span>
                 </div>
                 <div
                   class="menu-item"
+                  style="
+                    padding: 10px 18px;
+                    color: #000000 !important;
+                    font-size: 0.9rem;
+                    font-weight: 600;
+                    cursor: pointer;
+                    display: flex;
+                    align-items: center;
+                    gap: 8px;
+                  "
                   onclick="window.location.href = 'post.html'"
                 >
-                  📝 我的瓶子
+                  📝 <span style="color: #000000 !important">我的瓶子</span>
                 </div>
                 <div
                   class="menu-item"
-                  onclick="window.location.href = 'tutorial.html'"
-                >
-                  📖 新手教學
-                </div>
-                <div
-                  class="menu-item"
+                  style="
+                    padding: 10px 18px;
+                    color: #000000 !important;
+                    font-size: 0.9rem;
+                    font-weight: 600;
+                    cursor: pointer;
+                    display: flex;
+                    align-items: center;
+                    gap: 8px;
+                  "
                   onclick="
-                    closeHubModal();
-                    openSettingsModal();
+                    document
+                      .getElementById('hub-modal')
+                      .style.setProperty('display', 'none', 'important');
+                    typeof openSettingsModal === 'function' &&
+                      openSettingsModal();
                   "
                 >
-                  ⚙️ 網站設定
+                  ⚙️ <span style="color: #000000 !important">網站設定</span>
                 </div>
-                <div class="menu-divider"></div>
+                <div
+                  style="height: 1px; background: #e5e7eb; margin: 5px 0"
+                ></div>
                 <div
                   class="menu-item logout-item"
-                  onclick="document.getElementById('logout-btn').click()"
+                  style="
+                    padding: 10px 18px;
+                    color: #dc2626 !important;
+                    font-size: 0.9rem;
+                    font-weight: 700;
+                    cursor: pointer;
+                    display: flex;
+                    align-items: center;
+                    gap: 8px;
+                  "
+                  onclick="document.getElementById('logout-btn')?.click()"
                 >
-                  🚪 退出登入
+                  🚪 <span style="color: #dc2626 !important">退出登入</span>
                 </div>
               </div>
             </div>
 
+            <!-- ✕ 關閉按鈕：獨立在右上角，大顆好按不遮擋 -->
             <button
-              class="hub-cs-btn"
-              onclick="window.location.href = 'customer-service.html'"
+              type="button"
+              onclick="
+                event.preventDefault();
+                event.stopPropagation();
+                document
+                  .getElementById('hub-modal')
+                  .style.setProperty('display', 'none', 'important');
+                return false;
+              "
+              style="
+                width: 34px !important;
+                height: 34px !important;
+                min-width: 34px !important;
+                border-radius: 50% !important;
+                background: rgba(255, 255, 255, 0.15) !important;
+                border: 1.5px solid rgba(255, 255, 255, 0.35) !important;
+                color: #ffffff !important;
+                font-size: 16px !important;
+                display: flex !important;
+                align-items: center !important;
+                justify-content: center !important;
+                cursor: pointer !important;
+                flex-shrink: 0 !important;
+                z-index: 999999 !important;
+              "
+              title="關閉"
             >
-              💬 客服
+              ✕
             </button>
           </div>
 
-          <!-- 2. 中間：長條發文按鈕 -->
-          <button class="hub-new-post-bar" onclick="handleHubPostClick()">
+          <!-- 2. 第二排：新手教學 與 客服 (各佔 50%，寬敞好點、字體水平絕不擠成直排) -->
+          <div
+            class="hub-dual-actions"
+            style="
+              display: flex !important;
+              flex-direction: row !important;
+              gap: 8px !important;
+              width: 100% !important;
+              box-sizing: border-box !important;
+            "
+          >
+            <button
+              type="button"
+              onclick="
+                event.stopPropagation();
+                window.location.href = 'tutorial.html';
+              "
+              style="
+                flex: 1 1 50% !important;
+                padding: 9px 0 !important;
+                font-size: 0.85rem !important;
+                font-weight: 700 !important;
+                border-radius: 12px !important;
+                border: 1px solid #38bdf8 !important;
+                background: rgba(0, 180, 219, 0.35) !important;
+                color: #fff !important;
+                cursor: pointer !important;
+              "
+            >
+              📖 新手教學
+            </button>
+            <button
+              type="button"
+              onclick="
+                event.stopPropagation();
+                window.location.href = 'customer-service.html';
+              "
+              style="
+                flex: 1 1 50% !important;
+                padding: 9px 0 !important;
+                font-size: 0.85rem !important;
+                font-weight: 700 !important;
+                border-radius: 12px !important;
+                border: 1px solid #34d399 !important;
+                background: rgba(16, 185, 129, 0.35) !important;
+                color: #fff !important;
+                cursor: pointer !important;
+              "
+            >
+              💬 線上客服
+            </button>
+          </div>
+
+          <!-- 3. 第三排：發文長條按鈕 -->
+          <button
+            type="button"
+            class="hub-new-post-bar"
+            onclick="handleHubPostClick()"
+            style="
+              width: 100% !important;
+              padding: 11px !important;
+              background: linear-gradient(135deg, #00b4db, #0083b0) !important;
+              border: 1px solid rgba(255, 255, 255, 0.4) !important;
+              color: #fff !important;
+              font-size: 0.95rem !important;
+              font-weight: 800 !important;
+              border-radius: 12px !important;
+              cursor: pointer !important;
+            "
+          >
             ✏️ 撰寫漂流瓶
           </button>
 
-          <!-- 3. 下方：六款遊戲入口 -->
-          <div class="hub-section-title">🎮 秘密海域遊樂場</div>
-          <div class="hub-games-grid">
-            <a class="hub-game-tile" href="slug_game.html"
-              ><span class="hub-game-emoji">🐰</span
-              ><span class="hub-game-label">海兔養成記</span></a
+          <!-- 4. 第四排：六個遊戲按鈕 -->
+          <div
+            class="hub-section-title"
+            style="
+              font-size: 0.85rem !important;
+              color: #94a3b8 !important;
+              font-weight: 700 !important;
+              margin-top: 4px !important;
+            "
+          >
+            🎮 秘密海域遊樂場
+          </div>
+          <div
+            class="hub-games-grid"
+            style="
+              display: grid !important;
+              grid-template-columns: repeat(2, 1fr) !important;
+              gap: 8px !important;
+              width: 100% !important;
+              box-sizing: border-box !important;
+            "
+          >
+            <a
+              class="hub-game-tile"
+              href="slug_game.html"
+              style="
+                background: rgba(255, 255, 255, 0.08) !important;
+                border: 1px solid rgba(255, 255, 255, 0.18) !important;
+                border-radius: 12px !important;
+                padding: 10px 4px !important;
+                display: flex !important;
+                flex-direction: column !important;
+                align-items: center !important;
+                justify-content: center !important;
+                gap: 4px !important;
+                text-decoration: none !important;
+                color: #ffffff !important;
+              "
             >
-            <a class="hub-game-tile" href="Tarot_Bottle_Project/index.html"
-              ><span class="hub-game-emoji">🔮</span
-              ><span class="hub-game-label">今日塔羅瓶</span></a
+              <span class="hub-game-emoji" style="font-size: 1.6rem !important"
+                >🐰</span
+              >
+              <span
+                class="hub-game-label"
+                style="
+                  font-size: 0.78rem !important;
+                  font-weight: 800 !important;
+                  color: #e2e8f0 !important;
+                "
+                >海兔養成記</span
+              >
+            </a>
+            <a
+              class="hub-game-tile"
+              href="Tarot_Bottle_Project/index.html"
+              style="
+                background: rgba(255, 255, 255, 0.08) !important;
+                border: 1px solid rgba(255, 255, 255, 0.18) !important;
+                border-radius: 12px !important;
+                padding: 10px 4px !important;
+                display: flex !important;
+                flex-direction: column !important;
+                align-items: center !important;
+                justify-content: center !important;
+                gap: 4px !important;
+                text-decoration: none !important;
+                color: #ffffff !important;
+              "
             >
-            <a class="hub-game-tile" href="puzzle.html"
-              ><span class="hub-game-emoji">🧩</span
-              ><span class="hub-game-label">突然想拼圖</span></a
+              <span class="hub-game-emoji" style="font-size: 1.6rem !important"
+                >🔮</span
+              >
+              <span
+                class="hub-game-label"
+                style="
+                  font-size: 0.78rem !important;
+                  font-weight: 800 !important;
+                  color: #e2e8f0 !important;
+                "
+                >今日塔羅瓶</span
+              >
+            </a>
+            <a
+              class="hub-game-tile"
+              href="puzzle.html"
+              style="
+                background: rgba(255, 255, 255, 0.08) !important;
+                border: 1px solid rgba(255, 255, 255, 0.18) !important;
+                border-radius: 12px !important;
+                padding: 10px 4px !important;
+                display: flex !important;
+                flex-direction: column !important;
+                align-items: center !important;
+                justify-content: center !important;
+                gap: 4px !important;
+                text-decoration: none !important;
+                color: #ffffff !important;
+              "
             >
-            <a class="hub-game-tile" href="notes.html"
-              ><span class="hub-game-emoji">📝</span
-              ><span class="hub-game-label">每日便利貼</span></a
+              <span class="hub-game-emoji" style="font-size: 1.6rem !important"
+                >🧩</span
+              >
+              <span
+                class="hub-game-label"
+                style="
+                  font-size: 0.78rem !important;
+                  font-weight: 800 !important;
+                  color: #e2e8f0 !important;
+                "
+                >突然想拼圖</span
+              >
+            </a>
+            <a
+              class="hub-game-tile"
+              href="notes.html"
+              style="
+                background: rgba(255, 255, 255, 0.08) !important;
+                border: 1px solid rgba(255, 255, 255, 0.18) !important;
+                border-radius: 12px !important;
+                padding: 10px 4px !important;
+                display: flex !important;
+                flex-direction: column !important;
+                align-items: center !important;
+                justify-content: center !important;
+                gap: 4px !important;
+                text-decoration: none !important;
+                color: #ffffff !important;
+              "
             >
-            <a class="hub-game-tile" href="smash.html"
-              ><span class="hub-game-emoji">💥</span
-              ><span class="hub-game-label">瓶命射擊</span></a
+              <span class="hub-game-emoji" style="font-size: 1.6rem !important"
+                >📝</span
+              >
+              <span
+                class="hub-game-label"
+                style="
+                  font-size: 0.78rem !important;
+                  font-weight: 800 !important;
+                  color: #e2e8f0 !important;
+                "
+                >每日便利貼</span
+              >
+            </a>
+            <a
+              class="hub-game-tile"
+              href="smash.html"
+              style="
+                background: rgba(255, 255, 255, 0.08) !important;
+                border: 1px solid rgba(255, 255, 255, 0.18) !important;
+                border-radius: 12px !important;
+                padding: 10px 4px !important;
+                display: flex !important;
+                flex-direction: column !important;
+                align-items: center !important;
+                justify-content: center !important;
+                gap: 4px !important;
+                text-decoration: none !important;
+                color: #ffffff !important;
+              "
             >
-            <a class="hub-game-tile" href="catch-bottle.html"
-              ><span class="hub-game-emoji">🤲</span
-              ><span class="hub-game-label">接住小瓶</span></a
+              <span class="hub-game-emoji" style="font-size: 1.6rem !important"
+                >💥</span
+              >
+              <span
+                class="hub-game-label"
+                style="
+                  font-size: 0.78rem !important;
+                  font-weight: 800 !important;
+                  color: #e2e8f0 !important;
+                "
+                >瓶命射擊</span
+              >
+            </a>
+            <a
+              class="hub-game-tile"
+              href="catch-bottle.html"
+              style="
+                background: rgba(255, 255, 255, 0.08) !important;
+                border: 1px solid rgba(255, 255, 255, 0.18) !important;
+                border-radius: 12px !important;
+                padding: 10px 4px !important;
+                display: flex !important;
+                flex-direction: column !important;
+                align-items: center !important;
+                justify-content: center !important;
+                gap: 4px !important;
+                text-decoration: none !important;
+                color: #ffffff !important;
+              "
             >
+              <span class="hub-game-emoji" style="font-size: 1.6rem !important"
+                >🤲</span
+              >
+              <span
+                class="hub-game-label"
+                style="
+                  font-size: 0.78rem !important;
+                  font-weight: 800 !important;
+                  color: #e2e8f0 !important;
+                "
+                >接住小瓶</span
+              >
+            </a>
           </div>
         </div>
       </div>
