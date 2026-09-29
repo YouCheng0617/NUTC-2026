@@ -150,6 +150,38 @@
             </div>
           </div>
 
+          <!-- 🌟 金色微光警示膠囊：更新為 20 分鐘 🌟 -->
+          <div
+            style="
+              width: 100%;
+              text-align: center;
+              margin: 4px 0 10px 0;
+              z-index: 5;
+            "
+          >
+            <div
+              style="
+                display: inline-flex;
+                align-items: center;
+                gap: 6px;
+                background: rgba(10, 30, 60, 0.75);
+                border: 1.5px solid #ffcc00;
+                color: #ffeb3b;
+                padding: 6px 16px;
+                border-radius: 20px;
+                font-size: 0.85rem;
+                font-weight: 900;
+                box-shadow:
+                  0 4px 12px rgba(0, 0, 0, 0.4),
+                  0 0 8px rgba(255, 204, 0, 0.3);
+                letter-spacing: 0.5px;
+              "
+            >
+              <span>⚠️</span>
+              <span>安全提醒：密碼連續輸錯 5 次，帳號將被鎖定 20 分鐘</span>
+            </div>
+          </div>
+
           <div class="b-row">
             <div class="b-item b-pill" style="flex: 1.5">
               <label>圖形驗證碼:</label>
@@ -644,7 +676,26 @@
         clearErrorMessage();
         const errorDiv = document.createElement("div");
         errorDiv.id = "modal-error-msg";
-        errorDiv.style.cssText = `background: rgba(255, 77, 77, 0.15); border: 1px solid #ff4d4d; color: #ff4d4d; padding: 10px; border-radius: 15px; margin-bottom: 10px; font-size: 0.9rem; font-weight: bold; text-align: center; width: 90%; z-index: 10;`;
+        // 🌟 縮小尺寸：改為文字長度自適應 + 精巧圓角微膠囊
+        errorDiv.style.cssText = `
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          width: fit-content;
+          max-width: 85%;
+          margin: 6px auto 12px auto;
+          padding: 5px 14px;
+          background: rgba(255, 65, 65, 0.22);
+          border: 1px solid #ff4d4d;
+          color: #ff4d4d;
+          border-radius: 20px;
+          font-size: 0.82rem;
+          font-weight: bold;
+          text-align: center;
+          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+          letter-spacing: 0.3px;
+          z-index: 10;
+        `;
         errorDiv.innerText = message;
         const tabContainer = document.getElementById("main-tabs");
         tabContainer.parentNode.insertBefore(
@@ -884,21 +935,38 @@
             }
           } else {
             const failMessage = responseData.message || "帳號或密碼錯誤";
-            // 🌟 帳號尚未通過信箱驗證，詢問是否要重寄驗證信
-            if (failMessage.includes("未啟用")) {
+
+            // 1. 達到 5 次被鎖定時（優先顯示後端計算的剩餘分鐘數）
+            if (
+              response.status === 429 ||
+              failMessage.includes("鎖定") ||
+              failMessage.includes("封鎖") ||
+              failMessage.includes("過多")
+            ) {
+              showModalError(
+                failMessage.includes("分鐘")
+                  ? failMessage
+                  : "🚫 錯誤達 5 次，帳號已鎖定，請 20 分鐘後再試！",
+              );
+            }
+            // 2. 帳號未啟用
+            else if (failMessage.includes("未啟用")) {
               showModalError("❌ 登入失敗：" + failMessage);
               if (
                 confirm(
-                  "此帳號尚未完成信箱驗證。\n要重新發送一封驗證信到 " +
+                  "此帳號尚未完成信箱驗證。\n要重新發送驗證信到 " +
                     email +
                     " 嗎？",
                 )
               ) {
                 await resendVerificationMail(email);
               }
-            } else {
-              showModalError("❌ 登入失敗：" + failMessage);
             }
+            // 3. 一般密碼輸錯（單行顯示剩餘次數）
+            else {
+              showModalError("❌ " + failMessage);
+            }
+
             document.getElementById("captcha-input").value = "";
             loadCaptcha();
           }

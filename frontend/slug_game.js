@@ -32,6 +32,23 @@ let GAME_TOKEN = localStorage.getItem('authToken') || localStorage.getItem('acce
         let isMockMode = false;
         let mockIntervals = [];
 
+        // 🌊 【開場動畫】播完或被點掉之後，把整層拿掉，不擋住遊戲操作
+        function endIntro(fast) {
+            const intro = document.getElementById('introOverlay');
+            if (!intro || intro.dataset.done) return;
+            intro.dataset.done = '1';
+            if (fast) intro.classList.add('is-skipping');
+            setTimeout(() => intro.remove(), fast ? 380 : 900);
+        }
+        function skipIntro() { endIntro(true); }
+
+        (function setupIntro() {
+            const intro = document.getElementById('introOverlay');
+            if (!intro) return;
+            const slow = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+            setTimeout(() => endIntro(false), slow ? 1100 : 5500);   // 動畫跑完就自動收掉
+        })();
+
         // 🌟 【呼叫伺服器 API 的小幫手】
         async function fetchAPI(endpoint, method = 'GET', payload = null) {
             try {
@@ -64,6 +81,37 @@ let GAME_TOKEN = localStorage.getItem('authToken') || localStorage.getItem('acce
             } catch (e) {
                 console.warn('抓取金幣數量失敗，使用本地存檔數值', e);
             }
+        }
+
+        // 🎵 【跳動音符加分】每收到一顆音符就跟後端換 15 分；
+        //    後端有 0.5 秒冷卻，所以這裡排成一列慢慢送，玩家連點也不會漏掉分數
+        let musicNoteQueue = 0;
+        let musicNoteSending = false;
+        async function awardMusicNote() {
+            musicNoteQueue++;
+            if (musicNoteSending) return;
+            musicNoteSending = true;
+
+            while (musicNoteQueue > 0) {
+                const result = await fetchAPI('/pet-games/interact', 'POST', { action: 'MUSIC_NOTE' });
+
+                if (result && !result.error) {
+                    musicNoteQueue--;
+                    if (result.coin !== undefined && !isNaN(Number(result.coin))) gameState.points = Number(result.coin);
+                    saveGame();
+                    updateUI();
+                    showFloatText(currLang === 'zh' ? '+15 音符入帳 🎵' : '+15 note banked 🎵', 1500);
+                } else if (result && result.error && /冷卻|稍等|太快|Cool|wait/i.test(result.error)) {
+                    // 還在冷卻，等一下再送，這顆音符不會白收
+                } else {
+                    // 其他錯誤（例如試用中沒買特效）就別再送了，直接把訊息給玩家
+                    musicNoteQueue = 0;
+                    showFloatText((result && result.error) || (currLang === 'zh' ? '音符加分失敗，稍後再試' : 'Could not bank the note'), 3000);
+                    break;
+                }
+                await new Promise(r => setTimeout(r, 620));   // 後端冷卻 0.5 秒，留一點餘裕
+            }
+            musicNoteSending = false;
         }
 
         // 🌟 【多人連線小總管】負責跟伺服器打招呼，處理誰加進來、誰離開，還有房主權限的判定
@@ -374,6 +422,14 @@ const i18n = {
                 cooldown: "冷卻", ready: "可互動",
                 tabSpecies: "圖鑑", tabBg: "背景", tabEffect: "特效",
                 equip: "使用中", owned: "已解鎖",
+                introTitle: "海兔養成記", introSkip: "點一下跳過",
+                // ✨ 敬請期待卡
+                comingSoon: "敬請期待", comingSoonTag: "即將登場",
+                comingSoonHints: {
+                    species: ["調色盤上還在調新顏色…… (･ω･)ﾉ", "新品種正在殼裡睡覺，快孵出來了 ( ˘ω˘ )", "下一隻海兔正在偷偷長大，先保密 (๑•̀ㅂ•́)و"],
+                    bg: ["新場景還在打草稿，先別偷看 (๑•̀ㅂ•́)و", "下一個世界正在施工中，工人加班趕工 ( ･ั﹏･ั)", "再等等，這裡會多一片新風景 (´･ω･`)"],
+                    effect: ["新特效正在實驗室裡試放…… ( °ω° )", "魔法還沒調好，再等一下下 (・∀・)", "下一個驚喜正在充能中…… (๑˃̵ᴗ˂̵)"]
+                },
                 mpBtn: "📡 連線", roomNotConnected: "尚未連線", createRoom: "創立房間", joinRoom: "加入房間", chat: "💬 聊天", leaveRoom: "離開房間",
 
                 // 🌟 14天簽到與累計簽到
@@ -429,6 +485,14 @@ const i18n = {
                 cooldown: "CD", ready: "Ready",
                 tabSpecies: "Species", tabBg: "Background", tabEffect: "Effects",
                 equip: "Active", owned: "Unlocked",
+                introTitle: "Sea Bunny Life", introSkip: "Tap to skip",
+                // ✨ Coming soon card
+                comingSoon: "Coming Soon", comingSoonTag: "Almost here",
+                comingSoonHints: {
+                    species: ["Still mixing brand-new colors... (･ω･)ﾉ", "A new species is napping in its shell ( ˘ω˘ )", "The next sea bunny is growing up in secret (๑•̀ㅂ•́)و"],
+                    bg: ["The new scene is still a sketch, no peeking (๑•̀ㅂ•́)و", "The next world is under construction ( ･ั﹏･ั)", "Come back later, a new view is on the way (´･ω･`)"],
+                    effect: ["A new effect is being test-fired... ( °ω° )", "The magic isn't tuned yet, hang tight (・∀・)", "The next surprise is charging up (๑˃̵ᴗ˂̵)"]
+                },
                 mpBtn: "📡 Connect", roomNotConnected: "Not Connected", createRoom: "Create Room", joinRoom: "Join Room", chat: "💬 Chat", leaveRoom: "Leave Room",
 
                 // 🌟 14-day check-in and streak reward
@@ -1509,47 +1573,298 @@ const i18n = {
             );
         },
 
-        // 雨中街景：灰藍街屋、路燈與雨絲
+        // 雨中街景：夜裡的濕街道，暖色路燈、滿城散景光點與地面倒影
         rainyStreet(mode) {
-            const { W, H } = canvasOf(mode), hz = H * 0.74;
+            const { W, H } = canvasOf(mode);
+            const portrait = mode === 'portrait';
+            const u = Math.min(W, H) / 520;
+            const roadY = H * (portrait ? 0.64 : 0.62);
+
+            // 散景光點：模糊的圓形光暈，夜景的靈魂
+            const bokeh = (x, y, r, color, op) =>
+                `<circle cx="${x}" cy="${y}" r="${r}" fill="${color}" opacity="${op}" filter="url(#rsBlur)"/>`;
+
+            // 路燈：燈柱 + 三顆燈頭 + 大片光暈
+            // 古典單燈街燈：階梯底座、帶裝飾環的錐形燈柱、六角玻璃燈籠與屋頂尖飾
+            const lamp = (x, baseY, s, glowId) => {
+                const iron = '#16303c', ironDark = '#0e2029', ironLight = '#23465a';
+                let g = `<g transform="translate(${x},${baseY}) scale(${s})">`;
+                // 光暈與向下的光錐
+                g += `<ellipse cy="-296" rx="200" ry="170" fill="url(#${glowId})"/>`;
+                g += `<path d="M -34 -286 L 34 -286 L 104 4 L -104 4 Z" fill="#ffd591" opacity="0.1" filter="url(#rsBlur)"/>`;
+                // 階梯底座
+                g += rect(-34, -14, 68, 16, ironDark, 'rx="4"')
+                    + rect(-26, -28, 52, 16, iron, 'rx="4"')
+                    + rect(-18, -38, 36, 12, ironLight, 'rx="3"');
+                // 錐形燈柱 + 兩道裝飾環
+                g += `<path d="M -11 -36 L 11 -36 L 7 -244 L -7 -244 Z" fill="${iron}"/>`
+                    + `<path d="M -4 -36 L 0 -36 L -1 -244 L -4 -244 Z" fill="${ironLight}" opacity="0.55"/>`
+                    + rect(-15, -110, 30, 9, ironLight, 'rx="3"')
+                    + rect(-13, -196, 26, 8, ironLight, 'rx="3"');
+                // 燈籠底座與托架
+                g += `<path d="M -30 -244 L 30 -244 L 22 -258 L -22 -258 Z" fill="${iron}"/>`
+                    + `<path d="M -22 -256 C -34 -248, -40 -236, -38 -226 L -30 -228 C -31 -238, -27 -248, -18 -252 Z" fill="${ironDark}"/>`
+                    + `<path d="M 22 -256 C 34 -248, 40 -236, 38 -226 L 30 -228 C 31 -238, 27 -248, 18 -252 Z" fill="${ironDark}"/>`;
+                // 玻璃燈體：上窄下寬，內有亮芯
+                g += `<path d="M -30 -258 L 30 -258 L 24 -330 L -24 -330 Z" fill="#ffd591" opacity="0.92"/>`
+                    + `<path d="M -19 -262 L 19 -262 L 15 -324 L -15 -324 Z" fill="#fff6dd"/>`
+                    + `<ellipse cy="-292" rx="11" ry="20" fill="#ffffff" opacity="0.95"/>`
+                    + `<path d="M -30 -258 L 30 -258 L 30 -252 L -30 -252 Z" fill="${iron}"/>`
+                    + `<path d="M -8 -258 L -6 -330" stroke="${iron}" stroke-width="3" opacity="0.5"/>`
+                    + `<path d="M 8 -258 L 6 -330" stroke="${iron}" stroke-width="3" opacity="0.5"/>`;
+                // 燈罩屋頂與尖飾
+                g += `<path d="M -36 -330 L 36 -330 L 20 -352 L -20 -352 Z" fill="${iron}"/>`
+                    + `<path d="M -36 -330 L 36 -330 L 36 -324 L -36 -324 Z" fill="${ironLight}"/>`
+                    + `<circle cy="-358" r="7" fill="${ironLight}"/>`
+                    + `<path d="M -2 -364 L 2 -364 L 0 -378 Z" fill="${ironLight}"/>`;
+                return g + `</g>`;
+            };
+
+            // 遠景大樓剪影與零星窗光
+            let blocks = '';
+            const bn = portrait ? 7 : 11;
+            for (let i = 0; i < bn; i++) {
+                const bw = (70 + rnd(i, 171) * 90) * u;
+                const bh = (110 + rnd(i, 172) * 230) * u;
+                const bx = W * ((i + 0.5) / bn) - bw / 2 + (rnd(i, 173) - 0.5) * 40 * u;
+                blocks += rect(bx.toFixed(0), (roadY - bh).toFixed(0), bw.toFixed(0), bh.toFixed(0), i % 2 ? '#0d2029' : '#112833', 'rx="3"');
+                for (let r = 0; r < Math.floor(bh / (34 * u)); r++) {
+                    for (let c = 0; c < 3; c++) {
+                        if (rnd(i * 31 + r * 7 + c, 174) < 0.64) continue;
+                        const wx = bx + 10 * u + c * (bw - 20 * u) / 3;
+                        const wy = roadY - bh + 14 * u + r * 34 * u;
+                        const warm = rnd(i * 13 + r + c, 175);
+                        blocks += rect(wx.toFixed(0), wy.toFixed(0), (10 * u).toFixed(1), (13 * u).toFixed(1),
+                            warm > 0.66 ? '#ffca6b' : (warm > 0.33 ? '#8fe3e0' : '#ffe6a8'), `rx="2" opacity="${(0.55 + warm * 0.45).toFixed(2)}"`);
+                    }
+                }
+            }
+
+            // 滿街散景
+            let lights = '';
+            const ln = portrait ? 26 : 34;
+            for (let i = 0; i < ln; i++) {
+                const x = rnd(i, 181) * W;
+                const y = H * 0.1 + rnd(i, 182) * (roadY - H * 0.08);
+                const r = (7 + rnd(i, 183) * 26) * u;
+                const tone = rnd(i, 184);
+                const color = tone > 0.62 ? '#ffb74d' : (tone > 0.34 ? '#ffd79a' : (tone > 0.18 ? '#7fe3e8' : '#ff7a6b'));
+                lights += bokeh(x.toFixed(0), y.toFixed(0), r.toFixed(1), color, (0.35 + rnd(i, 185) * 0.5).toFixed(2));
+            }
+
+            // 地面倒影：每個光點在濕路面上拉出一條長長的倒影
+            let reflections = '';
+            for (let i = 0; i < (portrait ? 18 : 24); i++) {
+                const x = rnd(i, 191) * W;
+                const len = (70 + rnd(i, 192) * 190) * u;
+                const tone = rnd(i, 193);
+                const color = tone > 0.6 ? '#ffb74d' : (tone > 0.3 ? '#ffe0a8' : '#7fe3e8');
+                reflections += `<rect x="${(x - 7 * u).toFixed(0)}" y="${roadY.toFixed(0)}" width="${(14 * u).toFixed(1)}" height="${len.toFixed(0)}" fill="${color}" opacity="${(0.3 + rnd(i, 194) * 0.38).toFixed(2)}" rx="${(7 * u).toFixed(1)}" filter="url(#rsBlur)"/>`;
+            }
+
+            // 雨絲
+            let rainLines = '';
+            for (let i = 0; i < (portrait ? 70 : 90); i++) {
+                const x = rnd(i, 201) * W * 1.1 - W * 0.05;
+                const y = rnd(i, 202) * H;
+                const len = (18 + rnd(i, 203) * 26) * u;
+                rainLines += `<path d="M ${x.toFixed(0)} ${y.toFixed(0)} l ${(-4 * u).toFixed(1)} ${len.toFixed(0)}" stroke="#dbeeff" stroke-width="${(1.6 * u).toFixed(1)}" stroke-linecap="round" opacity="${(0.2 + rnd(i, 204) * 0.4).toFixed(2)}"/>`;
+            }
+
+            // 路面水窪的亮邊
+            let puddles = '';
+            for (let i = 0; i < 7; i++) {
+                const x = rnd(i, 211) * W;
+                const y = roadY + (0.15 + rnd(i, 212) * 0.8) * (H - roadY);
+                puddles += ell(x.toFixed(0), y.toFixed(0), ((30 + rnd(i, 213) * 70) * u).toFixed(0), ((5 + rnd(i, 214) * 8) * u).toFixed(0), '#5b8ea8', `opacity="${(0.16 + rnd(i, 215) * 0.2).toFixed(2)}" filter="url(#rsBlur)"`);
+            }
+
             return svgOf(W, H,
-                vg('rsSky', [[0, '#7c93ab'], [100, '#c3d3de']]) + vg('rsRoad', [[0, '#5b6b7a'], [100, '#3d4a57']]),
+                vg('rsSky', [[0, '#050f17'], [45, '#0b2430'], [100, '#123645']])
+                + vg('rsRoad', [[0, '#0a1a22'], [55, '#12303c'], [100, '#081419']])
+                + rg('rsLampGlow', [[0, '#ffd591', 0.85], [35, '#ffb74d', 0.34], [100, '#ffb74d', 0]])
+                + rg('rsLampGlow2', [[0, '#ffe3b0', 0.7], [40, '#ffb74d', 0.26], [100, '#ffb74d', 0]])
+                + `<filter id="rsBlur" x="-60%" y="-60%" width="220%" height="220%"><feGaussianBlur stdDeviation="${(7 * u).toFixed(1)}"/></filter>`
+                + `<filter id="rsSoftBlur" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="${(2.6 * u).toFixed(1)}"/></filter>`,
                 bg(W, H, 'url(#rsSky)')
-                + buildings(W, hz, '#6b7f92', '#ffe9a8', 3)
-                + rect(0, hz, W, H - hz, 'url(#rsRoad)')
-                + times(5, (i, a) => ell(a * W, hz + H * 0.12 + (i % 2) * H * 0.07, W * 0.07, H * 0.018, '#8fa6b8', 'opacity="0.55"'))
-                // 路燈
-                + `<g transform="translate(${W * 0.78},${hz + 10})"><rect x="-5" y="-190" width="10" height="190" fill="#3f4c59"/><path d="M -26 -196 L 26 -196 L 16 -166 L -16 -166 Z" fill="#ffe9a8"/><ellipse cx="0" cy="-168" rx="60" ry="40" fill="#ffe9a8" opacity="0.22"/></g>`
-                + rain(W, H, 46, '#dbe8f2')
+                // 遠景大樓帶一點景深模糊，焦點才會落在燈光上
+                + `<g filter="url(#rsSoftBlur)" opacity="0.92">${blocks}</g>`
+                + lights
+                + rect(0, roadY, W, H - roadY, 'url(#rsRoad)')
+                + reflections
+                + puddles
+                // 路燈：近的在前、遠的在後
+                + lamp(W * (portrait ? 0.22 : 0.13), roadY + (H - roadY) * 0.16, (portrait ? 0.9 : 1.0) * u, 'rsLampGlow')
+                + lamp(W * (portrait ? 0.8 : 0.84), roadY + (H - roadY) * 0.05, (portrait ? 0.56 : 0.6) * u, 'rsLampGlow2')
+                + rainLines
             );
         },
 
-        // 夕陽海灘：落日、海面反光與沙灘
-        sunsetBeach(mode) {
-            const { W, H } = canvasOf(mode), hz = H * 0.56;
-            return svgOf(W, H,
-                vg('sbSky', [[0, '#5d4b9e'], [38, '#f4786b'], [72, '#ffb15c'], [100, '#ffe1a8']])
-                + glowDef('sbGlow', '#fff0b8') + vg('sbSea', [[0, '#f0a05f'], [55, '#d4694f'], [100, '#8f4a63']]) + vg('sbSand', [[0, '#f2dcb0'], [100, '#d9bd86']]),
-                bg(W, H, 'url(#sbSky)') + glow(W * 0.52, hz - H * 0.02, H * 0.13, 'sbGlow', '#ffe9a0')
-                + rect(0, hz, W, H * 0.22, 'url(#sbSea)')
-                + times(9, (i, a, b) => rect(W * 0.52 - (10 + b * 60), hz + 8 + i * (H * 0.021), 20 + b * 120, 5, '#ffe6ad', 'opacity="0.7" rx="2"'))
-                + `<path d="M 0 ${hz + H * 0.2} C ${W * 0.3} ${hz + H * 0.16}, ${W * 0.62} ${hz + H * 0.26}, ${W} ${hz + H * 0.19} L ${W} ${H} L 0 ${H} Z" fill="url(#sbSand)"/>`
-                + palm(W * 0.14, H * 0.96, mode === 'wide' ? 1.1 : 1.3, '#2f6b43', '#7a4a2a')
-                + times(3, (i, a) => cloud(a * W, H * (0.12 + i * 0.07), 0.6, '#ff9d7a', 0.55))
-            );
-        },
-
-        // 秋日楓紅：紅黃楓樹與落葉
+        // 秋日楓紅：兩排楓樹在頭頂接成火紅的隧道，盡頭透著暖光，滿地都是落葉
         autumnLeaves(mode) {
-            const { W, H } = canvasOf(mode), hz = H * 0.62;
+            const { W, H } = canvasOf(mode);
+            const portrait = mode === 'portrait';
+            const u = Math.min(W, H) / 520;
+            const cx = W / 2;
+            const hz = H * (portrait ? 0.44 : 0.46);          // 消失點
+            const hwTop = W * 0.022;                          // 小徑在遠處的半寬
+            const hwBot = W * (portrait ? 0.28 : 0.2);        // 小徑在眼前的半寬
+
+            const py = (t) => hz + (H - hz) * Math.pow(t, 1.7);
+            const phw = (t) => hwTop + (hwBot - hwTop) * Math.pow(t, 1.4);
+
+            // 樹冠色階：0 最亮（靠近光）、越後面越深
+            const canopyTones = ['#ffc247', '#f79a1e', '#ee7418', '#dd4f16', '#c33a14', '#a32b13', '#7d1f0f'];
+            const litter = ['#c9431a', '#b33417', '#e2661c', '#f08a22', '#8f2712', '#6d1d0e'];
+            const bark = '#40251a';
+
+            // 楓葉共用同一條路徑，畫面上再用 use 引用，省下大量字元
+            const leaf = (x, y, s, rot, c, op) =>
+                `<use href="#alLeaf" transform="translate(${x},${y}) rotate(${rot}) scale(${s})" fill="${c}" opacity="${op}"/>`;
+            // 葉片色斑：遠一點的葉子在畫面上只是一小片斜斜的色塊
+            const fleck = (x, y, r, c, op, rot) =>
+                `<ellipse cx="${x.toFixed(0)}" cy="${y.toFixed(0)}" rx="${r.toFixed(1)}" ry="${(r * 0.6).toFixed(1)}" fill="${c}" opacity="${op}" transform="rotate(${rot} ${x.toFixed(0)} ${y.toFixed(0)})"/>`;
+
+            // 楓樹樹幹：接近等寬、微微朝小徑傾斜，受光那側留一條亮邊
+            const trunk = (x, baseY, h, w, lean) => {
+                const tx = x + lean * h * 0.05;
+                const wt = w * 0.8;
+                let g = ell(x, baseY, w * 1.8, w * 0.5, '#331c11', 'opacity="0.5"');
+                g += `<path d="M ${(x - w).toFixed(1)} ${baseY.toFixed(1)} C ${(x - w * 0.96).toFixed(1)} ${(baseY - h * 0.45).toFixed(1)}, ${(tx - wt).toFixed(1)} ${(baseY - h * 0.72).toFixed(1)}, ${(tx - wt * 0.92).toFixed(1)} ${(baseY - h).toFixed(1)} L ${(tx + wt * 0.92).toFixed(1)} ${(baseY - h).toFixed(1)} C ${(tx + wt).toFixed(1)} ${(baseY - h * 0.72).toFixed(1)}, ${(x + w * 0.96).toFixed(1)} ${(baseY - h * 0.45).toFixed(1)}, ${(x + w).toFixed(1)} ${baseY.toFixed(1)} Z" fill="${bark}"/>`;
+                g += `<path d="M ${(x - lean * w * 0.8).toFixed(1)} ${baseY.toFixed(1)} C ${(x - lean * w * 0.78).toFixed(1)} ${(baseY - h * 0.5).toFixed(1)}, ${(tx - lean * wt * 0.74).toFixed(1)} ${(baseY - h * 0.78).toFixed(1)}, ${(tx - lean * wt * 0.7).toFixed(1)} ${(baseY - h).toFixed(1)} L ${(tx - lean * wt * 0.34).toFixed(1)} ${(baseY - h).toFixed(1)} C ${(x - lean * w * 0.38).toFixed(1)} ${(baseY - h * 0.58).toFixed(1)}, ${(x - lean * w * 0.4).toFixed(1)} ${(baseY - h * 0.3).toFixed(1)}, ${(x - lean * w * 0.42).toFixed(1)} ${baseY.toFixed(1)} Z" fill="#79492a" opacity="0.45"/>`;
+                return g;
+            };
+
+            // 樹冠下緣：中央高、兩側低，圍出隧道口
+            const ceil = (x) => {
+                const d = Math.min(1.35, Math.abs(x - cx) / (W * 0.5));
+                return hz * 0.16 + (H * (portrait ? 1.15 : 1.05)) * Math.pow(d, 1.85);
+            };
+
+            // 樹冠：一欄一欄把葉子堆滿，下緣自然參差，不用實心色塊去封
+            let canopy = '';
+            const cols = portrait ? 38 : 50;
+            for (let c0 = 0; c0 <= cols; c0++) {
+                const x0 = -W * 0.06 + (c0 / cols) * W * 1.12;
+                const lim = Math.min(H * 1.02, ceil(x0));
+                if (lim < -H * 0.02) continue;
+                const d = Math.min(1, Math.abs(x0 - cx) / (W * 0.5));
+                const step = (16 + d * 11) * u;
+                for (let y0 = -H * 0.06; y0 < lim; y0 += step) {
+                    const seed = c0 * 41 + Math.round(y0 / step);
+                    const x = x0 + (rnd(seed, 11) - 0.5) * step * 2.4;
+                    const y = y0 + (rnd(seed, 12) - 0.5) * step * 1.3;
+                    const r = (13 + rnd(seed, 13) * 18) * u * (0.6 + d * 0.7);
+                    // 越靠近隧道口越亮，越往外、越往上越深
+                    const depth = Math.min(1, (1 - y / Math.max(1, lim)) * 0.55 + d * 0.6);
+                    const idx = Math.min(canopyTones.length - 1, Math.floor(depth * 6 + rnd(seed, 14) * 1.6));
+                    canopy += disc(x.toFixed(0), y.toFixed(0), r.toFixed(1), canopyTones[idx], `opacity="${(0.72 + rnd(seed, 15) * 0.28).toFixed(2)}"`);
+                }
+            }
+            // 下緣再撒一排看得出葉形的楓葉，把輪廓打散
+            let canopyLeaves = '';
+            for (let k = 0; k < (portrait ? 70 : 92); k++) {
+                const x = (-0.04 + rnd(k, 21) * 1.08) * W;
+                const lim = ceil(x);
+                if (lim < 0 || lim > H) continue;
+                const y = lim * (0.82 + rnd(k, 22) * 0.3);
+                canopyLeaves += leaf(x.toFixed(0), y.toFixed(0), ((0.26 + rnd(k, 23) * 0.42) * u).toFixed(2), (rnd(k, 24) * 360).toFixed(0),
+                    canopyTones[Math.floor(rnd(k, 25) * canopyTones.length)], (0.85 + rnd(k, 26) * 0.15).toFixed(2));
+            }
+
+            // 隧道深處：一排排被光吃掉的小樹與葉團
+            let farWood = '';
+            for (let k = 0; k < (portrait ? 46 : 60); k++) {
+                const x = cx + (rnd(k, 31) - 0.5) * W * 0.62;
+                const y = hz - H * 0.12 + rnd(k, 32) * H * 0.2;
+                const r = (5 + rnd(k, 33) * 14) * u;
+                const near = Math.abs(x - cx) < W * 0.1;
+                farWood += disc(x.toFixed(0), y.toFixed(0), r.toFixed(1), near ? '#ffcf72' : canopyTones[Math.floor(rnd(k, 34) * 4)], `opacity="${(0.35 + rnd(k, 35) * 0.4).toFixed(2)}"`);
+            }
+            for (let k = 0; k < (portrait ? 10 : 14); k++) {
+                const x = cx + (rnd(k, 36) - 0.5) * W * 0.5;
+                const h = (30 + rnd(k, 37) * 60) * u;
+                farWood += rect(x.toFixed(0), (hz - h).toFixed(0), (2 + rnd(k, 38) * 3).toFixed(1), h.toFixed(0), '#7a4526', `opacity="${(0.3 + rnd(k, 39) * 0.3).toFixed(2)}"`);
+            }
+
+            // 兩排樹幹：由遠而近，越近越高越粗
+            const ts = portrait ? [0.07, 0.14, 0.24, 0.38, 0.58, 0.85, 1.12] : [0.07, 0.14, 0.24, 0.38, 0.58, 0.82, 1.08];
+            let trunks = '';
+            const spots = [];
+            for (const t of ts) {
+                const tc = Math.min(t, 1);
+                const baseY = py(tc) + (t > 1 ? (H - py(1)) * (t - 1) : 0);
+                const off = phw(tc) + (12 + 46 * tc) * u;
+                const outer = off + (60 + 116 * tc) * u;
+                const h = (66 + 470 * tc) * u;
+                const w = (2.4 + 15 * tc) * u;
+                trunks += trunk(cx - outer, baseY + 4 * u, h * 0.88, w * 0.78, 1) + trunk(cx + outer, baseY + 4 * u, h * 0.88, w * 0.78, -1);
+                trunks += trunk(cx - off, baseY, h, w, 1) + trunk(cx + off, baseY, h, w, -1);
+                spots.push([cx - off, baseY, tc], [cx + off, baseY, tc], [cx - outer, baseY, tc], [cx + outer, baseY, tc]);
+            }
+
+            // 滿地落葉：遠處只是一片片色斑，近景才看得出葉形
+            let ground = '';
+            let seed = 0;
+            for (let i = 0; i < (portrait ? 380 : 460); i++, seed++) {
+                const t = 0.02 + Math.pow(rnd(seed, 63), 0.85) * 1.02;
+                const tc = Math.min(t, 1);
+                const side = i % 2 ? 1 : -1;
+                const x = cx + side * phw(tc) * (0.86 + rnd(seed, 64) * 2.2);
+                const y = py(tc) + (rnd(seed, 67) - 0.5) * 16 * u * tc;
+                if (x < -30 || x > W + 30 || y < hz - 2 * u) continue;
+                if (tc > 0.74 && rnd(seed, 69) > 0.68) {
+                    ground += leaf(x.toFixed(0), y.toFixed(0), ((0.2 + tc * 0.46) * u).toFixed(2), (rnd(seed, 73) * 360).toFixed(0),
+                        litter[Math.floor(rnd(seed, 74) * litter.length)], (0.9 + rnd(seed, 75) * 0.1).toFixed(2));
+                } else {
+                    ground += fleck(x, y, (2.4 + tc * 6.5 + rnd(seed, 70) * 2.6) * u, litter[Math.floor(rnd(seed, 71) * litter.length)],
+                        (0.45 + rnd(seed, 72) * 0.55).toFixed(2), (rnd(seed, 76) * 180).toFixed(0));
+                }
+            }
+            for (const [tx, ty, tc] of spots) {                          // 樹腳下再堆一圈
+                const n = Math.max(5, Math.round(14 * tc));
+                for (let k = 0; k < n; k++, seed++) {
+                    const a = rnd(seed, 61) * Math.PI * 2;
+                    const r = Math.sqrt(rnd(seed, 62));
+                    ground += fleck(tx + Math.cos(a) * r * 120 * tc * u, ty + Math.sin(a) * r * 26 * tc * u,
+                        (2.6 + tc * 6) * u, litter[Math.floor(rnd(seed, 71) * litter.length)], (0.7 + rnd(seed, 72) * 0.3).toFixed(2), (rnd(seed, 76) * 180).toFixed(0));
+                }
+            }
+            for (let i = 0; i < (portrait ? 46 : 54); i++, seed++) {     // 小徑上零星幾片
+                const tc = 0.1 + rnd(seed, 65) * 0.9;
+                const x = cx + (rnd(seed, 66) - 0.5) * phw(tc) * 1.5;
+                ground += leaf(x.toFixed(0), py(tc).toFixed(0), ((0.18 + tc * 0.5) * u).toFixed(2), (rnd(seed, 73) * 360).toFixed(0),
+                    litter[Math.floor(rnd(seed, 74) * litter.length)], '0.90');
+            }
+
+            // 空中正在飄落的楓葉
+            let air = '';
+            for (let k = 0; k < (portrait ? 30 : 36); k++) {
+                const fy = Math.pow(rnd(k, 82), 0.75) * H * 0.95;
+                air += leaf((rnd(k, 81) * W).toFixed(0), fy.toFixed(0), ((0.32 + rnd(k, 83) * 0.8) * u).toFixed(2), (rnd(k, 84) * 360).toFixed(0),
+                    canopyTones[Math.floor(rnd(k, 85) * canopyTones.length)], (0.75 + rnd(k, 86) * 0.25).toFixed(2));
+            }
+
             return svgOf(W, H,
-                vg('alSky', [[0, '#ffd28a'], [55, '#ffe3b8'], [100, '#fff1d9']]) + vg('alG', [[0, '#d9a85f'], [100, '#a97b42']]),
-                bg(W, H, 'url(#alSky)')
-                + hill(W, H, hz, 18, '#c9915a') + hill(W, H, hz + H * 0.08, 22, 'url(#alG)', 1.1)
-                + tree(W * 0.2, hz + 24, 0.95, '#e2643f', '#7a4a2a', '#f59b52')
-                + tree(W * 0.82, hz + 32, 1.05, '#d4512f', '#7a4a2a', '#f0863f')
-                + tree(W * 0.52, hz + 4, 0.62, '#f0a03f', '#7a4a2a', '#ffc766')
-                + times(20, (i, a, b, c) => `<path d="M 0 -9 L 8 0 L 0 9 L -8 0 Z" fill="${c > 0.5 ? '#e2643f' : '#f0a03f'}" opacity="${(0.55 + c * 0.4).toFixed(2)}" transform="translate(${(a * W).toFixed(0)},${(b * H).toFixed(0)}) rotate(${(c * 120).toFixed(0)})"/>`)
+                `<path id="alLeaf" d="M 0 -19 C 2 -13, 5 -10, 9 -10 L 14 -13 L 12 -4 C 15 -3, 18 -4, 21 -6 L 15 2 L 19 8 L 11 8 C 10 11, 10 14, 11 17 L 4 12 L 1 19 L -1 19 L -4 12 L -11 17 C -10 14, -10 11, -11 8 L -19 8 L -15 2 L -21 -6 C -18 -4, -15 -3, -12 -4 L -14 -13 L -9 -10 C -5 -10, -2 -13, 0 -19 Z M -1.3 18 L 1.3 18 L 1.3 25 L -1.3 25 Z"/>`
+                // 以消失點為中心的輻射光：同一張漸層給了隧道盡頭的亮與四周的暗角
+                + `<radialGradient id="alAir" cx="50%" cy="${((hz / H) * 100).toFixed(1)}%" r="78%"><stop offset="0%" stop-color="#fffdf2"/><stop offset="9%" stop-color="#ffeeb8"/><stop offset="22%" stop-color="#ffb84d"/><stop offset="42%" stop-color="#e9701a"/><stop offset="68%" stop-color="#a82d12"/><stop offset="100%" stop-color="#5c170a"/></radialGradient>`
+                + vg('alPath', [[0, '#f7dfa4'], [18, '#d8a25f'], [52, '#ab7440'], [100, '#7d5029']])
+                + vg('alFloor', [[0, '#d9701f', 0], [8, '#a83f18', 0.85], [40, '#872f14', 1], [100, '#4a180b', 1]])
+                + rg('alGlow', [[0, '#fffdf4', 1], [22, '#fff3c8', 0.9], [52, '#ffbe58', 0.42], [100, '#ef7a1a', 0]])
+                + `<filter id="alSoft" x="-60%" y="-60%" width="220%" height="220%"><feGaussianBlur stdDeviation="${(4 * u).toFixed(1)}"/></filter>`,
+                bg(W, H, 'url(#alAir)')
+                // 地面：兩側鋪滿落葉的林地，中央一條小徑通往光裡
+                + rect(0, hz - 12 * u, W, H - hz + 12 * u, 'url(#alFloor)')
+                + `<path d="M ${(cx - hwTop).toFixed(0)} ${hz.toFixed(0)} L ${(cx + hwTop).toFixed(0)} ${hz.toFixed(0)} L ${(cx + hwBot).toFixed(0)} ${H} L ${(cx - hwBot).toFixed(0)} ${H} Z" fill="url(#alPath)" opacity="0.8"/>`
+                + farWood
+                // 隧道盡頭的暖光
+                + ell(cx, hz, W * 0.2, H * 0.2, 'url(#alGlow)')
+                + ell(cx, hz + 8 * u, W * 0.06, H * 0.055, '#fffbe6', 'opacity="0.95" filter="url(#alSoft)"')
+                + ground
+                + trunks
+                + canopy + canopyLeaves
+                + air
             );
         },
 
@@ -1566,21 +1881,6 @@ const i18n = {
                 + weed(W * 0.42, floorY + 26, 1.1, '#2f9e6f') + weed(W * 0.62, floorY + 22, 0.9, '#3fb37f')
                 + times(4, (i, a, b) => `<g transform="translate(${(a * W).toFixed(0)},${(H * 0.2 + b * H * 0.4).toFixed(0)}) scale(${(0.6 + b).toFixed(2)})" fill="#ffd166"><path d="M 0 0 C 16 -14, 44 -14, 58 0 C 44 14, 16 14, 0 0 Z"/><path d="M 58 0 L 76 -14 L 76 14 Z"/><circle cx="16" cy="-4" r="3.4" fill="#0b2a44"/></g>`)
                 + bubbles(W, H, 16, '#cdeeff')
-            );
-        },
-
-        // 銀白雪山：雪峰、針葉樹與飄雪
-        snowyMountain(mode) {
-            const { W, H } = canvasOf(mode), hz = H * 0.64;
-            return svgOf(W, H,
-                vg('smSky', [[0, '#9fd6f5'], [60, '#d6ecfa'], [100, '#f2fbff']]) + vg('smG', [[0, '#ffffff'], [100, '#d6e6f2']]),
-                bg(W, H, 'url(#smSky)')
-                + peaks(W, H, hz - H * 0.04, H * 0.3, 4, '#b9d4e8') + peaks(W, H, hz, H * 0.22, 5, '#e8f4fb')
-                + hill(W, H, hz + H * 0.09, 16, 'url(#smG)')
-                + pine(W * 0.16, hz + H * 0.16, 0.8, '#2f6b52', '#eaf6ff')
-                + pine(W * 0.3, hz + H * 0.2, 0.6, '#2f6b52', '#eaf6ff')
-                + pine(W * 0.82, hz + H * 0.18, 0.9, '#2f6b52', '#eaf6ff')
-                + flakes(W, H, 34, '#ffffff', 3.4)
             );
         },
 
@@ -1629,66 +1929,6 @@ const i18n = {
             );
         },
 
-        // 薰衣草田：一畦畦紫色花田
-        lavenderField(mode) {
-            const { W, H } = canvasOf(mode), hz = H * 0.44;
-            let rows = '';
-            for (let i = 0; i < 7; i++) {
-                const t = i / 6;
-                const y = hz + (H - hz) * (t * t * 0.95 + 0.05);
-                rows += `<path d="M ${-W * 0.1} ${y} C ${W * 0.3} ${y - 14 - t * 22}, ${W * 0.7} ${y + 12 + t * 20}, ${W * 1.1} ${y}" stroke="${i % 2 ? '#8b6fd6' : '#a98cf0'}" stroke-width="${10 + t * 46}" fill="none" stroke-linecap="round"/>`;
-            }
-            return svgOf(W, H,
-                vg('lfSky', [[0, '#bfd9ff'], [60, '#e4dcff'], [100, '#f6efff']]) + glowDef('lfGlow', '#fff3c9'),
-                bg(W, H, 'url(#lfSky)') + glow(W * 0.76, H * 0.16, H * 0.06, 'lfGlow', '#fff0b8')
-                + times(2, (i, a) => cloud(a * W, H * 0.16, 0.7, '#ffffff', 0.8))
-                + rect(0, hz, W, H - hz, '#b7d38f') + rows
-                + times(10, (i, a, b, c) => disc((a * W).toFixed(0), (hz + b * (H - hz)).toFixed(0), (3 + c * 4).toFixed(1), '#e9d5ff', 'opacity="0.8"'))
-            );
-        },
-
-        // 夢幻極光：極光帶、星空與雪原
-        auroraSky(mode) {
-            const { W, H } = canvasOf(mode), hz = H * 0.76;
-            const ribbon = (y, amp, color, w) => `<path d="M ${-W * 0.1} ${y} C ${W * 0.25} ${y - amp}, ${W * 0.55} ${y + amp}, ${W * 1.1} ${y - amp * 0.5}" stroke="${color}" stroke-width="${w}" fill="none" stroke-linecap="round" opacity="0.55"/>`;
-            return svgOf(W, H,
-                vg('asSky', [[0, '#071b38'], [60, '#0e3550'], [100, '#1b5a6b']]) + vg('asG', [[0, '#d6f0f5'], [100, '#8fb9cc']]),
-                bg(W, H, 'url(#asSky)') + stars(W, H, 60, '#ffffff')
-                + ribbon(H * 0.24, H * 0.16, '#5ef0b8', 58) + ribbon(H * 0.34, H * 0.12, '#7ad8ff', 44) + ribbon(H * 0.44, H * 0.1, '#b78cff', 32)
-                + hill(W, H, hz, 18, '#b9dae6') + hill(W, H, hz + H * 0.08, 14, 'url(#asG)', 1.2)
-                + pine(W * 0.2, hz + H * 0.12, 0.55, '#1f4a3f', '#e8f6fb') + pine(W * 0.84, hz + H * 0.14, 0.62, '#1f4a3f', '#e8f6fb')
-            );
-        },
-
-        // 復古街機：霓虹格線地板與像素方塊
-        retroArcade(mode) {
-            const { W, H } = canvasOf(mode), hz = H * 0.5;
-            let grid = '';
-            for (let i = 0; i <= 12; i++) grid += `<path d="M ${W / 2} ${hz} L ${(i / 12) * W * 2.4 - W * 0.7} ${H}" stroke="#ff4fd8" stroke-width="2.6" opacity="0.7"/>`;
-            for (let i = 1; i <= 7; i++) { const y = hz + (H - hz) * Math.pow(i / 7, 2); grid += `<path d="M 0 ${y} L ${W} ${y}" stroke="#4fe3ff" stroke-width="2.6" opacity="0.65"/>`; }
-            return svgOf(W, H,
-                vg('raSky', [[0, '#1b0836'], [60, '#3d1063'], [100, '#7a1f83']]) + glowDef('raSun', '#ff7ad8'),
-                bg(W, H, 'url(#raSky)') + stars(W, H, 40, '#ffd6ff')
-                + glow(W * 0.5, hz - H * 0.06, H * 0.14, 'raSun', '#ffb15c')
-                + rect(0, hz, W, H - hz, '#1a0630') + grid
-                + times(7, (i, a, b, c) => rect((a * W).toFixed(0), (b * hz * 0.8).toFixed(0), (16 + c * 18).toFixed(0), (16 + c * 18).toFixed(0), c > 0.5 ? '#4fe3ff' : '#ffe066', 'opacity="0.85"'))
-            );
-        },
-
-        // 賽博霓虹：夜城剪影與霓虹招牌
-        neonCity(mode) {
-            const { W, H } = canvasOf(mode), hz = H * 0.78;
-            return svgOf(W, H,
-                vg('ncSky', [[0, '#06132e'], [55, '#12305c'], [100, '#3f2f6e']]) + vg('ncRoad', [[0, '#12224a'], [100, '#070f24']]),
-                bg(W, H, 'url(#ncSky)') + stars(W, H, 36, '#9fd8ff')
-                + buildings(W, hz, '#10224a', '#4fe3ff', 11)
-                + buildings(W, hz, '#0a1738', '#ff6fd8', 5)
-                + rect(0, hz, W, H - hz, 'url(#ncRoad)')
-                + times(6, (i, a, b) => rect((a * W).toFixed(0), (hz + 10 + b * (H - hz) * 0.7).toFixed(0), 10, 46, i % 2 ? '#4fe3ff' : '#ff6fd8', 'opacity="0.35" rx="5"'))
-                + `<g opacity="0.9">${rect(W * 0.12, hz - H * 0.3, 16, H * 0.2, '#ff4fd8', 'rx="8"')}${rect(W * 0.86, hz - H * 0.26, 14, H * 0.16, '#4fe3ff', 'rx="7"')}</g>`
-            );
-        },
-
         // 水晶洞穴：鐘乳石與發光水晶
         crystalCave(mode) {
             const { W, H } = canvasOf(mode), floorY = H * 0.76;
@@ -1703,52 +1943,6 @@ const i18n = {
                 + crystal(W * 0.24, floorY + 20, 1.1, '#a78bfa', '#c4b5fd') + crystal(W * 0.36, floorY + 26, 0.7, '#7dd3fc', '#bae6fd')
                 + crystal(W * 0.72, floorY + 22, 1.25, '#f0abfc', '#f5d0fe') + crystal(W * 0.84, floorY + 28, 0.8, '#a78bfa', '#ddd6fe')
                 + sparkles(W, H * 0.9, 12, '#e9d5ff')
-            );
-        },
-
-        // 浩瀚銀河：星雲、行星與星環
-        galaxySpace(mode) {
-            const { W, H } = canvasOf(mode);
-            return svgOf(W, H,
-                vg('gsSky', [[0, '#05061f'], [55, '#160b3f'], [100, '#2c0f4f']]) + glowDef('gsNeb', '#b06bff') + glowDef('gsNeb2', '#3fa8ff') + glowDef('gsStar', '#fff3c4'),
-                bg(W, H, 'url(#gsSky)')
-                + disc(W * 0.3, H * 0.34, H * 0.42, 'url(#gsNeb)') + disc(W * 0.72, H * 0.6, H * 0.36, 'url(#gsNeb2)')
-                + stars(W, H, 110, '#ffffff')
-                + `<g transform="translate(${W * 0.7},${H * 0.36})">${disc(0, 0, H * 0.11, '#f4a259')}${ell(0, 0, H * 0.2, H * 0.05, 'none', 'stroke="#ffd7a8" stroke-width="7" opacity="0.85" transform="rotate(-22)"')}</g>`
-                + disc(W * 0.22, H * 0.72, H * 0.055, '#7dd3fc')
-                + sparkles(W, H, 10, '#ffffff')
-            );
-        },
-
-        // 沙漠綠洲：沙丘、水池與棕櫚
-        desertOasis(mode) {
-            const { W, H } = canvasOf(mode), hz = H * 0.52;
-            return svgOf(W, H,
-                vg('doSky', [[0, '#7fd4f5'], [55, '#ffe9a8'], [100, '#ffd98a']]) + glowDef('doSun', '#fff4c4') + vg('doSand', [[0, '#f5d98f'], [100, '#d9a95f']]),
-                bg(W, H, 'url(#doSky)') + glow(W * 0.24, H * 0.2, H * 0.075, 'doSun', '#fff2a8')
-                + hill(W, H, hz, 22, '#f0cf8a') + hill(W, H, hz + H * 0.1, 26, 'url(#doSand)', 1.5)
-                + ell(W * 0.58, H * 0.82, W * 0.22, H * 0.075, '#45b6d9')
-                + ell(W * 0.58, H * 0.815, W * 0.17, H * 0.05, '#7ad0ea')
-                + palm(W * 0.42, H * 0.83, mode === 'wide' ? 0.95 : 1.15, '#3f8f58', '#8a5a34')
-                + palm(W * 0.76, H * 0.85, mode === 'wide' ? 0.8 : 1, '#2f7a4a', '#7a4a2a')
-                + times(4, (i, a) => `<path d="M ${(a * W).toFixed(0)} ${(hz + H * 0.24).toFixed(0)} q 14 -6 28 0" stroke="#c9a05f" stroke-width="4" fill="none" opacity="0.7"/>`)
-            );
-        },
-
-        // 遠古遺跡：斷柱、石階與藤蔓
-        ancientRuins(mode) {
-            const { W, H } = canvasOf(mode), baseY = H * 0.8;
-            return svgOf(W, H,
-                vg('arSky', [[0, '#c9b28f'], [55, '#e8d6b4'], [100, '#f5ead2']]) + vg('arG', [[0, '#a98f6b'], [100, '#7a6647']]),
-                bg(W, H, 'url(#arSky)')
-                + times(3, (i, a) => cloud(a * W, H * 0.15, 0.6, '#fff8e8', 0.7))
-                + rect(0, baseY, W, H - baseY, 'url(#arG)')
-                + column(W * 0.16, baseY, H * 0.4, W * 0.05, '#d9c7a3', '#c2ab84')
-                + column(W * 0.3, baseY, H * 0.26, W * 0.045, '#cfbc97', '#b89f78')
-                + column(W * 0.72, baseY, H * 0.46, W * 0.052, '#d9c7a3', '#c2ab84')
-                + column(W * 0.86, baseY, H * 0.2, W * 0.042, '#c9b694', '#b09774')
-                + rect(W * 0.34, baseY - H * 0.5, W * 0.4, H * 0.06, '#d9c7a3', 'rx="4"')
-                + times(6, (i, a, b) => `<path d="M ${(a * W).toFixed(0)} ${(baseY - b * H * 0.3).toFixed(0)} c 12 20, -10 34, 4 56" stroke="#5f8f52" stroke-width="7" fill="none" stroke-linecap="round" opacity="0.85"/>`)
             );
         },
 
@@ -1800,58 +1994,6 @@ const i18n = {
                 + `<path d="M ${W * 0.14} ${baseY - H * 0.46} L ${W * 0.5} ${baseY - H * 0.58} L ${W * 0.86} ${baseY - H * 0.46} L ${W * 0.86} ${baseY - H * 0.4} L ${W * 0.14} ${baseY - H * 0.4} Z" fill="#cfe8ee"/>`
                 + times(3, (i, a, b) => `<g transform="translate(${(a * W).toFixed(0)},${(H * 0.3 + b * H * 0.4).toFixed(0)}) scale(0.8)" fill="#ffd166"><path d="M 0 0 C 16 -14, 44 -14, 58 0 C 44 14, 16 14, 0 0 Z"/><path d="M 58 0 L 76 -14 L 76 14 Z"/></g>`)
                 + bubbles(W, H, 14, '#d6f7ff')
-            );
-        },
-
-        // 數位母體：落下的綠色字碼與網格
-        cyberMatrix(mode) {
-            const { W, H } = canvasOf(mode);
-            let cols = '';
-            const n = Math.ceil(W / 46);
-            for (let i = 0; i < n; i++) {
-                const x = i * 46 + 12, len = 3 + Math.floor(rnd(i, 3) * 7), y0 = rnd(i, 6) * H * 0.6;
-                for (let j = 0; j < len; j++) cols += rect(x, y0 + j * 34, 16, 22, j === len - 1 ? '#d6ffe4' : '#22c55e', `rx="3" opacity="${(0.25 + j / len * 0.7).toFixed(2)}"`);
-            }
-            let grid = '';
-            for (let i = 0; i <= 10; i++) grid += `<path d="M 0 ${H * 0.72 + Math.pow(i / 10, 2) * H * 0.3} L ${W} ${H * 0.72 + Math.pow(i / 10, 2) * H * 0.3}" stroke="#16a34a" stroke-width="2" opacity="0.5"/>`;
-            return svgOf(W, H,
-                vg('cmBg', [[0, '#020c07'], [60, '#052e16'], [100, '#0a4023']]) + glowDef('cmGlow', '#22c55e'),
-                bg(W, H, 'url(#cmBg)') + disc(W * 0.5, H * 0.45, H * 0.4, 'url(#cmGlow)') + cols + grid
-            );
-        },
-
-        // 雲端神域：金色雲海、光柱與神殿階梯
-        celestialRealm(mode) {
-            const { W, H } = canvasOf(mode), baseY = H * 0.74;
-            return svgOf(W, H,
-                vg('crSky', [[0, '#7fd4f5'], [45, '#ffeab8'], [100, '#fff6e0']]) + glowDef('crGlow', '#fff3c4') + vg('crRay', [[0, '#fff6d0', 0.5], [100, '#fff6d0', 0]]),
-                bg(W, H, 'url(#crSky)') + glow(W * 0.5, H * 0.2, H * 0.1, 'crGlow', '#fff8dc')
-                + rays(W, H, W * 0.5, H * 0.18, 6, 'url(#crRay)')
-                + times(5, (i, a, b) => cloud(a * W, H * (0.12 + b * 0.3), 0.8 + b * 0.6, '#ffffff', 0.9))
-                + `<path d="M ${W * 0.2} ${H} L ${W * 0.3} ${baseY} L ${W * 0.7} ${baseY} L ${W * 0.8} ${H} Z" fill="#fff1d0"/>`
-                + times(4, (i) => rect(W * (0.26 - i * 0.02), baseY + i * (H - baseY) / 4, W * (0.48 + i * 0.04), (H - baseY) / 4 - 4, '#ffe8b8', 'rx="4"'))
-                + column(W * 0.3, baseY, H * 0.34, W * 0.045, '#fff8e8', '#ffe8b8')
-                + column(W * 0.7, baseY, H * 0.34, W * 0.045, '#fff8e8', '#ffe8b8')
-                + sparkles(W, H * 0.7, 10, '#fff3c4')
-            );
-        },
-
-        // 夢境仙境：巨大蘑菇、泡泡與粉紫霧氣
-        dreamWonderland(mode) {
-            const { W, H } = canvasOf(mode), hz = H * 0.66;
-            const mushroom = (x, y, s, cap, dot) => `<g transform="translate(${x},${y}) scale(${s})">`
-                + `<path d="M -22 0 C -26 -40, -16 -58, 0 -60 C 16 -58, 26 -40, 22 0 Z" fill="#fff1f7"/>`
-                + `<path d="M -74 -56 C -74 -104, 74 -104, 74 -56 C 40 -40, -40 -40, -74 -56 Z" fill="${cap}"/>`
-                + `<g fill="${dot}"><circle cx="-34" cy="-70" r="12"/><circle cx="8" cy="-80" r="14"/><circle cx="42" cy="-64" r="10"/></g></g>`;
-            return svgOf(W, H,
-                vg('dwSky', [[0, '#f6c8f0'], [50, '#e2b6f7'], [100, '#c4a8f0']]) + glowDef('dwGlow', '#ffe6ff') + vg('dwG', [[0, '#c98fe0'], [100, '#9a6cc4']]),
-                bg(W, H, 'url(#dwSky)') + disc(W * 0.7, H * 0.22, H * 0.2, 'url(#dwGlow)')
-                + stars(W, H * 0.6, 28, '#fff1ff')
-                + hill(W, H, hz, 20, '#d6a8ea') + hill(W, H, hz + H * 0.1, 22, 'url(#dwG)', 1.4)
-                + mushroom(W * 0.22, hz + H * 0.2, mode === 'wide' ? 0.95 : 1.15, '#ff7ab8', '#fff1f7')
-                + mushroom(W * 0.78, hz + H * 0.26, mode === 'wide' ? 1.15 : 1.35, '#a78bfa', '#f3e8ff')
-                + mushroom(W * 0.52, hz + H * 0.12, 0.6, '#7dd3fc', '#e0f2fe')
-                + bubbles(W, H * 0.9, 14, '#ffffff')
             );
         },
 
@@ -2160,33 +2302,21 @@ const i18n = {
             rainy_street: { name: {zh: '雨中街景', en: 'Rainy Street'}, cost: 500, ...illustratedBg('rainyStreet') },
 
             // 🌟 11 ~ 15：風景與探險系列（晚霞橘、楓葉紅、深海藍、雪山白、星夜藍）
-            sunset_beach: { name: {zh: '夕陽海灘', en: 'Sunset Beach'}, cost: 550, ...illustratedBg('sunsetBeach') },
             autumn_leaves: { name: {zh: '秋日楓紅', en: 'Autumn Leaves'}, cost: 600, ...illustratedBg('autumnLeaves') },
             deep_sea: { name: {zh: '深海秘境', en: 'Deep Ocean'}, cost: 650, ...illustratedBg('deepSea') },
-            snowy_mountain: { name: {zh: '銀白雪山', en: 'Snow Mountain'}, cost: 700, ...illustratedBg('snowyMountain') },
             starry_night: { name: {zh: '璀璨星空', en: 'Starry Night'}, cost: 800, ...illustratedBg('starryNight') },
 
             // 🌟 16 ~ 21：奇幻異想系列（糖果粉、魔法紫、薰衣草、極光綠、街機桃紅、霓虹青）
             candy_land: { name: {zh: '糖果王國', en: 'Candy Land'}, cost: 900, ...illustratedBg('candyLand') },
             magic_academy: { name: {zh: '魔法學院', en: 'Magic Academy'}, cost: 950, ...illustratedBg('magicAcademy') },
-            lavender_field: { name: {zh: '薰衣草田', en: 'Lavender Field'}, cost: 1000, ...illustratedBg('lavenderField') },
-            aurora_sky: { name: {zh: '夢幻極光', en: 'Aurora Sky'}, cost: 1050, ...illustratedBg('auroraSky') },
-            retro_arcade: { name: {zh: '復古街機', en: 'Retro Arcade'}, cost: 1100, ...illustratedBg('retroArcade') },
-            neon_city: { name: {zh: '賽博霓虹', en: 'Cyber Neon'}, cost: 1200, ...illustratedBg('neonCity') },
 
             // 🌟 22 ~ 27：宇宙與奇境系列（水晶紫、銀河靛藍、綠洲金黃、遺跡棕、熔岩烈紅、浮島天藍）
             crystal_cave: { name: {zh: '水晶洞穴', en: 'Crystal Cave'}, cost: 1300, ...illustratedBg('crystalCave') },
-            galaxy_space: { name: {zh: '浩瀚銀河', en: 'Galaxy Space'}, cost: 1350, ...illustratedBg('galaxySpace') },
-            desert_oasis: { name: {zh: '沙漠綠洲', en: 'Desert Oasis'}, cost: 1400, ...illustratedBg('desertOasis') },
-            ancient_ruins: { name: {zh: '遠古遺跡', en: 'Ancient Ruins'}, cost: 1450, ...illustratedBg('ancientRuins') },
             volcano_core: { name: {zh: '熔岩火山', en: 'Lava Volcano'}, cost: 1500, ...illustratedBg('volcanoCore') },
             floating_island: { name: {zh: '浮空島嶼', en: 'Floating Island'}, cost: 1600, ...illustratedBg('floatingIsland') },
 
             // 🌟 28 ~ 32：頂級殿堂系列（海神藍、母體翠綠、神域暖黃、仙境洋紅、皇家金）
             underwater_temple: { name: {zh: '亞特蘭提斯', en: 'Atlantis'}, cost: 1700, ...illustratedBg('underwaterTemple') },
-            cyber_matrix: { name: {zh: '數位母體', en: 'Digital Matrix'}, cost: 1800, ...illustratedBg('cyberMatrix') },
-            celestial_realm: { name: {zh: '雲端神域', en: 'Celestial Realm'}, cost: 1900, ...illustratedBg('celestialRealm') },
-            dream_wonderland: { name: {zh: '夢境仙境', en: 'Dreamland'}, cost: 2000, ...illustratedBg('dreamWonderland') },
             royal_palace: { name: {zh: '皇家宮殿', en: 'Royal Palace'}, cost: 2100, ...illustratedBg('royalPalace') }
         };
 
@@ -2510,8 +2640,9 @@ const effectData = {
             updateSlugScale();   // 依螢幕大小決定海兔要多大
             updateRecallButtonVisibility();
 
-            // 🌟 3. 主動向後端拉取最新金幣數量
+            // 🌟 3. 主動向後端拉取最新金幣數量與今日任務狀態
             await fetchUserCoins();
+            syncDailyTaskStatus();
 
             // 🌟 4. 背景悄悄同步伺服器資料
             try {
@@ -3946,6 +4077,11 @@ function updateLangUI() {
             document.getElementById('btnBack').innerText = t.backBtn;
             document.getElementById('btnLang').innerText = t.langBtn;
             document.getElementById('txtPts').innerText = t.points;
+            // 開場動畫還在畫面上的話，字樣也跟著語系走
+            const introTitleEl = document.getElementById('introTitle');
+            const introSkipEl = document.getElementById('introSkip');
+            if (introTitleEl) introTitleEl.innerText = t.introTitle || introTitleEl.innerText;
+            if (introSkipEl) introSkipEl.innerText = t.introSkip || introSkipEl.innerText;
             document.getElementById('gachaTitle').innerText = t.gachaTitle;
             if(document.getElementById('gachaBox').innerText !== '' && !document.getElementById('gachaBox').innerHTML.includes('div')) {
                 document.getElementById('gachaBox').innerText = t.gachaBox;
@@ -4230,6 +4366,35 @@ function updateLangUI() {
             swatch.style.background = typeof item.preview === 'function' ? item.preview() : item.preview;
         }
 
+        // ✨ 【敬請期待卡】排在每個分頁最後面，會閃光、冒星星，點下去給一句預告
+        function makeComingSoonCard(typeKey) {
+            const t = i18n[currLang] || i18n.zh;
+            const card = document.createElement('div');
+            card.className = 'item-card coming-soon';
+            card.innerHTML = `
+                <div class="item-color-preview coming-soon-box">
+                    <span class="cs-mark">?</span>
+                    <span class="cs-spark" style="left:16%; animation-delay:0s;"></span>
+                    <span class="cs-spark" style="left:52%; animation-delay:0.9s;"></span>
+                    <span class="cs-spark" style="left:78%; animation-delay:1.8s;"></span>
+                </div>
+                <div class="item-name">${t.comingSoon || '敬請期待'}</div>
+                <div class="item-cost coming-soon-tag">${t.comingSoonTag || '即將登場'}</div>
+            `;
+
+            // 點一下給一句不一樣的預告，讓人更想等下一次更新
+            card.onclick = () => {
+                const hints = (t.comingSoonHints && t.comingSoonHints[typeKey]) || [];
+                const msg = hints.length ? hints[Math.floor(Math.random() * hints.length)] : (t.comingSoon || '敬請期待');
+                card.classList.remove('cs-poke');
+                void card.offsetWidth;                 // 重播一次搖晃動畫
+                card.classList.add('cs-poke');
+                playDingSound(2);
+                showFloatText(msg);
+            };
+            return card;
+        }
+
         // 🌟 【商店總管】幫你把商品排好，判斷你買過了沒
         function renderShop() {
             const grid = document.getElementById('shopGrid');
@@ -4290,6 +4455,8 @@ function updateLangUI() {
                 if (typeKey !== 'species') applyPreviewSwatch(card, item);
                 grid.appendChild(card);
             });
+
+            grid.appendChild(makeComingSoonCard(typeKey));   // ✨ 最後放上敬請期待
         }
 
         // 🌟 【百寶袋專屬邏輯】跟商店很像，只是過濾掉還沒買的東西
@@ -4345,6 +4512,8 @@ function updateLangUI() {
                 if (typeKey !== 'species') applyPreviewSwatch(card, item);
                 grid.appendChild(card);
             });
+
+            grid.appendChild(makeComingSoonCard(typeKey));   // ✨ 最後放上敬請期待
         }
 
         // 🌟 【穿上裝備】
@@ -9370,19 +9539,26 @@ case 'fish': {
                         showFloatText(`🗑️ 已刪除 ${removed.label || removed.name}`);
                     }
 
-                    // 5. 🛒 商店購買音符（試用模式不扣分）
-                    function buyNoteDirectly(noteData) {
+                    // 5. 🛒 商店購買音符：扣 1 分由後端處理，成功才把音符放上樂譜（試用模式不扣分）
+                    let buyingNote = false;
+                    async function buyNoteDirectly(noteData) {
                         if (window.collectedStaffNotes.length >= 32) {
                             showFloatText('樂譜已經放滿 32 個音囉！🎶');
                             return;
                         }
+                        if (buyingNote) return;
 
                         if (!trialState.effect) {
-                            if (gameState.points < 1) {
-                                showFloatText('積分不足 1 分 😢');
+                            buyingNote = true;
+                            const result = await fetchAPI('/pet-games/interact', 'POST', { action: 'MUSIC_BUY_NOTE' });
+                            buyingNote = false;
+
+                            if (!result || result.error) {
+                                showFloatText((result && result.error) || '連線異常，等一下再買 😢');
                                 return;
                             }
-                            gameState.points -= 1;
+                            if (window.collectedStaffNotes.length >= 32) return;   // 等待期間被塞滿就不放了
+                            if (result.coin !== undefined && !isNaN(Number(result.coin))) gameState.points = Number(result.coin);
                             saveGame();
                             updateUI();
                             showFloatText(`-1分 🛒 +${noteData.label || noteData.name}`);
@@ -9417,10 +9593,8 @@ case 'fish': {
                         renderStaffTrack(true);
 
                         if (!trialState.effect) {
-                            gameState.points += 15;
-                            saveGame();
-                            updateUI();
-                            showFloatText(`+15 ${noteData.label || noteData.name} 🎵`);
+                            showFloatText(`🎵 ${noteData.label || noteData.name}`, 1200);
+                            awardMusicNote();       // 15 分由後端發，收太快會自動排隊補送
                         } else {
                             showFloatText(`試用體驗 🎵 ${noteData.label || noteData.name}`);
                         }
@@ -9739,7 +9913,7 @@ case 'fish': {
                             @keyframes popUp { 0%{transform:translate(-50%,0) scale(.6); opacity:0;} 25%{transform:translate(-50%,-14px) scale(1.15); opacity:1;} 100%{transform:translate(-50%,-46px) scale(1); opacity:0;} }
                             /* 右上角財富計數器 */
                             .money-counter {
-                                position:absolute; top:112px; right:16px; z-index:40; pointer-events:none;
+                                position:absolute; top:126px; right:16px; z-index:40; pointer-events:none;
                                 display:flex; align-items:center; gap:6px; padding:6px 14px; border-radius:22px;
                                 background:linear-gradient(135deg, rgba(255,246,214,.95), rgba(255,226,140,.95));
                                 border:3px solid #e0b100; box-shadow:0 6px 16px rgba(180,130,0,.3);
@@ -9763,11 +9937,11 @@ case 'fish': {
                                 background:rgba(255,246,214,.94); border:3px solid #e0b100;
                                 color:#8a6100; font-weight:900; font-size:1rem; z-index:41;
                                 box-shadow:0 6px 16px rgba(180,130,0,.3);
-                                animation:hintFade 5.2s ease-in-out forwards;
+                                animation:hintFade 7.5s ease-in-out forwards;
                             }
-                            @keyframes hintFade { 0%{opacity:0; transform:translate(-50%,10px);} 10%,80%{opacity:1; transform:translate(-50%,0);} 100%{opacity:0; transform:translate(-50%,-8px);} }
+                            @keyframes hintFade { 0%{opacity:0; transform:translate(-50%,10px);} 6%,90%{opacity:1; transform:translate(-50%,0);} 100%{opacity:0; transform:translate(-50%,-8px);} }
                             @media screen and (max-width:768px) {
-                                .money-counter { top:104px; right:10px; padding:5px 11px; font-size:.85rem; border-width:2px; }
+                                .money-counter { top:calc(126px + env(safe-area-inset-top, 0px)); right:calc(10px + env(safe-area-inset-right, 0px)); padding:9px 14px; min-height:44px; font-size:.85rem; border-width:2px; }
                                 .money-pile { height:26%; }
                                 .money-hint { font-size:.85rem; padding:7px 14px; bottom:22%; border-width:2px; }
                             }
@@ -9798,6 +9972,10 @@ case 'fish': {
                     moneyLayer.appendChild(counter);
                     let collected = 0;
                     let exchanging = false;
+                    let lastExchangeAt = 0;                 // 兩次兌換至少間隔 5 秒（後端也會再擋一次）
+                    const EXCHANGE_CD_MS = 5000;
+                    // 沒買特效（試用中）後端不會給分，前端先擋下來省一次請求
+                    const ownsMoneyEffect = () => (gameState.unlockedEffects || []).includes('money');
 
                     // 達標時counter變成可點的兌換鈕
                     const refreshCounter = () => {
@@ -9813,28 +9991,47 @@ case 'fish': {
                             : `/${COINS_PER_EXCHANGE}`;
                     };
 
-                    // 點擊兌換：扣掉金幣數，跟伺服器換積分（後端有冷卻與每日上限）
+                    // 點擊兌換：只送 action，加多少分由後端決定；成功才扣掉手上的金幣
                     counter.addEventListener('click', async () => {
                         if (exchanging || collected < COINS_PER_EXCHANGE) return;
+
+                        if (!ownsMoneyEffect()) {
+                            showFloatText(currLang === 'zh'
+                                ? '尚未擁有財富自由特效，無法兌換！'
+                                : 'You need to own the Wealth Freedom effect to exchange!', 4000);
+                            return;
+                        }
+                        const waitMs = EXCHANGE_CD_MS - (Date.now() - lastExchangeAt);
+                        if (waitMs > 0) {
+                            const waitSec = Math.ceil(waitMs / 1000);
+                            showFloatText(currLang === 'zh'
+                                ? `兌換冷卻中！還需等待 ${waitSec} 秒。`
+                                : `Exchange cooling down! Wait ${waitSec}s.`, 2500);
+                            return;
+                        }
+
                         exchanging = true;
                         refreshCounter();
-                        try {
-                            const result = await fetchAPI('/pet-games/interact', 'POST', { action: 'MONEY_EXCHANGE' });
-                            if (result && !result.error) {
-                                collected -= COINS_PER_EXCHANGE;
-                                if (result.coin !== undefined) gameState.points = result.coin;
-                                else gameState.points += POINTS_PER_EXCHANGE;
-                                saveGame();
-                                updateUI();
-                                playDingSound(3);
-                                const lr = moneyLayer.getBoundingClientRect();
-                                for (let i = 0; i < 3; i++) burstAt(lr.width * (0.3 + Math.random() * 0.4), lr.height * (0.2 + Math.random() * 0.2), null);
-                                showFloatText(currLang === 'zh' ? `💰 兌換成功！+${POINTS_PER_EXCHANGE} 積分` : `💰 Exchanged! +${POINTS_PER_EXCHANGE}`, 4000);
-                            } else {
-                                showFloatText(result?.error || (currLang === 'zh' ? '兌換失敗，稍後再試' : 'Exchange failed'), 4000);
-                            }
-                        } catch (e) {
-                            showFloatText(currLang === 'zh' ? '伺服器連線異常' : 'Server error', 4000);
+                        const result = await fetchAPI('/pet-games/interact', 'POST', { action: 'MONEY_EXCHANGE' });
+                        if (result && !result.error) {
+                            lastExchangeAt = Date.now();
+                            collected -= COINS_PER_EXCHANGE;
+                            // 積分一律以後端回傳的 coin 為準
+                            if (result.coin !== undefined && !isNaN(Number(result.coin))) gameState.points = Number(result.coin);
+                            else gameState.points += POINTS_PER_EXCHANGE;
+                            saveGame();
+                            updateUI();
+                            playDingSound(3);
+                            const lr = moneyLayer.getBoundingClientRect();
+                            for (let i = 0; i < 3; i++) burstAt(lr.width * (0.3 + Math.random() * 0.4), lr.height * (0.2 + Math.random() * 0.2), null);
+                            showFloatText(currLang === 'zh' ? `💰 兌換成功！+${POINTS_PER_EXCHANGE} 積分` : `💰 Exchanged! +${POINTS_PER_EXCHANGE}`, 4000);
+                        } else if (result && result.error) {
+                            // 後端的錯誤訊息直接給玩家看，金幣保留讓他稍後再試
+                            showFloatText(result.error, 4000);
+                        } else {
+                            showFloatText(currLang === 'zh'
+                                ? '連線異常，金幣先留著，稍後再兌換'
+                                : 'Connection error — your coins are safe, try again later', 4000);
                         }
                         exchanging = false;
                         refreshCounter();
@@ -10004,7 +10201,7 @@ case 'fish': {
                         ? `拖著海兔去接錢！接滿 ${COINS_PER_EXCHANGE} 枚可兌換 ${POINTS_PER_EXCHANGE} 積分`
                         : `Drag the slug to catch coins! ${COINS_PER_EXCHANGE} coins = ${POINTS_PER_EXCHANGE} points`;
                     moneyLayer.appendChild(hint);
-                    setTimeout(() => hint.remove(), 5200);
+                    setTimeout(() => hint.remove(), 7500);
 
                     // 開場先灑一批，之後持續穩定落下
                     const initial = isPhone ? 7 : 11;
@@ -10081,12 +10278,56 @@ default:
         }
 
         // 噴出獎勵數字的小動畫
-        function showFloatText(text, duration = 1000) {
+        // 🌟 【全域提示訊息】字越多停越久，確保每一則都看得完
+        const TOAST_MIN_MS = 2600;      // 再短的提示也至少停這麼久
+        const TOAST_MAX_MS = 7000;      // 再長也不要一直卡在畫面上
+        const TOAST_MAX_COUNT = 4;      // 同時最多疊幾則
+        const toastReadTime = (msg) =>
+            Math.min(TOAST_MAX_MS, Math.max(TOAST_MIN_MS, 1500 + msg.length * 95));
+
+        function getFloatTextLayer() {
+            let layer = document.getElementById('floatTextLayer');
+            if (!layer) {
+                layer = document.createElement('div');
+                layer.id = 'floatTextLayer';
+                document.body.appendChild(layer);
+            }
+            return layer;
+        }
+
+        // duration 只當成「至少要停多久」，真正的停留時間會取字數估算與它的較大值
+        function showFloatText(text, duration = 0) {
+            const msg = String(text == null ? '' : text);
+            if (!msg) return;
+            const life = Math.min(TOAST_MAX_MS, Math.max(toastReadTime(msg), duration || 0));
+            const anim = `floatNoticeStay ${life}ms cubic-bezier(0.18, 0.89, 0.32, 1.28) forwards`;
+            const layer = getFloatTextLayer();
+
+            // 一模一樣的訊息連續跳出來時，只把它的停留時間重新計算，不疊成一排重複的
+            const same = Array.from(layer.children).find(node => node.dataset.msg === msg);
+            if (same) {
+                clearTimeout(Number(same.dataset.timerId));
+                same.style.animation = 'none';
+                void same.offsetWidth;                      // 強制重排，動畫才會重播
+                same.style.animation = anim;
+                same.dataset.timerId = setTimeout(() => same.remove(), life);
+                return;
+            }
+
             const el = document.createElement('div');
-            el.className = 'float-text'; el.innerText = text; el.style.left = '50%'; el.style.top = '30%';
-            el.style.animation = `floatUp ${duration / 1000}s forwards cubic-bezier(0.18, 0.89, 0.32, 1.28)`;
-            document.body.appendChild(el);
-            setTimeout(() => el.remove(), duration);
+            el.className = 'float-text';
+            el.dataset.msg = msg;
+            el.innerText = msg;
+            el.style.animation = anim;
+            layer.appendChild(el);
+            el.dataset.timerId = setTimeout(() => el.remove(), life);
+
+            // 一次跳太多則會看不完，把最舊的先收掉
+            while (layer.children.length > TOAST_MAX_COUNT) {
+                const oldest = layer.firstElementChild;
+                clearTimeout(Number(oldest.dataset.timerId));
+                oldest.remove();
+            }
         }
 
 // 🌟 【冷卻倒數計時器：防刷分防重整版】
@@ -10785,11 +11026,40 @@ function updateTaskProgress(actionType) {
             }
         }
 
-        // 🌟 打開任務面板（含進度條、狀態判定、領取獎勵按鈕與雙語切換）
+        // 🌟 【每日任務狀態同步】任務做了沒、獎勵領了沒，一律以後端記錄為準
+        async function syncDailyTaskStatus() {
+            const data = await fetchAPI('/pet-games/daily-task', 'GET');
+            if (!data || data.error || !data.tasks) return false;
+
+            const tasks = getDailyTaskData();
+            Object.keys(data.tasks).forEach(key => {
+                const info = data.tasks[key];
+                const task = tasks[key];
+                if (!task || !info) return;
+                if (info.reward !== undefined) task.reward = info.reward;
+                if (info.done) task.count = Math.max(task.count, task.target);
+                task.claimed = !!info.claimed;
+            });
+            saveGame();
+            return true;
+        }
+
+        // 🌟 打開任務面板：先用本機進度畫一次，再跟後端對完重畫
         function openDailyModal() {
             const modal = document.getElementById('dailyModalOverlay');
+            if (!modal) return;
+
+            renderDailyTaskList();
+            modal.style.display = 'flex';
+            syncDailyTaskStatus().then(ok => {
+                if (ok && modal.style.display === 'flex') renderDailyTaskList();
+            });
+        }
+
+        // 🌟 畫出任務清單（含進度、狀態判定、領取獎勵按鈕與雙語切換）
+        function renderDailyTaskList() {
             const list = document.getElementById('dailyTaskList');
-            if (!modal || !list) return;
+            if (!list) return;
 
             list.innerHTML = ''; 
             const t = i18n[currLang];
@@ -10860,24 +11130,34 @@ function updateTaskProgress(actionType) {
                 `;
                 list.appendChild(item);
             });
-
-            modal.style.display = 'flex';
         }
 
-        // 🌟 領取任務獎勵
-        function claimDailyTaskReward(taskKey) {
+        // 🌟 領取任務獎勵：獎勵由後端發放，成功才標記成已領
+        let claimingDailyTask = false;
+        async function claimDailyTaskReward(taskKey) {
             const tasks = getDailyTaskData();
             const task = tasks[taskKey];
-            if (task && task.count >= task.target && !task.claimed) {
+            if (!task || task.count < task.target || task.claimed || claimingDailyTask) return;
+
+            claimingDailyTask = true;
+            const result = await fetchAPI('/pet-games/daily-task/claim', 'POST', { task: taskKey });
+            claimingDailyTask = false;
+
+            const t = i18n[currLang];
+            if (result && !result.error) {
                 task.claimed = true;
-                gameState.points += task.reward;
+                const reward = result.rewardCoin || task.reward;
+                if (result.coin !== undefined && !isNaN(Number(result.coin))) gameState.points = Number(result.coin);
+                else gameState.points += reward;
                 saveGame();
                 updateUI();
-
-                const t = i18n[currLang];
-                showFloatText(`${t.taskClaimedToast}${task.reward} Pts！`, 2500);
-                openDailyModal(); // 立即刷新介面為「已領取」
+                showFloatText(`${t.taskClaimedToast}${reward} Pts！`, 2500);
+            } else {
+                // 後端說還沒完成或已經領過，就把訊息給玩家並重新對一次狀態
+                showFloatText((result && result.error) || (currLang === 'zh' ? '領取失敗，稍後再試' : 'Claim failed, try again'), 3000);
+                await syncDailyTaskStatus();
             }
+            renderDailyTaskList();   // 立即刷新介面
         }
 // 🌟 播放禮物盒開蓋動畫，再進入日曆
 function playGiftAnimation(btnElement) {

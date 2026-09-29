@@ -103,6 +103,25 @@
         }
         .lang-btn:active { transform: translateY(4px); box-shadow: 0 0 0 transparent; }
 
+        /* 📖 飼養手冊：跟右上角的「連線」對稱，固定在左上角，別壓到頂部資訊列 */
+        #btnOpenManual {
+            position: absolute;
+            top: 75px;
+            left: 20px;
+            z-index: 60;
+            background: #ffffff;
+            border: 3px solid var(--border-color);
+            color: var(--text-dark);
+            padding: 8px 18px;
+            border-radius: 20px;
+            font-weight: 900;
+            font-size: 0.9rem;
+            cursor: pointer;
+            box-shadow: 0 4px 0 var(--border-color);
+            transition: 0.1s;
+        }
+        #btnOpenManual:active { transform: translateY(4px); box-shadow: 0 0 0 transparent; }
+
         /* 🌟 【主要遊戲舞台】包含背景底色、網點、還有特效圖層 */
         .stage {
             position: absolute;
@@ -968,8 +987,380 @@
         .item-cost.owned { background: #e2e8f0; color: var(--text-dim); }
         .item-card.equipped .item-cost.owned { background: var(--text-dark); color: white; }
 
+        /* 🌊 【開場動畫】掉進海裡 → 盲盒沉下來 → 打開 */
+        #introOverlay {
+            position: fixed;
+            inset: 0;
+            z-index: 100000;
+            overflow: hidden;
+            background: #06355c;
+            cursor: pointer;
+            animation: blastShake 0.5s 3.2s cubic-bezier(0.36, 0.07, 0.19, 0.97),
+                       introOut 0.8s 4.7s ease-in forwards;
+        }
+        /* 整個水下世界一起往上跑，做出鏡頭往下沉的感覺 */
+        .intro-world {
+            position: absolute;
+            left: 0; right: 0; top: 0;
+            height: 300vh;
+            animation: introDive 2.2s cubic-bezier(0.5, 0, 0.3, 1) forwards;
+        }
+        /* 上面 100vh 是天空，下面 200vh 是越來越深的海 */
+        .intro-sea {
+            position: absolute; left: 0; right: 0; top: 100vh; height: 200vh;
+            background: linear-gradient(180deg, #a7e4ff 0%, #4fb4e8 12%, #2a90cf 30%, #1a6fae 52%, #0d4c80 76%, #06355c 100%);
+        }
+        .intro-sky {
+            position: absolute; left: 0; right: 0; top: 0; height: 100vh;
+            background: linear-gradient(180deg, #eaf8ff 0%, #cdeeff 55%, #a7e4ff 100%);
+        }
+        /* 海面那條亮線 */
+        .intro-surface {
+            position: absolute; left: -10%; right: -10%; top: 100vh;
+            height: 12px; margin-top: -6px;
+            background: linear-gradient(90deg, rgba(255,255,255,0), #ffffff, rgba(255,255,255,0));
+            filter: blur(2px);
+            opacity: 0.95;
+        }
+        .intro-ray {
+            position: absolute; top: 100vh;
+            width: 12%; height: 120vh;
+            background: linear-gradient(180deg, rgba(255,255,255,0.5), rgba(255,255,255,0));
+            transform: skewX(-10deg);
+            filter: blur(6px);
+            opacity: 0;
+            animation: introRay 2.6s ease-in-out infinite;
+        }
+        /* 入水的水花圈 */
+        .intro-splash {
+            position: absolute; left: 50%; top: 100vh;
+            width: 14vmin; height: 14vmin;
+            margin: -7vmin 0 0 -7vmin;
+            border: 4px solid rgba(255,255,255,0.9);
+            border-radius: 50%;
+            opacity: 0;
+            animation: introSplash 0.9s 0.62s ease-out forwards;
+        }
+        .intro-bubbles { position: absolute; inset: 0; pointer-events: none; }
+        .intro-bubbles span {
+            position: absolute;
+            bottom: -8%;
+            background: rgba(255,255,255,0.55);
+            border: 1px solid rgba(255,255,255,0.8);
+            border-radius: 50%;
+            animation: introBubble 3.4s linear infinite;
+        }
+        /* 漂流瓶：落水後緩緩下沉、慢慢脹大，最後整個炸開 */
+        .intro-bottle {
+            position: absolute; left: 50%; top: 50%;
+            width: 34vmin; height: 34vmin;
+            margin: -17vmin 0 0 -17vmin;
+            animation: bottleFall 1.25s cubic-bezier(0.4, 0.05, 0.25, 1) forwards;
+        }
+        .bottle-bob { width: 100%; height: 100%; animation: bottleBob 2.4s 1.25s ease-in-out infinite; }
+        /* 慢慢脹大，越大代表裡面越擠、快撐不住了 */
+        .bottle-grow {
+            width: 100%; height: 100%;
+            animation: bottleGrow 1.6s 1.6s cubic-bezier(0.5, 0, 0.7, 0) forwards,
+                       bottleBlast 0.26s 3.16s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+        }
+        .bottle-shake {
+            width: 100%; height: 100%; position: relative;
+            transform: rotate(-14deg);
+            animation: bottleTremble 0.5s 1.9s ease-in-out 4;
+        }
+        .bottle-glass {
+            position: absolute; left: 50%; top: 50%;
+            width: 58%; height: 100%;
+            transform: translate(-50%, -50%);
+            filter: drop-shadow(0 8px 18px rgba(3, 40, 70, 0.45));
+        }
+        .bottle-cork {
+            position: absolute; left: 50%; top: 3%;
+            width: 12%; height: 8%;
+            margin-left: -6%;
+            background: linear-gradient(180deg, #d9a86a, #b3773c);
+            border: 2px solid #8d5a28;
+            border-radius: 4px;
+        }
+        /* 瓶子裡的問號海兔：隔著玻璃晃來晃去，越接近爆炸越不安分 */
+        .bunny-inside {
+            position: absolute; left: 50%; top: 60%;
+            width: 47%; height: auto;
+            transform: translate(-50%, -50%);
+            transform-origin: 50% 60%;
+            opacity: 0.95;
+            animation: bunnyWriggle 0.9s 1.4s ease-in-out 5;
+        }
+
+        /* 爆炸瞬間的滿版白閃 */
+        .blast-white {
+            position: absolute; inset: 0;
+            background: #ffffff;
+            opacity: 0;
+            pointer-events: none;
+            animation: blastWhite 0.42s 3.22s ease-out forwards;
+        }
+        /* 爆炸：白光、衝擊波、碎玻璃與水花 */
+        .blast { position: absolute; left: 50%; top: 50%; width: 0; height: 0; }
+        .blast-flash {
+            position: absolute; left: 50%; top: 50%;
+            width: 26vmin; height: 26vmin; margin: -13vmin 0 0 -13vmin;
+            border-radius: 50%;
+            background: radial-gradient(circle, #ffffff 0%, rgba(214,246,255,0.92) 38%, rgba(140,220,255,0) 72%);
+            opacity: 0;
+            animation: blastFlash 0.55s 3.2s cubic-bezier(0.1, 0.8, 0.2, 1) forwards;
+        }
+        .blast-ring {
+            position: absolute; left: 50%; top: 50%;
+            width: 16vmin; height: 16vmin; margin: -8vmin 0 0 -8vmin;
+            border: 4px solid rgba(255,255,255,0.9);
+            border-radius: 50%;
+            opacity: 0;
+            animation: blastRing 0.65s 3.21s cubic-bezier(0.05, 0.85, 0.2, 1) forwards;
+        }
+        .blast-ring.delay { animation-delay: 3.32s; border-width: 2px; }
+        .shard {
+            position: absolute; left: 50%; top: 50%;
+            width: 4.4vmin; height: 5.8vmin; margin: -2.9vmin 0 0 -2.2vmin;
+            background: linear-gradient(140deg, #f2ffff 0%, #b6e8e6 45%, #5aa9ad 100%);
+            clip-path: polygon(50% 0%, 100% 62%, 62% 100%, 8% 74%);
+            filter: drop-shadow(0 2px 5px rgba(2, 30, 55, 0.55));
+            opacity: 0;
+            animation: shardFly 0.95s 3.2s cubic-bezier(0.05, 0.85, 0.2, 1) forwards;
+        }
+
+        .debris {
+            position: absolute; left: 50%; top: 50%;
+            aspect-ratio: 1;
+            margin: -0.5vmin 0 0 -0.5vmin;
+            background: #eafcff;
+            border-radius: 50%;
+            opacity: 0;
+            animation: debrisFly 0.7s 3.2s cubic-bezier(0.05, 0.9, 0.2, 1) forwards;
+        }
+
+        /* 炸出來的問號海兔：從中心往外飛，邊轉邊淡掉 */
+        .q-burst { position: absolute; left: 50%; top: 50%; width: 0; height: 0; }
+        .q-fly {
+            position: absolute; left: 0; top: 0;
+            height: auto;
+            transform: translate(-50%, -50%) scale(0.2);
+            opacity: 0;
+            filter: drop-shadow(0 4px 10px rgba(0, 25, 45, 0.45));
+            animation: qFly 1.5s cubic-bezier(0.05, 0.88, 0.18, 1) forwards;
+        }
+
+        @keyframes bottleFall {
+            0% { transform: translateY(-95vh) rotate(-30deg) scale(0.82); }
+            55% { transform: translateY(6vh) rotate(-8deg) scale(1.02); }
+            75% { transform: translateY(-2vh) rotate(-18deg) scale(1); }
+            100% { transform: translateY(0) rotate(-12deg) scale(1); }
+        }
+        @keyframes bottleBob {
+            0%, 100% { transform: translateY(0) rotate(-3deg); }
+            50% { transform: translateY(-2.4vmin) rotate(3deg); }
+        }
+        @keyframes bottleGrow {
+            0% { transform: scale(1); }
+            70% { transform: scale(1.55); }
+            100% { transform: scale(2.05); }
+        }
+        /* 炸開的瞬間再撐一下就整個不見 */
+        @keyframes bottleBlast {
+            0% { transform: scale(2.05); opacity: 1; }
+            18% { transform: scale(1.72); opacity: 1; }
+            42% { transform: scale(3.6); opacity: 0.55; }
+            100% { transform: scale(4.6); opacity: 0; }
+        }
+        @keyframes bottleTremble {
+            0%, 100% { transform: rotate(-14deg) translateX(0); }
+            25% { transform: rotate(-19deg) translateX(-0.9vmin); }
+            75% { transform: rotate(-9deg) translateX(0.9vmin); }
+        }
+        @keyframes bunnyWriggle {
+            0%, 100% { transform: translate(-50%, -50%) scale(1) rotate(-6deg); }
+            35% { transform: translate(-50%, -52%) scale(0.94, 1.08) rotate(6deg); }
+            70% { transform: translate(-50%, -48%) scale(1.08, 0.92) rotate(-4deg); }
+        }
+        @keyframes blastFlash {
+            0% { opacity: 0; transform: scale(0.2); }
+            8% { opacity: 1; transform: scale(1.9); }
+            100% { opacity: 0; transform: scale(4.2); }
+        }
+        @keyframes blastRing {
+            0% { opacity: 1; transform: scale(0.2); }
+            100% { opacity: 0; transform: scale(5.5); }
+        }
+        @keyframes blastWhite {
+            0% { opacity: 0; }
+            10% { opacity: 0.92; }
+            100% { opacity: 0; }
+        }
+        @keyframes blastShake {
+            0%, 100% { transform: translate(0, 0); }
+            12% { transform: translate(1.6vmin, -1.2vmin); }
+            26% { transform: translate(-1.8vmin, 1vmin); }
+            40% { transform: translate(1.2vmin, 1.4vmin); }
+            56% { transform: translate(-1vmin, -0.8vmin); }
+            72% { transform: translate(0.6vmin, 0.5vmin); }
+            88% { transform: translate(-0.3vmin, -0.2vmin); }
+        }
+        @keyframes debrisFly {
+            0% { opacity: 1; transform: translate(0, 0) scale(1); }
+            100% { opacity: 0; transform: translate(var(--dx), var(--dy)) scale(0.4); }
+        }
+        @keyframes shardFly {
+            0% { opacity: 1; transform: translate(0, 0) rotate(0) scale(0.5); }
+            55% { opacity: 1; transform: translate(calc(var(--sx) * 0.8), calc(var(--sy) * 0.8)) rotate(calc(var(--sr) * 0.7)) scale(1.05); }
+            100% { opacity: 0; transform: translate(var(--sx), var(--sy)) rotate(var(--sr)) scale(0.9); }
+        }
+        @keyframes qFly {
+            0% { opacity: 0; transform: translate(-50%, -50%) scale(0.15) rotate(0); }
+            5% { opacity: 1; transform: translate(-50%, -50%) scale(1.3) rotate(calc(var(--rot) * 0.1)); }
+            65% { opacity: 1; transform: translate(calc(var(--tx) - 50%), calc(var(--ty) - 50%)) scale(var(--s, 1)) rotate(calc(var(--rot) * 0.8)); }
+            100% { opacity: 0; transform: translate(calc(var(--tx) * 1.25 - 50%), calc(var(--ty) * 1.25 - 50%)) scale(var(--s, 0.9)) rotate(var(--rot)); }
+        }
+
+        .intro-title {
+            position: absolute; left: 0; right: 0; top: 74%;
+            text-align: center;
+            font-size: clamp(1.6rem, 6vmin, 2.6rem);
+            font-weight: 900;
+            color: #ffffff;
+            letter-spacing: 3px;
+            text-shadow: 0 4px 18px rgba(0, 60, 110, 0.6);
+            opacity: 0;
+            animation: introTitle 1s 3.9s ease-out forwards;
+        }
+        .intro-skip {
+            position: absolute; left: 0; right: 0; bottom: calc(6% + env(safe-area-inset-bottom, 0px));
+            text-align: center;
+            font-size: 0.85rem;
+            font-weight: 900;
+            color: rgba(255,255,255,0.75);
+            opacity: 0;
+            animation: introSkipIn 0.6s 1.4s ease-out forwards;
+        }
+        /* 被點掉時就快速淡出 */
+        #introOverlay.is-skipping { animation: introOut 0.35s ease-in forwards; }
+
+        @keyframes introDive {
+            0% { transform: translateY(-40vh); }
+            22% { transform: translateY(-52vh); }
+            52% { transform: translateY(-118vh); }
+            100% { transform: translateY(-190vh); }
+        }
+        @keyframes introRay { 0%, 100% { opacity: 0; } 45% { opacity: 0.45; } }
+        @keyframes introSplash {
+            0% { opacity: 0.95; transform: scale(0.2); }
+            100% { opacity: 0; transform: scale(2.6); }
+        }
+        @keyframes introBubble {
+            0% { transform: translateY(0) scale(0.7); opacity: 0; }
+            15% { opacity: 0.8; }
+            100% { transform: translateY(-115vh) scale(1.1); opacity: 0; }
+        }
+        @keyframes introTitle {
+            0% { opacity: 0; transform: translateY(14px) scale(0.92); }
+            100% { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        @keyframes introSkipIn { 0% { opacity: 0; } 100% { opacity: 1; } }
+        @keyframes introOut { 0% { opacity: 1; } 100% { opacity: 0; visibility: hidden; } }
+
+        /* 系統關掉動畫時，只留一層短短的淡出，不做任何位移 */
+        @media (prefers-reduced-motion: reduce) {
+            #introOverlay { animation: introOut 0.5s 0.6s ease-in forwards; }
+            .intro-world, .intro-ray, .intro-splash, .intro-bubbles span,
+            .intro-bottle, .bottle-bob, .bottle-grow, .bottle-shake,
+            .bunny-inside, .blast-white, .blast-flash, .blast-ring, .shard, .debris, .q-fly { animation: none; }
+        }
+
+        /* ✨ 【敬請期待卡】流光掃過、星星上浮，讓人期待下一次更新 */
+        .item-card.coming-soon {
+            position: relative;
+            overflow: hidden;
+            cursor: pointer;
+            border-style: dashed;
+            border-color: #c7b2f5;
+            box-shadow: 0 4px 0 #c7b2f5;
+            background: linear-gradient(180deg, #fffdf7 0%, #f6f0ff 100%);
+            animation: csBreathe 2.8s ease-in-out infinite;
+        }
+        /* 斜斜的一道光每隔幾秒掃過卡片 */
+        .item-card.coming-soon::after {
+            content: "";
+            position: absolute;
+            top: -60%;
+            left: -140%;
+            width: 60%;
+            height: 220%;
+            background: linear-gradient(100deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.85) 50%, rgba(255,255,255,0) 100%);
+            transform: rotate(14deg);
+            animation: csSweep 3.6s ease-in-out infinite;
+            pointer-events: none;
+        }
+        .coming-soon-box {
+            position: relative;
+            overflow: visible;
+            border: 3px dashed rgba(139, 92, 246, 0.35) !important;
+            background: linear-gradient(120deg, #ffd6ec, #d7c4ff, #bfe6ff, #ffe6b8, #ffd6ec);
+            background-size: 320% 320%;
+            animation: csFlow 6s ease-in-out infinite;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .coming-soon-box .cs-mark {
+            font-size: 1.75rem;
+            font-weight: 900;
+            color: #ffffff;
+            text-shadow: 0 2px 6px rgba(124, 58, 237, 0.45);
+            animation: csBob 1.9s ease-in-out infinite;
+        }
+        /* 小星星用 CSS 畫出來，畫面上不出現任何符號字元 */
+        .coming-soon-box .cs-spark {
+            position: absolute;
+            bottom: -2px;
+            width: 10px;
+            height: 10px;
+            background: #ffffff;
+            clip-path: polygon(50% 0%, 60% 40%, 100% 50%, 60% 60%, 50% 100%, 40% 60%, 0% 50%, 40% 40%);
+            filter: drop-shadow(0 0 3px rgba(167, 139, 250, 0.8));
+            opacity: 0;
+            animation: csRise 2.9s ease-in-out infinite;
+            pointer-events: none;
+        }
+        .item-cost.coming-soon-tag {
+            background: linear-gradient(135deg, #a78bfa, #f0abfc);
+            color: #ffffff;
+            letter-spacing: 0.5px;
+            box-shadow: 0 3px 10px rgba(167, 139, 250, 0.45);
+        }
+        /* 被點到時彈一下，像在說「還沒好啦～」 */
+        .item-card.coming-soon.cs-poke { animation: csPoke 0.55s cubic-bezier(0.36, 0.07, 0.19, 0.97); }
+
+        @keyframes csBreathe { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-3px); } }
+        @keyframes csSweep { 0%, 62% { left: -140%; } 100% { left: 160%; } }
+        @keyframes csFlow { 0%, 100% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } }
+        @keyframes csBob { 0%, 100% { transform: translateY(0) scale(1) rotate(-4deg); } 50% { transform: translateY(-4px) scale(1.12) rotate(4deg); } }
+        @keyframes csRise {
+            0% { opacity: 0; transform: translateY(0) scale(0.6); }
+            25% { opacity: 1; }
+            100% { opacity: 0; transform: translateY(-62px) scale(1.2); }
+        }
+        @keyframes csPoke {
+            0%, 100% { transform: translateY(0) rotate(0); }
+            25% { transform: translateY(-6px) rotate(-3deg) scale(1.04); }
+            60% { transform: translateY(0) rotate(3deg) scale(0.99); }
+        }
+        @media (prefers-reduced-motion: reduce) {
+            .item-card.coming-soon, .item-card.coming-soon::after,
+            .coming-soon-box, .coming-soon-box .cs-mark, .coming-soon-box .cs-spark { animation: none; }
+        }
+
         /* 🌟 【第一次玩的新手抽獎畫面】 */
-        .gacha-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(255, 240, 245, 0.95); backdrop-filter: blur(5px); z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: opacity 0.5s; }
+        .gacha-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100vh; height: 100dvh; background: rgba(255, 240, 245, 0.95); backdrop-filter: blur(5px); z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: opacity 0.5s; }
         .gacha-box { width: 160px; height: 160px; background: white; border: 5px dashed var(--accent-color); border-radius: 40px; display: flex; align-items: center; justify-content: center; cursor: pointer; margin-bottom: 40px; transition: 0.2s; color: var(--accent-color); font-size: 1.4rem; font-weight: 900; box-shadow: 0 15px 35px rgba(255, 182, 193, 0.3); animation: breatheBox 2s infinite ease-in-out; }
         @keyframes breatheBox { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }
         .gacha-box:active { transform: scale(0.95); animation: none; }
@@ -977,32 +1368,52 @@
         .start-btn { background: var(--text-dark); color: white; border: none; padding: 16px 50px; border-radius: 35px; font-weight: 900; font-size: 1.3rem; cursor: pointer; display: none; box-shadow: 0 6px 0 rgba(0,0,0,0.15); transition: 0.1s; }
         .start-btn:active { transform: translateY(6px); box-shadow: 0 0 0 transparent; }
 
-        /* 🌟 【全域浮動通知文字：清晰停留版】 */
-        .float-text {
+        /* 🌟 【全域浮動通知文字：清晰停留版】
+           所有提示都放在這一層裡，同時出現時會由上往下排隊，不會互相蓋住 */
+        #floatTextLayer {
             position: fixed;
-            top: 25%;
+            top: 16%;
             left: 50%;
-            transform: translate(-50%, -50%);
+            transform: translateX(-50%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            width: max-content;
+            max-width: min(88vw, 560px);
+            pointer-events: none;
+            z-index: 999999;
+        }
+        .float-text {
+            position: relative;
+            max-width: 100%;
             color: var(--text-dark);
-            background: rgba(255, 255, 255, 0.95);
+            background: rgba(255, 255, 255, 0.96);
             border: 3px solid var(--border-color);
             padding: 12px 28px;
             border-radius: 30px;
             font-weight: 900;
-            font-size: 1.25rem;
+            font-size: 1.2rem;
+            line-height: 1.45;
+            text-align: center;
             pointer-events: none;
             box-shadow: 0 8px 25px var(--shadow-color);
             backdrop-filter: blur(6px);
-            z-index: 999999;
-            white-space: nowrap;
-            animation: floatNoticeStay 2.5s cubic-bezier(0.18, 0.89, 0.32, 1.28) forwards;
+            white-space: normal;
+            word-break: break-word;
+            animation: floatNoticeStay 2.6s cubic-bezier(0.18, 0.89, 0.32, 1.28) forwards;
         }
+        /* 進場快、退場慢，中間九成的時間都停在原地讓人看完 */
         @keyframes floatNoticeStay {
-            0% { opacity: 0; transform: translate(-50%, 15px) scale(0.7); }
-            15% { opacity: 1; transform: translate(-50%, 0) scale(1.05); }
-            25% { transform: translate(-50%, 0) scale(1); }
-            80% { opacity: 1; transform: translate(-50%, 0) scale(1); }
-            100% { opacity: 0; transform: translate(-50%, -25px) scale(0.9); }
+            0% { opacity: 0; transform: translateY(14px) scale(0.78); }
+            6% { opacity: 1; transform: translateY(0) scale(1.05); }
+            11% { transform: translateY(0) scale(1); }
+            88% { opacity: 1; transform: translateY(0) scale(1); }
+            100% { opacity: 0; transform: translateY(-18px) scale(0.94); }
+        }
+        @media (max-width: 768px) {
+            #floatTextLayer { top: 23%; max-width: 90vw; gap: 8px; }
+            .float-text { font-size: 1rem; padding: 10px 18px; border-width: 2px; }
         }
 
         /* 🌟 14天簽到網格樣式 */
@@ -1100,7 +1511,7 @@
         .pet-name-tag:hover:not(.named) { transform: translateX(-50%) scale(1.1); text-shadow: 2px 2px 0 #fff, -2px -2px 0 #fff, 2px -2px 0 #fff, -2px 2px 0 #fff, 0px 2px 0 #fff, 0px -2px 0 #fff, 2px 0px 0 #fff, -2px 0px 0 #fff, 0px 6px 15px rgba(255, 182, 193, 0.8); }
         .pet-name-tag:active:not(.named) { transform: translateX(-50%) scale(0.95); }
 
-        .name-modal-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(255, 240, 245, 0.8); backdrop-filter: blur(8px); z-index: 10000; display: none; align-items: center; justify-content: center; }
+        .name-modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100vh; height: 100dvh; background: rgba(255, 240, 245, 0.8); backdrop-filter: blur(8px); z-index: 10000; display: none; align-items: center; justify-content: center; }
         .name-modal { background: #fff; width: 85%; max-width: 340px; border-radius: 35px; border: 4px solid var(--border-color); padding: 30px 25px; text-align: center; box-shadow: 0 20px 50px rgba(255, 182, 193, 0.4); animation: popIn 0.4s cubic-bezier(0.18, 0.89, 0.32, 1.28); }
         @keyframes popIn { 0% { transform: scale(0.8) translateY(20px); opacity: 0; } 100% { transform: scale(1) translateY(0); opacity: 1; } }
         .name-input { width: 100%; padding: 14px 15px; border: 3px solid var(--border-color); border-radius: 20px; font-size: 1.1rem; font-weight: 900; color: var(--text-dark); margin: 15px 0 20px 0; text-align: center; outline: none; transition: 0.2s; background: var(--card-bg); }
@@ -1294,18 +1705,21 @@
             .stage { height: 100%; }
 
             /* --- 🌟 頂部資訊列瘦身（解決重疊問題） --- */
-            .top-bar { padding: 10px 15px; }
-            .points-display { padding: 6px 12px; font-size: 0.95rem; }
-            .lang-btn { padding: 6px 12px; font-size: 0.85rem; }
-            #btnOpenManual { top: 65px; left: 10px; padding: 6px 12px; font-size: 0.85rem; }
-            #btnToggleMp { top: 65px !important; right: 10px !important; padding: 6px 12px !important; font-size: 0.85rem !important; }
+            .top-bar { padding: calc(10px + env(safe-area-inset-top, 0px)) 15px 10px; }
+            .points-display { padding: 8px 14px; font-size: 0.95rem; }
+            /* 手指點得到：小按鈕最少 44px 高 */
+            .lang-btn { padding: 10px 14px; font-size: 0.85rem; min-height: 44px; display: inline-flex; align-items: center; }
+            #btnOpenManual { top: calc(72px + env(safe-area-inset-top, 0px)); left: calc(10px + env(safe-area-inset-left, 0px)); padding: 10px 14px; font-size: 0.85rem; min-height: 44px; display: inline-flex; align-items: center; }
+            #btnToggleMp { top: calc(72px + env(safe-area-inset-top, 0px)) !important; right: calc(10px + env(safe-area-inset-right, 0px)) !important; padding: 10px 14px !important; font-size: 0.85rem !important; min-height: 44px; display: inline-flex !important; align-items: center; }
 
             /* --- 🌟 互動小按鈕 + 置中商店彈窗 完美排版 --- */
 
             /* 把原本的底部抽屜變成「全螢幕的隱形容器」，方便定位裡面的東西 */
             .ui-panel {
                 position: fixed !important;
-                top: 0; left: 0; width: 100vw; height: 100vh;
+                top: 0; left: 0; width: 100%;
+                height: 100vh;
+                height: 100dvh;   /* 手機瀏覽器工具列會縮高度，dvh 才是真正看得到的範圍 */
                 background: transparent !important;
                 border: none !important;
                 box-shadow: none !important;
@@ -1328,7 +1742,7 @@
             /* --- 🔘 底部常駐互動小按鈕 --- */
             .interaction-group {
                 position: absolute;
-                bottom: 15px;
+                bottom: calc(15px + env(safe-area-inset-bottom, 0px));
                 left: 50%;
                 transform: translateX(-50%);
                 width: calc(100% - 30px);
@@ -1378,7 +1792,7 @@
                 max-height: 55vh; /* 限制高度，超過就滾動 */
                 background: #fff;
                 border-radius: 0 0 25px 25px; /* 只有下方圓角 */
-                padding: 15px 15px 20px 15px;
+                padding: 15px 15px 78px 15px;   /* 下方留白讓最後一排不會被右下角的關閉鈕蓋住 */
                 overflow-y: auto;
                 pointer-events: auto;
                 gap: 10px; 
@@ -1389,7 +1803,7 @@
             #uiPanel.open > button[onclick="toggleShopPanel()"] {
                 display: flex !important;
                 position: absolute !important;
-                bottom: 105px !important; /* 🌟 對齊原本的購物袋高度 */
+                bottom: calc(105px + env(safe-area-inset-bottom, 0px)) !important; /* 🌟 對齊購物袋，同樣避開安全區 */
                 right: 15px !important;   /* 🌟 對齊原本的購物袋右距 */
                 top: auto !important;
                 left: auto !important;
@@ -1429,7 +1843,7 @@
                 align-items: center;
                 justify-content: center;
                 position: absolute !important;
-                bottom: 105px !important; /* 確保浮在互動按鈕上方 */
+                bottom: calc(105px + env(safe-area-inset-bottom, 0px)) !important; /* 浮在互動按鈕上方，並避開手機底部安全區 */
                 right: 15px !important;
                 left: auto !important;
                 transform: none !important;
