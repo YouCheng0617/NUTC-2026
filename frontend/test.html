@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>心情漂流瓶 - 論壇</title>
-    <link rel="stylesheet" href="test.css?v=23" />
+    <link rel="stylesheet" href="test.css?v=25" />
     <style>
       /* ==================================================
          🌊 頂部 Header 全新配置：左側 Logo + 鈴鐺
@@ -1365,7 +1365,7 @@
       <span class="board-arrow">▲</span>
     </div>
 
-    <script type="module" src="test.js?v=25"></script>
+    <script type="module" src="test.js?v=27"></script>
 
     <!-- 🌟 整合面板專屬交互控制 -->
     <script>
@@ -1401,6 +1401,10 @@
         if (!token) {
           alert("請先登入才能發文喔！");
           window.location.href = "login.html";
+          return;
+        }
+        if (window.isAdminUser && window.isAdminUser()) {
+          alert("管理員帳號無法發文，請切換至一般帳號發文");
           return;
         }
         closeHubModal();
