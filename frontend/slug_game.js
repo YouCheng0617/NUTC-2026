@@ -66,6 +66,37 @@ let GAME_TOKEN = localStorage.getItem('authToken') || localStorage.getItem('acce
             }
         }
 
+        // 🎵 【跳動音符加分】每收到一顆音符就跟後端換 15 分；
+        //    後端有 0.5 秒冷卻，所以這裡排成一列慢慢送，玩家連點也不會漏掉分數
+        let musicNoteQueue = 0;
+        let musicNoteSending = false;
+        async function awardMusicNote() {
+            musicNoteQueue++;
+            if (musicNoteSending) return;
+            musicNoteSending = true;
+
+            while (musicNoteQueue > 0) {
+                const result = await fetchAPI('/pet-games/interact', 'POST', { action: 'MUSIC_NOTE' });
+
+                if (result && !result.error) {
+                    musicNoteQueue--;
+                    if (result.coin !== undefined && !isNaN(Number(result.coin))) gameState.points = Number(result.coin);
+                    saveGame();
+                    updateUI();
+                    showFloatText(currLang === 'zh' ? '+15 音符入帳 🎵' : '+15 note banked 🎵', 1500);
+                } else if (result && result.error && /冷卻|稍等|太快|Cool|wait/i.test(result.error)) {
+                    // 還在冷卻，等一下再送，這顆音符不會白收
+                } else {
+                    // 其他錯誤（例如試用中沒買特效）就別再送了，直接把訊息給玩家
+                    musicNoteQueue = 0;
+                    showFloatText((result && result.error) || (currLang === 'zh' ? '音符加分失敗，稍後再試' : 'Could not bank the note'), 3000);
+                    break;
+                }
+                await new Promise(r => setTimeout(r, 620));   // 後端冷卻 0.5 秒，留一點餘裕
+            }
+            musicNoteSending = false;
+        }
+
         // 🌟 【多人連線小總管】負責跟伺服器打招呼，處理誰加進來、誰離開，還有房主權限的判定
         function initSocketIO() {
             try {
@@ -2760,8 +2791,9 @@ const effectData = {
             updateSlugScale();   // 依螢幕大小決定海兔要多大
             updateRecallButtonVisibility();
 
-            // 🌟 3. 主動向後端拉取最新金幣數量
+            // 🌟 3. 主動向後端拉取最新金幣數量與今日任務狀態
             await fetchUserCoins();
+            syncDailyTaskStatus();
 
             // 🌟 4. 背景悄悄同步伺服器資料
             try {
@@ -9620,19 +9652,26 @@ case 'fish': {
                         showFloatText(`🗑️ 已刪除 ${removed.label || removed.name}`);
                     }
 
-                    // 5. 🛒 商店購買音符（試用模式不扣分）
-                    function buyNoteDirectly(noteData) {
+                    // 5. 🛒 商店購買音符：扣 1 分由後端處理，成功才把音符放上樂譜（試用模式不扣分）
+                    let buyingNote = false;
+                    async function buyNoteDirectly(noteData) {
                         if (window.collectedStaffNotes.length >= 32) {
                             showFloatText('樂譜已經放滿 32 個音囉！🎶');
                             return;
                         }
+                        if (buyingNote) return;
 
                         if (!trialState.effect) {
-                            if (gameState.points < 1) {
-                                showFloatText('積分不足 1 分 😢');
+                            buyingNote = true;
+                            const result = await fetchAPI('/pet-games/interact', 'POST', { action: 'MUSIC_BUY_NOTE' });
+                            buyingNote = false;
+
+                            if (!result || result.error) {
+                                showFloatText((result && result.error) || '連線異常，等一下再買 😢');
                                 return;
                             }
-                            gameState.points -= 1;
+                            if (window.collectedStaffNotes.length >= 32) return;   // 等待期間被塞滿就不放了
+                            if (result.coin !== undefined && !isNaN(Number(result.coin))) gameState.points = Number(result.coin);
                             saveGame();
                             updateUI();
                             showFloatText(`-1分 🛒 +${noteData.label || noteData.name}`);
@@ -9667,10 +9706,8 @@ case 'fish': {
                         renderStaffTrack(true);
 
                         if (!trialState.effect) {
-                            gameState.points += 15;
-                            saveGame();
-                            updateUI();
-                            showFloatText(`+15 ${noteData.label || noteData.name} 🎵`);
+                            showFloatText(`🎵 ${noteData.label || noteData.name}`, 1200);
+                            awardMusicNote();       // 15 分由後端發，收太快會自動排隊補送
                         } else {
                             showFloatText(`試用體驗 🎵 ${noteData.label || noteData.name}`);
                         }
@@ -11058,11 +11095,40 @@ function updateTaskProgress(actionType) {
             }
         }
 
-        // 🌟 打開任務面板（含進度條、狀態判定、領取獎勵按鈕與雙語切換）
+        // 🌟 【每日任務狀態同步】任務做了沒、獎勵領了沒，一律以後端記錄為準
+        async function syncDailyTaskStatus() {
+            const data = await fetchAPI('/pet-games/daily-task', 'GET');
+            if (!data || data.error || !data.tasks) return false;
+
+            const tasks = getDailyTaskData();
+            Object.keys(data.tasks).forEach(key => {
+                const info = data.tasks[key];
+                const task = tasks[key];
+                if (!task || !info) return;
+                if (info.reward !== undefined) task.reward = info.reward;
+                if (info.done) task.count = Math.max(task.count, task.target);
+                task.claimed = !!info.claimed;
+            });
+            saveGame();
+            return true;
+        }
+
+        // 🌟 打開任務面板：先用本機進度畫一次，再跟後端對完重畫
         function openDailyModal() {
             const modal = document.getElementById('dailyModalOverlay');
+            if (!modal) return;
+
+            renderDailyTaskList();
+            modal.style.display = 'flex';
+            syncDailyTaskStatus().then(ok => {
+                if (ok && modal.style.display === 'flex') renderDailyTaskList();
+            });
+        }
+
+        // 🌟 畫出任務清單（含進度、狀態判定、領取獎勵按鈕與雙語切換）
+        function renderDailyTaskList() {
             const list = document.getElementById('dailyTaskList');
-            if (!modal || !list) return;
+            if (!list) return;
 
             list.innerHTML = ''; 
             const t = i18n[currLang];
@@ -11133,24 +11199,34 @@ function updateTaskProgress(actionType) {
                 `;
                 list.appendChild(item);
             });
-
-            modal.style.display = 'flex';
         }
 
-        // 🌟 領取任務獎勵
-        function claimDailyTaskReward(taskKey) {
+        // 🌟 領取任務獎勵：獎勵由後端發放，成功才標記成已領
+        let claimingDailyTask = false;
+        async function claimDailyTaskReward(taskKey) {
             const tasks = getDailyTaskData();
             const task = tasks[taskKey];
-            if (task && task.count >= task.target && !task.claimed) {
+            if (!task || task.count < task.target || task.claimed || claimingDailyTask) return;
+
+            claimingDailyTask = true;
+            const result = await fetchAPI('/pet-games/daily-task/claim', 'POST', { task: taskKey });
+            claimingDailyTask = false;
+
+            const t = i18n[currLang];
+            if (result && !result.error) {
                 task.claimed = true;
-                gameState.points += task.reward;
+                const reward = result.rewardCoin || task.reward;
+                if (result.coin !== undefined && !isNaN(Number(result.coin))) gameState.points = Number(result.coin);
+                else gameState.points += reward;
                 saveGame();
                 updateUI();
-
-                const t = i18n[currLang];
-                showFloatText(`${t.taskClaimedToast}${task.reward} Pts！`, 2500);
-                openDailyModal(); // 立即刷新介面為「已領取」
+                showFloatText(`${t.taskClaimedToast}${reward} Pts！`, 2500);
+            } else {
+                // 後端說還沒完成或已經領過，就把訊息給玩家並重新對一次狀態
+                showFloatText((result && result.error) || (currLang === 'zh' ? '領取失敗，稍後再試' : 'Claim failed, try again'), 3000);
+                await syncDailyTaskStatus();
             }
+            renderDailyTaskList();   // 立即刷新介面
         }
 // 🌟 播放禮物盒開蓋動畫，再進入日曆
 function playGiftAnimation(btnElement) {
