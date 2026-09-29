@@ -1779,29 +1779,71 @@ const i18n = {
             const bark = '#40251a';
 
             // 楓葉共用同一條路徑，畫面上再用 use 引用，省下大量字元
+            // 六種葉型隨機挑，滿地落葉才有各種不同的楓葉
+            const leafIds = ['alLeaf', 'alLeaf2', 'alLeaf3', 'alLeaf4', 'alLeaf5', 'alLeaf6'];
+            let leafPick = 0;
             const leaf = (x, y, s, rot, c, op) =>
-                `<use href="#alLeaf" transform="translate(${x},${y}) rotate(${rot}) scale(${s})" fill="${c}" opacity="${op}"/>`;
+                `<use href="#${leafIds[Math.floor(rnd(leafPick++, 57) * leafIds.length) % leafIds.length]}" transform="translate(${x},${y}) rotate(${rot}) scale(${s})" fill="${c}" opacity="${op}"/>`;
             // 葉片色斑：遠一點的葉子在畫面上只是一小片斜斜的色塊
             const fleck = (x, y, r, c, op, rot) =>
                 `<ellipse cx="${x.toFixed(0)}" cy="${y.toFixed(0)}" rx="${r.toFixed(1)}" ry="${(r * 0.6).toFixed(1)}" fill="${c}" opacity="${op}" transform="rotate(${rot} ${x.toFixed(0)} ${y.toFixed(0)})"/>`;
 
-            // 楓樹樹幹：接近等寬、微微朝小徑傾斜，受光那側留一條亮邊
+            // 楓樹：底部有板根、往上收細成 S 形，半空中岔出兩根枝條沒入樹冠，
+            //       朝隧道盡頭那一側留一條受光的亮邊，樹皮再補幾道縱紋
             const trunk = (x, baseY, h, w, lean) => {
-                const tx = x + lean * h * 0.05;
-                const wt = w * 0.8;
-                let g = ell(x, baseY, w * 1.8, w * 0.5, '#331c11', 'opacity="0.5"');
-                g += `<path d="M ${(x - w).toFixed(1)} ${baseY.toFixed(1)} C ${(x - w * 0.96).toFixed(1)} ${(baseY - h * 0.45).toFixed(1)}, ${(tx - wt).toFixed(1)} ${(baseY - h * 0.72).toFixed(1)}, ${(tx - wt * 0.92).toFixed(1)} ${(baseY - h).toFixed(1)} L ${(tx + wt * 0.92).toFixed(1)} ${(baseY - h).toFixed(1)} C ${(tx + wt).toFixed(1)} ${(baseY - h * 0.72).toFixed(1)}, ${(x + w * 0.96).toFixed(1)} ${(baseY - h * 0.45).toFixed(1)}, ${(x + w).toFixed(1)} ${baseY.toFixed(1)} Z" fill="${bark}"/>`;
-                g += `<path d="M ${(x - lean * w * 0.8).toFixed(1)} ${baseY.toFixed(1)} C ${(x - lean * w * 0.78).toFixed(1)} ${(baseY - h * 0.5).toFixed(1)}, ${(tx - lean * wt * 0.74).toFixed(1)} ${(baseY - h * 0.78).toFixed(1)}, ${(tx - lean * wt * 0.7).toFixed(1)} ${(baseY - h).toFixed(1)} L ${(tx - lean * wt * 0.34).toFixed(1)} ${(baseY - h).toFixed(1)} C ${(x - lean * w * 0.38).toFixed(1)} ${(baseY - h * 0.58).toFixed(1)}, ${(x - lean * w * 0.4).toFixed(1)} ${(baseY - h * 0.3).toFixed(1)}, ${(x - lean * w * 0.42).toFixed(1)} ${baseY.toFixed(1)} Z" fill="#79492a" opacity="0.45"/>`;
+                const n = (v) => v.toFixed(1);
+                const midX = x + lean * h * 0.025;          // 樹幹中段
+                const tipX = x + lean * h * 0.07;           // 樹梢
+                const wt = w * 0.52;                        // 樹梢比樹根細很多
+
+                let g = ell(x, baseY, w * 2, w * 0.55, '#2e1a10', 'opacity="0.45"');   // 地面陰影
+
+                // 主幹
+                g += `<path d="M ${n(x - w * 1.45)} ${n(baseY)}`
+                    + ` C ${n(x - w * 1.05)} ${n(baseY - h * 0.07)}, ${n(x - w * 0.94)} ${n(baseY - h * 0.3)}, ${n(midX - w * 0.72)} ${n(baseY - h * 0.58)}`
+                    + ` C ${n(tipX - wt * 1.05)} ${n(baseY - h * 0.8)}, ${n(tipX - wt)} ${n(baseY - h * 0.93)}, ${n(tipX - wt * 0.92)} ${n(baseY - h)}`
+                    + ` L ${n(tipX + wt * 0.92)} ${n(baseY - h)}`
+                    + ` C ${n(tipX + wt)} ${n(baseY - h * 0.93)}, ${n(tipX + wt * 1.05)} ${n(baseY - h * 0.8)}, ${n(midX + w * 0.72)} ${n(baseY - h * 0.58)}`
+                    + ` C ${n(x + w * 0.94)} ${n(baseY - h * 0.3)}, ${n(x + w * 1.05)} ${n(baseY - h * 0.07)}, ${n(x + w * 1.45)} ${n(baseY)} Z" fill="${bark}"/>`;
+
+                // 分枝：一長一短往兩側斜上，末端沒入樹冠裡
+                g += `<g stroke="${bark}" fill="none" stroke-linecap="round">`
+                    + `<path d="M ${n(midX)} ${n(baseY - h * 0.6)} C ${n(midX + lean * w * 2.4)} ${n(baseY - h * 0.76)}, ${n(midX + lean * w * 4.2)} ${n(baseY - h * 0.88)}, ${n(midX + lean * w * 5.6)} ${n(baseY - h * 1.04)}" stroke-width="${n(w * 0.52)}"/>`
+                    + `<path d="M ${n(midX)} ${n(baseY - h * 0.76)} C ${n(midX - lean * w * 1.9)} ${n(baseY - h * 0.9)}, ${n(midX - lean * w * 3.2)} ${n(baseY - h * 0.99)}, ${n(midX - lean * w * 3.9)} ${n(baseY - h * 1.12)}" stroke-width="${n(w * 0.36)}"/>`
+                    + `</g>`;
+
+                // 受光的亮邊：朝隧道盡頭（也就是畫面中央）那一側
+                g += `<path d="M ${n(x - lean * w * 1.05)} ${n(baseY)}`
+                    + ` C ${n(x - lean * w * 0.86)} ${n(baseY - h * 0.3)}, ${n(midX - lean * w * 0.66)} ${n(baseY - h * 0.6)}, ${n(tipX - lean * wt * 0.82)} ${n(baseY - h)}`
+                    + ` L ${n(tipX - lean * wt * 0.34)} ${n(baseY - h)}`
+                    + ` C ${n(midX - lean * w * 0.28)} ${n(baseY - h * 0.6)}, ${n(x - lean * w * 0.4)} ${n(baseY - h * 0.3)}, ${n(x - lean * w * 0.52)} ${n(baseY)} Z" fill="#9a6336" opacity="0.4"/>`;
+
+                // 樹皮縱紋
+                for (let k = 0; w > 5 * u && k < 3; k++) {
+                    const t0 = 0.12 + k * 0.24;
+                    const px = x + lean * w * (k - 1) * 0.42;
+                    g += `<path d="M ${n(px)} ${n(baseY - h * t0)} C ${n(px + w * 0.16)} ${n(baseY - h * (t0 + 0.12))}, ${n(px - w * 0.14)} ${n(baseY - h * (t0 + 0.2))}, ${n(px + w * 0.1)} ${n(baseY - h * (t0 + 0.32))}" fill="none" stroke="#25140c" stroke-width="${n(w * 0.16)}" stroke-linecap="round" opacity="0.5"/>`;
+                }
                 return g;
             };
 
-            // 樹冠下緣：中央高、兩側低，圍出隧道口
+            // 樹冠下緣：中央高、兩側低，圍出隧道口。
+            // 中央那段壓低一些、兩側下降得更快，樹冠才會像一片密不透風的林子
             const ceil = (x) => {
                 const d = Math.min(1.35, Math.abs(x - cx) / (W * 0.5));
-                return hz * 0.16 + (H * (portrait ? 1.15 : 1.05)) * Math.pow(d, 1.85);
+                return hz * 0.46 + (H * (portrait ? 1.1 : 1)) * Math.pow(d, 1.55);
             };
 
-            // 樹冠：一欄一欄把葉子堆滿，下緣自然參差，不用實心色塊去封
+            // 樹冠底：在葉團下緣「再往上一點」的位置鋪一層實色，
+            // 葉團一定會蓋過這條邊，所以看不到接縫，但樹冠內部保證不會露出縫隙
+            let canopyBase = `<path d="M ${(-W * 0.06).toFixed(0)} ${(-H * 0.06).toFixed(0)} L ${(W * 1.06).toFixed(0)} ${(-H * 0.06).toFixed(0)} `;
+            for (let c0 = 40; c0 >= 0; c0--) {
+                const x0 = -W * 0.06 + (c0 / 40) * W * 1.12;
+                canopyBase += `L ${x0.toFixed(0)} ${Math.min(H * 1.02, ceil(x0) * 0.78).toFixed(0)} `;
+            }
+            canopyBase += `Z" fill="#8d2a12"/>`;
+
+            // 樹冠：一欄一欄把葉子堆滿，下緣自然參差
             let canopy = '';
             const cols = portrait ? 38 : 50;
             for (let c0 = 0; c0 <= cols; c0++) {
@@ -1809,43 +1851,57 @@ const i18n = {
                 const lim = Math.min(H * 1.02, ceil(x0));
                 if (lim < -H * 0.02) continue;
                 const d = Math.min(1, Math.abs(x0 - cx) / (W * 0.5));
-                const step = (16 + d * 11) * u;
+                const step = (19 + d * 11) * u;     // 間距拉開、每顆葉團畫更大：一樣密但元素少一半
                 for (let y0 = -H * 0.06; y0 < lim; y0 += step) {
                     const seed = c0 * 41 + Math.round(y0 / step);
                     const x = x0 + (rnd(seed, 11) - 0.5) * step * 2.4;
                     const y = y0 + (rnd(seed, 12) - 0.5) * step * 1.3;
-                    const r = (13 + rnd(seed, 13) * 18) * u * (0.6 + d * 0.7);
+                    const r = (21 + rnd(seed, 13) * 24) * u * (0.6 + d * 0.7);
                     // 越靠近隧道口越亮，越往外、越往上越深
                     const depth = Math.min(1, (1 - y / Math.max(1, lim)) * 0.55 + d * 0.6);
                     const idx = Math.min(canopyTones.length - 1, Math.floor(depth * 6 + rnd(seed, 14) * 1.6));
                     canopy += disc(x.toFixed(0), y.toFixed(0), r.toFixed(1), canopyTones[idx], `opacity="${(0.72 + rnd(seed, 15) * 0.28).toFixed(2)}"`);
                 }
             }
-            // 下緣再撒一排看得出葉形的楓葉，把輪廓打散
+            // 樹冠裡撒上看得出葉形的楓葉：整片樹冠都有，下緣最密，把團塊的輪廓打散
             let canopyLeaves = '';
-            for (let k = 0; k < (portrait ? 70 : 92); k++) {
+            for (let k = 0; k < (portrait ? 120 : 160); k++) {
                 const x = (-0.04 + rnd(k, 21) * 1.08) * W;
                 const lim = ceil(x);
-                if (lim < 0 || lim > H) continue;
-                const y = lim * (0.82 + rnd(k, 22) * 0.3);
-                canopyLeaves += leaf(x.toFixed(0), y.toFixed(0), ((0.26 + rnd(k, 23) * 0.42) * u).toFixed(2), (rnd(k, 24) * 360).toFixed(0),
-                    canopyTones[Math.floor(rnd(k, 25) * canopyTones.length)], (0.85 + rnd(k, 26) * 0.15).toFixed(2));
+                if (lim < 0) continue;
+                // 三分之二撒在樹冠下緣附近，其餘往樹冠深處散開
+                const edge = rnd(k, 27) < 0.66;
+                const y = edge ? lim * (0.82 + rnd(k, 22) * 0.3)
+                               : -H * 0.04 + rnd(k, 22) * Math.min(lim, H * 1.02);
+                if (y > H * 1.02) continue;
+                const d = Math.min(1, Math.abs(x - cx) / (W * 0.5));
+                canopyLeaves += leaf(x.toFixed(0), y.toFixed(0), ((0.2 + d * 0.28 + rnd(k, 23) * 0.34) * u).toFixed(2), (rnd(k, 24) * 360).toFixed(0),
+                    canopyTones[Math.floor(rnd(k, 25) * canopyTones.length)], (0.82 + rnd(k, 26) * 0.18).toFixed(2));
             }
 
-            // 隧道深處：一排排被光吃掉的小樹與葉團
+            // 隧道深處：一整片被光吃掉的樹林，越靠近光越淡，把後面的空檔補滿
             let farWood = '';
-            for (let k = 0; k < (portrait ? 46 : 60); k++) {
-                const x = cx + (rnd(k, 31) - 0.5) * W * 0.62;
-                const y = hz - H * 0.12 + rnd(k, 32) * H * 0.2;
-                const r = (5 + rnd(k, 33) * 14) * u;
-                const near = Math.abs(x - cx) < W * 0.1;
-                farWood += disc(x.toFixed(0), y.toFixed(0), r.toFixed(1), near ? '#ffcf72' : canopyTones[Math.floor(rnd(k, 34) * 4)], `opacity="${(0.35 + rnd(k, 35) * 0.4).toFixed(2)}"`);
+            // 1. 遠方樹林的輪廓：橫跨整個畫面的葉團帶
+            for (let k = 0; k < (portrait ? 64 : 84); k++) {
+                const x = (-0.05 + rnd(k, 41) * 1.1) * W;
+                const near = Math.abs(x - cx) / (W * 0.5);                 // 0 = 正對著光
+                const y = hz - H * (0.24 - near * 0.06) + rnd(k, 42) * H * (0.22 + near * 0.1);
+                const r = (7 + rnd(k, 43) * 19) * u * (0.55 + near * 0.7);
+                const tone = canopyTones[Math.floor(rnd(k, 44) * (near < 0.35 ? 3 : 5))];
+                // 越靠近隧道盡頭越被光洗白
+                farWood += disc(x.toFixed(0), y.toFixed(0), r.toFixed(1), near < 0.22 ? '#ffd88a' : tone,
+                    `opacity="${(0.24 + near * 0.5 + rnd(k, 45) * 0.22).toFixed(2)}"`);
             }
-            for (let k = 0; k < (portrait ? 10 : 14); k++) {
-                const x = cx + (rnd(k, 36) - 0.5) * W * 0.5;
-                const h = (30 + rnd(k, 37) * 60) * u;
-                farWood += rect(x.toFixed(0), (hz - h).toFixed(0), (2 + rnd(k, 38) * 3).toFixed(1), h.toFixed(0), '#7a4526', `opacity="${(0.3 + rnd(k, 39) * 0.3).toFixed(2)}"`);
+            // 2. 遠方的細樹幹：一根根站在霧裡
+            for (let k = 0; k < (portrait ? 20 : 26); k++) {
+                const x = (-0.02 + rnd(k, 36) * 1.04) * W;
+                const near = Math.abs(x - cx) / (W * 0.5);
+                const h = (34 + rnd(k, 37) * 86) * u * (0.6 + near * 0.6);
+                farWood += rect(x.toFixed(0), (hz - h).toFixed(0), ((1.6 + rnd(k, 38) * 3.4) * u).toFixed(1), h.toFixed(0), '#6b3a1f',
+                    `opacity="${(0.16 + near * 0.34 + rnd(k, 39) * 0.16).toFixed(2)}"`);
             }
+            // 3. 貼著地面的一層霧，讓遠處的樹腳溶進光裡
+            farWood += `<rect x="0" y="${(hz - H * 0.06).toFixed(0)}" width="${W}" height="${(H * 0.12).toFixed(0)}" fill="#ffc46a" opacity="0.28" filter="url(#alSoft)"/>`;
 
             // 兩排樹幹：由遠而近，越近越高越粗
             const ts = portrait ? [0.07, 0.14, 0.24, 0.38, 0.58, 0.85, 1.12] : [0.07, 0.14, 0.24, 0.38, 0.58, 0.82, 1.08];
@@ -1866,7 +1922,7 @@ const i18n = {
             // 滿地落葉：遠處只是一片片色斑，近景才看得出葉形
             let ground = '';
             let seed = 0;
-            for (let i = 0; i < (portrait ? 380 : 460); i++, seed++) {
+            for (let i = 0; i < (portrait ? 280 : 340); i++, seed++) {
                 const t = 0.02 + Math.pow(rnd(seed, 63), 0.85) * 1.02;
                 const tc = Math.min(t, 1);
                 const side = i % 2 ? 1 : -1;
@@ -1882,7 +1938,7 @@ const i18n = {
                 }
             }
             for (const [tx, ty, tc] of spots) {                          // 樹腳下再堆一圈
-                const n = Math.max(5, Math.round(14 * tc));
+                const n = Math.max(4, Math.round(10 * tc));
                 for (let k = 0; k < n; k++, seed++) {
                     const a = rnd(seed, 61) * Math.PI * 2;
                     const r = Math.sqrt(rnd(seed, 62));
@@ -1906,8 +1962,9 @@ const i18n = {
             }
 
             return svgOf(W, H,
-                `<path id="alLeaf" d="M 0 -19 C 2 -13, 5 -10, 9 -10 L 14 -13 L 12 -4 C 15 -3, 18 -4, 21 -6 L 15 2 L 19 8 L 11 8 C 10 11, 10 14, 11 17 L 4 12 L 1 19 L -1 19 L -4 12 L -11 17 C -10 14, -10 11, -11 8 L -19 8 L -15 2 L -21 -6 C -18 -4, -15 -3, -12 -4 L -14 -13 L -9 -10 C -5 -10, -2 -13, 0 -19 Z M -1.3 18 L 1.3 18 L 1.3 25 L -1.3 25 Z"/>`
-                // 以消失點為中心的輻射光：同一張漸層給了隧道盡頭的亮與四周的暗角
+// 六種秋葉：尖裂楓、圓裂楓、橡葉、橢圓鋸齒葉、三裂楓、細長尖葉，每片都有葉脈
+`<g id="alLeaf"><path d="M 0 -25 L 2.8 -17.6 L 6.4 -19.4 L 5 -13.2 L 9 -14.8 L 7.4 -9.2 Q 8.6 -6.4 11.2 -7.4 L 13 -15 L 15 -10 L 19 -14.6 L 19.4 -9 L 24.4 -12.4 L 20 -5.8 L 23.4 -3.6 L 17.6 -1.4 L 20.6 0.8 Q 11.6 2.4 11.4 4.4 L 16.2 6.6 L 14.8 9 L 20.4 9.8 L 18.6 12.4 L 23.2 13.2 L 17 15 L 18.6 17.8 L 11.4 16.6 L 11.8 19.2 L 5.6 17.6 L 4.2 20.8 L 0 17.6 L -4.2 20.8 L -5.6 17.6 L -11.8 19.2 L -11.4 16.6 L -18.6 17.8 L -17 15 L -23.2 13.2 L -18.6 12.4 L -20.4 9.8 L -14.8 9 L -16.2 6.6 Q -11.4 4.4 -11.6 2.4 L -20.6 0.8 L -17.6 -1.4 L -23.4 -3.6 L -20 -5.8 L -24.4 -12.4 L -19.4 -9 L -19 -14.6 L -15 -10 L -13 -15 Q -11.2 -7.4 -7.4 -9.2 L -9 -14.8 L -5 -13.2 L -6.4 -19.4 L -2.8 -17.6 Z M -1.4 17 L 1.4 17 L 1.4 31 L -1.4 31 Z"/><path d="M 0 17 L 0 -20 M 0 16 L 21.4 -10.6 M 0 16 L 20.4 11 M 0 16 L -21.4 -10.6 M 0 16 L -20.4 11" fill="none" stroke="#7d1f0f" stroke-opacity="0.42" stroke-width="1.1" stroke-linecap="round"/></g><g id="alLeaf2"><path d="M 0 -23 Q 3 -14 7 -12.6 Q 9.6 -11.8 10 -14.4 Q 14 -16.6 16.6 -13.4 Q 18.2 -11 16 -7.2 Q 20 -7.4 22.6 -4.8 Q 24.2 -2.6 20.6 0.4 Q 24 1.4 24 4 Q 24 7 19 8.6 Q 21 11.6 19 13.6 Q 17 15.6 12.6 13.6 Q 12 16.6 9.6 17.6 Q 7 18.6 4 16 L 0 19.4 L -4 16 Q -7 18.6 -9.6 17.6 Q -12 16.6 -12.6 13.6 Q -17 15.6 -19 13.6 Q -21 11.6 -19 8.6 Q -24 7 -24 4 Q -24 1.4 -20.6 0.4 Q -24.2 -2.6 -22.6 -4.8 Q -20 -7.4 -16 -7.2 Q -18.2 -11 -16.6 -13.4 Q -14 -16.6 -10 -14.4 Q -9.6 -11.8 -7 -12.6 Q -3 -14 0 -23 Z M -1.4 18 L 1.4 18 L 1.4 31 L -1.4 31 Z"/><path d="M 0 18 L 0 -19 M 0 16 L 19.6 -9.4 M 0 16 L 20 7 M 0 16 L -19.6 -9.4 M 0 16 L -20 7" fill="none" stroke="#7d1f0f" stroke-opacity="0.42" stroke-width="1.1" stroke-linecap="round"/></g><g id="alLeaf3"><path d="M 0 -26 C 2.6 -22 4 -19.4 7 -18.4 C 10.6 -17.2 12.6 -20 14.6 -18 C 16.6 -16 13 -12.4 13 -9.4 C 16.8 -9.4 20.6 -12.4 22.4 -10 C 24.2 -7.6 19 -3.4 19 -0.6 C 23 -0.6 26 -0.4 26 2.6 C 26 5.6 21 7 18 9 C 20 12 21 15 18.4 16.2 C 15.8 17.4 13 14.4 10 13.8 C 10 16.4 10 19.4 7.4 20 C 4.8 20.6 2.4 17.4 0 16.4 C -2.4 17.4 -4.8 20.6 -7.4 20 C -10 19.4 -10 16.4 -10 13.8 C -13 14.4 -15.8 17.4 -18.4 16.2 C -21 15 -20 12 -18 9 C -21 7 -26 5.6 -26 2.6 C -26 -0.4 -23 -0.6 -19 -0.6 C -19 -3.4 -24.2 -7.6 -22.4 -10 C -20.6 -12.4 -16.8 -9.4 -13 -9.4 C -13 -12.4 -16.6 -16 -14.6 -18 C -12.6 -20 -10.6 -17.2 -7 -18.4 C -4 -19.4 -2.6 -22 0 -26 Z M -1.3 16 L 1.3 16 L 1.3 30 L -1.3 30 Z"/><path d="M 0 16 L 0 -22 M 0 12 L 18 -12 M 0 12 L 20 1 M 0 12 L 14 12 M 0 12 L -18 -12 M 0 12 L -20 1 M 0 12 L -14 12" fill="none" stroke="#7d1f0f" stroke-opacity="0.42" stroke-width="1.1" stroke-linecap="round"/></g><g id="alLeaf4"><path d="M 0 -27 L 3.4 -22.6 L 6 -24 L 7.2 -19.4 L 10 -20 L 10.6 -15 L 13 -15 L 12.8 -9.6 L 15 -9 L 14 -3.6 L 16 -2.4 L 14.2 2.6 L 15.6 4.6 L 12.6 9 L 13.4 11.4 L 9.4 14.4 L 9.4 17 L 4.8 18.6 L 4 21 L 0 21.6 L -4 21 L -4.8 18.6 L -9.4 17 L -9.4 14.4 L -13.4 11.4 L -12.6 9 L -15.6 4.6 L -14.2 2.6 L -16 -2.4 L -14 -3.6 L -15 -9 L -12.8 -9.6 L -13 -15 L -10.6 -15 L -10 -20 L -7.2 -19.4 L -6 -24 L -3.4 -22.6 Z M -1.2 20 L 1.2 20 L 1.2 31 L -1.2 31 Z"/><path d="M 0 20 L 0 -24 M 0 12 L 10.6 3 M 0 4 L 13 -3.6 M 0 -4 L 12 -12 M 0 -12 L 8.6 -19 M 0 12 L -10.6 3 M 0 4 L -13 -3.6 M 0 -4 L -12 -12 M 0 -12 L -8.6 -19" fill="none" stroke="#7d1f0f" stroke-opacity="0.42" stroke-width="1.1" stroke-linecap="round"/></g><g id="alLeaf5"><path d="M 0 -26 L 3.6 -15.6 L 8.4 -18 L 7 -9.4 Q 10 -7.4 13.6 -8.6 L 18 -17 L 20 -9 L 25 -11.6 L 20 -3 L 23.4 0.2 L 16.2 3.6 L 17.4 9 L 10 8 L 9 14.4 L 3.6 12.2 L 1.8 19.6 L 0 16.6 L -1.8 19.6 L -3.6 12.2 L -9 14.4 L -10 8 L -17.4 9 L -16.2 3.6 L -23.4 0.2 L -20 -3 L -25 -11.6 L -20 -9 L -18 -17 L -13.6 -8.6 Q -10 -7.4 -7 -9.4 L -8.4 -18 L -3.6 -15.6 Z M -1.3 17 L 1.3 17 L 1.3 30 L -1.3 30 Z"/><path d="M 0 17 L 0 -21 M 0 14 L 20.4 -8.4 M 0 14 L 15.4 6 M 0 14 L -20.4 -8.4 M 0 14 L -15.4 6" fill="none" stroke="#7d1f0f" stroke-opacity="0.42" stroke-width="1.1" stroke-linecap="round"/></g><g id="alLeaf6"><path d="M 0 -29 L 3 -22 L 5.4 -23 L 6 -16.6 L 8.6 -17 L 8.4 -10.4 L 11 -10 L 10.4 -3.6 L 12.6 -2.6 L 11 3.4 L 12.4 5.4 L 9.4 10.6 L 9.6 13.4 L 5.4 17.4 L 5 20 L 0 22.6 L -5 20 L -5.4 17.4 L -9.6 13.4 L -9.4 10.6 L -12.4 5.4 L -11 3.4 L -12.6 -2.6 L -10.4 -3.6 L -11 -10 L -8.4 -10.4 L -8.6 -17 L -6 -16.6 L -5.4 -23 L -3 -22 Z M -1.1 21 L 1.1 21 L 1.1 31 L -1.1 31 Z"/><path d="M 0 21 L 0 -26 M 0 12 L 8.6 4 M 0 3 L 10.6 -4.4 M 0 -6 L 9 -13 M 0 12 L -8.6 4 M 0 3 L -10.6 -4.4 M 0 -6 L -9 -13" fill="none" stroke="#7d1f0f" stroke-opacity="0.42" stroke-width="1.1" stroke-linecap="round"/></g>`
+                + // 以消失點為中心的輻射光：同一張漸層給了隧道盡頭的亮與四周的暗角
                 + `<radialGradient id="alAir" cx="50%" cy="${((hz / H) * 100).toFixed(1)}%" r="78%"><stop offset="0%" stop-color="#fffdf2"/><stop offset="9%" stop-color="#ffeeb8"/><stop offset="22%" stop-color="#ffb84d"/><stop offset="42%" stop-color="#e9701a"/><stop offset="68%" stop-color="#a82d12"/><stop offset="100%" stop-color="#5c170a"/></radialGradient>`
                 + vg('alPath', [[0, '#f7dfa4'], [18, '#d8a25f'], [52, '#ab7440'], [100, '#7d5029']])
                 + vg('alFloor', [[0, '#d9701f', 0], [8, '#a83f18', 0.85], [40, '#872f14', 1], [100, '#4a180b', 1]])
@@ -1923,7 +1980,7 @@ const i18n = {
                 + ell(cx, hz + 8 * u, W * 0.06, H * 0.055, '#fffbe6', 'opacity="0.95" filter="url(#alSoft)"')
                 + ground
                 + trunks
-                + canopy + canopyLeaves
+                + canopyBase + canopy + canopyLeaves
                 + air
             );
         },
