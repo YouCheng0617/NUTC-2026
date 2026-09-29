@@ -57,7 +57,7 @@ const translations = {
     "err-no-login": "請先登入後再進行碎片喚醒唷！🌊",
     "err-signin-done": "今天已經領取過簽到獎勵囉！明天再來吧～🌊",
     "empty-gallery": "目前還沒有圖鑑資料唷！🌊",
-    "server-error": "伺服器連線中斷 😢"
+    "server-error": "伺服器連線中斷 😢",
   },
   en: {
     "toggle-btn": "🌐 中文",
@@ -114,8 +114,8 @@ const translations = {
     "err-no-login": "Please log in before summoning shards! 🌊",
     "err-signin-done": "Already claimed today! Come back tomorrow~ 🌊",
     "empty-gallery": "No puzzle collections yet! 🌊",
-    "server-error": "Server connection interrupted 😢"
-  }
+    "server-error": "Server connection interrupted 😢",
+  },
 };
 
 let currentLang = localStorage.getItem("game_lang") || "zh";
@@ -219,7 +219,7 @@ function getAuthHeaders() {
   const token = localStorage.getItem("authToken");
   const headers = {
     "Content-Type": "application/json",
-    "ngrok-skip-browser-warning": "true"
+    "ngrok-skip-browser-warning": "true",
   };
   if (token) {
     headers["Authorization"] = `Bearer ${token}`;
@@ -295,7 +295,7 @@ async function fetchInventory() {
   try {
     const res = await fetch(`${API_BASE_URL}/game/collect/inventory`, {
       method: "GET",
-      headers: getAuthHeaders()
+      headers: getAuthHeaders(),
     });
     if (res.ok) {
       const { data } = await res.json();
@@ -357,7 +357,7 @@ async function performDraw() {
     const response = await fetch(`${API_BASE_URL}/game/collect/unlock`, {
       method: "POST",
       headers: getAuthHeaders(),
-      body: JSON.stringify({ obtained_from: "DAILY_TASK" })
+      body: JSON.stringify({ obtained_from: "DAILY_TASK" }),
     });
 
     if (!response.ok) {
@@ -369,7 +369,9 @@ async function performDraw() {
     const result = resData.data || {};
     const pic = result.picture || {};
     const drawnPiece = result.drawnPiece || 1;
-    const unlockedPieces = result.puzzleProgress?.unlocked_pieces || [drawnPiece];
+    const unlockedPieces = result.puzzleProgress?.unlocked_pieces || [
+      drawnPiece,
+    ];
     const isCompletedNow = Boolean(result.isCompletedNow);
     const rarity = pic.rarity || "NORMAL";
 
@@ -377,7 +379,7 @@ async function performDraw() {
     localStorage.setItem("puzzle_tokens", drawTokens);
     updateTokenDisplay();
     fetchInventory();
-
+    recordGachaHistory(pic.title || "海洋拼圖", drawnPiece, rarity); // 🌟 新增這行：記錄抽卡
     const isPremium = rarity === "PREMIUM";
     const rarityColor = isPremium ? "#ffd200" : "#00f2fe";
     const rarityTag = isPremium ? dict["rarity-prem"] : dict["rarity-normal"];
@@ -394,7 +396,7 @@ async function performDraw() {
         let gridHtml = "";
         for (let i = 1; i <= 9; i++) {
           const isUnlocked = unlockedPieces.includes(i);
-          const isDrawn = (i === drawnPiece);
+          const isDrawn = i === drawnPiece;
           gridHtml += `<div class="grid-cell ${isUnlocked ? "unlocked" : ""} ${isDrawn ? "highlight" : ""}">${i}</div>`;
         }
 
@@ -404,7 +406,9 @@ async function performDraw() {
 
         const descText = isCompletedNow
           ? dict["draw-congrats"]
-          : dict["draw-progress"].replace("{count}", unlockedPieces.length).replace("{rate}", result.puzzleProgress?.progressRate || "0%");
+          : dict["draw-progress"]
+              .replace("{count}", unlockedPieces.length)
+              .replace("{rate}", result.puzzleProgress?.progressRate || "0%");
 
         crystal.innerHTML = `
           <div class="prize-rays"></div>
@@ -432,7 +436,6 @@ async function performDraw() {
         fetchGalleryData();
       }, 400);
     }, 1300);
-
   } catch (error) {
     console.error("喚醒抽卡錯誤:", error);
     alert(`喚醒發生錯誤：${error.message}`);
@@ -472,7 +475,7 @@ async function exchangeFragments(type) {
     const res = await fetch(`${API_BASE_URL}/game/collect/exchange`, {
       method: "POST",
       headers: getAuthHeaders(),
-      body: JSON.stringify({ exchange_type: type, times: 1 })
+      body: JSON.stringify({ exchange_type: type, times: 1 }),
     });
 
     const data = await res.json();
@@ -495,14 +498,21 @@ async function openChest(chestType) {
     const res = await fetch(`${API_BASE_URL}/game/collect/open-chest`, {
       method: "POST",
       headers: getAuthHeaders(),
-      body: JSON.stringify({ chest_type: chestType, count: 1 })
+      body: JSON.stringify({ chest_type: chestType, count: 1 }),
     });
 
     const data = await res.json();
     if (res.ok) {
       const result = data.data?.results?.[0];
       if (result) {
-        alert(`🎁 開啟成功！獲得【${result.picture?.title}】的第 ${result.drawnPiece} 號碎片！`);
+        recordGachaHistory(
+          result.picture?.title || "海洋拼圖",
+          result.drawnPiece,
+          "寶箱獲得",
+        );
+        alert(
+          `🎁 開啟成功！獲得【${result.picture?.title}】的第 ${result.drawnPiece} 號碎片！`,
+        );
       } else {
         alert(data.message || "開啟成功！");
       }
@@ -527,7 +537,7 @@ async function fetchGalleryData() {
   try {
     const response = await fetch(`${API_BASE_URL}/game/collect/gallery`, {
       method: "GET",
-      headers: getAuthHeaders()
+      headers: getAuthHeaders(),
     });
 
     if (response.ok) {
@@ -538,7 +548,10 @@ async function fetchGalleryData() {
       galleryPictures.sort((a, b) => {
         const titleA = String(a.title || "");
         const titleB = String(b.title || "");
-        return titleA.localeCompare(titleB, undefined, { numeric: true, sensitivity: "base" });
+        return titleA.localeCompare(titleB, undefined, {
+          numeric: true,
+          sensitivity: "base",
+        });
       });
 
       renderGalleryPage(currentGalleryPage);
@@ -569,18 +582,22 @@ function renderGalleryPage(page) {
   const start = (currentGalleryPage - 1) * ITEMS_PER_PAGE;
   const pageData = galleryPictures.slice(start, start + ITEMS_PER_PAGE);
 
-  container.innerHTML = pageData.map((item) => {
-    const prog = item.user_progress || {};
-    const isCompleted = Boolean(prog.is_completed);
-    const unlockedPieces = prog.unlocked_pieces || [];
-    const pieceCount = prog.piece_count || 0;
-    const isLocked = (pieceCount === 0);
-    const fullImg = getFullImageUrl(item.image_url);
-    const rarityColor = item.rarity === "PREMIUM" ? "style='color:#ffd200;'" : "";
-    const progressText = isCompleted ? dict["puzzle-completed"] : `${dict["puzzle-progress"]} ${pieceCount}/9 (${prog.progress_rate || "0%"})`;
+  container.innerHTML = pageData
+    .map((item) => {
+      const prog = item.user_progress || {};
+      const isCompleted = Boolean(prog.is_completed);
+      const unlockedPieces = prog.unlocked_pieces || [];
+      const pieceCount = prog.piece_count || 0;
+      const isLocked = pieceCount === 0;
+      const fullImg = getFullImageUrl(item.image_url);
+      const rarityColor =
+        item.rarity === "PREMIUM" ? "style='color:#ffd200;'" : "";
+      const progressText = isCompleted
+        ? dict["puzzle-completed"]
+        : `${dict["puzzle-progress"]} ${pieceCount}/9 (${prog.progress_rate || "0%"})`;
 
-    return `
-      <div class="gallery-item ${isCompleted ? "unlocked" : (pieceCount > 0 ? "in-progress" : "locked")}">
+      return `
+      <div class="gallery-item ${isCompleted ? "unlocked" : pieceCount > 0 ? "in-progress" : "locked"}">
         <div class="img-frame">
           ${renderPuzzleFrameHTML(unlockedPieces, fullImg, isCompleted, isLocked)}
         </div>
@@ -588,7 +605,8 @@ function renderGalleryPage(page) {
         <span class="date">${progressText}</span>
       </div>
     `;
-  }).join("");
+    })
+    .join("");
 
   renderPaginationControls(totalPages);
 }
@@ -674,7 +692,11 @@ function renderPaginationControls(totalPages) {
       const pageNum = parseInt(val, 10);
 
       if (!val || isNaN(pageNum) || pageNum < 1 || pageNum > totalPages) {
-        alert(currentLang === "zh" ? `請輸入正確的頁碼（範圍 1 ~ ${totalPages}）` : `Please enter a valid page number (1 ~ ${totalPages})`);
+        alert(
+          currentLang === "zh"
+            ? `請輸入正確的頁碼（範圍 1 ~ ${totalPages}）`
+            : `Please enter a valid page number (1 ~ ${totalPages})`,
+        );
         input.focus();
         input.select();
         return;
@@ -776,3 +798,121 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 });
+// ==================================================
+// 📜 歷史紀錄與搜尋篩選邏輯
+// ==================================================
+
+// 1. 儲存抽卡歷史
+function recordGachaHistory(title, pieceNumber, rarity) {
+  const history = JSON.parse(
+    localStorage.getItem("gacha_puzzle_history") || "[]",
+  );
+  const now = new Date();
+  const timeStr = `${now.getMonth() + 1}/${now.getDate()} ${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
+
+  history.unshift({
+    title: title,
+    piece: pieceNumber,
+    rarity: rarity,
+    time: timeStr,
+  });
+
+  if (history.length > 80) history.pop();
+  localStorage.setItem("gacha_puzzle_history", JSON.stringify(history));
+}
+
+// 2. 切換展示櫃與歷史分頁
+window.switchCollectionTab = function (tab) {
+  const isGallery = tab === "gallery";
+  document.getElementById("tabGalleryContent").style.display = isGallery
+    ? "block"
+    : "none";
+  document.getElementById("tabHistoryContent").style.display = isGallery
+    ? "none"
+    : "block";
+
+  document
+    .getElementById("tabBtnGallery")
+    .classList.toggle("active", isGallery);
+  document
+    .getElementById("tabBtnHistory")
+    .classList.toggle("active", !isGallery);
+
+  if (!isGallery) {
+    renderHistoryList();
+  }
+};
+
+// 3. 渲染歷史紀錄清單
+function renderHistoryList() {
+  const container = document.getElementById("historyListContainer");
+  if (!container) return;
+
+  const history = JSON.parse(
+    localStorage.getItem("gacha_puzzle_history") || "[]",
+  );
+  if (history.length === 0) {
+    container.innerHTML =
+      '<div style="text-align:center; color:#88bbff; padding: 40px 0;">目前尚無抽取紀錄，快去喚醒碎片吧！🌊</div>';
+    return;
+  }
+
+  container.innerHTML = history
+    .map(
+      (item) => `
+    <div class="history-card">
+      <div>
+        <div class="title-text">${item.title} · 第 ${item.piece} 號碎片</div>
+        <div class="time-text">喚醒時間：${item.time}</div>
+      </div>
+      <div class="rarity-tag">${item.rarity}</div>
+    </div>
+  `,
+    )
+    .join("");
+}
+
+// 4. 清空歷史紀錄
+window.clearDrawHistory = function () {
+  if (confirm("確定要清空所有的喚醒歷史紀錄嗎？")) {
+    localStorage.removeItem("gacha_puzzle_history");
+    renderHistoryList();
+  }
+};
+
+// 5. 碎片編號與關鍵字篩選
+let searchFilterKeyword = "";
+let searchFilterPiece = "all";
+
+document.getElementById("puzzleSearchInput")?.addEventListener("input", (e) => {
+  searchFilterKeyword = e.target.value.trim().toLowerCase();
+  applyGalleryFilter();
+});
+
+document
+  .getElementById("pieceSelectFilter")
+  ?.addEventListener("change", (e) => {
+    searchFilterPiece = e.target.value;
+    applyGalleryFilter();
+  });
+
+function applyGalleryFilter() {
+  const items = document.querySelectorAll(".gallery-grid .gallery-item");
+  items.forEach((el) => {
+    const titleText =
+      el.querySelector(".gallery-name")?.innerText.toLowerCase() || "";
+    const matchKeyword =
+      !searchFilterKeyword || titleText.includes(searchFilterKeyword);
+
+    let matchPiece = true;
+    if (searchFilterPiece !== "all") {
+      const pieceNum = parseInt(searchFilterPiece, 10);
+      const targetCell = el.querySelector(
+        `.puzzle-piece-cell:nth-child(${pieceNum})`,
+      );
+      matchPiece = targetCell && targetCell.classList.contains("unlocked");
+    }
+
+    el.style.display = matchKeyword && matchPiece ? "" : "none";
+  });
+}
