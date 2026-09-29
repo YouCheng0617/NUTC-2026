@@ -1,3 +1,4 @@
+import { isValidId } from "../../lib/validateHelper.js";
 import type { Response, Request } from "express";
 import type { AuthRequest } from "../middleware/auth.middleware.js";
 import {
@@ -38,7 +39,7 @@ export class AdminController {
             const memberId = Number(req.params.memberId);
             const { newStatus } = req.body;
 
-            if (!memberId || isNaN(memberId)) {
+            if (!isValidId(memberId)) {
                 return res.status(400).json({ message: "無效的會員 ID" });
             }
 
@@ -69,7 +70,7 @@ export class AdminController {
             const memberId = Number(req.params.memberId);
             const { role } = req.body ?? {};
 
-            if (!memberId || isNaN(memberId)) {
+            if (!isValidId(memberId)) {
                 return res.status(400).json({ message: "無效的會員 ID" });
             }
             if (role !== "USER" && role !== "ADMIN") {
@@ -142,7 +143,7 @@ export class AdminController {
         try {
             const bottleId = Number(req.params.bottleId);
 
-            if (isNaN(bottleId)) {
+            if (!isValidId(bottleId)) {
                 return res.status(400).json({ message: "無效的瓶子 ID" });
             }
             await deleteBottleByAdmin(bottleId);
@@ -161,7 +162,7 @@ export class AdminController {
         try {
             const memberId = Number(req.params.memberId);
 
-            if (isNaN(memberId)) {
+            if (!isValidId(memberId)) {
                 return res.status(400).json({ message: "無效的會員 ID" });
             }
             await deleteMemberByAdmin(memberId);
@@ -221,7 +222,7 @@ export class AdminController {
     async getCustomerServiceDetail(req: Request, res: Response) {
         try {
             const id = Number(req.params.id);
-            if (isNaN(id)) {
+            if (!isValidId(id)) {
                 return res.status(400).json({ message: "無效的客服問題 ID" });
             }
             const ticket = await getCustomerServiceTicketForAdmin(id);
@@ -244,7 +245,7 @@ export class AdminController {
             const id = Number(req.params.id || req.body.id || req.body.ticket_id);
             const { reply, status } = req.body;
 
-            if (!id || isNaN(id)) {
+            if (!isValidId(id)) {
                 return res.status(400).json({ message: "請提供有效的客服問題 ID" });
             }
             if (!reply || typeof reply !== "string" || !reply.trim()) {
@@ -273,7 +274,7 @@ export class AdminController {
             const id = Number(req.params.id);
             const { status } = req.body;
 
-            if (isNaN(id) || status === undefined || isNaN(Number(status))) {
+            if (!isValidId(id) || status === undefined || isNaN(Number(status))) {
                 return res.status(400).json({ message: "請提供有效的 ID 與 status 數值" });
             }
 
@@ -294,7 +295,7 @@ export class AdminController {
     async deleteCustomerService(req: Request, res: Response) {
         try {
             const id = Number(req.params.id);
-            if (isNaN(id)) {
+            if (!isValidId(id)) {
                 return res.status(400).json({ message: "無效的客服問題 ID" });
             }
             await deleteCustomerServiceTicket(id);

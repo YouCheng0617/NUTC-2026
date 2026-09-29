@@ -1,3 +1,4 @@
+import { parseLimit } from "../../../lib/validateHelper.js";
 import type { Response } from "express";
 import type { AuthRequest } from "../../middleware/auth.middleware.js";
 import {
@@ -118,8 +119,8 @@ export class CollectController {
                 return res.status(401).json({ message: "尚未登入" });
             }
 
-            const page = Number(req.query.page) || 1;
-            const limit = Number(req.query.limit) || 20;
+            const page = parseLimit(req.query.page, 1, 10000);
+            const limit = parseLimit(req.query.limit, 20, 100);
             const result = await getDrawRecordsService(memberId, page, limit);
             return res.status(200).json({
                 message: "取得抽卡紀錄成功",

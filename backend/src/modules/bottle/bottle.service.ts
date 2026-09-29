@@ -4,6 +4,34 @@ import dotenv from "dotenv";
 import { createNotification } from "../notification/notification.service.js";
 import { getBlockedMemberIds, isBlockedBetween } from "../block/block.service.js";
 
+/* 投票選項 include：memberId 存在時一併撈出該會員自己的投票 */
+const pollInclude = (memberId?: number) => ({
+    PollOption: {
+        select: {
+            id: true,
+            text: true,
+            _count: { select: { votes: true } }
+        }
+    },
+    PollVote: {
+        where: { member_id: memberId ?? -1 }, // 訪客沒有投票紀錄
+        select: { option_id: true }
+    }
+});
+
+/* 把 PollOption / PollVote 轉成回傳給前端的 poll_options / user_voted_option_id */
+const formatPoll = (bottle: {
+    PollOption: { id: number; text: string; _count: { votes: number } }[];
+    PollVote: { option_id: number }[];
+}) => ({
+    poll_options: bottle.PollOption.map(opt => ({
+        option_id: opt.id,
+        text: opt.text,
+        vote_count: opt._count.votes
+    })),
+    user_voted_option_id: bottle.PollVote[0]?.option_id ?? null
+});
+
 /*獲取我丟的瓶子清單*/
 export const getMybottles = async (memberId: number) => {
     const myBottles = await prisma.bottle.findMany({
@@ -21,16 +49,18 @@ export const getMybottles = async (memberId: number) => {
             },
             _count: {
                 select: { likes: true, saves: true }
-            }
+            },
+            ...pollInclude(memberId)
         }
     });
     return myBottles.map(bottle => {
-        const { _count, categories, ...bottleData } = bottle;
+        const { _count, categories, PollOption, PollVote, ...bottleData } = bottle;
         return {
             ...bottleData,
             like_count: _count.likes,
             save_count: _count.saves,
-            category_list: categories.map(c => c.category?.name || "未知類別")
+            category_list: categories.map(c => c.category?.name || "未知類別"),
+            ...formatPoll(bottle)
         };
     });
 };
@@ -130,7 +160,8 @@ export const getMyLikedBottles = async (memberId: number) => {
                     },
                     _count: {
                         select: { likes: true, saves: true }
-                    }
+                    },
+                    ...pollInclude(memberId)
                 }
             }
         },
@@ -138,13 +169,14 @@ export const getMyLikedBottles = async (memberId: number) => {
     });
 
     return likedRecords.map(record => {
-        const { _count, author, ...bottleData } = record.bottle;
+        const { _count, author, PollOption, PollVote, ...bottleData } = record.bottle;
         return {
             ...bottleData,
             like_count: _count.likes,
             save_count: _count.saves,
             member_name: author?.name || "匿名使用者",
-            category_list: record.bottle.categories.map(c => c.category?.name || "未知類別")
+            category_list: record.bottle.categories.map(c => c.category?.name || "未知類別"),
+            ...formatPoll(record.bottle)
         };
     });
 };
@@ -247,7 +279,8 @@ export const getMySavedBottles = async (memberId: number) => {
                     },
                     _count: {
                         select: { likes: true, saves: true }
-                    }
+                    },
+                    ...pollInclude(memberId)
                 }
             }
         },
@@ -255,13 +288,14 @@ export const getMySavedBottles = async (memberId: number) => {
     });
 
     return savedRecords.map(record => {
-        const { _count, author, ...bottleData } = record.bottle;
+        const { _count, author, PollOption, PollVote, ...bottleData } = record.bottle;
         return {
             ...bottleData,
             like_count: _count.likes,
             save_count: _count.saves,
             member_name: author?.name || "匿名使用者",
-            category_list: record.bottle.categories.map(c => c.category?.name || "未知類別")
+            category_list: record.bottle.categories.map(c => c.category?.name || "未知類別"),
+            ...formatPoll(record.bottle)
         };
     });
 };
@@ -460,19 +494,21 @@ export const searchBottle = async (keyword: string, memberId?: number) => {
             },
             _count: {
                 select: { likes: true, saves: true }
-            }
+            },
+            ...pollInclude(memberId)
         }
     });
 
     return searchResults.map(bottle => {
-        const { _count, categories, author, ...bottleData } = bottle;
+        const { _count, categories, author, PollOption, PollVote, ...bottleData } = bottle;
         return {
             ...bottleData,
             like_count: _count.likes,
             save_count: _count.saves,
             // 💡 重要：處理匿名邏輯，保護發文者
             member_name: bottleData.is_anonymous ? "匿名使用者" : (author?.name || "未知使用者"),
-            category_list: categories.map(c => c.category?.name || "未知類別")
+            category_list: categories.map(c => c.category?.name || "未知類別"),
+            ...formatPoll(bottle)
         };
     });
 };
@@ -504,18 +540,20 @@ export const getPopularBottles = async (limit: number = 10, memberId?: number) =
             },
             _count: {
                 select: { likes: true, saves: true }
-            }
+            },
+            ...pollInclude(memberId)
         }
     });
 
     return popularBottles.map(bottle => {
-        const { _count, categories, author, ...bottleData } = bottle;
+        const { _count, categories, author, PollOption, PollVote, ...bottleData } = bottle;
         return {
             ...bottleData,
             like_count: _count.likes,
             save_count: _count.saves,
             member_name: bottleData.is_anonymous ? "匿名使用者" : (author?.name || "未知使用者"),
-            category_list: categories.map(c => c.category?.name || "未知類別")
+            category_list: categories.map(c => c.category?.name || "未知類別"),
+            ...formatPoll(bottle)
         };
     });
 };

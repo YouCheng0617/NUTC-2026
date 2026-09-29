@@ -349,22 +349,10 @@ async function fetchBottles() {
         if (!realAuthorId && rawItem.author?.id)
           realAuthorId = rawItem.author.id;
 
-        // 🌟 解析內文中的投票標籤
-        let itemContent = item.content || rawItem.content || "";
-        let itemPoll = null;
-        const pollMatch = itemContent.match(/<!--POLL_JSON:(.*?):POLL_JSON-->/);
-        if (pollMatch) {
-          try {
-            itemPoll = JSON.parse(pollMatch[1]);
-            itemContent = itemContent.replace(pollMatch[0], "").trim();
-          } catch (e) {}
-        }
-        const cachedPoll = localStorage.getItem(`poll_data_${safeId}`);
-        if (cachedPoll) {
-          try {
-            itemPoll = JSON.parse(cachedPoll);
-          } catch (e) {}
-        }
+        const itemPoll = parsePoll(item, rawItem);
+        const itemContent = stripLegacyPollTag(
+          item.content || rawItem.content || "",
+        );
 
         return {
           id: safeId,
@@ -397,6 +385,28 @@ async function fetchBottles() {
   } catch (error) {
     console.error("連線錯誤:", error);
   }
+}
+
+// 🌟 把後端的 poll_options 轉成前端投票物件（沒有投票回傳 null）
+function parsePoll(item, rawItem = {}) {
+  const rawOptions = item.poll_options || rawItem.poll_options;
+  if (!Array.isArray(rawOptions) || rawOptions.length === 0) return null;
+  const options = rawOptions.map((opt) => ({
+    id: opt.option_id,
+    text: opt.text,
+    votes: opt.vote_count || 0,
+  }));
+  return {
+    options,
+    totalVotes: options.reduce((sum, o) => sum + o.votes, 0),
+    userVotedOptionId:
+      item.user_voted_option_id ?? rawItem.user_voted_option_id ?? null,
+  };
+}
+
+// 相容舊資料：移除內文裡殘留的投票標籤
+function stripLegacyPollTag(content) {
+  return content.replace(/<!--POLL_JSON:(.*?):POLL_JSON-->/, "").trim();
 }
 
 function escapeHTML(str) {
@@ -441,7 +451,7 @@ function renderPosts(data = posts) {
       (p) => `
         <div class="post-card" onclick="openPostDetail('${escapeHTML(String(p.id))}')">
             <div style="display:flex; justify-content:space-between; align-items:center;">
-                <div style="font-size:0.85rem; color:#0055a5; font-weight:bold;">${highlightText(escapeHTML(p.board), currentKeyword)}</div>
+                <div style="font-size:0.85rem; color:#0055a5; font-weight:bold;">${highlightText(escapeHTML(p.board), currentKeyword)}${p.poll ? ' <span class="post-poll-badge">📊 投票</span>' : ""}</div>
                 <div style="font-size:0.8rem; color:#888; background:#f0f4f8; padding:3px 10px; border-radius:12px;">${highlightText(escapeHTML(p.author), currentKeyword)}</div>
             </div>
             <h2 style="margin:12px 0; color:#333; font-size: 1.4rem;">${highlightText(escapeHTML(p.title), currentKeyword)}</h2>
@@ -1184,6 +1194,12 @@ function setupAuth() {
     const user = JSON.parse(localStorage.getItem("currentUser") || "{}");
     const token = localStorage.getItem("authToken");
 
+    // 🌟 管理員不能發文：加上 is-admin 讓 CSS 隱藏所有發文入口
+    document.body.classList.toggle(
+      "is-admin",
+      Boolean(token && user && user.role === "ADMIN"),
+    );
+
     if (user && Object.keys(user).length > 0 && token) {
       if (loginTrigger) loginTrigger.style.display = "none";
       if (openHubBtn) openHubBtn.style.display = "inline-flex";
@@ -1242,6 +1258,12 @@ function setupAuth() {
   updateUI();
 }
 
+function isAdminUser() {
+  const user = JSON.parse(localStorage.getItem("currentUser") || "{}");
+  return user.role === "ADMIN";
+}
+window.isAdminUser = isAdminUser;
+
 function setupNewPost() {
   const form = document.getElementById("new-post-form");
   const btnNewPost = document.getElementById("btn-new-post");
@@ -1254,6 +1276,10 @@ function setupNewPost() {
       if (!token) {
         alert("請先登入才能發文喔！");
         window.location.href = "login.html";
+        return;
+      }
+      if (isAdminUser()) {
+        alert("管理員帳號無法發文，請切換至一般帳號發文");
         return;
       }
       if (postModal) {
@@ -1304,10 +1330,7 @@ function setupNewPost() {
           return;
         }
 
-        pollData = {
-          options: validOptions.map((t) => ({ text: t, votes: 0 })),
-          totalVotes: 0,
-        };
+        pollData = validOptions;
       }
 
       const boardSelect = form.querySelector("#post-board");
@@ -1323,17 +1346,12 @@ function setupNewPost() {
         return;
       }
 
-      // 將投票結構藏進內文發送
-      let finalContent = content;
-      if (pollData) {
-        finalContent += `\n<!--POLL_JSON:${JSON.stringify(pollData)}:POLL_JSON-->`;
-      }
-
       const postData = {
         title: title,
-        content: finalContent,
+        content: content,
         isAnonymous: isAnonymous,
         category_id: categoryPayload,
+        ...(pollData && { pollOptions: pollData }),
       };
 
       try {
@@ -2588,7 +2606,8 @@ async function fetchPopularBottles() {
             author: author,
             authorId: item.author_id || item.user_id || item.member_id || null,
             title: title,
-            desc: item.content || rawItem.content || "",
+            desc: stripLegacyPollTag(item.content || rawItem.content || ""),
+            poll: parsePoll(item, rawItem),
             likes: parseInt(
               item.like_count || item.likeCount || item.likes || 0,
               10,
@@ -3308,64 +3327,92 @@ function renderPollWidget(post) {
   pollBox.style.display = "block";
   const poll = post.poll;
   const totalVotes = poll.totalVotes || 0;
-
-  const votedStorageKey = `voted_poll_${post.id}`;
-  const userVotedIndex = localStorage.getItem(votedStorageKey);
-  const hasVoted = userVotedIndex !== null;
+  const votedId = poll.userVotedOptionId;
+  const hasVoted = votedId !== null && votedId !== undefined;
 
   let optionsHtml = poll.options
-    .map((opt, idx) => {
+    .map((opt) => {
       const votes = opt.votes || 0;
       const percentage =
         totalVotes > 0 ? Math.round((votes / totalVotes) * 100) : 0;
-      const isChoice = hasVoted && String(userVotedIndex) === String(idx);
+      const isChoice = hasVoted && String(votedId) === String(opt.id);
 
       return `
-            <div class="poll-option-row ${hasVoted ? "has-voted" : ""} ${isChoice ? "voted-choice" : ""}" 
-                 onclick="handlePollVote('${post.id}', ${idx})">
+            <button type="button" class="poll-option-row ${hasVoted ? "has-voted" : ""} ${isChoice ? "voted-choice" : ""}"
+                 onclick="handlePollVote('${post.id}', ${Number(opt.id)})">
                 <div class="poll-progress-bar" style="width: ${hasVoted ? percentage : 0}%;"></div>
+                <span class="poll-radio">${isChoice ? "✓" : ""}</span>
                 <span class="poll-opt-text">${escapeHTML(opt.text)}</span>
-                <span class="poll-opt-percentage">${hasVoted ? percentage + "%" : "0%"}</span>
-            </div>
+                ${hasVoted ? `<span class="poll-opt-percentage">${percentage}%</span>` : ""}
+            </button>
         `;
     })
     .join("");
 
   pollBox.innerHTML = `
+        <div class="poll-title-line">
+            <span class="poll-title">📊 投票</span>
+            <span class="poll-hint">${hasVoted ? "點其他選項可改票" : "選一個你的答案"}</span>
+        </div>
         ${optionsHtml}
         <div class="poll-meta-footer">
-            <span>📊 共 ${totalVotes} 票</span>
-            <span>24 小時活動</span>
+            <span>共 ${totalVotes} 票</span>
+            ${hasVoted ? "<span>✅ 你已投票</span>" : ""}
         </div>
     `;
 }
 
-// 4. 點擊選項觸發投票
-window.handlePollVote = function (postId, choiceIndex) {
-  const votedStorageKey = `voted_poll_${postId}`;
-  if (localStorage.getItem(votedStorageKey) !== null) {
-    if (typeof showOceanToast === "function") {
-      showOceanToast("你已經投過票囉！🫧");
-    } else {
-      alert("你已經投過票囉！");
-    }
+// 4. 點擊選項觸發投票（呼叫後端，可改票）
+window.handlePollVote = async function (postId, optionId) {
+  const toast = (msg) =>
+    typeof showOceanToast === "function" ? showOceanToast(msg) : alert(msg);
+
+  const token = localStorage.getItem("authToken");
+  if (!token) {
+    toast("請先登入才能投票喔！");
     return;
   }
 
   const post = posts.find((p) => String(p.id) === String(postId));
   if (!post || !post.poll) return;
+  const poll = post.poll;
+  const prevId = poll.userVotedOptionId;
+  if (String(prevId) === String(optionId)) return;
 
-  post.poll.options[choiceIndex].votes =
-    (post.poll.options[choiceIndex].votes || 0) + 1;
-  post.poll.totalVotes = (post.poll.totalVotes || 0) + 1;
+  try {
+    const response = await fetch(`${API_BASE_URL}/bottles/${postId}/vote`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+        "ngrok-skip-browser-warning": "true",
+      },
+      body: JSON.stringify({ optionId }),
+    });
 
-  localStorage.setItem(votedStorageKey, choiceIndex);
-  localStorage.setItem(`poll_data_${postId}`, JSON.stringify(post.poll));
+    if (!response.ok) {
+      const err = await response.json().catch(() => ({}));
+      toast(err.message || "投票失敗，請稍後再試");
+      return;
+    }
 
-  renderPollWidget(post);
+    // 依後端結果更新本地票數
+    const hadVoted = prevId !== null && prevId !== undefined;
+    if (hadVoted) {
+      const prevOpt = poll.options.find((o) => String(o.id) === String(prevId));
+      if (prevOpt) prevOpt.votes = Math.max(0, prevOpt.votes - 1);
+    } else {
+      poll.totalVotes = (poll.totalVotes || 0) + 1;
+    }
+    const newOpt = poll.options.find((o) => String(o.id) === String(optionId));
+    if (newOpt) newOpt.votes = (newOpt.votes || 0) + 1;
+    poll.userVotedOptionId = optionId;
 
-  if (typeof showOceanToast === "function") {
-    showOceanToast("投票成功！📊");
+    renderPollWidget(post);
+    toast(hadVoted ? "已改票！📊" : "投票成功！📊");
+  } catch (error) {
+    console.error("投票連線錯誤:", error);
+    toast("無法連線至伺服器，投票失敗");
   }
 };
 
