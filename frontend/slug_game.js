@@ -1990,22 +1990,6 @@ const i18n = {
             );
         },
 
-        // 深海秘境：海水漸層、光束、珊瑚與氣泡
-        deepSea(mode) {
-            const { W, H } = canvasOf(mode), floorY = H * 0.78;
-            const coral = (x, y, s, fill) => `<g transform="translate(${x},${y}) scale(${s})" stroke="${fill}" stroke-width="13" fill="none" stroke-linecap="round"><path d="M 0 0 L 0 -60"/><path d="M 0 -30 C -18 -44, -26 -62, -24 -84"/><path d="M 0 -40 C 18 -54, 28 -70, 28 -92"/></g>`;
-            const weed = (x, y, s, fill) => `<g transform="translate(${x},${y}) scale(${s})" stroke="${fill}" stroke-width="10" fill="none" stroke-linecap="round"><path d="M 0 0 C -14 -34, 10 -58, -4 -96"/><path d="M 18 0 C 32 -30, 12 -54, 26 -92"/></g>`;
-            return svgOf(W, H,
-                vg('dsSea', [[0, '#2aa7d4'], [45, '#166fa8'], [100, '#062d54']]) + vg('dsRay', [[0, '#bff0ff', 0.45], [100, '#bff0ff', 0]]) + vg('dsFloor', [[0, '#3f6f8f'], [100, '#12314f']]),
-                bg(W, H, 'url(#dsSea)') + rays(W, H, W * 0.44, -H * 0.05, 6, 'url(#dsRay)')
-                + `<path d="M 0 ${floorY + 18} C ${W * 0.25} ${floorY - 16}, ${W * 0.6} ${floorY + 26}, ${W} ${floorY - 4} L ${W} ${H} L 0 ${H} Z" fill="url(#dsFloor)"/>`
-                + coral(W * 0.18, floorY + 24, 1.1, '#f0798e') + coral(W * 0.78, floorY + 20, 0.9, '#f4a259')
-                + weed(W * 0.42, floorY + 26, 1.1, '#2f9e6f') + weed(W * 0.62, floorY + 22, 0.9, '#3fb37f')
-                + times(4, (i, a, b) => `<g transform="translate(${(a * W).toFixed(0)},${(H * 0.2 + b * H * 0.4).toFixed(0)}) scale(${(0.6 + b).toFixed(2)})" fill="#ffd166"><path d="M 0 0 C 16 -14, 44 -14, 58 0 C 44 14, 16 14, 0 0 Z"/><path d="M 58 0 L 76 -14 L 76 14 Z"/><circle cx="16" cy="-4" r="3.4" fill="#0b2a44"/></g>`)
-                + bubbles(W, H, 16, '#cdeeff')
-            );
-        },
-
         // 璀璨星空：銀河、月亮與遠山
         starryNight(mode) {
             const { W, H } = canvasOf(mode), hz = H * 0.76;
@@ -2425,7 +2409,6 @@ const i18n = {
 
             // 🌟 11 ~ 15：風景與探險系列（晚霞橘、楓葉紅、深海藍、雪山白、星夜藍）
             autumn_leaves: { name: {zh: '秋日楓紅', en: 'Autumn Leaves'}, cost: 600, ...illustratedBg('autumnLeaves') },
-            deep_sea: { name: {zh: '深海秘境', en: 'Deep Ocean'}, cost: 650, ...illustratedBg('deepSea') },
             starry_night: { name: {zh: '璀璨星空', en: 'Starry Night'}, cost: 800, ...illustratedBg('starryNight') },
 
             // 🌟 16 ~ 21：奇幻異想系列（糖果粉、魔法紫、薰衣草、極光綠、街機桃紅、霓虹青）
