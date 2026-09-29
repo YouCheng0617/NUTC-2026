@@ -11,6 +11,12 @@ function escapeHTML(str) {
     }[tag]));
 }
 
+// 把值轉成可以安全放進 onclick="fn(...)" 的 JS 字串參數
+// (escapeHTML 的 &#39; 會被瀏覽器解回單引號，不能單靠它放進 '...' 裡)
+function jsArg(value) {
+    return escapeHTML(JSON.stringify(String(value)));
+}
+
 // 🌟 解析時間戳記以供排序
 function getItemTimestamp(item, idField) {
     if (item.created_at) {
@@ -784,6 +790,7 @@ function renderUsers(users) {
     tbody.innerHTML = users.map(u => {
         const uid = u.member_id || u.id;
         const safeName = escapeHTML(u.name || '未命名');
+        const nameArg = jsArg(u.name || '未命名');
         const isAdmin = u.role === 'ADMIN';
         const isSelf = myMemberId !== null && Number(uid) === myMemberId;
 
@@ -795,9 +802,9 @@ function renderUsers(users) {
         if (isSelf) {
             roleBtn = `<span style="margin-left: 5px; font-size: 0.8rem; color: #94a3b8;">（本人）</span>`;
         } else if (isAdmin) {
-            roleBtn = `<button class="btn-action" style="margin-left: 5px; background:#fff7ed; color:#c2410c; border:1px solid #fed7aa;" onclick="changeUserRole('${uid}', '${safeName}', 'USER')">取消管理員</button>`;
+            roleBtn = `<button class="btn-action" style="margin-left: 5px; background:#fff7ed; color:#c2410c; border:1px solid #fed7aa;" onclick="changeUserRole('${uid}', ${nameArg}, 'USER')">取消管理員</button>`;
         } else {
-            roleBtn = `<button class="btn-action" style="margin-left: 5px; background:#f5f3ff; color:#6d28d9; border:1px solid #c4b5fd;" onclick="changeUserRole('${uid}', '${safeName}', 'ADMIN')">升為管理員</button>`;
+            roleBtn = `<button class="btn-action" style="margin-left: 5px; background:#f5f3ff; color:#6d28d9; border:1px solid #c4b5fd;" onclick="changeUserRole('${uid}', ${nameArg}, 'ADMIN')">升為管理員</button>`;
         }
 
         let currentStatus = u.status || 'ACTIVE';
@@ -814,9 +821,9 @@ function renderUsers(users) {
             <td data-label="帳號狀態">${statusBadge}</td>
             <td data-label="帳號權限">${roleBadge}</td>
             <td data-label="項目操作" style="white-space: nowrap;">
-                <button class="btn-action btn-secondary" onclick="changeUserStatus('${uid}', '${safeName}')">更改狀態</button>
+                <button class="btn-action btn-secondary" onclick="changeUserStatus('${uid}', ${nameArg})">更改狀態</button>
                 ${roleBtn}
-                <button class="btn-action btn-danger" style="margin-left: 5px;" onclick="deleteUserAsAdmin('${uid}', '${safeName}')">刪除</button>
+                <button class="btn-action btn-danger" style="margin-left: 5px;" onclick="deleteUserAsAdmin('${uid}', ${nameArg})">刪除</button>
             </td>
         </tr>
         `;

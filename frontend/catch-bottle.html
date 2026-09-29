@@ -633,6 +633,15 @@
       const API_BASE_URL = "https://api.drift-bottles.xyz";
       const GAME_NAME = "catch-bottle";
 
+      // 排行榜的玩家名稱是使用者自己取的，放進 HTML 前先跳脫
+      function escapeLeaderboardName(str) {
+        return String(str).replace(
+          /[&<>'"]/g,
+          (c) =>
+            ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#39;", '"': "&quot;" })[c],
+        );
+      }
+
       // =========================================
       // 🌐 多國語言 (i18n) 字典與切換邏輯
       // =========================================
@@ -1216,8 +1225,8 @@
                 let playerScore = entry.high_score || 0;
                 html += `
                   <div class="leaderboard-item ${rankClass}">
-                      <span>${rankIcon} ${playerName}</span>
-                      <span>${playerScore} 分</span>
+                      <span>${rankIcon} ${escapeLeaderboardName(playerName)}</span>
+                      <span>${Number(playerScore) || 0} 分</span>
                   </div>
                 `;
               });

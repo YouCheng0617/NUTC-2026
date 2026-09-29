@@ -343,7 +343,7 @@ function copyRoomId() {
             
             // 🌟 幫每個朋友生出完整的 SVG 結構，包含尾巴、斑點跟專屬漸層！
             el.innerHTML = `
-                <div class="other-player-name">${p.petName}</div>
+                <div class="other-player-name"></div>
                 <svg viewBox="0 0 340 240" style="width: 100%; height: 100%; transform: scale(0.9); transform-origin: top left; filter: drop-shadow(0 10px 10px rgba(0,0,0,0.1));">
                     <defs>
                         <!-- 替每個朋友建立專屬的耳朵漸層 ID，才不會大家都共用到同一個顏色 -->
@@ -391,6 +391,8 @@ function copyRoomId() {
                         </g>
                     </g>
                 </svg>`;
+            // 寵物名稱來自其他玩家，用 textContent 放入避免被塞 HTML
+            el.querySelector('.other-player-name').textContent = p.petName;
             document.getElementById('otherPlayersLayer').appendChild(el);
             
             updateFriendsPosition(); // 呼叫排隊系統
@@ -452,7 +454,10 @@ function updateRoomUI(text) {
         function showChatBubble(name, message) {
             const el = document.createElement('div'); 
             el.className = 'chat-bubble'; 
-            el.innerHTML = `<span style="font-size:0.8em; color:var(--text-dim);">${name}</span><br/>${message}`;
+            // 名稱與訊息來自其他玩家，一律當純文字顯示
+            el.innerHTML = `<span style="font-size:0.8em; color:var(--text-dim);"></span><br/><span></span>`;
+            el.children[0].textContent = name;
+            el.children[2].textContent = message;
             let targetEl = document.getElementById('slugContainer');
             // 如果不是自己說的，就貼到對應的玩家頭上
             if (name !== gameState.petName && name !== '系統') {

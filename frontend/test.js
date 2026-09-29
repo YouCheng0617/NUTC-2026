@@ -2809,7 +2809,7 @@ window.openFollowingModal = async function () {
                   class="btn-unfollow-modal"
                   onmouseenter="this.innerText='取消追蹤'"
                   onmouseleave="this.innerText='已追蹤'"
-                  onclick="unfollowFromModal('${uId}', '${escapeHTML(uName)}', event)"
+                  onclick="unfollowFromModal('${uId}', ${escapeHTML(JSON.stringify(String(uName)))}, event)"
                 >
                   已追蹤
                 </button>
@@ -3193,7 +3193,9 @@ window.showOceanToast = function (message) {
   const toast = document.createElement("div");
   toast.id = "ocean-toast";
   toast.className = "ocean-toast";
-  toast.innerHTML = `<span style="font-size: 1.2rem;">🫧</span> <span>${message}</span>`;
+  // 訊息可能含有使用者名稱，一律當純文字顯示
+  toast.innerHTML = `<span style="font-size: 1.2rem;">🫧</span> <span></span>`;
+  toast.lastElementChild.textContent = message;
 
   document.body.appendChild(toast);
 

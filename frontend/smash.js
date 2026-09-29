@@ -469,7 +469,9 @@ function spawnTarget() {
                         let playerName = entry.name || entry.username || entry.nickname || entry.member_name || (entry.member && entry.member.name) || (entry.user && entry.user.name) || (currLangSmash === 'zh' ? "匿名玩家" : "Anonymous");
                         let playerScore = entry.high_score || entry.score || 0;
                         let li = document.createElement('li');
-                        li.innerHTML = `<span>${rankIcon} ${playerName}</span> <span style="color: #ffeb3b;">${playerScore} ${t.ptsText}</span>`;
+                        li.innerHTML = `<span>${rankIcon} <span class="lb-name"></span></span> <span style="color: #ffeb3b;">${Number(playerScore) || 0} ${t.ptsText}</span>`;
+                        // 玩家名稱是使用者自己取的，用 textContent 放入避免被塞 HTML
+                        li.querySelector('.lb-name').textContent = playerName;
                         listContainer.appendChild(li);
                     });
                 }
