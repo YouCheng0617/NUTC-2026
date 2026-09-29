@@ -1175,8 +1175,8 @@ window.deleteMyBottle = async function (id, e) {
 };
 
 function setupAuth() {
-  const userProfile = document.getElementById("user-profile");
   const loginTrigger = document.getElementById("login-trigger");
+  const openHubBtn = document.getElementById("open-hub-btn");
   const identitySelect = document.getElementById("post-identity");
   const userDropdown = document.getElementById("user-dropdown");
 
@@ -1186,11 +1186,15 @@ function setupAuth() {
 
     if (user && Object.keys(user).length > 0 && token) {
       if (loginTrigger) loginTrigger.style.display = "none";
-      if (userProfile) userProfile.style.display = "flex";
+      if (openHubBtn) openHubBtn.style.display = "inline-flex";
+
       fetchNotificationCount();
-      syncMyFollowingList(); // 🌟 登入後同步追蹤清單
+      syncMyFollowingList();
+
       const displayName =
         user.name || (user.email ? user.email.split("@")[0] : "用戶");
+
+      // 同步探索中心彈窗內的大頭貼與名字
       const userNameEl = document.getElementById("user-name");
       if (userNameEl) userNameEl.innerText = displayName;
 
@@ -1217,35 +1221,11 @@ function setupAuth() {
           };
           userDropdown.insertBefore(adminLink, userDropdown.lastElementChild);
         }
-        const btnNewPost = document.getElementById("btn-new-post");
-        if (btnNewPost) btnNewPost.style.display = "none";
-
-        const savedMenuItem = document.querySelector(
-          '.menu-item[onclick*="saved.html"]',
-        );
-        const postMenuItem = document.querySelector(
-          '.menu-item[onclick*="post.html"]',
-        );
-        if (savedMenuItem) savedMenuItem.style.display = "none";
-        if (postMenuItem) postMenuItem.style.display = "none";
-      } else {
-        const btnNewPost = document.getElementById("btn-new-post");
-        if (btnNewPost) btnNewPost.style.display = "block";
-
-        const savedMenuItem = document.querySelector(
-          '.menu-item[onclick*="saved.html"]',
-        );
-        const postMenuItem = document.querySelector(
-          '.menu-item[onclick*="post.html"]',
-        );
-        if (savedMenuItem) savedMenuItem.style.display = "block";
-        if (postMenuItem) postMenuItem.style.display = "block";
       }
     } else {
       if (loginTrigger) loginTrigger.style.display = "block";
-      if (userProfile) userProfile.style.display = "none";
-      const btnNewPost = document.getElementById("btn-new-post");
-      if (btnNewPost) btnNewPost.style.display = "block";
+      const userNameEl = document.getElementById("user-name");
+      if (userNameEl) userNameEl.innerText = "請先登入";
     }
   }
 

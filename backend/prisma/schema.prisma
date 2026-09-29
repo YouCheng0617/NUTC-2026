@@ -77,8 +77,13 @@ model Member {
   puzzle_sign_in_streak     Int       @default(0) // 當前連續簽到天數 (1~30 循環)
   puzzle_total_sign_in_days Int       @default(0) // 累計簽到總天數
 
-  CustomerService CustomerService[]
-  tarotRecords    TarotRecord[]
+  // 拼圖喚醒石：每顆可抽 1 次碎片，由每日任務取得
+  awaken_stones Int @default(0)
+
+  CustomerService   CustomerService[]
+  tarotRecords      TarotRecord[]
+  puzzleTaskClaims  PuzzleTaskClaim[]
+  puzzleDrawRecords PuzzleDrawRecord[]
 }
 
 model BlacklistedToken {
@@ -380,6 +385,7 @@ model Picture {
 
   // 關聯
   memberPictures MemberPicture[]
+  drawRecords    PuzzleDrawRecord[]
 }
 
 // 使用者拼圖碎片進度與收集清單
@@ -401,6 +407,39 @@ model MemberPicture {
 
   // 確保同一位會員對同一張圖片只會有一筆拼圖進度紀錄
   @@unique([member_id, picture_id])
+}
+
+// 拼圖每日任務領獎紀錄 (每天 00:00 台北時間重置)
+model PuzzleTaskClaim {
+  id         Int      @id @default(autoincrement())
+  member_id  Int
+  task_key   String // 任務代號: DAILY_SIGN_IN, POST_3, POST_6, POST_10
+  date       String // 領獎日期 YYYY-MM-DD (台北時區)
+  reward     Int      @default(1) // 獲得的喚醒石數量
+  created_at DateTime @default(now())
+
+  member Member @relation(fields: [member_id], references: [member_id], onDelete: Cascade)
+
+  // 同一個任務同一天只能領一次，由資料庫擋重複領取
+  @@unique([member_id, task_key, date])
+}
+
+// 拼圖抽卡紀錄 (喚醒石抽卡、開寶箱都會記一筆)
+model PuzzleDrawRecord {
+  id               Int           @id @default(autoincrement())
+  member_id        Int
+  picture_id       Int
+  piece_number     Int // 抽到的碎片編號 (1~9)
+  rarity           PictureRarity
+  is_new_piece     Boolean // 是否為新碎片 (false 代表重複)
+  is_completed_now Boolean       @default(false) // 這一抽是否剛好集齊整張拼圖
+  obtained_from    String // 來源: AWAKEN_STONE, CHEST_NORMAL, CHEST_PREMIUM
+  created_at       DateTime      @default(now())
+
+  member  Member  @relation(fields: [member_id], references: [member_id], onDelete: Cascade)
+  picture Picture @relation(fields: [picture_id], references: [id], onDelete: Cascade)
+
+  @@index([member_id, created_at])
 }
 
 model CustomerService {
