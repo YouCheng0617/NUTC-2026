@@ -968,6 +968,89 @@
         .item-cost.owned { background: #e2e8f0; color: var(--text-dim); }
         .item-card.equipped .item-cost.owned { background: var(--text-dark); color: white; }
 
+        /* ✨ 【敬請期待卡】流光掃過、星星上浮，讓人期待下一次更新 */
+        .item-card.coming-soon {
+            position: relative;
+            overflow: hidden;
+            cursor: pointer;
+            border-style: dashed;
+            border-color: #c7b2f5;
+            box-shadow: 0 4px 0 #c7b2f5;
+            background: linear-gradient(180deg, #fffdf7 0%, #f6f0ff 100%);
+            animation: csBreathe 2.8s ease-in-out infinite;
+        }
+        /* 斜斜的一道光每隔幾秒掃過卡片 */
+        .item-card.coming-soon::after {
+            content: "";
+            position: absolute;
+            top: -60%;
+            left: -140%;
+            width: 60%;
+            height: 220%;
+            background: linear-gradient(100deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.85) 50%, rgba(255,255,255,0) 100%);
+            transform: rotate(14deg);
+            animation: csSweep 3.6s ease-in-out infinite;
+            pointer-events: none;
+        }
+        .coming-soon-box {
+            position: relative;
+            overflow: visible;
+            border: 3px dashed rgba(139, 92, 246, 0.35) !important;
+            background: linear-gradient(120deg, #ffd6ec, #d7c4ff, #bfe6ff, #ffe6b8, #ffd6ec);
+            background-size: 320% 320%;
+            animation: csFlow 6s ease-in-out infinite;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .coming-soon-box .cs-mark {
+            font-size: 1.75rem;
+            font-weight: 900;
+            color: #ffffff;
+            text-shadow: 0 2px 6px rgba(124, 58, 237, 0.45);
+            animation: csBob 1.9s ease-in-out infinite;
+        }
+        /* 小星星用 CSS 畫出來，畫面上不出現任何符號字元 */
+        .coming-soon-box .cs-spark {
+            position: absolute;
+            bottom: -2px;
+            width: 10px;
+            height: 10px;
+            background: #ffffff;
+            clip-path: polygon(50% 0%, 60% 40%, 100% 50%, 60% 60%, 50% 100%, 40% 60%, 0% 50%, 40% 40%);
+            filter: drop-shadow(0 0 3px rgba(167, 139, 250, 0.8));
+            opacity: 0;
+            animation: csRise 2.9s ease-in-out infinite;
+            pointer-events: none;
+        }
+        .item-cost.coming-soon-tag {
+            background: linear-gradient(135deg, #a78bfa, #f0abfc);
+            color: #ffffff;
+            letter-spacing: 0.5px;
+            box-shadow: 0 3px 10px rgba(167, 139, 250, 0.45);
+        }
+        /* 被點到時彈一下，像在說「還沒好啦～」 */
+        .item-card.coming-soon.cs-poke { animation: csPoke 0.55s cubic-bezier(0.36, 0.07, 0.19, 0.97); }
+
+        @keyframes csBreathe { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-3px); } }
+        @keyframes csSweep { 0%, 62% { left: -140%; } 100% { left: 160%; } }
+        @keyframes csFlow { 0%, 100% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } }
+        @keyframes csBob { 0%, 100% { transform: translateY(0) scale(1) rotate(-4deg); } 50% { transform: translateY(-4px) scale(1.12) rotate(4deg); } }
+        @keyframes csRise {
+            0% { opacity: 0; transform: translateY(0) scale(0.6); }
+            25% { opacity: 1; }
+            100% { opacity: 0; transform: translateY(-62px) scale(1.2); }
+        }
+        @keyframes csPoke {
+            0%, 100% { transform: translateY(0) rotate(0); }
+            25% { transform: translateY(-6px) rotate(-3deg) scale(1.04); }
+            60% { transform: translateY(0) rotate(3deg) scale(0.99); }
+        }
+        @media (prefers-reduced-motion: reduce) {
+            .item-card.coming-soon, .item-card.coming-soon::after,
+            .coming-soon-box, .coming-soon-box .cs-mark, .coming-soon-box .cs-spark { animation: none; }
+        }
+
         /* 🌟 【第一次玩的新手抽獎畫面】 */
         .gacha-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(255, 240, 245, 0.95); backdrop-filter: blur(5px); z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: opacity 0.5s; }
         .gacha-box { width: 160px; height: 160px; background: white; border: 5px dashed var(--accent-color); border-radius: 40px; display: flex; align-items: center; justify-content: center; cursor: pointer; margin-bottom: 40px; transition: 0.2s; color: var(--accent-color); font-size: 1.4rem; font-weight: 900; box-shadow: 0 15px 35px rgba(255, 182, 193, 0.3); animation: breatheBox 2s infinite ease-in-out; }

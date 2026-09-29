@@ -405,6 +405,13 @@ const i18n = {
                 cooldown: "冷卻", ready: "可互動",
                 tabSpecies: "圖鑑", tabBg: "背景", tabEffect: "特效",
                 equip: "使用中", owned: "已解鎖",
+                // ✨ 敬請期待卡
+                comingSoon: "敬請期待", comingSoonTag: "即將登場",
+                comingSoonHints: {
+                    species: ["調色盤上還在調新顏色…… (･ω･)ﾉ", "新品種正在殼裡睡覺，快孵出來了 ( ˘ω˘ )", "下一隻海兔正在偷偷長大，先保密 (๑•̀ㅂ•́)و"],
+                    bg: ["新場景還在打草稿，先別偷看 (๑•̀ㅂ•́)و", "下一個世界正在施工中，工人加班趕工 ( ･ั﹏･ั)", "再等等，這裡會多一片新風景 (´･ω･`)"],
+                    effect: ["新特效正在實驗室裡試放…… ( °ω° )", "魔法還沒調好，再等一下下 (・∀・)", "下一個驚喜正在充能中…… (๑˃̵ᴗ˂̵)"]
+                },
                 mpBtn: "📡 連線", roomNotConnected: "尚未連線", createRoom: "創立房間", joinRoom: "加入房間", chat: "💬 聊天", leaveRoom: "離開房間",
 
                 // 🌟 14天簽到與累計簽到
@@ -460,6 +467,13 @@ const i18n = {
                 cooldown: "CD", ready: "Ready",
                 tabSpecies: "Species", tabBg: "Background", tabEffect: "Effects",
                 equip: "Active", owned: "Unlocked",
+                // ✨ Coming soon card
+                comingSoon: "Coming Soon", comingSoonTag: "Almost here",
+                comingSoonHints: {
+                    species: ["Still mixing brand-new colors... (･ω･)ﾉ", "A new species is napping in its shell ( ˘ω˘ )", "The next sea bunny is growing up in secret (๑•̀ㅂ•́)و"],
+                    bg: ["The new scene is still a sketch, no peeking (๑•̀ㅂ•́)و", "The next world is under construction ( ･ั﹏･ั)", "Come back later, a new view is on the way (´･ω･`)"],
+                    effect: ["A new effect is being test-fired... ( °ω° )", "The magic isn't tuned yet, hang tight (・∀・)", "The next surprise is charging up (๑˃̵ᴗ˂̵)"]
+                },
                 mpBtn: "📡 Connect", roomNotConnected: "Not Connected", createRoom: "Create Room", joinRoom: "Join Room", chat: "💬 Chat", leaveRoom: "Leave Room",
 
                 // 🌟 14-day check-in and streak reward
@@ -4328,6 +4342,35 @@ function updateLangUI() {
             swatch.style.background = typeof item.preview === 'function' ? item.preview() : item.preview;
         }
 
+        // ✨ 【敬請期待卡】排在每個分頁最後面，會閃光、冒星星，點下去給一句預告
+        function makeComingSoonCard(typeKey) {
+            const t = i18n[currLang] || i18n.zh;
+            const card = document.createElement('div');
+            card.className = 'item-card coming-soon';
+            card.innerHTML = `
+                <div class="item-color-preview coming-soon-box">
+                    <span class="cs-mark">?</span>
+                    <span class="cs-spark" style="left:16%; animation-delay:0s;"></span>
+                    <span class="cs-spark" style="left:52%; animation-delay:0.9s;"></span>
+                    <span class="cs-spark" style="left:78%; animation-delay:1.8s;"></span>
+                </div>
+                <div class="item-name">${t.comingSoon || '敬請期待'}</div>
+                <div class="item-cost coming-soon-tag">${t.comingSoonTag || '即將登場'}</div>
+            `;
+
+            // 點一下給一句不一樣的預告，讓人更想等下一次更新
+            card.onclick = () => {
+                const hints = (t.comingSoonHints && t.comingSoonHints[typeKey]) || [];
+                const msg = hints.length ? hints[Math.floor(Math.random() * hints.length)] : (t.comingSoon || '敬請期待');
+                card.classList.remove('cs-poke');
+                void card.offsetWidth;                 // 重播一次搖晃動畫
+                card.classList.add('cs-poke');
+                playDingSound(2);
+                showFloatText(msg);
+            };
+            return card;
+        }
+
         // 🌟 【商店總管】幫你把商品排好，判斷你買過了沒
         function renderShop() {
             const grid = document.getElementById('shopGrid');
@@ -4388,6 +4431,8 @@ function updateLangUI() {
                 if (typeKey !== 'species') applyPreviewSwatch(card, item);
                 grid.appendChild(card);
             });
+
+            grid.appendChild(makeComingSoonCard(typeKey));   // ✨ 最後放上敬請期待
         }
 
         // 🌟 【百寶袋專屬邏輯】跟商店很像，只是過濾掉還沒買的東西
@@ -4443,6 +4488,8 @@ function updateLangUI() {
                 if (typeKey !== 'species') applyPreviewSwatch(card, item);
                 grid.appendChild(card);
             });
+
+            grid.appendChild(makeComingSoonCard(typeKey));   // ✨ 最後放上敬請期待
         }
 
         // 🌟 【穿上裝備】
