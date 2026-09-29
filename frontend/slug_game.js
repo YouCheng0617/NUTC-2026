@@ -10050,9 +10050,9 @@ case 'fish': {
                                 background:rgba(255,246,214,.94); border:3px solid #e0b100;
                                 color:#8a6100; font-weight:900; font-size:1rem; z-index:41;
                                 box-shadow:0 6px 16px rgba(180,130,0,.3);
-                                animation:hintFade 5.2s ease-in-out forwards;
+                                animation:hintFade 7.5s ease-in-out forwards;
                             }
-                            @keyframes hintFade { 0%{opacity:0; transform:translate(-50%,10px);} 10%,80%{opacity:1; transform:translate(-50%,0);} 100%{opacity:0; transform:translate(-50%,-8px);} }
+                            @keyframes hintFade { 0%{opacity:0; transform:translate(-50%,10px);} 6%,90%{opacity:1; transform:translate(-50%,0);} 100%{opacity:0; transform:translate(-50%,-8px);} }
                             @media screen and (max-width:768px) {
                                 .money-counter { top:104px; right:10px; padding:5px 11px; font-size:.85rem; border-width:2px; }
                                 .money-pile { height:26%; }
@@ -10314,7 +10314,7 @@ case 'fish': {
                         ? `拖著海兔去接錢！接滿 ${COINS_PER_EXCHANGE} 枚可兌換 ${POINTS_PER_EXCHANGE} 積分`
                         : `Drag the slug to catch coins! ${COINS_PER_EXCHANGE} coins = ${POINTS_PER_EXCHANGE} points`;
                     moneyLayer.appendChild(hint);
-                    setTimeout(() => hint.remove(), 5200);
+                    setTimeout(() => hint.remove(), 7500);
 
                     // 開場先灑一批，之後持續穩定落下
                     const initial = isPhone ? 7 : 11;
@@ -10391,12 +10391,56 @@ default:
         }
 
         // 噴出獎勵數字的小動畫
-        function showFloatText(text, duration = 1000) {
+        // 🌟 【全域提示訊息】字越多停越久，確保每一則都看得完
+        const TOAST_MIN_MS = 2600;      // 再短的提示也至少停這麼久
+        const TOAST_MAX_MS = 7000;      // 再長也不要一直卡在畫面上
+        const TOAST_MAX_COUNT = 4;      // 同時最多疊幾則
+        const toastReadTime = (msg) =>
+            Math.min(TOAST_MAX_MS, Math.max(TOAST_MIN_MS, 1500 + msg.length * 95));
+
+        function getFloatTextLayer() {
+            let layer = document.getElementById('floatTextLayer');
+            if (!layer) {
+                layer = document.createElement('div');
+                layer.id = 'floatTextLayer';
+                document.body.appendChild(layer);
+            }
+            return layer;
+        }
+
+        // duration 只當成「至少要停多久」，真正的停留時間會取字數估算與它的較大值
+        function showFloatText(text, duration = 0) {
+            const msg = String(text == null ? '' : text);
+            if (!msg) return;
+            const life = Math.min(TOAST_MAX_MS, Math.max(toastReadTime(msg), duration || 0));
+            const anim = `floatNoticeStay ${life}ms cubic-bezier(0.18, 0.89, 0.32, 1.28) forwards`;
+            const layer = getFloatTextLayer();
+
+            // 一模一樣的訊息連續跳出來時，只把它的停留時間重新計算，不疊成一排重複的
+            const same = Array.from(layer.children).find(node => node.dataset.msg === msg);
+            if (same) {
+                clearTimeout(Number(same.dataset.timerId));
+                same.style.animation = 'none';
+                void same.offsetWidth;                      // 強制重排，動畫才會重播
+                same.style.animation = anim;
+                same.dataset.timerId = setTimeout(() => same.remove(), life);
+                return;
+            }
+
             const el = document.createElement('div');
-            el.className = 'float-text'; el.innerText = text; el.style.left = '50%'; el.style.top = '30%';
-            el.style.animation = `floatUp ${duration / 1000}s forwards cubic-bezier(0.18, 0.89, 0.32, 1.28)`;
-            document.body.appendChild(el);
-            setTimeout(() => el.remove(), duration);
+            el.className = 'float-text';
+            el.dataset.msg = msg;
+            el.innerText = msg;
+            el.style.animation = anim;
+            layer.appendChild(el);
+            el.dataset.timerId = setTimeout(() => el.remove(), life);
+
+            // 一次跳太多則會看不完，把最舊的先收掉
+            while (layer.children.length > TOAST_MAX_COUNT) {
+                const oldest = layer.firstElementChild;
+                clearTimeout(Number(oldest.dataset.timerId));
+                oldest.remove();
+            }
         }
 
 // 🌟 【冷卻倒數計時器：防刷分防重整版】

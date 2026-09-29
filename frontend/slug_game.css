@@ -977,32 +977,52 @@
         .start-btn { background: var(--text-dark); color: white; border: none; padding: 16px 50px; border-radius: 35px; font-weight: 900; font-size: 1.3rem; cursor: pointer; display: none; box-shadow: 0 6px 0 rgba(0,0,0,0.15); transition: 0.1s; }
         .start-btn:active { transform: translateY(6px); box-shadow: 0 0 0 transparent; }
 
-        /* 🌟 【全域浮動通知文字：清晰停留版】 */
-        .float-text {
+        /* 🌟 【全域浮動通知文字：清晰停留版】
+           所有提示都放在這一層裡，同時出現時會由上往下排隊，不會互相蓋住 */
+        #floatTextLayer {
             position: fixed;
-            top: 25%;
+            top: 16%;
             left: 50%;
-            transform: translate(-50%, -50%);
+            transform: translateX(-50%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            width: max-content;
+            max-width: min(88vw, 560px);
+            pointer-events: none;
+            z-index: 999999;
+        }
+        .float-text {
+            position: relative;
+            max-width: 100%;
             color: var(--text-dark);
-            background: rgba(255, 255, 255, 0.95);
+            background: rgba(255, 255, 255, 0.96);
             border: 3px solid var(--border-color);
             padding: 12px 28px;
             border-radius: 30px;
             font-weight: 900;
-            font-size: 1.25rem;
+            font-size: 1.2rem;
+            line-height: 1.45;
+            text-align: center;
             pointer-events: none;
             box-shadow: 0 8px 25px var(--shadow-color);
             backdrop-filter: blur(6px);
-            z-index: 999999;
-            white-space: nowrap;
-            animation: floatNoticeStay 2.5s cubic-bezier(0.18, 0.89, 0.32, 1.28) forwards;
+            white-space: normal;
+            word-break: break-word;
+            animation: floatNoticeStay 2.6s cubic-bezier(0.18, 0.89, 0.32, 1.28) forwards;
         }
+        /* 進場快、退場慢，中間九成的時間都停在原地讓人看完 */
         @keyframes floatNoticeStay {
-            0% { opacity: 0; transform: translate(-50%, 15px) scale(0.7); }
-            15% { opacity: 1; transform: translate(-50%, 0) scale(1.05); }
-            25% { transform: translate(-50%, 0) scale(1); }
-            80% { opacity: 1; transform: translate(-50%, 0) scale(1); }
-            100% { opacity: 0; transform: translate(-50%, -25px) scale(0.9); }
+            0% { opacity: 0; transform: translateY(14px) scale(0.78); }
+            6% { opacity: 1; transform: translateY(0) scale(1.05); }
+            11% { transform: translateY(0) scale(1); }
+            88% { opacity: 1; transform: translateY(0) scale(1); }
+            100% { opacity: 0; transform: translateY(-18px) scale(0.94); }
+        }
+        @media (max-width: 768px) {
+            #floatTextLayer { top: 13%; max-width: 90vw; gap: 8px; }
+            .float-text { font-size: 1rem; padding: 10px 18px; border-width: 2px; }
         }
 
         /* 🌟 14天簽到網格樣式 */
