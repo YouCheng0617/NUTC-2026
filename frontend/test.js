@@ -2989,15 +2989,47 @@ document.addEventListener("DOMContentLoaded", () => {
 // 🔔 通知小視窗專屬邏輯
 // =========================================
 
-// 1. 開關通知小視窗
+// 🔔 1. 開關通知小視窗 (精準定位在鈴鐺正下方)
 window.toggleNotificationPopup = async function (e) {
-  e.stopPropagation();
+  if (e) e.stopPropagation();
   const popup = document.getElementById("notif-popup");
+  if (!popup) return;
 
   const userDropdown = document.getElementById("user-dropdown");
   if (userDropdown) userDropdown.classList.remove("show-dropdown");
 
-  if (popup.style.display === "none" || popup.style.display === "") {
+  const isHidden = popup.style.display === "none" || popup.style.display === "";
+
+  if (isHidden) {
+    // 🎯 取得當前被點擊的鈴鐺元素
+    const bell =
+      (e && e.currentTarget) ||
+      document.getElementById("notification-bell-btn") ||
+      document.querySelector(".notification-bell");
+
+    if (bell) {
+      const rect = bell.getBoundingClientRect();
+      const popupWidth = Math.min(340, window.innerWidth - 24);
+
+      popup.style.position = "fixed";
+      popup.style.top = `${rect.bottom + 10}px`;
+
+      // 水平置中於鈴鐺正下方
+      let left = rect.left + rect.width / 2 - popupWidth / 2;
+
+      // 避免超出螢幕左右邊界
+      if (left + popupWidth > window.innerWidth - 15) {
+        left = window.innerWidth - popupWidth - 15;
+      }
+      if (left < 15) {
+        left = 15;
+      }
+
+      popup.style.left = `${left}px`;
+      popup.style.right = "auto";
+      popup.style.width = `${popupWidth}px`;
+    }
+
     popup.style.display = "flex";
     await fetchAndRenderNotifications();
   } else {
