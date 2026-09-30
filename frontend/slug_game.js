@@ -49,6 +49,46 @@ let GAME_TOKEN = localStorage.getItem('authToken') || localStorage.getItem('acce
             setTimeout(() => endIntro(false), slow ? 1100 : 5500);   // 動畫跑完就自動收掉
         })();
 
+        // 🐰 【日常小動作】沒有在互動的時候，海兔會自己眨眼、抖耳朵、伸懶腰、東張西望
+        const IDLE_ACTIONS = [
+            { cls: 'idle-blink', ms: 340, weight: 6 },
+            { cls: 'idle-ear', ms: 1000, weight: 4 },
+            { cls: 'idle-look', ms: 2300, weight: 3 },
+            { cls: 'idle-sway', ms: 2500, weight: 3 },
+            { cls: 'idle-stretch', ms: 1700, weight: 2 },
+            { cls: 'idle-hop', ms: 950, weight: 2 },
+            { cls: 'idle-shake', ms: 750, weight: 2 },
+            { cls: 'idle-yawn', ms: 2100, weight: 1 }
+        ];
+        // 這些狀態代表海兔正在忙，忙的時候不要插隊做小動作
+        const IDLE_BUSY_CLASSES = ['is-petting', 'is-eating-munch', 'is-chasing-food', 'is-jumping',
+            'is-exercising-run', 'is-refusing-exercise', 'is-starving', 'card-mode'];
+
+        function startIdleLife() {
+            const total = IDLE_ACTIONS.reduce((sum, a) => sum + a.weight, 0);
+            const pickAction = () => {
+                let r = Math.random() * total;
+                for (const a of IDLE_ACTIONS) { r -= a.weight; if (r <= 0) return a; }
+                return IDLE_ACTIONS[0];
+            };
+            const tick = () => {
+                const el = document.getElementById('slugContainer');
+                const svg = el && el.querySelector('.slug-svg');
+                const busy = !el
+                    || IDLE_BUSY_CLASSES.some(c => el.classList.contains(c))
+                    || (svg && svg.className.baseVal && svg.className.baseVal.includes('is-'))   // 例如迴旋踢的旋轉
+                    || document.body.classList.contains('is-dragging-global')
+                    || document.hidden;
+                if (!busy && !el.className.includes('idle-')) {
+                    const act = pickAction();
+                    el.classList.add(act.cls);
+                    setTimeout(() => el.classList.remove(act.cls), act.ms + 60);
+                }
+                setTimeout(tick, 2600 + Math.random() * 4200);   // 每隔 2.6～6.8 秒動一次
+            };
+            setTimeout(tick, 1800);
+        }
+
         // 🌟 【呼叫伺服器 API 的小幫手】
         async function fetchAPI(endpoint, method = 'GET', payload = null) {
             try {
@@ -2903,6 +2943,7 @@ const effectData = {
             updateNameUI();
             updateSlugScale();   // 依螢幕大小決定海兔要多大
             updateRecallButtonVisibility();
+            startIdleLife();     // 讓海兔自己動起來
 
             // 🌟 3. 主動向後端拉取最新金幣數量與今日任務狀態
             await fetchUserCoins();
