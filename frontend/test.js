@@ -1417,7 +1417,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   setInterval(() => {
     const detailView = document.getElementById("detail-view");
-    if (detailView && detailView.style.display !== "block") {
+    if (detailView && detailView.style.display !== "block" && !window.isIdleScreenOn) {
       callOceanCurrent();
     }
   }, 60000);
@@ -3425,3 +3425,184 @@ document.addEventListener("DOMContentLoaded", () => {
     toggleBtn.onclick = () => window.togglePollCreator(true);
   }
 });
+
+// =========================================
+// 😴 待機畫面：5 分鐘沒操作，或離開分頁超過 5 分鐘回來時顯示，點一下恢復
+// =========================================
+const IDLE_TIMEOUT_MS = 5 * 60 * 1000;
+const IDLE_QUOTES = [
+  "慢慢來，海浪也是一波一波的。",
+  "累了就休息一下，瓶子會替你漂著。",
+  "今天也辛苦了，喝口水再回來吧。",
+  "有些心事，放進海裡就輕了。",
+];
+const IDLE_WEEKDAYS = ["日", "一", "二", "三", "四", "五", "六"];
+
+// 遠處漂浮的瓶子只放在四周邊緣：[left%, top%, 大小cqmin, 透明度, 秒數, 是否更遠]
+const IDLE_BOTTLES = [
+  [6, 10, 11, 0.55, 7, false],
+  [80, 16, 8, 0.4, 9, true],
+  [4, 52, 7, 0.35, 8, true],
+  [84, 48, 12, 0.55, 6.5, false],
+  [10, 80, 9, 0.45, 10, true],
+  [76, 82, 10, 0.5, 7.5, false],
+];
+const IDLE_BUBBLES = [
+  [14, 2.4, 9],
+  [28, 1.4, 7],
+  [46, 1.8, 12],
+  [66, 1.2, 8],
+  [88, 2, 11],
+  [56, 1, 6],
+];
+
+// 與吉祥物相同的睡覺人魚貓造型
+const IDLE_CAT_SVG = `
+  <svg class="drift-idle-cat" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+    <g stroke="#1a4c6d" stroke-width="3.5" stroke-linejoin="round" stroke-linecap="round">
+      <path d="M 25 75 C 5 70 5 95 18 95 C 15 105 35 100 35 85 Z" fill="#50b4ba"/>
+      <path d="M 20 50 C 15 95 85 95 80 50 Z" fill="#7ac2c4"/>
+    </g>
+    <path d="M 32 65 Q 40 72 48 65 M 52 65 Q 60 72 68 65 M 42 75 Q 50 82 58 75" fill="none" stroke="#1a4c6d" stroke-width="2.5" stroke-linecap="round" opacity="0.6"/>
+    <path d="M 22 55 C 20 28 25 25 35 25 L 38 12 L 46 22 L 54 22 L 62 12 L 65 25 C 75 25 80 28 78 55 Z" fill="#fcfdfe" stroke="#1a4c6d" stroke-width="3.5" stroke-linejoin="round"/>
+    <path d="M 32 42 Q 38 46 44 42" fill="none" stroke="#1a4c6d" stroke-width="3" stroke-linecap="round"/>
+    <path d="M 56 42 Q 62 46 68 42" fill="none" stroke="#1a4c6d" stroke-width="3" stroke-linecap="round"/>
+    <ellipse cx="28" cy="46" rx="4.5" ry="3" fill="#ffbaba"/>
+    <ellipse cx="72" cy="46" rx="4.5" ry="3" fill="#ffbaba"/>
+    <g transform="translate(33, 46) scale(1.1)" stroke="#1a4c6d" stroke-width="3.5" stroke-linejoin="round" stroke-linecap="round">
+      <path d="M 28 16 C 27 12, 25 9, 21 9 C 17 9, 14 5, 13 3 C 12 6, 13 8, 10 10 C 6 12, 3 16, 2 20 C 1 23, 0 26, 1 26 C 3 25, 4 23, 5 22 C 6 24, 8 26, 9 25 C 8 22, 10 20, 11 19 C 16 21, 23 20, 28 16 Z" fill="#9bcbf1"/>
+      <path d="M 27.5 16.5 C 22 20, 15 20, 11.5 18.5 C 15 16, 22 15, 27.5 15 Z" fill="#ffffff" stroke="none"/>
+      <path d="M 18 18 C 16 23, 14 25, 16 26 C 18 25, 19 22, 20 18 Z" fill="#9bcbf1"/>
+      <path d="M 21 14 Q 23 15.5 25 14" fill="none" stroke-width="1.5"/>
+    </g>
+    <g stroke="#1a4c6d" stroke-width="3.5" stroke-linejoin="round" stroke-linecap="round">
+      <path d="M 26 63 C 30 67, 36 69, 41 67 C 43 66, 42 62, 39 62 C 35 62, 30 62, 26 62 Z" fill="#fcfdfe"/>
+      <path d="M 74 63 C 70 67, 64 69, 59 67 C 57 66, 58 62, 61 62 C 65 62, 70 62, 74 62 Z" fill="#fcfdfe"/>
+    </g>
+    <text x="78" y="26" class="drift-idle-zzz" font-size="13">Z</text>
+    <text x="89" y="15" class="drift-idle-zzz drift-idle-zzz-2" font-size="9">z</text>
+  </svg>`;
+
+window.isIdleScreenOn = false;
+let idleTimer = null;
+let idleClockTimer = null;
+let idleHiddenAt = null;
+let idleLeaving = false;
+
+function updateIdleClock(screen) {
+  const now = new Date();
+  const pad = (n) => String(n).padStart(2, "0");
+  screen.querySelector(".drift-idle-time").textContent =
+    `${pad(now.getHours())}:${pad(now.getMinutes())}`;
+  screen.querySelector(".drift-idle-date").textContent =
+    `${now.getMonth() + 1} 月 ${now.getDate()} 日　星期${IDLE_WEEKDAYS[now.getDay()]}`;
+}
+
+function showIdleScreen() {
+  if (window.isIdleScreenOn) return;
+  window.isIdleScreenOn = true;
+  idleLeaving = false;
+  clearTimeout(idleTimer);
+
+  // 收起手機鍵盤；已輸入的文字會保留
+  if (document.activeElement && document.activeElement !== document.body) {
+    document.activeElement.blur();
+  }
+
+  const screen = document.createElement("div");
+  screen.id = "drift-idle-screen";
+  screen.className = "drift-idle";
+  screen.tabIndex = 0;
+  screen.setAttribute("role", "button");
+  screen.setAttribute("aria-label", "待機中，點一下回到原本的頁面");
+
+  const bottles = IDLE_BOTTLES.map(
+    ([left, top, size, opacity, dur, far], i) =>
+      `<span class="drift-idle-bottle${far ? " far" : ""}" style="left:${left}%;top:${top}%;font-size:${size}cqmin;opacity:${opacity};animation-duration:${dur}s;animation-delay:-${i * 1.7}s"></span>`,
+  ).join("");
+  const bubbles = IDLE_BUBBLES.map(
+    ([left, size, dur], i) =>
+      `<span class="drift-idle-bubble" style="left:${left}%;width:${size}cqmin;height:${size}cqmin;animation-duration:${dur}s;animation-delay:-${i * 2.1}s"></span>`,
+  ).join("");
+
+  screen.innerHTML = `
+    ${bottles}${bubbles}
+    <div class="drift-idle-center">
+      <div class="drift-idle-time"></div>
+      <div class="drift-idle-date"></div>
+      ${IDLE_CAT_SVG}
+      <div class="drift-idle-title">小助理睡著了…</div>
+      <div class="drift-idle-quote"></div>
+    </div>
+    <div class="drift-idle-hint">點一下叫醒牠</div>`;
+  screen.querySelector(".drift-idle-quote").textContent =
+    IDLE_QUOTES[Math.floor(Math.random() * IDLE_QUOTES.length)];
+  updateIdleClock(screen);
+  idleClockTimer = setInterval(() => updateIdleClock(screen), 10000);
+
+  // 點擊與觸控只屬於待機畫面，不傳到底下的頁面（避免誤開瓶子或召喚貓咪）
+  ["pointerdown", "mousedown", "touchstart", "touchend", "dblclick"].forEach((type) =>
+    screen.addEventListener(type, (e) => e.stopPropagation()),
+  );
+  screen.addEventListener("click", (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    hideIdleScreen();
+  });
+
+  document.body.appendChild(screen);
+  screen.focus({ preventScroll: true });
+}
+
+function hideIdleScreen() {
+  const screen = document.getElementById("drift-idle-screen");
+  if (!screen || idleLeaving) return;
+  idleLeaving = true;
+  clearInterval(idleClockTimer);
+  screen.classList.add("leaving");
+  setTimeout(() => {
+    screen.remove();
+    window.isIdleScreenOn = false;
+    idleLeaving = false;
+    resetIdleTimer();
+  }, 350);
+}
+
+function resetIdleTimer() {
+  if (window.isIdleScreenOn) return;
+  clearTimeout(idleTimer);
+  idleTimer = setTimeout(showIdleScreen, IDLE_TIMEOUT_MS);
+}
+
+["pointerdown", "pointermove", "touchstart", "wheel", "keydown"].forEach((type) =>
+  document.addEventListener(type, resetIdleTimer, { passive: true, capture: true }),
+);
+// 捲動事件不會冒泡，用 capture 才收得到 .main-feed 等內層的捲動
+document.addEventListener("scroll", resetIdleTimer, { passive: true, capture: true });
+
+// 待機中按鍵盤：不讓按鍵打進底下的輸入框，Enter / 空白 / Esc 可以叫醒
+document.addEventListener(
+  "keydown",
+  (e) => {
+    if (!window.isIdleScreenOn) return;
+    e.preventDefault();
+    e.stopPropagation();
+    if (["Enter", " ", "Escape"].includes(e.key)) hideIdleScreen();
+  },
+  true,
+);
+
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState === "hidden") {
+    idleHiddenAt = Date.now();
+    return;
+  }
+  if (idleHiddenAt && Date.now() - idleHiddenAt >= IDLE_TIMEOUT_MS) {
+    showIdleScreen();
+  } else {
+    resetIdleTimer();
+  }
+  idleHiddenAt = null;
+});
+
+resetIdleTimer();
