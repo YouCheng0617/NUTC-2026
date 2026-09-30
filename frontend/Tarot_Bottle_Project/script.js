@@ -227,9 +227,32 @@ function renderSpread() {
     const spreadContainer = document.getElementById('deck-spread');
     spreadContainer.innerHTML = ''; 
 
+    // 🌟 CSS 樣式修正：只讓視覺圖片浮起，不影響排版
+    if (!document.getElementById('tarot-hover-fix')) {
+        const style = document.createElement('style');
+        style.id = 'tarot-hover-fix';
+        style.innerHTML = `
+            .spread-card.hover-highlight {
+                transform: rotate(var(--rot)) translate3d(0, 0, 0) !important;
+                z-index: 999999 !important;
+            }
+            .spread-card.hover-highlight::before {
+                transform: translateY(-35px) translate3d(0, 0, 80px) scale(1.15) !important;
+                border-color: #ffffff !important;
+                box-shadow: 0 12px 30px rgba(0, 0, 0, 0.95) !important;
+                filter: drop-shadow(0 0 16px #d4b5ff) drop-shadow(0 0 30px rgba(160, 132, 255, 0.8)) brightness(1.25) !important;
+            }
+            @media screen and (max-width: 768px) {
+                .spread-card.hover-highlight::before {
+                    transform: translateY(-28px) translate3d(0, 0, 60px) scale(1.12) !important;
+                }
+            }
+        `;
+        document.head.appendChild(style);
+    }
+
     const total = availableCards.length;
     const isMobile = window.innerWidth <= 768;
-    // 手機版讓扇形角度稍微展開一些，避免全部黏成一團
     const spreadAngle = isMobile ? 110 : 140; 
     const startAngle = -(spreadAngle / 2); 
     const angleStep = spreadAngle / total; 
@@ -246,17 +269,75 @@ function renderSpread() {
         spreadContainer.appendChild(card);
     }
 
-    // 🌟 核心修復：由外層容器統一監聽滑鼠游標移動，滑到哪張牌哪張牌立刻亮
+    // ✨ 終極完美解法：【純數學極坐標法 (Polar Coordinates)】
+    // 完全放棄會受到圖層 (Z-index) 與重疊影響的實體探測！
+    // 直接計算滑鼠在扇形區域內的「角度」與「距離」，實現 100% 零死角、如絲綢般平滑的滑動。
     spreadContainer.onpointermove = function(e) {
-        const target = document.elementFromPoint(e.clientX, e.clientY);
-        const card = target ? target.closest('.spread-card') : null;
+        const cards = document.querySelectorAll('.spread-card');
+        const cardCount = cards.length;
+        if (cardCount === 0) return;
 
-        document.querySelectorAll('.spread-card').forEach(c => {
-            if (c !== card) c.classList.remove('hover-highlight');
-        });
+        const isMobileView = window.innerWidth <= 768;
+        const currentSpreadAngle = isMobileView ? 110 : 140;
+        
+        // 取得牌陣容器目前的精確位置
+        const spreadRect = spreadContainer.getBoundingClientRect();
+        
+        // 圓心 X 軸：容器的正中央
+        const pivotX = spreadRect.left + spreadRect.width / 2;
+        
+        let pivotY, minRadius, maxRadius;
+        if (isMobileView) {
+            // 手機版數值幾何換算：算出扇形的絕對旋轉軸心
+            pivotY = spreadRect.top + 191.5; 
+            minRadius = 40;  
+            maxRadius = 190; 
+        } else {
+            // 電腦版數值幾何換算：算出扇形的絕對旋轉軸心
+            pivotY = spreadRect.top + 438;   
+            minRadius = 170; 
+            maxRadius = 450; 
+        }
 
-        if (card && spreadContainer.contains(card)) {
-            card.classList.add('hover-highlight');
+        // 計算滑鼠相對於圓心的 X、Y 偏移 (Y軸向上為正向)
+        const dx = e.clientX - pivotX;
+        const dy = pivotY - e.clientY; 
+
+        const currentHovered = document.querySelector('.spread-card.hover-highlight');
+
+        // 1. 檢查半徑距離：確保滑鼠真的在「卡牌的環狀範圍內」才感應
+        const distance = Math.sqrt(dx * dx + dy * dy);
+        if (distance < minRadius || distance > maxRadius) {
+            if (currentHovered) currentHovered.classList.remove('hover-highlight');
+            return;
+        }
+
+        // 2. 計算角度 (將 atan2 轉為度數)
+        const angleDeg = Math.atan2(dx, dy) * (180 / Math.PI);
+
+        const sAngle = -(currentSpreadAngle / 2);
+        const eAngle = currentSpreadAngle / 2;
+
+        // 稍微給 5 度的緩衝邊緣，超出邊界就視為離開牌陣
+        if (angleDeg < sAngle - 5 || angleDeg > eAngle + 5) {
+            if (currentHovered) currentHovered.classList.remove('hover-highlight');
+            return;
+        }
+
+        // 3. 完美對應：將滑鼠的「角度」精準對應到第幾張牌！
+        const step = currentSpreadAngle / cardCount;
+        let targetIndex = Math.round((angleDeg - sAngle) / step);
+        
+        // 邊界防呆限制
+        if (targetIndex < 0) targetIndex = 0;
+        if (targetIndex >= cardCount) targetIndex = cardCount - 1;
+
+        const targetCard = cards[targetIndex];
+
+        // 4. 更新浮起動畫
+        if (targetCard && targetCard !== currentHovered) {
+            if (currentHovered) currentHovered.classList.remove('hover-highlight');
+            targetCard.classList.add('hover-highlight');
         }
     };
 
@@ -422,7 +503,6 @@ if (backBtn) {
     });
 }
 
-// ✨ 修正：再問一次（留在目前的領域，重新展開牌陣，不再刷新頁面）
 function restartSameTopic() {
     document.getElementById('result-box').classList.add('hidden');
     document.getElementById('restart-btn').classList.add('hidden');
@@ -443,5 +523,4 @@ function restartSameTopic() {
     renderSpread();
 }
 
-// 將按鈕綁定這個重啟函數
-document.getElementById('restart-btn').onclick = restartSameTopic;
+document.getElementById('restart-btn').onclick = resetGame;
