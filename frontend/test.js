@@ -2892,16 +2892,21 @@ window.unfollowFromModal = async function (targetId, targetName, e) {
 };
 
 // =========================================
-// 🔔 抓取未讀通知數量與發光效果
+// 🔔 抓取未讀通知數量 + 有新留言/收藏時主動彈出深海泡泡
 // =========================================
+let _prevUnreadCount = null;
+
 async function fetchNotificationCount() {
   const token = localStorage.getItem("authToken");
-  const bellBtn = document.getElementById("notification-bell-btn");
-  const badge = document.getElementById("notification-badge");
+  const bellBtns = document.querySelectorAll(".notification-bell");
+  const badges = document.querySelectorAll(".notification-badge-sync");
+  const desktopBadge = document.getElementById("notification-badge");
 
   if (!token) {
-    if (badge) badge.style.display = "none";
-    if (bellBtn) bellBtn.classList.remove("has-unread");
+    badges.forEach((b) => (b.style.display = "none"));
+    if (desktopBadge) desktopBadge.style.display = "none";
+    bellBtns.forEach((btn) => btn.classList.remove("has-unread"));
+    _prevUnreadCount = null;
     return;
   }
 
@@ -2918,43 +2923,65 @@ async function fetchNotificationCount() {
     if (response.ok) {
       const data = await response.json();
 
+      let notifList = Array.isArray(data)
+        ? data
+        : data.data || data.notifications || data.result || [];
+
       let unreadCount = 0;
-      if (typeof data.count === "number") {
-        unreadCount = data.count;
-      } else if (typeof data.unreadCount === "number") {
+      if (typeof data.count === "number") unreadCount = data.count;
+      else if (typeof data.unreadCount === "number")
         unreadCount = data.unreadCount;
-      } else if (typeof data.unread_count === "number") {
+      else if (typeof data.unread_count === "number")
         unreadCount = data.unread_count;
-      } else {
-        let notifList = Array.isArray(data)
-          ? data
-          : data.data || data.notifications || data.result || [];
-        if (Array.isArray(notifList)) {
-          unreadCount = notifList.filter(
-            (item) => !(item.is_read ?? item.isRead),
-          ).length;
-        }
+      else {
+        unreadCount = notifList.filter(
+          (item) => !(item.is_read ?? item.isRead),
+        ).length;
       }
 
-      if (badge && bellBtn) {
-        if (unreadCount > 0) {
-          badge.innerText = unreadCount > 99 ? "99+" : unreadCount;
-          badge.style.display = "block";
-          bellBtn.classList.add("has-unread");
-        } else {
-          badge.style.display = "none";
-          bellBtn.classList.remove("has-unread");
+      // 🌟 核心：若偵測到新的未讀通知（有人留言或收藏），畫面頂部立即跳出提示泡泡！
+      if (
+        _prevUnreadCount !== null &&
+        unreadCount > _prevUnreadCount &&
+        notifList.length > 0
+      ) {
+        const latestNotif = notifList[0];
+        const content =
+          latestNotif.content ||
+          latestNotif.message ||
+          "您收到了新的漂流瓶互動！";
+        if (typeof showOceanToast === "function") {
+          showOceanToast(`🔔 ${content}`);
         }
       }
+      _prevUnreadCount = unreadCount;
+
+      // 同步紅點數字（手機版與電腦版）
+      const badgeText = unreadCount > 99 ? "99+" : String(unreadCount);
+      badges.forEach((badge) => {
+        badge.innerText = badgeText;
+        badge.style.display = unreadCount > 0 ? "block" : "none";
+      });
+      if (desktopBadge) {
+        desktopBadge.innerText = badgeText;
+        desktopBadge.style.display = unreadCount > 0 ? "block" : "none";
+      }
+
+      // 鈴鐺發光脈衝切換
+      bellBtns.forEach((btn) => {
+        if (unreadCount > 0) btn.classList.add("has-unread");
+        else btn.classList.remove("has-unread");
+      });
     }
   } catch (error) {
     console.error("撈取通知數量失敗:", error);
   }
 }
 
+// 改為每 15 秒檢查一次新通知（收到留言/收藏能更即時彈出）
 setInterval(() => {
   fetchNotificationCount();
-}, 30000);
+}, 15000);
 
 /* =========================================
    🚀 手機版海域選單 (Bottom Sheet) 專屬邏輯
