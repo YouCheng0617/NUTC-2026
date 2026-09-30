@@ -774,12 +774,12 @@ window.submitComment = async function () {
       const detailView = document.getElementById("detail-view");
       if (detailView && detailView.offsetParent !== null) {
         const scrollBody = document.querySelector(".detail-scroll-body");
-if (scrollBody) {
-  scrollBody.scrollTo({
-    top: scrollBody.scrollHeight,
-    behavior: "smooth",
-  });
-}
+        if (scrollBody) {
+          scrollBody.scrollTo({
+            top: scrollBody.scrollHeight,
+            behavior: "smooth",
+          });
+        }
       }
     } else {
       const err = await response.json();
@@ -995,8 +995,8 @@ window.openPostDetail = function (id) {
   // 🌟 渲染此文章的投票卡片
   renderPollWidget(p);
 
-  renderComments(id);document.body.classList.add("in-detail-view");
-
+  renderComments(id);
+  document.body.classList.add("in-detail-view");
 
   const saveBtn = document.getElementById("save-bottle-btn");
   if (saveBtn) {
@@ -1417,7 +1417,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
   setInterval(() => {
     const detailView = document.getElementById("detail-view");
-    if (detailView && detailView.style.display !== "block" && !window.isIdleScreenOn) {
+    if (
+      detailView &&
+      detailView.style.display !== "block" &&
+      !window.isIdleScreenOn
+    ) {
       callOceanCurrent();
     }
   }, 60000);
@@ -2014,7 +2018,8 @@ document.addEventListener("DOMContentLoaded", () => {
     const curLeft = parseFloat(mascot.style.left) || 0;
     const mascotSvg = mascot.querySelector("svg");
     if (mascotSvg) {
-      mascotSvg.style.transform = targetX < curLeft ? "scaleX(-1)" : "scaleX(1)";
+      mascotSvg.style.transform =
+        targetX < curLeft ? "scaleX(-1)" : "scaleX(1)";
     }
 
     // 🌟 關鍵修復：先設定慢速平滑過渡（6.5 ~ 9.5 秒），再更新座標
@@ -2322,7 +2327,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (
       targetEl instanceof Element &&
       targetEl.closest(
-        'a, button, input, textarea, select, label, [role="button"], #svg-mermecat-mascot, #mascot-home, .ocean-popular-board, .ocean-rules-board'
+        'a, button, input, textarea, select, label, [role="button"], #svg-mermecat-mascot, #mascot-home, .ocean-popular-board, .ocean-rules-board',
       )
     ) {
       return;
@@ -2335,20 +2340,25 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const targetLeft = Math.max(
       10,
-      Math.min(clientX - currentCatW / 2, window.innerWidth - currentCatW - 10)
+      Math.min(clientX - currentCatW / 2, window.innerWidth - currentCatW - 10),
     );
     const targetTop = Math.max(
       10,
-      Math.min(clientY - currentCatH / 2, window.innerHeight - currentCatH - 10)
+      Math.min(
+        clientY - currentCatH / 2,
+        window.innerHeight - currentCatH - 10,
+      ),
     );
 
     const curLeft = parseFloat(mascot.style.left) || 0;
     const mascotSvg = mascot.querySelector("svg");
     if (mascotSvg) {
-      mascotSvg.style.transform = targetLeft < curLeft ? "scaleX(-1)" : "scaleX(1)";
+      mascotSvg.style.transform =
+        targetLeft < curLeft ? "scaleX(-1)" : "scaleX(1)";
     }
 
-    mascot.style.transition = "top 0.8s cubic-bezier(0.25, 0.8, 0.25, 1), left 0.8s cubic-bezier(0.25, 0.8, 0.25, 1)";
+    mascot.style.transition =
+      "top 0.8s cubic-bezier(0.25, 0.8, 0.25, 1), left 0.8s cubic-bezier(0.25, 0.8, 0.25, 1)";
     mascot.style.left = `${targetLeft}px`;
     mascot.style.top = `${targetTop}px`;
 
@@ -2381,7 +2391,7 @@ document.addEventListener("DOMContentLoaded", () => {
       }
       lastTapTime = currentTime;
     },
-    { passive: true }
+    { passive: true },
   );
 
   mascot.addEventListener("click", (e) => {
@@ -2986,10 +2996,132 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 // =========================================
-// 🔔 通知小視窗專屬邏輯
+// 🔔 通知中心升級：點擊跳轉漂流瓶 + 新留言/收藏即時彈窗提示
 // =========================================
 
-// 1. 開關通知小視窗
+// 🌟 1. 智慧跳轉漂流瓶（向後端單獨撈取並開啟）
+window.jumpToBottle = async function (bottleId) {
+  if (
+    !bottleId ||
+    bottleId === "undefined" ||
+    bottleId === "null" ||
+    bottleId === ""
+  ) {
+    if (typeof showOceanToast === "function") {
+      showOceanToast("此通知未包含具體的漂流瓶編號 🌊");
+    }
+    return;
+  }
+
+  const safeId = String(bottleId);
+
+  // 關閉通知彈窗
+  const popup = document.getElementById("notif-popup");
+  if (popup) popup.style.display = "none";
+
+  // 先在目前已經載入的文章中尋找
+  let p = posts.find((x) => String(x.id) === safeId);
+  if (!p && window.popularCache) {
+    p = window.popularCache.find((x) => String(x.id) === safeId);
+    if (p) posts.push(p);
+  }
+
+  // 若記憶體中沒有該瓶子，向後端 API 抓取單篇詳細資料
+  if (!p) {
+    try {
+      const token = localStorage.getItem("authToken");
+      const headers = {
+        "Content-Type": "application/json",
+        "ngrok-skip-browser-warning": "true",
+      };
+      if (token) headers["Authorization"] = `Bearer ${token}`;
+
+      const res = await fetch(`${API_BASE_URL}/bottles/${safeId}`, {
+        method: "GET",
+        headers: headers,
+      });
+
+      if (res.ok) {
+        const rawData = await res.json();
+        const rawItem = rawData.bottle || rawData.data || rawData;
+        const item = rawItem.bottle || rawItem.Bottle || rawItem;
+
+        let authorName = "用戶";
+        if (typeof item.author === "string") authorName = item.author;
+        else if (item.author?.name) authorName = item.author.name;
+        else if (item.author_name) authorName = item.author_name;
+        else if (item.user?.name) authorName = item.user.name;
+        else if (item.member?.name) authorName = item.member.name;
+
+        let rawBoard = item.category_name || item.board || null;
+        let finalBoard = "😑 極度厭世/躺平";
+        if (rawBoard) {
+          if (rawBoard.includes("憤怒")) finalBoard = "😡 極度憤怒中";
+          else if (rawBoard.includes("秘密")) finalBoard = "🤫 沒人懂的秘密";
+          else if (rawBoard.includes("破碎")) finalBoard = "💔 破碎的碎片";
+          else if (rawBoard.includes("厭世") || rawBoard.includes("躺平"))
+            finalBoard = "😑 極度厭世/躺平";
+          else if (rawBoard.includes("開心")) finalBoard = "😁 開心的事";
+          else finalBoard = rawBoard;
+        }
+
+        p = {
+          id: safeId,
+          board: finalBoard,
+          author: item.is_anonymous || item.isAnonymous ? "匿名" : authorName,
+          authorId: item.author_id || item.user_id || item.member_id || null,
+          title: item.title || rawItem.title || "漂流瓶",
+          desc: stripLegacyPollTag(item.content || rawItem.content || ""),
+          poll: parsePoll(item, rawItem),
+          likes: parseInt(
+            item.like_count || item.likeCount || item.likes || 0,
+            10,
+          ),
+          msgs: item.comment_count || item.comments?.length || 0,
+          liked: Boolean(item.is_liked || item.isLiked),
+          saved: Boolean(item.is_saved || item.isSaved),
+          createdAt: item.createdAt || item.created_at || rawItem.createdAt,
+        };
+        posts.push(p);
+      }
+    } catch (e) {
+      console.error("撈取單篇瓶子失敗:", e);
+    }
+  }
+
+  // 開啟詳細頁
+  if (typeof openPostDetail === "function") {
+    openPostDetail(safeId);
+  }
+};
+
+// 🌟 2. 點擊通知卡片的動作（標記已讀 + 跳轉至瓶子）
+window.handleNotificationClick = async function (
+  notifId,
+  bottleId,
+  cardElement,
+) {
+  if (cardElement && cardElement.classList.contains("unread")) {
+    markSingleAsReadAPI(notifId, cardElement);
+  }
+
+  if (
+    bottleId &&
+    bottleId !== "undefined" &&
+    bottleId !== "null" &&
+    bottleId !== ""
+  ) {
+    await jumpToBottle(bottleId);
+  } else if (cardElement && cardElement.innerText.includes("追蹤")) {
+    const popup = document.getElementById("notif-popup");
+    if (popup) popup.style.display = "none";
+    if (typeof openFollowingModal === "function") {
+      openFollowingModal();
+    }
+  }
+};
+
+// 🌟 3. 開關通知小視窗
 window.toggleNotificationPopup = async function (e) {
   e.stopPropagation();
   const popup = document.getElementById("notif-popup");
@@ -3011,13 +3143,13 @@ window.addEventListener("click", (event) => {
     popup &&
     popup.style.display === "flex" &&
     !event.target.closest("#notif-popup") &&
-    !event.target.closest("#notification-bell-btn")
+    !event.target.closest(".notification-bell")
   ) {
     popup.style.display = "none";
   }
 });
 
-// 2. 抓取並渲染通知
+// 🌟 4. 抓取並渲染通知列表（支援點擊跳轉）
 async function fetchAndRenderNotifications() {
   const token = localStorage.getItem("authToken");
   const container = document.getElementById("notif-list-container");
@@ -3095,16 +3227,28 @@ async function fetchAndRenderNotifications() {
           : notif.time || "";
         const notificationText = notif.content || notif.message || "";
 
+        // 自動辨識後端可能回傳的瓶子 ID
+        const bottleId =
+          notif.bottle_id ||
+          notif.bottleId ||
+          notif.target_id ||
+          notif.targetId ||
+          notif.post_id ||
+          notif.postId ||
+          (notif.data &&
+            (notif.data.bottle_id || notif.data.bottleId || notif.data.id)) ||
+          "";
+
         return `
-                <div class="notif-mini-card ${unreadClass}" ${!isRead ? `onclick="markSingleAsReadAPI('${notif.id}', this)"` : ""}>
-                    <div class="notif-icon ${iconClass}">${iconEmoji}</div>
-                    <div class="notif-text-box">
-                        <p>${escapeHTML(notificationText)}</p>
-                        <span class="time">${timeStr}</span>
-                    </div>
-                    ${dotHtml}
-                </div>
-            `;
+          <div class="notif-mini-card ${unreadClass}" onclick="handleNotificationClick('${notif.id}', '${bottleId}', this)" title="${bottleId ? "點擊跳轉到此漂流瓶" : ""}">
+              <div class="notif-icon ${iconClass}">${iconEmoji}</div>
+              <div class="notif-text-box">
+                  <p>${escapeHTML(notificationText)}</p>
+                  <span class="time">${timeStr}</span>
+              </div>
+              ${dotHtml}
+          </div>
+        `;
       })
       .join("");
   } catch (error) {
@@ -3114,7 +3258,7 @@ async function fetchAndRenderNotifications() {
   }
 }
 
-// 3. 單筆已讀
+// 🌟 5. 單筆已讀
 window.markSingleAsReadAPI = async function (id, cardElement) {
   const token = localStorage.getItem("authToken");
   try {
@@ -3128,10 +3272,11 @@ window.markSingleAsReadAPI = async function (id, cardElement) {
     });
 
     if (response.ok) {
-      cardElement.classList.remove("unread");
-      const dot = cardElement.querySelector(".notif-unread-dot");
-      if (dot) dot.style.display = "none";
-      cardElement.onclick = null;
+      if (cardElement) {
+        cardElement.classList.remove("unread");
+        const dot = cardElement.querySelector(".notif-unread-dot");
+        if (dot) dot.style.display = "none";
+      }
 
       if (typeof fetchNotificationCount === "function") {
         fetchNotificationCount();
@@ -3142,7 +3287,7 @@ window.markSingleAsReadAPI = async function (id, cardElement) {
   }
 };
 
-// 4. 全部已讀
+// 🌟 6. 全部已讀
 window.markAllAsReadAPI = async function (e) {
   if (e) e.stopPropagation();
 
@@ -3168,7 +3313,6 @@ window.markAllAsReadAPI = async function (e) {
         card.classList.remove("unread");
         const dot = card.querySelector(".notif-unread-dot");
         if (dot) dot.style.display = "none";
-        card.onclick = null;
       });
 
       if (typeof fetchNotificationCount === "function") {
@@ -3541,8 +3685,8 @@ function showIdleScreen() {
   idleClockTimer = setInterval(() => updateIdleClock(screen), 10000);
 
   // 點擊與觸控只屬於待機畫面，不傳到底下的頁面（避免誤開瓶子或召喚貓咪）
-  ["pointerdown", "mousedown", "touchstart", "touchend", "dblclick"].forEach((type) =>
-    screen.addEventListener(type, (e) => e.stopPropagation()),
+  ["pointerdown", "mousedown", "touchstart", "touchend", "dblclick"].forEach(
+    (type) => screen.addEventListener(type, (e) => e.stopPropagation()),
   );
   screen.addEventListener("click", (e) => {
     e.preventDefault();
@@ -3574,11 +3718,18 @@ function resetIdleTimer() {
   idleTimer = setTimeout(showIdleScreen, IDLE_TIMEOUT_MS);
 }
 
-["pointerdown", "pointermove", "touchstart", "wheel", "keydown"].forEach((type) =>
-  document.addEventListener(type, resetIdleTimer, { passive: true, capture: true }),
+["pointerdown", "pointermove", "touchstart", "wheel", "keydown"].forEach(
+  (type) =>
+    document.addEventListener(type, resetIdleTimer, {
+      passive: true,
+      capture: true,
+    }),
 );
 // 捲動事件不會冒泡，用 capture 才收得到 .main-feed 等內層的捲動
-document.addEventListener("scroll", resetIdleTimer, { passive: true, capture: true });
+document.addEventListener("scroll", resetIdleTimer, {
+  passive: true,
+  capture: true,
+});
 
 // 待機中按鍵盤：不讓按鍵打進底下的輸入框，Enter / 空白 / Esc 可以叫醒
 document.addEventListener(
