@@ -1321,6 +1321,20 @@ textarea {
   background: rgba(255, 255, 255, 0.08);
   border-radius: 14px;
   color: #fff;
+  cursor: pointer; /* 🌟 游標變為點擊手勢 */
+  transition: all 0.25s cubic-bezier(0.25, 0.8, 0.25, 1);
+  border: 1px solid transparent;
+}
+
+/* 🌟 滑鼠懸浮時微亮微浮動，提示可點擊 */
+.notif-mini-card:hover {
+  background: rgba(255, 255, 255, 0.18);
+  border-color: rgba(77, 166, 255, 0.4);
+  transform: translateX(4px);
+}
+
+.notif-mini-card:active {
+  transform: scale(0.98);
 }
 
 .ocean-toast {
@@ -3436,7 +3450,7 @@ body:not(.in-detail-view) #detail-view.ocean-detail-card {
 
 #detail-view.ocean-detail-card {
   flex-direction: column !important; /* 嚴格垂直三層排列 */
-  overflow: hidden !important;       /* 核心：外框絕對禁止滾動！ */
+  overflow: hidden !important; /* 核心：外框絕對禁止滾動！ */
   height: calc(100vh - 60px) !important;
   max-height: none !important;
   position: fixed !important;
@@ -3463,7 +3477,7 @@ body:not(.in-detail-view) #detail-view.ocean-detail-card {
 /* 3. 中間文章與留言區：【全畫面唯一可以滑動的地方】 */
 #detail-view .detail-scroll-body {
   flex: 1 1 auto !important;
-  min-height: 0 !important;    /* 核心：避免 flex 容器被留言撐破 */
+  min-height: 0 !important; /* 核心：避免 flex 容器被留言撐破 */
   overflow-y: auto !important; /* 只有留言文章在中間滾動！ */
   -webkit-overflow-scrolling: touch !important;
   padding: 0 !important;
@@ -3471,7 +3485,7 @@ body:not(.in-detail-view) #detail-view.ocean-detail-card {
 
 /* 4. 底下打字框：永遠鎖定在卡片最底端，絕不隨滾輪滑動 */
 #detail-view .comment-action-bar {
-  flex-shrink: 0 !important;   /* 高度不被內容壓縮 */
+  flex-shrink: 0 !important; /* 高度不被內容壓縮 */
   position: relative !important; /* 取消 fixed，讓它老老實實釘在 Flex 底部 */
   bottom: auto !important;
   left: auto !important;
@@ -3791,7 +3805,11 @@ body.in-detail-view .ocean-rules-board {
 }
 
 .hub-card {
-  background: linear-gradient(160deg, rgba(10, 35, 65, 0.96) 0%, rgba(2, 20, 45, 0.98) 100%) !important;
+  background: linear-gradient(
+    160deg,
+    rgba(10, 35, 65, 0.96) 0%,
+    rgba(2, 20, 45, 0.98) 100%
+  ) !important;
   border: 1.5px solid rgba(77, 166, 255, 0.5) !important;
   box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6) !important;
   border-radius: 24px !important;
@@ -3937,7 +3955,11 @@ body.in-detail-view .ocean-rules-board {
     height: auto !important; /* 取消原本固定 36px 高度 */
     padding: 5px 14px !important; /* 膠囊內距 */
     border-radius: 20px !important; /* 圓角膠囊造型 */
-    background: linear-gradient(135deg, #ff7e5f, #feb47b) !important; /* 珊瑚橘漸層 */
+    background: linear-gradient(
+      135deg,
+      #ff7e5f,
+      #feb47b
+    ) !important; /* 珊瑚橘漸層 */
     border: 1.5px solid #ffffff !important; /* 純白外框 */
     color: #ffffff !important;
     font-size: 0.88rem !important;
@@ -4001,7 +4023,10 @@ body.in-detail-view .ocean-rules-board {
   color: #1e293b;
   cursor: pointer;
   overflow: hidden;
-  transition: border-color 0.2s, box-shadow 0.2s, transform 0.15s;
+  transition:
+    border-color 0.2s,
+    box-shadow 0.2s,
+    transform 0.15s;
 }
 
 .poll-option-row:hover {
@@ -4140,7 +4165,12 @@ body.is-admin .hub-new-post-bar {
   overflow: hidden;
   cursor: pointer;
   outline: none;
-  background: radial-gradient(ellipse at 50% 40%, #1d4063 0%, #13304c 55%, #0c2238 100%);
+  background: radial-gradient(
+    ellipse at 50% 40%,
+    #1d4063 0%,
+    #13304c 55%,
+    #0c2238 100%
+  );
   color: #e6f1fa;
   font-family: "PingFang TC", sans-serif;
   user-select: none;
@@ -4149,13 +4179,17 @@ body.is-admin .hub-new-post-bar {
   animation: drift-idle-in 0.5s ease;
 }
 @keyframes drift-idle-in {
-  from { opacity: 0; }
+  from {
+    opacity: 0;
+  }
 }
 .drift-idle.leaving {
   animation: drift-idle-out 0.35s ease forwards;
 }
 @keyframes drift-idle-out {
-  to { opacity: 0; }
+  to {
+    opacity: 0;
+  }
 }
 
 .drift-idle-center {
@@ -4190,8 +4224,13 @@ body.is-admin .hub-new-post-bar {
   animation: drift-idle-breathe 3.2s ease-in-out infinite;
 }
 @keyframes drift-idle-breathe {
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.03, 0.98); }
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.03, 0.98);
+  }
 }
 .drift-idle-zzz {
   fill: #e6f1fa;
@@ -4203,9 +4242,17 @@ body.is-admin .hub-new-post-bar {
   animation-delay: 1.5s;
 }
 @keyframes drift-idle-zzz {
-  0% { transform: translateY(0); opacity: 0; }
-  40% { opacity: 1; }
-  100% { transform: translateY(-14px); opacity: 0; }
+  0% {
+    transform: translateY(0);
+    opacity: 0;
+  }
+  40% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-14px);
+    opacity: 0;
+  }
 }
 .drift-idle-title {
   margin-top: 2cqh;
@@ -4233,8 +4280,13 @@ body.is-admin .hub-new-post-bar {
   animation: drift-idle-hint 2.8s ease-in-out infinite;
 }
 @keyframes drift-idle-hint {
-  0%, 100% { opacity: 0.45; }
-  50% { opacity: 1; }
+  0%,
+  100% {
+    opacity: 0.45;
+  }
+  50% {
+    opacity: 1;
+  }
 }
 
 /* 遠處漂浮的泡泡瓶：大小由 font-size 決定，木塞與瓶口照首頁 .post-card 的比例 */
@@ -4244,7 +4296,11 @@ body.is-admin .hub-new-post-bar {
   width: 1em;
   height: 1em;
   border-radius: 50%;
-  background: radial-gradient(circle at 30% 30%, rgba(224, 242, 254, 0.75), rgba(125, 211, 252, 0.45));
+  background: radial-gradient(
+    circle at 30% 30%,
+    rgba(224, 242, 254, 0.75),
+    rgba(125, 211, 252, 0.45)
+  );
   border: max(1px, 0.014em) solid rgba(255, 255, 255, 0.6);
   box-shadow: inset 0 0 0.1em rgba(255, 255, 255, 0.6);
   animation: drift-idle-drift ease-in-out infinite alternate;
@@ -4275,8 +4331,12 @@ body.is-admin .hub-new-post-bar {
   filter: blur(1px);
 }
 @keyframes drift-idle-drift {
-  from { transform: translate(0, 0) rotate(-8deg); }
-  to { transform: translate(3cqw, -3cqh) rotate(8deg); }
+  from {
+    transform: translate(0, 0) rotate(-8deg);
+  }
+  to {
+    transform: translate(3cqw, -3cqh) rotate(8deg);
+  }
 }
 
 /* 往上冒的氣泡 */
@@ -4290,7 +4350,9 @@ body.is-admin .hub-new-post-bar {
   animation: drift-idle-rise linear infinite;
 }
 @keyframes drift-idle-rise {
-  to { transform: translateY(-115cqh); }
+  to {
+    transform: translateY(-115cqh);
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -4298,4 +4360,18 @@ body.is-admin .hub-new-post-bar {
   .drift-idle * {
     animation: none !important;
   }
+}
+/* 🌟 提高 Header 與通知彈窗層級，防止手機版觸控被隱形層攔截 */
+.light-header {
+  z-index: 200000 !important;
+}
+
+.notif-popup-container {
+  z-index: 200005 !important;
+  pointer-events: auto !important;
+}
+
+.notif-mini-card {
+  cursor: pointer !important;
+  pointer-events: auto !important;
 }

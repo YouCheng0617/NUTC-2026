@@ -17,7 +17,7 @@ interface TokenPayload {
  * 瀏覽器歷史與 Referer 記下來，等於把管理員權限公開，所以移除。
  * AI 端 (AI/src/ai_db_worker.py) 本來就只帶 header，不受影響。
  */
-const isAiRequest = (req: Request): boolean => {
+export const isAiRequest = (req: Request): boolean => {
     const secret = process.env.AI_SECRT_KEY;
     /*環境變數沒設定時一律不放行，避免兩邊都是 undefined 就通過*/
     if (!secret) return false;

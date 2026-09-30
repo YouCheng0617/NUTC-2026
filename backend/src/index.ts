@@ -23,6 +23,7 @@ import { setupPetSocket } from './socket/petServer.js';
 
 /*其他套件引用區*/
 import { generateCaptcha } from './lib/captchaHelper.js';
+import { writeLimiter, captchaLimiter } from './lib/rateLimiter.js';
 import prisma from './lib/prisma.js';
 import "dotenv/config";
 
@@ -41,6 +42,7 @@ export const io = new Server(httpServer, {
 app.set('trust proxy', 1);
 
 app.use(cors()); /*允許跨域請求(ngrok)*/
+app.use(writeLimiter); /*所有寫入類請求 (POST/PUT/PATCH/DELETE) 的全站流量限制*/
 app.use(express.json());
 
 app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));/*圖片處裡*/
@@ -63,7 +65,7 @@ app.get('/', (req, res) => {
     res.send('🌊 漂流瓶 API 伺服器正常運作中！請對接 /auth 或 /bottles 或 /admin');
 });
 
-app.get('/captcha', (req, res) => {
+app.get('/captcha', captchaLimiter, (req, res) => {
     const { captchaId, image } = generateCaptcha();
     res.json({ captchaId, image });
 });

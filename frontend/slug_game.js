@@ -49,6 +49,46 @@ let GAME_TOKEN = localStorage.getItem('authToken') || localStorage.getItem('acce
             setTimeout(() => endIntro(false), slow ? 1100 : 5500);   // 動畫跑完就自動收掉
         })();
 
+        // 🐰 【日常小動作】沒有在互動的時候，海兔會自己眨眼、抖耳朵、伸懶腰、東張西望
+        const IDLE_ACTIONS = [
+            { cls: 'idle-blink', ms: 340, weight: 6 },
+            { cls: 'idle-ear', ms: 1000, weight: 4 },
+            { cls: 'idle-look', ms: 2300, weight: 3 },
+            { cls: 'idle-sway', ms: 2500, weight: 3 },
+            { cls: 'idle-stretch', ms: 1700, weight: 2 },
+            { cls: 'idle-hop', ms: 950, weight: 2 },
+            { cls: 'idle-shake', ms: 750, weight: 2 },
+            { cls: 'idle-yawn', ms: 2100, weight: 1 }
+        ];
+        // 這些狀態代表海兔正在忙，忙的時候不要插隊做小動作
+        const IDLE_BUSY_CLASSES = ['is-petting', 'is-eating-munch', 'is-chasing-food', 'is-jumping',
+            'is-exercising-run', 'is-refusing-exercise', 'is-starving', 'card-mode'];
+
+        function startIdleLife() {
+            const total = IDLE_ACTIONS.reduce((sum, a) => sum + a.weight, 0);
+            const pickAction = () => {
+                let r = Math.random() * total;
+                for (const a of IDLE_ACTIONS) { r -= a.weight; if (r <= 0) return a; }
+                return IDLE_ACTIONS[0];
+            };
+            const tick = () => {
+                const el = document.getElementById('slugContainer');
+                const svg = el && el.querySelector('.slug-svg');
+                const busy = !el
+                    || IDLE_BUSY_CLASSES.some(c => el.classList.contains(c))
+                    || (svg && svg.className.baseVal && svg.className.baseVal.includes('is-'))   // 例如迴旋踢的旋轉
+                    || document.body.classList.contains('is-dragging-global')
+                    || document.hidden;
+                if (!busy && !el.className.includes('idle-')) {
+                    const act = pickAction();
+                    el.classList.add(act.cls);
+                    setTimeout(() => el.classList.remove(act.cls), act.ms + 60);
+                }
+                setTimeout(tick, 2600 + Math.random() * 4200);   // 每隔 2.6～6.8 秒動一次
+            };
+            setTimeout(tick, 1800);
+        }
+
         // 🌟 【呼叫伺服器 API 的小幫手】
         async function fetchAPI(endpoint, method = 'GET', payload = null) {
             try {
@@ -622,63 +662,63 @@ const i18n = {
         /* ... 原本的顏色與商品設定，完全保留不變 ... */
         const speciesData = {
             snow: { name: {zh: '經典雪兔', en: 'Snow Bunny'}, cost: 0, body: '#ffffff', outline: '#3f2a2a', earTop: '#3f2a2a', tail: '#3f2a2a', spot: '#3f2a2a', blush: '#fca5a5' },
-            ocean: { name: {zh: '深海藍寶', en: 'Ocean Gem'}, cost: 1200, body: '#e0f2fe', outline: '#1e3a8a', earTop: '#1e3a8a', tail: '#1e3a8a', spot: '#1e3a8a', blush: '#f472b6' },
-            matcha: { name: {zh: '抹茶麻糬', en: 'Matcha Mochi'}, cost: 1500, body: '#ecfccb', outline: '#14532d', earTop: '#14532d', tail: '#14532d', spot: '#14532d', blush: '#f87171' },
-            berry: { name: {zh: '草莓牛奶', en: 'Strawberry Milk'}, cost: 1800, body: '#fce7f3', outline: '#831843', earTop: '#831843', tail: '#831843', spot: '#831843', blush: '#fb7185' },
-            choco: { name: {zh: '焦糖布丁', en: 'Caramel Pudding'}, cost: 2000, body: '#fef3c7', outline: '#713f12', earTop: '#713f12', tail: '#713f12', spot: '#713f12', blush: '#f87171' },
-            grape: { name: {zh: '薰衣草', en: 'Lavender'}, cost: 2200, body: '#f3e8ff', outline: '#4c1d95', earTop: '#4c1d95', tail: '#4c1d95', spot: '#4c1d95', blush: '#f472b6' },
-            lemon: { name: {zh: '黃金檸檬', en: 'Golden Lemon'}, cost: 2500, body: '#fef08a', outline: '#9a3412', earTop: '#ea580c', tail: '#ea580c', spot: '#ea580c', blush: '#ef4444' },
-            sesame: { name: {zh: '黑糖芝麻', en: 'Sesame'}, cost: 2800, body: '#f1f5f9', outline: '#0f172a', earTop: '#0f172a', tail: '#0f172a', spot: '#0f172a', blush: '#f87171' },
-            sakura: { name: {zh: '櫻花雪兔', en: 'Sakura Bunny'}, cost: 3000, body: '#ffffff', outline: '#be185d', earTop: '#f472b6', tail: '#f472b6', spot: '#f472b6', blush: '#fb7185' },
-            peachSlug: { name: {zh: '甜心水蜜桃', en: 'Sweet Peach'}, cost: 3200, body: '#fff1f2', outline: '#881337', earTop: '#fb7185', tail: '#fda4af', spot: '#f43f5e', blush: '#f43f5e' },
-            banana: { name: {zh: '香蕉牛奶', en: 'Banana Milk'}, cost: 3200, body: '#fefce8', outline: '#713f12', earTop: '#facc15', tail: '#fde047', spot: '#ca8a04', blush: '#fca5a5' },
-            blueberry: { name: {zh: '藍莓起司', en: 'Blueberry Pie'}, cost: 3400, body: '#e0e7ff', outline: '#1e1b4b', earTop: '#6366f1', tail: '#818cf8', spot: '#4f46e5', blush: '#c7d2fe' },
-            avocado: { name: {zh: '酪梨優格', en: 'Avocado Yogurt'}, cost: 3400, body: '#f7fee7', outline: '#365314', earTop: '#84cc16', tail: '#a3e635', spot: '#65a30d', blush: '#fca5a5' },
-            mint: { name: {zh: '薄荷巧克力', en: 'Mint Choco'}, cost: 3500, body: '#ccfbf1', outline: '#0f766e', earTop: '#3f2a2a', tail: '#3f2a2a', spot: '#3f2a2a', blush: '#f472b6' },
-            springBlossom: { name: {zh: '春日櫻笛', en: 'Spring Blossom'}, cost: 3500, body: '#fff1f2', outline: '#831843', earTop: '#fb7185', tail: '#f43f5e', spot: '#fda4af', blush: '#f43f5e' },
-            summerBreeze: { name: {zh: '夏日微風', en: 'Summer Breeze'}, cost: 3500, body: '#ecfeff', outline: '#164e63', earTop: '#22d3ee', tail: '#67e8f9', spot: '#0891b2', blush: '#99f6e4' },
-            autumnMaple: { name: {zh: '秋意楓紅', en: 'Autumn Maple'}, cost: 3500, body: '#fff7ed', outline: '#7c2d12', earTop: '#f97316', tail: '#ea580c', spot: '#c2410c', blush: '#fca5a5' },
-            winterSnow: { name: {zh: '冬夜初雪', en: 'Winter Snow'}, cost: 3500, body: '#f8fafc', outline: '#334155', earTop: '#94a3b8', tail: '#cbd5e1', spot: '#64748b', blush: '#e2e8f0' },
-            taro: { name: {zh: '香芋布丁', en: 'Taro Pudding'}, cost: 3600, body: '#f3e8ff', outline: '#581c87', earTop: '#a855f7', tail: '#c084fc', spot: '#9333ea', blush: '#fbcfe8' },
-            papaya: { name: {zh: '木瓜牛奶', en: 'Papaya Milk'}, cost: 3600, body: '#ffedd5', outline: '#7c2d12', earTop: '#fb923c', tail: '#fdba74', spot: '#f97316', blush: '#fca5a5' },
-            watermelon: { name: {zh: '清涼西瓜', en: 'Watermelon'}, cost: 3800, body: '#bbf7d0', outline: '#14532d', earTop: '#f87171', tail: '#f87171', spot: '#000000', blush: '#fca5a5' },
-            kiwi: { name: {zh: '奇異果派', en: 'Kiwi Tart'}, cost: 3800, body: '#f7fee7', outline: '#1a2e05', earTop: '#65a30d', tail: '#84cc16', spot: '#4d7c0f', blush: '#fca5a5' },
-            dragonfruit: { name: {zh: '火龍果精靈', en: 'Dragon Fruit'}, cost: 4000, body: '#fdf2f8', outline: '#500724', earTop: '#ec4899', tail: '#f472b6', spot: '#db2777', blush: '#fbcfe8' },
-            mango: { name: {zh: '夏日芒果', en: 'Summer Mango'}, cost: 4000, body: '#fff7ed', outline: '#7c2d12', earTop: '#f97316', tail: '#fb923c', spot: '#ea580c', blush: '#fca5a5' },
-            ruby: { name: {zh: '璀璨紅寶石', en: 'Ruby Glow'}, cost: 4200, body: '#ffe4e6', outline: '#881337', earTop: '#e11d48', tail: '#e11d48', spot: '#9f1239', blush: '#fb7185' },
-            sapphire: { name: {zh: '皇家藍寶石', en: 'Royal Sapphire'}, cost: 4200, body: '#e0f2fe', outline: '#172554', earTop: '#2563eb', tail: '#2563eb', spot: '#1d4ed8', blush: '#93c5fd' },
-            emeraldSlug: { name: {zh: '微光祖母綠', en: 'Glow Emerald'}, cost: 4200, body: '#ecfdf5', outline: '#022c22', earTop: '#059669', tail: '#059669', spot: '#047857', blush: '#6ee7b7' },
-            amethyst: { name: {zh: '夢幻紫水晶', en: 'Amethyst Dream'}, cost: 4200, body: '#f5f3ff', outline: '#3b0764', earTop: '#7c3aed', tail: '#7c3aed', spot: '#6d28d9', blush: '#c084fc' },
-            topaz: { name: {zh: '耀眼托帕石', en: 'Solar Topaz'}, cost: 4200, body: '#fffbeb', outline: '#78350f', earTop: '#d97706', tail: '#d97706', spot: '#b45309', blush: '#fcd34d' },
-            coconut: { name: {zh: '椰香白巧', en: 'Coconut White'}, cost: 4200, body: '#ffffff', outline: '#292524', earTop: '#d7d3d0', tail: '#d7d3d0', spot: '#a8a29e', blush: '#fbcfe8' },
-            galaxy: { name: {zh: '星空宇宙', en: 'Galaxy'}, cost: 4500, body: '#1e1b4b', outline: '#c7d2fe', earTop: '#8b5cf6', tail: '#8b5cf6', spot: '#fde047', blush: '#d8b4fe' },
-            jade: { name: {zh: '溫潤白玉', en: 'Soft Jade'}, cost: 4500, body: '#f0fdf4', outline: '#134e4a', earTop: '#2dd4bf', tail: '#2dd4bf', spot: '#0f766e', blush: '#99f6e4' },
-            macaron: { name: {zh: '法式馬卡龍', en: 'French Macaron'}, cost: 4500, body: '#fbcfe8', outline: '#831843', earTop: '#fed7aa', tail: '#a7f3d0', spot: '#f472b6', blush: '#f472b6' },
-            cottonCandy: { name: {zh: '夢幻棉花糖', en: 'Cotton Candy'}, cost: 4500, body: '#e0e7ff', outline: '#3730a3', earTop: '#fbcfe8', tail: '#c7d2fe', spot: '#818cf8', blush: '#f472b6' },
-            puddingCaramel: { name: {zh: '焦糖布丁燒', en: 'Caramel Flan'}, cost: 4500, body: '#fef3c7', outline: '#78350f', earTop: '#b45309', tail: '#d97706', spot: '#92400e', blush: '#f87171' },
-            matchaLatte: { name: {zh: '特濃抹茶拿鐵', en: 'Matcha Latte'}, cost: 4500, body: '#dcfce7', outline: '#14532d', earTop: '#15803d', tail: '#22c55e', spot: '#166534', blush: '#fca5a5' },
-            obsidian: { name: {zh: '神祕黑曜石', en: 'Dark Obsidian'}, cost: 4800, body: '#18181b', outline: '#71717a', earTop: '#27272a', tail: '#27272a', spot: '#52525b', blush: '#a1a1aa' },
-            sunset: { name: {zh: '日落晚霞', en: 'Sunset'}, cost: 5000, body: '#ffedd5', outline: '#9a3412', earTop: '#f97316', tail: '#f43f5e', spot: '#9a3412', blush: '#fca5a5' },
-            pearl: { name: {zh: '極光珍珠', en: 'Aurora Pearl'}, cost: 5000, body: '#fafafa', outline: '#475569', earTop: '#e2e8f0', tail: '#e2e8f0', spot: '#cbd5e1', blush: '#fbcfe8' },
-            halloweenBat: { name: {zh: '萬聖小蝙蝠', en: 'Spooky Bat'}, cost: 5000, body: '#18181b', outline: '#f97316', earTop: '#a855f7', tail: '#7e22ce', spot: '#f97316', blush: '#c084fc' },
-            christmasTree: { name: {zh: '耶誕小樹', en: 'Xmas Tree'}, cost: 5000, body: '#064e3b', outline: '#fef08a', earTop: '#ef4444', tail: '#10b981', spot: '#f59e0b', blush: '#f87171' },
-            valentineRose: { name: {zh: '情人玫瑰', en: 'Valentine Rose'}, cost: 5000, body: '#fff1f2', outline: '#9f1239', earTop: '#e11d48', tail: '#be123c', spot: '#fb7185', blush: '#f43f5e' },
-            newYearTiger: { name: {zh: '迎春小福虎', en: 'Lunar Tiger'}, cost: 5000, body: '#fffbeb', outline: '#78350f', earTop: '#f59e0b', tail: '#d97706', spot: '#1c1917', blush: '#f87171' },
-            amber: { name: {zh: '千年琥珀', en: 'Ancient Amber'}, cost: 5200, body: '#fef3c7', outline: '#451a03', earTop: '#b45309', tail: '#b45309', spot: '#92400e', blush: '#f87171' },
-            coffee: { name: {zh: '焦糖拿鐵', en: 'Caramel Latte'}, cost: 5500, body: '#ddbea9', outline: '#6b705c', earTop: '#ffe8d6', tail: '#ffe8d6', spot: '#cb997e', blush: '#ffb4a2' },
-            coralSlug: { name: {zh: '海底珊瑚', en: 'Deep Coral'}, cost: 5500, body: '#ffe4e6', outline: '#4c0519', earTop: '#fb7185', tail: '#fb7185', spot: '#f43f5e', blush: '#fda4af' },
-            ghost: { name: {zh: '幽靈白兔', en: 'Spooky Ghost'}, cost: 6000, body: '#f8fafc', outline: '#475569', earTop: '#94a3b8', tail: '#94a3b8', spot: '#475569', blush: '#cbd5e1' },
-            unicorn: { name: {zh: '獨角獸之夢', en: 'Unicorn Dream'}, cost: 6500, body: '#fdf4ff', outline: '#701a75', earTop: '#e879f9', tail: '#f472b6', spot: '#c084fc', blush: '#fbcfe8' },
-            frost: { name: {zh: '永凍冰晶', en: 'Eternal Frost'}, cost: 6500, body: '#f0f9ff', outline: '#0c4a6e', earTop: '#38bdf8', tail: '#7dd3fc', spot: '#0284c7', blush: '#bae6fd' },
-            storm: { name: {zh: '雷鳴風暴', en: 'Thunder Storm'}, cost: 6800, body: '#f8fafc', outline: '#0f172a', earTop: '#facc15', tail: '#fde047', spot: '#334155', blush: '#fca5a5' },
-            phoenix: { name: {zh: '不死鳥之羽', en: 'Phoenix Feather'}, cost: 7000, body: '#fff1f2', outline: '#450a0a', earTop: '#f43f5e', tail: '#fb7185', spot: '#e11d48', blush: '#fca5a5' },
-            magma: { name: {zh: '熔岩之心', en: 'Magma Core'}, cost: 7200, body: '#450a0a', outline: '#fef08a', earTop: '#ef4444', tail: '#f97316', spot: '#dc2626', blush: '#f87171' },
-            dragonSlug: { name: {zh: '烈焰小龍', en: 'Flame Dragon'}, cost: 7500, body: '#fff7ed', outline: '#431407', earTop: '#ea580c', tail: '#f97316', spot: '#c2410c', blush: '#fca5a5' },
-            starlight: { name: {zh: '流星微光', en: 'Starlight Dust'}, cost: 7800, body: '#020617', outline: '#38bdf8', earTop: '#fef08a', tail: '#7dd3fc', spot: '#fde047', blush: '#bae6fd' },
-            nebula: { name: {zh: '璀璨星雲', en: 'Cosmic Nebula'}, cost: 8000, body: '#2e1065', outline: '#fbcfe8', earTop: '#c084fc', tail: '#e879f9', spot: '#818cf8', blush: '#f472b6' },
-            eclipse: { name: {zh: '日蝕幻影', en: 'Solar Eclipse'}, cost: 8500, body: '#0f172a', outline: '#fbbf24', earTop: '#334155', tail: '#f59e0b', spot: '#1e293b', blush: '#f87171' },
-            gold: { name: {zh: '招財純金', en: 'Pure Gold'}, cost: 8888, body: '#fef08a', outline: '#b45309', earTop: '#f59e0b', tail: '#f59e0b', spot: '#b45309', blush: '#fbbf24' },
-            abyssSlug: { name: {zh: '深淵使者', en: 'Abyss Herald'}, cost: 9000, body: '#030712', outline: '#14b8a6', earTop: '#0d9488', tail: '#0f766e', spot: '#115e59', blush: '#2dd4bf' }
+            ocean: { name: {zh: '深海藍寶', en: 'Ocean Gem'}, cost: 150, body: '#e0f2fe', outline: '#1e3a8a', earTop: '#1e3a8a', tail: '#1e3a8a', spot: '#1e3a8a', blush: '#f472b6' },
+            matcha: { name: {zh: '抹茶麻糬', en: 'Matcha Mochi'}, cost: 150, body: '#ecfccb', outline: '#14532d', earTop: '#14532d', tail: '#14532d', spot: '#14532d', blush: '#f87171' },
+            berry: { name: {zh: '草莓牛奶', en: 'Strawberry Milk'}, cost: 200, body: '#fce7f3', outline: '#831843', earTop: '#831843', tail: '#831843', spot: '#831843', blush: '#fb7185' },
+            choco: { name: {zh: '焦糖布丁', en: 'Caramel Pudding'}, cost: 250, body: '#fef3c7', outline: '#713f12', earTop: '#713f12', tail: '#713f12', spot: '#713f12', blush: '#f87171' },
+            grape: { name: {zh: '薰衣草', en: 'Lavender'}, cost: 250, body: '#f3e8ff', outline: '#4c1d95', earTop: '#4c1d95', tail: '#4c1d95', spot: '#4c1d95', blush: '#f472b6' },
+            lemon: { name: {zh: '黃金檸檬', en: 'Golden Lemon'}, cost: 300, body: '#fef08a', outline: '#9a3412', earTop: '#ea580c', tail: '#ea580c', spot: '#ea580c', blush: '#ef4444' },
+            sesame: { name: {zh: '黑糖芝麻', en: 'Sesame'}, cost: 350, body: '#f1f5f9', outline: '#0f172a', earTop: '#0f172a', tail: '#0f172a', spot: '#0f172a', blush: '#f87171' },
+            sakura: { name: {zh: '櫻花雪兔', en: 'Sakura Bunny'}, cost: 350, body: '#ffffff', outline: '#be185d', earTop: '#f472b6', tail: '#f472b6', spot: '#f472b6', blush: '#fb7185' },
+            peachSlug: { name: {zh: '甜心水蜜桃', en: 'Sweet Peach'}, cost: 400, body: '#fff1f2', outline: '#881337', earTop: '#fb7185', tail: '#fda4af', spot: '#f43f5e', blush: '#f43f5e' },
+            banana: { name: {zh: '香蕉牛奶', en: 'Banana Milk'}, cost: 400, body: '#fefce8', outline: '#713f12', earTop: '#facc15', tail: '#fde047', spot: '#ca8a04', blush: '#fca5a5' },
+            blueberry: { name: {zh: '藍莓起司', en: 'Blueberry Pie'}, cost: 450, body: '#e0e7ff', outline: '#1e1b4b', earTop: '#6366f1', tail: '#818cf8', spot: '#4f46e5', blush: '#c7d2fe' },
+            avocado: { name: {zh: '酪梨優格', en: 'Avocado Yogurt'}, cost: 450, body: '#f7fee7', outline: '#365314', earTop: '#84cc16', tail: '#a3e635', spot: '#65a30d', blush: '#fca5a5' },
+            mint: { name: {zh: '薄荷巧克力', en: 'Mint Choco'}, cost: 500, body: '#ccfbf1', outline: '#0f766e', earTop: '#3f2a2a', tail: '#3f2a2a', spot: '#3f2a2a', blush: '#f472b6' },
+            springBlossom: { name: {zh: '春日櫻笛', en: 'Spring Blossom'}, cost: 500, body: '#fff1f2', outline: '#831843', earTop: '#fb7185', tail: '#f43f5e', spot: '#fda4af', blush: '#f43f5e' },
+            summerBreeze: { name: {zh: '夏日微風', en: 'Summer Breeze'}, cost: 500, body: '#ecfeff', outline: '#164e63', earTop: '#22d3ee', tail: '#67e8f9', spot: '#0891b2', blush: '#99f6e4' },
+            autumnMaple: { name: {zh: '秋意楓紅', en: 'Autumn Maple'}, cost: 500, body: '#fff7ed', outline: '#7c2d12', earTop: '#f97316', tail: '#ea580c', spot: '#c2410c', blush: '#fca5a5' },
+            winterSnow: { name: {zh: '冬夜初雪', en: 'Winter Snow'}, cost: 500, body: '#f8fafc', outline: '#334155', earTop: '#94a3b8', tail: '#cbd5e1', spot: '#64748b', blush: '#e2e8f0' },
+            taro: { name: {zh: '香芋布丁', en: 'Taro Pudding'}, cost: 550, body: '#f3e8ff', outline: '#581c87', earTop: '#a855f7', tail: '#c084fc', spot: '#9333ea', blush: '#fbcfe8' },
+            papaya: { name: {zh: '木瓜牛奶', en: 'Papaya Milk'}, cost: 550, body: '#ffedd5', outline: '#7c2d12', earTop: '#fb923c', tail: '#fdba74', spot: '#f97316', blush: '#fca5a5' },
+            watermelon: { name: {zh: '清涼西瓜', en: 'Watermelon'}, cost: 600, body: '#bbf7d0', outline: '#14532d', earTop: '#f87171', tail: '#f87171', spot: '#000000', blush: '#fca5a5' },
+            kiwi: { name: {zh: '奇異果派', en: 'Kiwi Tart'}, cost: 600, body: '#f7fee7', outline: '#1a2e05', earTop: '#65a30d', tail: '#84cc16', spot: '#4d7c0f', blush: '#fca5a5' },
+            dragonfruit: { name: {zh: '火龍果精靈', en: 'Dragon Fruit'}, cost: 600, body: '#fdf2f8', outline: '#500724', earTop: '#ec4899', tail: '#f472b6', spot: '#db2777', blush: '#fbcfe8' },
+            mango: { name: {zh: '夏日芒果', en: 'Summer Mango'}, cost: 600, body: '#fff7ed', outline: '#7c2d12', earTop: '#f97316', tail: '#fb923c', spot: '#ea580c', blush: '#fca5a5' },
+            ruby: { name: {zh: '璀璨紅寶石', en: 'Ruby Glow'}, cost: 650, body: '#ffe4e6', outline: '#881337', earTop: '#e11d48', tail: '#e11d48', spot: '#9f1239', blush: '#fb7185' },
+            sapphire: { name: {zh: '皇家藍寶石', en: 'Royal Sapphire'}, cost: 650, body: '#e0f2fe', outline: '#172554', earTop: '#2563eb', tail: '#2563eb', spot: '#1d4ed8', blush: '#93c5fd' },
+            emeraldSlug: { name: {zh: '微光祖母綠', en: 'Glow Emerald'}, cost: 650, body: '#ecfdf5', outline: '#022c22', earTop: '#059669', tail: '#059669', spot: '#047857', blush: '#6ee7b7' },
+            amethyst: { name: {zh: '夢幻紫水晶', en: 'Amethyst Dream'}, cost: 650, body: '#f5f3ff', outline: '#3b0764', earTop: '#7c3aed', tail: '#7c3aed', spot: '#6d28d9', blush: '#c084fc' },
+            topaz: { name: {zh: '耀眼托帕石', en: 'Solar Topaz'}, cost: 650, body: '#fffbeb', outline: '#78350f', earTop: '#d97706', tail: '#d97706', spot: '#b45309', blush: '#fcd34d' },
+            coconut: { name: {zh: '椰香白巧', en: 'Coconut White'}, cost: 650, body: '#ffffff', outline: '#292524', earTop: '#d7d3d0', tail: '#d7d3d0', spot: '#a8a29e', blush: '#fbcfe8' },
+            galaxy: { name: {zh: '星空宇宙', en: 'Galaxy'}, cost: 700, body: '#1e1b4b', outline: '#c7d2fe', earTop: '#8b5cf6', tail: '#8b5cf6', spot: '#fde047', blush: '#d8b4fe' },
+            jade: { name: {zh: '溫潤白玉', en: 'Soft Jade'}, cost: 700, body: '#f0fdf4', outline: '#134e4a', earTop: '#2dd4bf', tail: '#2dd4bf', spot: '#0f766e', blush: '#99f6e4' },
+            macaron: { name: {zh: '法式馬卡龍', en: 'French Macaron'}, cost: 700, body: '#fbcfe8', outline: '#831843', earTop: '#fed7aa', tail: '#a7f3d0', spot: '#f472b6', blush: '#f472b6' },
+            cottonCandy: { name: {zh: '夢幻棉花糖', en: 'Cotton Candy'}, cost: 700, body: '#e0e7ff', outline: '#3730a3', earTop: '#fbcfe8', tail: '#c7d2fe', spot: '#818cf8', blush: '#f472b6' },
+            puddingCaramel: { name: {zh: '焦糖布丁燒', en: 'Caramel Flan'}, cost: 700, body: '#fef3c7', outline: '#78350f', earTop: '#b45309', tail: '#d97706', spot: '#92400e', blush: '#f87171' },
+            matchaLatte: { name: {zh: '特濃抹茶拿鐵', en: 'Matcha Latte'}, cost: 700, body: '#dcfce7', outline: '#14532d', earTop: '#15803d', tail: '#22c55e', spot: '#166534', blush: '#fca5a5' },
+            obsidian: { name: {zh: '神祕黑曜石', en: 'Dark Obsidian'}, cost: 750, body: '#18181b', outline: '#71717a', earTop: '#27272a', tail: '#27272a', spot: '#52525b', blush: '#a1a1aa' },
+            sunset: { name: {zh: '日落晚霞', en: 'Sunset'}, cost: 800, body: '#ffedd5', outline: '#9a3412', earTop: '#f97316', tail: '#f43f5e', spot: '#9a3412', blush: '#fca5a5' },
+            pearl: { name: {zh: '極光珍珠', en: 'Aurora Pearl'}, cost: 800, body: '#fafafa', outline: '#475569', earTop: '#e2e8f0', tail: '#e2e8f0', spot: '#cbd5e1', blush: '#fbcfe8' },
+            halloweenBat: { name: {zh: '萬聖小蝙蝠', en: 'Spooky Bat'}, cost: 800, body: '#18181b', outline: '#f97316', earTop: '#a855f7', tail: '#7e22ce', spot: '#f97316', blush: '#c084fc' },
+            christmasTree: { name: {zh: '耶誕小樹', en: 'Xmas Tree'}, cost: 800, body: '#064e3b', outline: '#fef08a', earTop: '#ef4444', tail: '#10b981', spot: '#f59e0b', blush: '#f87171' },
+            valentineRose: { name: {zh: '情人玫瑰', en: 'Valentine Rose'}, cost: 800, body: '#fff1f2', outline: '#9f1239', earTop: '#e11d48', tail: '#be123c', spot: '#fb7185', blush: '#f43f5e' },
+            newYearTiger: { name: {zh: '迎春小福虎', en: 'Lunar Tiger'}, cost: 800, body: '#fffbeb', outline: '#78350f', earTop: '#f59e0b', tail: '#d97706', spot: '#1c1917', blush: '#f87171' },
+            amber: { name: {zh: '千年琥珀', en: 'Ancient Amber'}, cost: 850, body: '#fef3c7', outline: '#451a03', earTop: '#b45309', tail: '#b45309', spot: '#92400e', blush: '#f87171' },
+            coffee: { name: {zh: '焦糖拿鐵', en: 'Caramel Latte'}, cost: 900, body: '#ddbea9', outline: '#6b705c', earTop: '#ffe8d6', tail: '#ffe8d6', spot: '#cb997e', blush: '#ffb4a2' },
+            coralSlug: { name: {zh: '海底珊瑚', en: 'Deep Coral'}, cost: 900, body: '#ffe4e6', outline: '#4c0519', earTop: '#fb7185', tail: '#fb7185', spot: '#f43f5e', blush: '#fda4af' },
+            ghost: { name: {zh: '幽靈白兔', en: 'Spooky Ghost'}, cost: 950, body: '#f8fafc', outline: '#475569', earTop: '#94a3b8', tail: '#94a3b8', spot: '#475569', blush: '#cbd5e1' },
+            unicorn: { name: {zh: '獨角獸之夢', en: 'Unicorn Dream'}, cost: 1000, body: '#fdf4ff', outline: '#701a75', earTop: '#e879f9', tail: '#f472b6', spot: '#c084fc', blush: '#fbcfe8' },
+            frost: { name: {zh: '永凍冰晶', en: 'Eternal Frost'}, cost: 1000, body: '#f0f9ff', outline: '#0c4a6e', earTop: '#38bdf8', tail: '#7dd3fc', spot: '#0284c7', blush: '#bae6fd' },
+            storm: { name: {zh: '雷鳴風暴', en: 'Thunder Storm'}, cost: 1050, body: '#f8fafc', outline: '#0f172a', earTop: '#facc15', tail: '#fde047', spot: '#334155', blush: '#fca5a5' },
+            phoenix: { name: {zh: '不死鳥之羽', en: 'Phoenix Feather'}, cost: 1100, body: '#fff1f2', outline: '#450a0a', earTop: '#f43f5e', tail: '#fb7185', spot: '#e11d48', blush: '#fca5a5' },
+            magma: { name: {zh: '熔岩之心', en: 'Magma Core'}, cost: 1150, body: '#450a0a', outline: '#fef08a', earTop: '#ef4444', tail: '#f97316', spot: '#dc2626', blush: '#f87171' },
+            dragonSlug: { name: {zh: '烈焰小龍', en: 'Flame Dragon'}, cost: 1200, body: '#fff7ed', outline: '#431407', earTop: '#ea580c', tail: '#f97316', spot: '#c2410c', blush: '#fca5a5' },
+            starlight: { name: {zh: '流星微光', en: 'Starlight Dust'}, cost: 1300, body: '#020617', outline: '#38bdf8', earTop: '#fef08a', tail: '#7dd3fc', spot: '#fde047', blush: '#bae6fd' },
+            nebula: { name: {zh: '璀璨星雲', en: 'Cosmic Nebula'}, cost: 1350, body: '#2e1065', outline: '#fbcfe8', earTop: '#c084fc', tail: '#e879f9', spot: '#818cf8', blush: '#f472b6' },
+            eclipse: { name: {zh: '日蝕幻影', en: 'Solar Eclipse'}, cost: 1400, body: '#0f172a', outline: '#fbbf24', earTop: '#334155', tail: '#f59e0b', spot: '#1e293b', blush: '#f87171' },
+            gold: { name: {zh: '招財純金', en: 'Pure Gold'}, cost: 1450, body: '#fef08a', outline: '#b45309', earTop: '#f59e0b', tail: '#f59e0b', spot: '#b45309', blush: '#fbbf24' },
+            abyssSlug: { name: {zh: '深淵使者', en: 'Abyss Herald'}, cost: 1500, body: '#030712', outline: '#14b8a6', earTop: '#0d9488', tail: '#0f766e', spot: '#115e59', blush: '#2dd4bf' }
         };
 
         // 🏠 【背景插畫零件】每件家具都以「底部中央」為原點繪製，
@@ -2080,125 +2120,214 @@ const i18n = {
             );
         },
 
-        // 糖果王國：棒棒糖、糖果拐杖與軟糖山丘
+        // 糖果王國：藍天白雲下的糖果樂園，棉花糖樹、螺旋棒棒糖、遠方的糖霜城堡與彩色糖磚小徑
         candyLand(mode) {
-            const { W, H } = canvasOf(mode), hz = H * 0.64;
-            const lolli = (x, y, s, c1, c2) => `<g transform="translate(${x},${y}) scale(${s})"><rect x="-5" y="-86" width="10" height="90" fill="#ffffff" rx="5"/><circle cy="-112" r="42" fill="${c1}"/><path d="M 0 -112 m -42 0 a 42 42 0 0 1 42 -42 a 21 21 0 0 0 0 42 a 21 21 0 0 1 0 42 a 42 42 0 0 1 -42 -42 Z" fill="${c2}"/></g>`;
-            return svgOf(W, H,
-                vg('clSky', [[0, '#ffd1e8'], [55, '#ffe4f2'], [100, '#fff2f8']]) + vg('clG', [[0, '#ff9ecb'], [100, '#e2589f']]),
-                bg(W, H, 'url(#clSky)')
-                + times(3, (i, a) => cloud(a * W, H * (0.12 + i * 0.08), 0.75, '#ffffff', 0.85))
-                + hill(W, H, hz, 20, '#f9c0dd') + hill(W, H, hz + H * 0.1, 24, 'url(#clG)', 1.3)
-                + lolli(W * 0.18, hz + H * 0.2, 0.9, '#ff6fa5', '#fff0f6')
-                + lolli(W * 0.8, hz + H * 0.24, 1.05, '#7ad0f0', '#ffffff')
-                + `<g transform="translate(${W * 0.5},${hz + H * 0.18}) scale(1)"><path d="M -8 0 L -8 -96 C -8 -128, 44 -128, 44 -96 L 28 -96 C 28 -110, 8 -110, 8 -96 L 8 0 Z" fill="#ffffff" stroke="#ff6fa5" stroke-width="9"/></g>`
-                + times(18, (i, a, b, c) => rect((a * W).toFixed(0), (b * H).toFixed(0), 14, 5, c > 0.5 ? '#ffe066' : '#7ad0f0', `rx="2.5" transform="rotate(${(c * 140).toFixed(0)} ${(a * W).toFixed(0)} ${(b * H).toFixed(0)})"`))
-            );
-        },
-
-        // 魔法學院：紫色夜空下的尖塔與魔法光點
-        magicAcademy(mode) {
-            const { W, H } = canvasOf(mode), hz = H * 0.8;
-            const tower = (x, y, h, w, body, roof) => `<g>${rect(x - w / 2, y - h, w, h, body, 'rx="4"')}<path d="M ${x - w / 2 - 10} ${y - h} L ${x} ${y - h - w * 1.1} L ${x + w / 2 + 10} ${y - h} Z" fill="${roof}"/>${rect(x - 9, y - h * 0.62, 18, 26, '#ffe9a8', 'rx="9"')}${rect(x - 9, y - h * 0.34, 18, 26, '#ffe9a8', 'rx="9"')}</g>`;
-            return svgOf(W, H,
-                vg('maSky', [[0, '#2b1259'], [55, '#5b2f8f'], [100, '#8e5bb5']]) + glowDef('maMoon', '#ffeec4'),
-                bg(W, H, 'url(#maSky)') + stars(W, H, 50, '#ffffff') + glow(W * 0.2, H * 0.18, H * 0.055, 'maMoon', '#ffeec4')
-                + tower(W * 0.36, hz, H * 0.44, W * 0.075, '#3f2a63', '#6f3fa0')
-                + tower(W * 0.5, hz, H * 0.6, W * 0.095, '#4a3272', '#7d49b0')
-                + tower(W * 0.66, hz, H * 0.38, W * 0.07, '#3f2a63', '#6f3fa0')
-                + rect(0, hz, W, H - hz, '#2a1a4a')
-                + sparkles(W, H * 0.8, 16, '#c4a8ff')
-            );
-        },
-
-        // 水晶洞穴：鐘乳石與發光水晶
-        crystalCave(mode) {
-            const { W, H } = canvasOf(mode), floorY = H * 0.76;
-            const crystal = (x, y, s, c1, c2) => `<g transform="translate(${x},${y}) scale(${s})"><path d="M 0 0 L -26 -46 L -12 -96 L 14 -104 L 30 -50 Z" fill="${c1}"/><path d="M 0 0 L 30 -50 L 14 -104 L 8 -96 Z" fill="${c2}"/></g>`;
-            let stal = '';
-            for (let i = 0; i < 9; i++) { const x = (i + 0.5) * (W / 9); const h = 60 + rnd(i, 9) * 160; stal += `<path d="M ${x - 30} -10 L ${x} ${h} L ${x + 30} -10 Z" fill="#4a2f6e"/>`; }
-            return svgOf(W, H,
-                vg('ccWall', [[0, '#3a1f5c'], [60, '#5b2f83'], [100, '#2a1442']]) + glowDef('ccGlow', '#c4a8ff') + vg('ccFloor', [[0, '#4a2f6e'], [100, '#1e0f33']]),
-                bg(W, H, 'url(#ccWall)') + stal
-                + disc(W * 0.5, floorY - H * 0.1, H * 0.3, 'url(#ccGlow)')
-                + `<path d="M 0 ${floorY + 10} C ${W * 0.3} ${floorY - 14}, ${W * 0.7} ${floorY + 24}, ${W} ${floorY - 6} L ${W} ${H} L 0 ${H} Z" fill="url(#ccFloor)"/>`
-                + crystal(W * 0.24, floorY + 20, 1.1, '#a78bfa', '#c4b5fd') + crystal(W * 0.36, floorY + 26, 0.7, '#7dd3fc', '#bae6fd')
-                + crystal(W * 0.72, floorY + 22, 1.25, '#f0abfc', '#f5d0fe') + crystal(W * 0.84, floorY + 28, 0.8, '#a78bfa', '#ddd6fe')
-                + sparkles(W, H * 0.9, 12, '#e9d5ff')
-            );
-        },
-
-        // 熔岩火山：噴發的火山口與岩漿河
-        volcanoCore(mode) {
-            const { W, H } = canvasOf(mode), baseY = H * 0.78;
-            return svgOf(W, H,
-                vg('vcSky', [[0, '#2b0a14'], [50, '#7a1d1d'], [100, '#e2542a']]) + glowDef('vcGlow', '#ffb15c') + vg('vcRock', [[0, '#4a2a2a'], [100, '#1f1010']]),
-                bg(W, H, 'url(#vcSky)') + disc(W * 0.5, baseY - H * 0.34, H * 0.34, 'url(#vcGlow)')
-                + `<path d="M ${W * 0.12} ${baseY} L ${W * 0.4} ${baseY - H * 0.42} L ${W * 0.6} ${baseY - H * 0.42} L ${W * 0.88} ${baseY} Z" fill="#3f2222"/>`
-                + `<path d="M ${W * 0.4} ${baseY - H * 0.42} L ${W * 0.6} ${baseY - H * 0.42} L ${W * 0.56} ${baseY - H * 0.36} L ${W * 0.44} ${baseY - H * 0.36} Z" fill="#ffb15c"/>`
-                + `<path d="M ${W * 0.47} ${baseY - H * 0.42} C ${W * 0.44} ${baseY - H * 0.26}, ${W * 0.38} ${baseY - H * 0.14}, ${W * 0.33} ${baseY} L ${W * 0.43} ${baseY} C ${W * 0.46} ${baseY - H * 0.16}, ${W * 0.5} ${baseY - H * 0.3}, ${W * 0.52} ${baseY - H * 0.42} Z" fill="#f4713f"/>`
-                + rect(0, baseY, W, H - baseY, 'url(#vcRock)')
-                + times(5, (i, a, b) => ell((a * W).toFixed(0), (baseY + 16 + b * (H - baseY) * 0.7).toFixed(0), (30 + b * 60).toFixed(0), (8 + b * 10).toFixed(0), '#f4713f', 'opacity="0.85"'))
-                + times(14, (i, a, b, c) => disc((a * W).toFixed(0), (b * baseY).toFixed(0), (2 + c * 4).toFixed(1), '#ffd166', `opacity="${(0.4 + c * 0.5).toFixed(2)}"`))
-            );
-        },
-
-        // 浮空島嶼：漂浮的草地島與瀑布
-        floatingIsland(mode) {
             const { W, H } = canvasOf(mode);
-            const island = (x, y, s) => `<g transform="translate(${x},${y}) scale(${s})">`
-                + `<path d="M -110 0 L 110 0 L 62 54 L 16 96 L -34 60 Z" fill="#8a6a4a"/>`
-                + ell(0, 0, 112, 26, '#5fae5f') + ell(0, -6, 112, 24, '#7ed07a')
-                + `</g>`;
-            return svgOf(W, H,
-                vg('fiSky', [[0, '#69c8f5'], [55, '#a9e0fa'], [100, '#e2f6ff']]) + vg('fiFall', [[0, '#bfeaff', 0.9], [100, '#bfeaff', 0]]),
-                bg(W, H, 'url(#fiSky)')
-                + times(4, (i, a) => cloud(a * W, H * (0.1 + i * 0.16), 0.7 + rnd(i, 4) * 0.5, '#ffffff', 0.85))
-                + island(W * 0.5, H * 0.56, mode === 'wide' ? 1.05 : 1.25)
-                + tree(W * 0.46, H * 0.55, 0.5, '#4f9f5c', '#7a4a2a', '#7ed07a')
-                + `<path d="M ${W * 0.52} ${H * 0.57} L ${W * 0.56} ${H * 0.57} L ${W * 0.57} ${H} L ${W * 0.51} ${H} Z" fill="url(#fiFall)"/>`
-                + island(W * 0.18, H * 0.3, 0.5) + island(W * 0.84, H * 0.36, 0.42)
-                + times(3, (i, a) => `<path d="M ${a * W} ${H * 0.82} q 20 -10 40 0" stroke="#ffffff" stroke-width="5" fill="none" opacity="0.6"/>`)
-            );
-        },
+            const portrait = mode === 'portrait';
+            const u = Math.min(W, H) / 520;
+            const cx = W / 2;
+            const hz = H * (portrait ? 0.44 : 0.48);       // 地平線
+            const n = (v) => Number(v).toFixed(1);
 
-        // 亞特蘭提斯：沉沒的神殿與水下光束
-        underwaterTemple(mode) {
-            const { W, H } = canvasOf(mode), baseY = H * 0.82;
-            return svgOf(W, H,
-                vg('utSea', [[0, '#3fc4d9'], [50, '#1f7fa8'], [100, '#0a3a5c']]) + vg('utRay', [[0, '#d6f7ff', 0.4], [100, '#d6f7ff', 0]]) + vg('utFloor', [[0, '#4a8fa8'], [100, '#123f59']]),
-                bg(W, H, 'url(#utSea)') + rays(W, H, W * 0.5, -H * 0.04, 5, 'url(#utRay)')
-                + rect(0, baseY, W, H - baseY, 'url(#utFloor)')
-                + column(W * 0.2, baseY, H * 0.42, W * 0.05, '#bfe0e8', '#9fc8d4')
-                + column(W * 0.34, baseY, H * 0.3, W * 0.045, '#a9cfd9', '#8fb8c4')
-                + column(W * 0.66, baseY, H * 0.46, W * 0.05, '#bfe0e8', '#9fc8d4')
-                + column(W * 0.8, baseY, H * 0.24, W * 0.042, '#a9cfd9', '#8fb8c4')
-                + `<path d="M ${W * 0.14} ${baseY - H * 0.46} L ${W * 0.5} ${baseY - H * 0.58} L ${W * 0.86} ${baseY - H * 0.46} L ${W * 0.86} ${baseY - H * 0.4} L ${W * 0.14} ${baseY - H * 0.4} Z" fill="#cfe8ee"/>`
-                + times(3, (i, a, b) => `<g transform="translate(${(a * W).toFixed(0)},${(H * 0.3 + b * H * 0.4).toFixed(0)}) scale(0.8)" fill="#ffd166"><path d="M 0 0 C 16 -14, 44 -14, 58 0 C 44 14, 16 14, 0 0 Z"/><path d="M 58 0 L 76 -14 L 76 14 Z"/></g>`)
-                + bubbles(W, H, 14, '#d6f7ff')
-            );
-        },
-
-        // 皇家宮殿：紅毯、金柱與吊燈
-        royalPalace(mode) {
-            const { W, H } = canvasOf(mode), floorY = H * 0.62;
-            return svgOf(W, H,
-                vg('rpWall', [[0, '#7a1f2b'], [55, '#9c2f3a'], [100, '#5e1620']]) + vg('rpFloor', [[0, '#c9a05f'], [100, '#8a6a34']]) + glowDef('rpGlow', '#ffe9a8'),
-                bg(W, H, 'url(#rpWall)')
-                + rect(0, floorY, W, H - floorY, 'url(#rpFloor)')
-                + `<path d="M ${W * 0.36} ${floorY} L ${W * 0.64} ${floorY} L ${W * 0.78} ${H} L ${W * 0.22} ${H} Z" fill="#c02a3a"/>`
-                + `<path d="M ${W * 0.38} ${floorY} L ${W * 0.62} ${floorY} L ${W * 0.74} ${H} L ${W * 0.26} ${H} Z" fill="#e2453f"/>`
-                + column(W * 0.16, floorY, H * 0.52, W * 0.05, '#f0d9a8', '#e0b95f')
-                + column(W * 0.32, floorY, H * 0.5, W * 0.042, '#e8cf9f', '#d9ae57')
-                + column(W * 0.68, floorY, H * 0.5, W * 0.042, '#e8cf9f', '#d9ae57')
-                + column(W * 0.84, floorY, H * 0.52, W * 0.05, '#f0d9a8', '#e0b95f')
-                // 拱窗與吊燈
-                + `<path d="M ${W * 0.44} ${floorY - H * 0.16} L ${W * 0.44} ${floorY - H * 0.36} A ${W * 0.06} ${W * 0.06} 0 0 1 ${W * 0.56} ${floorY - H * 0.36} L ${W * 0.56} ${floorY - H * 0.16} Z" fill="#ffe9a8" opacity="0.85"/>`
-                + `<g transform="translate(${W * 0.5},${H * 0.06})">${rect(-3, 0, 6, H * 0.1, '#e0b95f')}${disc(0, H * 0.12, H * 0.055, 'url(#rpGlow)')}${disc(0, H * 0.12, H * 0.03, '#ffe9a8')}</g>`
-                + sparkles(W, H * 0.5, 8, '#ffe9a8')
-            );
-        }
+            // 糖果棒：白底加上斜斜的紅色條紋
+            const stick = (x, topY, botY, w, tone) => {
+                let o = `<g><rect x="${n(x - w / 2)}" y="${n(topY)}" width="${n(w)}" height="${n(botY - topY)}" rx="${n(w / 2)}" fill="#ffffff"/>`;
+                const step = w * 1.9;
+                for (let y = topY + step * 0.3; y < botY - step * 0.2; y += step) {
+                    o += `<path d="M ${n(x - w / 2)} ${n(y + w * 0.9)} L ${n(x + w / 2)} ${n(y)}" stroke="${tone}" stroke-width="${n(w * 0.52)}" stroke-linecap="round"/>`;
+                }
+                return o + `<rect x="${n(x - w / 2)}" y="${n(topY)}" width="${n(w)}" height="${n(botY - topY)}" rx="${n(w / 2)}" fill="none" stroke="#f3b9cd" stroke-width="${n(w * 0.12)}"/></g>`;
             };
+
+            // 螺旋棒棒糖：糖果棒 + 一圈圈繞出來的螺旋
+            const lolli = (x, groundY, r, cA, cB, tilt) => {
+                const headY = groundY - r * 2.5;
+                let d = `M ${n(x)} ${n(headY)}`;
+                const steps = 120, turns = 3.6;
+                for (let i = 1; i <= steps; i++) {
+                    const t = i / steps;
+                    const a = t * turns * Math.PI * 2 - Math.PI / 2;
+                    const rr = t * r * 0.82;
+                    d += ` L ${n(x + Math.cos(a) * rr)} ${n(headY + Math.sin(a) * rr)}`;
+                }
+                return `<g transform="rotate(${tilt} ${n(x)} ${n(groundY)})">`
+                    + stick(x, headY, groundY, r * 0.22, '#ef476f')
+                    + disc(n(x), n(headY), n(r), cA)
+                    + `<path d="${d}" fill="none" stroke="${cB}" stroke-width="${n(r * 0.13)}" stroke-linecap="round"/>`
+                    + disc(n(x), n(headY), n(r), 'none', `stroke="#ffffff" stroke-width="${n(r * 0.1)}"`)
+                    + ell(n(x - r * 0.3), n(headY - r * 0.42), n(r * 0.3), n(r * 0.16), '#ffffff', 'opacity="0.55" transform="rotate(-28 ' + n(x - r * 0.3) + ' ' + n(headY - r * 0.42) + ')"')
+                    + `</g>`;
+            };
+
+            // 棉花糖樹：糖果棒上頂著一大團蓬鬆的粉紅棉花糖
+            const cottonTree = (x, groundY, s) => {
+                const topY = groundY - 150 * s;
+                const puffs = [[0, 0, 52], [-40, 14, 38], [40, 12, 40], [-22, -30, 40], [24, -32, 38], [0, -52, 30], [-52, -8, 26], [52, -6, 24]];
+                let o = stick(x, topY, groundY, 11 * s, '#ef476f');
+                o += `<g>` + puffs.map(([dx, dy, r]) => disc(n(x + dx * s), n(topY + dy * s), n(r * s), '#f7a8c9')).join('') + `</g>`;
+                o += `<g>` + puffs.slice(0, 6).map(([dx, dy, r]) => disc(n(x + (dx - 8) * s), n(topY + (dy - 10) * s), n(r * 0.66 * s), '#ffc8de')).join('') + `</g>`;
+                o += `<g>` + puffs.slice(0, 3).map(([dx, dy, r]) => disc(n(x + (dx - 16) * s), n(topY + (dy - 18) * s), n(r * 0.38 * s), '#ffe3ee')).join('') + `</g>`;
+                return o;
+            };
+
+            // 糖霜城堡：中間一座高塔，兩側各一座，屋頂是甜筒尖塔
+            const castle = (x, baseY, s) => {
+                const tower = (tx, w, h, roof) =>
+                    `<rect x="${n(tx - w / 2)}" y="${n(baseY - h)}" width="${n(w)}" height="${n(h)}" fill="#e8b78e"/>`
+                    + `<rect x="${n(tx - w / 2)}" y="${n(baseY - h)}" width="${n(w * 0.4)}" height="${n(h)}" fill="#f2cfae" opacity="0.7"/>`
+                    + `<path d="M ${n(tx - w * 0.62)} ${n(baseY - h)} L ${n(tx)} ${n(baseY - h - roof)} L ${n(tx + w * 0.62)} ${n(baseY - h)} Z" fill="#d98aa8"/>`
+                    + `<path d="M ${n(tx - w * 0.62)} ${n(baseY - h)} L ${n(tx)} ${n(baseY - h - roof)} L ${n(tx + w * 0.16)} ${n(baseY - h)} Z" fill="#f0a9c2"/>`
+                    + disc(n(tx), n(baseY - h - roof - 4 * s), n(3.4 * s), '#fff0f6')
+                    + `<rect x="${n(tx - w * 0.14)}" y="${n(baseY - h * 0.62)}" width="${n(w * 0.28)}" height="${n(h * 0.24)}" rx="${n(w * 0.14)}" fill="#a9754f" opacity="0.65"/>`;
+                return `<g>`
+                    + tower(x - 42 * s, 26 * s, 74 * s, 34 * s)
+                    + tower(x + 42 * s, 26 * s, 70 * s, 32 * s)
+                    + `<rect x="${n(x - 34 * s)}" y="${n(baseY - 56 * s)}" width="${n(68 * s)}" height="${n(56 * s)}" fill="#e8b78e"/>`
+                    + tower(x, 34 * s, 108 * s, 44 * s)
+                    + `<path d="M ${n(x - 9 * s)} ${n(baseY)} L ${n(x - 9 * s)} ${n(baseY - 22 * s)} C ${n(x - 9 * s)} ${n(baseY - 33 * s)}, ${n(x + 9 * s)} ${n(baseY - 33 * s)}, ${n(x + 9 * s)} ${n(baseY - 22 * s)} L ${n(x + 9 * s)} ${n(baseY)} Z" fill="#a9754f" opacity="0.7"/>`
+                    + `</g>`;
+            };
+
+            // 糖豆：小小的半圓軟糖
+            const gumdrop = (x, y, r, c) =>
+                `<path d="M ${n(x - r)} ${n(y)} C ${n(x - r)} ${n(y - r * 1.5)}, ${n(x + r)} ${n(y - r * 1.5)}, ${n(x + r)} ${n(y)} Z" fill="${c}"/>`
+                + ell(n(x - r * 0.3), n(y - r * 0.72), n(r * 0.26), n(r * 0.16), '#ffffff', 'opacity="0.6"');
+
+            // 包裝糖：中間一顆橢圓糖，兩端是扭起來的糖果紙
+            const wrapped = (x, y, r, c, tilt) =>
+                `<g transform="rotate(${tilt} ${n(x)} ${n(y)})">`
+                + `<path d="M ${n(x - r * 2.1)} ${n(y - r * 0.75)} L ${n(x - r * 0.9)} ${n(y)} L ${n(x - r * 2.1)} ${n(y + r * 0.75)} Z" fill="${c}" opacity="0.82"/>`
+                + `<path d="M ${n(x + r * 2.1)} ${n(y - r * 0.75)} L ${n(x + r * 0.9)} ${n(y)} L ${n(x + r * 2.1)} ${n(y + r * 0.75)} Z" fill="${c}" opacity="0.82"/>`
+                + ell(n(x), n(y), n(r * 1.15), n(r * 0.8), c)
+                + ell(n(x - r * 0.3), n(y - r * 0.3), n(r * 0.4), n(r * 0.2), '#ffffff', 'opacity="0.55"')
+                + `</g>`;
+
+            // 漩渦糖片：躺在草地上的扁圓糖，上面有一圈圈螺旋
+            const swirlCandy = (x, y, r, cA, cB) => {
+                let d = `M ${n(x)} ${n(y)}`;
+                for (let i = 1; i <= 46; i++) {
+                    const t = i / 46;
+                    const a = t * 3.2 * Math.PI * 2;
+                    d += ` L ${n(x + Math.cos(a) * t * r * 0.82)} ${n(y + Math.sin(a) * t * r * 0.82 * 0.55)}`;
+                }
+                return ell(n(x), n(y), n(r), n(r * 0.62), cA)
+                    + `<path d="${d}" fill="none" stroke="${cB}" stroke-width="${n(r * 0.16)}" stroke-linecap="round"/>`
+                    + ell(n(x), n(y), n(r), n(r * 0.62), 'none', `stroke="#ffffff" stroke-width="${n(r * 0.12)}"`);
+            };
+
+            // 拐杖糖：插在草地上的紅白彎鉤
+            const candyCane = (x, groundY, s2) =>
+                `<path d="M ${n(x)} ${n(groundY)} L ${n(x)} ${n(groundY - 46 * s2)} C ${n(x)} ${n(groundY - 64 * s2)}, ${n(x + 26 * s2)} ${n(groundY - 64 * s2)}, ${n(x + 26 * s2)} ${n(groundY - 46 * s2)}" fill="none" stroke="#ffffff" stroke-width="${n(11 * s2)}" stroke-linecap="round"/>`
+                + `<path d="M ${n(x)} ${n(groundY)} L ${n(x)} ${n(groundY - 46 * s2)} C ${n(x)} ${n(groundY - 64 * s2)}, ${n(x + 26 * s2)} ${n(groundY - 64 * s2)}, ${n(x + 26 * s2)} ${n(groundY - 46 * s2)}" fill="none" stroke="#ef476f" stroke-width="${n(11 * s2)}" stroke-linecap="round" stroke-dasharray="${n(9 * s2)} ${n(11 * s2)}"/>`;
+
+            // 馬卡龍：兩片餅殼夾著內餡
+            const macaron = (x, y, r, c) =>
+                `<path d="M ${n(x - r)} ${n(y - r * 0.1)} C ${n(x - r)} ${n(y - r * 0.9)}, ${n(x + r)} ${n(y - r * 0.9)}, ${n(x + r)} ${n(y - r * 0.1)} Z" fill="${c}"/>`
+                + rect(n(x - r), n(y - r * 0.12), n(r * 2), n(r * 0.34), '#fff4d6', `rx="${n(r * 0.1)}"`)
+                + `<path d="M ${n(x - r)} ${n(y + r * 0.22)} C ${n(x - r)} ${n(y + r * 0.95)}, ${n(x + r)} ${n(y + r * 0.95)}, ${n(x + r)} ${n(y + r * 0.22)} Z" fill="${c}" opacity="0.92"/>`;
+
+            // 巧克力岩：圓滾滾的深咖啡色石頭
+            const chocoRock = (x, y, r) =>
+                `<path d="M ${n(x - r)} ${n(y)} C ${n(x - r * 1.05)} ${n(y - r * 0.9)}, ${n(x - r * 0.3)} ${n(y - r * 1.3)}, ${n(x + r * 0.1)} ${n(y - r * 1.1)} C ${n(x + r * 0.7)} ${n(y - r * 0.9)}, ${n(x + r * 1.05)} ${n(y - r * 0.5)}, ${n(x + r)} ${n(y)} Z" fill="#5b3a25"/>`
+                + ell(n(x - r * 0.3), n(y - r * 0.82), n(r * 0.3), n(r * 0.16), '#8a5a3b', 'opacity="0.8"');
+
+            // 彩色糖磚小徑：從畫面下緣蜿蜒通往城堡
+            const pathColors = ['#ef476f', '#ffd166', '#06d6a0', '#4cc9f0', '#f78c6b', '#c77dff'];
+            let candyPath = '';
+            const steps = portrait ? 26 : 22;
+            for (let i = steps; i >= 0; i--) {
+                const t = i / steps;                                   // 0 = 眼前、1 = 遠方
+                const py = H - (H - hz * 1.02) * Math.pow(t, 1.45);
+                const sway = Math.sin(t * Math.PI * 1.15) * W * (portrait ? 0.14 : 0.1);
+                const px = cx + sway * (1 - t * 0.55);
+                const bw = (88 - t * 74) * u;
+                const bh = (21 - t * 16) * u;
+                const cols = t > 0.55 ? 2 : 3;
+                for (let k = 0; k < cols; k++) {
+                    const ox = (k - (cols - 1) / 2) * bw * 1.04;
+                    candyPath += `<rect x="${n(px + ox - bw / 2)}" y="${n(py - bh / 2)}" width="${n(bw)}" height="${n(bh)}" rx="${n(bh * 0.32)}" fill="${pathColors[(i + k) % pathColors.length]}" opacity="${(0.92 - t * 0.15).toFixed(2)}"/>`;
+                    candyPath += `<rect x="${n(px + ox - bw / 2)}" y="${n(py - bh / 2)}" width="${n(bw)}" height="${n(bh * 0.34)}" rx="${n(bh * 0.2)}" fill="#ffffff" opacity="0.28"/>`;
+                }
+            }
+
+            // 草地上零星的糖豆與棉花糖小叢
+            let candies = '';
+            for (let i = 0; i < (portrait ? 64 : 84); i++) {
+                const t = rnd(i, 11);
+                const y = hz + H * 0.06 + t * (H - hz) * 0.9;
+                const x = rnd(i, 12) * W;
+                if (Math.abs(x - cx) < W * 0.1 && t > 0.45) continue;      // 別擋住小徑
+                const r = (4 + rnd(i, 13) * 7) * u * (0.5 + t * 0.9);
+                candies += gumdrop(x, y, r, pathColors[Math.floor(rnd(i, 14) * pathColors.length)]);
+            }
+            let marshmallows = '';
+            for (let i = 0; i < (portrait ? 16 : 22); i++) {
+                const t = rnd(i, 21);
+                const y = hz + H * 0.08 + t * (H - hz) * 0.85;
+                const x = rnd(i, 22) * W;
+                if (Math.abs(x - cx) < W * 0.12) continue;
+                const r = (9 + rnd(i, 23) * 9) * u * (0.5 + t);
+                marshmallows += disc(n(x), n(y - r * 0.5), n(r), '#fff6fa')
+                    + disc(n(x - r * 0.55), n(y - r * 0.28), n(r * 0.66), '#ffeaf3')
+                    + disc(n(x + r * 0.6), n(y - r * 0.3), n(r * 0.6), '#ffeaf3');
+            }
+
+            // 各種糖果散在草地上：包裝糖、漩渦糖片、拐杖糖、馬卡龍
+            let treats = '';
+            for (let i = 0; i < (portrait ? 30 : 40); i++) {
+                const t = rnd(i, 31);
+                const y = hz + H * 0.07 + t * (H - hz) * 0.92;
+                const x = rnd(i, 32) * W;
+                if (Math.abs(x - cx) < W * 0.11 && t > 0.35) continue;       // 留出小徑
+                const k = Math.floor(rnd(i, 33) * 4);
+                const scale = (0.5 + t * 1.1) * u;
+                const c = pathColors[Math.floor(rnd(i, 34) * pathColors.length)];
+                if (k === 0) treats += wrapped(x, y, 6 * scale, c, (rnd(i, 35) - 0.5) * 50);
+                else if (k === 1) treats += swirlCandy(x, y, 10 * scale, c, '#ffffff');
+                else if (k === 2) treats += candyCane(x, y, 0.42 * scale);
+                else treats += macaron(x, y - 4 * scale, 8 * scale, c);
+            }
+
+            return svgOf(W, H,
+                vg('clSky', [[0, '#5bb8ea'], [45, '#8fd4f2'], [100, '#cdeeff']])
+                + vg('clHillFar', [[0, '#a8dd77'], [100, '#7cc44f']])
+                + vg('clHillNear', [[0, '#8ed35c'], [100, '#5fa93a']])
+                + vg('clGround', [[0, '#7fc94f'], [100, '#4e9433']]),
+
+                bg(W, H, 'url(#clSky)')
+                // 藍天上的棉花糖雲
+                + cloud(W * 0.14, H * 0.12, 0.9 * u, '#ffffff', 0.95)
+                + cloud(W * 0.42, H * 0.08, 0.7 * u, '#ffffff', 0.9)
+                + cloud(W * 0.68, H * 0.15, 1 * u, '#ffffff', 0.95)
+                + cloud(W * 0.92, H * 0.07, 0.75 * u, '#ffffff', 0.85)
+                + cloud(W * 0.26, H * 0.26, 0.6 * u, '#ffffff', 0.75)
+                // 遠山與草地
+                + hill(W, H, hz, 14 * u, 'url(#clHillFar)')
+                + castle(cx - W * 0.02, hz + H * 0.045, (portrait ? 1.15 : 1.35) * u)
+                + hill(W, H, hz + H * 0.08, 18 * u, 'url(#clHillNear)', 1.2)
+                + rect(0, hz + H * 0.16, W, H - hz, 'url(#clGround)')
+                // 遠方的小棒棒糖與棉花糖樹
+                + lolli(W * 0.3, hz + H * 0.07, 13 * u, '#ff7aa8', '#fff2f7', -6)
+                + lolli(W * 0.66, hz + H * 0.06, 11 * u, '#ffd166', '#ffffff', 5)
+                + cottonTree(W * 0.78, hz + H * 0.1, 0.42 * u)
+                + cottonTree(W * 0.22, hz + H * 0.12, 0.36 * u)
+                + lolli(W * 0.42, hz + H * 0.055, 9 * u, '#c77dff', '#ffffff', -4)
+                + lolli(W * 0.56, hz + H * 0.05, 8 * u, '#4cc9f0', '#ffffff', 6)
+                // 糖磚小徑
+                + candyPath
+                + candies + treats + marshmallows
+                // 中景的棒棒糖
+                + lolli(W * 0.13, hz + H * 0.34, 40 * u, '#ff5c8a', '#fff0f6', -8)
+                + lolli(W * 0.87, hz + H * 0.3, 34 * u, '#06d6a0', '#ffffff', 7)
+                + chocoRock(W * 0.09, H * 0.9, 34 * u)
+                + chocoRock(W * 0.2, H * 0.97, 26 * u)
+                // 前景：兩側的大棒棒糖與棉花糖樹，把畫面框起來
+                + cottonTree(W * (portrait ? 0.08 : 0.04), H * 0.92, 1.35 * u)
+                + lolli(W * (portrait ? 0.98 : 0.93), H * 0.78, 84 * u, '#e63946', '#ffffff', 12)
+                + cottonTree(W * (portrait ? 0.92 : 0.72), H * 1.06, 0.95 * u)
+            );
+        },
+    };
         })();
 
         const bgArt = {
@@ -2489,16 +2618,10 @@ const i18n = {
 
             // 🌟 16 ~ 21：奇幻異想系列（糖果粉、魔法紫、薰衣草、極光綠、街機桃紅、霓虹青）
             candy_land: { name: {zh: '糖果王國', en: 'Candy Land'}, cost: 900, ...illustratedBg('candyLand') },
-            magic_academy: { name: {zh: '魔法學院', en: 'Magic Academy'}, cost: 950, ...illustratedBg('magicAcademy') },
 
             // 🌟 22 ~ 27：宇宙與奇境系列（水晶紫、銀河靛藍、綠洲金黃、遺跡棕、熔岩烈紅、浮島天藍）
-            crystal_cave: { name: {zh: '水晶洞穴', en: 'Crystal Cave'}, cost: 1300, ...illustratedBg('crystalCave') },
-            volcano_core: { name: {zh: '熔岩火山', en: 'Lava Volcano'}, cost: 1500, ...illustratedBg('volcanoCore') },
-            floating_island: { name: {zh: '浮空島嶼', en: 'Floating Island'}, cost: 1600, ...illustratedBg('floatingIsland') },
 
             // 🌟 28 ~ 32：頂級殿堂系列（海神藍、母體翠綠、神域暖黃、仙境洋紅、皇家金）
-            underwater_temple: { name: {zh: '亞特蘭提斯', en: 'Atlantis'}, cost: 1700, ...illustratedBg('underwaterTemple') },
-            royal_palace: { name: {zh: '皇家宮殿', en: 'Royal Palace'}, cost: 2100, ...illustratedBg('royalPalace') }
         };
 
         const svgLib = {
@@ -2820,6 +2943,7 @@ const effectData = {
             updateNameUI();
             updateSlugScale();   // 依螢幕大小決定海兔要多大
             updateRecallButtonVisibility();
+            startIdleLife();     // 讓海兔自己動起來
 
             // 🌟 3. 主動向後端拉取最新金幣數量與今日任務狀態
             await fetchUserCoins();
