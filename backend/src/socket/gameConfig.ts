@@ -100,13 +100,14 @@ export const gameConfig = {
             abyssSlug: 1500       // 深淵使者
         },
         background_color: {
-            // 🌟 01 ~ 04：基礎入門系列
+            // 與前端 slug_game.js 的 bgData 同步，前端刪掉的背景這裡也要刪
+            // 🌟 基礎入門系列
             none: 0,                      // 自選純色（顏色存在前端，後端只認這個免費項目）
             cozy_room: 100,               // 溫馨房間
             sunshine_grassland: 150,      // 陽光草原
             sunny_park: 200,              // 陽光公園
 
-            // 🌟 05 ~ 10：自然與日常系列
+            // 🌟 自然與日常系列
             misty_forest: 250,            // 迷霧森林
             breeze_morning: 300,          // 碧紗庭院
             afternoon_tea: 350,           // 午後茶會
@@ -114,35 +115,10 @@ export const gameConfig = {
             bamboo_grove: 300,            // 翠綠竹林
             rainy_street: 500,            // 雨中街景
 
-            // 🌟 11 ~ 15：風景與探險系列
-            sunset_beach: 550,            // 夕陽海灘
+            // 🌟 風景與奇幻系列
             autumn_leaves: 600,           // 秋日楓紅
-            deep_sea: 650,                // 深海秘境
-            snowy_mountain: 700,          // 銀白雪山
             starry_night: 800,            // 璀璨星空
-
-            // 🌟 16 ~ 21：奇幻異想系列
-            candy_land: 900,              // 糖果王國
-            magic_academy: 950,           // 魔法學院
-            lavender_field: 1000,         // 薰衣草田
-            aurora_sky: 1050,             // 夢幻極光
-            retro_arcade: 1100,           // 復古街機
-            neon_city: 1200,              // 賽博霓虹
-
-            // 🌟 22 ~ 27：宇宙與奇境系列
-            crystal_cave: 1300,           // 水晶洞穴
-            galaxy_space: 1350,           // 浩瀚銀河
-            desert_oasis: 1400,           // 沙漠綠洲
-            ancient_ruins: 1450,          // 遠古遺跡
-            volcano_core: 1500,           // 熔岩火山
-            floating_island: 1600,        // 浮空島嶼
-
-            // 🌟 28 ~ 32：頂級殿堂系列
-            underwater_temple: 1700,      // 亞特蘭提斯
-            cyber_matrix: 1800,           // 數位母體
-            celestial_realm: 1900,        // 雲端神域
-            dream_wonderland: 2000,       // 夢境仙境
-            royal_palace: 2100            // 皇家宮殿
+            candy_land: 900               // 糖果王國
         },
         background_effects: {
             none: 0,                 // 無特效

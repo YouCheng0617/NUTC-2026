@@ -1,12 +1,12 @@
 import { Router } from "express";
 import { authCheck, type AuthRequest } from "../middleware/auth.middleware.js";
 import { authController } from "./auth.controller.js"
-import { registerLimiter, emailLimiter } from "../../lib/rateLimiter.js";
+import { registerLimiter, emailLimiter, loginLimiter } from "../../lib/rateLimiter.js";
 
 export function authRouter() {
     const router = Router();
     // Define your authentication routes here
-    router.post('/login', authController.login);
+    router.post('/login', loginLimiter, authController.login);
     router.post('/register', registerLimiter, authController.register);
     router.post("/logout", authCheck, authController.logout);
     router.post("/verify-email", authController.verifyEmail);
