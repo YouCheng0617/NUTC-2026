@@ -1,11 +1,12 @@
 import { Router } from "express";
 import { bottleController } from "./bottle.conterller.js";
 import { authCheck, adminCheck, optionalAuthCheck } from "../middleware/auth.middleware.js";
+import { postBottleLimiter, reportLimiter } from "../../lib/rateLimiter.js";
 
 export function bottleRouter() {
     const bottleRouter = Router();
 
-    bottleRouter.post("/", authCheck, bottleController.throwBottle);
+    bottleRouter.post("/", authCheck, postBottleLimiter, bottleController.throwBottle);
     bottleRouter.get("/random", optionalAuthCheck, bottleController.getBottles);
     bottleRouter.patch("/review", authCheck, adminCheck, bottleController.reviewBottle);
     bottleRouter.get("/mybottles", authCheck, bottleController.getMyBottles);
@@ -18,6 +19,6 @@ export function bottleRouter() {
     bottleRouter.post("/:bottleId/save", authCheck, bottleController.saveBottle);
     bottleRouter.delete("/:bottleId/delete", authCheck, bottleController.deleteMyBottle);
     bottleRouter.get("/today", optionalAuthCheck, bottleController.getTodayBottleConterller);
-    bottleRouter.post("/:bottleId/report", authCheck, bottleController.reportBottleController);
+    bottleRouter.post("/:bottleId/report", authCheck, reportLimiter, bottleController.reportBottleController);
     return bottleRouter;
 }
