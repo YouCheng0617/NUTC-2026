@@ -2080,23 +2080,214 @@ const i18n = {
             );
         },
 
-        // 糖果王國：棒棒糖、糖果拐杖與軟糖山丘
+        // 糖果王國：藍天白雲下的糖果樂園，棉花糖樹、螺旋棒棒糖、遠方的糖霜城堡與彩色糖磚小徑
         candyLand(mode) {
-            const { W, H } = canvasOf(mode), hz = H * 0.64;
-            const lolli = (x, y, s, c1, c2) => `<g transform="translate(${x},${y}) scale(${s})"><rect x="-5" y="-86" width="10" height="90" fill="#ffffff" rx="5"/><circle cy="-112" r="42" fill="${c1}"/><path d="M 0 -112 m -42 0 a 42 42 0 0 1 42 -42 a 21 21 0 0 0 0 42 a 21 21 0 0 1 0 42 a 42 42 0 0 1 -42 -42 Z" fill="${c2}"/></g>`;
+            const { W, H } = canvasOf(mode);
+            const portrait = mode === 'portrait';
+            const u = Math.min(W, H) / 520;
+            const cx = W / 2;
+            const hz = H * (portrait ? 0.44 : 0.48);       // 地平線
+            const n = (v) => Number(v).toFixed(1);
+
+            // 糖果棒：白底加上斜斜的紅色條紋
+            const stick = (x, topY, botY, w, tone) => {
+                let o = `<g><rect x="${n(x - w / 2)}" y="${n(topY)}" width="${n(w)}" height="${n(botY - topY)}" rx="${n(w / 2)}" fill="#ffffff"/>`;
+                const step = w * 1.9;
+                for (let y = topY + step * 0.3; y < botY - step * 0.2; y += step) {
+                    o += `<path d="M ${n(x - w / 2)} ${n(y + w * 0.9)} L ${n(x + w / 2)} ${n(y)}" stroke="${tone}" stroke-width="${n(w * 0.52)}" stroke-linecap="round"/>`;
+                }
+                return o + `<rect x="${n(x - w / 2)}" y="${n(topY)}" width="${n(w)}" height="${n(botY - topY)}" rx="${n(w / 2)}" fill="none" stroke="#f3b9cd" stroke-width="${n(w * 0.12)}"/></g>`;
+            };
+
+            // 螺旋棒棒糖：糖果棒 + 一圈圈繞出來的螺旋
+            const lolli = (x, groundY, r, cA, cB, tilt) => {
+                const headY = groundY - r * 2.5;
+                let d = `M ${n(x)} ${n(headY)}`;
+                const steps = 120, turns = 3.6;
+                for (let i = 1; i <= steps; i++) {
+                    const t = i / steps;
+                    const a = t * turns * Math.PI * 2 - Math.PI / 2;
+                    const rr = t * r * 0.82;
+                    d += ` L ${n(x + Math.cos(a) * rr)} ${n(headY + Math.sin(a) * rr)}`;
+                }
+                return `<g transform="rotate(${tilt} ${n(x)} ${n(groundY)})">`
+                    + stick(x, headY, groundY, r * 0.22, '#ef476f')
+                    + disc(n(x), n(headY), n(r), cA)
+                    + `<path d="${d}" fill="none" stroke="${cB}" stroke-width="${n(r * 0.13)}" stroke-linecap="round"/>`
+                    + disc(n(x), n(headY), n(r), 'none', `stroke="#ffffff" stroke-width="${n(r * 0.1)}"`)
+                    + ell(n(x - r * 0.3), n(headY - r * 0.42), n(r * 0.3), n(r * 0.16), '#ffffff', 'opacity="0.55" transform="rotate(-28 ' + n(x - r * 0.3) + ' ' + n(headY - r * 0.42) + ')"')
+                    + `</g>`;
+            };
+
+            // 棉花糖樹：糖果棒上頂著一大團蓬鬆的粉紅棉花糖
+            const cottonTree = (x, groundY, s) => {
+                const topY = groundY - 150 * s;
+                const puffs = [[0, 0, 52], [-40, 14, 38], [40, 12, 40], [-22, -30, 40], [24, -32, 38], [0, -52, 30], [-52, -8, 26], [52, -6, 24]];
+                let o = stick(x, topY, groundY, 11 * s, '#ef476f');
+                o += `<g>` + puffs.map(([dx, dy, r]) => disc(n(x + dx * s), n(topY + dy * s), n(r * s), '#f7a8c9')).join('') + `</g>`;
+                o += `<g>` + puffs.slice(0, 6).map(([dx, dy, r]) => disc(n(x + (dx - 8) * s), n(topY + (dy - 10) * s), n(r * 0.66 * s), '#ffc8de')).join('') + `</g>`;
+                o += `<g>` + puffs.slice(0, 3).map(([dx, dy, r]) => disc(n(x + (dx - 16) * s), n(topY + (dy - 18) * s), n(r * 0.38 * s), '#ffe3ee')).join('') + `</g>`;
+                return o;
+            };
+
+            // 糖霜城堡：中間一座高塔，兩側各一座，屋頂是甜筒尖塔
+            const castle = (x, baseY, s) => {
+                const tower = (tx, w, h, roof) =>
+                    `<rect x="${n(tx - w / 2)}" y="${n(baseY - h)}" width="${n(w)}" height="${n(h)}" fill="#e8b78e"/>`
+                    + `<rect x="${n(tx - w / 2)}" y="${n(baseY - h)}" width="${n(w * 0.4)}" height="${n(h)}" fill="#f2cfae" opacity="0.7"/>`
+                    + `<path d="M ${n(tx - w * 0.62)} ${n(baseY - h)} L ${n(tx)} ${n(baseY - h - roof)} L ${n(tx + w * 0.62)} ${n(baseY - h)} Z" fill="#d98aa8"/>`
+                    + `<path d="M ${n(tx - w * 0.62)} ${n(baseY - h)} L ${n(tx)} ${n(baseY - h - roof)} L ${n(tx + w * 0.16)} ${n(baseY - h)} Z" fill="#f0a9c2"/>`
+                    + disc(n(tx), n(baseY - h - roof - 4 * s), n(3.4 * s), '#fff0f6')
+                    + `<rect x="${n(tx - w * 0.14)}" y="${n(baseY - h * 0.62)}" width="${n(w * 0.28)}" height="${n(h * 0.24)}" rx="${n(w * 0.14)}" fill="#a9754f" opacity="0.65"/>`;
+                return `<g>`
+                    + tower(x - 42 * s, 26 * s, 74 * s, 34 * s)
+                    + tower(x + 42 * s, 26 * s, 70 * s, 32 * s)
+                    + `<rect x="${n(x - 34 * s)}" y="${n(baseY - 56 * s)}" width="${n(68 * s)}" height="${n(56 * s)}" fill="#e8b78e"/>`
+                    + tower(x, 34 * s, 108 * s, 44 * s)
+                    + `<path d="M ${n(x - 9 * s)} ${n(baseY)} L ${n(x - 9 * s)} ${n(baseY - 22 * s)} C ${n(x - 9 * s)} ${n(baseY - 33 * s)}, ${n(x + 9 * s)} ${n(baseY - 33 * s)}, ${n(x + 9 * s)} ${n(baseY - 22 * s)} L ${n(x + 9 * s)} ${n(baseY)} Z" fill="#a9754f" opacity="0.7"/>`
+                    + `</g>`;
+            };
+
+            // 糖豆：小小的半圓軟糖
+            const gumdrop = (x, y, r, c) =>
+                `<path d="M ${n(x - r)} ${n(y)} C ${n(x - r)} ${n(y - r * 1.5)}, ${n(x + r)} ${n(y - r * 1.5)}, ${n(x + r)} ${n(y)} Z" fill="${c}"/>`
+                + ell(n(x - r * 0.3), n(y - r * 0.72), n(r * 0.26), n(r * 0.16), '#ffffff', 'opacity="0.6"');
+
+            // 包裝糖：中間一顆橢圓糖，兩端是扭起來的糖果紙
+            const wrapped = (x, y, r, c, tilt) =>
+                `<g transform="rotate(${tilt} ${n(x)} ${n(y)})">`
+                + `<path d="M ${n(x - r * 2.1)} ${n(y - r * 0.75)} L ${n(x - r * 0.9)} ${n(y)} L ${n(x - r * 2.1)} ${n(y + r * 0.75)} Z" fill="${c}" opacity="0.82"/>`
+                + `<path d="M ${n(x + r * 2.1)} ${n(y - r * 0.75)} L ${n(x + r * 0.9)} ${n(y)} L ${n(x + r * 2.1)} ${n(y + r * 0.75)} Z" fill="${c}" opacity="0.82"/>`
+                + ell(n(x), n(y), n(r * 1.15), n(r * 0.8), c)
+                + ell(n(x - r * 0.3), n(y - r * 0.3), n(r * 0.4), n(r * 0.2), '#ffffff', 'opacity="0.55"')
+                + `</g>`;
+
+            // 漩渦糖片：躺在草地上的扁圓糖，上面有一圈圈螺旋
+            const swirlCandy = (x, y, r, cA, cB) => {
+                let d = `M ${n(x)} ${n(y)}`;
+                for (let i = 1; i <= 46; i++) {
+                    const t = i / 46;
+                    const a = t * 3.2 * Math.PI * 2;
+                    d += ` L ${n(x + Math.cos(a) * t * r * 0.82)} ${n(y + Math.sin(a) * t * r * 0.82 * 0.55)}`;
+                }
+                return ell(n(x), n(y), n(r), n(r * 0.62), cA)
+                    + `<path d="${d}" fill="none" stroke="${cB}" stroke-width="${n(r * 0.16)}" stroke-linecap="round"/>`
+                    + ell(n(x), n(y), n(r), n(r * 0.62), 'none', `stroke="#ffffff" stroke-width="${n(r * 0.12)}"`);
+            };
+
+            // 拐杖糖：插在草地上的紅白彎鉤
+            const candyCane = (x, groundY, s2) =>
+                `<path d="M ${n(x)} ${n(groundY)} L ${n(x)} ${n(groundY - 46 * s2)} C ${n(x)} ${n(groundY - 64 * s2)}, ${n(x + 26 * s2)} ${n(groundY - 64 * s2)}, ${n(x + 26 * s2)} ${n(groundY - 46 * s2)}" fill="none" stroke="#ffffff" stroke-width="${n(11 * s2)}" stroke-linecap="round"/>`
+                + `<path d="M ${n(x)} ${n(groundY)} L ${n(x)} ${n(groundY - 46 * s2)} C ${n(x)} ${n(groundY - 64 * s2)}, ${n(x + 26 * s2)} ${n(groundY - 64 * s2)}, ${n(x + 26 * s2)} ${n(groundY - 46 * s2)}" fill="none" stroke="#ef476f" stroke-width="${n(11 * s2)}" stroke-linecap="round" stroke-dasharray="${n(9 * s2)} ${n(11 * s2)}"/>`;
+
+            // 馬卡龍：兩片餅殼夾著內餡
+            const macaron = (x, y, r, c) =>
+                `<path d="M ${n(x - r)} ${n(y - r * 0.1)} C ${n(x - r)} ${n(y - r * 0.9)}, ${n(x + r)} ${n(y - r * 0.9)}, ${n(x + r)} ${n(y - r * 0.1)} Z" fill="${c}"/>`
+                + rect(n(x - r), n(y - r * 0.12), n(r * 2), n(r * 0.34), '#fff4d6', `rx="${n(r * 0.1)}"`)
+                + `<path d="M ${n(x - r)} ${n(y + r * 0.22)} C ${n(x - r)} ${n(y + r * 0.95)}, ${n(x + r)} ${n(y + r * 0.95)}, ${n(x + r)} ${n(y + r * 0.22)} Z" fill="${c}" opacity="0.92"/>`;
+
+            // 巧克力岩：圓滾滾的深咖啡色石頭
+            const chocoRock = (x, y, r) =>
+                `<path d="M ${n(x - r)} ${n(y)} C ${n(x - r * 1.05)} ${n(y - r * 0.9)}, ${n(x - r * 0.3)} ${n(y - r * 1.3)}, ${n(x + r * 0.1)} ${n(y - r * 1.1)} C ${n(x + r * 0.7)} ${n(y - r * 0.9)}, ${n(x + r * 1.05)} ${n(y - r * 0.5)}, ${n(x + r)} ${n(y)} Z" fill="#5b3a25"/>`
+                + ell(n(x - r * 0.3), n(y - r * 0.82), n(r * 0.3), n(r * 0.16), '#8a5a3b', 'opacity="0.8"');
+
+            // 彩色糖磚小徑：從畫面下緣蜿蜒通往城堡
+            const pathColors = ['#ef476f', '#ffd166', '#06d6a0', '#4cc9f0', '#f78c6b', '#c77dff'];
+            let candyPath = '';
+            const steps = portrait ? 26 : 22;
+            for (let i = steps; i >= 0; i--) {
+                const t = i / steps;                                   // 0 = 眼前、1 = 遠方
+                const py = H - (H - hz * 1.02) * Math.pow(t, 1.45);
+                const sway = Math.sin(t * Math.PI * 1.15) * W * (portrait ? 0.14 : 0.1);
+                const px = cx + sway * (1 - t * 0.55);
+                const bw = (88 - t * 74) * u;
+                const bh = (21 - t * 16) * u;
+                const cols = t > 0.55 ? 2 : 3;
+                for (let k = 0; k < cols; k++) {
+                    const ox = (k - (cols - 1) / 2) * bw * 1.04;
+                    candyPath += `<rect x="${n(px + ox - bw / 2)}" y="${n(py - bh / 2)}" width="${n(bw)}" height="${n(bh)}" rx="${n(bh * 0.32)}" fill="${pathColors[(i + k) % pathColors.length]}" opacity="${(0.92 - t * 0.15).toFixed(2)}"/>`;
+                    candyPath += `<rect x="${n(px + ox - bw / 2)}" y="${n(py - bh / 2)}" width="${n(bw)}" height="${n(bh * 0.34)}" rx="${n(bh * 0.2)}" fill="#ffffff" opacity="0.28"/>`;
+                }
+            }
+
+            // 草地上零星的糖豆與棉花糖小叢
+            let candies = '';
+            for (let i = 0; i < (portrait ? 64 : 84); i++) {
+                const t = rnd(i, 11);
+                const y = hz + H * 0.06 + t * (H - hz) * 0.9;
+                const x = rnd(i, 12) * W;
+                if (Math.abs(x - cx) < W * 0.1 && t > 0.45) continue;      // 別擋住小徑
+                const r = (4 + rnd(i, 13) * 7) * u * (0.5 + t * 0.9);
+                candies += gumdrop(x, y, r, pathColors[Math.floor(rnd(i, 14) * pathColors.length)]);
+            }
+            let marshmallows = '';
+            for (let i = 0; i < (portrait ? 16 : 22); i++) {
+                const t = rnd(i, 21);
+                const y = hz + H * 0.08 + t * (H - hz) * 0.85;
+                const x = rnd(i, 22) * W;
+                if (Math.abs(x - cx) < W * 0.12) continue;
+                const r = (9 + rnd(i, 23) * 9) * u * (0.5 + t);
+                marshmallows += disc(n(x), n(y - r * 0.5), n(r), '#fff6fa')
+                    + disc(n(x - r * 0.55), n(y - r * 0.28), n(r * 0.66), '#ffeaf3')
+                    + disc(n(x + r * 0.6), n(y - r * 0.3), n(r * 0.6), '#ffeaf3');
+            }
+
+            // 各種糖果散在草地上：包裝糖、漩渦糖片、拐杖糖、馬卡龍
+            let treats = '';
+            for (let i = 0; i < (portrait ? 30 : 40); i++) {
+                const t = rnd(i, 31);
+                const y = hz + H * 0.07 + t * (H - hz) * 0.92;
+                const x = rnd(i, 32) * W;
+                if (Math.abs(x - cx) < W * 0.11 && t > 0.35) continue;       // 留出小徑
+                const k = Math.floor(rnd(i, 33) * 4);
+                const scale = (0.5 + t * 1.1) * u;
+                const c = pathColors[Math.floor(rnd(i, 34) * pathColors.length)];
+                if (k === 0) treats += wrapped(x, y, 6 * scale, c, (rnd(i, 35) - 0.5) * 50);
+                else if (k === 1) treats += swirlCandy(x, y, 10 * scale, c, '#ffffff');
+                else if (k === 2) treats += candyCane(x, y, 0.42 * scale);
+                else treats += macaron(x, y - 4 * scale, 8 * scale, c);
+            }
+
             return svgOf(W, H,
-                vg('clSky', [[0, '#ffd1e8'], [55, '#ffe4f2'], [100, '#fff2f8']]) + vg('clG', [[0, '#ff9ecb'], [100, '#e2589f']]),
+                vg('clSky', [[0, '#5bb8ea'], [45, '#8fd4f2'], [100, '#cdeeff']])
+                + vg('clHillFar', [[0, '#a8dd77'], [100, '#7cc44f']])
+                + vg('clHillNear', [[0, '#8ed35c'], [100, '#5fa93a']])
+                + vg('clGround', [[0, '#7fc94f'], [100, '#4e9433']]),
+
                 bg(W, H, 'url(#clSky)')
-                + times(3, (i, a) => cloud(a * W, H * (0.12 + i * 0.08), 0.75, '#ffffff', 0.85))
-                + hill(W, H, hz, 20, '#f9c0dd') + hill(W, H, hz + H * 0.1, 24, 'url(#clG)', 1.3)
-                + lolli(W * 0.18, hz + H * 0.2, 0.9, '#ff6fa5', '#fff0f6')
-                + lolli(W * 0.8, hz + H * 0.24, 1.05, '#7ad0f0', '#ffffff')
-                + `<g transform="translate(${W * 0.5},${hz + H * 0.18}) scale(1)"><path d="M -8 0 L -8 -96 C -8 -128, 44 -128, 44 -96 L 28 -96 C 28 -110, 8 -110, 8 -96 L 8 0 Z" fill="#ffffff" stroke="#ff6fa5" stroke-width="9"/></g>`
-                + times(18, (i, a, b, c) => rect((a * W).toFixed(0), (b * H).toFixed(0), 14, 5, c > 0.5 ? '#ffe066' : '#7ad0f0', `rx="2.5" transform="rotate(${(c * 140).toFixed(0)} ${(a * W).toFixed(0)} ${(b * H).toFixed(0)})"`))
+                // 藍天上的棉花糖雲
+                + cloud(W * 0.14, H * 0.12, 0.9 * u, '#ffffff', 0.95)
+                + cloud(W * 0.42, H * 0.08, 0.7 * u, '#ffffff', 0.9)
+                + cloud(W * 0.68, H * 0.15, 1 * u, '#ffffff', 0.95)
+                + cloud(W * 0.92, H * 0.07, 0.75 * u, '#ffffff', 0.85)
+                + cloud(W * 0.26, H * 0.26, 0.6 * u, '#ffffff', 0.75)
+                // 遠山與草地
+                + hill(W, H, hz, 14 * u, 'url(#clHillFar)')
+                + castle(cx - W * 0.02, hz + H * 0.045, (portrait ? 1.15 : 1.35) * u)
+                + hill(W, H, hz + H * 0.08, 18 * u, 'url(#clHillNear)', 1.2)
+                + rect(0, hz + H * 0.16, W, H - hz, 'url(#clGround)')
+                // 遠方的小棒棒糖與棉花糖樹
+                + lolli(W * 0.3, hz + H * 0.07, 13 * u, '#ff7aa8', '#fff2f7', -6)
+                + lolli(W * 0.66, hz + H * 0.06, 11 * u, '#ffd166', '#ffffff', 5)
+                + cottonTree(W * 0.78, hz + H * 0.1, 0.42 * u)
+                + cottonTree(W * 0.22, hz + H * 0.12, 0.36 * u)
+                + lolli(W * 0.42, hz + H * 0.055, 9 * u, '#c77dff', '#ffffff', -4)
+                + lolli(W * 0.56, hz + H * 0.05, 8 * u, '#4cc9f0', '#ffffff', 6)
+                // 糖磚小徑
+                + candyPath
+                + candies + treats + marshmallows
+                // 中景的棒棒糖
+                + lolli(W * 0.13, hz + H * 0.34, 40 * u, '#ff5c8a', '#fff0f6', -8)
+                + lolli(W * 0.87, hz + H * 0.3, 34 * u, '#06d6a0', '#ffffff', 7)
+                + chocoRock(W * 0.09, H * 0.9, 34 * u)
+                + chocoRock(W * 0.2, H * 0.97, 26 * u)
+                // 前景：兩側的大棒棒糖與棉花糖樹，把畫面框起來
+                + cottonTree(W * (portrait ? 0.08 : 0.04), H * 0.92, 1.35 * u)
+                + lolli(W * (portrait ? 0.98 : 0.93), H * 0.78, 84 * u, '#e63946', '#ffffff', 12)
+                + cottonTree(W * (portrait ? 0.92 : 0.72), H * 1.06, 0.95 * u)
             );
         },
-
-            };
+    };
         })();
 
         const bgArt = {

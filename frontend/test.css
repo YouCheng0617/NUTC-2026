@@ -4360,3 +4360,17 @@ body.is-admin .hub-new-post-bar {
     animation: none !important;
   }
 }
+/* 🌟 提高 Header 與通知彈窗層級，防止手機版觸控被隱形層攔截 */
+.light-header {
+  z-index: 200000 !important;
+}
+
+.notif-popup-container {
+  z-index: 200005 !important;
+  pointer-events: auto !important;
+}
+
+.notif-mini-card {
+  cursor: pointer !important;
+  pointer-events: auto !important;
+}
