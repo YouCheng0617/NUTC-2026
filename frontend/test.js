@@ -2892,8 +2892,10 @@ window.unfollowFromModal = async function (targetId, targetName, e) {
 };
 
 // =========================================
-// 🔔 抓取未讀通知數量 + 有新留言/收藏時主動彈出深海泡泡
+// 🔔 通知中心全功能升級：點擊跳轉漂流瓶 + 即時彈窗 + 已讀未讀皆可點
 // =========================================
+
+// 1. 輪詢通知數量與即時彈出 Toast 提示
 let _prevUnreadCount = null;
 
 async function fetchNotificationCount() {
@@ -2922,7 +2924,6 @@ async function fetchNotificationCount() {
 
     if (response.ok) {
       const data = await response.json();
-
       let notifList = Array.isArray(data)
         ? data
         : data.data || data.notifications || data.result || [];
@@ -2939,7 +2940,7 @@ async function fetchNotificationCount() {
         ).length;
       }
 
-      // 🌟 核心：若偵測到新的未讀通知（有人留言或收藏），畫面頂部立即跳出提示泡泡！
+      // 🌟 收到新留言或新收藏時，螢幕頂部主動跳出泡泡提示！
       if (
         _prevUnreadCount !== null &&
         unreadCount > _prevUnreadCount &&
@@ -2956,7 +2957,6 @@ async function fetchNotificationCount() {
       }
       _prevUnreadCount = unreadCount;
 
-      // 同步紅點數字（手機版與電腦版）
       const badgeText = unreadCount > 99 ? "99+" : String(unreadCount);
       badges.forEach((badge) => {
         badge.innerText = badgeText;
@@ -2967,7 +2967,6 @@ async function fetchNotificationCount() {
         desktopBadge.style.display = unreadCount > 0 ? "block" : "none";
       }
 
-      // 鈴鐺發光脈衝切換
       bellBtns.forEach((btn) => {
         if (unreadCount > 0) btn.classList.add("has-unread");
         else btn.classList.remove("has-unread");
@@ -2978,184 +2977,18 @@ async function fetchNotificationCount() {
   }
 }
 
-// 改為每 15 秒檢查一次新通知（收到留言/收藏能更即時彈出）
 setInterval(() => {
   fetchNotificationCount();
 }, 15000);
 
-/* =========================================
-   🚀 手機版海域選單 (Bottom Sheet) 專屬邏輯
-   ========================================= */
-window.toggleBoardSheet = function () {
-  const sidebar = document.querySelector(".sidebar.light-sidebar");
-  const overlay = document.getElementById("board-sheet-overlay");
-  const btn = document.getElementById("mobile-board-btn");
-
-  if (sidebar && overlay && btn) {
-    sidebar.classList.toggle("sheet-open");
-    overlay.classList.toggle("sheet-open");
-    btn.classList.toggle("sheet-open");
-  }
-};
-
-document.addEventListener("DOMContentLoaded", () => {
-  const mobileNameDisplay = document.getElementById("mobile-board-name");
-
-  if (mobileNameDisplay) {
-    const activeLi = document.querySelector(".sidebar li.active");
-    if (activeLi) mobileNameDisplay.innerText = activeLi.innerText.trim();
-  }
-
-  document.querySelectorAll(".sidebar li").forEach((li) => {
-    li.addEventListener("click", (e) => {
-      if (mobileNameDisplay) {
-        mobileNameDisplay.innerText = e.target.innerText.trim();
-      }
-
-      if (window.innerWidth <= 768) {
-        const sidebar = document.querySelector(".sidebar.light-sidebar");
-        if (sidebar && sidebar.classList.contains("sheet-open")) {
-          window.toggleBoardSheet();
-        }
-      }
-    });
-  });
-});
-
-// =========================================
-// 🔔 通知中心升級：點擊跳轉漂流瓶 + 新留言/收藏即時彈窗提示
-// =========================================
-
-// 🌟 1. 智慧跳轉漂流瓶（向後端單獨撈取並開啟）
-window.jumpToBottle = async function (bottleId) {
-  if (
-    !bottleId ||
-    bottleId === "undefined" ||
-    bottleId === "null" ||
-    bottleId === ""
-  ) {
-    if (typeof showOceanToast === "function") {
-      showOceanToast("此通知未包含具體的漂流瓶編號 🌊");
-    }
-    return;
-  }
-
-  const safeId = String(bottleId);
-
-  // 關閉通知彈窗
-  const popup = document.getElementById("notif-popup");
-  if (popup) popup.style.display = "none";
-
-  // 先在目前已經載入的文章中尋找
-  let p = posts.find((x) => String(x.id) === safeId);
-  if (!p && window.popularCache) {
-    p = window.popularCache.find((x) => String(x.id) === safeId);
-    if (p) posts.push(p);
-  }
-
-  // 若記憶體中沒有該瓶子，向後端 API 抓取單篇詳細資料
-  if (!p) {
-    try {
-      const token = localStorage.getItem("authToken");
-      const headers = {
-        "Content-Type": "application/json",
-        "ngrok-skip-browser-warning": "true",
-      };
-      if (token) headers["Authorization"] = `Bearer ${token}`;
-
-      const res = await fetch(`${API_BASE_URL}/bottles/${safeId}`, {
-        method: "GET",
-        headers: headers,
-      });
-
-      if (res.ok) {
-        const rawData = await res.json();
-        const rawItem = rawData.bottle || rawData.data || rawData;
-        const item = rawItem.bottle || rawItem.Bottle || rawItem;
-
-        let authorName = "用戶";
-        if (typeof item.author === "string") authorName = item.author;
-        else if (item.author?.name) authorName = item.author.name;
-        else if (item.author_name) authorName = item.author_name;
-        else if (item.user?.name) authorName = item.user.name;
-        else if (item.member?.name) authorName = item.member.name;
-
-        let rawBoard = item.category_name || item.board || null;
-        let finalBoard = "😑 極度厭世/躺平";
-        if (rawBoard) {
-          if (rawBoard.includes("憤怒")) finalBoard = "😡 極度憤怒中";
-          else if (rawBoard.includes("秘密")) finalBoard = "🤫 沒人懂的秘密";
-          else if (rawBoard.includes("破碎")) finalBoard = "💔 破碎的碎片";
-          else if (rawBoard.includes("厭世") || rawBoard.includes("躺平"))
-            finalBoard = "😑 極度厭世/躺平";
-          else if (rawBoard.includes("開心")) finalBoard = "😁 開心的事";
-          else finalBoard = rawBoard;
-        }
-
-        p = {
-          id: safeId,
-          board: finalBoard,
-          author: item.is_anonymous || item.isAnonymous ? "匿名" : authorName,
-          authorId: item.author_id || item.user_id || item.member_id || null,
-          title: item.title || rawItem.title || "漂流瓶",
-          desc: stripLegacyPollTag(item.content || rawItem.content || ""),
-          poll: parsePoll(item, rawItem),
-          likes: parseInt(
-            item.like_count || item.likeCount || item.likes || 0,
-            10,
-          ),
-          msgs: item.comment_count || item.comments?.length || 0,
-          liked: Boolean(item.is_liked || item.isLiked),
-          saved: Boolean(item.is_saved || item.isSaved),
-          createdAt: item.createdAt || item.created_at || rawItem.createdAt,
-        };
-        posts.push(p);
-      }
-    } catch (e) {
-      console.error("撈取單篇瓶子失敗:", e);
-    }
-  }
-
-  // 開啟詳細頁
-  if (typeof openPostDetail === "function") {
-    openPostDetail(safeId);
-  }
-};
-
-// 🌟 2. 點擊通知卡片的動作（標記已讀 + 跳轉至瓶子）
-window.handleNotificationClick = async function (
-  notifId,
-  bottleId,
-  cardElement,
-) {
-  if (cardElement && cardElement.classList.contains("unread")) {
-    markSingleAsReadAPI(notifId, cardElement);
-  }
-
-  if (
-    bottleId &&
-    bottleId !== "undefined" &&
-    bottleId !== "null" &&
-    bottleId !== ""
-  ) {
-    await jumpToBottle(bottleId);
-  } else if (cardElement && cardElement.innerText.includes("追蹤")) {
-    const popup = document.getElementById("notif-popup");
-    if (popup) popup.style.display = "none";
-    if (typeof openFollowingModal === "function") {
-      openFollowingModal();
-    }
-  }
-};
-
-// 🌟 3. 開關通知小視窗
+// 2. 開關通知小視窗
 window.toggleNotificationPopup = async function (e) {
-  e.stopPropagation();
+  if (e) e.stopPropagation();
   const popup = document.getElementById("notif-popup");
-
   const userDropdown = document.getElementById("user-dropdown");
   if (userDropdown) userDropdown.classList.remove("show-dropdown");
 
+  if (!popup) return;
   if (popup.style.display === "none" || popup.style.display === "") {
     popup.style.display = "flex";
     await fetchAndRenderNotifications();
@@ -3176,14 +3009,180 @@ window.addEventListener("click", (event) => {
   }
 });
 
-// 🌟 4. 抓取並渲染通知列表（支援點擊跳轉）
+// 3. 深度解析通知裡的瓶子 ID（全面涵蓋後端命名與字串）
+function getBottleIdFromNotif(notif) {
+  if (!notif) return null;
+  if (notif.bottle_id) return notif.bottle_id;
+  if (notif.bottleId) return notif.bottleId;
+  if (notif.target_id) return notif.target_id;
+  if (notif.targetId) return notif.targetId;
+  if (notif.post_id) return notif.post_id;
+  if (notif.postId) return notif.postId;
+  if (notif.article_id) return notif.article_id;
+  if (notif.bottle?.id || notif.bottle?.bottle_id)
+    return notif.bottle.id || notif.bottle.bottle_id;
+  if (notif.Bottle?.id || notif.Bottle?.bottle_id)
+    return notif.Bottle.id || notif.Bottle.bottle_id;
+
+  if (notif.data) {
+    let d = notif.data;
+    if (typeof d === "string") {
+      try {
+        d = JSON.parse(d);
+      } catch (e) {}
+    }
+    if (typeof d === "object" && d !== null) {
+      return (
+        d.bottle_id || d.bottleId || d.id || d.target_id || d.postId || null
+      );
+    }
+  }
+  return null;
+}
+
+// 4. 智慧跳轉漂流瓶（若文章已被刪除或不存在，溫柔提示文章已消失）
+window.jumpToBottle = async function (bottleId) {
+  const popup = document.getElementById("notif-popup");
+  if (popup) popup.style.display = "none";
+
+  // 若通知沒有帶瓶子 ID，提示文章已消失
+  if (
+    !bottleId ||
+    bottleId === "undefined" ||
+    bottleId === "null" ||
+    bottleId === ""
+  ) {
+    if (typeof showOceanToast === "function") {
+      showOceanToast("🌊 這只漂流瓶已經隨海浪飄走了（文章已消失）...");
+    }
+    return;
+  }
+
+  const safeId = String(bottleId);
+  let p = posts.find((x) => String(x.id) === safeId);
+  if (!p && window.popularCache) {
+    p = window.popularCache.find((x) => String(x.id) === safeId);
+    if (p) posts.push(p);
+  }
+
+  // 若畫面上目前沒有這篇瓶子，向後端單篇 API 抓取確認是否存在
+  if (!p) {
+    try {
+      const token = localStorage.getItem("authToken");
+      const headers = {
+        "Content-Type": "application/json",
+        "ngrok-skip-browser-warning": "true",
+      };
+      if (token) headers["Authorization"] = `Bearer ${token}`;
+
+      const res = await fetch(`${API_BASE_URL}/bottles/${safeId}`, {
+        method: "GET",
+        headers,
+      });
+
+      // 🌟 核心關鍵：若後端回傳 404 或文章不存在（被作者刪除）
+      if (res.status === 404 || !res.ok) {
+        if (typeof showOceanToast === "function") {
+          showOceanToast("🌊 這只漂流瓶已經隨海浪飄走了（文章已消失）...");
+        }
+        return;
+      }
+
+      const rawData = await res.json();
+      let item = rawData.bottle || rawData.data || rawData;
+      if (item && item.bottle) item = item.bottle;
+      if (item && item.Bottle) item = item.Bottle;
+
+      if (item) {
+        let authorName =
+          item.author?.name || item.author_name || item.author || "用戶";
+        let rawBoard = item.category_name || item.board || "😑 極度厭世/躺平";
+
+        p = {
+          id: safeId,
+          board: rawBoard,
+          author: item.is_anonymous || item.isAnonymous ? "匿名" : authorName,
+          authorId: item.author_id || item.user_id || item.member_id || null,
+          title: item.title || "漂流瓶",
+          desc: stripLegacyPollTag(item.content || ""),
+          poll: parsePoll(item),
+          likes: parseInt(item.like_count || item.likes || 0, 10),
+          msgs: item.comment_count || 0,
+          liked: Boolean(item.is_liked || item.isLiked),
+          saved: Boolean(item.is_saved || item.isSaved),
+          createdAt: item.createdAt || item.created_at,
+        };
+        posts.push(p);
+      }
+    } catch (e) {
+      console.error("撈取瓶子失敗:", e);
+      if (typeof showOceanToast === "function") {
+        showOceanToast("🌊 這只漂流瓶已經隨海浪飄走了（文章已消失）...");
+      }
+      return;
+    }
+  }
+
+  // 成功撈取到文章，開啟詳細頁面；若還是沒有則提示消失
+  if (p && typeof openPostDetail === "function") {
+    openPostDetail(safeId);
+  } else {
+    if (typeof showOceanToast === "function") {
+      showOceanToast("🌊 這只漂流瓶已經隨海浪飄走了（文章已消失）...");
+    }
+  }
+};
+
+// 5. 點擊通知卡片的動作
+window.handleNotificationClick = async function (cardElement) {
+  const popup = document.getElementById("notif-popup");
+  if (popup) popup.style.display = "none";
+
+  const notifId = cardElement.getAttribute("data-notif-id");
+  if (cardElement && cardElement.classList.contains("unread")) {
+    markSingleAsReadAPI(notifId, cardElement);
+  }
+
+  const bottleId = cardElement.getAttribute("data-bottle-id");
+  const contentText = cardElement.innerText || "";
+
+  // 1. 若有瓶子 ID，嘗試跳轉開瓶（若已被刪除會在 jumpToBottle 提示消失）
+  if (
+    bottleId &&
+    bottleId !== "null" &&
+    bottleId !== "undefined" &&
+    bottleId !== ""
+  ) {
+    await jumpToBottle(bottleId);
+    return;
+  }
+
+  // 2. 若為追蹤通知，開啟追蹤彈窗
+  if (contentText.includes("追蹤")) {
+    if (typeof openFollowingModal === "function") openFollowingModal();
+    return;
+  }
+
+  // 3. 收藏或留言通知但後端完全沒給 ID，代表文章已不在了
+  if (contentText.includes("漂流瓶") || contentText.includes("留言")) {
+    if (typeof showOceanToast === "function") {
+      showOceanToast("🌊 這只漂流瓶已經隨海浪飄走了（文章已消失）...");
+    }
+    return;
+  }
+
+  if (typeof showOceanToast === "function") {
+    showOceanToast("這是一則系統通知訊息 🫧");
+  }
+};
+
+// 6. 抓取並渲染通知列表（不論已讀未讀，保證全加上點擊監聽）
 async function fetchAndRenderNotifications() {
   const token = localStorage.getItem("authToken");
   const container = document.getElementById("notif-list-container");
-
   if (!token) {
     container.innerHTML =
-      '<div style="text-align: center; color: #ff4d4d; padding: 20px 0;">寶寶，請先登入才能看通知喔！</div>';
+      '<div style="text-align: center; color: #ff4d4d; padding: 20px 0;">請先登入才能看通知喔！</div>';
     return;
   }
 
@@ -3198,15 +3197,10 @@ async function fetchAndRenderNotifications() {
     });
 
     if (!response.ok) throw new Error("伺服器抓不到資料");
-
     const data = await response.json();
-
-    let notifArray = [];
-    if (Array.isArray(data)) notifArray = data;
-    else if (data && Array.isArray(data.data)) notifArray = data.data;
-    else if (data && Array.isArray(data.notifications))
-      notifArray = data.notifications;
-    else if (data && Array.isArray(data.result)) notifArray = data.result;
+    let notifArray = Array.isArray(data)
+      ? data
+      : data.data || data.notifications || data.result || [];
 
     if (!notifArray || notifArray.length === 0) {
       container.innerHTML =
@@ -3217,7 +3211,7 @@ async function fetchAndRenderNotifications() {
     container.innerHTML = notifArray
       .map((notif) => {
         let iconClass = "system";
-        let iconEmoji = "⚠️";
+        let iconEmoji = "⚠️️";
         const typeUpper = (notif.type || "").toUpperCase();
 
         if (typeUpper.includes("LIKE")) {
@@ -3253,21 +3247,15 @@ async function fetchAndRenderNotifications() {
           ? new Date(notif.created_at).toLocaleString()
           : notif.time || "";
         const notificationText = notif.content || notif.message || "";
+        const bottleId = getBottleIdFromNotif(notif) || "";
 
-        // 自動辨識後端可能回傳的瓶子 ID
-        const bottleId =
-          notif.bottle_id ||
-          notif.bottleId ||
-          notif.target_id ||
-          notif.targetId ||
-          notif.post_id ||
-          notif.postId ||
-          (notif.data &&
-            (notif.data.bottle_id || notif.data.bottleId || notif.data.id)) ||
-          "";
-
+        // 🌟 無論已讀未讀，一律綁定 handleNotificationClick(this)
         return `
-          <div class="notif-mini-card ${unreadClass}" onclick="handleNotificationClick('${notif.id}', '${bottleId}', this)" title="${bottleId ? "點擊跳轉到此漂流瓶" : ""}">
+          <div class="notif-mini-card ${unreadClass}" 
+               data-notif-id="${notif.id}" 
+               data-bottle-id="${bottleId}" 
+               onclick="handleNotificationClick(this)"
+               style="cursor: pointer !important;">
               <div class="notif-icon ${iconClass}">${iconEmoji}</div>
               <div class="notif-text-box">
                   <p>${escapeHTML(notificationText)}</p>
@@ -3285,7 +3273,7 @@ async function fetchAndRenderNotifications() {
   }
 }
 
-// 🌟 5. 單筆已讀
+// 7. 單筆已讀
 window.markSingleAsReadAPI = async function (id, cardElement) {
   const token = localStorage.getItem("authToken");
   try {
@@ -3304,20 +3292,17 @@ window.markSingleAsReadAPI = async function (id, cardElement) {
         const dot = cardElement.querySelector(".notif-unread-dot");
         if (dot) dot.style.display = "none";
       }
-
-      if (typeof fetchNotificationCount === "function") {
+      if (typeof fetchNotificationCount === "function")
         fetchNotificationCount();
-      }
     }
   } catch (error) {
     console.error(`標記通知 ${id} 失敗：`, error);
   }
 };
 
-// 🌟 6. 全部已讀
+// 8. 全部已讀
 window.markAllAsReadAPI = async function (e) {
   if (e) e.stopPropagation();
-
   const unreadCards = document.querySelectorAll(".notif-mini-card.unread");
   if (unreadCards.length === 0) {
     showOceanToast("目前沒有未讀通知喔！🌊");
@@ -3341,10 +3326,8 @@ window.markAllAsReadAPI = async function (e) {
         const dot = card.querySelector(".notif-unread-dot");
         if (dot) dot.style.display = "none";
       });
-
-      if (typeof fetchNotificationCount === "function") {
+      if (typeof fetchNotificationCount === "function")
         fetchNotificationCount();
-      }
       showOceanToast("全部都看過囉，寶寶真棒！✨");
     }
   } catch (error) {
