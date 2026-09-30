@@ -2096,108 +2096,6 @@ const i18n = {
             );
         },
 
-        // 魔法學院：紫色夜空下的尖塔與魔法光點
-        magicAcademy(mode) {
-            const { W, H } = canvasOf(mode), hz = H * 0.8;
-            const tower = (x, y, h, w, body, roof) => `<g>${rect(x - w / 2, y - h, w, h, body, 'rx="4"')}<path d="M ${x - w / 2 - 10} ${y - h} L ${x} ${y - h - w * 1.1} L ${x + w / 2 + 10} ${y - h} Z" fill="${roof}"/>${rect(x - 9, y - h * 0.62, 18, 26, '#ffe9a8', 'rx="9"')}${rect(x - 9, y - h * 0.34, 18, 26, '#ffe9a8', 'rx="9"')}</g>`;
-            return svgOf(W, H,
-                vg('maSky', [[0, '#2b1259'], [55, '#5b2f8f'], [100, '#8e5bb5']]) + glowDef('maMoon', '#ffeec4'),
-                bg(W, H, 'url(#maSky)') + stars(W, H, 50, '#ffffff') + glow(W * 0.2, H * 0.18, H * 0.055, 'maMoon', '#ffeec4')
-                + tower(W * 0.36, hz, H * 0.44, W * 0.075, '#3f2a63', '#6f3fa0')
-                + tower(W * 0.5, hz, H * 0.6, W * 0.095, '#4a3272', '#7d49b0')
-                + tower(W * 0.66, hz, H * 0.38, W * 0.07, '#3f2a63', '#6f3fa0')
-                + rect(0, hz, W, H - hz, '#2a1a4a')
-                + sparkles(W, H * 0.8, 16, '#c4a8ff')
-            );
-        },
-
-        // 水晶洞穴：鐘乳石與發光水晶
-        crystalCave(mode) {
-            const { W, H } = canvasOf(mode), floorY = H * 0.76;
-            const crystal = (x, y, s, c1, c2) => `<g transform="translate(${x},${y}) scale(${s})"><path d="M 0 0 L -26 -46 L -12 -96 L 14 -104 L 30 -50 Z" fill="${c1}"/><path d="M 0 0 L 30 -50 L 14 -104 L 8 -96 Z" fill="${c2}"/></g>`;
-            let stal = '';
-            for (let i = 0; i < 9; i++) { const x = (i + 0.5) * (W / 9); const h = 60 + rnd(i, 9) * 160; stal += `<path d="M ${x - 30} -10 L ${x} ${h} L ${x + 30} -10 Z" fill="#4a2f6e"/>`; }
-            return svgOf(W, H,
-                vg('ccWall', [[0, '#3a1f5c'], [60, '#5b2f83'], [100, '#2a1442']]) + glowDef('ccGlow', '#c4a8ff') + vg('ccFloor', [[0, '#4a2f6e'], [100, '#1e0f33']]),
-                bg(W, H, 'url(#ccWall)') + stal
-                + disc(W * 0.5, floorY - H * 0.1, H * 0.3, 'url(#ccGlow)')
-                + `<path d="M 0 ${floorY + 10} C ${W * 0.3} ${floorY - 14}, ${W * 0.7} ${floorY + 24}, ${W} ${floorY - 6} L ${W} ${H} L 0 ${H} Z" fill="url(#ccFloor)"/>`
-                + crystal(W * 0.24, floorY + 20, 1.1, '#a78bfa', '#c4b5fd') + crystal(W * 0.36, floorY + 26, 0.7, '#7dd3fc', '#bae6fd')
-                + crystal(W * 0.72, floorY + 22, 1.25, '#f0abfc', '#f5d0fe') + crystal(W * 0.84, floorY + 28, 0.8, '#a78bfa', '#ddd6fe')
-                + sparkles(W, H * 0.9, 12, '#e9d5ff')
-            );
-        },
-
-        // 熔岩火山：噴發的火山口與岩漿河
-        volcanoCore(mode) {
-            const { W, H } = canvasOf(mode), baseY = H * 0.78;
-            return svgOf(W, H,
-                vg('vcSky', [[0, '#2b0a14'], [50, '#7a1d1d'], [100, '#e2542a']]) + glowDef('vcGlow', '#ffb15c') + vg('vcRock', [[0, '#4a2a2a'], [100, '#1f1010']]),
-                bg(W, H, 'url(#vcSky)') + disc(W * 0.5, baseY - H * 0.34, H * 0.34, 'url(#vcGlow)')
-                + `<path d="M ${W * 0.12} ${baseY} L ${W * 0.4} ${baseY - H * 0.42} L ${W * 0.6} ${baseY - H * 0.42} L ${W * 0.88} ${baseY} Z" fill="#3f2222"/>`
-                + `<path d="M ${W * 0.4} ${baseY - H * 0.42} L ${W * 0.6} ${baseY - H * 0.42} L ${W * 0.56} ${baseY - H * 0.36} L ${W * 0.44} ${baseY - H * 0.36} Z" fill="#ffb15c"/>`
-                + `<path d="M ${W * 0.47} ${baseY - H * 0.42} C ${W * 0.44} ${baseY - H * 0.26}, ${W * 0.38} ${baseY - H * 0.14}, ${W * 0.33} ${baseY} L ${W * 0.43} ${baseY} C ${W * 0.46} ${baseY - H * 0.16}, ${W * 0.5} ${baseY - H * 0.3}, ${W * 0.52} ${baseY - H * 0.42} Z" fill="#f4713f"/>`
-                + rect(0, baseY, W, H - baseY, 'url(#vcRock)')
-                + times(5, (i, a, b) => ell((a * W).toFixed(0), (baseY + 16 + b * (H - baseY) * 0.7).toFixed(0), (30 + b * 60).toFixed(0), (8 + b * 10).toFixed(0), '#f4713f', 'opacity="0.85"'))
-                + times(14, (i, a, b, c) => disc((a * W).toFixed(0), (b * baseY).toFixed(0), (2 + c * 4).toFixed(1), '#ffd166', `opacity="${(0.4 + c * 0.5).toFixed(2)}"`))
-            );
-        },
-
-        // 浮空島嶼：漂浮的草地島與瀑布
-        floatingIsland(mode) {
-            const { W, H } = canvasOf(mode);
-            const island = (x, y, s) => `<g transform="translate(${x},${y}) scale(${s})">`
-                + `<path d="M -110 0 L 110 0 L 62 54 L 16 96 L -34 60 Z" fill="#8a6a4a"/>`
-                + ell(0, 0, 112, 26, '#5fae5f') + ell(0, -6, 112, 24, '#7ed07a')
-                + `</g>`;
-            return svgOf(W, H,
-                vg('fiSky', [[0, '#69c8f5'], [55, '#a9e0fa'], [100, '#e2f6ff']]) + vg('fiFall', [[0, '#bfeaff', 0.9], [100, '#bfeaff', 0]]),
-                bg(W, H, 'url(#fiSky)')
-                + times(4, (i, a) => cloud(a * W, H * (0.1 + i * 0.16), 0.7 + rnd(i, 4) * 0.5, '#ffffff', 0.85))
-                + island(W * 0.5, H * 0.56, mode === 'wide' ? 1.05 : 1.25)
-                + tree(W * 0.46, H * 0.55, 0.5, '#4f9f5c', '#7a4a2a', '#7ed07a')
-                + `<path d="M ${W * 0.52} ${H * 0.57} L ${W * 0.56} ${H * 0.57} L ${W * 0.57} ${H} L ${W * 0.51} ${H} Z" fill="url(#fiFall)"/>`
-                + island(W * 0.18, H * 0.3, 0.5) + island(W * 0.84, H * 0.36, 0.42)
-                + times(3, (i, a) => `<path d="M ${a * W} ${H * 0.82} q 20 -10 40 0" stroke="#ffffff" stroke-width="5" fill="none" opacity="0.6"/>`)
-            );
-        },
-
-        // 亞特蘭提斯：沉沒的神殿與水下光束
-        underwaterTemple(mode) {
-            const { W, H } = canvasOf(mode), baseY = H * 0.82;
-            return svgOf(W, H,
-                vg('utSea', [[0, '#3fc4d9'], [50, '#1f7fa8'], [100, '#0a3a5c']]) + vg('utRay', [[0, '#d6f7ff', 0.4], [100, '#d6f7ff', 0]]) + vg('utFloor', [[0, '#4a8fa8'], [100, '#123f59']]),
-                bg(W, H, 'url(#utSea)') + rays(W, H, W * 0.5, -H * 0.04, 5, 'url(#utRay)')
-                + rect(0, baseY, W, H - baseY, 'url(#utFloor)')
-                + column(W * 0.2, baseY, H * 0.42, W * 0.05, '#bfe0e8', '#9fc8d4')
-                + column(W * 0.34, baseY, H * 0.3, W * 0.045, '#a9cfd9', '#8fb8c4')
-                + column(W * 0.66, baseY, H * 0.46, W * 0.05, '#bfe0e8', '#9fc8d4')
-                + column(W * 0.8, baseY, H * 0.24, W * 0.042, '#a9cfd9', '#8fb8c4')
-                + `<path d="M ${W * 0.14} ${baseY - H * 0.46} L ${W * 0.5} ${baseY - H * 0.58} L ${W * 0.86} ${baseY - H * 0.46} L ${W * 0.86} ${baseY - H * 0.4} L ${W * 0.14} ${baseY - H * 0.4} Z" fill="#cfe8ee"/>`
-                + times(3, (i, a, b) => `<g transform="translate(${(a * W).toFixed(0)},${(H * 0.3 + b * H * 0.4).toFixed(0)}) scale(0.8)" fill="#ffd166"><path d="M 0 0 C 16 -14, 44 -14, 58 0 C 44 14, 16 14, 0 0 Z"/><path d="M 58 0 L 76 -14 L 76 14 Z"/></g>`)
-                + bubbles(W, H, 14, '#d6f7ff')
-            );
-        },
-
-        // 皇家宮殿：紅毯、金柱與吊燈
-        royalPalace(mode) {
-            const { W, H } = canvasOf(mode), floorY = H * 0.62;
-            return svgOf(W, H,
-                vg('rpWall', [[0, '#7a1f2b'], [55, '#9c2f3a'], [100, '#5e1620']]) + vg('rpFloor', [[0, '#c9a05f'], [100, '#8a6a34']]) + glowDef('rpGlow', '#ffe9a8'),
-                bg(W, H, 'url(#rpWall)')
-                + rect(0, floorY, W, H - floorY, 'url(#rpFloor)')
-                + `<path d="M ${W * 0.36} ${floorY} L ${W * 0.64} ${floorY} L ${W * 0.78} ${H} L ${W * 0.22} ${H} Z" fill="#c02a3a"/>`
-                + `<path d="M ${W * 0.38} ${floorY} L ${W * 0.62} ${floorY} L ${W * 0.74} ${H} L ${W * 0.26} ${H} Z" fill="#e2453f"/>`
-                + column(W * 0.16, floorY, H * 0.52, W * 0.05, '#f0d9a8', '#e0b95f')
-                + column(W * 0.32, floorY, H * 0.5, W * 0.042, '#e8cf9f', '#d9ae57')
-                + column(W * 0.68, floorY, H * 0.5, W * 0.042, '#e8cf9f', '#d9ae57')
-                + column(W * 0.84, floorY, H * 0.52, W * 0.05, '#f0d9a8', '#e0b95f')
-                // 拱窗與吊燈
-                + `<path d="M ${W * 0.44} ${floorY - H * 0.16} L ${W * 0.44} ${floorY - H * 0.36} A ${W * 0.06} ${W * 0.06} 0 0 1 ${W * 0.56} ${floorY - H * 0.36} L ${W * 0.56} ${floorY - H * 0.16} Z" fill="#ffe9a8" opacity="0.85"/>`
-                + `<g transform="translate(${W * 0.5},${H * 0.06})">${rect(-3, 0, 6, H * 0.1, '#e0b95f')}${disc(0, H * 0.12, H * 0.055, 'url(#rpGlow)')}${disc(0, H * 0.12, H * 0.03, '#ffe9a8')}</g>`
-                + sparkles(W, H * 0.5, 8, '#ffe9a8')
-            );
-        }
             };
         })();
 
@@ -2489,16 +2387,10 @@ const i18n = {
 
             // 🌟 16 ~ 21：奇幻異想系列（糖果粉、魔法紫、薰衣草、極光綠、街機桃紅、霓虹青）
             candy_land: { name: {zh: '糖果王國', en: 'Candy Land'}, cost: 900, ...illustratedBg('candyLand') },
-            magic_academy: { name: {zh: '魔法學院', en: 'Magic Academy'}, cost: 950, ...illustratedBg('magicAcademy') },
 
             // 🌟 22 ~ 27：宇宙與奇境系列（水晶紫、銀河靛藍、綠洲金黃、遺跡棕、熔岩烈紅、浮島天藍）
-            crystal_cave: { name: {zh: '水晶洞穴', en: 'Crystal Cave'}, cost: 1300, ...illustratedBg('crystalCave') },
-            volcano_core: { name: {zh: '熔岩火山', en: 'Lava Volcano'}, cost: 1500, ...illustratedBg('volcanoCore') },
-            floating_island: { name: {zh: '浮空島嶼', en: 'Floating Island'}, cost: 1600, ...illustratedBg('floatingIsland') },
 
             // 🌟 28 ~ 32：頂級殿堂系列（海神藍、母體翠綠、神域暖黃、仙境洋紅、皇家金）
-            underwater_temple: { name: {zh: '亞特蘭提斯', en: 'Atlantis'}, cost: 1700, ...illustratedBg('underwaterTemple') },
-            royal_palace: { name: {zh: '皇家宮殿', en: 'Royal Palace'}, cost: 2100, ...illustratedBg('royalPalace') }
         };
 
         const svgLib = {
