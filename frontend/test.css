@@ -4096,3 +4096,34 @@ body.is-admin .btn-post,
 body.is-admin .hub-new-post-bar {
   display: none !important;
 }
+
+/* =========================================
+   📱 文章詳細頁：高度改用實際可見高度，避免手機瀏覽器工具列蓋住底部打字框
+   ========================================= */
+#detail-view.ocean-detail-card {
+  height: calc(100dvh - 60px) !important;
+}
+
+/* 📱 窄手機：縮小打字列的間距，把空間讓給輸入框，打字時看得清楚 */
+@media screen and (max-width: 480px) {
+  #detail-view .comment-action-bar {
+    gap: 6px !important;
+    padding: 10px 10px !important;
+  }
+  #detail-view .comment-action-bar .save-btn {
+    width: 38px !important;
+    height: 38px !important;
+    font-size: 1.1rem !important;
+  }
+  #detail-view .comment-action-bar .comment-input {
+    padding: 0 12px !important;
+  }
+  #detail-view .comment-action-bar .send-btn {
+    padding: 0 12px !important;
+  }
+}
+
+/* 打字列已移出捲動區，不再需要底部留白避開它 */
+#detail-view .detail-comments-wrapper {
+  padding-bottom: 16px !important;
+}

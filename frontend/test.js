@@ -146,7 +146,7 @@ async function fetchBottles() {
       }
       endpointUrl = `${API_BASE_URL}/bottles/saved`;
     } else if (currentKeyword) {
-      endpointUrl = `${API_BASE_URL}/bottles/search?keyword=${currentKeyword}`;
+      endpointUrl = `${API_BASE_URL}/bottles/search?keyword=${encodeURIComponent(currentKeyword)}`;
     } else if (currentCategoryId !== null) {
       endpointUrl = `${API_BASE_URL}/bottles/random?categoryId=${currentCategoryId}`;
     }
@@ -532,9 +532,9 @@ function renderSearchHistory() {
   let html = "";
   history.forEach((item) => {
     html += `
-            <div class="history-item" onmousedown="applyHistorySearch(event, '${item}')">
-                <span>${item}</span>
-                <span class="delete-history-btn" onmousedown="removeSingleHistory(event, '${item}')">&times;</span>
+            <div class="history-item" data-keyword="${escapeHTML(item)}" onmousedown="applyHistorySearch(event, this.dataset.keyword)">
+                <span>${escapeHTML(item)}</span>
+                <span class="delete-history-btn" onmousedown="removeSingleHistory(event, this.parentElement.dataset.keyword)">&times;</span>
             </div>
         `;
   });
