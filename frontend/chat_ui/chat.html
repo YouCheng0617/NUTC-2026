@@ -8,6 +8,84 @@
     <link rel="stylesheet" href="./chat.css">
     <!-- 引入 FontAwesome 圖示 -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- 加入更強力的防跑版專用樣式 -->
+    <style>
+        .chat-header {
+            display: flex !important;
+            align-items: center !important;
+            justify-content: space-between !important;
+            flex-wrap: nowrap !important; /* 絕對不換行 */
+            padding: 10px 10px !important;
+            gap: 4px !important;
+            width: 100% !important;
+            box-sizing: border-box !important;
+        }
+
+        .chat-header .title {
+            white-space: nowrap !important;
+            flex-shrink: 1 !important; 
+            font-size: min(1.2rem, 4.5vw) !important; /* 字體依螢幕比例縮小 */
+            margin: 0 !important;
+            min-width: 0 !important; /* 防止文字過長撐破版面 */
+        }
+
+        .chat-header .settings {
+            display: flex !important;
+            align-items: center !important;
+            flex-wrap: nowrap !important;
+            gap: 4px !important;
+            flex-shrink: 0 !important; 
+        }
+
+        .chat-header .settings button,
+        .chat-header .settings .dropdown-container,
+        .chat-header .settings .dropdown-container button {
+            display: inline-flex !important;
+            justify-content: center !important;
+            align-items: center !important;
+            margin: 0 !important;
+        }
+
+        /* 針對極窄手機螢幕的特別微調 */
+        @media screen and (max-width: 400px) {
+            .chat-header {
+                padding: 8px 6px !important;
+                gap: 2px !important;
+            }
+            .chat-header .settings {
+                gap: 2px !important;
+            }
+            .chat-header .settings button,
+            .chat-header .settings .dropdown-container button {
+                width: 28px !important;
+                height: 28px !important;
+                min-width: 28px !important; /* 強制縮小按鈕避免擠壓 */
+                font-size: 0.8rem !important;
+                padding: 0 !important;
+            }
+        }
+        
+        /* --- 新增：針對對話氣泡的機器人頭像進行強制覆蓋 --- */
+        .chat-area .avatar,
+        .chat-area .message-avatar,
+        .chat-area .bot-avatar,
+        .chat-area .ai-avatar {
+            background-image: url('../images/fish_logo.webp') !important;
+            background-size: contain !important;
+            background-repeat: no-repeat !important;
+            background-position: center !important;
+            background-color: transparent !important;
+            color: transparent !important; /* 隱藏原本文字 */
+            overflow: hidden !important;
+        }
+        .chat-area .avatar img,
+        .chat-area .message-avatar img,
+        .chat-area .bot-avatar img,
+        .chat-area .ai-avatar img {
+            opacity: 0 !important; /* 隱藏原本的 img 標籤 */
+        }
+    </style>
 </head>
 
 <body>
@@ -37,7 +115,10 @@
         <main class="chat-area" id="chat-area">
             <!-- 初始歡迎畫面 (破冰) -->
             <div class="welcome-screen" id="welcome-screen">
-                <div class="welcome-avatar">🤖</div>
+                <div class="welcome-avatar">
+                    <!-- 已經替換為您的貓咪桌寵圖片 -->
+                    <img src="../images/fish_logo.webp" alt="AI特助" style="width: 80px; height: 80px; object-fit: contain; vertical-align: middle;">
+                </div>
                 <h2>嗨！我是您的 AI 特助</h2>
                 <p>今天有什麼我可以幫忙的呢？</p>
                 <div class="suggestion-chips">
@@ -61,6 +142,41 @@
             <div class="input-footer-text">AI 生成的內容可能會有誤，請自行核實。</div>
         </footer>
     </div>
+
+    <!-- 新增：透過 JavaScript 自動將動態生成的機器人替換為桌寵 -->
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            const chatArea = document.getElementById("chat-area");
+            if (!chatArea) return;
+
+            const replaceAvatar = (node) => {
+                // 如果是文字表情符號 🤖，自動替換為桌寵圖片
+                if (node.nodeType === Node.TEXT_NODE && node.nodeValue.includes("🤖")) {
+                    const span = document.createElement("span");
+                    span.innerHTML = node.nodeValue.replace(/🤖/g, '<img src="../images/fish_logo.webp" style="width: 32px; height: 32px; object-fit: contain; vertical-align: middle; background: transparent;">');
+                    node.parentNode.replaceChild(span, node);
+                } 
+                // 如果原本是用圖片 img 產生的機器人，強制換成桌寵路徑
+                else if (node.nodeType === Node.ELEMENT_NODE) {
+                    if (node.tagName.toLowerCase() === 'img' && (node.src.includes('bot') || node.alt.includes('AI') || node.alt.includes('🤖'))) {
+                        node.src = '../images/fish_logo.webp';
+                        node.style.background = 'transparent';
+                        node.style.objectFit = 'contain';
+                    }
+                    node.childNodes.forEach(replaceAvatar);
+                }
+            };
+
+            // 監聽聊天區，攔截新生成的對話氣泡
+            const observer = new MutationObserver(mutations => {
+                mutations.forEach(mutation => {
+                    mutation.addedNodes.forEach(replaceAvatar);
+                });
+            });
+            
+            observer.observe(chatArea, { childList: true, subtree: true });
+        });
+    </script>
 
     <script src="./chat.js"></script>
 </body>
