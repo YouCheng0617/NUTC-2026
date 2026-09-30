@@ -2153,6 +2153,39 @@ const i18n = {
                 `<path d="M ${n(x - r)} ${n(y)} C ${n(x - r)} ${n(y - r * 1.5)}, ${n(x + r)} ${n(y - r * 1.5)}, ${n(x + r)} ${n(y)} Z" fill="${c}"/>`
                 + ell(n(x - r * 0.3), n(y - r * 0.72), n(r * 0.26), n(r * 0.16), '#ffffff', 'opacity="0.6"');
 
+            // 包裝糖：中間一顆橢圓糖，兩端是扭起來的糖果紙
+            const wrapped = (x, y, r, c, tilt) =>
+                `<g transform="rotate(${tilt} ${n(x)} ${n(y)})">`
+                + `<path d="M ${n(x - r * 2.1)} ${n(y - r * 0.75)} L ${n(x - r * 0.9)} ${n(y)} L ${n(x - r * 2.1)} ${n(y + r * 0.75)} Z" fill="${c}" opacity="0.82"/>`
+                + `<path d="M ${n(x + r * 2.1)} ${n(y - r * 0.75)} L ${n(x + r * 0.9)} ${n(y)} L ${n(x + r * 2.1)} ${n(y + r * 0.75)} Z" fill="${c}" opacity="0.82"/>`
+                + ell(n(x), n(y), n(r * 1.15), n(r * 0.8), c)
+                + ell(n(x - r * 0.3), n(y - r * 0.3), n(r * 0.4), n(r * 0.2), '#ffffff', 'opacity="0.55"')
+                + `</g>`;
+
+            // 漩渦糖片：躺在草地上的扁圓糖，上面有一圈圈螺旋
+            const swirlCandy = (x, y, r, cA, cB) => {
+                let d = `M ${n(x)} ${n(y)}`;
+                for (let i = 1; i <= 46; i++) {
+                    const t = i / 46;
+                    const a = t * 3.2 * Math.PI * 2;
+                    d += ` L ${n(x + Math.cos(a) * t * r * 0.82)} ${n(y + Math.sin(a) * t * r * 0.82 * 0.55)}`;
+                }
+                return ell(n(x), n(y), n(r), n(r * 0.62), cA)
+                    + `<path d="${d}" fill="none" stroke="${cB}" stroke-width="${n(r * 0.16)}" stroke-linecap="round"/>`
+                    + ell(n(x), n(y), n(r), n(r * 0.62), 'none', `stroke="#ffffff" stroke-width="${n(r * 0.12)}"`);
+            };
+
+            // 拐杖糖：插在草地上的紅白彎鉤
+            const candyCane = (x, groundY, s2) =>
+                `<path d="M ${n(x)} ${n(groundY)} L ${n(x)} ${n(groundY - 46 * s2)} C ${n(x)} ${n(groundY - 64 * s2)}, ${n(x + 26 * s2)} ${n(groundY - 64 * s2)}, ${n(x + 26 * s2)} ${n(groundY - 46 * s2)}" fill="none" stroke="#ffffff" stroke-width="${n(11 * s2)}" stroke-linecap="round"/>`
+                + `<path d="M ${n(x)} ${n(groundY)} L ${n(x)} ${n(groundY - 46 * s2)} C ${n(x)} ${n(groundY - 64 * s2)}, ${n(x + 26 * s2)} ${n(groundY - 64 * s2)}, ${n(x + 26 * s2)} ${n(groundY - 46 * s2)}" fill="none" stroke="#ef476f" stroke-width="${n(11 * s2)}" stroke-linecap="round" stroke-dasharray="${n(9 * s2)} ${n(11 * s2)}"/>`;
+
+            // 馬卡龍：兩片餅殼夾著內餡
+            const macaron = (x, y, r, c) =>
+                `<path d="M ${n(x - r)} ${n(y - r * 0.1)} C ${n(x - r)} ${n(y - r * 0.9)}, ${n(x + r)} ${n(y - r * 0.9)}, ${n(x + r)} ${n(y - r * 0.1)} Z" fill="${c}"/>`
+                + rect(n(x - r), n(y - r * 0.12), n(r * 2), n(r * 0.34), '#fff4d6', `rx="${n(r * 0.1)}"`)
+                + `<path d="M ${n(x - r)} ${n(y + r * 0.22)} C ${n(x - r)} ${n(y + r * 0.95)}, ${n(x + r)} ${n(y + r * 0.95)}, ${n(x + r)} ${n(y + r * 0.22)} Z" fill="${c}" opacity="0.92"/>`;
+
             // 巧克力岩：圓滾滾的深咖啡色石頭
             const chocoRock = (x, y, r) =>
                 `<path d="M ${n(x - r)} ${n(y)} C ${n(x - r * 1.05)} ${n(y - r * 0.9)}, ${n(x - r * 0.3)} ${n(y - r * 1.3)}, ${n(x + r * 0.1)} ${n(y - r * 1.1)} C ${n(x + r * 0.7)} ${n(y - r * 0.9)}, ${n(x + r * 1.05)} ${n(y - r * 0.5)}, ${n(x + r)} ${n(y)} Z" fill="#5b3a25"/>`
@@ -2179,7 +2212,7 @@ const i18n = {
 
             // 草地上零星的糖豆與棉花糖小叢
             let candies = '';
-            for (let i = 0; i < (portrait ? 34 : 44); i++) {
+            for (let i = 0; i < (portrait ? 64 : 84); i++) {
                 const t = rnd(i, 11);
                 const y = hz + H * 0.06 + t * (H - hz) * 0.9;
                 const x = rnd(i, 12) * W;
@@ -2188,7 +2221,7 @@ const i18n = {
                 candies += gumdrop(x, y, r, pathColors[Math.floor(rnd(i, 14) * pathColors.length)]);
             }
             let marshmallows = '';
-            for (let i = 0; i < (portrait ? 10 : 14); i++) {
+            for (let i = 0; i < (portrait ? 16 : 22); i++) {
                 const t = rnd(i, 21);
                 const y = hz + H * 0.08 + t * (H - hz) * 0.85;
                 const x = rnd(i, 22) * W;
@@ -2197,6 +2230,22 @@ const i18n = {
                 marshmallows += disc(n(x), n(y - r * 0.5), n(r), '#fff6fa')
                     + disc(n(x - r * 0.55), n(y - r * 0.28), n(r * 0.66), '#ffeaf3')
                     + disc(n(x + r * 0.6), n(y - r * 0.3), n(r * 0.6), '#ffeaf3');
+            }
+
+            // 各種糖果散在草地上：包裝糖、漩渦糖片、拐杖糖、馬卡龍
+            let treats = '';
+            for (let i = 0; i < (portrait ? 30 : 40); i++) {
+                const t = rnd(i, 31);
+                const y = hz + H * 0.07 + t * (H - hz) * 0.92;
+                const x = rnd(i, 32) * W;
+                if (Math.abs(x - cx) < W * 0.11 && t > 0.35) continue;       // 留出小徑
+                const k = Math.floor(rnd(i, 33) * 4);
+                const scale = (0.5 + t * 1.1) * u;
+                const c = pathColors[Math.floor(rnd(i, 34) * pathColors.length)];
+                if (k === 0) treats += wrapped(x, y, 6 * scale, c, (rnd(i, 35) - 0.5) * 50);
+                else if (k === 1) treats += swirlCandy(x, y, 10 * scale, c, '#ffffff');
+                else if (k === 2) treats += candyCane(x, y, 0.42 * scale);
+                else treats += macaron(x, y - 4 * scale, 8 * scale, c);
             }
 
             return svgOf(W, H,
@@ -2226,7 +2275,7 @@ const i18n = {
                 + lolli(W * 0.56, hz + H * 0.05, 8 * u, '#4cc9f0', '#ffffff', 6)
                 // 糖磚小徑
                 + candyPath
-                + candies + marshmallows
+                + candies + treats + marshmallows
                 // 中景的棒棒糖
                 + lolli(W * 0.13, hz + H * 0.34, 40 * u, '#ff5c8a', '#fff0f6', -8)
                 + lolli(W * 0.87, hz + H * 0.3, 34 * u, '#06d6a0', '#ffffff', 7)
