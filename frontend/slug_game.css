@@ -944,12 +944,12 @@
             45%, 60% { transform: scaleY(0.12); }
         }
 
-        /* 耳朵抽動 */
-        .anim-earL, .anim-earR { transform-box: fill-box; transform-origin: 50% 100%; }
-        .slug-container.idle-ear .anim-earL { animation: earTwitchL 0.9s ease-in-out; }
-        .slug-container.idle-ear .anim-earR { animation: earTwitchR 0.9s ease-in-out 0.12s; }
-        @keyframes earTwitchL { 0%, 100% { transform: rotate(0); } 30% { transform: rotate(-11deg); } 60% { transform: rotate(4deg); } }
-        @keyframes earTwitchR { 0%, 100% { transform: rotate(0); } 30% { transform: rotate(9deg); } 60% { transform: rotate(-4deg); } }
+        /* 耳朵抽動：沿用原本以耳根為軸的設定（旋轉軸在下面 .anim-earL/R 的規則裡），
+           keyframes 另外取名，才不會蓋掉平常那個持續擺動的動畫 */
+        .slug-container.idle-ear .anim-earL { animation: idleEarFlickL 0.85s ease-in-out !important; }
+        .slug-container.idle-ear .anim-earR { animation: idleEarFlickR 0.85s ease-in-out 0.1s !important; }
+        @keyframes idleEarFlickL { 0%, 100% { transform: rotate(-6deg); } 35% { transform: rotate(-13deg); } 65% { transform: rotate(-2deg); } }
+        @keyframes idleEarFlickR { 0%, 100% { transform: rotate(6deg); } 35% { transform: rotate(13deg); } 65% { transform: rotate(1deg); } }
 
         /* 東張西望：身體微微左右轉 */
         .slug-container.idle-look .slug-svg { animation: slugLook 2.2s ease-in-out; }
