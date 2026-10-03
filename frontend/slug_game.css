@@ -929,6 +929,48 @@
             0% { transform: rotate(12deg); }
             100% { transform: rotate(-10deg); }
         }
+        /* 🐰 【雙擊召喚】一跳一跳慢慢過來，以及點擊處的漣漪記號 */
+
+        /* 被叫到時先愣一下、耳朵往上提，像是「欸？在叫我？」 */
+        .slug-container.is-summon-perk .slug-svg { animation: summonPerk 0.26s ease-out; }
+        @keyframes summonPerk {
+            0% { transform: scale(1, 1) translateY(0); }
+            55% { transform: scale(0.95, 1.07) translateY(-5px); }
+            100% { transform: scale(1, 1) translateY(0); }
+        }
+
+        /* 每一小跳：蹲下 → 騰空 → 落地壓一下，時間由 JS 的 --hop-ms 控制 */
+        .slug-container.is-hop-step .slug-svg { animation: summonHopStep var(--hop-ms, 430ms) ease-in-out; }
+        @keyframes summonHopStep {
+            0% { transform: scale(1, 1) translateY(0); }
+            18% { transform: scale(1.13, 0.87) translateY(7px); }
+            48% { transform: scale(0.93, 1.09) translateY(-24px); }
+            78% { transform: scale(1.09, 0.91) translateY(3px); }
+            100% { transform: scale(1, 1) translateY(0); }
+        }
+        .summon-ripple {
+            position: fixed;
+            width: 48px; height: 48px;
+            margin: -24px 0 0 -24px;
+            border: 4px solid var(--accent-color);
+            border-radius: 50%;
+            box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.85), 0 0 14px rgba(255, 255, 255, 0.7);
+            pointer-events: none;
+            opacity: 0;                 /* 關閉動畫時就不要留下一個靜止的圈圈 */
+            z-index: 60;
+            animation: summonRipple 0.85s cubic-bezier(0.22, 0.61, 0.36, 1) forwards;
+        }
+        @keyframes summonRipple {
+            0% { opacity: 0; transform: scale(0.3); }
+            12% { opacity: 1; transform: scale(0.6); }
+            100% { opacity: 0; transform: scale(3.4); }
+        }
+        @media (prefers-reduced-motion: reduce) {
+            .slug-container.is-hop-step .slug-svg,
+            .slug-container.is-summon-perk .slug-svg,
+            .summon-ripple { animation: none; }
+        }
+
         /* 🐰 【日常小動作】沒事做的時候，海兔會自己呼吸、眨眼、東張西望 */
         .slug-breath { width: 100%; height: 100%; animation: slugBreathe 4.2s ease-in-out infinite; }
         @keyframes slugBreathe {

@@ -49,6 +49,158 @@ let GAME_TOKEN = localStorage.getItem('authToken') || localStorage.getItem('acce
             setTimeout(() => endIntro(false), slow ? 1100 : 5500);   // 動畫跑完就自動收掉
         })();
 
+        // 🐰 【雙擊召喚】在舞台空白處點兩下（手機連點兩下），海兔就會跳到那裡
+        function initSummonSystem() {
+            const stage = document.getElementById('mainStage');
+            const slugEl = document.getElementById('slugContainer');
+            if (!stage || !slugEl) return;
+
+            // 這些狀態代表海兔正在忙，忙的時候不要把牠抓過來
+            const BUSY = ['is-eating-munch', 'is-chasing-food', 'is-exercising-run', 'is-refusing-exercise',
+                'is-spinning-taunt', 'is-skipping', 'is-grabbing', 'card-mode'];
+            let lastTapAt = 0, lastTapX = 0, lastTapY = 0, lastTouchAt = 0;
+
+            // 點擊處畫一圈漣漪，讓玩家知道召喚到哪裡
+            const ripple = (x, y) => {
+                const el = document.createElement('div');
+                el.className = 'summon-ripple';
+                el.style.left = x + 'px';
+                el.style.top = y + 'px';
+                document.body.appendChild(el);
+                setTimeout(() => el.remove(), 800);
+            };
+
+            // 一跳的長度與時間：慢慢跳過來，才有小寵物被叫過來的感覺
+            const HOP_MS = 430;
+            const HOP_DIST = 80;
+            let hopTimers = [];
+            const stopHops = () => { hopTimers.forEach(clearTimeout); hopTimers = []; };
+            const after = (ms, fn) => hopTimers.push(setTimeout(fn, ms));
+
+            // 讓「蹲、騰空、落地」的動畫重播一次
+            const hopStep = () => {
+                slugEl.classList.remove('is-hop-step');
+                void slugEl.offsetWidth;
+                slugEl.classList.add('is-hop-step');
+            };
+
+            // 到站了：解除狀態、面向轉回來、把位置回報給其他玩家
+            const finishSummon = () => {
+                slugEl.classList.remove('is-summoned', 'is-hop-step', 'is-summon-perk');
+                slugEl.style.transition = '';
+                slugEl.style.transform = slugTransform();
+                clampSlugIntoSafeArea();
+                if (typeof broadcastMove === 'function') {
+                    broadcastMove(parseFloat(slugEl.style.left) || 0, parseFloat(slugEl.style.top) || 0);
+                }
+            };
+
+            const summonTo = (clientX, clientY) => {
+                if (BUSY.some(c => slugEl.classList.contains(c))) return;
+                if (document.body.classList.contains('is-dragging-global')) return;
+                // 餵食、運動、擦玻璃進行中就別打擾牠
+                if (isFeedingActive || isExercisingActive || isCleaningActive) return;
+
+                const bounds = getSlugSafeBounds();
+                if (!bounds) return;
+                const stageRect = stage.getBoundingClientRect();
+
+                const rect = slugEl.getBoundingClientRect();
+                const visW = rect.width || slugEl.offsetWidth;
+                const visH = rect.height || slugEl.offsetHeight;
+                const padX = (slugEl.offsetWidth - visW) / 2;
+                const padY = (slugEl.offsetHeight - visH) / 2;
+
+                // 讓海兔「看得到的身體」中心停在點擊的位置，再夾回安全範圍
+                let targetLeft = clientX - stageRect.left - visW / 2 - padX;
+                let targetTop = clientY - stageRect.top - visH / 2 - padY;
+                targetLeft = Math.min(Math.max(targetLeft, bounds.minX), bounds.maxX);
+                targetTop = Math.min(Math.max(targetTop, bounds.minY), bounds.maxY);
+
+                // 用「現在畫面上真正的位置」當起點：跳到一半又被叫去別的地方才不會瞬移
+                const nowStyle = getComputedStyle(slugEl);
+                const curLeft = parseFloat(nowStyle.left);
+                const curTop = parseFloat(nowStyle.top);
+                const startLeft = isNaN(curLeft) ? slugEl.offsetLeft : curLeft;
+                const startTop = isNaN(curTop) ? slugEl.offsetTop : curTop;
+                const dist = Math.sqrt(Math.pow(targetLeft - startLeft, 2) + Math.pow(targetTop - startTop, 2));
+                const facing = targetLeft < startLeft - 8 ? 1 : -1;     // 預設朝左，往右跑就翻面
+
+                ripple(clientX, clientY);
+                playDingSound(1);
+                showFloatText(currLang === 'zh' ? '海兔跑過來了！' : 'Your sea bunny hops over!');
+
+                // 連點好幾個地方時，以最後一次點的為準，並從現在的位置重新起跳
+                stopHops();
+                slugEl.style.transition = 'none';
+                slugEl.style.left = startLeft + 'px';
+                slugEl.style.top = startTop + 'px';
+                void slugEl.offsetWidth;
+                slugEl.style.setProperty('--hop-ms', HOP_MS + 'ms');
+                slugEl.classList.add('is-summoned');
+
+                // 本來就在旁邊，就原地開心跳一下
+                if (dist <= 12) {
+                    hopStep();
+                    after(HOP_MS, finishSummon);
+                    return;
+                }
+
+                // 先轉過來愣一下（發現自己被叫了），再開始跳
+                slugEl.style.transition = 'transform 0.2s ease-out';
+                slugEl.style.transform = slugTransform('scaleX(' + facing + ')');
+                slugEl.classList.add('is-summon-perk');
+                after(260, () => slugEl.classList.remove('is-summon-perk'));
+
+                // 把路程切成好幾小跳，一跳一跳慢慢靠過來
+                const steps = Math.max(2, Math.min(8, Math.round(dist / HOP_DIST)));
+                const ease = 'cubic-bezier(0.45, 0, 0.55, 1)';           // 蹲一下、彈出去、再落地
+                for (let i = 1; i <= steps; i++) {
+                    after(300 + (i - 1) * HOP_MS, () => {
+                        // 中途被玩家抓起來就不跳了
+                        if (document.body.classList.contains('is-dragging-global')) { stopHops(); finishSummon(); return; }
+                        const t = i / steps;
+                        slugEl.style.transition = 'left ' + HOP_MS + 'ms ' + ease
+                            + ', top ' + HOP_MS + 'ms ' + ease + ', transform 0.2s ease-out';
+                        slugEl.style.left = (startLeft + (targetLeft - startLeft) * t) + 'px';
+                        slugEl.style.top = (startTop + (targetTop - startTop) * t) + 'px';
+                        hopStep();
+                    });
+                }
+                after(300 + steps * HOP_MS + 140, finishSummon);
+            };
+
+            // 點到海兔本身或任何介面元件都不算召喚
+            const UI_SELECTOR = '#slugContainer, button, input, .ui-panel.open, .top-bar, .mp-panel,'
+                + ' .item-card, .pet-name-tag, #petInteractiveHand, #floatingRecallBtn, #paintPalettePanel';
+            const isOnUI = (target) => !(target && target.closest) || !!target.closest(UI_SELECTOR);
+
+            // 電腦：直接用瀏覽器的雙擊事件
+            stage.addEventListener('dblclick', (e) => {
+                if (Date.now() - lastTouchAt < 900) return;        // 觸控裝置補送的滑鼠事件不理它
+                if (isOnUI(e.target)) return;
+                summonTo(e.clientX, e.clientY);
+            });
+
+            // 手機：自己判斷連點兩下（320ms 內、位置相近）
+            stage.addEventListener('touchend', (e) => {
+                lastTouchAt = Date.now();
+                if (isOnUI(e.target)) return;
+                const t = e.changedTouches && e.changedTouches[0];
+                if (!t) return;
+                const now = Date.now();
+                const near = Math.sqrt(Math.pow(t.clientX - lastTapX, 2) + Math.pow(t.clientY - lastTapY, 2)) < 45;
+                if (now - lastTapAt < 320 && near) {
+                    lastTapAt = 0;
+                    summonTo(t.clientX, t.clientY);
+                } else {
+                    lastTapAt = now;
+                    lastTapX = t.clientX;
+                    lastTapY = t.clientY;
+                }
+            }, { passive: true });
+        }
+
         // 🐰 【日常小動作】沒有在互動的時候，海兔會自己眨眼、抖耳朵、伸懶腰、東張西望
         const IDLE_ACTIONS = [
             { cls: 'idle-blink', ms: 340, weight: 6 },
@@ -62,7 +214,7 @@ let GAME_TOKEN = localStorage.getItem('authToken') || localStorage.getItem('acce
         ];
         // 這些狀態代表海兔正在忙，忙的時候不要插隊做小動作
         const IDLE_BUSY_CLASSES = ['is-petting', 'is-eating-munch', 'is-chasing-food', 'is-jumping',
-            'is-exercising-run', 'is-refusing-exercise', 'is-starving', 'card-mode'];
+            'is-exercising-run', 'is-refusing-exercise', 'is-starving', 'card-mode', 'is-summoned'];
 
         function startIdleLife() {
             const total = IDLE_ACTIONS.reduce((sum, a) => sum + a.weight, 0);
@@ -2944,6 +3096,7 @@ const effectData = {
             updateSlugScale();   // 依螢幕大小決定海兔要多大
             updateRecallButtonVisibility();
             startIdleLife();     // 讓海兔自己動起來
+            initSummonSystem();  // 點兩下就能把海兔叫過來
 
             // 🌟 3. 主動向後端拉取最新金幣數量與今日任務狀態
             await fetchUserCoins();
