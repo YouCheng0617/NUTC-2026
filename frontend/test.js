@@ -127,6 +127,152 @@ function calculateZodiac(month, day) {
 }
 
 // 🌊 向後端抓取文章 API
+// 🌊 把後端回傳的瓶子資料整理成前端畫面在用的格式。
+// 抽成獨立函式，讓貼文列表跟「點通知跳到該篇貼文」共用同一套轉換，不會有兩份對不起來
+function normalizeBottle(rawItem, likedBottleIds = [], savedBottleIds = []) {
+      const item = rawItem.bottle || rawItem.Bottle || rawItem;
+      const safeId = String(
+        item.bottle_id ||
+          item.id ||
+          item.bottleId ||
+          rawItem.bottle_id ||
+          `temp_${Math.random().toString(36).substr(2, 9)}`,
+      );
+
+      let isActuallyLiked =
+        likedBottleIds.includes(safeId) ||
+        Boolean(item.is_liked || item.isLiked || rawItem.is_liked);
+      let isActuallySaved =
+        savedBottleIds.includes(safeId) ||
+        Boolean(item.is_saved || item.isSaved || rawItem.is_saved);
+
+      if (currentView === "saved") isActuallySaved = true;
+
+      let totalLikes = parseInt(
+        item.like_count ||
+          item.likeCount ||
+          item.likes ||
+          item.view_count ||
+          rawItem.like_count ||
+          0,
+        10,
+      );
+      if (isActuallyLiked && totalLikes === 0) totalLikes = 1;
+
+      let authorName = "用戶";
+      if (typeof item.author === "string") authorName = item.author;
+      else if (item.author?.name) authorName = item.author.name;
+      else if (item.author_name) authorName = item.author_name;
+      else if (item.user?.name) authorName = item.user.name;
+      else if (item.username) authorName = item.username;
+      else if (item.User?.name) authorName = item.User.name;
+      else if (typeof rawItem.author === "string")
+        authorName = rawItem.author;
+      else if (rawItem.author?.name) authorName = rawItem.author.name;
+      else if (rawItem.user?.name) authorName = rawItem.user.name;
+      else if (rawItem.User?.name) authorName = rawItem.User.name;
+      else if (rawItem.member?.name) authorName = rawItem.member.name;
+      else if (item.member?.name) authorName = item.member.name;
+      else if (item.member_name) authorName = item.member_name;
+      else if (rawItem.member_name) authorName = rawItem.member_name;
+
+      if (authorName === "用戶" && currentView === "mine") {
+        const currentUser = JSON.parse(
+          localStorage.getItem("currentUser") || "{}",
+        );
+        authorName = currentUser.name || "用戶";
+      }
+
+      let rawBoard = item.category_name || item.board || null;
+
+      if (
+        !rawBoard &&
+        item.category_list &&
+        Array.isArray(item.category_list) &&
+        item.category_list.length > 0
+      ) {
+        rawBoard = item.category_list[0];
+      }
+
+      if (!rawBoard && item.categories && item.categories.length > 0) {
+        rawBoard = item.categories[0].category?.name;
+      } else if (
+        !rawBoard &&
+        rawItem.categories &&
+        rawItem.categories.length > 0
+      ) {
+        rawBoard = rawItem.categories[0].category?.name;
+      }
+
+      let finalBoard = "😑 極度厭世/躺平";
+      let cId = item.category_id || rawItem.category_id || item.categoryId;
+
+      if (!rawBoard && item.categories && item.categories.length > 0) {
+        cId = item.categories[0].category_id;
+      }
+
+      if (rawBoard) {
+        if (rawBoard.includes("憤怒")) finalBoard = "😡 極度憤怒中";
+        else if (rawBoard.includes("秘密")) finalBoard = "🤫 沒人懂的秘密";
+        else if (rawBoard.includes("破碎")) finalBoard = "💔 破碎的碎片";
+        else if (rawBoard.includes("厭世") || rawBoard.includes("躺平"))
+          finalBoard = "😑 極度厭世/躺平";
+        else if (rawBoard.includes("開心")) finalBoard = "😁 開心的事";
+        else finalBoard = rawBoard;
+      } else if (cId !== undefined && cId !== null) {
+        const idToBoard = {
+          1: "😡 極度憤怒中",
+          2: "🤫 沒人懂的秘密",
+          3: "💔 破碎的碎片",
+          4: "😑 極度厭世/躺平",
+          5: "😁 開心的事",
+        };
+        if (Array.isArray(cId) && cId.length > 0) {
+          finalBoard = idToBoard[cId[0]] || finalBoard;
+        } else if (!Array.isArray(cId)) {
+          finalBoard = idToBoard[cId] || finalBoard;
+        }
+      }
+
+      let realAuthorId =
+        item.author_id ||
+        item.user_id ||
+        item.member_id ||
+        rawItem.author_id ||
+        rawItem.user_id;
+
+      if (!realAuthorId && item.author?.id) realAuthorId = item.author.id;
+      if (!realAuthorId && item.user?.id) realAuthorId = item.user.id;
+      if (!realAuthorId && item.User?.id) realAuthorId = item.User.id;
+      if (!realAuthorId && item.member?.id) realAuthorId = item.member.id;
+      if (!realAuthorId && rawItem.author?.id)
+        realAuthorId = rawItem.author.id;
+
+      const itemPoll = parsePoll(item, rawItem);
+      const itemContent = stripLegacyPollTag(
+        item.content || rawItem.content || "",
+      );
+
+      return {
+        id: safeId,
+        board: finalBoard,
+        author: item.is_anonymous || item.isAnonymous ? "匿名" : authorName,
+        authorId: realAuthorId || null,
+        title: item.title || rawItem.title,
+        desc: itemContent, // 🌟 換成乾淨無標籤的內文
+        poll: itemPoll, // 🌟 掛上投票物件
+        likes: totalLikes,
+        msgs: item.comment_count || item.comments?.length || 0,
+        liked: isActuallyLiked,
+        saved: isActuallySaved,
+        createdAt:
+          item.createdAt ||
+          item.created_at ||
+          rawItem.createdAt ||
+          rawItem.created_at,
+      };
+}
+
 async function fetchBottles() {
   const token = localStorage.getItem("authToken");
 
@@ -230,149 +376,9 @@ async function fetchBottles() {
         postsArray = backendData.result;
       }
 
-      posts = postsArray.map((rawItem) => {
-        const item = rawItem.bottle || rawItem.Bottle || rawItem;
-        const safeId = String(
-          item.bottle_id ||
-            item.id ||
-            item.bottleId ||
-            rawItem.bottle_id ||
-            `temp_${Math.random().toString(36).substr(2, 9)}`,
-        );
-
-        let isActuallyLiked =
-          likedBottleIds.includes(safeId) ||
-          Boolean(item.is_liked || item.isLiked || rawItem.is_liked);
-        let isActuallySaved =
-          savedBottleIds.includes(safeId) ||
-          Boolean(item.is_saved || item.isSaved || rawItem.is_saved);
-
-        if (currentView === "saved") isActuallySaved = true;
-
-        let totalLikes = parseInt(
-          item.like_count ||
-            item.likeCount ||
-            item.likes ||
-            item.view_count ||
-            rawItem.like_count ||
-            0,
-          10,
-        );
-        if (isActuallyLiked && totalLikes === 0) totalLikes = 1;
-
-        let authorName = "用戶";
-        if (typeof item.author === "string") authorName = item.author;
-        else if (item.author?.name) authorName = item.author.name;
-        else if (item.author_name) authorName = item.author_name;
-        else if (item.user?.name) authorName = item.user.name;
-        else if (item.username) authorName = item.username;
-        else if (item.User?.name) authorName = item.User.name;
-        else if (typeof rawItem.author === "string")
-          authorName = rawItem.author;
-        else if (rawItem.author?.name) authorName = rawItem.author.name;
-        else if (rawItem.user?.name) authorName = rawItem.user.name;
-        else if (rawItem.User?.name) authorName = rawItem.User.name;
-        else if (rawItem.member?.name) authorName = rawItem.member.name;
-        else if (item.member?.name) authorName = item.member.name;
-        else if (item.member_name) authorName = item.member_name;
-        else if (rawItem.member_name) authorName = rawItem.member_name;
-
-        if (authorName === "用戶" && currentView === "mine") {
-          const currentUser = JSON.parse(
-            localStorage.getItem("currentUser") || "{}",
-          );
-          authorName = currentUser.name || "用戶";
-        }
-
-        let rawBoard = item.category_name || item.board || null;
-
-        if (
-          !rawBoard &&
-          item.category_list &&
-          Array.isArray(item.category_list) &&
-          item.category_list.length > 0
-        ) {
-          rawBoard = item.category_list[0];
-        }
-
-        if (!rawBoard && item.categories && item.categories.length > 0) {
-          rawBoard = item.categories[0].category?.name;
-        } else if (
-          !rawBoard &&
-          rawItem.categories &&
-          rawItem.categories.length > 0
-        ) {
-          rawBoard = rawItem.categories[0].category?.name;
-        }
-
-        let finalBoard = "😑 極度厭世/躺平";
-        let cId = item.category_id || rawItem.category_id || item.categoryId;
-
-        if (!rawBoard && item.categories && item.categories.length > 0) {
-          cId = item.categories[0].category_id;
-        }
-
-        if (rawBoard) {
-          if (rawBoard.includes("憤怒")) finalBoard = "😡 極度憤怒中";
-          else if (rawBoard.includes("秘密")) finalBoard = "🤫 沒人懂的秘密";
-          else if (rawBoard.includes("破碎")) finalBoard = "💔 破碎的碎片";
-          else if (rawBoard.includes("厭世") || rawBoard.includes("躺平"))
-            finalBoard = "😑 極度厭世/躺平";
-          else if (rawBoard.includes("開心")) finalBoard = "😁 開心的事";
-          else finalBoard = rawBoard;
-        } else if (cId !== undefined && cId !== null) {
-          const idToBoard = {
-            1: "😡 極度憤怒中",
-            2: "🤫 沒人懂的秘密",
-            3: "💔 破碎的碎片",
-            4: "😑 極度厭世/躺平",
-            5: "😁 開心的事",
-          };
-          if (Array.isArray(cId) && cId.length > 0) {
-            finalBoard = idToBoard[cId[0]] || finalBoard;
-          } else if (!Array.isArray(cId)) {
-            finalBoard = idToBoard[cId] || finalBoard;
-          }
-        }
-
-        let realAuthorId =
-          item.author_id ||
-          item.user_id ||
-          item.member_id ||
-          rawItem.author_id ||
-          rawItem.user_id;
-
-        if (!realAuthorId && item.author?.id) realAuthorId = item.author.id;
-        if (!realAuthorId && item.user?.id) realAuthorId = item.user.id;
-        if (!realAuthorId && item.User?.id) realAuthorId = item.User.id;
-        if (!realAuthorId && item.member?.id) realAuthorId = item.member.id;
-        if (!realAuthorId && rawItem.author?.id)
-          realAuthorId = rawItem.author.id;
-
-        const itemPoll = parsePoll(item, rawItem);
-        const itemContent = stripLegacyPollTag(
-          item.content || rawItem.content || "",
-        );
-
-        return {
-          id: safeId,
-          board: finalBoard,
-          author: item.is_anonymous || item.isAnonymous ? "匿名" : authorName,
-          authorId: realAuthorId || null,
-          title: item.title || rawItem.title,
-          desc: itemContent, // 🌟 換成乾淨無標籤的內文
-          poll: itemPoll, // 🌟 掛上投票物件
-          likes: totalLikes,
-          msgs: item.comment_count || item.comments?.length || 0,
-          liked: isActuallyLiked,
-          saved: isActuallySaved,
-          createdAt:
-            item.createdAt ||
-            item.created_at ||
-            rawItem.createdAt ||
-            rawItem.created_at,
-        };
-      });
+      posts = postsArray.map((rawItem) =>
+        normalizeBottle(rawItem, likedBottleIds, savedBottleIds),
+      );
 
       applyFilters();
     } else if (response.status === 404) {
@@ -3133,9 +3139,14 @@ async function fetchAndRenderNotifications() {
           ? new Date(notif.created_at).toLocaleString()
           : notif.time || "";
         const notificationText = notif.content || notif.message || "";
+        // target_id 依通知類型代表不同東西：瓶子類是漂流瓶 id，
+        // 追蹤通知是會員 id，客服通知是客服單 id，所以類型也要一起傳過去
+        const targetId = notif.target_id ?? notif.targetId ?? "";
+        const safeType = String(notif.type || "").replace(/[^A-Z_]/gi, "");
 
         return `
-                <div class="notif-mini-card ${unreadClass}" ${!isRead ? `onclick="markSingleAsReadAPI('${notif.id}', this)"` : ""}>
+                <div class="notif-mini-card ${unreadClass}" style="cursor: pointer"
+                     onclick="openNotificationTarget('${notif.id}', '${targetId}', ${isRead ? "true" : "false"}, this, '${safeType}')">
                     <div class="notif-icon ${iconClass}">${iconEmoji}</div>
                     <div class="notif-text-box">
                         <p>${escapeHTML(notificationText)}</p>
@@ -3152,6 +3163,121 @@ async function fetchAndRenderNotifications() {
       '<div style="text-align: center; color: #ff4d4d; padding: 20px 0;">連線失敗，請稍後再試 😢</div>';
   }
 }
+
+// 🔔 點通知就跳到對應的地方
+// 這幾種通知的 target_id 是漂流瓶 id，可以點進貼文
+const NOTIF_BOTTLE_TYPES = [
+  "BOTTLE_LIKE", "BOTTLE_SAVE", "COMMENT_LIKE", "COMMENT_REPLY", "SYSTEM_ALERT", "SYSTEM",
+];
+
+window.openNotificationTarget = async function (notifId, targetId, isRead, cardElement, type = "") {
+  // 1. 順手標成已讀（維持原本的行為）
+  if (!isRead && cardElement) {
+    markSingleAsReadAPI(notifId, cardElement);
+  }
+
+  const kind = String(type).toUpperCase();
+
+  // 2. 客服通知的 target_id 是客服單 id，帶去客服頁
+  if (kind.startsWith("CUSTOMER_SERVICE")) {
+    window.location.href = "customer-service.html";
+    return;
+  }
+
+  // 3. 追蹤通知的 target_id 是會員 id，不是瓶子 —— 目前還沒有個人頁面可以去
+  if (kind === "NEW_FOLLOWER") {
+    showOceanToast("有新朋友追蹤你了！目前還沒有個人頁面可以看喔 🌊");
+    return;
+  }
+
+  // 4. 不認得的類型、或系統公告這種沒有對應貼文的
+  if (
+    (kind && !NOTIF_BOTTLE_TYPES.includes(kind)) ||
+    !targetId || targetId === "null" || targetId === "undefined"
+  ) {
+    showOceanToast("這則通知沒有對應的漂流瓶喔！🌊");
+    return;
+  }
+
+  const popup = document.getElementById("notif-popup");
+  const closePopup = () => {
+    if (popup) popup.style.display = "none";
+  };
+
+  // 3. 這篇就在目前的清單裡，直接開
+  if (posts.find((p) => String(p.id) === String(targetId))) {
+    closePopup();
+    openPostDetail(targetId);
+    return;
+  }
+
+  // 4. 不在清單裡，就跟後端單獨要這一篇
+  const token = localStorage.getItem("authToken");
+  const headers = {
+    "Content-Type": "application/json",
+    "ngrok-skip-browser-warning": "true",
+  };
+  if (token) headers["Authorization"] = `Bearer ${token}`;
+
+  try {
+    const res = await fetch(`${API_BASE_URL}/bottles/${targetId}`, {
+      method: "GET",
+      headers,
+    });
+
+    if (res.status === 404) {
+      // 後端的「取得單篇漂流瓶」API 還沒上線時，打這個網址也是 404，
+      // 但回的是 Express 預設的 HTML 頁，不是 JSON。用這點分辨，不然會把每篇都誤報成已刪除
+      const body = await res.json().catch(() => null);
+      if (body && body.message) {
+        showOceanToast("這篇漂流瓶已經被刪除了 😢");
+      } else {
+        showOceanToast("這篇漂流瓶暫時打不開，請稍後再試 🌊");
+      }
+      return;
+    }
+    if (!res.ok) throw new Error("伺服器抓不到這篇漂流瓶");
+
+    const data = await res.json();
+    const rawBottle = data.bottle || data;
+
+    // 順便補上按讚／收藏狀態，點進去的愛心才不會是錯的
+    let likedIds = [];
+    let savedIds = [];
+    if (token) {
+      const pull = async (path, pick) => {
+        try {
+          const r = await fetch(`${API_BASE_URL}${path}`, { method: "GET", headers });
+          if (!r.ok) return [];
+          const d = await r.json();
+          const arr = d.bottles || d.data || d;
+          return Array.isArray(arr) ? arr.map(pick).filter(Boolean) : [];
+        } catch (e) {
+          return [];
+        }
+      };
+      const idOf = (i) => String((i.bottle || i).bottle_id || (i.bottle || i).id || "");
+      [likedIds, savedIds] = await Promise.all([
+        pull("/bottles/liked", idOf),
+        pull("/bottles/saved", idOf),
+      ]);
+    }
+
+    // 用跟貼文列表同一套轉換，欄位才不會對不起來
+    const post = normalizeBottle(rawBottle, likedIds, savedIds);
+
+    // 放進 posts：按讚、留言、投票那些功能都是查這個陣列，不放進去會通通失效
+    if (!posts.find((p) => String(p.id) === String(post.id))) {
+      posts.push(post);
+    }
+
+    closePopup();
+    openPostDetail(post.id);
+  } catch (error) {
+    console.error("打開通知對應的貼文失敗：", error);
+    showOceanToast("連線失敗，等一下再試試看 😢");
+  }
+};
 
 // 3. 單筆已讀
 window.markSingleAsReadAPI = async function (id, cardElement) {
@@ -3170,7 +3296,7 @@ window.markSingleAsReadAPI = async function (id, cardElement) {
       cardElement.classList.remove("unread");
       const dot = cardElement.querySelector(".notif-unread-dot");
       if (dot) dot.style.display = "none";
-      cardElement.onclick = null;
+      // 這裡以前會把 onclick 清掉，導致已讀的通知再也點不進貼文，所以不再清除
 
       if (typeof fetchNotificationCount === "function") {
         fetchNotificationCount();
