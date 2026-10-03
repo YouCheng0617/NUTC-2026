@@ -32,23 +32,78 @@ let GAME_TOKEN = localStorage.getItem('authToken') || localStorage.getItem('acce
         let isMockMode = false;
         let mockIntervals = [];
 
-        // 🌊 【開場動畫】播完或被點掉之後，把整層拿掉，不擋住遊戲操作
-        function endIntro(fast) {
+        // 🌊 【開場動畫＝載入畫面】動畫播的這 5.5 秒就是在背後載資料，底下那條進度列就是進度。
+        //    動畫不給跳過，而且一定要「動畫播完」且「資料載好」兩個條件都成立才放玩家進去，
+        //    否則玩家一進遊戲還會看到背景、水質混濁、造型一個一個慢慢補上來。
+        const loadingUI = (function () {
             const intro = document.getElementById('introOverlay');
-            if (!intro || intro.dataset.done) return;
-            intro.dataset.done = '1';
-            if (fast) intro.classList.add('is-skipping');
-            setTimeout(() => intro.remove(), fast ? 380 : 900);
-        }
-        function skipIntro() { endIntro(true); }
+            const fill = document.getElementById('introBarFill');
+            const txtEl = document.getElementById('introLoadText');
+            const slowMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+            const ANIM_MS = slowMotion ? 1200 : 5500;   // 開場動畫本身要播多久
+            const HOLD_MS = 450;                        // 進度滿了之後停一下再走，不要一滿就閃掉
 
-        (function setupIntro() {
-            const intro = document.getElementById('introOverlay');
-            if (!intro) return;
-            const slow = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-            setTimeout(() => endIntro(false), slow ? 1100 : 5500);   // 動畫跑完就自動收掉
+            let pct = 0;
+            let left = false;                 // 已經開始離場了嗎
+            let ready = false;                // 資料都備好了嗎
+            let animDone = false;             // 動畫播完了嗎
+            let labelZh = '正在喚醒海兔…';
+            let labelEn = 'Waking up your sea bunny…';
+
+            // 本機載得很快的話，進度條會在第 1 秒就衝到底，然後卡著等動畫播完，看起來很呆。
+            // 所以動畫期間的上限會跟著時間慢慢放寬（動畫播完剛好到 92%），
+            // 顯示的永遠是「真實進度」和「時間上限」裡比較小的那個，不會假裝已經載好
+            const CAP_WHILE_ANIM = 92;
+            const startAt = Date.now();
+            const timeCap = () => Math.min(CAP_WHILE_ANIM, (Date.now() - startAt) / ANIM_MS * CAP_WHILE_ANIM);
+            // 這段在整支程式的最前面就會跑，那時候 currLang 還沒宣告完，直接讀會炸掉
+            const isEn = () => { try { return currLang === 'en'; } catch (e) { return false; } };
+            const render = () => {
+                if (left) return;
+                const shown = animDone ? pct : Math.min(pct, timeCap());
+                if (fill) fill.style.width = shown + '%';
+                if (txtEl) {
+                    txtEl.textContent = (shown >= 100)
+                        ? (isEn() ? 'Ready!' : '準備好了！')
+                        : ((isEn() && labelEn) ? labelEn : labelZh);
+                }
+            };
+
+            // 進度只進不退，文案跟著換
+            const set = (p, zh, en) => {
+                if (left) return;
+                pct = Math.max(pct, Math.min(100, p));
+                if (zh) { labelZh = zh; labelEn = en || zh; }
+                render();
+            };
+
+            // 真的讓開場動畫離場
+            const leave = () => {
+                if (left || !intro) return;
+                left = true;
+                if (fill) fill.style.width = '100%';
+                if (txtEl) txtEl.textContent = isEn() ? 'Ready!' : '準備好了！';
+                setTimeout(() => {
+                    intro.classList.add('is-leaving');
+                    setTimeout(() => intro.remove(), 820);
+                }, HOLD_MS);
+            };
+
+            // 兩個條件都到齊才走：動畫播完 + 資料載好
+            const tryLeave = () => { if (!left && ready && animDone) leave(); };
+
+            const finish = () => { ready = true; set(100); tryLeave(); };
+
+            // 動畫期間固定重畫，進度條才會跟著動畫一路爬上去
+            const ticker = setInterval(() => { if (animDone || left) clearInterval(ticker); else render(); }, 150);
+            setTimeout(() => { animDone = true; render(); tryLeave(); }, ANIM_MS);
+
+            // 保險絲：萬一伺服器一直不回應，最多 13 秒也一定放玩家進去
+            setTimeout(() => { ready = true; animDone = true; render(); leave(); }, 13000);
+
+            render();
+            return { set, finish };
         })();
-
         // 🐰 【雙擊召喚】在舞台空白處點兩下（手機連點兩下），海兔就會跳到那裡
         function initSummonSystem() {
             const stage = document.getElementById('mainStage');
@@ -679,7 +734,7 @@ const i18n = {
                 cooldown: "冷卻", ready: "可互動",
                 tabSpecies: "圖鑑", tabBg: "背景", tabEffect: "特效",
                 equip: "使用中", owned: "已解鎖",
-                introTitle: "海兔養成記", introSkip: "點一下跳過",
+                introTitle: "海兔養成記",
                 // ✨ 敬請期待卡
                 comingSoon: "敬請期待", comingSoonTag: "即將登場",
                 comingSoonHints: {
@@ -742,7 +797,7 @@ const i18n = {
                 cooldown: "CD", ready: "Ready",
                 tabSpecies: "Species", tabBg: "Background", tabEffect: "Effects",
                 equip: "Active", owned: "Unlocked",
-                introTitle: "Sea Bunny Life", introSkip: "Tap to skip",
+                introTitle: "Sea Bunny Life",
                 // ✨ Coming soon card
                 comingSoon: "Coming Soon", comingSoonTag: "Almost here",
                 comingSoonHints: {
@@ -3082,9 +3137,11 @@ const effectData = {
        // 🌟 【遊戲啟動核心】網頁載入後第一個跑來這裡，負責讀檔、連線、把所有畫面準備好
         async function initGameData() {
             // 1. 先第一時間讀取本地存檔，讓畫面瞬間恢復！
+            loadingUI.set(14, '正在翻出你的存檔…', 'Finding your save…');
             loadGame();
             checkDaily();
             // 2. 判斷要不要顯示抽獎畫面，並且更新全部的按鈕與圖案
+            loadingUI.set(32, '正在布置海兔的家…', 'Setting up the tank…');
             checkFirstTime();
             updateLangUI();
             renderShop();
@@ -3099,10 +3156,12 @@ const effectData = {
             initSummonSystem();  // 點兩下就能把海兔叫過來
 
             // 🌟 3. 主動向後端拉取最新金幣數量與今日任務狀態
+            loadingUI.set(56, '正在數你的積分…', 'Counting your coins…');
             await fetchUserCoins();
             syncDailyTaskStatus();
 
             // 🌟 4. 背景悄悄同步伺服器資料
+            loadingUI.set(76, '正在跟伺服器對資料…', 'Syncing with the server…');
             try {
                 const data = await fetchAPI('/pet-games/my-pet', 'GET');
                 if (data && !data.error) {
@@ -3150,7 +3209,11 @@ const effectData = {
             }
 
             // 啟動多人連線
-            initSocketIO(); 
+            loadingUI.set(92, '正在接上海裡的朋友…', 'Connecting to other players…');
+            initSocketIO();
+
+            // 等瀏覽器真的把這一切畫出來一格之後，才把載入畫面收掉
+            requestAnimationFrame(() => requestAnimationFrame(() => loadingUI.finish()));
         }
         
         // 當網頁讀取完畢，就去呼叫上面的「遊戲啟動核心」
@@ -4344,8 +4407,18 @@ slugEl.style.transform = slugTransform(`scaleX(${direction})`);
                 }
             }, 10000);
 
-            // 剛進入遊戲立即渲染當前水質
-            renderWaterQuality();
+            // 剛進入遊戲立即渲染當前水質。
+            // 這層本來有 0.3 秒的淡入，玩家會看到畫面「過一下才慢慢變混濁」，
+            // 所以第一次要直接就是最後的樣子，之後再把淡入效果還回去
+            const overlay = document.getElementById('dirtOverlay');
+            if (overlay) {
+                overlay.style.transition = 'none';
+                renderWaterQuality();
+                void overlay.offsetWidth;
+                overlay.style.transition = '';
+            } else {
+                renderWaterQuality();
+            }
         }
 
         // 🎨 根據當前髒污度更新畫面視覺
@@ -4539,10 +4612,9 @@ function updateLangUI() {
             document.getElementById('btnLang').innerText = t.langBtn;
             document.getElementById('txtPts').innerText = t.points;
             // 開場動畫還在畫面上的話，字樣也跟著語系走
+            // （底下那行載入進度的文字由 loadingUI 自己管，這裡不要去蓋掉它）
             const introTitleEl = document.getElementById('introTitle');
-            const introSkipEl = document.getElementById('introSkip');
             if (introTitleEl) introTitleEl.innerText = t.introTitle || introTitleEl.innerText;
-            if (introSkipEl) introSkipEl.innerText = t.introSkip || introSkipEl.innerText;
             document.getElementById('gachaTitle').innerText = t.gachaTitle;
             if(document.getElementById('gachaBox').innerText !== '' && !document.getElementById('gachaBox').innerHTML.includes('div')) {
                 document.getElementById('gachaBox').innerText = t.gachaBox;

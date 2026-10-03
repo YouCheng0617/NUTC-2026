@@ -15,8 +15,10 @@
 
 </head>
 <body>
-    <!-- 🌟 【開場動畫】鏡頭掉進海裡 → 盲盒沉下來 → 啪一聲打開，結束後才看到遊戲 -->
-    <div id="introOverlay" onclick="typeof skipIntro === 'function' && skipIntro()">
+    <!-- 🌟 【開場動畫＋載入】鏡頭掉進海裡 → 盲盒沉下來 → 啪一聲打開。
+         動畫播的這幾秒就是在背後載資料，底下那條進度列就是載入進度。
+         不給跳過：東西沒載完就不會放玩家進去，免得一進遊戲還要看畫面東補一塊西補一塊 -->
+    <div id="introOverlay">
     <!-- 問號海兔：沿用遊戲裡海兔的輪廓，整隻塗黑中間一個問號 -->
     <svg width="0" height="0" style="position:absolute" aria-hidden="true">
         <symbol id="introQBunny" viewBox="0 0 340 240">
@@ -139,16 +141,20 @@
             <svg class="q-fly" viewBox="0 0 340 240" style="--tx:54vmin; --ty:-4vmin; --rot:-28deg; --s:0.72; width:10vmin; animation-delay:3.217s;"><use href="#introQBunny"/></svg>
         </div>
         <div class="intro-title" id="introTitle">海兔養成記</div>
-        <div class="intro-skip" id="introSkip">點一下跳過</div>
+        <!-- 載入進度：跟著動畫一起出現在最底下 -->
+        <div class="intro-loading">
+            <div class="intro-bar"><div class="intro-bar-fill" id="introBarFill"></div></div>
+            <div class="intro-load-text" id="introLoadText">正在喚醒海兔…</div>
+        </div>
     </div>
     <script>
-        // 保險絲：不管主程式有沒有載入成功，開場動畫最多 6 秒就會被移除，避免擋住操作
+        // 保險絲：動畫不給跳過，但萬一主程式整個載入失敗，最多 14 秒也一定要放玩家進去
         (function () {
             var intro = document.getElementById('introOverlay');
             if (!intro) return;
-            var kill = function () { if (intro && intro.parentNode) intro.parentNode.removeChild(intro); };
-            setTimeout(kill, 6000);
-            intro.addEventListener('touchstart', function () { setTimeout(kill, 400); }, { passive: true });
+            setTimeout(function () {
+                if (intro && intro.parentNode) intro.parentNode.removeChild(intro);
+            }, 14000);
         })();
     </script>
 

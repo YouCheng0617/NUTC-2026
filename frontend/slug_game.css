@@ -1123,10 +1123,12 @@
             z-index: 100000;
             overflow: hidden;
             background: #06355c;
-            cursor: pointer;
-            animation: blastShake 0.5s 3.2s cubic-bezier(0.36, 0.07, 0.19, 0.97),
-                       introOut 0.8s 4.7s ease-in forwards;
+            /* 不給跳過，所以不要有「可以點」的游標 */
+            cursor: default;
+            /* 離場不再寫死在動畫裡：要等資料載完，由 JS 加上 .is-leaving 才走 */
+            animation: blastShake 0.5s 3.2s cubic-bezier(0.36, 0.07, 0.19, 0.97);
         }
+        #introOverlay.is-leaving { animation: introOut 0.8s ease-in forwards; }
         /* 整個水下世界一起往上跑，做出鏡頭往下沉的感覺 */
         .intro-world {
             position: absolute;
@@ -1362,17 +1364,39 @@
             opacity: 0;
             animation: introTitle 1s 3.9s ease-out forwards;
         }
-        .intro-skip {
-            position: absolute; left: 0; right: 0; bottom: calc(6% + env(safe-area-inset-bottom, 0px));
+        /* 載入進度：動畫底下那條，讓玩家知道這幾秒不是在發呆 */
+        .intro-loading {
+            position: absolute; left: 0; right: 0;
+            bottom: calc(6% + env(safe-area-inset-bottom, 0px));
+            padding: 0 24px;
             text-align: center;
+            opacity: 0;
+            animation: introLoadIn 0.6s 1.4s ease-out forwards;
+        }
+        .intro-bar {
+            width: min(260px, 64vw);
+            height: 8px;
+            margin: 0 auto 10px;
+            border-radius: 99px;
+            background: rgba(255, 255, 255, 0.22);
+            overflow: hidden;
+            box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.25);
+        }
+        .intro-bar-fill {
+            width: 0;
+            height: 100%;
+            border-radius: 99px;
+            background: linear-gradient(90deg, #8ee3ff, #ffffff);
+            box-shadow: 0 0 12px rgba(160, 230, 255, 0.85);
+            transition: width 0.3s ease-out;
+        }
+        .intro-load-text {
             font-size: 0.85rem;
             font-weight: 900;
-            color: rgba(255,255,255,0.75);
-            opacity: 0;
-            animation: introSkipIn 0.6s 1.4s ease-out forwards;
+            letter-spacing: 1px;
+            color: rgba(255, 255, 255, 0.8);
+            text-shadow: 0 2px 8px rgba(0, 40, 75, 0.6);
         }
-        /* 被點掉時就快速淡出 */
-        #introOverlay.is-skipping { animation: introOut 0.35s ease-in forwards; }
 
         @keyframes introDive {
             0% { transform: translateY(-40vh); }
@@ -1394,12 +1418,15 @@
             0% { opacity: 0; transform: translateY(14px) scale(0.92); }
             100% { opacity: 1; transform: translateY(0) scale(1); }
         }
-        @keyframes introSkipIn { 0% { opacity: 0; } 100% { opacity: 1; } }
+        @keyframes introLoadIn { 0% { opacity: 0; } 100% { opacity: 1; } }
         @keyframes introOut { 0% { opacity: 1; } 100% { opacity: 0; visibility: hidden; } }
 
-        /* 系統關掉動畫時，只留一層短短的淡出，不做任何位移 */
+        /* 系統關掉動畫時，不做任何位移；離場一樣等資料載完才由 JS 觸發 */
         @media (prefers-reduced-motion: reduce) {
-            #introOverlay { animation: introOut 0.5s 0.6s ease-in forwards; }
+            #introOverlay { animation: none; }
+            #introOverlay.is-leaving { animation: introOut 0.4s ease-in forwards; }
+            .intro-loading { animation: none; opacity: 1; }
+            .intro-bar-fill { transition: none; }
             .intro-world, .intro-ray, .intro-splash, .intro-bubbles span,
             .intro-bottle, .bottle-bob, .bottle-grow, .bottle-shake,
             .bunny-inside, .blast-white, .blast-flash, .blast-ring, .shard, .debris, .q-fly { animation: none; }
