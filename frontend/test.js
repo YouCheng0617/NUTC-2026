@@ -384,6 +384,10 @@ async function fetchBottles() {
     }
   } catch (error) {
     console.error("連線錯誤:", error);
+  } finally {
+    // 🌊 撈不到瓶子（例如後端連不上）也要收掉載入畫面，
+    //    不然使用者會對著載入畫面乾等到保險絲跳掉
+    if (window.__ttLoading) window.__ttLoading.postsDone();
   }
 }
 
@@ -425,6 +429,9 @@ function escapeHTML(str) {
 }
 
 function renderPosts(data = posts) {
+  // 🌊 貼文一畫出來就通知載入畫面：到這裡代表資料流程已經跑完，可以放人進來了
+  if (window.__ttLoading) window.__ttLoading.postsDone();
+
   const container = document.getElementById("post-container");
   const pageContainer = document.getElementById("pagination-container");
   if (!container) return;

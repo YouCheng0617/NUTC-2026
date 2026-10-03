@@ -302,9 +302,210 @@
         }
       }
     </style>
+
+    <!-- ==================================================
+         🌊 進站載入畫面
+         樣式與控制器都寫在這裡，不放進 test.css —— 外部樣式表還在載的時候，
+         載入畫面本身就會先破圖，那就本末倒置了
+         ================================================== -->
+    <style>
+      #tt-loading {
+        position: fixed;
+        inset: 0;
+        z-index: 2147483000;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+        background: linear-gradient(180deg, #2e9fd4 0%, #1b6fa8 55%, #0d4876 100%);
+        font-family: "PingFang TC", "Microsoft JhengHei", sans-serif;
+        transition: opacity 0.5s ease;
+      }
+      #tt-loading.tt-done { opacity: 0; pointer-events: none; }
+      .tt-load-inner { position: relative; z-index: 2; text-align: center; padding: 0 24px; }
+      .tt-bottle {
+        width: min(96px, 24vw);
+        height: auto;
+        display: block;
+        margin: 0 auto 18px;
+        filter: drop-shadow(0 10px 18px rgba(0, 30, 60, 0.35));
+        animation: tt-bob 3s ease-in-out infinite;
+      }
+      @keyframes tt-bob {
+        0%, 100% { transform: translateY(0) rotate(-7deg); }
+        50% { transform: translateY(-12px) rotate(7deg); }
+      }
+      .tt-load-title {
+        font-size: clamp(1.25rem, 5.5vw, 1.75rem);
+        font-weight: 900;
+        letter-spacing: 3px;
+        color: #ffffff;
+        text-shadow: 0 3px 14px rgba(0, 40, 80, 0.55);
+        margin-bottom: 18px;
+      }
+      .tt-bar {
+        width: min(240px, 62vw);
+        height: 8px;
+        margin: 0 auto 12px;
+        border-radius: 99px;
+        background: rgba(255, 255, 255, 0.24);
+        overflow: hidden;
+        box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.28);
+      }
+      .tt-bar-fill {
+        width: 0;
+        height: 100%;
+        border-radius: 99px;
+        background: linear-gradient(90deg, #8ee3ff, #ffffff);
+        box-shadow: 0 0 12px rgba(160, 230, 255, 0.85);
+        transition: width 0.3s ease-out;
+      }
+      .tt-load-text {
+        font-size: 0.85rem;
+        font-weight: 800;
+        letter-spacing: 1px;
+        color: rgba(255, 255, 255, 0.82);
+        text-shadow: 0 2px 8px rgba(0, 35, 70, 0.6);
+      }
+      /* 背景慢慢往上飄的泡泡 */
+      .tt-bubbles { position: absolute; inset: 0; z-index: 1; pointer-events: none; }
+      .tt-bubbles span {
+        position: absolute;
+        bottom: -60px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.3);
+        box-shadow: inset -2px -3px 6px rgba(255, 255, 255, 0.5);
+        animation: tt-bubble linear infinite;
+      }
+      .tt-bubbles span:nth-child(1) { left: 10%; width: 14px; height: 14px; animation-duration: 7s;   animation-delay: 0s; }
+      .tt-bubbles span:nth-child(2) { left: 26%; width: 9px;  height: 9px;  animation-duration: 5.4s; animation-delay: 1.3s; }
+      .tt-bubbles span:nth-child(3) { left: 42%; width: 20px; height: 20px; animation-duration: 8.4s; animation-delay: 0.6s; }
+      .tt-bubbles span:nth-child(4) { left: 60%; width: 12px; height: 12px; animation-duration: 6.2s; animation-delay: 2.2s; }
+      .tt-bubbles span:nth-child(5) { left: 76%; width: 17px; height: 17px; animation-duration: 7.6s; animation-delay: 0.4s; }
+      .tt-bubbles span:nth-child(6) { left: 90%; width: 10px; height: 10px; animation-duration: 5.2s; animation-delay: 1.7s; }
+      @keyframes tt-bubble {
+        0%   { transform: translateY(0); opacity: 0; }
+        12%  { opacity: 0.85; }
+        85%  { opacity: 0.6; }
+        100% { transform: translateY(-115vh) translateX(14px); opacity: 0; }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .tt-bubbles { display: none; }
+        .tt-bottle { animation: none; }
+        .tt-bar-fill { transition: none; }
+      }
+    </style>
+
+    <script>
+      // 🌊 載入畫面控制器：要「畫面上的東西都備好」才放人進來，
+      //    不然會先看到沒有背景圖的純色底、再看到貼文整塊長出來
+      window.__ttLoading = (function () {
+        var MIN_MS = 600;          // 至少顯示這麼久，免得一閃而過像破圖
+        var CAP_BEFORE_READY = 85; // 還沒備好之前，進度最多爬到這裡
+        var CLIMB_MS = 4000;       // 沒有別的消息時，進度自己爬到上限要花多久
+        var startAt = Date.now();
+        var pct = 0, left = false;
+        // 會造成破圖的就這兩樣：背景圖還沒到（底下是一片純色）、貼文還沒回來（版面是空的）
+        var postsReady = false, bgReady = false;
+        var label = '正在潛進海裡…';
+
+        function el(id) { return document.getElementById(id); }
+        function isReady() { return postsReady && bgReady; }
+        function render() {
+          if (left) return;
+          var shown;
+          if (isReady()) {
+            shown = 100;
+          } else {
+            // 進度自己會跟著時間慢慢爬，階段訊息只是把它往前推，不會讓它停在原地發呆
+            var climb = Math.min(CAP_BEFORE_READY, (Date.now() - startAt) / CLIMB_MS * CAP_BEFORE_READY);
+            shown = Math.min(CAP_BEFORE_READY, Math.max(pct, climb));
+          }
+          var bar = el('tt-bar-fill'), txt = el('tt-load-text');
+          if (bar) bar.style.width = shown + '%';
+          if (txt) txt.textContent = shown >= 100 ? '準備好了！' : label;
+        }
+        function set(p, text) {
+          if (left) return;
+          pct = Math.max(pct, Math.min(100, p));
+          if (text) label = text;
+          render();
+        }
+        function close() {
+          if (left) return;
+          left = true;
+          var bar = el('tt-bar-fill'), txt = el('tt-load-text'), box = el('tt-loading');
+          if (bar) bar.style.width = '100%';
+          if (txt) txt.textContent = '準備好了！';
+          setTimeout(function () {
+            if (box) {
+              box.classList.add('tt-done');
+              setTimeout(function () { if (box && box.parentNode) box.parentNode.removeChild(box); }, 520);
+            }
+          }, 260);
+        }
+        function tryClose() {
+          if (left || !isReady()) return;
+          var seen = Date.now() - startAt;
+          if (seen >= MIN_MS) close();
+          else setTimeout(tryClose, MIN_MS - seen);
+        }
+
+        // 進度條固定重畫，才不會停在原地看起來像當掉
+        var ticker = setInterval(function () { if (left) clearInterval(ticker); else render(); }, 150);
+
+        document.addEventListener('DOMContentLoaded', function () {
+          set(30, '正在整理版面…');
+          // 背景圖沒載好的話，底下會先是一片純色，所以要等它。
+          // 這裡只等背景圖，不等 window.load —— 那要等頁面上每一張圖都載完，
+          // 網路慢的時候會讓人多盯著載入畫面好幾秒，但那些圖晚一點到並不會破圖
+          var bg = new Image();
+          bg.onload = bg.onerror = function () {
+            bgReady = true;
+            set(60, '正在打撈今天的漂流瓶…');
+            tryClose();
+          };
+          bg.src = 'images/background.webp';
+        });
+
+        // 保險絲：不管後端或圖片出什麼事，最多 10 秒一定要放人進來
+        setTimeout(function () { postsReady = true; bgReady = true; close(); }, 10000);
+
+        return {
+          set: set,
+          // test.js 第一次把貼文畫出來時會呼叫這個
+          postsDone: function () { postsReady = true; set(90, '就快好了…'); tryClose(); }
+        };
+      })();
+    </script>
   </head>
 
   <body>
+    <!-- 🌊 進站載入畫面：蓋住「背景圖還沒載好、貼文還沒回來」的那幾秒 -->
+    <div id="tt-loading">
+      <div class="tt-bubbles" aria-hidden="true">
+        <span></span><span></span><span></span><span></span><span></span><span></span>
+      </div>
+      <div class="tt-load-inner">
+        <!-- 漂流瓶：簡單的扁平剪影 -->
+        <svg class="tt-bottle" viewBox="0 0 80 120" aria-hidden="true">
+          <!-- 瓶身 -->
+          <path d="M33 16 v12 c0 6 -13 13 -13 25 v50 c0 5 4 9 9 9 h22 c5 0 9 -4 9 -9 v-50 c0 -12 -13 -19 -13 -25 v-12 z"
+                fill="rgba(255,255,255,0.14)" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round"/>
+          <!-- 瓶子裡的水 -->
+          <path d="M20 74 c7 -4 12 3 19 -1 c7 -4 13 3 21 -1 v31 c0 5 -4 9 -9 9 h-22 c-5 0 -9 -4 -9 -9 z"
+                fill="#8ed8f8" opacity="0.85"/>
+          <!-- 瓶中信 -->
+          <rect x="31" y="56" width="18" height="26" rx="3" transform="rotate(-12 40 69)"
+                fill="#fff4dc" stroke="#e5d2a8" stroke-width="2"/>
+          <!-- 軟木塞 -->
+          <rect x="31" y="3" width="18" height="14" rx="4" fill="#d9a066" stroke="#ffffff" stroke-width="3.5"/>
+        </svg>
+        <div class="tt-load-title">心情漂流瓶</div>
+        <div class="tt-bar"><div class="tt-bar-fill" id="tt-bar-fill"></div></div>
+        <div class="tt-load-text" id="tt-load-text">正在潛進海裡…</div>
+      </div>
+    </div>
     <div
       class="sidebar-overlay"
       id="mobile-sidebar-overlay"
