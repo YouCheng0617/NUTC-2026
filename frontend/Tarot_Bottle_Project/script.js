@@ -426,10 +426,13 @@ function renderSpread() {
     }
     lastTargetCard = targetCard;
   };
-
   // 手指按下 / 滑鼠按住
   spreadContainer.onpointerdown = function (e) {
     isPointerDown = true;
+    try {
+      spreadContainer.setPointerCapture(e.pointerId); // 鎖定觸控焦點，防止事件遺失
+    } catch (err) {}
+
     const targetCard = getCardFromCoords(e.clientX, e.clientY);
     if (targetCard) {
       const currentHovered = spreadContainer.querySelector(
@@ -447,6 +450,9 @@ function renderSpread() {
   spreadContainer.onpointerup = function (e) {
     if (!isPointerDown && e.pointerType === "touch") return;
     isPointerDown = false;
+    try {
+      spreadContainer.releasePointerCapture(e.pointerId);
+    } catch (err) {}
 
     const targetCard =
       getCardFromCoords(e.clientX, e.clientY) || lastTargetCard;
@@ -456,7 +462,6 @@ function renderSpread() {
     }
     lastTargetCard = null;
   };
-
   spreadContainer.onpointercancel = function () {
     isPointerDown = false;
     const currentHovered = spreadContainer.querySelector(
