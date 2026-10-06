@@ -21,6 +21,13 @@ const activeMembers = new Map<number, string>(); // 記錄 memberId -> roomId
 const socketRoomMap = new Map<string, string>(); // 優化：記錄 socketId -> roomId，讓離開房間的尋找時間變成 O(1)
 const ABSOLUTE_MAX_PLAYERS = 6;
 
+/* 唯讀查詢房間現況：給首頁「揪團彈幕」確認房號存在、顯示人數用，不會改動房間 */
+export const getRoomInfo = (roomId: string) => {
+    const room = rooms.get(roomId);
+    if (!room) return null;
+    return { roomId: room.roomId, players: room.players.size, maxCapacity: room.maxCapacity };
+};
+
 
 export const setupPetSocket = (io: Server) => {
     io.on('connection', (socket: Socket) => {

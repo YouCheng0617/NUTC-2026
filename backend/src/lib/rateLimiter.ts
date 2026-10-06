@@ -114,4 +114,6 @@ export const commentLimiter = perMemberLimiter(10 * 60 * 1000, 30, "留言太頻
 export const reportLimiter = perMemberLimiter(60 * 60 * 1000, 10, "檢舉次數過多，請稍後再試。");
 
 /*客服：每人每小時最多 5 筆*/
+/* 揪團彈幕：每人 5 分鐘最多 3 則 */
+export const announcementLimiter = perMemberLimiter(5 * 60 * 1000, 3, "揪團彈幕發太頻繁了，請過幾分鐘再試。");
 export const csTicketLimiter = perMemberLimiter(60 * 60 * 1000, 5, "客服問題送出太頻繁，請稍後再試（每小時最多 5 筆）。");

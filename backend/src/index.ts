@@ -17,6 +17,7 @@ import { notificationRouter } from './modules/notification/notification.router.j
 import { petGameRouter } from './socket/petGame.router.js';
 import { CSRouter } from './modules/customer-service/CS.router.js';
 import { blockRouter } from './modules/block/block.router.js';
+import { announcementRouter } from './modules/announcement/announcement.router.js';
 
 
 import { setupPetSocket } from './socket/petServer.js';
@@ -57,6 +58,7 @@ app.use('/notifications', notificationRouter());
 app.use('/pet-games', petGameRouter());
 app.use('/customer-service', CSRouter());
 app.use('/block', blockRouter());
+app.use('/announcements', announcementRouter()); /*首頁揪團彈幕（寵物遊戲房號）*/
 if (!process.env["DATABASE_URL"]) {
     console.error("DATABASE_URL is not defined in env.");
 }
