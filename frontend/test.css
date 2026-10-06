@@ -3075,7 +3075,9 @@ body.in-detail-view .ocean-rules-board {
    ========================================= */
 
 /* 1. 全螢幕暗色毛玻璃遮罩與垂直置中 */
-#following-modal.modal {
+#following-modal.modal,
+#blocked-modal.modal,
+#followers-modal.modal {
   position: fixed !important;
   inset: 0 !important;
   width: 100vw !important;
@@ -3100,11 +3102,23 @@ body:has(#following-modal[style*="display: flex"]) #mascot-home,
 body:has(#following-modal[style*="display: flex"]) #svg-mermecat-mascot,
 body:has(#following-modal[style*="display: flex"]) .ocean-popular-board,
 body:has(#following-modal[style*="display: flex"]) .ocean-rules-board,
-body:has(#following-modal[style*="display: flex"]) #mobile-board-btn {
+body:has(#following-modal[style*="display: flex"]) #mobile-board-btn,
+body:has(#blocked-modal[style*="display: flex"]) #mascot-home,
+body:has(#blocked-modal[style*="display: flex"]) #svg-mermecat-mascot,
+body:has(#blocked-modal[style*="display: flex"]) .ocean-popular-board,
+body:has(#blocked-modal[style*="display: flex"]) .ocean-rules-board,
+body:has(#blocked-modal[style*="display: flex"]) #mobile-board-btn,
+body:has(#followers-modal[style*="display: flex"]) #mascot-home,
+body:has(#followers-modal[style*="display: flex"]) #svg-mermecat-mascot,
+body:has(#followers-modal[style*="display: flex"]) .ocean-popular-board,
+body:has(#followers-modal[style*="display: flex"]) .ocean-rules-board,
+body:has(#followers-modal[style*="display: flex"]) #mobile-board-btn {
   display: none !important;
 }
 /* 3. 追蹤白色卡片主體 */
-#following-modal .light-modal {
+#following-modal .light-modal,
+#blocked-modal .light-modal,
+#followers-modal .light-modal {
   background: #ffffff !important;
   border-radius: 24px !important;
   width: 100% !important;
@@ -3120,7 +3134,9 @@ body:has(#following-modal[style*="display: flex"]) #mobile-board-btn {
 }
 
 /* 4. 頂部標題與右上角關閉按鈕 */
-#following-modal h2 {
+#following-modal h2,
+#blocked-modal h2,
+#followers-modal h2 {
   font-size: 1.35rem !important;
   color: #0055a5 !important;
   font-weight: 900 !important;
@@ -3128,7 +3144,9 @@ body:has(#following-modal[style*="display: flex"]) #mobile-board-btn {
   margin: 0 0 16px 0 !important;
 }
 
-#following-modal .close-btn {
+#following-modal .close-btn,
+#blocked-modal .close-btn,
+#followers-modal .close-btn {
   position: absolute !important;
   top: 16px !important;
   right: 18px !important;
@@ -3138,12 +3156,16 @@ body:has(#following-modal[style*="display: flex"]) #mobile-board-btn {
   line-height: 1 !important;
   transition: color 0.2s ease !important;
 }
-#following-modal .close-btn:hover {
+#following-modal .close-btn:hover,
+#blocked-modal .close-btn:hover,
+#followers-modal .close-btn:hover {
   color: #0f172a !important;
 }
 
 /* 5. 追蹤清單捲動容器 */
-#following-list-container {
+#following-list-container,
+#blocked-list-container,
+#followers-list-container {
   flex: 1 !important;
   overflow-y: auto !important;
   max-height: 52vh !important;
@@ -3220,7 +3242,8 @@ body:has(#following-modal[style*="display: flex"]) #mobile-board-btn {
 /* =========================================
    ⚠️ 檢舉彈窗 (#report-modal) 層級與置中修復
    ========================================= */
-#report-modal.modal {
+#report-modal.modal,
+#block-modal.modal {
   position: fixed !important;
   inset: 0 !important;
   width: 100vw !important;
@@ -3235,11 +3258,13 @@ body:has(#following-modal[style*="display: flex"]) #mobile-board-btn {
 }
 
 /* 點擊開啟時自動轉為 Flex 水平垂直置中 */
-#report-modal[style*="display: block"] {
+#report-modal[style*="display: block"],
+#block-modal[style*="display: block"] {
   display: flex !important;
 }
 
-#report-modal .light-modal {
+#report-modal .light-modal,
+#block-modal .light-modal {
   background: #ffffff !important;
   border-radius: 22px !important;
   width: 100% !important;
@@ -4374,4 +4399,81 @@ body.is-admin .hub-new-post-bar {
 .notif-mini-card {
   cursor: pointer !important;
   pointer-events: auto !important;
+}
+
+/* 🚫 瓶子畫面的作者：雙擊（電腦）／長按（手機）叫出封鎖確認視窗，避免選到文字或跳出系統選單 */
+#detail-author-tag,
+.detail-author-box .detail-avatar,
+[data-block-id] {
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+
+/* 👥 粉絲名單的「回追蹤」按鈕 */
+.btn-unfollow-modal.btn-follow-back {
+  background: #0055a5 !important;
+  border-color: #0055a5 !important;
+  color: #ffffff !important;
+}
+.btn-unfollow-modal.btn-follow-back:hover {
+  background: #003f7d !important;
+  border-color: #003f7d !important;
+  color: #ffffff !important;
+}
+
+/* ➕ 留言旁的「+」追蹤按鈕：實心藍色小圓鈕；已追蹤變成白底「✓」 */
+.comment-author-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+.comment-follow-btn {
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border-radius: 50%;
+  border: 1.5px solid #2f8fff;
+  background: linear-gradient(135deg, #4da6ff, #2f80ed);
+  color: #ffffff;
+  font-size: 1rem;
+  font-weight: 900;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 3px 10px rgba(47, 128, 237, 0.35);
+  transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.2s ease;
+}
+.comment-follow-btn:hover {
+  transform: scale(1.15);
+  box-shadow: 0 5px 14px rgba(47, 128, 237, 0.45);
+}
+.comment-follow-btn:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+.comment-follow-btn.is-following {
+  background: #ffffff;
+  color: #2f80ed;
+  border-color: #b6d7ff;
+  font-size: 0.8rem;
+  box-shadow: none;
+}
+.comment-follow-btn.is-following:hover {
+  background: #fee2e2;
+  color: #ef4444;
+  border-color: #fca5a5;
+}
+/* 回覆裡的小一號 */
+.reply-header .comment-follow-btn {
+  width: 20px;
+  height: 20px;
+  font-size: 0.85rem;
+}
+.reply-header .comment-follow-btn.is-following {
+  font-size: 0.7rem;
 }
