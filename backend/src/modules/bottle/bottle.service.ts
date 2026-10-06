@@ -129,7 +129,8 @@ export const likeBottles = async (bottleId: number, memberId: number) => {
                 'BOTTLE_LIKE',
                 `${likerName} 按了你的漂流瓶讚！`,
                 memberId,
-                bottleId
+                bottleId,
+                { dedupe: true }
             ).catch(err => console.error("按讚通知發送失敗:", err));
         }
     }
@@ -244,7 +245,8 @@ export const saveBottles = async (bottleId: number, memberId: number) => {
                 'BOTTLE_SAVE',
                 `${saverName} 收藏了你的漂流瓶！`,
                 memberId,
-                bottleId
+                bottleId,
+                { dedupe: true }
             ).catch(err => console.error("收藏通知發送失敗:", err));
         }
     }
@@ -606,4 +608,48 @@ export const votePoll = async (bottleId: number, memberId: number, optionId: num
     }
 
     return voteRecord;
+};
+/* 🔔 瓶子被下架／刪除時，通知還在等結果的檢舉人 */
+export const notifyReporters = async (reporterIds: number[], bottleId: number) => {
+    for (const reporterId of reporterIds) {
+        await createNotification(
+            reporterId,
+            'SYSTEM',
+            '你檢舉的漂流瓶經審查確認違規，已被處理。感謝你協助維護社群環境！',
+            undefined,
+            bottleId
+        ).catch(err => console.error("檢舉結果通知發送失敗:", err));
+    }
+};
+
+/* 瓶子被判定違規：把待處理的檢舉改成「成立」並通知檢舉人（只處理 status 0，所以不會重複通知） */
+export const resolvePendingReports = async (bottleId: number) => {
+    const pending = await prisma.bottleReport.findMany({
+        where: { bottle_id: bottleId, status: 0 },
+        select: { member_id: true }
+    });
+    if (pending.length === 0) return;
+
+    await prisma.bottleReport.updateMany({
+        where: { bottle_id: bottleId, status: 0 },
+        data: { status: 1 }
+    });
+    await notifyReporters(pending.map(r => r.member_id), bottleId);
+};
+
+/* 🔔 瓶子審核通過：新瓶子通知「漂進海裡了」，被判違規後又恢復的通知「已恢復上架」 */
+export const notifyBottleApproved = async (memberId: number | null, bottleId: number, beforeStatus: number | undefined) => {
+    if (!memberId || beforeStatus === 1 || beforeStatus === undefined) return;
+
+    const message = beforeStatus === 2
+        ? '你的漂流瓶經重新審核後已恢復上架，又漂回海裡了！'
+        : '你的漂流瓶通過審核，已經漂進海裡了！';
+
+    await createNotification(
+        memberId,
+        'SYSTEM',
+        message,
+        undefined,
+        bottleId
+    ).catch(err => console.error("審核通過通知發送失敗:", err));
 };

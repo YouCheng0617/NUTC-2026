@@ -14,9 +14,12 @@ import {
     reportBottle,
     searchBottle,
     getPopularBottles,
-    votePoll
+    votePoll,
+    resolvePendingReports,
+    notifyBottleApproved
 } from "./bottle.service.js";
 import { getBlockedMemberIds } from "../block/block.service.js";
+import { createNotification } from "../notification/notification.service.js";
 
 export interface TokenPayload {
     member_id: number;
@@ -327,6 +330,12 @@ export const bottleController = {
                 return res.status(400).json({ message: "請提供有效的 bottle_id 和 status並且狀態只能是（1 或 2）" });
             }
 
+            // 先記下原本的狀態，用來判斷要不要通知、通知怎麼寫
+            const before = await prisma.bottle.findUnique({
+                where: { bottle_id: bottle_id },
+                select: { status: true }
+            });
+
             const updateBottle = await prisma.bottle.update({
                 where: { bottle_id: bottle_id },
                 data: {
@@ -334,6 +343,32 @@ export const bottleController = {
                     violation_reason: status === 2 ? violation_reason : null,
                 }
             });
+
+            // 🔔 判定違規就通知作者（本來就是違規的不重複通知）
+            if (status === 2 && before?.status !== 2 && updateBottle.member_id) {
+                const reasonText = violation_reason ? ` 原因：${violation_reason}` : '請留意社群規範。';
+                const message = before?.status === 1
+                    ? `你的漂流瓶已被系統下架。${reasonText}`
+                    : `你的漂流瓶未通過審核，沒有被放進海裡。${reasonText}`;
+
+                await createNotification(
+                    updateBottle.member_id,
+                    'SYSTEM_ALERT',
+                    message,
+                    undefined,
+                    bottle_id
+                ).catch(err => console.error("AI 審核違規通知發送失敗:", err));
+            }
+
+            // 🔔 檢舉成立，通知檢舉人
+            if (status === 2 && before?.status !== 2) {
+                await resolvePendingReports(bottle_id).catch(err => console.error("檢舉結果處理失敗:", err));
+            }
+
+            // 🔔 審核通過，通知作者瓶子漂出去了
+            if (status === 1) {
+                await notifyBottleApproved(updateBottle.member_id, bottle_id, before?.status);
+            }
 
             return res.status(200).json({
                 message: `瓶子 #${bottle_id} 審核結果已更新`,
