@@ -150,7 +150,8 @@ export const deleteBottleByAdmin = async (bottle_id: number) => {
             bottle.member_id,
             'SYSTEM_ALERT',
             '你的漂流瓶因為違反社群規範，已被管理員強制刪除。',
-            undefined
+            undefined,
+            bottle_id // 讓前端點了會顯示「已被刪除」
         ).catch(err => console.error("強制刪除通知發送失敗:", err));
     }
 

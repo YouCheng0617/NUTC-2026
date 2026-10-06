@@ -20,5 +20,7 @@ export function bottleRouter() {
     bottleRouter.delete("/:bottleId/delete", authCheck, bottleController.deleteMyBottle);
     bottleRouter.get("/today", optionalAuthCheck, bottleController.getTodayBottleConterller);
     bottleRouter.post("/:bottleId/report", authCheck, reportLimiter, bottleController.reportBottleController);
+    // ⚠️ 這條一定要放在最後：/:bottleId 會吃掉 /random、/liked、/today 這些路徑
+    bottleRouter.get("/:bottleId", optionalAuthCheck, bottleController.getBottleByIdController);
     return bottleRouter;
 }

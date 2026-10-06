@@ -155,14 +155,13 @@ export const likeComment = async (commentId: number, memberId: number) => {
             const likerName = liker?.name || "未知使用者";
 
 
-            const targetId = commentHad.bottle_id || commentId;
-
+            // target_id 一律放瓶子 id，前端靠它跳到該篇貼文
             await createNotification(
                 commentHad.member_id,
                 'COMMENT_LIKE',
                 `${likerName} 按了你的留言讚！`,
                 memberId,
-                targetId
+                commentHad.bottle_id
             ).catch(err => console.error("留言按讚通知發送失敗:", err));
         }
 
