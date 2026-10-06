@@ -1,6 +1,6 @@
 import prisma from "../../lib/prisma.js";
 import { createNotification } from "../notification/notification.service.js";
-import { isBlockedBetween } from "../block/block.service.js";
+import { getBlockedMemberIds, isBlockedBetween } from "../block/block.service.js";
 /*新增留言*/
 export const createComment = async (bottleId: number, memberId: number, content: string, isAnonymous: boolean = false) => {
     // 防呆：確認瓶子存不存在，以及狀態是不是可以被留言的 (例如: 1 通過)
@@ -98,8 +98,19 @@ export const getCommentsByBottleId = async (bottleId: number, memberId: number |
         include: commentInclude
     });
 
-    // 🌟 4. 整理回傳格式
-    return comments.map((comment: any) => ({
+    // 🌟 4. 有封鎖關係的人的留言與回覆也不回傳（匿名的也一樣，用真正的 member_id 判斷）
+    const blockedIds = memberId ? await getBlockedMemberIds(memberId) : [];
+    const visibleComments = blockedIds.length === 0
+        ? comments
+        : comments
+            .filter((comment: any) => !blockedIds.includes(comment.member_id))
+            .map((comment: any) => ({
+                ...comment,
+                replies: comment.replies?.filter((reply: any) => !blockedIds.includes(reply.member_id)) || []
+            }));
+
+    // 🌟 5. 整理回傳格式
+    return visibleComments.map((comment: any) => ({
         ...comment,
         // 匿名留言不回傳留言者 ID，避免被反查身分
         member_id: comment.is_anonymous ? null : comment.member_id,
