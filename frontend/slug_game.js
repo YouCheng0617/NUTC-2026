@@ -362,38 +362,114 @@ let GAME_TOKEN = localStorage.getItem('authToken') || localStorage.getItem('acce
         }
 
         // 🌟 【多人連線小總管】負責跟伺服器打招呼，處理誰加進來、誰離開，還有房主權限的判定
+        //
+        // 後端只要 socket 一斷線，就會立刻把玩家移出房間（房間沒人就銷毀）。
+        // socket.io 會自己重連，但重連後是新的連線，伺服器不認得你在哪個房間，
+        // 所以這裡要記住原本的房間，重連成功後自動再加入一次
+        let rejoinRoomId = null;     // 斷線前在哪個房間，等重連後要回去
+        let rejoinAsHost = false;
+        let isRejoining = false;     // 正在自動重新加入（不要再跑一次加載畫面、不要跳錯誤視窗）
+        let myCreatedRoomId = null;  // 自己開的房間，用來判斷是不是房主
+
+        // 加載畫面跑的那幾秒內收到的「有人加入、移動、離開」先排隊，等房間畫好再處理，
+        // 不然房間畫好時會把清單清空重建，剛剛加入的人就不見了
+        function whenRoomReady(fn) {
+            if (roomLoadingQueue) roomLoadingQueue.push(fn);
+            else fn();
+        }
+
+        function rejoinRoom() {
+            if (!rejoinRoomId) return;
+            isRejoining = true;
+            socket.emit('join_room', { roomId: rejoinRoomId, playerData: getPlayerData() });
+        }
+
+        // 房間回不去了（例如房間在斷線期間被銷毀）：回到大廳，告訴玩家
+        function dropToLobby(message) {
+            isRejoining = false;
+            rejoinRoomId = null;
+            myCreatedRoomId = null;
+            isRoomHost = false;
+            currentRoomId = null;
+            document.getElementById('otherPlayersLayer').innerHTML = '';
+            otherPlayersData = {};
+            updateRoomUI("尚未連線");
+            showFloatText(message, 5000);
+        }
+
         function initSocketIO() {
+            if (socket) return;   // 只建立一次
             try {
-                socket = io(API_BASE, { reconnectionAttempts: 3, timeout: 2000, transports: ['websocket', 'polling'] });
-                socket.on('connect', () => { console.log('Socket 連線成功!'); });
-                socket.on('disconnect', () => { isRoomRequesting = false; });   // 等回應時斷線，按鈕才不會卡住
+                // 不限制重連次數（以前是 3 次，網路閃幾下就永遠斷線了），連線等待也放寬到 8 秒
+                socket = io(API_BASE, { timeout: 8000, transports: ['websocket', 'polling'] });
+
+                socket.on('connect', () => {
+                    console.log('Socket 連線成功!');
+                    if (rejoinRoomId) rejoinRoom();
+                });
+
+                socket.on('disconnect', (reason) => {
+                    isRoomRequesting = false;   // 等回應時斷線，按鈕才不會卡住
+                    if (currentRoomId && !isMockMode) {
+                        rejoinRoomId = currentRoomId;
+                        rejoinAsHost = isRoomHost;
+                        showFloatText('連線中斷了，正在幫你重新連回房間…', 4000);
+                    }
+                    // 被伺服器主動斷開時 socket.io 不會自己重連，要手動接回去
+                    if (reason === 'io server disconnect') socket.connect();
+                });
 
                 // 創立房間成功 -> 代表我是房主
-                socket.on('room_created', (data) => deferUntilLoaded('正在建立房間...', () => { 
-                    isRoomHost = true; 
-                    currentRoomId = data.roomId; 
-                    updateRoomUI(`房間代碼: ${currentRoomId} (房主)`); 
-                    showFloatText('創立房間成功！'); broadcastMove(true);
-                }));
-                
-                // 加入別人的房間 -> 代表我是作客的
-                socket.on('room_joined', (data) => deferUntilLoaded('正在進入房間...', () => {
-                    console.log("偷看後端傳來的房間資料：", data); // 👈 加上這行！132
-                    isRoomHost = false; 
-                    currentRoomId = data.roomId; 
-                    updateRoomUI(`已加入房間: ${currentRoomId}`); 
-                    showFloatText('加入房間成功！'); broadcastMove(true);
-                    document.getElementById('otherPlayersLayer').innerHTML = ''; 
-                    otherPlayersData = {};
-                    // 把房間裡原有的玩家畫出來
-                    if(data.players) { 
-                        data.players.forEach(p => { if(p.socketId !== socket.id) addOtherPlayer(p); }); 
+                socket.on('room_created', (data) => {
+                    myCreatedRoomId = data.roomId;
+                    deferUntilLoaded('正在建立房間...', () => {
+                        isRoomHost = true;
+                        currentRoomId = data.roomId;
+                        updateRoomUI(`房間代碼: ${currentRoomId} (房主)`);
+                        showFloatText('創立房間成功！');
+                        broadcastMove(true);
+                    });
+                });
+
+                // 加入房間（房主開完房也會收到這個）
+                socket.on('room_joined', (data) => {
+                    const apply = () => {
+                        // 房主開房後也會收到 room_joined，這時候不能把房主身分洗掉
+                        isRoomHost = rejoinAsHost && isRejoining ? true : (data.roomId === myCreatedRoomId);
+                        currentRoomId = data.roomId;
+                        updateRoomUI(isRoomHost ? `房間代碼: ${currentRoomId} (房主)` : `已加入房間: ${currentRoomId}`);
+                        document.getElementById('otherPlayersLayer').innerHTML = '';
+                        otherPlayersData = {};
+                        // 把房間裡原有的玩家畫出來
+                        if (data.players) {
+                            data.players.forEach(p => { if (p.socketId !== socket.id) addOtherPlayer(p); });
+                        }
+                        broadcastMove(true);
+                    };
+
+                    // 斷線後自動回房：直接套用，不用再看一次加載畫面
+                    if (isRejoining) {
+                        apply();
+                        isRejoining = false;
+                        rejoinRoomId = null;
+                        showFloatText('重新連回房間了！');
+                        return;
                     }
+                    deferUntilLoaded('正在進入房間...', () => {
+                        apply();
+                        if (!isRoomHost) showFloatText('加入房間成功！');
+                    });
+                });
+
+                socket.on('player_joined', (p) => whenRoomReady(() => {
+                    addOtherPlayer(p);
+                    showFloatText(`${p.petName} 來串門子了！`);
+                    // 新朋友只拿得到伺服器存的舊位置，主動把自己現在的位置再送一次
+                    broadcastMove(true);
                 }));
 
-                socket.on('player_joined', (p) => { addOtherPlayer(p); showFloatText(`${p.petName} 來串門子了！`); });
                 // 別人移動了：照他傳來的比例座標放到我的畫面上，往右走就轉頭朝右
-                socket.on('player_moved', (data) => {
+                socket.on('player_moved', (data) => whenRoomReady(() => {
                     const p = otherPlayersData[data.socketId];
                     if (!p) return;
                     const prevX = hasSharedPos(p) ? p.x : null;
@@ -404,18 +480,40 @@ let GAME_TOKEN = localStorage.getItem('authToken') || localStorage.getItem('acce
                         el.classList.toggle('face-right', p.x > prevX);
                     }
                     placeOtherPlayer(data.socketId);
-                });
-                socket.on('player_left', (data) => {
+                }));
+
+                socket.on('player_left', (data) => whenRoomReady(() => {
                     const el = document.getElementById(`player-${data.socketId}`);
-                    if(el) { el.remove(); delete otherPlayersData[data.socketId]; }
-                });
+                    if (el) el.remove();
+                    delete otherPlayersData[data.socketId];
+                }));
+
                 socket.on('receive_message', (data) => { showChatBubble(data.senderName, data.message); });
                 setInterval(() => broadcastMove(), 250);
+
                 socket.on('error', (err) => {
                     isRoomRequesting = false;   // 房號錯、房間滿之類的，直接跳提示，不會出現加載畫面
+                    // 自動回房失敗（通常是房間在斷線期間已經被銷毀了）就回大廳，不要跳錯誤視窗
+                    if (isRejoining) {
+                        dropToLobby('原本的房間已經解散了，請重新開房或加入其他房間');
+                        return;
+                    }
                     alert(err.message || "發生錯誤");
                 });
             } catch (e) { console.log('Socket.IO 未連線'); }
+        }
+
+        // 按開房／加入時如果還沒連上，先等一下（最多 6 秒），不要馬上就說伺服器沒連線
+        function waitForSocket(ms = 6000) {
+            if (!socket) return Promise.resolve(false);
+            if (socket.connected) return Promise.resolve(true);
+            if (!socket.active) socket.connect();
+            showFloatText('正在連線伺服器，請稍等一下…', 3000);
+            return new Promise((resolve) => {
+                const ok = () => { clearTimeout(timer); resolve(true); };
+                const timer = setTimeout(() => { socket.off('connect', ok); resolve(false); }, ms);
+                socket.once('connect', ok);
+            });
         }
 
         // 🌟 【假的加載畫面】後端確定進得去房間後，才跑 3 秒進度條再把房間畫出來
@@ -460,18 +558,30 @@ let GAME_TOKEN = localStorage.getItem('authToken') || localStorage.getItem('acce
                 if (ratio < 1) {
                     requestAnimationFrame(step);
                 } else {
-                    overlay.style.display = 'none';
-                    isRoomLoading = false;
-                    onDone();
+                    finish();
                 }
             }
+            // 視窗切到背景時 requestAnimationFrame 會整個停住，進度條永遠跑不完，
+            // 之後再按開房／加入都會被當成「忙碌中」而沒反應，所以另外用計時器保證一定會結束
+            let finished = false;
+            function finish() {
+                if (finished) return;
+                finished = true;
+                overlay.style.display = 'none';
+                isRoomLoading = false;
+                onDone();
+            }
+            setTimeout(finish, FAKE_LOADING_MS + 100);
             requestAnimationFrame(step);
         }
 
-        function getPlayerData() { return { memberId: Math.floor(Math.random() * 1000), petName: gameState.petName || '小可愛', petColor: gameState.currentSpecies }; }
+        // 同一次遊戲固定用同一個 id（以前每次都重抽 0～999，還有機會跟別人撞號被當成「已經在別的房間」）
+        const MP_MEMBER_ID = Math.floor(Math.random() * 1e9);
+        function getPlayerData() { return { memberId: MP_MEMBER_ID, petName: gameState.petName || '小可愛', petColor: gameState.currentSpecies }; }
         
-        function createSocketRoom() { 
-            if(!socket || !socket.connected) {
+        async function createSocketRoom() {
+            if (isRoomBusy()) return;
+            if (!(await waitForSocket())) {
                 if(confirm("伺服器未連線！要先開啟「單機模擬展示」看看連線後的樣子嗎？")) {
                     startMockMultiplayer();
                 }
@@ -482,8 +592,9 @@ let GAME_TOKEN = localStorage.getItem('authToken') || localStorage.getItem('acce
             socket.emit('create_room', { playerData: getPlayerData(), maxPlayers: 6 });
         }
 
-        function joinSocketRoom() {
-            if(!socket || !socket.connected) {
+        async function joinSocketRoom() {
+            if (isRoomBusy()) return;
+            if (!(await waitForSocket())) {
                 if(confirm("伺服器未連線！要先開啟「單機模擬展示」看看連線後的樣子嗎？")) {
                     startMockMultiplayer();
                 }
@@ -505,10 +616,14 @@ let GAME_TOKEN = localStorage.getItem('authToken') || localStorage.getItem('acce
             } else if(socket) {
                 socket.emit('leave_room'); 
             }
-            currentRoomId = null; 
-            document.getElementById('otherPlayersLayer').innerHTML = ''; 
-            otherPlayersData = {}; 
-            updateRoomUI("尚未連線"); 
+            currentRoomId = null;
+            rejoinRoomId = null;
+            isRejoining = false;
+            myCreatedRoomId = null;
+            isRoomHost = false;
+            document.getElementById('otherPlayersLayer').innerHTML = '';
+            otherPlayersData = {};
+            updateRoomUI("尚未連線");
         }
         // 🌟 展開或收合連線面板的小魔法
         function toggleMpPanel() {
@@ -654,6 +769,8 @@ function copyRoomId() {
 
 // 把其他玩家畫到畫面上（完整全配版！）
         function addOtherPlayer(p) {
+            const old = document.getElementById(`player-${p.socketId}`);
+            if (old) old.remove();
             otherPlayersData[p.socketId] = p;
             const spec = speciesData[p.petColor] || speciesData['snow'];
             const el = document.createElement('div'); 
@@ -3228,6 +3345,7 @@ const effectData = {
             updateRecallButtonVisibility();
             startIdleLife();     // 讓海兔自己動起來
             initSummonSystem();  // 點兩下就能把海兔叫過來
+            initSocketIO();      // 多人連線先開始連，不用等下面的 API
 
             // 🌟 3. 主動向後端拉取最新金幣數量與今日任務狀態
             loadingUI.set(56, '正在數你的積分…', 'Counting your coins…');
@@ -3282,9 +3400,7 @@ const effectData = {
                 console.log('伺服器未連線，繼續使用本地存檔');
             }
 
-            // 啟動多人連線
             loadingUI.set(92, '正在接上海裡的朋友…', 'Connecting to other players…');
-            initSocketIO();
 
             // 等瀏覽器真的把這一切畫出來一格之後，才把載入畫面收掉
             requestAnimationFrame(() => requestAnimationFrame(() => loadingUI.finish()));
