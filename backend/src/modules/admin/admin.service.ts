@@ -171,7 +171,7 @@ export const updateBottleStatus = async (bottle_id: number, newStatus: number, v
 
     // 🔔 審核通過或恢復上架，通知作者
     if (newStatus === 1) {
-        await notifyBottleApproved(updatedBottle.member_id, bottle_id, before?.status);
+        await notifyBottleApproved(updatedBottle.member_id, bottle_id, before?.status, Boolean(updatedBottle.edited_at));
     }
 
     return updatedBottle;

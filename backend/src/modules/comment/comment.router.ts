@@ -12,6 +12,8 @@ export function commentRouter() {
     router.get("/bottles/:bottleId", optionalAuthCheck, (req, res) => commentController.getCommentsByBottleIdController(req, res));
     router.post("/:commentId/like", authCheck, (req, res) => commentController.likeCommentController(req, res));
     router.post("/bottles/:bottleId/comments/:parentId/reply", authCheck, commentLimiter, (req, res) => commentController.createReplyController(req, res));
+    router.patch("/:commentId", authCheck, (req, res) => commentController.updateCommentController(req, res));
+    router.delete("/:commentId", authCheck, (req, res) => commentController.deleteCommentController(req, res));
     return router;
 }
 

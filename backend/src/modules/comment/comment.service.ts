@@ -1,6 +1,7 @@
 import prisma from "../../lib/prisma.js";
 import { createNotification } from "../notification/notification.service.js";
 import { getBlockedMemberIds, isBlockedBetween } from "../block/block.service.js";
+import { isWithinEditWindow } from "../../lib/editWindow.js";
 /*新增留言*/
 export const createComment = async (bottleId: number, memberId: number, content: string, isAnonymous: boolean = false) => {
     // 防呆：確認瓶子存不存在，以及狀態是不是可以被留言的 (例如: 1 通過)
@@ -109,29 +110,102 @@ export const getCommentsByBottleId = async (bottleId: number, memberId: number |
                 replies: comment.replies?.filter((reply: any) => !blockedIds.includes(reply.member_id)) || []
             }));
 
-    // 🌟 5. 整理回傳格式
-    return visibleComments.map((comment: any) => ({
-        ...comment,
-        // 匿名留言不回傳留言者 ID，避免被反查身分
-        member_id: comment.is_anonymous ? null : comment.member_id,
-        member_name: comment.is_anonymous ? "匿名使用者" : comment.member?.name,
-        likeCount: comment._count?.likes ?? 0,
-        isLiked: comment.likes ? comment.likes.length > 0 : false,
-        _count: undefined,
-        likes: undefined,
-        member: undefined,
+    // 🌟 5. 被刪除的主留言：底下還有回覆才留個位置，沒有就整則拿掉
+    const withoutEmptyDeleted = visibleComments.filter(
+        (comment: any) => !comment.is_deleted || (comment.replies?.length ?? 0) > 0
+    );
 
-        replies: comment.replies?.map((reply: any) => ({
-            ...reply,
-            member_id: reply.is_anonymous ? null : reply.member_id,
-            member_name: reply.is_anonymous ? "匿名使用者" : reply.member?.name,
-            likeCount: reply._count?.likes ?? 0,
-            isLiked: reply.likes ? reply.likes.length > 0 : false,
-            _count: undefined,
-            likes: undefined,
-            member: undefined,
-        })) || []
-    }));
+    // 🌟 6. 整理回傳格式
+    //   is_mine：讓前端知道哪些是自己的（匿名留言不回傳 member_id，前端沒辦法自己判斷）
+    return withoutEmptyDeleted.map((comment: any) => {
+        if (comment.is_deleted) {
+            return {
+                id: comment.id,
+                bottle_id: comment.bottle_id,
+                parent_id: null,
+                createdAt: comment.createdAt,
+                is_deleted: true,
+                is_anonymous: true,
+                content: "",
+                member_id: null,
+                member_name: "已刪除的留言",
+                is_mine: false,
+                likeCount: 0,
+                isLiked: false,
+                replies: comment.replies.map((reply: any) => formatComment(reply, memberId))
+            };
+        }
+        return {
+            ...formatComment(comment, memberId),
+            replies: comment.replies?.map((reply: any) => formatComment(reply, memberId)) || []
+        };
+    });
+};
+
+const formatComment = (comment: any, memberId: number | undefined) => ({
+    ...comment,
+    // 匿名留言不回傳留言者 ID，避免被反查身分
+    member_id: comment.is_anonymous ? null : comment.member_id,
+    member_name: comment.is_anonymous ? "匿名使用者" : comment.member?.name,
+    is_mine: memberId !== undefined && comment.member_id === memberId,
+    likeCount: comment._count?.likes ?? 0,
+    isLiked: comment.likes ? comment.likes.length > 0 : false,
+    _count: undefined,
+    likes: undefined,
+    member: undefined,
+    replies: undefined,
+});
+
+/* 修改留言：只有本人、只在留言後 20 分鐘內 */
+export const updateComment = async (commentId: number, memberId: number, content: string) => {
+    const comment = await prisma.comment.findUnique({
+        where: { id: commentId },
+        select: { member_id: true, createdAt: true, is_deleted: true }
+    });
+    if (!comment || comment.is_deleted) {
+        throw new Error("COMMENT_NOT_FOUND");
+    }
+    if (comment.member_id !== memberId) {
+        throw new Error("FORBIDDEN_NOT_AUTHOR");
+    }
+    if (!isWithinEditWindow(comment.createdAt)) {
+        throw new Error("EDIT_WINDOW_EXPIRED");
+    }
+
+    return await prisma.comment.update({
+        where: { id: commentId },
+        data: { content: content.trim(), edited_at: new Date() },
+        select: { id: true, content: true, edited_at: true }
+    });
+};
+
+/* 刪除留言：只有本人；主留言底下有回覆時只標記刪除，保留別人的回覆 */
+export const deleteComment = async (commentId: number, memberId: number) => {
+    const comment = await prisma.comment.findUnique({
+        where: { id: commentId },
+        select: { member_id: true, parent_id: true, is_deleted: true, _count: { select: { replies: true } } }
+    });
+    if (!comment || comment.is_deleted) {
+        throw new Error("COMMENT_NOT_FOUND");
+    }
+    if (comment.member_id !== memberId) {
+        throw new Error("FORBIDDEN_NOT_AUTHOR");
+    }
+
+    if (comment.parent_id === null && comment._count.replies > 0) {
+        await prisma.$transaction([
+            prisma.comment.update({
+                where: { id: commentId },
+                data: { is_deleted: true, content: "" }
+            }),
+            // 按讚紀錄一起清掉，避免之後還能按讚或發通知
+            prisma.commentLike.deleteMany({ where: { comment_id: commentId } })
+        ]);
+        return { softDeleted: true };
+    }
+
+    await prisma.comment.delete({ where: { id: commentId } });
+    return { softDeleted: false };
 };
 
 export const likeComment = async (commentId: number, memberId: number) => {
@@ -141,10 +215,11 @@ export const likeComment = async (commentId: number, memberId: number) => {
             id: true,
             member_id: true,
             bottle_id: true,
+            is_deleted: true,
         }
     });
 
-    if (!commentHad) {
+    if (!commentHad || commentHad.is_deleted) {
         throw new Error("留言不存在");
     }
 
@@ -200,7 +275,7 @@ export const createReply = async (bottleId: number, memberId: number, content: s
         where: { id: parentId }
     });
 
-    if (!parentComment) {
+    if (!parentComment || parentComment.is_deleted) {
         throw new Error("要回覆的留言不存在");
     }
 

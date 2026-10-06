@@ -1,7 +1,8 @@
 import { isValidId } from "../../lib/validateHelper.js";
 import type { Response, Request } from "express";
 import type { AuthRequest } from "../middleware/auth.middleware.js";
-import { createComment, getCommentsByBottleId, likeComment, createReply } from "./comment.service.js";
+import { createComment, getCommentsByBottleId, likeComment, createReply, updateComment, deleteComment } from "./comment.service.js";
+import { EDIT_WINDOW_MINUTES } from "../../lib/editWindow.js";
 
 export class CommentController {
 
@@ -127,6 +128,69 @@ export class CommentController {
                 return res.status(400).json({ message: error.message });
             }
 
+            return res.status(500).json({ message: "伺服器錯誤" });
+        }
+    }
+
+    /* 修改留言（本人、留言後 20 分鐘內） */
+    async updateCommentController(req: AuthRequest, res: Response) {
+        try {
+            const memberId = req.user?.member_id as number;
+            const commentId = Number(req.params.commentId);
+            const { content } = req.body;
+
+            if (!memberId) {
+                return res.status(401).json({ message: "請先登入" });
+            }
+            if (!isValidId(commentId)) {
+                return res.status(400).json({ message: "無效的留言 ID" });
+            }
+            if (!content || typeof content !== "string" || content.trim() === "") {
+                return res.status(400).json({ message: "留言內容不能為空" });
+            }
+
+            const updated = await updateComment(commentId, memberId, content);
+            return res.status(200).json({ message: "留言已修改", data: updated });
+
+        } catch (error: any) {
+            if (error.message === "COMMENT_NOT_FOUND") {
+                return res.status(404).json({ message: "留言不存在" });
+            }
+            if (error.message === "FORBIDDEN_NOT_AUTHOR") {
+                return res.status(403).json({ message: "只能修改自己的留言" });
+            }
+            if (error.message === "EDIT_WINDOW_EXPIRED") {
+                return res.status(403).json({ message: `留言超過 ${EDIT_WINDOW_MINUTES} 分鐘就不能修改了` });
+            }
+            console.error("updateCommentController 錯誤:", error);
+            return res.status(500).json({ message: "伺服器錯誤" });
+        }
+    }
+
+    /* 刪除留言（本人） */
+    async deleteCommentController(req: AuthRequest, res: Response) {
+        try {
+            const memberId = req.user?.member_id as number;
+            const commentId = Number(req.params.commentId);
+
+            if (!memberId) {
+                return res.status(401).json({ message: "請先登入" });
+            }
+            if (!isValidId(commentId)) {
+                return res.status(400).json({ message: "無效的留言 ID" });
+            }
+
+            const result = await deleteComment(commentId, memberId);
+            return res.status(200).json({ message: "留言已刪除", data: result });
+
+        } catch (error: any) {
+            if (error.message === "COMMENT_NOT_FOUND") {
+                return res.status(404).json({ message: "留言不存在" });
+            }
+            if (error.message === "FORBIDDEN_NOT_AUTHOR") {
+                return res.status(403).json({ message: "只能刪除自己的留言" });
+            }
+            console.error("deleteCommentController 錯誤:", error);
             return res.status(500).json({ message: "伺服器錯誤" });
         }
     }

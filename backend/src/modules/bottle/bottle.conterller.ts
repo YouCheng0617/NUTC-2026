@@ -16,10 +16,12 @@ import {
     getPopularBottles,
     votePoll,
     resolvePendingReports,
-    notifyBottleApproved
+    notifyBottleApproved,
+    updateMyBottle
 } from "./bottle.service.js";
 import { getBlockedMemberIds } from "../block/block.service.js";
 import { createNotification } from "../notification/notification.service.js";
+import { EDIT_WINDOW_MINUTES } from "../../lib/editWindow.js";
 
 export interface TokenPayload {
     member_id: number;
@@ -211,6 +213,7 @@ export const bottleController = {
                 author_name: bottle.is_anonymous ? "匿名使用者" : (bottle.author?.name || "未知使用者"),
                 author_gender: bottle.is_anonymous ? null : (bottle.author?.gender ?? null),
                 created_at: bottle.created_at,
+                edited_at: bottle.edited_at,
                 like_count: bottle._count?.likes ?? 0,
                 save_count: bottle._count?.saves ?? 0,
                 view_count: bottle.view_count,
@@ -296,6 +299,7 @@ export const bottleController = {
                     author_name: bottle.is_anonymous ? "匿名使用者" : (bottle.author?.name || "未知使用者"),
                     author_gender: bottle.is_anonymous ? null : (bottle.author?.gender ?? null),
                     created_at: bottle.created_at,
+                    edited_at: bottle.edited_at,
                     like_count: bottle._count?.likes ?? 0,
                     save_count: bottle._count?.saves ?? 0,
                     view_count: bottle.view_count,
@@ -367,7 +371,7 @@ export const bottleController = {
 
             // 🔔 審核通過，通知作者瓶子漂出去了
             if (status === 1) {
-                await notifyBottleApproved(updateBottle.member_id, bottle_id, before?.status);
+                await notifyBottleApproved(updateBottle.member_id, bottle_id, before?.status, Boolean(updateBottle.edited_at));
             }
 
             return res.status(200).json({
@@ -514,6 +518,44 @@ export const bottleController = {
             }
             console.error("Error deleting bottle:", error);
             res.status(500).json({ message: "內部伺服器錯誤" });
+        }
+    },
+
+    /* ✏️ 修改自己的瓶子（發文後 20 分鐘內，改完重新審核） */
+    async updateMyBottleController(req: AuthRequest, res: Response) {
+        try {
+            const bottleId = Number(req.params.bottleId);
+            const memberId = req.user?.member_id as number;
+            const { title, content } = req.body;
+
+            if (!memberId) {
+                return res.status(401).json({ message: "未授權，請先登入" });
+            }
+            if (!isValidId(bottleId)) {
+                return res.status(400).json({ message: "無效的瓶子 ID" });
+            }
+            if (typeof title !== "string" || typeof content !== "string" || !title.trim() || !content.trim()) {
+                return res.status(400).json({ message: "瓶子標題和內容不能是空的" });
+            }
+
+            const result = await updateMyBottle(bottleId, memberId, title, content);
+            return res.status(200).json({
+                message: result.changed ? "瓶子已修改，重新審核通過後會再漂回海裡" : "內容沒有變更",
+                data: result
+            });
+
+        } catch (error: any) {
+            if (error.message === "BOTTLE_NOT_FOUND") {
+                return res.status(404).json({ message: "找不到該瓶子" });
+            }
+            if (error.message === "FORBIDDEN_NOT_AUTHOR") {
+                return res.status(403).json({ message: "只能修改自己的瓶子" });
+            }
+            if (error.message === "EDIT_WINDOW_EXPIRED") {
+                return res.status(403).json({ message: `發文超過 ${EDIT_WINDOW_MINUTES} 分鐘就不能修改了` });
+            }
+            console.error("Error updating bottle:", error);
+            return res.status(500).json({ message: "內部伺服器錯誤" });
         }
     },
 

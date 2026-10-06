@@ -3,6 +3,7 @@ import prisma from "../../lib/prisma.js";
 import dotenv from "dotenv";
 import { createNotification } from "../notification/notification.service.js";
 import { getBlockedMemberIds, isBlockedBetween } from "../block/block.service.js";
+import { isWithinEditWindow } from "../../lib/editWindow.js";
 
 /* 投票選項 include：memberId 存在時一併撈出該會員自己的投票 */
 const pollInclude = (memberId?: number) => ({
@@ -638,12 +639,14 @@ export const resolvePendingReports = async (bottleId: number) => {
 };
 
 /* 🔔 瓶子審核通過：新瓶子通知「漂進海裡了」，被判違規後又恢復的通知「已恢復上架」 */
-export const notifyBottleApproved = async (memberId: number | null, bottleId: number, beforeStatus: number | undefined) => {
+export const notifyBottleApproved = async (memberId: number | null, bottleId: number, beforeStatus: number | undefined, wasEdited = false) => {
     if (!memberId || beforeStatus === 1 || beforeStatus === undefined) return;
 
     const message = beforeStatus === 2
         ? '你的漂流瓶經重新審核後已恢復上架，又漂回海裡了！'
-        : '你的漂流瓶通過審核，已經漂進海裡了！';
+        : wasEdited
+            ? '你修改後的漂流瓶通過審核，又漂回海裡了！'
+            : '你的漂流瓶通過審核，已經漂進海裡了！';
 
     await createNotification(
         memberId,
@@ -652,4 +655,41 @@ export const notifyBottleApproved = async (memberId: number | null, bottleId: nu
         undefined,
         bottleId
     ).catch(err => console.error("審核通過通知發送失敗:", err));
+};
+
+/* 修改瓶子：只有作者、只在發文後 20 分鐘內
+ * 內容有改就退回「待審」重新跑 AI 審核，避免先發正常內容過審、再偷改成違規內容 */
+export const updateMyBottle = async (bottleId: number, memberId: number, title: string, content: string) => {
+    const bottle = await prisma.bottle.findUnique({
+        where: { bottle_id: bottleId },
+        select: { member_id: true, created_at: true, title: true, content: true }
+    });
+    if (!bottle) {
+        throw new Error("BOTTLE_NOT_FOUND");
+    }
+    if (bottle.member_id !== memberId) {
+        throw new Error("FORBIDDEN_NOT_AUTHOR");
+    }
+    if (!isWithinEditWindow(bottle.created_at)) {
+        throw new Error("EDIT_WINDOW_EXPIRED");
+    }
+
+    const newTitle = title.trim();
+    const newContent = content.trim();
+    if (newTitle === bottle.title && newContent === bottle.content) {
+        return { changed: false, status: undefined };
+    }
+
+    const updated = await prisma.bottle.update({
+        where: { bottle_id: bottleId },
+        data: {
+            title: newTitle,
+            content: newContent,
+            edited_at: new Date(),
+            status: 0,
+            violation_reason: null
+        },
+        select: { bottle_id: true, title: true, content: true, edited_at: true, status: true }
+    });
+    return { changed: true, ...updated };
 };

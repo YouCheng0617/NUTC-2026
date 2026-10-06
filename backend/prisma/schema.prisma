@@ -128,6 +128,7 @@ model Bottle {
   view_count       Int      @default(0) // 觀看人數
   status           Int      @default(0) // 審核狀態 (0待審, 1通過, 2違規)
   violation_reason String? // 違規原因
+  edited_at        DateTime? // 最後修改時間（發文後 20 分鐘內可修改，沒改過是 null）
 
   // 關聯定義
   author     Member           @relation(fields: [member_id], references: [member_id])
@@ -193,8 +194,10 @@ model Comment {
   member_id Int      @map("member_id")
   bottle_id Int      @map("bottle_id")
   createdAt DateTime @default(now()) @map("created_at")
+  edited_at DateTime? // 最後修改時間（留言後 20 分鐘內可修改，沒改過是 null）
 
   is_anonymous Boolean @default(false)
+  is_deleted   Boolean @default(false) // 有回覆的留言被刪除時只做標記，保留底下的回覆
 
   parent_id Int?   @map("parent_id")
   // 關聯：留言是誰留的、留在哪個瓶子上 (一樣加上 Cascade 級聯刪除，保證資料庫乾淨)
