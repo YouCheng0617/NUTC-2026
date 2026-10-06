@@ -3253,6 +3253,7 @@ body:has(#activity-modal[style*="display: flex"]) #mobile-board-btn {
    ⚠️ 檢舉彈窗 (#report-modal) 層級與置中修復
    ========================================= */
 #report-modal.modal,
+#settings-modal.modal,
 #block-modal.modal {
   position: fixed !important;
   inset: 0 !important;
@@ -3269,11 +3270,13 @@ body:has(#activity-modal[style*="display: flex"]) #mobile-board-btn {
 
 /* 點擊開啟時自動轉為 Flex 水平垂直置中 */
 #report-modal[style*="display: block"],
+#settings-modal[style*="display: block"],
 #block-modal[style*="display: block"] {
   display: flex !important;
 }
 
 #report-modal .light-modal,
+#settings-modal .light-modal,
 #block-modal .light-modal {
   background: #ffffff !important;
   border-radius: 22px !important;
@@ -5017,4 +5020,14 @@ textarea.custom-reply-input {
 .bio-md h6 { font-size: 1em; }
 .bio-empty {
   color: #94a3b8;
+}
+
+/* =========================================
+   📐 文章畫面接在標題列正下方
+   手機版標題列會換行成兩三排（搜尋列在第二排），高度跟電腦版不同，
+   所以由 test.js 量出實際高度寫進 --site-header-h，不再寫死 60px
+   ========================================= */
+#detail-view.ocean-detail-card {
+  top: var(--site-header-h, 60px) !important;
+  height: calc(100vh - var(--site-header-h, 60px)) !important;
 }

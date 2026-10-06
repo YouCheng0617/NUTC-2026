@@ -4957,3 +4957,18 @@ function renderBio(el, bio) {
     : '<span class="bio-empty">這瓶子裡目前空空的...</span>';
 }
 window.renderBio = renderBio;
+
+// =========================================
+// 📐 量標題列的實際高度，給文章畫面接在它正下方（手機版標題列比較高，會蓋住文章上方）
+// =========================================
+(function trackHeaderHeight() {
+  const header = document.querySelector(".light-header");
+  if (!header) return;
+  const update = () => {
+    const h = Math.ceil(header.getBoundingClientRect().height);
+    if (h > 0) document.documentElement.style.setProperty("--site-header-h", `${h}px`);
+  };
+  update();
+  if (window.ResizeObserver) new ResizeObserver(update).observe(header);
+  window.addEventListener("resize", update);
+})();
