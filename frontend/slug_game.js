@@ -362,38 +362,116 @@ let GAME_TOKEN = localStorage.getItem('authToken') || localStorage.getItem('acce
         }
 
         // 🌟 【多人連線小總管】負責跟伺服器打招呼，處理誰加進來、誰離開，還有房主權限的判定
+        //
+        // 後端只要 socket 一斷線，就會立刻把玩家移出房間（房間沒人就銷毀）。
+        // socket.io 會自己重連，但重連後是新的連線，伺服器不認得你在哪個房間，
+        // 所以這裡要記住原本的房間，重連成功後自動再加入一次
+        let rejoinRoomId = null;     // 斷線前在哪個房間，等重連後要回去
+        let rejoinAsHost = false;
+        let isRejoining = false;     // 正在自動重新加入（不要再跑一次加載畫面、不要跳錯誤視窗）
+        let myCreatedRoomId = null;  // 自己開的房間，用來判斷是不是房主
+
+        // 加載畫面跑的那幾秒內收到的「有人加入、移動、離開」先排隊，等房間畫好再處理，
+        // 不然房間畫好時會把清單清空重建，剛剛加入的人就不見了
+        function whenRoomReady(fn) {
+            if (roomLoadingQueue) roomLoadingQueue.push(fn);
+            else fn();
+        }
+
+        function rejoinRoom() {
+            if (!rejoinRoomId) return;
+            isRejoining = true;
+            socket.emit('join_room', { roomId: rejoinRoomId, playerData: getPlayerData() });
+        }
+
+        // 房間回不去了（例如房間在斷線期間被銷毀）：回到大廳，告訴玩家
+        function dropToLobby(message) {
+            isRejoining = false;
+            rejoinRoomId = null;
+            myCreatedRoomId = null;
+            isRoomHost = false;
+            currentRoomId = null;
+            document.getElementById('otherPlayersLayer').innerHTML = '';
+            otherPlayersData = {};
+            updateRoomUI("尚未連線");
+            showFloatText(message, 5000);
+        }
+
         function initSocketIO() {
+            if (socket) return;   // 只建立一次
             try {
-                socket = io(API_BASE, { reconnectionAttempts: 3, timeout: 2000, transports: ['websocket', 'polling'] });
-                socket.on('connect', () => { console.log('Socket 連線成功!'); });
-                socket.on('disconnect', () => { isRoomRequesting = false; });   // 等回應時斷線，按鈕才不會卡住
+                // 不限制重連次數（以前是 3 次，網路閃幾下就永遠斷線了），連線等待也放寬到 8 秒
+                socket = io(API_BASE, { timeout: 8000, transports: ['websocket', 'polling'] });
+
+                socket.on('connect', () => {
+                    console.log('Socket 連線成功!');
+                    if (rejoinRoomId) rejoinRoom();
+                });
+
+                socket.on('disconnect', (reason) => {
+                    isRoomRequesting = false;   // 等回應時斷線，按鈕才不會卡住
+                    if (currentRoomId && !isMockMode) {
+                        rejoinRoomId = currentRoomId;
+                        rejoinAsHost = isRoomHost;
+                        showFloatText('連線中斷了，正在幫你重新連回房間…', 4000);
+                    }
+                    // 被伺服器主動斷開時 socket.io 不會自己重連，要手動接回去
+                    if (reason === 'io server disconnect') socket.connect();
+                });
 
                 // 創立房間成功 -> 代表我是房主
-                socket.on('room_created', (data) => deferUntilLoaded('正在建立房間...', () => { 
-                    isRoomHost = true; 
-                    currentRoomId = data.roomId; 
-                    updateRoomUI(`房間代碼: ${currentRoomId} (房主)`); 
-                    showFloatText('創立房間成功！'); broadcastMove(true);
-                }));
-                
-                // 加入別人的房間 -> 代表我是作客的
-                socket.on('room_joined', (data) => deferUntilLoaded('正在進入房間...', () => {
-                    console.log("偷看後端傳來的房間資料：", data); // 👈 加上這行！132
-                    isRoomHost = false; 
-                    currentRoomId = data.roomId; 
-                    updateRoomUI(`已加入房間: ${currentRoomId}`); 
-                    showFloatText('加入房間成功！'); broadcastMove(true);
-                    document.getElementById('otherPlayersLayer').innerHTML = ''; 
-                    otherPlayersData = {};
-                    // 把房間裡原有的玩家畫出來
-                    if(data.players) { 
-                        data.players.forEach(p => { if(p.socketId !== socket.id) addOtherPlayer(p); }); 
+                socket.on('room_created', (data) => {
+                    myCreatedRoomId = data.roomId;
+                    deferUntilLoaded('正在建立房間...', () => {
+                        isRoomHost = true;
+                        currentRoomId = data.roomId;
+                        updateRoomUI(`房間代碼: ${currentRoomId} (房主)`);
+                        showFloatText('創立房間成功！');
+                        broadcastMove(true);
+                    });
+                });
+
+                // 加入房間（房主開完房也會收到這個）
+                socket.on('room_joined', (data) => {
+                    // 從加入視窗進來的：伺服器答應了，視窗就可以收起來，接著跑進房間的加載畫面
+                    if (isJoinModalOpen()) closeJoinRoomModal();
+                    const apply = () => {
+                        // 房主開房後也會收到 room_joined，這時候不能把房主身分洗掉
+                        isRoomHost = rejoinAsHost && isRejoining ? true : (data.roomId === myCreatedRoomId);
+                        currentRoomId = data.roomId;
+                        updateRoomUI(isRoomHost ? `房間代碼: ${currentRoomId} (房主)` : `已加入房間: ${currentRoomId}`);
+                        document.getElementById('otherPlayersLayer').innerHTML = '';
+                        otherPlayersData = {};
+                        // 把房間裡原有的玩家畫出來
+                        if (data.players) {
+                            data.players.forEach(p => { if (p.socketId !== socket.id) addOtherPlayer(p); });
+                        }
+                        broadcastMove(true);
+                    };
+
+                    // 斷線後自動回房：直接套用，不用再看一次加載畫面
+                    if (isRejoining) {
+                        apply();
+                        isRejoining = false;
+                        rejoinRoomId = null;
+                        showFloatText('重新連回房間了！');
+                        return;
                     }
+                    deferUntilLoaded('正在進入房間...', () => {
+                        apply();
+                        if (!isRoomHost) showFloatText('加入房間成功！');
+                    });
+                });
+
+                socket.on('player_joined', (p) => whenRoomReady(() => {
+                    addOtherPlayer(p);
+                    showFloatText(`${p.petName} 來串門子了！`);
+                    // 新朋友只拿得到伺服器存的舊位置，主動把自己現在的位置再送一次
+                    broadcastMove(true);
                 }));
 
-                socket.on('player_joined', (p) => { addOtherPlayer(p); showFloatText(`${p.petName} 來串門子了！`); });
                 // 別人移動了：照他傳來的比例座標放到我的畫面上，往右走就轉頭朝右
-                socket.on('player_moved', (data) => {
+                socket.on('player_moved', (data) => whenRoomReady(() => {
                     const p = otherPlayersData[data.socketId];
                     if (!p) return;
                     const prevX = hasSharedPos(p) ? p.x : null;
@@ -404,18 +482,45 @@ let GAME_TOKEN = localStorage.getItem('authToken') || localStorage.getItem('acce
                         el.classList.toggle('face-right', p.x > prevX);
                     }
                     placeOtherPlayer(data.socketId);
-                });
-                socket.on('player_left', (data) => {
+                }));
+
+                socket.on('player_left', (data) => whenRoomReady(() => {
                     const el = document.getElementById(`player-${data.socketId}`);
-                    if(el) { el.remove(); delete otherPlayersData[data.socketId]; }
-                });
+                    if (el) el.remove();
+                    delete otherPlayersData[data.socketId];
+                }));
+
                 socket.on('receive_message', (data) => { showChatBubble(data.senderName, data.message); });
                 setInterval(() => broadcastMove(), 250);
+
                 socket.on('error', (err) => {
                     isRoomRequesting = false;   // 房號錯、房間滿之類的，直接跳提示，不會出現加載畫面
+                    // 自動回房失敗（通常是房間在斷線期間已經被銷毀了）就回大廳，不要跳錯誤視窗
+                    if (isRejoining) {
+                        dropToLobby('原本的房間已經解散了，請重新開房或加入其他房間');
+                        return;
+                    }
+                    // 從加入視窗送出的（房號打錯、房間滿了）：錯誤直接顯示在視窗裡，可以馬上改
+                    if (joinPending && isJoinModalOpen()) {
+                        showJoinError(err.message || '加入失敗，請再試一次');
+                        return;
+                    }
                     alert(err.message || "發生錯誤");
                 });
             } catch (e) { console.log('Socket.IO 未連線'); }
+        }
+
+        // 按開房／加入時如果還沒連上，先等一下（最多 6 秒），不要馬上就說伺服器沒連線
+        function waitForSocket(ms = 6000) {
+            if (!socket) return Promise.resolve(false);
+            if (socket.connected) return Promise.resolve(true);
+            if (!socket.active) socket.connect();
+            showFloatText('正在連線伺服器，請稍等一下…', 3000);
+            return new Promise((resolve) => {
+                const ok = () => { clearTimeout(timer); resolve(true); };
+                const timer = setTimeout(() => { socket.off('connect', ok); resolve(false); }, ms);
+                socket.once('connect', ok);
+            });
         }
 
         // 🌟 【假的加載畫面】後端確定進得去房間後，才跑 3 秒進度條再把房間畫出來
@@ -460,18 +565,30 @@ let GAME_TOKEN = localStorage.getItem('authToken') || localStorage.getItem('acce
                 if (ratio < 1) {
                     requestAnimationFrame(step);
                 } else {
-                    overlay.style.display = 'none';
-                    isRoomLoading = false;
-                    onDone();
+                    finish();
                 }
             }
+            // 視窗切到背景時 requestAnimationFrame 會整個停住，進度條永遠跑不完，
+            // 之後再按開房／加入都會被當成「忙碌中」而沒反應，所以另外用計時器保證一定會結束
+            let finished = false;
+            function finish() {
+                if (finished) return;
+                finished = true;
+                overlay.style.display = 'none';
+                isRoomLoading = false;
+                onDone();
+            }
+            setTimeout(finish, FAKE_LOADING_MS + 100);
             requestAnimationFrame(step);
         }
 
-        function getPlayerData() { return { memberId: Math.floor(Math.random() * 1000), petName: gameState.petName || '小可愛', petColor: gameState.currentSpecies }; }
+        // 同一次遊戲固定用同一個 id（以前每次都重抽 0～999，還有機會跟別人撞號被當成「已經在別的房間」）
+        const MP_MEMBER_ID = Math.floor(Math.random() * 1e9);
+        function getPlayerData() { return { memberId: MP_MEMBER_ID, petName: gameState.petName || '小可愛', petColor: gameState.currentSpecies }; }
         
-        function createSocketRoom() { 
-            if(!socket || !socket.connected) {
+        async function createSocketRoom() {
+            if (isRoomBusy()) return;
+            if (!(await waitForSocket())) {
                 if(confirm("伺服器未連線！要先開啟「單機模擬展示」看看連線後的樣子嗎？")) {
                     startMockMultiplayer();
                 }
@@ -482,20 +599,131 @@ let GAME_TOKEN = localStorage.getItem('authToken') || localStorage.getItem('acce
             socket.emit('create_room', { playerData: getPlayerData(), maxPlayers: 6 });
         }
 
-        function joinSocketRoom() {
-            if(!socket || !socket.connected) {
+        async function joinSocketRoom() {
+            if (isRoomBusy()) return;
+            if (!(await waitForSocket())) {
                 if(confirm("伺服器未連線！要先開啟「單機模擬展示」看看連線後的樣子嗎？")) {
                     startMockMultiplayer();
                 }
                 return;
             }
             if (isRoomBusy()) return;
-            const code = prompt("請輸入 6 碼房間邀請碼 (大寫英數):");
-            if (code && code.trim().length > 0) {
-                isRoomRequesting = true;
-                socket.emit('join_room', { roomId: code.trim().toUpperCase(), playerData: getPlayerData() });
-            }
+            openJoinRoomModal();
         }
+
+        // 🚪 【加入房間視窗】取代瀏覽器內建的 prompt：6 格邀請碼、錯誤直接顯示在視窗裡
+        let joinPending = false;      // 已送出加入請求、還在等伺服器回應
+        let joinTimeout = null;
+
+        function joinEls() {
+            return {
+                overlay: document.getElementById('joinRoomOverlay'),
+                modal: document.getElementById('joinRoomModal'),
+                input: document.getElementById('joinCodeInput'),
+                box: document.querySelector('#joinRoomOverlay .join-code'),
+                slots: document.querySelectorAll('#joinRoomOverlay .join-code-slot'),
+                error: document.getElementById('joinRoomError'),
+                btn: document.getElementById('btnJoinConfirm')
+            };
+        }
+
+        function isJoinModalOpen() {
+            const o = document.getElementById('joinRoomOverlay');
+            return !!o && o.style.display === 'flex';
+        }
+
+        function openJoinRoomModal() {
+            const el = joinEls();
+            if (!el.overlay) return;
+            const en = currLang === 'en';
+            document.getElementById('joinRoomTitle').textContent = en ? "Join a friend's room" : '加入朋友的房間';
+            document.getElementById('joinRoomSub').textContent = en ? 'Enter the 6-character invite code' : '輸入朋友分享給你的 6 碼邀請碼';
+            document.getElementById('btnJoinCancel').textContent = en ? 'Cancel' : '取消';
+            el.input.value = '';
+            el.error.textContent = '';
+            joinPending = false;
+            renderJoinCode();
+            el.overlay.style.display = 'flex';
+            setTimeout(() => el.input.focus(), 60);
+        }
+
+        function closeJoinRoomModal() {
+            const el = joinEls();
+            clearTimeout(joinTimeout);
+            joinPending = false;
+            if (el.overlay) el.overlay.style.display = 'none';
+            if (el.input) el.input.blur();
+        }
+
+        // 只收英文和數字、自動轉大寫，貼上整串也會自動整理
+        function renderJoinCode() {
+            const el = joinEls();
+            const clean = el.input.value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 6);
+            if (el.input.value !== clean) el.input.value = clean;
+            el.slots.forEach((slot, i) => {
+                slot.textContent = clean[i] || '';
+                slot.classList.toggle('filled', i < clean.length);
+                // 6 格都填滿就不用再顯示游標了，不然會壓在最後一個字上
+                slot.classList.toggle('active', clean.length < 6 && i === clean.length);
+            });
+            // 伺服器的房號幾乎都是 6 碼，極少數會更短，所以 4 碼以上就讓它送
+            el.btn.disabled = joinPending || clean.length < 4;
+            el.btn.textContent = joinPending
+                ? (currLang === 'en' ? 'Joining…' : '加入中…')
+                : (currLang === 'en' ? 'Join' : '加入房間');
+        }
+
+        function showJoinError(message) {
+            const el = joinEls();
+            clearTimeout(joinTimeout);
+            joinPending = false;
+            el.error.textContent = message;
+            el.box.classList.add('error');
+            el.modal.classList.remove('shake');
+            void el.modal.offsetWidth;
+            el.modal.classList.add('shake');
+            renderJoinCode();
+            el.input.focus();
+            el.input.select();
+        }
+
+        function submitJoinRoom() {
+            const el = joinEls();
+            const code = el.input.value.trim().toUpperCase();
+            if (joinPending || code.length < 4) return;
+            if (!socket || !socket.connected) {
+                showJoinError(currLang === 'en' ? 'Not connected to the server. Please try again.' : '還沒連上伺服器，請稍後再試一次');
+                return;
+            }
+            joinPending = true;
+            isRoomRequesting = true;
+            el.error.textContent = '';
+            el.box.classList.remove('error');
+            renderJoinCode();
+            socket.emit('join_room', { roomId: code, playerData: getPlayerData() });
+            // 伺服器一直沒回就別讓按鈕卡在「加入中」
+            clearTimeout(joinTimeout);
+            joinTimeout = setTimeout(() => {
+                isRoomRequesting = false;
+                showJoinError(currLang === 'en' ? 'The server did not respond. Please try again.' : '伺服器沒有回應，請再試一次');
+            }, 8000);
+        }
+
+        (function setupJoinRoomModal() {
+            const el = joinEls();
+            if (!el.input) return;
+            el.input.addEventListener('input', () => {
+                el.error.textContent = '';
+                el.box.classList.remove('error');
+                renderJoinCode();
+            });
+            el.input.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') { e.preventDefault(); submitJoinRoom(); }
+                if (e.key === 'Escape') closeJoinRoomModal();
+            });
+            el.input.addEventListener('focus', () => el.box.classList.add('focused'));
+            el.input.addEventListener('blur', () => el.box.classList.remove('focused'));
+        })();
 
         function leaveSocketRoom() { 
             if(isMockMode) {
@@ -505,10 +733,14 @@ let GAME_TOKEN = localStorage.getItem('authToken') || localStorage.getItem('acce
             } else if(socket) {
                 socket.emit('leave_room'); 
             }
-            currentRoomId = null; 
-            document.getElementById('otherPlayersLayer').innerHTML = ''; 
-            otherPlayersData = {}; 
-            updateRoomUI("尚未連線"); 
+            currentRoomId = null;
+            rejoinRoomId = null;
+            isRejoining = false;
+            myCreatedRoomId = null;
+            isRoomHost = false;
+            document.getElementById('otherPlayersLayer').innerHTML = '';
+            otherPlayersData = {};
+            updateRoomUI("尚未連線");
         }
         // 🌟 展開或收合連線面板的小魔法
         function toggleMpPanel() {
@@ -654,6 +886,8 @@ function copyRoomId() {
 
 // 把其他玩家畫到畫面上（完整全配版！）
         function addOtherPlayer(p) {
+            const old = document.getElementById(`player-${p.socketId}`);
+            if (old) old.remove();
             otherPlayersData[p.socketId] = p;
             const spec = speciesData[p.petColor] || speciesData['snow'];
             const el = document.createElement('div'); 
@@ -3228,6 +3462,7 @@ const effectData = {
             updateRecallButtonVisibility();
             startIdleLife();     // 讓海兔自己動起來
             initSummonSystem();  // 點兩下就能把海兔叫過來
+            initSocketIO();      // 多人連線先開始連，不用等下面的 API
 
             // 🌟 3. 主動向後端拉取最新金幣數量與今日任務狀態
             loadingUI.set(56, '正在數你的積分…', 'Counting your coins…');
@@ -3282,9 +3517,7 @@ const effectData = {
                 console.log('伺服器未連線，繼續使用本地存檔');
             }
 
-            // 啟動多人連線
             loadingUI.set(92, '正在接上海裡的朋友…', 'Connecting to other players…');
-            initSocketIO();
 
             // 等瀏覽器真的把這一切畫出來一格之後，才把載入畫面收掉
             requestAnimationFrame(() => requestAnimationFrame(() => loadingUI.finish()));
@@ -3469,22 +3702,32 @@ const effectData = {
 
             let safeTop = stageRect.top;
             let safeBottom = stageRect.bottom;
+            let cornerTop = stageRect.top;   // 角落小按鈕允許海兔耳朵鑽進去的上限
+            const visHForCorners = slugEl.getBoundingClientRect().height || slugEl.offsetHeight;
 
-            // 電腦版與手機版共用同一份清單，實際存在且看得見的才會被算進去
+            // 電腦版與手機版共用同一份清單，實際存在且看得見的才會被算進去。
+            // 上方的 .top-bar 本身是一整條透明的容器，真正看得到的只有裡面的小膠囊（返回、積分、EN），
+            // 所以拿裡面的東西來算，不拿整條
             const blockers = [
-                '.top-bar', '#btnOpenManual', '#btnToggleMp', '.mp-panel',
+                '.top-bar > *', '#btnOpenManual', '#btnToggleMp', '.mp-panel',
                 '#btnOpenShop', '.interaction-group', '#uiPanel'
             ];
 
-            for (const selector of blockers) {
-                const el = document.querySelector(selector);
-                if (!el) continue;
-
+            for (const el of document.querySelectorAll(blockers.join(','))) {
                 const rect = el.getBoundingClientRect();
                 // 隱藏的元件高度是 0；手機版的 uiPanel 是整頁透明容器，會蓋滿舞台所以要跳過
                 if (rect.height <= 0 || rect.height > stageRect.height * 0.8) continue;
                 // 水平方向完全沒有跟舞台重疊的就不影響海兔
                 if (rect.right <= stageRect.left || rect.left >= stageRect.right) continue;
+                // 角落的小按鈕（飼養手冊、連線、積分、購物籃）只佔一小塊，而且層級比海兔高，
+                // 海兔跑到底下時按鈕照樣看得到、點得到。以前把它們當成整條牆，
+                // 電腦版海兔上下只剩 82px 能跑，只能一直待在下面，所以只有橫跨大半個畫面的才算整條擋住。
+                // 不過手機上海兔比較小，整隻鑽進按鈕底下就找不到了，所以上方的小按鈕最多只能蓋掉牠上面 40%（耳朵），
+                // 臉和身體一定要露出來
+                if (rect.width < stageRect.width * 0.45) {
+                    if (rect.bottom <= stageMiddle) cornerTop = Math.max(cornerTop, rect.bottom - visHForCorners * 0.4);
+                    continue;
+                }
 
                 if (rect.bottom <= stageMiddle) {
                     safeTop = Math.max(safeTop, rect.bottom);
@@ -3492,6 +3735,8 @@ const effectData = {
                     safeBottom = Math.min(safeBottom, rect.top);
                 }
             }
+
+            safeTop = Math.max(safeTop, cornerTop);
 
             // 海兔會依螢幕縮放，所以用實際看到的大小來算邊界；
             // 縮放以中心為軸，版面框與視覺框之間的差要補回來
@@ -4093,27 +4338,16 @@ function completeFeedingAction(isSuccess) {
                 showFloatText('😋 嚼嚼嚼！美味海藻 +80');
                 fetchAPI('/pet-games/interact', 'POST', { action: 'feed' });
             } else {
-             slugEl.style.transform = slugTransform();
+                // 沒吃到：不加飽食度、不加分、不進冷卻，可以馬上再試一次
+                slugEl.style.transform = slugTransform();
                 showFloatText('海藻掉在路上了～再試一次吧！');
             }
-        
-            gameState.points += 80;
-                gameState.cooldowns.feed = 8;
-                
-                // 🌟 每次餵食增加 35% 飽足度（最多 100%）
-                gameState.hunger = Math.min(100, (gameState.hunger || 0) + 35);
-                gameState.lastHungerTime = Date.now();
-                updateHungerUI();
 
-                if (!gameState.cooldownUntil) gameState.cooldownUntil = { feed: 0, clean: 0, pet: 0 };
-                gameState.cooldownUntil.feed = Date.now() + (8 * 1000);
-                saveGame();
-                updateUI();
-                showFloatText('😋 嚼嚼嚼！美味海藻 +80');
-                fetchAPI('/pet-games/interact', 'POST', { action: 'feed' });
+            // 以前這裡還有一整段「加分、加飽食度、送出餵食」的程式碼放在 if/else 外面，
+            // 導致海藻掉在路上也會漲飽食度，吃到的時候則被算兩次（積分 +160、飽食度 +70、API 送兩次）
 
-                // 吃完後把海兔推回安全範圍，避免牠停在商店面板底下被擋住
-                clampSlugIntoSafeArea();
+            // 吃完（或沒吃到）都把海兔推回安全範圍，避免牠停在商店面板底下被擋住
+            clampSlugIntoSafeArea();
         }
         // 🌟 【活力運動：拋接球與海兔流汗撿球收納系統】
         let isExercisingActive = false;
@@ -4517,6 +4751,65 @@ slugEl.style.transform = slugTransform(`scaleX(${direction})`);
             // 換背景時這層滿版遮罩會殘留一格舊背景的取樣，畫面上就會閃過一塊怪色
             overlay.style.backdropFilter = dirt > 0 ? `blur(${(dirt / 100) * 12}px)` : 'none';
             overlay.style.webkitBackdropFilter = overlay.style.backdropFilter;
+
+            updateWaterUI();
+        }
+
+        // 🌊 【水質進度條與髒水提醒】
+        const WATER_WARN = 30;    // 髒污到這裡開始提醒（清澈度 70% 以下）
+        const WATER_ALERT = 60;   // 到這裡就是緊急提醒（清澈度 40% 以下）
+        const WATER_REMIND_MS = 3 * 60 * 1000;   // 很髒又一直沒處理，每 3 分鐘再提醒一次
+        let lastWaterLevel = 0;
+        let lastWaterToastAt = 0;
+
+        function updateWaterUI() {
+            const dirt = Math.max(0, Math.min(100, gameState.dirtiness || 0));
+            const clean = 100 - dirt;
+
+            // 進度條：越清澈越滿，藍 → 橘 → 紅
+            const bar = document.getElementById('waterBarFill');
+            if (bar) {
+                bar.style.width = clean + '%';
+                bar.style.background = dirt >= WATER_ALERT
+                    ? 'linear-gradient(90deg, #f87171, #ef4444)'
+                    : dirt >= WATER_WARN
+                        ? 'linear-gradient(90deg, #fbbf24, #f97316)'
+                        : 'linear-gradient(90deg, #67e8f9, #0ea5e9)';
+            }
+
+            // 按鈕本身亮起來
+            const level = dirt >= WATER_ALERT ? 2 : dirt >= WATER_WARN ? 1 : 0;
+            const btn = document.getElementById('btnClean');
+            if (btn) {
+                btn.classList.toggle('water-warn', level === 1);
+                btn.classList.toggle('water-alert', level === 2);
+            }
+
+            // 變得更髒時跳一次提示；很髒又一直沒處理，隔一段時間再提醒
+            const now = Date.now();
+            const worse = level > lastWaterLevel;
+            const nagAgain = level === 2 && now - lastWaterToastAt > WATER_REMIND_MS;
+            lastWaterLevel = level;
+            if (level > 0 && (worse || nagAgain)) {
+                lastWaterToastAt = now;
+                showWaterReminder(level);
+            }
+        }
+
+        function showWaterReminder(level) {
+            // 開場動畫還在播就先等它結束，不然提示會被蓋住或跟動畫搶畫面
+            if (document.getElementById('introOverlay')) {
+                setTimeout(() => showWaterReminder(level), 400);
+                return;
+            }
+            if (lastWaterLevel < level) return;   // 等的期間已經洗乾淨了就不用說了
+            const zh = level === 2
+                ? '水質超髒！海兔快看不見了，快點「淨化水質」幫牠洗乾淨！'
+                : '水開始變混濁了，記得幫海兔「淨化水質」喔！';
+            const en = level === 2
+                ? 'The water is filthy! Tap "Purify" before your sea bunny disappears!'
+                : 'The water is getting cloudy. Remember to purify it!';
+            showFloatText(currLang === 'en' ? en : zh, 4500);
         }
 
 // 🌟 【一般互動系統：淨化水質與溫柔撫摸的動作總管】

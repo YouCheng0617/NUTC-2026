@@ -451,7 +451,8 @@ export const followMember = async (followerId: number, followedId: number) => {
                 'NEW_FOLLOWER',
                 `${follower.name} 開始追蹤你了！`,
                 followerId,
-                followerId
+                followerId,
+                { dedupe: true }
             ).catch(err => console.error("追蹤通知發送失敗:", err));
         }
 

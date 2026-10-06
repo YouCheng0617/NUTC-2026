@@ -11,7 +11,7 @@
 
     </script>
 
-        <link rel="stylesheet" href="slug_game.css">
+        <link rel="stylesheet" href="slug_game.css?v=20261006c">
 
 </head>
 <body>
@@ -395,6 +395,31 @@
         <button class="mp-btn secondary" onclick="leaveSocketRoom()" id="btnLeaveRoom" style="display:none; border-color: #ef4444; color: #ef4444;">離開房間</button>
     </div>
 
+    <!-- 🚪 【加入房間】輸入朋友分享的邀請碼（取代瀏覽器內建的 prompt 跳窗） -->
+    <div class="name-modal-overlay" id="joinRoomOverlay" style="z-index: 10045;" onclick="if (event.target === this) closeJoinRoomModal()">
+        <div class="name-modal join-room-modal" id="joinRoomModal">
+            <svg class="join-room-icon" viewBox="0 0 64 64" aria-hidden="true">
+                <path d="M10 30 L32 12 L54 30" fill="none" stroke="var(--accent-color)" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+                <rect x="16" y="28" width="32" height="26" rx="5" fill="#fff0f4" stroke="var(--accent-color)" stroke-width="5"/>
+                <rect x="27" y="38" width="10" height="16" rx="3" fill="var(--accent-color)"/>
+            </svg>
+            <h2 class="join-room-title" id="joinRoomTitle">加入朋友的房間</h2>
+            <p class="join-room-sub" id="joinRoomSub">輸入朋友分享給你的 6 碼邀請碼</p>
+            <!-- 看起來是 6 格，底下其實是一個輸入框，手機鍵盤、貼上都能正常用 -->
+            <label class="join-code" for="joinCodeInput">
+                <input id="joinCodeInput" type="text" autocomplete="off" autocapitalize="characters"
+                       spellcheck="false" aria-label="房間邀請碼">
+                <span class="join-code-slot"></span><span class="join-code-slot"></span><span class="join-code-slot"></span>
+                <span class="join-code-slot"></span><span class="join-code-slot"></span><span class="join-code-slot"></span>
+            </label>
+            <div class="join-room-error" id="joinRoomError" role="alert"></div>
+            <div class="modal-btns">
+                <button class="modal-btn btn-cancel" id="btnJoinCancel" onclick="closeJoinRoomModal()">取消</button>
+                <button class="modal-btn btn-confirm" id="btnJoinConfirm" onclick="submitJoinRoom()" disabled>加入房間</button>
+            </div>
+        </div>
+    </div>
+
     <!-- 🌟 【連線加載畫面】創房間／進房間時跑 3 秒的假進度條，純前端動畫 -->
     <div class="name-modal-overlay room-loading-overlay" id="roomLoadingOverlay" style="z-index: 10050;">
         <div class="name-modal">
@@ -514,7 +539,13 @@
             </button>
             <button class="btn-interact" id="btnClean" onclick="triggerCleanInteraction(event)">
                 <span class="btn-title" id="txtCleanTitle">淨化水質</span>
+                <!-- 🌊 水質清澈度進度條（跟餵食的飽食度用同一套樣式） -->
+                <div class="hunger-bar-container" title="水質清澈度">
+                    <div class="hunger-bar-fill" id="waterBarFill"></div>
+                </div>
                 <span class="btn-desc" id="txtCleanDesc">冷卻 0s</span>
+                <!-- 水髒了就亮起來的小提醒 -->
+                <span class="clean-alert-badge" aria-hidden="true" hidden>!</span>
             </button>
             <button class="btn-interact" id="btnPet" onclick="triggerExerciseInteraction(event)">
                 <span class="btn-title" id="txtPetTitle">活力運動</span>
@@ -632,7 +663,7 @@
     <!-- 🌟 ==========================================
          🌟 JavaScript 遊戲程式邏輯開始
          🌟 ========================================== -->
-        <script src="slug_game.js?v=2"></script>
+        <script src="slug_game.js?v=20261006c"></script>
 
 </body>
 </html>

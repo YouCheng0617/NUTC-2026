@@ -32,6 +32,19 @@ export const createComment = async (bottleId: number, memberId: number, content:
         }
     });
 
+    // 🔔 通知瓶子作者有人留言（自己留在自己瓶子不通知；匿名留言時 actor 不帶，所以要自己擋）
+    if (bottle.member_id && bottle.member_id !== memberId) {
+        const commenterName = isAnonymous ? "有人" : (newComment.member?.name || "未知使用者");
+
+        await createNotification(
+            bottle.member_id,
+            'COMMENT_REPLY',
+            `${commenterName} 在你的漂流瓶留言了！`,
+            isAnonymous ? undefined : memberId,
+            bottleId
+        ).catch(err => console.error("留言通知發送失敗:", err));
+    }
+
     return {
         ...newComment,
         member_name: newComment.is_anonymous ? "匿名使用者" : newComment.member?.name,
@@ -155,14 +168,14 @@ export const likeComment = async (commentId: number, memberId: number) => {
             const likerName = liker?.name || "未知使用者";
 
 
-            const targetId = commentHad.bottle_id || commentId;
-
+            // target_id 一律放瓶子 id，前端靠它跳到該篇貼文
             await createNotification(
                 commentHad.member_id,
                 'COMMENT_LIKE',
                 `${likerName} 按了你的留言讚！`,
                 memberId,
-                targetId
+                commentHad.bottle_id,
+                { dedupe: true }
             ).catch(err => console.error("留言按讚通知發送失敗:", err));
         }
 
@@ -223,6 +236,19 @@ export const createReply = async (bottleId: number, memberId: number, content: s
             isAnonymous ? undefined : memberId,
             bottleId
         ).catch(err => console.error("留言回覆通知發送失敗:", err));
+    }
+
+    // 🔔 瓶子作者也要知道底下有新回覆（作者就是被回覆的人或回覆者本人時不重複通知）
+    if (bottle.member_id && bottle.member_id !== parentComment.member_id && bottle.member_id !== memberId) {
+        const replierName = isAnonymous ? "有人" : (newReply.member?.name || "未知使用者");
+
+        await createNotification(
+            bottle.member_id,
+            'COMMENT_REPLY',
+            `${replierName} 在你的漂流瓶回覆了一則留言！`,
+            isAnonymous ? undefined : memberId,
+            bottleId
+        ).catch(err => console.error("瓶子作者回覆通知發送失敗:", err));
     }
 
     return {

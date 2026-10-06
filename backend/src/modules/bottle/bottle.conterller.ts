@@ -14,9 +14,12 @@ import {
     reportBottle,
     searchBottle,
     getPopularBottles,
-    votePoll
+    votePoll,
+    resolvePendingReports,
+    notifyBottleApproved
 } from "./bottle.service.js";
 import { getBlockedMemberIds } from "../block/block.service.js";
+import { createNotification } from "../notification/notification.service.js";
 
 export interface TokenPayload {
     member_id: number;
@@ -240,6 +243,79 @@ export const bottleController = {
         }
     },
 
+    /* 🔔 用 ID 取得單篇漂流瓶（給「點通知跳到該篇貼文」用） */
+    async getBottleByIdController(req: AuthRequest, res: Response) {
+        try {
+            const memberId = req.user?.member_id; // 💡 訪客會是 undefined
+            const bottleId = Number(req.params.bottleId);
+
+            if (!isValidId(bottleId)) {
+                return res.status(400).json({ message: "無效的瓶子 ID" });
+            }
+
+            const includeCondition: any = {
+                author: { select: { member_id: true, name: true, gender: true } },
+                _count: { select: { likes: true, saves: true } },
+                categories: { include: { category: true } },
+                PollOption: {
+                    select: { id: true, text: true, _count: { select: { votes: true } } }
+                }
+            };
+            if (memberId) {
+                includeCondition.PollVote = {
+                    where: { member_id: memberId },
+                    select: { option_id: true }
+                };
+            }
+
+            // 不排除自己的瓶子：通知常常就是指向自己的貼文
+            const bottle: any = await prisma.bottle.findFirst({
+                where: { bottle_id: bottleId, status: 1 },
+                include: includeCondition
+            });
+
+            if (!bottle) {
+                return res.status(404).json({ message: "這個漂流瓶已經不在海裡了" });
+            }
+
+            // 有封鎖關係就當作看不到
+            if (memberId && bottle.member_id) {
+                const blockedIds = await getBlockedMemberIds(memberId);
+                if (blockedIds.includes(bottle.member_id)) {
+                    return res.status(404).json({ message: "這個漂流瓶已經不在海裡了" });
+                }
+            }
+
+            // 格式跟 /bottles/random 的 bottles[] 一模一樣
+            return res.status(200).json({
+                bottle: {
+                    bottle_id: bottle.bottle_id,
+                    title: bottle.title,
+                    content: bottle.content,
+                    author_id: bottle.is_anonymous ? null : (bottle.author?.member_id ?? null),
+                    author_name: bottle.is_anonymous ? "匿名使用者" : (bottle.author?.name || "未知使用者"),
+                    author_gender: bottle.is_anonymous ? null : (bottle.author?.gender ?? null),
+                    created_at: bottle.created_at,
+                    like_count: bottle._count?.likes ?? 0,
+                    save_count: bottle._count?.saves ?? 0,
+                    view_count: bottle.view_count,
+                    category_list: bottle.categories?.map((c: any) => c.category?.name || "未知類別") || [],
+                    poll_options: bottle.PollOption?.map((opt: any) => ({
+                        option_id: opt.id,
+                        text: opt.text,
+                        vote_count: opt._count?.votes ?? 0
+                    })) || [],
+                    user_voted_option_id: bottle.PollVote && bottle.PollVote.length > 0
+                        ? bottle.PollVote[0].option_id
+                        : null
+                }
+            });
+        } catch (error) {
+            console.error("Error fetching bottle by id:", error);
+            return res.status(500).json({ message: "內部伺服器錯誤" });
+        }
+    },
+
     /* AI審核瓶子 */
     async reviewBottle(req: AuthRequest, res: Response) {
         try {
@@ -254,6 +330,12 @@ export const bottleController = {
                 return res.status(400).json({ message: "請提供有效的 bottle_id 和 status並且狀態只能是（1 或 2）" });
             }
 
+            // 先記下原本的狀態，用來判斷要不要通知、通知怎麼寫
+            const before = await prisma.bottle.findUnique({
+                where: { bottle_id: bottle_id },
+                select: { status: true }
+            });
+
             const updateBottle = await prisma.bottle.update({
                 where: { bottle_id: bottle_id },
                 data: {
@@ -261,6 +343,32 @@ export const bottleController = {
                     violation_reason: status === 2 ? violation_reason : null,
                 }
             });
+
+            // 🔔 判定違規就通知作者（本來就是違規的不重複通知）
+            if (status === 2 && before?.status !== 2 && updateBottle.member_id) {
+                const reasonText = violation_reason ? ` 原因：${violation_reason}` : '請留意社群規範。';
+                const message = before?.status === 1
+                    ? `你的漂流瓶已被系統下架。${reasonText}`
+                    : `你的漂流瓶未通過審核，沒有被放進海裡。${reasonText}`;
+
+                await createNotification(
+                    updateBottle.member_id,
+                    'SYSTEM_ALERT',
+                    message,
+                    undefined,
+                    bottle_id
+                ).catch(err => console.error("AI 審核違規通知發送失敗:", err));
+            }
+
+            // 🔔 檢舉成立，通知檢舉人
+            if (status === 2 && before?.status !== 2) {
+                await resolvePendingReports(bottle_id).catch(err => console.error("檢舉結果處理失敗:", err));
+            }
+
+            // 🔔 審核通過，通知作者瓶子漂出去了
+            if (status === 1) {
+                await notifyBottleApproved(updateBottle.member_id, bottle_id, before?.status);
+            }
 
             return res.status(200).json({
                 message: `瓶子 #${bottle_id} 審核結果已更新`,
