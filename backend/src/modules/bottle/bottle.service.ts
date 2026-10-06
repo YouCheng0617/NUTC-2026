@@ -523,43 +523,76 @@ export const searchBottle = async (keyword: string, memberId?: number) => {
 };
 
 /*獲取熱門瓶子 (依收藏數排序)*/
+/* 熱門瓶子：互動分數 ÷ 時間衰減（Hacker News 的做法），新文章熱起來也上得了榜
+ *   分數 = (按讚×1 + 留言×2 + 收藏×3) ÷ (發文經過的小時數 + 2) ^ 1.5
+ *   只從最近 14 天挑；不夠的話用比較舊、收藏多的文章補滿，看板才不會空 */
+const POPULAR_WINDOW_DAYS = 14;
+const POPULAR_WEIGHTS = { like: 1, comment: 2, save: 3 };
+const POPULAR_GRAVITY = 1.5;
+const POPULAR_CANDIDATES = 300; // 最近 14 天最多拿幾篇來算分數
+
 export const getPopularBottles = async (limit: number = 10, memberId?: number) => {
     const blockedIds = await getBlockedMemberIds(memberId);
-    const popularBottles = await prisma.bottle.findMany({
-        where: {
-            status: 1, // 只抓取審核通過的文章
-            member_id: { notIn: blockedIds }, // 排除有封鎖關係的人的文章
+    const baseWhere = {
+        status: 1, // 只抓取審核通過的文章
+        member_id: { notIn: blockedIds }, // 排除有封鎖關係的人的文章
+    };
+    const include = {
+        author: { select: { name: true } },
+        categories: { include: { category: true } },
+        _count: {
+            select: {
+                likes: true,
+                saves: true,
+                Comment: { where: { is_deleted: false } } // 已刪除的留言不算
+            }
         },
-        orderBy: {
-            saves: {
-                _count: "desc", // 依照收藏數(saves)由高到低排序
-            },
-        },
-        take: limit, // 限制回傳筆數
-        include: {
-            author: {
-                select: {
-                    name: true,
-                }
-            },
-            categories: {
-                include: {
-                    category: true,
-                }
-            },
-            _count: {
-                select: { likes: true, saves: true }
-            },
-            ...pollInclude(memberId)
-        }
+        ...pollInclude(memberId)
+    };
+
+    const since = new Date(Date.now() - POPULAR_WINDOW_DAYS * 24 * 60 * 60 * 1000);
+    const recent = await prisma.bottle.findMany({
+        where: { ...baseWhere, created_at: { gte: since } },
+        orderBy: { created_at: "desc" },
+        take: POPULAR_CANDIDATES,
+        include
     });
 
-    return popularBottles.map(bottle => {
+    const now = Date.now();
+    const score = (b: typeof recent[number]) => {
+        const interactions =
+            b._count.likes * POPULAR_WEIGHTS.like +
+            b._count.Comment * POPULAR_WEIGHTS.comment +
+            b._count.saves * POPULAR_WEIGHTS.save;
+        const hours = Math.max(0, (now - b.created_at.getTime()) / 3600000);
+        return interactions / Math.pow(hours + 2, POPULAR_GRAVITY);
+    };
+
+    let ranked = recent
+        .map((b) => ({ b, score: score(b) }))
+        .filter((x) => x.score > 0) // 完全沒互動的不算熱門
+        .sort((x, y) => y.score - x.score || y.b.created_at.getTime() - x.b.created_at.getTime()) // 同分時新的排前面
+        .slice(0, limit)
+        .map((x) => x.b);
+
+    // 最近的熱門文章不夠：用比較舊、收藏多的補滿
+    if (ranked.length < limit) {
+        const filler = await prisma.bottle.findMany({
+            where: { ...baseWhere, bottle_id: { notIn: ranked.map((b) => b.bottle_id) } },
+            orderBy: [{ saves: { _count: "desc" } }, { likes: { _count: "desc" } }, { created_at: "desc" }],
+            take: limit - ranked.length,
+            include
+        });
+        ranked = ranked.concat(filler);
+    }
+
+    return ranked.map(bottle => {
         const { _count, categories, author, PollOption, PollVote, ...bottleData } = bottle;
         return {
             ...hideAnonymousAuthor(bottleData),
             like_count: _count.likes,
             save_count: _count.saves,
+            comment_count: _count.Comment,
             member_name: bottleData.is_anonymous ? "匿名使用者" : (author?.name || "未知使用者"),
             category_list: categories.map(c => c.category?.name || "未知類別"),
             ...formatPoll(bottle)
