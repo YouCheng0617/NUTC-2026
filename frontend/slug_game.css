@@ -1110,6 +1110,53 @@
             background: linear-gradient(90deg, #4ade80, #22c55e);
             transition: width 0.35s cubic-bezier(0.18, 0.89, 0.32, 1.28), background 0.4s ease;
         }
+        /* 🌊 【水變髒的提醒】只動外框、光暈和右上角的小圓點，不動 transform，
+              才不會跟按下去時往下沉的動畫打架 */
+        #btnClean { position: relative; }
+        #btnClean.water-warn { border-color: #f59e0b; box-shadow: 0 5px 0 #f59e0b; }
+        #btnClean.water-alert { border-color: #ef4444; background: #fff1f2; box-shadow: 0 5px 0 #ef4444; }
+        /* 光暈另外畫在 ::after 上：手機版按鈕的 box-shadow 有 !important，直接動按鈕會被蓋掉 */
+        #btnClean::after {
+            content: '';
+            position: absolute;
+            inset: -3px;
+            border-radius: inherit;
+            pointer-events: none;
+        }
+        #btnClean.water-warn::after { animation: cleanWarnGlow 2.4s ease-in-out infinite; }
+        #btnClean.water-alert::after { animation: cleanAlertRing 1.1s ease-out infinite; }
+        @keyframes cleanWarnGlow {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0); }
+            50% { box-shadow: 0 0 14px 3px rgba(245, 158, 11, 0.5); }
+        }
+        @keyframes cleanAlertRing {
+            0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.65); }
+            100% { box-shadow: 0 0 0 13px rgba(239, 68, 68, 0); }
+        }
+        /* 右上角的「!」小圓點 */
+        .clean-alert-badge {
+            display: none;
+            position: absolute;
+            top: -9px; right: -7px;
+            width: 22px; height: 22px;
+            border-radius: 50%;
+            background: #f59e0b;
+            color: #fff;
+            font-size: 14px; font-weight: 900; line-height: 22px; text-align: center;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+            pointer-events: none;
+        }
+        #btnClean.water-warn .clean-alert-badge,
+        #btnClean.water-alert .clean-alert-badge { display: block; animation: cleanBadgeBob 1.2s ease-in-out infinite; }
+        #btnClean.water-alert .clean-alert-badge { background: #ef4444; }
+        @keyframes cleanBadgeBob {
+            0%, 100% { transform: translateY(0) scale(1); }
+            50% { transform: translateY(-3px) scale(1.12); }
+        }
+        @media (prefers-reduced-motion: reduce) {
+            #btnClean::after, .clean-alert-badge { animation: none !important; }
+        }
+
         /* 面板標籤與商品網格 */
         .tabs { display: flex; gap: 10px; margin-bottom: 20px; border-bottom: 3px solid var(--border-color); padding-bottom: 10px; padding-left: 5px; align-items: center; }
         .tab { background: transparent; border: none; color: var(--text-dim); font-size: 1.1rem; font-weight: 900; cursor: pointer; padding: 8px 16px; border-radius: 15px; transition: 0.2s; }
@@ -1981,6 +2028,12 @@
                 background: rgba(255, 255, 255, 0.95) !important;
                 box-shadow: 0 4px 10px rgba(0,0,0,0.1), 0 4px 0 var(--border-color) !important;
                 backdrop-filter: blur(4px);
+            }
+            /* 水變髒的提醒：手機版按鈕的底色和底邊陰影是 !important，這裡要跟著蓋過去 */
+            #btnClean.water-warn { box-shadow: 0 4px 10px rgba(245, 158, 11, 0.25), 0 4px 0 #f59e0b !important; }
+            #btnClean.water-alert {
+                background: #fff1f2 !important;
+                box-shadow: 0 4px 10px rgba(239, 68, 68, 0.3), 0 4px 0 #ef4444 !important;
             }
             .btn-desc { display: none !important; }
             .btn-title { font-size: 0.75rem !important; margin-bottom: 2px !important; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }

@@ -514,7 +514,13 @@
             </button>
             <button class="btn-interact" id="btnClean" onclick="triggerCleanInteraction(event)">
                 <span class="btn-title" id="txtCleanTitle">淨化水質</span>
+                <!-- 🌊 水質清澈度進度條（跟餵食的飽食度用同一套樣式） -->
+                <div class="hunger-bar-container" title="水質清澈度">
+                    <div class="hunger-bar-fill" id="waterBarFill"></div>
+                </div>
                 <span class="btn-desc" id="txtCleanDesc">冷卻 0s</span>
+                <!-- 水髒了就亮起來的小提醒 -->
+                <span class="clean-alert-badge" aria-hidden="true">!</span>
             </button>
             <button class="btn-interact" id="btnPet" onclick="triggerExerciseInteraction(event)">
                 <span class="btn-title" id="txtPetTitle">活力運動</span>

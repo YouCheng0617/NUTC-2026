@@ -4645,6 +4645,65 @@ slugEl.style.transform = slugTransform(`scaleX(${direction})`);
             // 換背景時這層滿版遮罩會殘留一格舊背景的取樣，畫面上就會閃過一塊怪色
             overlay.style.backdropFilter = dirt > 0 ? `blur(${(dirt / 100) * 12}px)` : 'none';
             overlay.style.webkitBackdropFilter = overlay.style.backdropFilter;
+
+            updateWaterUI();
+        }
+
+        // 🌊 【水質進度條與髒水提醒】
+        const WATER_WARN = 30;    // 髒污到這裡開始提醒（清澈度 70% 以下）
+        const WATER_ALERT = 60;   // 到這裡就是緊急提醒（清澈度 40% 以下）
+        const WATER_REMIND_MS = 3 * 60 * 1000;   // 很髒又一直沒處理，每 3 分鐘再提醒一次
+        let lastWaterLevel = 0;
+        let lastWaterToastAt = 0;
+
+        function updateWaterUI() {
+            const dirt = Math.max(0, Math.min(100, gameState.dirtiness || 0));
+            const clean = 100 - dirt;
+
+            // 進度條：越清澈越滿，藍 → 橘 → 紅
+            const bar = document.getElementById('waterBarFill');
+            if (bar) {
+                bar.style.width = clean + '%';
+                bar.style.background = dirt >= WATER_ALERT
+                    ? 'linear-gradient(90deg, #f87171, #ef4444)'
+                    : dirt >= WATER_WARN
+                        ? 'linear-gradient(90deg, #fbbf24, #f97316)'
+                        : 'linear-gradient(90deg, #67e8f9, #0ea5e9)';
+            }
+
+            // 按鈕本身亮起來
+            const level = dirt >= WATER_ALERT ? 2 : dirt >= WATER_WARN ? 1 : 0;
+            const btn = document.getElementById('btnClean');
+            if (btn) {
+                btn.classList.toggle('water-warn', level === 1);
+                btn.classList.toggle('water-alert', level === 2);
+            }
+
+            // 變得更髒時跳一次提示；很髒又一直沒處理，隔一段時間再提醒
+            const now = Date.now();
+            const worse = level > lastWaterLevel;
+            const nagAgain = level === 2 && now - lastWaterToastAt > WATER_REMIND_MS;
+            lastWaterLevel = level;
+            if (level > 0 && (worse || nagAgain)) {
+                lastWaterToastAt = now;
+                showWaterReminder(level);
+            }
+        }
+
+        function showWaterReminder(level) {
+            // 開場動畫還在播就先等它結束，不然提示會被蓋住或跟動畫搶畫面
+            if (document.getElementById('introOverlay')) {
+                setTimeout(() => showWaterReminder(level), 400);
+                return;
+            }
+            if (lastWaterLevel < level) return;   // 等的期間已經洗乾淨了就不用說了
+            const zh = level === 2
+                ? '水質超髒！海兔快看不見了，快點「淨化水質」幫牠洗乾淨！'
+                : '水開始變混濁了，記得幫海兔「淨化水質」喔！';
+            const en = level === 2
+                ? 'The water is filthy! Tap "Purify" before your sea bunny disappears!'
+                : 'The water is getting cloudy. Remember to purify it!';
+            showFloatText(currLang === 'en' ? en : zh, 4500);
         }
 
 // 🌟 【一般互動系統：淨化水質與溫柔撫摸的動作總管】
