@@ -2466,3 +2466,207 @@
         #tourLayer.tour-busy .tour-card,
         #tourLayer.tour-busy .tour-blocker { visibility: hidden; }
         .tour-task { white-space: pre-line; }
+
+        /* ==================================================
+           💬 【聊天列】從底部滑上來，不擋住魚缸中間，邊聊邊看對話泡泡
+           ================================================== */
+        .chat-bar {
+            position: fixed;
+            left: 50%;
+            bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+            z-index: 10040;
+            width: min(560px, calc(100vw - 24px));
+            transform: translateX(-50%);
+            padding: 10px 12px 12px;
+            background: #fff;
+            border: 4px solid var(--border-color);
+            border-radius: 26px;
+            box-shadow: 0 14px 34px rgba(255, 182, 193, 0.45), 0 4px 12px rgba(0, 0, 0, 0.08);
+            animation: chatBarIn 0.32s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+        }
+        .chat-bar[hidden] { display: none; }
+        @keyframes chatBarIn {
+            from { opacity: 0; transform: translate(-50%, 24px); }
+            to { opacity: 1; transform: translate(-50%, 0); }
+        }
+
+        /* 快捷語：點一下直接送出 */
+        .chat-quick {
+            display: flex;
+            gap: 6px;
+            overflow-x: auto;
+            padding: 0 2px 8px;
+            scrollbar-width: none;
+        }
+        .chat-quick::-webkit-scrollbar { display: none; }
+        .chat-chip {
+            flex: 0 0 auto;
+            padding: 6px 12px;
+            border: 2px solid #ffe4ec;
+            border-radius: 999px;
+            background: var(--card-bg);
+            color: var(--text-dark);
+            font-size: 0.85rem;
+            font-weight: 900;
+            cursor: pointer;
+            transition: transform 0.1s, border-color 0.15s;
+        }
+        .chat-chip:hover { border-color: var(--accent-color); }
+        .chat-chip:active { transform: scale(0.94); }
+
+        .chat-row { display: flex; align-items: center; gap: 8px; }
+        .chat-field { position: relative; flex: 1; min-width: 0; }
+        .chat-field input {
+            width: 100%;
+            box-sizing: border-box;
+            height: 46px;
+            padding: 0 54px 0 16px;
+            border: 3px solid var(--border-color);
+            border-radius: 18px;
+            background: var(--card-bg);
+            color: var(--text-dark);
+            font-size: 16px;   /* 小於 16px 的話 iPhone 一點下去會自動放大畫面 */
+            font-weight: 800;
+            outline: none;
+            transition: border-color 0.15s, background 0.15s;
+        }
+        .chat-field input::placeholder { color: #c9a9ae; font-weight: 700; }
+        .chat-field input:focus { border-color: var(--accent-color); background: #fff; }
+        .chat-count {
+            position: absolute;
+            right: 12px; top: 50%;
+            transform: translateY(-50%);
+            font-size: 0.72rem;
+            font-weight: 900;
+            color: #c9a9ae;
+            pointer-events: none;
+        }
+        .chat-count.full { color: #ef4444; }
+
+        .chat-send {
+            flex: 0 0 auto;
+            height: 46px;
+            padding: 0 18px;
+            border: none;
+            border-radius: 18px;
+            background: var(--accent-color);
+            color: #fff;
+            font-size: 1rem;
+            font-weight: 900;
+            cursor: pointer;
+            box-shadow: 0 4px 0 rgba(255, 140, 160, 0.75);
+            transition: transform 0.1s, opacity 0.15s;
+        }
+        .chat-send:active:not(:disabled) { transform: translateY(4px); box-shadow: none; }
+        .chat-send:disabled { opacity: 0.4; cursor: not-allowed; box-shadow: none; }
+        .chat-close {
+            flex: 0 0 auto;
+            width: 40px; height: 40px;
+            border: none;
+            border-radius: 50%;
+            background: #f1f5f9;
+            color: var(--text-dim);
+            font-size: 1rem;
+            font-weight: 900;
+            cursor: pointer;
+        }
+        @media (max-width: 420px) {
+            .chat-bar { padding: 8px 10px 10px; border-radius: 22px; }
+            .chat-send { padding: 0 14px; font-size: 0.95rem; }
+            .chat-close { width: 36px; height: 36px; }
+        }
+        @media (prefers-reduced-motion: reduce) { .chat-bar { animation: none; } }
+
+        /* 💬 浮在畫面上的對話泡泡：不放進海兔裡，海兔翻面時字才不會跟著變成鏡像 */
+        .chat-bubble.floating {
+            position: fixed;
+            top: 0; left: 0;
+            transform: translate(-50%, -100%);
+            z-index: 55;
+            pointer-events: none;
+            max-width: min(260px, 80vw);
+            white-space: normal;
+            text-align: center;
+            animation: chatFloatPop 0.3s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+        }
+        @keyframes chatFloatPop {
+            0% { transform: translate(-50%, -100%) scale(0.5); opacity: 0; }
+            100% { transform: translate(-50%, -100%) scale(1); opacity: 1; }
+        }
+        @media (prefers-reduced-motion: reduce) { .chat-bubble.floating { animation: none; } }
+
+        /* 💬 【聊天紀錄】聊天列上方，列出這次房間裡的訊息和留言時間 */
+        .chat-log-wrap { position: relative; margin-bottom: 8px; }
+        .chat-log {
+            max-height: min(240px, 32vh);
+            min-height: 64px;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+            overscroll-behavior: contain;
+            padding: 8px 6px;
+            border-radius: 18px;
+            background: #fff7f9;
+            border: 2px solid #ffe4ec;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .chat-empty { margin: auto; font-size: 0.85rem; font-weight: 800; color: #c9a9ae; }
+        .chat-msg { display: flex; flex-direction: column; align-items: flex-start; max-width: 82%; }
+        .chat-msg.mine { align-self: flex-end; align-items: flex-end; }
+        .chat-msg-name { font-size: 0.72rem; font-weight: 900; color: var(--text-dim); margin: 0 6px 2px; }
+        .chat-msg-line { display: flex; align-items: flex-end; gap: 5px; }
+        .chat-msg.mine .chat-msg-line { flex-direction: row-reverse; }
+        .chat-msg-text {
+            padding: 7px 12px;
+            border-radius: 16px 16px 16px 4px;
+            background: #fff;
+            border: 2px solid #ffe4ec;
+            color: var(--text-dark);
+            font-size: 0.9rem;
+            font-weight: 800;
+            line-height: 1.45;
+            word-break: break-word;
+        }
+        .chat-msg.mine .chat-msg-text { border-radius: 16px 16px 4px 16px; background: var(--accent-color); border-color: var(--accent-color); color: #fff; }
+        .chat-msg-time { flex: 0 0 auto; font-size: 0.68rem; font-weight: 800; color: #c9a9ae; white-space: nowrap; }
+        .chat-msg.system { align-self: center; max-width: 92%; align-items: center; }
+        .chat-msg.system .chat-msg-text { padding: 3px 10px; border: none; background: transparent; color: #b8a1a5; font-size: 0.75rem; font-weight: 800; }
+
+        /* 往上翻舊訊息時有人講話：不強制拉回最下面，改成顯示這顆讓玩家自己點 */
+        .chat-newmsg {
+            position: absolute;
+            left: 50%; bottom: 8px;
+            transform: translateX(-50%);
+            padding: 5px 12px;
+            border: none;
+            border-radius: 999px;
+            background: var(--text-dark);
+            color: #fff;
+            font-size: 0.78rem;
+            font-weight: 900;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.18);
+            cursor: pointer;
+        }
+        .chat-newmsg[hidden] { display: none; }
+
+        /* 未讀數量：用 data-unread 顯示，切換語言改按鈕文字時才不會被洗掉 */
+        #btnChat { position: relative; }
+        #btnChat[data-unread]::after,
+        #btnToggleMp[data-unread]::after {
+            content: attr(data-unread);
+            position: absolute;
+            top: -8px; right: -6px;
+            min-width: 20px; height: 20px;
+            padding: 0 5px;
+            box-sizing: border-box;
+            border-radius: 999px;
+            background: #ef4444;
+            color: #fff;
+            font-size: 0.72rem;
+            font-weight: 900;
+            line-height: 20px;
+            text-align: center;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+        }
+        @media (max-width: 420px) { .chat-log { max-height: 28vh; } }

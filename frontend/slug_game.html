@@ -11,7 +11,7 @@
 
     </script>
 
-        <link rel="stylesheet" href="slug_game.css?v=20261006f">
+        <link rel="stylesheet" href="slug_game.css?v=20261006j">
 
 </head>
 <body>
@@ -421,6 +421,32 @@
         <button class="mp-btn secondary" onclick="leaveSocketRoom()" id="btnLeaveRoom" style="display:none; border-color: #ef4444; color: #ef4444;">離開房間</button>
     </div>
 
+    <!-- 💬 【聊天列】從底部滑上來，邊打字邊看魚缸裡的對話泡泡（取代瀏覽器內建的 prompt 跳窗） -->
+    <div class="chat-bar" id="chatBar" hidden>
+        <!-- 這次房間裡的聊天紀錄，每則附上留言時間 -->
+        <div class="chat-log-wrap">
+            <div class="chat-log" id="chatLog" aria-live="polite">
+                <div class="chat-empty" id="chatEmpty">還沒有人說話，打個招呼吧！</div>
+            </div>
+            <button type="button" class="chat-newmsg" id="chatNewMsg" hidden>有新訊息 ↓</button>
+        </div>
+        <div class="chat-quick" id="chatQuick">
+            <button type="button" class="chat-chip">嗨！</button>
+            <button type="button" class="chat-chip">好可愛～</button>
+            <button type="button" class="chat-chip">一起玩吧！</button>
+            <button type="button" class="chat-chip">謝謝你</button>
+            <button type="button" class="chat-chip">掰掰～</button>
+        </div>
+        <div class="chat-row">
+            <div class="chat-field">
+                <input id="chatInput" type="text" autocomplete="off" enterkeyhint="send" placeholder="想對大家說些什麼呀？" aria-label="聊天訊息">
+                <span class="chat-count" id="chatCount">0/40</span>
+            </div>
+            <button type="button" class="chat-send" id="chatSend" disabled>送出</button>
+            <button type="button" class="chat-close" id="chatClose" aria-label="收起聊天">✕</button>
+        </div>
+    </div>
+
     <!-- 🚪 【加入房間】輸入朋友分享的邀請碼（取代瀏覽器內建的 prompt 跳窗） -->
     <div class="name-modal-overlay" id="joinRoomOverlay" style="z-index: 10045;" onclick="if (event.target === this) closeJoinRoomModal()">
         <div class="name-modal join-room-modal" id="joinRoomModal">
@@ -743,7 +769,7 @@
         </div>
     </div>
 
-        <script src="slug_game.js?v=20261006g"></script>
+        <script src="slug_game.js?v=20261006j"></script>
 
 </body>
 </html>

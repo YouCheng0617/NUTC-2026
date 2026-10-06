@@ -490,7 +490,11 @@ let GAME_TOKEN = localStorage.getItem('authToken') || localStorage.getItem('acce
                     delete otherPlayersData[data.socketId];
                 }));
 
-                socket.on('receive_message', (data) => { showChatBubble(data.senderName, data.message); });
+                // 收到訊息：記進聊天紀錄（含留言時間）；系統訊息只進紀錄，不要冒在自己海兔頭上
+                socket.on('receive_message', (data) => whenRoomReady(() => {
+                    recordChat(data.senderName, data.message, data.timestamp);
+                    if (data.senderName !== '系統') showChatBubble(data.senderName, data.message);
+                }));
                 setInterval(() => broadcastMove(), 250);
 
                 socket.on('error', (err) => {
@@ -775,13 +779,200 @@ function copyRoomId() {
         prompt("請手動複製代碼：", currentRoomId);
     });
 }
-        function sendChatPrompt() { 
-            const msg = prompt("想說些什麼呀？"); 
-            if(msg) {
-                if (isMockMode) { showChatBubble(gameState.petName || '我的海兔', msg); } 
-                else if(socket && currentRoomId) { socket.emit('send_message', { roomId: currentRoomId, message: msg }); }
-            } 
+        // 💬 【聊天列】按「聊天」從底部滑上來（取代瀏覽器內建的 prompt），送出後不關，可以一直聊
+        const CHAT_MAX = 40;          // 一則最多幾個字，太長的泡泡會蓋住整個魚缸
+        const CHAT_GAP_MS = 800;      // 連發間隔，避免一直洗頻
+        let lastChatAt = 0;
+
+        function sendChatPrompt() { openChatBar(); }
+
+        function openChatBar() {
+            const bar = document.getElementById('chatBar');
+            if (!bar || !currentRoomId) return;
+            const en = currLang === 'en';
+            const input = document.getElementById('chatInput');
+            input.placeholder = en ? 'Say something to everyone…' : '想對大家說些什麼呀？';
+            document.getElementById('chatSend').textContent = en ? 'Send' : '送出';
+            bar.hidden = false;
+            renderChatCount();
+            // 打開就算看過了：清掉未讀，捲到最新一則
+            chatUnread = 0;
+            renderChatUnread();
+            scrollChatToBottom();
+            setTimeout(() => input.focus(), 60);
         }
+
+        // 💬 【聊天紀錄】只記這次房間裡的訊息；斷線重連回同一間會保留，換房間或離開就清空
+        const CHAT_HISTORY_MAX = 100;
+        let chatRoomOfLog = null;
+        let chatCount = 0;
+        let chatUnread = 0;
+
+        function formatChatTime(ts) {
+            const d = ts ? new Date(ts) : new Date();
+            const t = isNaN(d.getTime()) ? new Date() : d;
+            return String(t.getHours()).padStart(2, '0') + ':' + String(t.getMinutes()).padStart(2, '0');
+        }
+
+        function isMyChatName(name) {
+            const mine = isMockMode ? (gameState.petName || '我的海兔') : getPlayerData().petName;
+            return name === mine;
+        }
+
+        function clearChatHistory() {
+            const log = document.getElementById('chatLog');
+            if (!log) return;
+            log.querySelectorAll('.chat-msg').forEach(el => el.remove());
+            const empty = document.getElementById('chatEmpty');
+            if (empty) empty.hidden = false;
+            document.getElementById('chatNewMsg').hidden = true;
+            chatCount = 0;
+            chatUnread = 0;
+            chatRoomOfLog = currentRoomId;
+            renderChatUnread();
+        }
+
+        function scrollChatToBottom() {
+            const log = document.getElementById('chatLog');
+            if (log) log.scrollTop = log.scrollHeight;
+            const btn = document.getElementById('chatNewMsg');
+            if (btn) btn.hidden = true;
+        }
+
+        function renderChatUnread() {
+            ['btnChat', 'btnToggleMp'].forEach(id => {
+                const el = document.getElementById(id);
+                if (!el) return;
+                if (chatUnread > 0) el.dataset.unread = chatUnread > 99 ? '99+' : String(chatUnread);
+                else delete el.dataset.unread;
+            });
+        }
+
+        function recordChat(name, message, ts) {
+            const log = document.getElementById('chatLog');
+            if (!log) return;
+            if (chatRoomOfLog !== currentRoomId) clearChatHistory();   // 換了房間就從頭記
+
+            const bar = document.getElementById('chatBar');
+            const open = bar && !bar.hidden;
+            const atBottom = log.scrollHeight - log.scrollTop - log.clientHeight < 24;
+            const isSystem = name === '系統';
+            const mine = !isSystem && isMyChatName(name);
+
+            const item = document.createElement('div');
+            item.className = 'chat-msg' + (isSystem ? ' system' : mine ? ' mine' : '');
+            // 名稱和訊息都來自其他玩家，一律當純文字放進去
+            if (!isSystem && !mine) {
+                const who = document.createElement('div');
+                who.className = 'chat-msg-name';
+                who.textContent = name;
+                item.appendChild(who);
+            }
+            const line = document.createElement('div');
+            line.className = 'chat-msg-line';
+            const text = document.createElement('div');
+            text.className = 'chat-msg-text';
+            text.textContent = message;
+            const time = document.createElement('span');
+            time.className = 'chat-msg-time';
+            time.textContent = formatChatTime(ts);
+            line.appendChild(text);
+            line.appendChild(time);
+            item.appendChild(line);
+
+            const empty = document.getElementById('chatEmpty');
+            if (empty) empty.hidden = true;
+            log.appendChild(item);
+            chatCount++;
+            if (chatCount > CHAT_HISTORY_MAX) { log.querySelector('.chat-msg').remove(); chatCount--; }
+
+            // 自己剛送出的、或本來就停在最下面：直接捲到最新；正在往上翻舊訊息就別打擾，改顯示提示
+            if (!open || mine || atBottom) scrollChatToBottom();
+            else document.getElementById('chatNewMsg').hidden = false;
+
+            // 聊天列收著的時候別人講話：按鈕上顯示未讀數量
+            if (!open && !mine && !isSystem) {
+                chatUnread++;
+                renderChatUnread();
+            }
+        }
+
+        function closeChatBar() {
+            const bar = document.getElementById('chatBar');
+            if (!bar) return;
+            bar.hidden = true;
+            bar.style.bottom = '';
+            document.getElementById('chatInput').blur();
+        }
+
+        function renderChatCount() {
+            const input = document.getElementById('chatInput');
+            // 中文選字還沒確定前不要砍字，不然注音會被切斷
+            if (!input.dataset.composing && input.value.length > CHAT_MAX) input.value = input.value.slice(0, CHAT_MAX);
+            const len = Math.min(input.value.length, CHAT_MAX);
+            const count = document.getElementById('chatCount');
+            count.textContent = len + '/' + CHAT_MAX;
+            count.classList.toggle('full', len >= CHAT_MAX);
+            document.getElementById('chatSend').disabled = input.value.trim().length === 0;
+        }
+
+        function sendChatMessage(text) {
+            const msg = String(text || '').trim().slice(0, CHAT_MAX);
+            if (!msg || !currentRoomId) return false;
+            if (Date.now() - lastChatAt < CHAT_GAP_MS) return false;
+            lastChatAt = Date.now();
+            if (isMockMode) {
+                recordChat(gameState.petName || '我的海兔', msg, Date.now());
+                showChatBubble(gameState.petName || '我的海兔', msg);
+            }
+            else if (socket && socket.connected) socket.emit('send_message', { roomId: currentRoomId, message: msg });
+            else { showFloatText(currLang === 'en' ? 'Reconnecting… try again in a moment' : '正在重新連線，等一下再傳喔'); return false; }
+            return true;
+        }
+
+        (function setupChatBar() {
+            const bar = document.getElementById('chatBar');
+            const input = document.getElementById('chatInput');
+            if (!bar || !input) return;
+
+            const submit = () => {
+                if (sendChatMessage(input.value)) {
+                    input.value = '';
+                    renderChatCount();
+                }
+                input.focus();
+            };
+            document.getElementById('chatSend').addEventListener('click', submit);
+            document.getElementById('chatClose').addEventListener('click', closeChatBar);
+            document.getElementById('chatNewMsg').addEventListener('click', scrollChatToBottom);
+            document.getElementById('chatLog').addEventListener('scroll', (e) => {
+                const log = e.currentTarget;
+                if (log.scrollHeight - log.scrollTop - log.clientHeight < 24) document.getElementById('chatNewMsg').hidden = true;
+            });
+            bar.querySelectorAll('.chat-chip').forEach(chip => {
+                chip.addEventListener('click', () => sendChatMessage(chip.textContent));
+            });
+
+            input.addEventListener('compositionstart', () => { input.dataset.composing = '1'; });
+            input.addEventListener('compositionend', () => { delete input.dataset.composing; renderChatCount(); });
+            input.addEventListener('input', renderChatCount);
+            input.addEventListener('keydown', (e) => {
+                // 打中文選字時按 Enter 是在確定字，不是要送出
+                if (e.key === 'Enter' && !e.isComposing && e.keyCode !== 229) { e.preventDefault(); submit(); }
+                if (e.key === 'Escape') closeChatBar();
+            });
+
+            // 手機鍵盤彈出來時，把聊天列往上推，才不會被鍵盤蓋住
+            if (window.visualViewport) {
+                const lift = () => {
+                    if (bar.hidden) return;
+                    const hiddenBelow = window.innerHeight - (visualViewport.height + visualViewport.offsetTop);
+                    bar.style.bottom = hiddenBelow > 40 ? (hiddenBelow + 10) + 'px' : '';
+                };
+                visualViewport.addEventListener('resize', lift);
+                visualViewport.addEventListener('scroll', lift);
+            }
+        })();
 
         // 🌐 【送出自己的位置】傳的是 0～1 的比例，不是像素：
         //    電腦和手機的舞台大小不一樣，像素傳過去會跑到別的地方，甚至跑出畫面
@@ -997,6 +1188,9 @@ function updateRoomUI(text) {
         // 未連線：顯示大廳按鈕
         const manualBtn = document.getElementById('btnOpenManual');
         if (manualBtn) manualBtn.style.display = '';
+        // 離開房間就把聊天列收起來，紀錄也清掉
+        if (typeof closeChatBar === 'function') closeChatBar();
+        if (typeof clearChatHistory === 'function') clearChatHistory();
         document.getElementById('btnCreateRoom').style.display = 'block'; 
         document.getElementById('btnJoinRoom').style.display = 'block'; 
         document.getElementById('btnChat').style.display = 'none'; 
@@ -1013,21 +1207,44 @@ function updateRoomUI(text) {
 }
 
         // 🌟 產生對話泡泡
+        // 泡泡不放進海兔裡面：海兔往右跑時整個容器會左右翻面，放在裡面的字會變成鏡像。
+        // 改成浮在畫面上，每一格都跟著海兔頭頂的位置走
         function showChatBubble(name, message) {
-            const el = document.createElement('div'); 
-            el.className = 'chat-bubble'; 
-            // 名稱與訊息來自其他玩家，一律當純文字顯示
-            el.innerHTML = `<span style="font-size:0.8em; color:var(--text-dim);"></span><br/><span></span>`;
-            el.children[0].textContent = name;
-            el.children[2].textContent = message;
             let targetEl = document.getElementById('slugContainer');
             // 如果不是自己說的，就貼到對應的玩家頭上
             if (name !== gameState.petName && name !== '系統') {
                 const others = document.querySelectorAll('.other-player-name');
                 others.forEach(node => { if (node.innerText === name) targetEl = node.parentElement; });
             }
-            if (targetEl) targetEl.appendChild(el);
-            setTimeout(() => { if (el.parentNode) el.remove(); }, 3000);
+            if (!targetEl) return;
+
+            // 同一個人連續講話：舊的泡泡直接換掉，不要疊成一坨
+            document.querySelectorAll('.chat-bubble.floating').forEach(old => { if (old.dataset.speaker === name) old.remove(); });
+
+            const el = document.createElement('div');
+            el.className = 'chat-bubble floating';
+            el.dataset.speaker = name;
+            // 名稱與訊息來自其他玩家，一律當純文字顯示
+            el.innerHTML = `<span style="font-size:0.8em; color:var(--text-dim);"></span><br/><span></span>`;
+            el.children[0].textContent = name;
+            el.children[2].textContent = message;
+            document.body.appendChild(el);
+
+            const follow = () => {
+                if (!el.isConnected) return;
+                // 玩家離開房間的話，就留在最後的位置
+                if (targetEl.isConnected) {
+                    const r = targetEl.getBoundingClientRect();
+                    el.style.left = (r.left + r.width / 2) + 'px';
+                    el.style.top = (r.top + r.height * 0.1) + 'px';
+                }
+                requestAnimationFrame(follow);
+            };
+            follow();
+
+            // 字越多留越久，長一點的句子才來得及看完
+            const stay = Math.min(6000, 3000 + String(message).length * 80);
+            setTimeout(() => el.remove(), stay);
         }
 
         // 🌟 【多國語言翻譯字典】
