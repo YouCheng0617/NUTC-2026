@@ -972,6 +972,11 @@ function updateRoomUI(text) {
 
     if (currentRoomId) {
         // 已連線：隱藏大廳按鈕，顯示房間按鈕
+        // 連線房間裡不提供飼養手冊：互動教學會叫玩家餵食、擦玻璃，但房間裡那些按鈕都被藏起來了
+        const manualBtn = document.getElementById('btnOpenManual');
+        if (manualBtn) manualBtn.style.display = 'none';
+        if (typeof tourActive !== 'undefined' && tourActive) endTour(false);
+        closeManual();
         document.getElementById('btnCreateRoom').style.display = 'none'; 
         document.getElementById('btnJoinRoom').style.display = 'none'; 
         document.getElementById('btnChat').style.display = 'block'; 
@@ -990,6 +995,8 @@ function updateRoomUI(text) {
         }
     } else {
         // 未連線：顯示大廳按鈕
+        const manualBtn = document.getElementById('btnOpenManual');
+        if (manualBtn) manualBtn.style.display = '';
         document.getElementById('btnCreateRoom').style.display = 'block'; 
         document.getElementById('btnJoinRoom').style.display = 'block'; 
         document.getElementById('btnChat').style.display = 'none'; 
@@ -12621,10 +12628,12 @@ let currentPaintPalette = 0;
         // 🌟 打開與關閉手冊的函數
 // 「飼養手冊」按鈕現在會開始互動教學；原本的文字版手冊保留在教學最後一步可以打開
 function openManual() {
+    if (currentRoomId) return;   // 連線房間裡不開飼養手冊
     startTour();
 }
 
 function openManualText() {
+    if (currentRoomId) return;
     document.getElementById('manualOverlay').style.display = 'flex';
 }
 
@@ -12779,6 +12788,7 @@ function maybeAutoStartTour() {
     if (gameState.tutorialSeen || tourActive) return;
     const gacha = document.getElementById('gachaScreen');
     const waiting = document.getElementById('introOverlay')
+        || currentRoomId
         || !gameState.hasAdopted
         || (gacha && getComputedStyle(gacha).display !== 'none')
         || tourModalOpen();
