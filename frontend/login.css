@@ -213,3 +213,97 @@ body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden;
     .b-check-btn { width: 55px; height: 55px; margin-top: 15px; }
     .b-check-btn svg { width: 24px; height: 24px; }
 }
+
+/* =========================================
+   🐱 登入小助手（靜止不動）
+   ========================================= */
+.auth-stage {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+.login-mascot {
+    position: absolute;
+    z-index: 5;
+    width: 170px;
+    pointer-events: none;
+    /* 電腦版：坐在泡泡左下方 */
+    right: calc(100% - 40px);
+    bottom: 40px;
+}
+.login-mascot svg {
+    display: block;
+    width: 100%;
+    height: auto;
+    filter: drop-shadow(0 6px 14px rgba(0, 30, 60, 0.3));
+}
+.login-mascot .mascot-eyes-closed { display: none; }
+.login-mascot.eyes-closed .mascot-eyes-open { display: none; }
+.login-mascot.eyes-closed .mascot-eyes-closed { display: inline; }
+
+.login-mascot-bubble {
+    position: absolute;
+    bottom: calc(100% + 6px);
+    left: 50%;
+    transform: translateX(-50%);
+    width: max-content;
+    max-width: 240px;
+    padding: 9px 14px;
+    background: #ffffff;
+    color: #1a4c6d;
+    border: 3px solid #1a4c6d;
+    border-radius: 16px;
+    font-size: 0.95rem;
+    font-weight: bold;
+    line-height: 1.4;
+    text-align: center;
+    box-shadow: 2px 4px 0 rgba(26, 76, 109, 0.15);
+}
+.login-mascot-bubble::after {
+    content: "";
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    border: 8px solid transparent;
+    border-top-color: #1a4c6d;
+}
+.login-mascot-bubble.pop { animation: mascot-bubble-pop 0.3s ease-out; }
+@keyframes mascot-bubble-pop {
+    0% { transform: translateX(-50%) scale(0.85); }
+    100% { transform: translateX(-50%) scale(1); }
+}
+
+/* 螢幕不夠寬（泡泡左邊放不下）：小助手坐在卡片左上角，對話框在右邊 */
+@media (max-width: 1100px) {
+    .auth-stage { margin-top: 84px; }
+    .auth-stage .cute-modal-content { max-height: calc(90vh - 84px) !important; }
+    .login-mascot {
+        width: 112px;
+        right: auto;
+        bottom: auto;
+        left: 10px;
+        top: -90px;
+    }
+    .login-mascot-bubble {
+        bottom: auto;
+        top: 20px;
+        left: calc(100% + 8px);
+        transform: none;
+        max-width: 200px;
+        font-size: 0.88rem;
+    }
+    .login-mascot-bubble::after {
+        top: 50%;
+        left: auto;
+        right: 100%;
+        transform: translateY(-50%);
+        border-top-color: transparent;
+        border-right-color: #1a4c6d;
+    }
+    @keyframes mascot-bubble-pop {
+        0% { transform: scale(0.85); }
+        100% { transform: scale(1); }
+    }
+}

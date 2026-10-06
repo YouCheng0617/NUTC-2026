@@ -7,7 +7,7 @@
       content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
     />
     <title>心情漂流瓶 - 登入與註冊</title>
-    <link rel="stylesheet" href="login.css" />
+    <link rel="stylesheet" href="login.css?v=3" />
     <style>
       /* ✨ 專屬返回按鈕樣式 (水滴小膠囊 - 美化升級版) */
       .return-btn {
@@ -86,6 +86,36 @@
 
     <!-- 登入註冊主彈窗 -->
     <div id="auth-modal" class="cute-modal" style="display: none">
+      <div class="auth-stage">
+        <!-- 🐱 登入小助手（靜止不動）：登入、註冊說不同的話；打開密碼的眼睛就閉眼 -->
+        <div class="login-mascot" aria-live="polite">
+          <div class="login-mascot-bubble" id="login-mascot-bubble">歡迎回來，我們一起玩吧！</div>
+          <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="漂流瓶小助手">
+            <path d="M 25 75 C 5 70 5 95 18 95 C 15 105 35 100 35 85 Z" fill="#50b4ba" stroke="#1a4c6d" stroke-width="3.5" stroke-linejoin="round" />
+            <path d="M 20 50 C 15 95 85 95 80 50 Z" fill="#7ac2c4" stroke="#1a4c6d" stroke-width="3.5" stroke-linejoin="round" />
+            <path d="M 32 65 Q 40 72 48 65 M 52 65 Q 60 72 68 65 M 42 75 Q 50 82 58 75" fill="none" stroke="#1a4c6d" stroke-width="2.5" stroke-linecap="round" opacity="0.6" />
+            <path d="M 22 55 C 20 28 25 25 35 25 L 38 12 L 46 22 L 54 22 L 62 12 L 65 25 C 75 25 80 28 78 55 Z" fill="#fcfdfe" stroke="#1a4c6d" stroke-width="3.5" stroke-linejoin="round" />
+            <g class="mascot-eyes-open">
+              <circle cx="38" cy="40" r="4.5" fill="#1a4c6d" />
+              <circle cx="62" cy="40" r="4.5" fill="#1a4c6d" />
+            </g>
+            <g class="mascot-eyes-closed">
+              <path d="M 33 40 Q 38 45 43 40" fill="none" stroke="#1a4c6d" stroke-width="3" stroke-linecap="round" />
+              <path d="M 57 40 Q 62 45 67 40" fill="none" stroke="#1a4c6d" stroke-width="3" stroke-linecap="round" />
+            </g>
+            <ellipse cx="28" cy="44" rx="4.5" ry="3" fill="#ffbaba" />
+            <ellipse cx="72" cy="44" rx="4.5" ry="3" fill="#ffbaba" />
+            <path d="M 46 43 Q 50 47 54 43" fill="none" stroke="#b83e33" stroke-width="3.5" stroke-linecap="round" />
+            <g transform="translate(33, 46) scale(1.1)">
+              <path d="M 28 16 C 27 12, 25 9, 21 9 C 17 9, 14 5, 13 3 C 12 6, 13 8, 10 10 C 6 12, 3 16, 2 20 C 1 23, 0 26, 1 26 C 3 25, 4 23, 5 22 C 6 24, 8 26, 9 25 C 8 22, 10 20, 11 19 C 16 21, 23 20, 28 16 Z" fill="#9bcbf1" stroke="#1a4c6d" stroke-width="3.5" stroke-linejoin="round" />
+              <path d="M 27.5 16.5 C 22 20, 15 20, 11.5 18.5 C 15 16, 22 15, 27.5 15 Z" fill="#ffffff" />
+              <path d="M 18 18 C 16 23, 14 25, 16 26 C 18 25, 19 22, 20 18 Z" fill="#9bcbf1" stroke="#1a4c6d" stroke-width="3.5" stroke-linejoin="round" />
+              <circle cx="23" cy="14" r="1.3" fill="#1a4c6d" />
+            </g>
+            <path d="M 26 63 C 30 67, 36 69, 41 67 C 43 66, 42 62, 39 62 C 35 62, 30 62, 26 62 Z" fill="#fcfdfe" stroke="#1a4c6d" stroke-width="3.5" stroke-linejoin="round" />
+            <path d="M 76 48 C 82 45, 85 38, 85 32 C 85 27, 78 27, 76 34 C 75 38, 75 42, 76 48 Z" fill="#fcfdfe" stroke="#1a4c6d" stroke-width="3.5" stroke-linejoin="round" />
+          </svg>
+        </div>
       <div class="cute-modal-content">
         <span class="close-btn" onclick="closeAuthModal()">&times;</span>
 
@@ -574,6 +604,7 @@
             </svg>
           </button>
         </form>
+      </div>
       </div>
     </div>
 
@@ -1129,6 +1160,54 @@
         if (birthdayInput)
           birthdayInput.addEventListener("change", updateZodiac);
       });
+    </script>
+    <script>
+      // 🐱 登入小助手：看目前顯示的是哪個表單、有沒有人把密碼的眼睛打開
+      (function () {
+        const MESSAGES = {
+          "login-form": "歡迎回來，我們一起玩吧！",
+          "register-form": "歡迎來到我們的海域！",
+          "forgot-form": "忘記密碼了嗎？別擔心～",
+          "reset-form": "設定一個新密碼吧！",
+        };
+        const PEEK_MESSAGE = "我看不到～🙈";
+
+        function updateLoginMascot() {
+          const mascot = document.querySelector(".login-mascot");
+          const bubble = document.getElementById("login-mascot-bubble");
+          if (!mascot || !bubble) return;
+
+          const activeId = Object.keys(MESSAGES).find((id) => {
+            const form = document.getElementById(id);
+            return form && getComputedStyle(form).display !== "none";
+          });
+          const activeForm = activeId && document.getElementById(activeId);
+          // 只看目前這個表單：別的表單的密碼開著也不算
+          const peeking = !!activeForm &&
+            [...activeForm.querySelectorAll(".password-wrapper input")].some((input) => input.type === "text");
+
+          mascot.classList.toggle("eyes-closed", peeking);
+          const text = peeking ? PEEK_MESSAGE : MESSAGES[activeId] || MESSAGES["login-form"];
+          if (bubble.textContent !== text) {
+            bubble.textContent = text;
+            bubble.classList.remove("pop");
+            void bubble.offsetWidth; // 重新觸發換句話時的小彈跳
+            bubble.classList.add("pop");
+          }
+        }
+
+        ["togglePassword", "switchTab", "openAuthModal"].forEach((name) => {
+          const original = window[name];
+          if (typeof original !== "function") return;
+          window[name] = function (...args) {
+            const result = original.apply(this, args);
+            updateLoginMascot();
+            return result;
+          };
+        });
+
+        updateLoginMascot();
+      })();
     </script>
   </body>
 </html>
