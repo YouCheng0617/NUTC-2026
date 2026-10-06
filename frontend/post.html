@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>心情漂流瓶 - 我的文章</title>
-    <link rel="stylesheet" href="test.css?v=27" />
+    <link rel="stylesheet" href="test.css?v=55" />
     <style>
       /* ==================================================
          🏠 回到主頁按鈕：深海發光水滴特效
@@ -643,7 +643,7 @@
             </div>
             <div class="input-group">
               <label>自我介紹</label>
-              <textarea id="edit-bio" class="ocean-input" rows="3"></textarea>
+              <textarea id="edit-bio" class="ocean-input" rows="3" placeholder="介紹一下自己吧～支援 Markdown 語法"></textarea>
             </div>
             <div class="btn-group">
               <button class="btn-cancel" onclick="toggleProfileMode('view')">
@@ -749,8 +749,9 @@
             document.getElementById("detail-gender").innerText;
           document.getElementById("edit-zodiac").value =
             document.getElementById("detail-zodiac").innerText;
-          document.getElementById("edit-bio").value =
-            document.getElementById("detail-bio").innerText;
+          // 自介畫面上是排版後的樣子，編輯框要放原始文字（含 Markdown 語法）
+          const savedUser = JSON.parse(localStorage.getItem("currentUser") || "{}");
+          document.getElementById("edit-bio").value = savedUser.bio || "";
 
           document.getElementById("profile-view-mode").style.display = "none";
           document.getElementById("profile-edit-mode").style.display = "block";
@@ -769,14 +770,18 @@
           document.getElementById("edit-gender").value;
         document.getElementById("detail-zodiac").innerText =
           document.getElementById("edit-zodiac").value;
-        document.getElementById("detail-bio").innerText =
-          document.getElementById("edit-bio").value;
+        const bioEl = document.getElementById("detail-bio");
+        const bioText = document.getElementById("edit-bio").value;
+        if (window.renderBio) window.renderBio(bioEl, bioText);
+        else bioEl.innerText = bioText;
 
         alert("🎉 個人資料已更新！");
         toggleProfileMode("view");
       };
     </script>
 
-    <script type="module" src="test.js?v=30"></script>
+    <script defer src="https://cdnjs.cloudflare.com/ajax/libs/marked/12.0.2/marked.min.js"></script>
+    <script defer src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.1.6/purify.min.js"></script>
+    <script type="module" src="test.js?v=55"></script>
   </body>
 </html>

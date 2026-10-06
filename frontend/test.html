@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>心情漂流瓶 - 論壇</title>
-    <link rel="stylesheet" href="test.css?v=48" />
+    <link rel="stylesheet" href="test.css?v=55" />
     <style>
       /* ==================================================
          🌊 頂部 Header 全新配置：左側 Logo + 鈴鐺
@@ -634,26 +634,8 @@
 
               <div class="user-dropdown-menu" id="user-dropdown">
                 <div class="menu-item" id="open-profile">👤 個人資料</div>
-                <div class="menu-item" onclick="openFollowingModal()">
-                  🫂 我的追蹤
-                </div>
-                <div class="menu-item" onclick="openFollowersModal()">
-                  👥 我的粉絲
-                </div>
-                <div class="menu-item" onclick="openBlockedModal()">
-                  🚫 封鎖名單
-                </div>
-                <div
-                  class="menu-item"
-                  onclick="window.location.href = 'saved.html'"
-                >
-                  ⭐ 收藏瓶子
-                </div>
-                <div
-                  class="menu-item"
-                  onclick="window.location.href = 'post.html'"
-                >
-                  📝 我的瓶子
+                <div class="menu-item" onclick="openActivityModal()">
+                  📰 動態消息
                 </div>
                 <div
                   class="menu-item"
@@ -861,87 +843,11 @@
                     document
                       .getElementById('hub-modal')
                       .style.setProperty('display', 'none', 'important');
-                    typeof openFollowingModal === 'function' &&
-                      openFollowingModal();
+                    typeof openActivityModal === 'function' &&
+                      openActivityModal();
                   "
                 >
-                  🫂 <span style="color: #000000 !important">我的追蹤</span>
-                </div>
-                <div
-                  class="menu-item"
-                  style="
-                    padding: 10px 18px;
-                    color: #000000 !important;
-                    font-size: 0.9rem;
-                    font-weight: 600;
-                    cursor: pointer;
-                    display: flex;
-                    align-items: center;
-                    gap: 8px;
-                  "
-                  onclick="
-                    document
-                      .getElementById('hub-modal')
-                      .style.setProperty('display', 'none', 'important');
-                    typeof openFollowersModal === 'function' &&
-                      openFollowersModal();
-                  "
-                >
-                  👥 <span style="color: #000000 !important">我的粉絲</span>
-                </div>
-                <div
-                  class="menu-item"
-                  style="
-                    padding: 10px 18px;
-                    color: #000000 !important;
-                    font-size: 0.9rem;
-                    font-weight: 600;
-                    cursor: pointer;
-                    display: flex;
-                    align-items: center;
-                    gap: 8px;
-                  "
-                  onclick="
-                    document
-                      .getElementById('hub-modal')
-                      .style.setProperty('display', 'none', 'important');
-                    typeof openBlockedModal === 'function' &&
-                      openBlockedModal();
-                  "
-                >
-                  🚫 <span style="color: #000000 !important">封鎖名單</span>
-                </div>
-                <div
-                  class="menu-item"
-                  style="
-                    padding: 10px 18px;
-                    color: #000000 !important;
-                    font-size: 0.9rem;
-                    font-weight: 600;
-                    cursor: pointer;
-                    display: flex;
-                    align-items: center;
-                    gap: 8px;
-                  "
-                  onclick="window.location.href = 'saved.html'"
-                >
-                  ⭐ <span style="color: #000000 !important">收藏瓶子</span>
-                </div>
-                <div
-                  class="menu-item"
-                  style="
-                    padding: 10px 18px;
-                    color: #000000 !important;
-                    font-size: 0.9rem;
-                    font-weight: 600;
-                    cursor: pointer;
-                    display: flex;
-                    align-items: center;
-                    gap: 8px;
-                  "
-                  onclick="window.location.href = 'post.html'"
-                >
-                  📝 <span style="color: #000000 !important">我的瓶子</span>
+                  📰 <span style="color: #000000 !important">動態消息</span>
                 </div>
                 <div
                   class="menu-item"
@@ -1462,6 +1368,25 @@
             required
             class="ocean-input ocean-textarea"
           ></textarea>
+          <div
+            id="post-content-preview"
+            class="ocean-input ocean-textarea md-content md-preview"
+            style="display: none"
+          ></div>
+          <div class="md-helper">
+            <details class="md-hint">
+              <summary>✍️ 支援 Markdown 語法</summary>
+              <table class="md-hint-table"><tr><td>**粗體**</td><td><strong>粗體</strong></td></tr><tr><td>*斜體*</td><td><em>斜體</em></td></tr><tr><td>~~刪除線~~</td><td><del>刪除線</del></td></tr><tr><td>`程式碼`</td><td><code>程式碼</code></td></tr><tr><td># 標題</td><td>大標題（## 小一點）</td></tr><tr><td>- 項目</td><td>清單（1. 是編號清單）</td></tr><tr><td>> 引用</td><td>引用一段話</td></tr><tr><td>[文字](https://...)</td><td>連結</td></tr><tr><td>```<br>程式碼<br>```</td><td>程式碼區塊</td></tr><tr><td>空一行</td><td>開始新的一段</td></tr></table>
+            </details>
+            <button
+              type="button"
+              id="post-preview-toggle"
+              class="md-preview-toggle"
+              onclick="togglePostPreview()"
+            >
+              👀 預覽
+            </button>
+          </div>
 
           <!-- 📊 Threads 風格投票選項設定區 -->
           <div class="poll-creator-section">
@@ -1546,7 +1471,7 @@
                 <strong>✨ 星座：</strong><span id="detail-zodiac">未填寫</span>
               </div>
               <div style="margin-top: 10px"><strong>📝 自我介紹：</strong></div>
-              <p
+              <div
                 id="detail-bio"
                 style="
                   background: #f9fbfd;
@@ -1557,7 +1482,7 @@
                 "
               >
                 尚未填寫自我介紹...
-              </p>
+              </div>
             </div>
             <button
               id="btn-edit-profile"
@@ -1657,6 +1582,7 @@
             <textarea
               id="edit-bio"
               class="light-input"
+              placeholder="介紹一下自己吧～支援 Markdown 語法"
               style="
                 padding: 10px;
                 margin-bottom: 15px;
@@ -1789,6 +1715,70 @@
           <div style="text-align: center; color: #888; padding: 30px 0">
             正在潛入深海尋找你追蹤的用戶...🌊
           </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 📰 動態消息視窗：追蹤、粉絲、封鎖、收藏、我的瓶子都從這裡進去 -->
+    <div id="activity-modal" class="modal" onclick="if (event.target === this) closeActivityModal()">
+      <div
+        class="modal-content light-modal"
+        style="width: 380px; max-height: 80vh; overflow-y: auto; padding: 25px"
+      >
+        <span class="close-btn" onclick="closeActivityModal()">&times;</span>
+        <h2
+          style="
+            color: #0055a5;
+            font-weight: 900;
+            text-align: center;
+            margin-bottom: 20px;
+            margin-top: 10px;
+          "
+        >
+          📰 動態消息
+        </h2>
+
+        <div class="activity-list">
+          <button type="button" class="activity-item" onclick="openActivityItem('following')">
+            <span class="activity-icon">🫂</span>
+            <span class="activity-text">
+              <span class="activity-title">我的追蹤</span>
+              <span class="activity-desc">你正在追蹤的人</span>
+            </span>
+            <span class="activity-arrow">›</span>
+          </button>
+          <button type="button" class="activity-item" onclick="openActivityItem('followers')">
+            <span class="activity-icon">👥</span>
+            <span class="activity-text">
+              <span class="activity-title">我的粉絲</span>
+              <span class="activity-desc">追蹤你的人，可以回追蹤</span>
+            </span>
+            <span class="activity-arrow">›</span>
+          </button>
+          <button type="button" class="activity-item" onclick="openActivityItem('blocked')">
+            <span class="activity-icon">🚫</span>
+            <span class="activity-text">
+              <span class="activity-title">封鎖名單</span>
+              <span class="activity-desc">查看、解除封鎖</span>
+            </span>
+            <span class="activity-arrow">›</span>
+          </button>
+          <button type="button" class="activity-item" onclick="openActivityItem('saved')">
+            <span class="activity-icon">⭐</span>
+            <span class="activity-text">
+              <span class="activity-title">收藏瓶子</span>
+              <span class="activity-desc">你收藏起來的漂流瓶</span>
+            </span>
+            <span class="activity-arrow">›</span>
+          </button>
+          <button type="button" class="activity-item" onclick="openActivityItem('mine')">
+            <span class="activity-icon">📝</span>
+            <span class="activity-text">
+              <span class="activity-title">我的瓶子</span>
+              <span class="activity-desc">你丟進海裡的漂流瓶</span>
+            </span>
+            <span class="activity-arrow">›</span>
+          </button>
         </div>
       </div>
     </div>
@@ -2030,7 +2020,9 @@
 
     <!-- 把原本的 v=30 改成 v=35 -->
     <
-    <script type="module" src="test.js?v=48"></script>
+    <script defer src="https://cdnjs.cloudflare.com/ajax/libs/marked/12.0.2/marked.min.js"></script>
+    <script defer src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.1.6/purify.min.js"></script>
+    <script type="module" src="test.js?v=55"></script>
 
     <!-- 🌟 整合面板專屬交互控制 -->
     <script>

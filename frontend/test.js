@@ -270,6 +270,11 @@ function normalizeBottle(rawItem, likedBottleIds = [], savedBottleIds = []) {
           item.created_at ||
           rawItem.createdAt ||
           rawItem.created_at,
+        editedAt: item.edited_at || rawItem.edited_at || null,
+        // 「我的瓶子」裡的一定是自己的（匿名瓶子也算）；其他地方比對作者 id
+        isMine:
+          currentView === "mine" ||
+          Boolean(realAuthorId && String(realAuthorId) === String(getMyMemberId())),
       };
 }
 
@@ -468,7 +473,7 @@ function renderPosts(data = posts) {
                 <div style="font-size:0.8rem; color:#888; background:#f0f4f8; padding:3px 10px; border-radius:12px;">${highlightText(escapeHTML(p.author), currentKeyword)}</div>
             </div>
             <h2 style="margin:12px 0; color:#333; font-size: 1.4rem;">${highlightText(escapeHTML(p.title), currentKeyword)}</h2>
-            <p style="color:#666; line-height: 1.5; font-size: 0.95rem;">${highlightText(escapeHTML(p.desc), currentKeyword)}</p>
+            <p style="color:#666; line-height: 1.5; font-size: 0.95rem;">${highlightText(escapeHTML(markdownToPlainText(p.desc)), currentKeyword)}</p>
             <div class="action-bar">
                 <span class="action-btn ${p.liked ? "like-active" : ""}" onclick="toggleAction('${escapeHTML(String(p.id))}', 'like', event)">${p.liked ? "❤️" : "🤍"} ${p.likes}</span>
                 <span class="action-btn">💬 ${p.msgs}</span>
@@ -476,6 +481,7 @@ function renderPosts(data = posts) {
                 <div style="margin-left: auto; display: flex; gap: 15px;">
                     <span class="action-btn ${p.saved ? "save-active" : ""}" onclick="toggleAction('${escapeHTML(String(p.id))}', 'save', event)">${p.saved ? "⭐ 已收藏" : "☆ 收藏"}</span>
                     
+                    ${canEditBottle(p) ? `<span class="action-btn" style="color: #2f80ed;" onclick="openEditBottleModal('${escapeHTML(String(p.id))}', event)">✏️ 修改</span>` : ""}
                     ${currentView === "mine" ? `<span class="action-btn" style="color: #ff4d4d;" onclick="deleteMyBottle('${escapeHTML(String(p.id))}', event)">🗑️ 刪除</span>` : ""}
                 </div>
             </div>
@@ -631,6 +637,7 @@ window.renderComments = async function (postId) {
         const commentId = c.id || c.comment_id || c.commentId || c._id;
         const content = c.content || c.text || "";
         const avatar = c.avatar || "images/fish_logo.webp";
+        commentRawContent.set(String(commentId), content);
 
         const replies = c.replies || c.children || c.subComments || [];
         let repliesHtml = "";
@@ -642,6 +649,7 @@ window.renderComments = async function (postId) {
             const rAvatar = reply.avatar || "images/fish_logo.webp";
             // 雙擊／長按回覆者可以封鎖（匿名的 member_id 是 null，會提示無法封鎖）
             const rBlockAttrs = `data-block-id="${escapeHTML(String(reply.member_id ?? ""))}" data-block-name="${escapeHTML(rAuthor)}"`;
+            commentRawContent.set(String(reply.id), rContent);
 
             repliesHtml += `
                             <div class="ocean-reply-item">
@@ -649,8 +657,10 @@ window.renderComments = async function (postId) {
                                     <img src="${rAvatar}" class="reply-avatar" ${rBlockAttrs}>
                                     <span class="reply-author" ${rBlockAttrs}>${escapeHTML(rAuthor)}</span>
                                     ${renderCommentFollowBtn(reply.member_id, rAuthor)}
+                                    ${reply.edited_at ? '<span class="comment-edited-tag">已編輯</span>' : ""}
                                 </div>
-                                <div class="reply-body">${escapeHTML(rContent)}</div>
+                                <div class="reply-body md-content" data-comment-body="${escapeHTML(String(reply.id))}">${renderMarkdown(rContent)}</div>
+                                ${renderOwnCommentActions(reply)}
                             </div>
                         `;
           });
@@ -677,6 +687,22 @@ window.renderComments = async function (postId) {
             ? `<span class="comment-time-text">${formattedTime}</span>`
             : "";
 
+        // 🗑️ 作者刪掉、但底下還有回覆的留言：只留位置，讓回覆照常顯示
+        if (c.is_deleted) {
+          html += `
+                    <div class="ocean-comment-card is-deleted">
+                        <div class="comment-header">
+                            <span class="comment-deleted-text">🗑️ 這則留言已刪除</span>
+                            <span class="comment-floor">B${index + 1}</span>
+                        </div>
+                        <div class="reply-container">
+                            ${repliesHtml}
+                        </div>
+                    </div>
+                `;
+          return;
+        }
+
         html += `
                     <div class="ocean-comment-card">
                         <div class="comment-header">
@@ -686,16 +712,17 @@ window.renderComments = async function (postId) {
                                 ${escapeHTML(authorName)}
                                 ${timeHtml}
                             </span>
+                            ${c.edited_at ? '<span class="comment-edited-tag">已編輯</span>' : ""}
                             ${renderCommentFollowBtn(c.member_id, authorName)}
                           </div>
                             <span class="comment-floor">B${index + 1}</span>
                         </div>
-                        <div class="comment-body">${escapeHTML(content)}</div>
-                        
+                        <div class="comment-body md-content" data-comment-body="${escapeHTML(String(commentId))}">${renderMarkdown(content)}</div>
+
                         <div class="reply-container" style="${repliesHtml ? "" : "display: none;"}">
                             ${repliesHtml}
                         </div>
-                        
+
                         <div class="comment-actions">
                             <span class="action-btn reply-trigger" onclick="toggleReplyBox('${commentId}')">
                                 💬 回覆
@@ -703,11 +730,13 @@ window.renderComments = async function (postId) {
                             <span id="comment-like-btn-${commentId}" class="action-btn like-trigger" style="color: ${isLiked ? "#e74c3c" : "#999"};" onclick="toggleCommentLike('${postId}', '${commentId}')">
                                 ${isLiked ? "❤️" : "🤍"} ${likesCount}
                             </span>
+                            ${renderOwnCommentActions(c, true)}
                         </div>
 
                         <div id="reply-box-${commentId}" class="reply-input-box" style="display: none;">
+                            ${mdMiniHelperHtml()}
                             <div class="reply-input-wrapper">
-                                <input type="text" id="reply-input-${commentId}" placeholder="偷偷回覆他一點溫暖..." class="custom-reply-input" autocomplete="off">
+                                <textarea id="reply-input-${commentId}" rows="1" placeholder="${withNewlineHint("偷偷回覆他一點溫暖...")}" class="custom-reply-input" autocomplete="off" enterkeyhint="enter"></textarea>
                                 <label class="anon-label">
                                     <input type="checkbox" id="reply-anon-${commentId}"> 🎭 匿名
                                 </label>
@@ -785,6 +814,8 @@ window.submitComment = async function () {
 
     if (response.ok) {
       targetInput.value = "";
+      autoGrowTextarea(targetInput);
+      refreshMiniPreview(targetInput);
       if (mainAnonCheckbox) mainAnonCheckbox.checked = false;
 
       alert(isAnon ? "✨ 匿名留言已悄悄送出！" : "✨ 留言成功傳達囉！");
@@ -955,8 +986,10 @@ window.openPostDetail = function (id) {
   document
     .querySelectorAll("#detail-post-content")
     .forEach(
-      (el) =>
-        (el.innerHTML = highlightText(escapeHTML(p.desc), currentKeyword)),
+      (el) => {
+        el.classList.add("md-content");
+        el.innerHTML = renderMarkdown(p.desc, currentKeyword);
+      },
     );
 
   // 判斷是否顯示追蹤按鈕與即時同步「已追蹤/未追蹤」狀態
@@ -1043,6 +1076,8 @@ window.openPostDetail = function (id) {
     window.scrollTo({ top: 0, behavior: "smooth" });
     document.body.classList.add("in-detail-view");
   }
+
+  afterOpenPostDetail(p);
 };
 
 window.closePostDetail = function () {
@@ -1598,8 +1633,8 @@ document.addEventListener("DOMContentLoaded", () => {
       profileModal.style.display = "none";
     if (postModal && event.target == postModal)
       postModal.style.display = "none";
-    if (followingModal && event.target == followingModal)
-      followingModal.style.display = "none";
+    // 走 closeFollowingModal，從動態消息進來的才會退回動態消息
+    if (followingModal && event.target == followingModal) closeFollowingModal();
     if (settingsModal && event.target == settingsModal)
       settingsModal.style.display = "none";
   };
@@ -1622,8 +1657,7 @@ document.addEventListener("DOMContentLoaded", () => {
           user.gender || "未填寫";
         document.getElementById("detail-zodiac").innerText =
           user.zodiac || user.constellation || "未填寫";
-        document.getElementById("detail-bio").innerText =
-          user.bio || "這瓶子裡目前空空的...";
+        renderBio(document.getElementById("detail-bio"), user.bio);
         document.getElementById("profile-view-mode").style.display = "block";
         document.getElementById("profile-edit-mode").style.display = "none";
         profileModal.style.display = "block";
@@ -1722,8 +1756,7 @@ document.addEventListener("DOMContentLoaded", () => {
           user.gender || "未填寫";
         document.getElementById("detail-zodiac").innerText =
           user.zodiac || "未填寫";
-        document.getElementById("detail-bio").innerText =
-          user.bio || "這瓶子裡目前空空的...";
+        renderBio(document.getElementById("detail-bio"), user.bio);
         const userNameEl = document.getElementById("user-name");
         if (userNameEl) userNameEl.innerText = user.name;
 
@@ -4363,3 +4396,564 @@ window.toggleFollowFromComment = async function (targetId, targetName, btn) {
     if (btn) btn.disabled = false;
   }
 };
+
+// =========================================
+// 📰 動態消息：我的追蹤、我的粉絲、封鎖名單、收藏瓶子、我的瓶子 收在同一個視窗
+// =========================================
+window.openActivityModal = function () {
+  const dropdown = document.getElementById("user-dropdown");
+  if (dropdown) dropdown.classList.remove("show-dropdown");
+  const modal = document.getElementById("activity-modal");
+  if (modal) modal.style.setProperty("display", "flex", "important");
+};
+
+window.closeActivityModal = function () {
+  const modal = document.getElementById("activity-modal");
+  if (modal) modal.style.setProperty("display", "none", "important");
+};
+
+// 從動態消息點進去的名單，關掉時要退回動態消息，不然得從選單重新點一次
+let returnToActivity = false;
+
+["closeFollowingModal", "closeFollowersModal", "closeBlockedModal"].forEach((name) => {
+  const originalClose = window[name];
+  window[name] = function (...args) {
+    originalClose.apply(this, args);
+    if (returnToActivity) {
+      returnToActivity = false;
+      openActivityModal();
+    }
+  };
+});
+
+window.openActivityItem = function (key) {
+  closeActivityModal();
+  switch (key) {
+    case "following":
+      returnToActivity = true;
+      openFollowingModal();
+      break;
+    case "followers":
+      returnToActivity = true;
+      openFollowersModal();
+      break;
+    case "blocked":
+      returnToActivity = true;
+      openBlockedModal();
+      break;
+    case "saved":
+      window.location.href = "saved.html";
+      break;
+    case "mine":
+      window.location.href = "post.html";
+      break;
+  }
+};
+
+// =========================================
+// ✍️ Markdown：發文、留言、回覆都支援
+//   marked 負責轉換、DOMPurify 負責把危險的東西清掉（兩支都從 cdnjs 載入）
+//   ・不允許圖片：![說明](網址) 會變成連結，外部圖片不會經過 AI 審核
+//   ・不允許直接寫 HTML：原樣顯示成文字
+//   ・CDN 載不到時退回純文字顯示，不會整頁壞掉
+// =========================================
+const MD_ALLOWED_TAGS = [
+  "p", "br", "strong", "em", "del", "s", "code", "pre", "blockquote",
+  "ul", "ol", "li", "a", "h1", "h2", "h3", "h4", "h5", "h6", "hr",
+  "table", "thead", "tbody", "tr", "th", "td",
+];
+let markdownReady = null; // null：還沒初始化；true / false：能不能用
+
+function ensureMarkdown() {
+  if (markdownReady !== null) return markdownReady;
+  if (!window.marked || !window.DOMPurify) {
+    // 函式庫還沒載到（或 CDN 掛了），先不要記住結果，下次再試
+    return false;
+  }
+
+  window.marked.use({
+    gfm: true,
+    breaks: true, // 單純換行就換行，跟大家平常打字的習慣一樣
+    renderer: {
+      // 直接寫的 HTML 一律當成文字顯示
+      html(token) {
+        const raw = typeof token === "object" ? token.text : token;
+        return escapeHTML(raw);
+      },
+      // 圖片改成連結
+      image(token, title, text) {
+        const href = typeof token === "object" ? token.href : token;
+        const alt = typeof token === "object" ? token.text : text;
+        return `<a href="${escapeHTML(href || "")}">🖼️ ${escapeHTML(alt || "圖片連結")}</a>`;
+      },
+    },
+  });
+
+  // 連結一律開新分頁，並且不帶來源資訊
+  window.DOMPurify.addHook("afterSanitizeAttributes", (node) => {
+    if (node.tagName === "A") {
+      node.setAttribute("target", "_blank");
+      node.setAttribute("rel", "noopener noreferrer nofollow ugc");
+    }
+  });
+
+  markdownReady = true;
+  return true;
+}
+
+function sanitizeMarkdownHtml(html) {
+  return window.DOMPurify.sanitize(html, {
+    ALLOWED_TAGS: MD_ALLOWED_TAGS,
+    ALLOWED_ATTR: ["href", "title", "start", "align"],
+    ALLOWED_URI_REGEXP: /^(?:https?:|mailto:)/i, // 只允許一般網址與信箱
+  });
+}
+
+// 在已經轉好的 HTML 裡標出搜尋關鍵字（只動文字，不會弄壞標籤）
+function highlightInHtml(html, keyword) {
+  if (!keyword) return html;
+  const safeKeyword = keyword.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const regex = new RegExp(safeKeyword, "gi");
+  const tpl = document.createElement("template");
+  tpl.innerHTML = html;
+
+  const walker = document.createTreeWalker(tpl.content, NodeFilter.SHOW_TEXT);
+  const textNodes = [];
+  while (walker.nextNode()) textNodes.push(walker.currentNode);
+
+  textNodes.forEach((node) => {
+    const text = node.nodeValue;
+    regex.lastIndex = 0;
+    if (!regex.test(text)) return;
+    regex.lastIndex = 0;
+
+    const frag = document.createDocumentFragment();
+    let last = 0;
+    let match;
+    while ((match = regex.exec(text)) !== null) {
+      if (match[0] === "") break;
+      frag.appendChild(document.createTextNode(text.slice(last, match.index)));
+      const mark = document.createElement("span");
+      mark.className = "highlight";
+      mark.textContent = match[0];
+      frag.appendChild(mark);
+      last = match.index + match[0].length;
+    }
+    frag.appendChild(document.createTextNode(text.slice(last)));
+    node.parentNode.replaceChild(frag, node);
+  });
+
+  return tpl.innerHTML;
+}
+
+// 文章內容、留言 → 排版好的安全 HTML
+function renderMarkdown(text, keyword = "") {
+  const source = String(text || "");
+  if (!ensureMarkdown()) {
+    // 退回純文字：跳脫後保留換行
+    return highlightText(escapeHTML(source), keyword).replace(/\n/g, "<br>");
+  }
+  const html = sanitizeMarkdownHtml(window.marked.parse(source));
+  return highlightInHtml(html, keyword);
+}
+
+// 列表卡片用：把語法符號拿掉，只留文字
+function markdownToPlainText(text) {
+  const source = String(text || "");
+  if (!ensureMarkdown()) return source;
+  const html = sanitizeMarkdownHtml(window.marked.parse(source))
+    // 區塊結尾補空白，不然兩段文字會黏在一起
+    .replace(/<\/(p|li|h[1-6]|blockquote|pre|tr|th|td)>|<br\s*\/?>/gi, "$& ");
+  const tpl = document.createElement("template");
+  tpl.innerHTML = html;
+  return tpl.content.textContent.replace(/\s+/g, " ").trim();
+}
+
+// ---------- 留言輸入框：改成可換行、會自動長高 ----------
+const COMMENT_TEXTAREA_MAX = 120;
+const isTouchDevice = window.matchMedia("(pointer: coarse)").matches;
+
+function autoGrowTextarea(ta) {
+  if (!ta || ta.tagName !== "TEXTAREA") return;
+  ta.style.removeProperty("height");
+  const next = Math.min(ta.scrollHeight + 2, COMMENT_TEXTAREA_MAX);
+  // 樣式表的高度是 !important，這裡也要用 !important 才蓋得過
+  ta.style.setProperty("height", `${next}px`, "important");
+}
+
+// placeholder 後面補上換行方式（手機 Enter 本來就是換行，不用提示）
+function withNewlineHint(placeholder) {
+  return isTouchDevice ? placeholder : `${placeholder}（Shift+Enter 換行）`;
+}
+
+// 輸入框上方那一行：按鍵提示＋預覽按鈕，打開預覽時下面會出現排版結果
+function mdMiniHelperHtml() {
+  const hint = isTouchDevice
+    ? "按鍵盤的 ↵ 換行，按「送出」發佈・支援 Markdown"
+    : "<kbd>Enter</kbd> 送出・<kbd>Shift</kbd>+<kbd>Enter</kbd> 換行・支援 Markdown";
+  return `
+    <div class="md-mini-helper">
+      <div class="md-mini-bar">
+        <span class="md-mini-hint">${hint}</span>
+        <button type="button" class="md-mini-preview-btn" onclick="toggleMiniPreview(this)">👀 預覽</button>
+      </div>
+      <div class="md-mini-preview md-content" style="display: none"></div>
+    </div>`;
+}
+
+const MINI_HOST_SELECTOR = ".comment-action-bar, .reply-input-box";
+
+function refreshMiniPreview(ta) {
+  const preview = ta?.closest(MINI_HOST_SELECTOR)?.querySelector(".md-mini-preview");
+  if (!preview || preview.style.display === "none") return;
+  const text = ta.value.trim();
+  preview.innerHTML = text
+    ? renderMarkdown(text)
+    : '<p class="md-preview-empty">還沒有內容可以預覽喔～</p>';
+}
+
+window.toggleMiniPreview = function (btn) {
+  const host = btn.closest(MINI_HOST_SELECTOR);
+  const preview = host?.querySelector(".md-mini-preview");
+  const ta = host?.querySelector("textarea");
+  if (!preview || !ta) return;
+
+  const opening = preview.style.display === "none";
+  preview.style.display = opening ? "block" : "none";
+  btn.textContent = opening ? "✕ 關閉預覽" : "👀 預覽";
+  btn.classList.toggle("active", opening);
+  if (opening) refreshMiniPreview(ta);
+  ta.focus();
+};
+
+// 各頁的留言框原本是單行 <input>，統一換成 <textarea>，並在上方加提示與預覽
+function upgradeCommentInputs() {
+  document.querySelectorAll("input#new-comment-input").forEach((input) => {
+    const ta = document.createElement("textarea");
+    ta.id = input.id;
+    ta.className = input.className;
+    ta.placeholder = withNewlineHint(input.placeholder);
+    ta.rows = 1;
+    ta.setAttribute("autocomplete", "off");
+    ta.setAttribute("enterkeyhint", "enter"); // 手機鍵盤顯示「換行」，不要顯示成「前往／送出」
+    if (input.name) ta.name = input.name;
+    input.replaceWith(ta);
+  });
+
+  document.querySelectorAll(".comment-action-bar").forEach((bar) => {
+    if (!bar.querySelector("textarea.comment-input") || bar.querySelector(".md-mini-helper")) return;
+    bar.classList.add("has-md-helper");
+    bar.insertAdjacentHTML("afterbegin", mdMiniHelperHtml());
+  });
+}
+upgradeCommentInputs();
+document.addEventListener("DOMContentLoaded", upgradeCommentInputs);
+
+document.addEventListener("input", (e) => {
+  if (e.target.matches?.("textarea.comment-input, textarea.custom-reply-input")) {
+    autoGrowTextarea(e.target);
+    refreshMiniPreview(e.target);
+  }
+});
+
+// 電腦：Enter 送出、Shift+Enter 換行；手機：Enter 換行，用送出按鈕送
+document.addEventListener("keydown", (e) => {
+  const ta = e.target;
+  if (!ta.matches?.("textarea.comment-input, textarea.custom-reply-input")) return;
+  if (e.key !== "Enter" || e.shiftKey || isTouchDevice) return;
+  if (e.isComposing || e.keyCode === 229) return; // 注音、拼音選字中的 Enter 不算
+
+  e.preventDefault();
+  if (ta.classList.contains("comment-input")) {
+    submitComment();
+  } else {
+    const sendBtn = ta.closest(".reply-input-wrapper")?.querySelector(".send-btn");
+    if (sendBtn) sendBtn.click();
+  }
+});
+
+// ---------- 發文視窗：預覽切換 ----------
+function setPostPreview(on) {
+  const textarea = document.getElementById("post-content-input");
+  const preview = document.getElementById("post-content-preview");
+  const toggle = document.getElementById("post-preview-toggle");
+  if (!textarea || !preview || !toggle) return;
+
+  if (on) {
+    const text = textarea.value.trim();
+    preview.innerHTML = text
+      ? renderMarkdown(text)
+      : '<p class="md-preview-empty">還沒有內容可以預覽喔～</p>';
+    preview.style.height = `${textarea.offsetHeight}px`;
+    textarea.style.display = "none";
+    preview.style.display = "block";
+    toggle.textContent = "✏️ 繼續編輯";
+    toggle.classList.add("active");
+  } else {
+    preview.style.display = "none";
+    textarea.style.display = "";
+    toggle.textContent = "👀 預覽";
+    toggle.classList.remove("active");
+  }
+}
+
+window.togglePostPreview = function () {
+  const preview = document.getElementById("post-content-preview");
+  setPostPreview(!(preview && preview.style.display === "block"));
+};
+
+(function setupPostPreview() {
+  const form = document.getElementById("new-post-form");
+  const textarea = document.getElementById("post-content-input");
+  if (!form || !textarea) return;
+  // 發文成功後表單會 reset，順便回到編輯模式
+  form.addEventListener("reset", () => setPostPreview(false));
+  // 內容沒填就按送出時，瀏覽器要把游標帶回輸入框，所以先切回編輯
+  textarea.addEventListener("invalid", () => setPostPreview(false));
+})();
+
+// =========================================
+// ✏️ 修改與刪除：留言（本人隨時可刪、20 分鐘內可改）、瓶子（本人 20 分鐘內可改）
+//   20 分鐘以伺服器為準，這裡只用來決定要不要顯示按鈕
+// =========================================
+const EDIT_WINDOW_MS = 20 * 60 * 1000;
+const commentRawContent = new Map(); // 留言 id → 原始文字（編輯框要放原文，不是排版後的 HTML）
+
+function editMinutesLeft(createdAt) {
+  const created = new Date(createdAt).getTime();
+  if (!createdAt || isNaN(created)) return 0;
+  return Math.max(0, Math.ceil((created + EDIT_WINDOW_MS - Date.now()) / 60000));
+}
+
+function authJsonHeaders() {
+  return {
+    Authorization: `Bearer ${localStorage.getItem("authToken")}`,
+    "Content-Type": "application/json",
+    "ngrok-skip-browser-warning": "true",
+  };
+}
+
+// 自己的留言／回覆才有的「編輯」「刪除」；主留言放在動作列裡，回覆自己一行
+function renderOwnCommentActions(comment, inline = false) {
+  if (!comment.is_mine || comment.is_deleted) return "";
+  const id = escapeHTML(String(comment.id));
+  const canEdit = editMinutesLeft(comment.createdAt) > 0;
+  const buttons = `
+    ${canEdit ? `<span class="action-btn own-action" onclick="startEditComment('${id}', this)">✏️ 編輯</span>` : ""}
+    <span class="action-btn own-action own-action-danger" onclick="deleteOwnComment('${id}')">🗑️ 刪除</span>`;
+  return inline ? buttons : `<div class="reply-own-actions">${buttons}</div>`;
+}
+
+window.startEditComment = function (commentId, btn) {
+  const card = btn.closest(".ocean-reply-item") || btn.closest(".ocean-comment-card");
+  const body = card?.querySelector(`[data-comment-body="${CSS.escape(String(commentId))}"]`);
+  if (!body || body.querySelector(".comment-edit-box")) return;
+
+  const raw = commentRawContent.get(String(commentId)) ?? "";
+  body.innerHTML = `
+    <div class="comment-edit-box">
+      <textarea class="comment-edit-input" rows="3"></textarea>
+      <div class="comment-edit-bar">
+        <span class="comment-edit-hint">支援 Markdown・Esc 取消</span>
+        <button type="button" class="comment-edit-cancel">取消</button>
+        <button type="button" class="comment-edit-save">儲存</button>
+      </div>
+    </div>`;
+  const ta = body.querySelector(".comment-edit-input");
+  ta.value = raw; // 用 value 放原文，不經過 HTML，避免被當成標籤
+  ta.focus();
+  ta.setSelectionRange(raw.length, raw.length);
+
+  const restore = () => {
+    body.innerHTML = renderMarkdown(raw);
+  };
+  body.querySelector(".comment-edit-cancel").onclick = restore;
+  ta.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") restore();
+  });
+
+  const saveBtn = body.querySelector(".comment-edit-save");
+  saveBtn.onclick = async () => {
+    const text = ta.value.trim();
+    if (!text) {
+      blockToast("留言內容不能是空的喔！");
+      return;
+    }
+    if (text === raw.trim()) {
+      restore();
+      return;
+    }
+    saveBtn.disabled = true;
+    try {
+      const response = await fetch(`${API_BASE_URL}/comments/${commentId}`, {
+        method: "PATCH",
+        headers: authJsonHeaders(),
+        body: JSON.stringify({ content: text }),
+      });
+      const result = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        blockToast(result.message || "修改失敗，請稍後再試");
+        saveBtn.disabled = false;
+        return;
+      }
+      blockToast("✏️ 留言已修改");
+      renderComments(currentOpenPostId);
+    } catch (error) {
+      console.error("修改留言失敗:", error);
+      blockToast("伺服器連線失敗，請稍後再試 😢");
+      saveBtn.disabled = false;
+    }
+  };
+};
+
+window.deleteOwnComment = async function (commentId) {
+  if (!confirm("確定要刪除這則留言嗎？刪除後就救不回來了。")) return;
+  try {
+    const response = await fetch(`${API_BASE_URL}/comments/${commentId}`, {
+      method: "DELETE",
+      headers: authJsonHeaders(),
+    });
+    const result = await response.json().catch(() => ({}));
+    if (!response.ok) {
+      blockToast(result.message || "刪除失敗，請稍後再試");
+      return;
+    }
+    blockToast("🗑️ 留言已刪除");
+    renderComments(currentOpenPostId);
+  } catch (error) {
+    console.error("刪除留言失敗:", error);
+    blockToast("伺服器連線失敗，請稍後再試 😢");
+  }
+};
+
+// ---------- 瓶子：20 分鐘內可以修改 ----------
+function canEditBottle(p) {
+  return Boolean(p && p.isMine && editMinutesLeft(p.createdAt) > 0);
+}
+
+// 文章畫面：作者區塊旁的「修改」按鈕、時間後面的「已編輯」
+function afterOpenPostDetail(p) {
+  document.querySelectorAll(".detail-author-text").forEach((box) => {
+    let btn = box.querySelector(".detail-edit-btn");
+    if (!btn) {
+      btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "detail-edit-btn";
+      btn.textContent = "✏️ 修改";
+      box.appendChild(btn);
+    }
+    btn.onclick = () => openEditBottleModal(p.id);
+    btn.style.display = canEditBottle(p) ? "" : "none";
+  });
+
+  if (p.editedAt) {
+    document.querySelectorAll(".detail-post-time").forEach((el) => {
+      el.insertAdjacentHTML("beforeend", ' <span class="comment-edited-tag">已編輯</span>');
+    });
+  }
+}
+
+function ensureEditBottleModal() {
+  let modal = document.getElementById("edit-bottle-modal");
+  if (modal) return modal;
+  document.body.insertAdjacentHTML(
+    "beforeend",
+    `
+    <div id="edit-bottle-modal" class="modal" onclick="if (event.target === this) closeEditBottleModal()">
+      <div class="modal-content light-modal">
+        <span class="close-btn" onclick="closeEditBottleModal()">&times;</span>
+        <h3 class="edit-bottle-title">✏️ 修改漂流瓶</h3>
+        <p class="edit-bottle-left" id="edit-bottle-left"></p>
+        <input type="text" id="edit-bottle-title-input" class="light-input" placeholder="標題" autocomplete="off" />
+        <textarea id="edit-bottle-content-input" class="light-input" rows="8" placeholder="內容（支援 Markdown）"></textarea>
+        <p class="edit-bottle-note">修改後會重新審核，審核通過前其他人暫時看不到這個瓶子。</p>
+        <div class="edit-bottle-actions">
+          <button type="button" class="btn-submit edit-bottle-cancel" onclick="closeEditBottleModal()">取消</button>
+          <button type="button" class="btn-submit edit-bottle-save" id="edit-bottle-save" onclick="saveEditBottle()">儲存修改</button>
+        </div>
+      </div>
+    </div>`,
+  );
+  return document.getElementById("edit-bottle-modal");
+}
+
+let editingBottleId = null;
+
+window.openEditBottleModal = function (bottleId, e) {
+  if (e) e.stopPropagation(); // 從列表卡片按的話，不要順便打開文章
+  const p = posts.find((x) => String(x.id) === String(bottleId));
+  if (!p) return;
+  const left = editMinutesLeft(p.createdAt);
+  if (!p.isMine || left <= 0) {
+    blockToast("發文超過 20 分鐘就不能修改了");
+    return;
+  }
+
+  const modal = ensureEditBottleModal();
+  editingBottleId = p.id;
+  document.getElementById("edit-bottle-left").textContent = `還可以修改約 ${left} 分鐘`;
+  document.getElementById("edit-bottle-title-input").value = p.title || "";
+  document.getElementById("edit-bottle-content-input").value = p.desc || "";
+  modal.style.display = "block";
+};
+
+window.closeEditBottleModal = function () {
+  const modal = document.getElementById("edit-bottle-modal");
+  if (modal) modal.style.display = "none";
+  editingBottleId = null;
+};
+
+window.saveEditBottle = async function () {
+  if (!editingBottleId) return;
+  const title = document.getElementById("edit-bottle-title-input").value.trim();
+  const content = document.getElementById("edit-bottle-content-input").value.trim();
+  if (!title || !content) {
+    blockToast("標題和內容都不能是空的喔！");
+    return;
+  }
+
+  const saveBtn = document.getElementById("edit-bottle-save");
+  saveBtn.disabled = true;
+  try {
+    const response = await fetch(`${API_BASE_URL}/bottles/${editingBottleId}`, {
+      method: "PATCH",
+      headers: authJsonHeaders(),
+      body: JSON.stringify({ title, content }),
+    });
+    const result = await response.json().catch(() => ({}));
+    if (!response.ok) {
+      blockToast(result.message || "修改失敗，請稍後再試");
+      return;
+    }
+
+    const p = posts.find((x) => String(x.id) === String(editingBottleId));
+    if (p && result.data?.changed) {
+      p.title = title;
+      p.desc = content;
+      p.editedAt = result.data.edited_at;
+    }
+    closeEditBottleModal();
+    blockToast(result.message || "瓶子已修改");
+
+    if (p && document.body.classList.contains("in-detail-view")) openPostDetail(p.id);
+    applyFilters();
+  } catch (error) {
+    console.error("修改瓶子失敗:", error);
+    blockToast("伺服器連線失敗，請稍後再試 😢");
+  } finally {
+    saveBtn.disabled = false;
+  }
+};
+
+// =========================================
+// 📝 個人檔案的自我介紹也支援 Markdown（主頁、我的瓶子頁共用）
+// =========================================
+function renderBio(el, bio) {
+  if (!el) return;
+  const text = String(bio || "").trim();
+  el.classList.add("md-content", "bio-md");
+  el.innerHTML = text
+    ? renderMarkdown(text)
+    : '<span class="bio-empty">這瓶子裡目前空空的...</span>';
+}
+window.renderBio = renderBio;
