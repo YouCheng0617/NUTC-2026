@@ -640,12 +640,15 @@ window.renderComments = async function (postId) {
             const rAuthor = reply.member_name || "未知使用者";
             const rContent = reply.content || reply.text || "";
             const rAvatar = reply.avatar || "images/fish_logo.webp";
+            // 雙擊／長按回覆者可以封鎖（匿名的 member_id 是 null，會提示無法封鎖）
+            const rBlockAttrs = `data-block-id="${escapeHTML(String(reply.member_id ?? ""))}" data-block-name="${escapeHTML(rAuthor)}"`;
 
             repliesHtml += `
                             <div class="ocean-reply-item">
                                 <div class="reply-header">
-                                    <img src="${rAvatar}" class="reply-avatar">
-                                    <span class="reply-author">${escapeHTML(rAuthor)}</span>
+                                    <img src="${rAvatar}" class="reply-avatar" ${rBlockAttrs}>
+                                    <span class="reply-author" ${rBlockAttrs}>${escapeHTML(rAuthor)}</span>
+                                    ${renderCommentFollowBtn(reply.member_id, rAuthor)}
                                 </div>
                                 <div class="reply-body">${escapeHTML(rContent)}</div>
                             </div>
@@ -677,11 +680,14 @@ window.renderComments = async function (postId) {
         html += `
                     <div class="ocean-comment-card">
                         <div class="comment-header">
-                            <span class="comment-author">
+                          <div class="comment-author-wrap">
+                            <span class="comment-author" data-block-id="${escapeHTML(String(c.member_id ?? ""))}" data-block-name="${escapeHTML(authorName)}">
                                 <img src="${avatar}" class="comment-avatar">
                                 ${escapeHTML(authorName)}
                                 ${timeHtml}
                             </span>
+                            ${renderCommentFollowBtn(c.member_id, authorName)}
+                          </div>
                             <span class="comment-floor">B${index + 1}</span>
                         </div>
                         <div class="comment-body">${escapeHTML(content)}</div>
@@ -1249,6 +1255,30 @@ function setupAuth() {
             window.location.href = "admin.html";
           };
           userDropdown.insertBefore(adminLink, userDropdown.lastElementChild);
+        }
+
+        // 📱 手機版「更多」選單也要有後台入口（放在分隔線上面）
+        const hubDropdown = document.getElementById("hub-user-dropdown");
+        if (hubDropdown && !document.getElementById("hub-admin-link-item")) {
+          const hubLogout = hubDropdown.querySelector(".logout-item");
+          const hubAdminLink = document.createElement("div");
+          hubAdminLink.id = "hub-admin-link-item";
+          hubAdminLink.className = "menu-item";
+          hubAdminLink.style.cssText =
+            "padding: 10px 18px; color: #e74c3c !important; font-size: 0.9rem; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 8px;";
+          hubAdminLink.innerHTML =
+            '🛠️ <span style="color: #e74c3c !important">進入後台</span>';
+          hubAdminLink.onclick = (e) => {
+            e.stopPropagation();
+            window.location.href = "admin.html";
+          };
+          // 登出前面有一條分隔線，後台入口插在分隔線之前
+          const anchor = hubLogout ? hubLogout.previousElementSibling : null;
+          if (anchor && anchor.parentElement === hubDropdown) {
+            hubDropdown.insertBefore(hubAdminLink, anchor);
+          } else {
+            hubDropdown.appendChild(hubAdminLink);
+          }
         }
       }
     } else {
@@ -2735,6 +2765,8 @@ window.toggleFollow = async function () {
             showOceanToast(`已取消追蹤 ${authorName} 💔`);
           }
         }
+        // 作者在底下也有留言的話，留言旁的追蹤按鈕一起同步
+        if (currentAuthorId) syncFollowButtons(currentAuthorId, isNowFollowing);
       }
     } else {
       const errData = await response.json().catch(() => ({}));
@@ -2813,12 +2845,12 @@ window.openFollowingModal = async function () {
 
           return `
             <div class="following-item" id="following-user-${uId}">
-                <div class="following-info">
+                <div class="following-info" data-block-id="${escapeHTML(uId)}" data-block-name="${escapeHTML(uName)}">
                     <img src="${uAvatar}" class="following-avatar" />
                     <span class="following-name" title="${escapeHTML(uName)}">${escapeHTML(uName)}</span>
                 </div>
-                <button 
-                  type="button" 
+                <button
+                  type="button"
                   class="btn-unfollow-modal"
                   onmouseenter="this.innerText='取消追蹤'"
                   onmouseleave="this.innerText='已追蹤'"
@@ -3771,3 +3803,563 @@ document.addEventListener("visibilitychange", () => {
 });
 
 resetIdleTimer();
+
+// =========================================
+// 🚫 封鎖使用者：雙擊（電腦）／長按（手機）→ 確認視窗
+//   觸發點：瓶子作者、留言與回覆的留言者、我的追蹤名單
+//   瓶子作者從目前開著的瓶子拿 id；其他地方在元素上標 data-block-id / data-block-name
+//   （匿名留言的 data-block-id 是空的，點了會提示無法封鎖）
+// =========================================
+const BLOCK_TRIGGER_SELECTOR =
+  "#detail-author-tag, .detail-author-box .detail-avatar, [data-block-id]";
+const LONG_PRESS_MS = 550;
+let pendingBlockTarget = null;
+
+function blockToast(message) {
+  if (typeof showOceanToast === "function") showOceanToast(message);
+  else alert(message);
+}
+
+// 共用檢查：登入、匿名、自己
+function openBlockModalFor(targetId, targetName) {
+  if (!localStorage.getItem("authToken")) {
+    blockToast("請先登入才能封鎖喔！🔒");
+    return;
+  }
+  if (!targetId) {
+    blockToast("這位使用者是匿名的，無法封鎖喔！👻");
+    return;
+  }
+  const currentUser = JSON.parse(localStorage.getItem("currentUser") || "{}");
+  const myId = currentUser.id || currentUser.userId || currentUser.user_id;
+  if (myId && String(targetId) === String(myId)) {
+    blockToast("不能封鎖自己喔！🐾");
+    return;
+  }
+
+  pendingBlockTarget = { id: String(targetId), name: targetName || "這位使用者" };
+  document.getElementById("block-target-name").textContent = pendingBlockTarget.name;
+  document.getElementById("block-modal").style.display = "block";
+}
+
+// 瓶子作者
+window.openBlockModal = function () {
+  const p = posts.find((x) => String(x.id) === String(currentOpenPostId));
+  if (!p) return;
+  const isAnonymous = p.author === "匿名" || !p.authorId;
+  openBlockModalFor(isAnonymous ? null : p.authorId, p.author);
+};
+
+function openBlockFromElement(el) {
+  const tagged = el.closest("[data-block-id]");
+  if (tagged) {
+    openBlockModalFor(tagged.dataset.blockId, tagged.dataset.blockName);
+  } else {
+    openBlockModal();
+  }
+}
+
+window.closeBlockModal = function () {
+  document.getElementById("block-modal").style.display = "none";
+  pendingBlockTarget = null;
+};
+
+window.confirmBlockAuthor = async function () {
+  if (!pendingBlockTarget) return;
+  const token = localStorage.getItem("authToken");
+  if (!token) return;
+
+  const { id, name } = pendingBlockTarget;
+  const confirmBtn = document.getElementById("block-confirm-btn");
+  if (confirmBtn) confirmBtn.disabled = true;
+
+  try {
+    const response = await fetch(`${API_BASE_URL}/block/${id}`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "ngrok-skip-browser-warning": "true",
+      },
+    });
+
+    if (!response.ok) {
+      const err = await response.json().catch(() => ({}));
+      blockToast(`封鎖失敗：${err.message || "伺服器錯誤"}`);
+      return;
+    }
+
+    closeBlockModal();
+
+    // 正在看的瓶子是不是對方的（要在下面濾掉 posts 之前判斷）
+    const inDetail = document.body.classList.contains("in-detail-view");
+    const openPost = posts.find((x) => String(x.id) === String(currentOpenPostId));
+    const viewingBlockedAuthor = inDetail && openPost && String(openPost.authorId) === id;
+
+    // 把對方的瓶子從畫面上拿掉（後端之後也不會再給），追蹤關係後端已一併解除
+    posts = posts.filter((x) => String(x.authorId) !== id);
+    if (window.popularCache) {
+      window.popularCache = window.popularCache.filter((x) => String(x.authorId) !== id);
+    }
+    window._myFollowingIdSet.delete(id);
+
+    // 我的追蹤、我的粉絲名單裡如果有對方，也一起拿掉（封鎖時雙方追蹤都會解除）
+    const followingRow = document.getElementById(`following-user-${id}`);
+    if (followingRow) {
+      followingRow.remove();
+      const list = document.getElementById("following-list-container");
+      if (list && list.children.length === 0) {
+        list.innerHTML =
+          '<div style="text-align: center; color: #888; padding: 40px 0;">已無追蹤名單囉！🐟</div>';
+      }
+    }
+    const followerRow = document.getElementById(`follower-user-${id}`);
+    if (followerRow) {
+      followerRow.remove();
+      const list = document.getElementById("followers-list-container");
+      if (list && list.children.length === 0) {
+        list.innerHTML =
+          '<div style="text-align: center; color: #888; padding: 40px 0;">已經沒有粉絲名單囉！🐟</div>';
+      }
+    }
+
+    if (viewingBlockedAuthor) {
+      closePostDetail();
+    } else if (inDetail && currentOpenPostId) {
+      // 封鎖的是留言者：重新撈留言，對方的留言就會消失
+      renderComments(currentOpenPostId);
+    }
+    applyFilters();
+    fetchPopularBottles();
+    blockToast(`已封鎖「${name}」，你們不會再看到彼此的漂流瓶和留言了。`);
+  } catch (error) {
+    console.error("封鎖發生錯誤", error);
+    blockToast("伺服器連線失敗，請稍後再試 😢");
+  } finally {
+    if (confirmBtn) confirmBtn.disabled = false;
+  }
+};
+
+// 電腦：雙擊作者。在 document 攔下來，才不會同時觸發 window 上「雙擊召喚貓咪」
+document.addEventListener("dblclick", (e) => {
+  if (!(e.target instanceof Element)) return;
+  const el = e.target.closest(BLOCK_TRIGGER_SELECTOR);
+  if (!el) return;
+  e.stopPropagation();
+  openBlockFromElement(el);
+});
+
+// 手機：長按作者
+let blockPressTimer = null;
+let blockPressStart = null;
+let blockPressFired = false;
+
+function cancelBlockPress() {
+  clearTimeout(blockPressTimer);
+  blockPressTimer = null;
+}
+
+document.addEventListener(
+  "touchstart",
+  (e) => {
+    blockPressFired = false;
+    if (!(e.target instanceof Element)) return;
+    const el = e.target.closest(BLOCK_TRIGGER_SELECTOR);
+    if (!el) return;
+    const t = e.touches[0];
+    blockPressStart = { x: t.clientX, y: t.clientY };
+    cancelBlockPress();
+    blockPressTimer = setTimeout(() => {
+      blockPressTimer = null;
+      blockPressFired = true;
+      if (navigator.vibrate) navigator.vibrate(30);
+      openBlockFromElement(el);
+    }, LONG_PRESS_MS);
+  },
+  { passive: true },
+);
+
+document.addEventListener(
+  "touchmove",
+  (e) => {
+    if (!blockPressTimer || !blockPressStart) return;
+    const t = e.touches[0];
+    // 手指滑動超過 10px 就當作是在捲動，不是長按
+    if (Math.hypot(t.clientX - blockPressStart.x, t.clientY - blockPressStart.y) > 10) {
+      cancelBlockPress();
+    }
+  },
+  { passive: true },
+);
+
+document.addEventListener(
+  "touchend",
+  (e) => {
+    cancelBlockPress();
+    // 長按已經叫出視窗，就吃掉這次放開手指，避免又觸發點擊或「雙擊召喚貓咪」
+    if (blockPressFired) {
+      e.preventDefault();
+      e.stopPropagation();
+      blockPressFired = false;
+    }
+  },
+  { passive: false },
+);
+
+document.addEventListener("touchcancel", cancelBlockPress, { passive: true });
+
+// Android 長按會跳出系統選單，作者名字上關掉它
+document.addEventListener("contextmenu", (e) => {
+  if (e.target instanceof Element && e.target.closest(BLOCK_TRIGGER_SELECTOR)) {
+    e.preventDefault();
+  }
+});
+
+// =========================================
+// 🚫 封鎖名單：列出我封鎖的人，可以解除封鎖
+// =========================================
+window.openBlockedModal = async function () {
+  const dropdown = document.getElementById("user-dropdown");
+  if (dropdown) dropdown.classList.remove("show-dropdown");
+
+  const modal = document.getElementById("blocked-modal");
+  const container = document.getElementById("blocked-list-container");
+  if (!modal || !container) return;
+
+  modal.style.setProperty("display", "flex", "important");
+  container.innerHTML =
+    '<div style="text-align: center; color: #888; padding: 30px 0;">正在讀取封鎖名單...🌊</div>';
+
+  const token = localStorage.getItem("authToken");
+  if (!token) {
+    container.innerHTML =
+      '<div style="text-align: center; color: #ff4d4d; padding: 30px 0;">寶寶，請先登入才能查看封鎖名單喔！</div>';
+    return;
+  }
+
+  try {
+    const response = await fetch(`${API_BASE_URL}/block`, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "ngrok-skip-browser-warning": "true",
+      },
+    });
+
+    if (!response.ok) {
+      container.innerHTML =
+        '<div style="text-align: center; color: #ff4d4d; padding: 30px 0;">資料讀取失敗，海象不佳 😢</div>';
+      return;
+    }
+
+    const backendData = await response.json();
+    const blockedList = backendData.data || [];
+
+    if (blockedList.length === 0) {
+      container.innerHTML =
+        '<div style="text-align: center; color: #888; padding: 40px 0; font-size: 0.95rem;">目前沒有封鎖任何人，海面一片平靜 🐟</div>';
+      return;
+    }
+
+    container.innerHTML = blockedList
+      .map((user) => {
+        const uId = String(user.member_id);
+        const uName = user.name || "神秘海友";
+        return `
+          <div class="following-item" id="blocked-user-${escapeHTML(uId)}">
+              <div class="following-info">
+                  <img src="images/fish_logo.webp" class="following-avatar" />
+                  <span class="following-name" title="${escapeHTML(uName)}">${escapeHTML(uName)}</span>
+              </div>
+              <button
+                type="button"
+                class="btn-unfollow-modal"
+                onclick="unblockFromModal('${escapeHTML(uId)}', ${escapeHTML(JSON.stringify(String(uName)))}, this)"
+              >
+                解除封鎖
+              </button>
+          </div>
+        `;
+      })
+      .join("");
+  } catch (error) {
+    console.error("取得封鎖名單連線錯誤:", error);
+    container.innerHTML =
+      '<div style="text-align: center; color: #ff4d4d; padding: 30px 0;">伺服器連線失敗！</div>';
+  }
+};
+
+window.closeBlockedModal = function () {
+  const modal = document.getElementById("blocked-modal");
+  if (modal) modal.style.setProperty("display", "none", "important");
+};
+
+window.unblockFromModal = async function (targetId, targetName, btn) {
+  const token = localStorage.getItem("authToken");
+  if (!token) return;
+  if (btn) btn.disabled = true;
+
+  try {
+    const response = await fetch(`${API_BASE_URL}/block/${targetId}`, {
+      method: "DELETE",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "ngrok-skip-browser-warning": "true",
+      },
+    });
+
+    if (!response.ok) {
+      const err = await response.json().catch(() => ({}));
+      blockToast(`解除封鎖失敗：${err.message || "伺服器錯誤"}`);
+      if (btn) btn.disabled = false;
+      return;
+    }
+
+    const row = document.getElementById(`blocked-user-${targetId}`);
+    if (row) {
+      row.style.transition = "all 0.3s ease";
+      row.style.opacity = "0";
+      row.style.transform = "translateX(10px)";
+      setTimeout(() => {
+        row.remove();
+        const list = document.getElementById("blocked-list-container");
+        if (list && list.children.length === 0) {
+          list.innerHTML =
+            '<div style="text-align: center; color: #888; padding: 40px 0;">已經沒有封鎖的人囉！🐟</div>';
+        }
+      }, 300);
+    }
+
+    // 追蹤關係在封鎖時已經解除，解除封鎖不會自動恢復
+    blockToast(`已解除封鎖「${targetName}」，之後撈瓶子就能再看到對方的漂流瓶了。`);
+  } catch (error) {
+    console.error("解除封鎖失敗:", error);
+    blockToast("伺服器連線失敗，請稍後再試 😢");
+    if (btn) btn.disabled = false;
+  }
+};
+
+// =========================================
+// 👥 粉絲名單：誰在追蹤我，可以直接回追蹤／取消追蹤
+//   名字與頭像一樣可以雙擊（電腦）／長按（手機）封鎖
+// =========================================
+function renderFollowBackButton(uId, uName) {
+  const isFollowing = window._myFollowingIdSet.has(String(uId));
+  const nameArg = escapeHTML(JSON.stringify(String(uName)));
+  if (isFollowing) {
+    return `
+      <button
+        type="button"
+        class="btn-unfollow-modal"
+        onmouseenter="this.innerText='取消追蹤'"
+        onmouseleave="this.innerText='已追蹤'"
+        onclick="toggleFollowFromFollowers('${escapeHTML(uId)}', ${nameArg}, this)"
+      >
+        已追蹤
+      </button>`;
+  }
+  return `
+      <button
+        type="button"
+        class="btn-unfollow-modal btn-follow-back"
+        onclick="toggleFollowFromFollowers('${escapeHTML(uId)}', ${nameArg}, this)"
+      >
+        + 回追蹤
+      </button>`;
+}
+
+window.openFollowersModal = async function () {
+  const dropdown = document.getElementById("user-dropdown");
+  if (dropdown) dropdown.classList.remove("show-dropdown");
+
+  const modal = document.getElementById("followers-modal");
+  const container = document.getElementById("followers-list-container");
+  if (!modal || !container) return;
+
+  modal.style.setProperty("display", "flex", "important");
+  container.innerHTML =
+    '<div style="text-align: center; color: #888; padding: 30px 0;">正在打撈你的粉絲名單...🌊</div>';
+
+  const token = localStorage.getItem("authToken");
+  if (!token) {
+    container.innerHTML =
+      '<div style="text-align: center; color: #ff4d4d; padding: 30px 0;">寶寶，請先登入才能查看粉絲名單喔！</div>';
+    return;
+  }
+
+  try {
+    // 先同步我追蹤了誰，才知道每位粉絲要顯示「已追蹤」還是「回追蹤」
+    const [response] = await Promise.all([
+      fetch(`${API_BASE_URL}/auth/followers`, {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "ngrok-skip-browser-warning": "true",
+        },
+      }),
+      syncMyFollowingList(),
+    ]);
+
+    if (!response.ok) {
+      container.innerHTML =
+        '<div style="text-align: center; color: #ff4d4d; padding: 30px 0;">資料讀取失敗，海象不佳 😢</div>';
+      return;
+    }
+
+    const backendData = await response.json();
+    const followerList = backendData.data || [];
+
+    if (followerList.length === 0) {
+      container.innerHTML =
+        '<div style="text-align: center; color: #888; padding: 40px 0; font-size: 0.95rem;">還沒有人追蹤你，多丟幾個漂流瓶吧！🐟</div>';
+      return;
+    }
+
+    container.innerHTML = followerList
+      .map((user) => {
+        const uId = String(user.member_id);
+        const uName = user.name || "神秘海友";
+        return `
+          <div class="following-item" id="follower-user-${escapeHTML(uId)}">
+              <div class="following-info" data-block-id="${escapeHTML(uId)}" data-block-name="${escapeHTML(uName)}">
+                  <img src="images/fish_logo.webp" class="following-avatar" />
+                  <span class="following-name" title="${escapeHTML(uName)}">${escapeHTML(uName)}</span>
+              </div>
+              ${renderFollowBackButton(uId, uName)}
+          </div>
+        `;
+      })
+      .join("");
+  } catch (error) {
+    console.error("取得粉絲名單連線錯誤:", error);
+    container.innerHTML =
+      '<div style="text-align: center; color: #ff4d4d; padding: 30px 0;">伺服器連線失敗！</div>';
+  }
+};
+
+window.closeFollowersModal = function () {
+  const modal = document.getElementById("followers-modal");
+  if (modal) modal.style.setProperty("display", "none", "important");
+};
+
+window.toggleFollowFromFollowers = async function (targetId, targetName, btn) {
+  const token = localStorage.getItem("authToken");
+  if (!token) return;
+  if (btn) btn.disabled = true;
+
+  try {
+    const response = await fetch(`${API_BASE_URL}/auth/follow`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+        "ngrok-skip-browser-warning": "true",
+      },
+      body: JSON.stringify({ followedId: targetId, followed_id: targetId }),
+    });
+
+    if (!response.ok) {
+      const err = await response.json().catch(() => ({}));
+      blockToast(`操作失敗：${err.message || "伺服器錯誤"}`);
+      if (btn) btn.disabled = false;
+      return;
+    }
+
+    const result = await response.json().catch(() => ({}));
+    const isFollowing =
+      result.data?.isFollowing ?? !window._myFollowingIdSet.has(String(targetId));
+
+    if (isFollowing) {
+      window._myFollowingIdSet.add(String(targetId));
+      blockToast(`已回追蹤 ${targetName} 💙`);
+    } else {
+      window._myFollowingIdSet.delete(String(targetId));
+      blockToast(`已取消追蹤 ${targetName} 💔`);
+    }
+
+    // 只換掉按鈕，名單其他列不動
+    if (btn) btn.outerHTML = renderFollowBackButton(String(targetId), targetName);
+  } catch (error) {
+    console.error("回追蹤失敗:", error);
+    blockToast("伺服器連線失敗，請稍後再試 😢");
+    if (btn) btn.disabled = false;
+  }
+};
+
+// =========================================
+// ➕ 留言旁的「+ 追蹤」按鈕
+//   匿名（member_id 是 null）與自己的留言不顯示；同一個人可能留好幾則，按一次全部同步
+// =========================================
+function getMyMemberId() {
+  const currentUser = JSON.parse(localStorage.getItem("currentUser") || "{}");
+  return currentUser.id || currentUser.userId || currentUser.user_id || null;
+}
+
+function renderCommentFollowBtn(memberId, name) {
+  if (memberId === null || memberId === undefined || memberId === "") return "";
+  const myId = getMyMemberId();
+  if (myId && String(memberId) === String(myId)) return "";
+
+  const id = escapeHTML(String(memberId));
+  const isFollowing = window._myFollowingIdSet.has(String(memberId));
+  return `<button type="button" class="comment-follow-btn${isFollowing ? " is-following" : ""}" data-follow-id="${id}" title="${isFollowing ? "已追蹤（再按一次取消）" : "追蹤"}" aria-label="${isFollowing ? "已追蹤" : "追蹤"}" onclick="toggleFollowFromComment('${id}', ${escapeHTML(JSON.stringify(String(name || "這位使用者")))}, this)">${isFollowing ? "✓" : "+"}</button>`;
+}
+
+function syncFollowButtons(targetId, isFollowing) {
+  document
+    .querySelectorAll(`.comment-follow-btn[data-follow-id="${CSS.escape(String(targetId))}"]`)
+    .forEach((b) => {
+      b.classList.toggle("is-following", isFollowing);
+      b.textContent = isFollowing ? "✓" : "+";
+      b.title = isFollowing ? "已追蹤（再按一次取消）" : "追蹤";
+      b.setAttribute("aria-label", isFollowing ? "已追蹤" : "追蹤");
+    });
+
+  // 留言者剛好是瓶子作者時，上面的追蹤按鈕也一起變
+  const followBtn = document.getElementById("follow-author-btn");
+  if (followBtn && String(currentAuthorId) === String(targetId)) {
+    followBtn.classList.toggle("following", isFollowing);
+    followBtn.innerHTML = isFollowing ? "<span>已追蹤</span>" : "+ 追蹤";
+  }
+}
+
+window.toggleFollowFromComment = async function (targetId, targetName, btn) {
+  const token = localStorage.getItem("authToken");
+  if (!token) {
+    blockToast("請先登入才能追蹤喔！🔒");
+    return;
+  }
+  if (btn) btn.disabled = true;
+
+  try {
+    const response = await fetch(`${API_BASE_URL}/auth/follow`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+        "ngrok-skip-browser-warning": "true",
+      },
+      body: JSON.stringify({ followedId: targetId, followed_id: targetId }),
+    });
+
+    if (!response.ok) {
+      const err = await response.json().catch(() => ({}));
+      blockToast(`追蹤失敗：${err.message || "伺服器錯誤"}`);
+      return;
+    }
+
+    const result = await response.json().catch(() => ({}));
+    const isFollowing =
+      result.data?.isFollowing ?? !window._myFollowingIdSet.has(String(targetId));
+
+    if (isFollowing) window._myFollowingIdSet.add(String(targetId));
+    else window._myFollowingIdSet.delete(String(targetId));
+
+    syncFollowButtons(targetId, isFollowing);
+    blockToast(isFollowing ? `已追蹤 ${targetName} 💙` : `已取消追蹤 ${targetName} 💔`);
+  } catch (error) {
+    console.error("追蹤留言者失敗:", error);
+    blockToast("伺服器連線失敗，請稍後再試 😢");
+  } finally {
+    if (btn) btn.disabled = false;
+  }
+};

@@ -972,6 +972,11 @@ function updateRoomUI(text) {
 
     if (currentRoomId) {
         // 已連線：隱藏大廳按鈕，顯示房間按鈕
+        // 連線房間裡不提供飼養手冊：互動教學會叫玩家餵食、擦玻璃，但房間裡那些按鈕都被藏起來了
+        const manualBtn = document.getElementById('btnOpenManual');
+        if (manualBtn) manualBtn.style.display = 'none';
+        if (typeof tourActive !== 'undefined' && tourActive) endTour(false);
+        closeManual();
         document.getElementById('btnCreateRoom').style.display = 'none'; 
         document.getElementById('btnJoinRoom').style.display = 'none'; 
         document.getElementById('btnChat').style.display = 'block'; 
@@ -990,6 +995,8 @@ function updateRoomUI(text) {
         }
     } else {
         // 未連線：顯示大廳按鈕
+        const manualBtn = document.getElementById('btnOpenManual');
+        if (manualBtn) manualBtn.style.display = '';
         document.getElementById('btnCreateRoom').style.display = 'block'; 
         document.getElementById('btnJoinRoom').style.display = 'block'; 
         document.getElementById('btnChat').style.display = 'none'; 
@@ -3446,7 +3453,11 @@ const effectData = {
         async function initGameData() {
             // 1. 先第一時間讀取本地存檔，讓畫面瞬間恢復！
             loadingUI.set(14, '正在翻出你的存檔…', 'Finding your save…');
+            const hadSave = !!localStorage.getItem(getSaveKey());
             loadGame();
+            // 這個功能加進來以前就在玩的人，不要突然被教學打擾
+            if (gameState.tutorialSeen === undefined) gameState.tutorialSeen = hadSave;
+            maybeAutoStartTour();
             checkDaily();
             // 2. 判斷要不要顯示抽獎畫面，並且更新全部的按鈕與圖案
             loadingUI.set(32, '正在布置海兔的家…', 'Setting up the tank…');
@@ -5151,8 +5162,8 @@ function updateLangUI() {
         renderShop();
         updateUI();
         
-        // 🐣 新增這行：遊戲開始時，自動打開教學手冊讓玩家看！
-        openManual(); 
+        // 🐣 第一次照顧海兔：自動開始互動教學
+        maybeAutoStartTour();
         
     }, 500);
 }
@@ -11843,8 +11854,23 @@ function checkDaily() {
         // 🌟 新增：幫按鈕貼上標籤，啟動呼吸跟紅點
         document.getElementById('btnDailyGift').classList.add('needs-attention');
         
-        setTimeout(() => { openCheckInModal(); }, 500); 
+        setTimeout(openCheckInWhenFree, 500);
     }
+}
+
+// 自動彈出的簽到日曆要排隊：開場動畫、孵化畫面、互動教學都結束了才出來。
+// 以前一進遊戲就直接打開，新玩家會看到日曆蓋在孵化畫面上；
+// 領養完自動開始的教學也被它擋住，教學叫你摸海兔、拖海兔時，點到的都是日曆
+function openCheckInWhenFree() {
+    const gacha = document.getElementById('gachaScreen');
+    const busy = document.getElementById('introOverlay')
+        || (gacha && getComputedStyle(gacha).display !== 'none')
+        || tourActive
+        || !gameState.tutorialSeen
+        || (document.getElementById('manualOverlay') || {}).style.display === 'flex';   // 文字版手冊開著也先別蓋上去
+    if (busy) { setTimeout(openCheckInWhenFree, 600); return; }
+    if (gameState.daily && gameState.daily.todayClaimed) return;   // 等的期間已經簽過了
+    openCheckInModal();
 }
 
 // 打開日曆並把 14 天的格子畫出來
@@ -12600,8 +12626,411 @@ let currentPaintPalette = 0;
             }, 500); 
         }
         // 🌟 打開與關閉手冊的函數
+// 「飼養手冊」按鈕現在會開始互動教學；原本的文字版手冊保留在教學最後一步可以打開
 function openManual() {
+    if (currentRoomId) return;   // 連線房間裡不開飼養手冊
+    startTour();
+}
+
+function openManualText() {
+    if (currentRoomId) return;
     document.getElementById('manualOverlay').style.display = 'flex';
+}
+
+// =====================================================================
+// 🧜 【飼養手冊＝互動教學】網站主頁的小助理當解說員，一步一步帶玩家實際操作
+//    - target：要框起來的東西（電腦、手機的位置不一樣，依序找第一個看得到的）
+//    - action：要玩家動手做的事；做到才能按下一步（也可以先跳過）
+//    - canDo：現在做不做得到（例如吃很飽就不能餵），做不到就改成只看說明
+// =====================================================================
+const tt = (zh, en) => (currLang === 'en' && en ? en : zh);
+
+const TOUR_STEPS = [
+    {
+        title: ['嗨，我是小助理！', "Hi, I'm your guide!"],
+        text: ['我平常住在心情漂流瓶的主頁，今天來帶你認識海兔的家。跟著我的提示實際操作看看，隨時可以按右上角的「退出教學」離開。',
+               "I usually live on the Mood Bottle home page. Let me show you around — follow my hints and try things out. Tap \"Exit\" any time."]
+    },
+    {
+        target: ['#slugContainer'], action: 'pet',
+        title: ['這是你的海兔', 'This is your sea bunny'],
+        text: ['牠就住在這個魚缸裡。把滑鼠移到牠身上就能摸摸牠，手機的話點牠一下。',
+               'It lives in this tank. Hover over it to pet it — on a phone, just tap it.'],
+        task: ['試試看：摸摸海兔', 'Try it: pet your sea bunny']
+    },
+    {
+        target: ['#slugContainer'], action: 'drag',
+        title: ['帶牠去散步', 'Take it for a walk'],
+        text: ['按住海兔不放，就能把牠拖到魚缸裡的任何地方。', 'Press and hold the sea bunny to drag it anywhere in the tank.'],
+        task: ['試試看：把海兔拖到別的地方', 'Try it: drag it somewhere else']
+    },
+    {
+        target: ['#mainStage'], pad: -6, action: 'summon',
+        title: ['叫牠過來', 'Call it over'],
+        text: ['在魚缸空白的地方點兩下（手機連點兩下），海兔就會一跳一跳地游過去。',
+               'Double-click (or double-tap) an empty spot and it will hop right over.'],
+        task: ['試試看：在空白的地方點兩下', 'Try it: double-tap an empty spot']
+    },
+    {
+        target: ['#btnFeed'], action: 'feed',
+        canDo: () => !(gameState.cooldowns.feed > 0),
+        // 新玩家飽食度是 100，吃很飽就不能餵，所以先讓牠稍微餓一點來練習
+        prepare: () => {
+            if ((gameState.hunger !== undefined ? gameState.hunger : 100) < 90) return null;
+            gameState.hunger = 70;
+            gameState.lastHungerTime = Date.now();
+            updateHungerUI();
+            saveGame();
+            return ['我讓海兔肚子有點餓了，換你來餵餵看！', "I've made it a little hungry — your turn to feed it!"];
+        },
+        waitText: () => ['海兔還在消化剛剛的海藻，再等 ' + gameState.cooldowns.feed + ' 秒就可以餵了…',
+                         'Still digesting — ' + gameState.cooldowns.feed + 's to go…'],
+        title: ['餵食海藻', 'Feeding'],
+        text: ['按鈕上的綠色條是飽食度，會隨時間慢慢變少。太餓的話，海兔會沒力氣運動。',
+               "The green bar is how full it is. It drains over time — a hungry bunny won't exercise."],
+        task: ['試試看：點「餵食海藻」，把海藻拿到海兔嘴邊再放開', 'Try it: tap "Feed", then drop the seaweed on its mouth'],
+        missText: ['差一點！要把海藻拿到海兔嘴邊才會吃喔，再試一次', 'Almost! Drop the seaweed right on its mouth.'],
+        blockedText: ['海兔現在吃得很飽（或還在消化），這一步先看說明就好，等牠餓了再來試試。', "It's full right now, so just read along for this one."]
+    },
+    {
+        target: ['#btnClean'], action: 'clean',
+        canDo: () => !(gameState.cooldowns.clean > 0),
+        // 水太乾淨的話「淨化水質」按了沒反應，所以先把水弄髒一點點讓玩家練習
+        //（25 還不到髒水提醒的門檻，不會跳出「水變混濁了」的提示來打擾）
+        prepare: () => {
+            if ((gameState.dirtiness || 0) > 5) return null;
+            gameState.dirtiness = 25;
+            gameState.lastDirtTime = Date.now();
+            renderWaterQuality();
+            saveGame();
+            return ['我先把水弄髒一點點，讓你練習擦擦看！', "I've made the water a bit cloudy so you can practice!"];
+        },
+        waitText: () => ['剛剛才擦過，再等 ' + gameState.cooldowns.clean + ' 秒就可以練習了…',
+                         'Just cleaned — ' + gameState.cooldowns.clean + 's until you can try…'],
+        title: ['淨化水質', 'Cleaning the water'],
+        text: ['水會隨時間變髒，畫面會越來越混濁。藍色條是清澈度，變橘、變紅或出現驚嘆號，就是該幫牠洗澡了。',
+               'The water gets cloudy over time. The blue bar shows how clear it is — orange, red or a "!" means it needs a wash.'],
+        task: ['試試看：點「淨化水質」，拿抹布在魚缸上來回擦', 'Try it: tap "Purify" and wipe the tank with the cloth'],
+        missText: ['還有一點青苔沒擦乾淨，再多擦幾下', 'A little algae is left — keep wiping!'],
+        blockedText: ['現在水還很乾淨（或剛擦過），這一步先看說明就好，等畫面變混濁再來擦。', 'The water is clean right now, so just read along for this one.']
+    },
+    {
+        target: ['#btnPet'], action: 'exercise',
+        canDo: () => !(gameState.cooldowns.pet > 0) && (gameState.hunger || 0) > 0,
+        title: ['活力運動', 'Exercise'],
+        text: ['把球丟進魚缸，海兔會游過去把球撿回來。肚子太餓的話，牠會拒絕運動喔。',
+               'Throw a ball into the tank and it will fetch it. It refuses when it is too hungry.'],
+        task: ['試試看：點「活力運動」，把球丟進魚缸，等牠撿回來', 'Try it: tap "Exercise", throw the ball, and wait for the fetch'],
+        blockedText: ['海兔現在在休息（或太餓了），這一步先看說明就好。', "It's resting (or too hungry) now, so just read along."]
+    },
+    {
+        target: ['#btnIdCard'], action: 'idcard',
+        title: ['身份證', 'ID card'],
+        text: ['這裡可以看海兔的名片，也可以幫牠取名字。', "See your sea bunny's ID card and give it a name."],
+        task: ['試試看：點「身份證」看看名片，看完把它關掉', 'Try it: open the ID card, then close it']
+    },
+    {
+        target: ['.interaction-group button[onclick="openDailyModal()"]'], action: 'daily',
+        title: ['每日任務', 'Daily tasks'],
+        text: ['每天都有新任務，像是餵食、淨化水質。完成後記得回來這裡領積分。', 'New tasks every day — come back here to claim your points.'],
+        task: ['試試看：點「任務」看看今天有什麼任務，看完把它關掉', "Try it: open Tasks to see today's list, then close it"]
+    },
+    {
+        target: ['.points-display'],
+        title: ['積分', 'Points'],
+        text: ['照顧海兔、完成任務都能賺積分，積分可以拿去商店買東西。', 'Earn points by caring for your bunny and finishing tasks, then spend them in the shop.']
+    },
+    {
+        target: ['#uiPanel .tabs', '#btnOpenShop'], free: true,   // 可以點開看看，但不強制
+        title: ['商店', 'Shop'],
+        text: ['「圖鑑」可以換海兔的品種，「背景」和「特效」能把魚缸布置得更漂亮。', 'Change breeds in the catalog, and decorate the tank with backgrounds and effects.']
+    },
+    {
+        target: ['#btnToggleMp'], free: true,
+        title: ['和朋友一起玩', 'Play with friends'],
+        text: ['按「連線」可以開房間，把 6 碼邀請碼分享給朋友，就能在同一個魚缸裡一起玩、一起聊天。',
+               'Tap "Online" to open a room and share the 6-character code so friends can join your tank.']
+    },
+    {
+        title: ['你已經會了！', "You're all set!"],
+        text: ['以後忘記怎麼玩，再點左上角的「飼養手冊」我就會出現。想看文字版的說明也可以點下面。',
+               'Tap the manual button any time to see me again, or open the text version below.'],
+        extra: ['看文字版手冊', 'Text manual']
+    }
+];
+
+let tourIndex = -1;
+let tourActive = false;
+let tourStepDone = false;
+let tourMode = 'watch';          // 這一步是要動手做（action）還是只看說明（watch）
+let tourTicker = null;
+let tourAdvanceTimer = null;
+let tourHooked = false;
+
+const tourEl = (id) => document.getElementById(id);
+
+// 找這一步要框的東西：看得到、在畫面裡的第一個
+function tourFindTarget(step) {
+    for (const sel of step.target || []) {
+        for (const el of document.querySelectorAll(sel)) {
+            const r = el.getBoundingClientRect();
+            const cs = getComputedStyle(el);
+            if (r.width > 4 && r.height > 4 && cs.display !== 'none' && cs.visibility !== 'hidden'
+                && r.bottom > 0 && r.top < innerHeight && r.right > 0 && r.left < innerWidth) return el;
+        }
+    }
+    return null;
+}
+
+// 第一次進到遊戲畫面就自動開始教學（不管有沒有經過孵化畫面：
+// 新帳號登入時後端會自動建一隻海兔，孵化畫面會直接被跳過）
+function maybeAutoStartTour() {
+    if (gameState.tutorialSeen || tourActive) return;
+    const gacha = document.getElementById('gachaScreen');
+    const waiting = document.getElementById('introOverlay')
+        || currentRoomId
+        || !gameState.hasAdopted
+        || (gacha && getComputedStyle(gacha).display !== 'none')
+        || tourModalOpen();
+    if (waiting) { setTimeout(maybeAutoStartTour, 600); return; }
+    startTour();
+}
+
+function startTour() {
+    installTourHooks();
+    gameState.tutorialSeen = true;   // 開始過就算看過，之後不會再自動跳出來
+    saveGame();
+    closeManual();
+    // 手機上商店是蓋滿畫面的彈窗，開著的話先收起來
+    const panel = tourEl('uiPanel');
+    if (panel && panel.classList.contains('open') && typeof toggleShopPanel === 'function') toggleShopPanel();
+
+    tourActive = true;
+    tourEl('tourLayer').hidden = false;
+    tourEl('tourExit').textContent = tt('✕ 退出教學', '✕ Exit');
+    showTourStep(0);
+    clearInterval(tourTicker);
+    // 海兔會動、按鈕會因為視窗大小移位，所以聚光燈要一直跟著
+    tourTicker = setInterval(tourTick, 150);
+}
+
+// 有視窗蓋在畫面上嗎（身份證、任務、簽到、取名、手機上的商店…）
+function tourModalOpen() {
+    for (const el of document.querySelectorAll('.name-modal-overlay, .manual-overlay')) {
+        if (getComputedStyle(el).display !== 'none') return true;
+    }
+    const panel = tourEl('uiPanel');
+    if (panel && panel.classList.contains('open')) {
+        const r = panel.getBoundingClientRect();
+        if (r.height > innerHeight * 0.8 && getComputedStyle(panel).pointerEvents !== 'none') return true;
+    }
+    return false;
+}
+
+function tourTick() {
+    if (!tourActive) return;
+    const layer = tourEl('tourLayer');
+    // 玩家打開了身份證、任務這些視窗：教學先整個讓位，關掉後再回來
+    const modal = tourModalOpen();
+    // 正在餵海藻、擦玻璃、丟球：把暗幕和對話框收起來，不要擋到手指
+    const busy = isFeedingActive || isCleaningActive || isExercisingActive;
+    layer.classList.toggle('tour-paused', modal);
+    layer.classList.toggle('tour-busy', busy && !modal);
+    if (modal) return;
+
+    const step = TOUR_STEPS[tourIndex];
+    if (tourMode === 'watch' && step.action && !tourStepDone) {
+        if ((!step.canDo || step.canDo()) && tourFindTarget(step)) { showTourStep(tourIndex); return; }   // 冷卻結束了
+        if (step.waitText && step.canDo && !step.canDo()) setTourTask(tt(...step.waitText()), 'note');     // 更新倒數
+    }
+    positionTour();
+}
+
+function endTour(finished) {
+    tourActive = false;
+    clearInterval(tourTicker);
+    clearTimeout(tourAdvanceTimer);
+    tourEl('tourLayer').hidden = true;
+    if (finished) showFloatText(tt('教學完成！好好照顧你的海兔吧', 'Tour complete — take good care of your sea bunny!'));
+}
+
+function setTourTask(text, kind) {
+    const task = tourEl('tourTask');
+    task.textContent = text || '';
+    task.className = 'tour-task' + (kind ? ' ' + kind : '');
+}
+
+function showTourStep(i) {
+    clearTimeout(tourAdvanceTimer);
+    tourIndex = Math.max(0, Math.min(TOUR_STEPS.length - 1, i));
+    const step = TOUR_STEPS[tourIndex];
+    const last = tourIndex === TOUR_STEPS.length - 1;
+    tourStepDone = false;
+
+    // 要動手做的步驟：做不到（吃很飽、在冷卻、按鈕被藏起來）就改成只看說明
+    const canDo = step.action && (!step.canDo || step.canDo()) && (!step.target || tourFindTarget(step));
+    tourMode = canDo ? 'action' : 'watch';
+
+    tourEl('tourProgress').innerHTML = TOUR_STEPS.map((_, k) => `<span class="${k <= tourIndex ? 'on' : ''}"></span>`).join('');
+    tourEl('tourTitle').textContent = tt(...step.title);
+    tourEl('tourText').textContent = tt(...step.text);
+
+    if (tourMode === 'action') {
+        // 需要的話先幫玩家準備好練習的條件（例如把水弄髒一點）
+        const note = step.prepare ? step.prepare() : null;
+        setTourTask((note ? tt(...note) + '\n' : '') + tt(...step.task), 'todo');
+    } else if (step.action) {
+        // 還在冷卻就顯示倒數，冷卻一結束 tourTick 會自動切成可以操作
+        const coolingDown = step.waitText && step.canDo && !step.canDo();
+        setTourTask(coolingDown ? tt(...step.waitText())
+            : step.blockedText ? tt(...step.blockedText) : tt('這一步先看說明就好。', 'Just read along for this one.'), 'note');
+    } else setTourTask('', '');
+
+    const prev = tourEl('tourPrev'), skip = tourEl('tourSkip'), next = tourEl('tourNext'), extra = tourEl('tourExtra');
+    prev.hidden = tourIndex === 0;
+    prev.textContent = tt('上一步', 'Back');
+    skip.hidden = tourMode !== 'action';
+    skip.textContent = tt('先跳過', 'Skip');
+    next.textContent = last ? tt('完成', 'Done') : tt('下一步', 'Next');
+    next.disabled = tourMode === 'action';
+    next.classList.remove('ready');
+    extra.hidden = !step.extra;
+    if (step.extra) extra.textContent = tt(...step.extra);
+
+    // 只看說明的時候擋住點擊；要動手做的時候讓玩家碰得到遊戲
+    tourEl('tourBlocker').classList.toggle('off', tourMode === 'action' || !!step.free);
+    positionTour();
+}
+
+function nextTourStep() {
+    if (tourIndex >= TOUR_STEPS.length - 1) endTour(true);
+    else showTourStep(tourIndex + 1);
+}
+
+// 玩家做到了：打勾、亮起「下一步」，一下子之後自動往下走
+function tourNotify(action) {
+    if (!tourActive || tourMode !== 'action' || tourStepDone) return;
+    const step = TOUR_STEPS[tourIndex];
+    if (action === step.action) {
+        tourStepDone = true;
+        setTourTask(tt('做得好！', 'Nice!'), 'done');
+        const next = tourEl('tourNext');
+        next.disabled = false;
+        next.classList.add('ready');
+        tourAdvanceTimer = setTimeout(() => {
+            if (tourActive && TOUR_STEPS[tourIndex] === step) nextTourStep();
+        }, 1600);
+    } else if (action === step.action + '-miss' && step.missText) {
+        setTourTask(tt(...step.missText), 'hint');
+    }
+}
+
+// 聚光燈框住目標，小助理和對話泡泡放在目標旁邊空間比較大的那一側
+function positionTour() {
+    if (!tourActive) return;
+    const step = TOUR_STEPS[tourIndex];
+    const spot = tourEl('tourSpot'), card = tourEl('tourCard');
+    const vw = innerWidth, vh = innerHeight, m = 12;
+    const el = tourFindTarget(step);
+
+    let r = null;
+    if (el) {
+        const b = el.getBoundingClientRect();
+        const pad = step.pad !== undefined ? step.pad : 8;
+        const left = Math.max(4, b.left - pad), top = Math.max(4, b.top - pad);
+        const right = Math.min(vw - 4, b.right + pad), bottom = Math.min(vh - 4, b.bottom + pad);
+        r = { left, top, width: right - left, height: bottom - top };
+        spot.classList.remove('none');
+        spot.style.left = r.left + 'px';
+        spot.style.top = r.top + 'px';
+        spot.style.width = r.width + 'px';
+        spot.style.height = r.height + 'px';
+    } else {
+        // 沒有要框的東西：整個畫面變暗就好
+        spot.classList.add('none');
+        spot.style.left = vw / 2 + 'px';
+        spot.style.top = vh / 2 + 'px';
+        spot.style.width = '0px';
+        spot.style.height = '0px';
+    }
+
+    const cw = card.offsetWidth, ch = card.offsetHeight;
+    let left, top;
+    if (!r) {
+        left = (vw - cw) / 2;
+        top = (vh - ch) / 2;
+    } else {
+        const above = r.top, below = vh - (r.top + r.height);
+        if (below >= ch + 20 || below >= above) top = r.top + r.height + 16;
+        else top = r.top - ch - 16;
+        left = r.left + r.width / 2 - cw / 2;
+    }
+    // 框住的東西很大（例如整個魚缸）時會塞不下，就往畫面內縮
+    top = Math.max(m + 52, Math.min(vh - ch - m, top));
+    left = Math.max(m, Math.min(vw - cw - m, left));
+    card.style.left = left + 'px';
+    card.style.top = top + 'px';
+}
+
+// 偵測玩家有沒有照著做：盡量用「看海兔的狀態」判斷，不去改原本的遊戲程式
+function installTourHooks() {
+    if (tourHooked) return;
+    tourHooked = true;
+
+    // 餵食、擦玻璃、運動：在原本的函式外面包一層，跑完再通知教學
+    const wrap = (name, after) => {
+        const orig = window[name];
+        if (typeof orig !== 'function') return;
+        window[name] = function () {
+            const result = orig.apply(this, arguments);
+            try { after.apply(this, arguments); } catch (e) { /* 教學出錯也不能影響遊戲 */ }
+            return result;
+        };
+    };
+    wrap('completeFeedingAction', (ok) => tourNotify(ok ? 'feed' : 'feed-miss'));
+    wrap('finishCleaningAction', (ok) => tourNotify(ok ? 'clean' : 'clean-miss'));
+    wrap('finishExerciseSuccess', () => tourNotify('exercise'));
+    wrap('openIdCardModal', () => tourNotify('idcard'));
+    wrap('openDailyModal', () => tourNotify('daily'));
+
+    // 摸摸、雙擊召喚：海兔身上會多一個狀態 class
+    const slug = tourEl('slugContainer');
+    new MutationObserver((mutations) => {
+        if (!tourActive) return;
+        for (const m of mutations) {
+            const before = String(m.oldValue || '').split(/\s+/);
+            const now = slug.classList;
+            if (now.contains('is-petting') && !before.includes('is-petting')) tourNotify('pet');
+            if (now.contains('is-summoned') && !before.includes('is-summoned')) tourNotify('summon');
+        }
+    }).observe(slug, { attributes: true, attributeFilter: ['class'], attributeOldValue: true });
+
+    // 拖曳：拖曳中 body 會有 is-dragging-global，放開時看海兔有沒有真的被移動
+    let dragFrom = null;
+    new MutationObserver(() => {
+        if (!tourActive) return;
+        const dragging = document.body.classList.contains('is-dragging-global');
+        const r = slug.getBoundingClientRect();
+        if (dragging && !dragFrom) dragFrom = { x: r.left, y: r.top };
+        if (!dragging && dragFrom) {
+            if (Math.hypot(r.left - dragFrom.x, r.top - dragFrom.y) > 25) tourNotify('drag');
+            dragFrom = null;
+        }
+    }).observe(document.body, { attributes: true, attributeFilter: ['class'] });
+
+    tourEl('tourNext').onclick = () => nextTourStep();
+    tourEl('tourSkip').onclick = () => nextTourStep();
+    tourEl('tourPrev').onclick = () => showTourStep(tourIndex - 1);
+    tourEl('tourExit').onclick = () => endTour(false);
+    tourEl('tourExtra').onclick = () => { endTour(false); openManualText(); };
+
+    document.addEventListener('keydown', (e) => {
+        if (!tourActive) return;
+        if (e.key === 'Escape') endTour(false);
+        if (e.key === 'ArrowRight' && !tourEl('tourNext').disabled) nextTourStep();
+        if (e.key === 'ArrowLeft' && tourIndex > 0) showTourStep(tourIndex - 1);
+    });
+    window.addEventListener('resize', positionTour);
 }
 
 function closeManual() {

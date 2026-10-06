@@ -68,17 +68,51 @@
     overflow: hidden;
   }
 
-  /* === 頂部標題、切換按鈕與關閉 === */
-  .tutorial-header {
+  /* === 頂部標題與語言切換區塊 (動態排版防遮擋) === */
+  .header-group {
     position: absolute;
-    top: 25px; left: 25px;
+    top: 22px; 
+    left: 25px;
+    display: flex;
+    align-items: center;
+    gap: 15px; /* 標題跟按鈕的間距 */
+    z-index: 100;
+  }
+
+  .tutorial-header {
     font-size: 20px;
     font-weight: bold;
     color: #f4ecd8; 
     letter-spacing: 2px;
-    z-index: 100;
+    white-space: nowrap; /* 防止標題換行 */
   }
   .tutorial-header span { color: #5ab9ff; }
+
+  /* 語言切換按鈕 */
+  .lang-toggle-btn {
+    background: #0f1929; 
+    border-radius: 20px;
+    padding: 6px 16px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: #3b749f; 
+    font-weight: bold;
+    font-size: 13px;
+    cursor: pointer;
+    box-shadow: inset 0 0 10px rgba(0,0,0,0.6);
+    user-select: none;
+    transition: 0.3s ease;
+    white-space: nowrap;
+  }
+  .lang-toggle-btn:hover {
+    color: #5ab9ff;
+    background: #142136;
+  }
+  .lang-toggle-btn .globe {
+    font-size: 15px;
+    filter: drop-shadow(0 0 2px rgba(90, 185, 255, 0.5));
+  }
 
   /* 版本切換開關 (加入半透明與毛玻璃效果) */
   .device-toggle {
@@ -86,16 +120,16 @@
     top: 20px; 
     right: 75px; 
     display: flex;
-    background: rgba(0, 0, 0, 0.25); /* 底色調淡 */
+    background: rgba(0, 0, 0, 0.25); 
     border-radius: 30px;
     padding: 3px;
     z-index: 100;
-    backdrop-filter: blur(6px); /* 毛玻璃模糊背景 */
-    opacity: 0.65; /* 預設整體半透明，避免遮擋死硬 */
+    backdrop-filter: blur(6px); 
+    opacity: 0.65; 
     transition: 0.3s ease;
   }
   .device-toggle:hover {
-    opacity: 1; /* 滑鼠移入時變清晰 */
+    opacity: 1; 
     background: rgba(0, 0, 0, 0.4);
   }
   .toggle-btn {
@@ -109,7 +143,7 @@
     user-select: none;
   }
   .toggle-btn.active {
-    background: rgba(90, 185, 255, 0.75); /* 藍色按鈕也調成半透明 */
+    background: rgba(90, 185, 255, 0.75); 
     color: #011322;
     box-shadow: 0 2px 10px rgba(90, 185, 255, 0.2);
   }
@@ -355,15 +389,27 @@
       height: 95vh;
     }
     
+    /* 手機版：標題與按鈕改為上下排列，避免擠壓 */
+    .header-group {
+      top: 12px; 
+      left: 15px;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 6px;
+    }
     .tutorial-header {
-      top: 15px; left: 15px;
+      font-size: 18px; 
+    }
+    .lang-toggle-btn {
+      padding: 4px 10px;
+      font-size: 12px;
     }
     
     /* 手機版：保留開關並精巧放置於右上角 */
     .device-toggle {
       top: 12px;
-      right: 60px; /* 緊靠在關閉按鈕旁邊 */
-      opacity: 0.85; /* 手機上預設稍微亮一點 */
+      right: 60px; 
+      opacity: 0.85; 
     }
     .toggle-btn {
       padding: 4px 10px;
@@ -379,7 +425,7 @@
       flex-direction: row;
       justify-content: center;
       padding: 10px 0;
-      padding-top: 60px; /* 稍微加高，避免跟右上按鈕重疊 */
+      padding-top: 70px; /* 稍微加高，給上方標題群組更多空間 */
       border-right: none;
       border-bottom: 1px solid rgba(255, 255, 255, 0.05);
     }
@@ -457,20 +503,26 @@
 
 <div class="tutorial-window">
   
-  <div class="tutorial-header"><span>▍</span>漂流指南</div>
+  <!-- 更新：將標題與按鈕包裝在 header-group 裡 -->
+  <div class="header-group">
+    <div class="tutorial-header" id="headerTitle"><span>▍</span>漂流指南</div>
+    <div class="lang-toggle-btn" id="langToggle">
+      <span class="globe">🌎</span> <span id="langText">EN</span>
+    </div>
+  </div>
   
-  <!-- 版本切換開關 (已調整透明度與手機版佈局) -->
+  <!-- 版本切換開關 -->
   <div class="device-toggle" id="deviceToggle">
-    <div class="toggle-btn active" data-mode="desktop">💻 電腦版</div>
-    <div class="toggle-btn" data-mode="mobile">📱 手機版</div>
+    <div class="toggle-btn active" data-mode="desktop" id="btnDesktop">💻 電腦版</div>
+    <div class="toggle-btn" data-mode="mobile" id="btnMobile">📱 手機版</div>
   </div>
 
   <div class="close-btn" id="closeGuideBtn" title="返回大廳">&times;</div>
 
   <div style="display: flex; flex: 1; flex-direction: inherit; overflow: hidden;">
     <div class="main-sidebar">
-      <div class="main-tab active" data-category="main" title="心情漂流瓶">🍾</div>
-      <div class="main-tab" data-category="park" title="遊樂園">🎮</div>
+      <div class="main-tab active" data-category="main" id="tabMain" title="心情漂流瓶">🍾</div>
+      <div class="main-tab" data-category="park" id="tabPark" title="遊樂園">🎮</div>
     </div>
 
     <div class="sub-sidebar" id="subSidebar"></div>
@@ -481,7 +533,7 @@
         
         <div class="image-container" id="imgContainer">
           <img id="displayImage" src="" alt="指南圖片">
-          <div class="zoom-hint">🔍 點擊圖片放大</div>
+          <div class="zoom-hint" id="zoomHint">🔍 點擊圖片放大</div>
           <div class="dots-wrapper" id="dotsWrapper"></div>
         </div>
         
@@ -504,16 +556,6 @@
   const lightbox = document.getElementById('lightbox');
   const lightboxImg = document.getElementById('lightboxImg');
   const imgContainer = document.getElementById('imgContainer');
-  
-  imgContainer.onclick = () => {
-    lightboxImg.src = document.getElementById('displayImage').src;
-    lightbox.classList.add('show');
-  };
-  
-  lightbox.onclick = () => {
-    lightbox.classList.remove('show');
-  };
-
   const subSidebar = document.getElementById('subSidebar');
   const carouselContainer = document.getElementById('carouselContainer');
   const displayImage = document.getElementById('displayImage');
@@ -522,10 +564,300 @@
   const dotsWrapper = document.getElementById('dotsWrapper');
   const prevBtn = document.getElementById('prevBtn');
   const nextBtn = document.getElementById('nextBtn');
+  const langToggle = document.getElementById('langToggle');
+
+  // UI 介面靜態文字對照表
+  const uiTexts = {
+    zh: {
+      header: "<span>▍</span>漂流指南",
+      desktop: "💻 電腦版",
+      mobile: "📱 手機版",
+      zoom: "🔍 點擊圖片放大",
+      lang: "EN",
+      tabMainTitle: "心情漂流瓶",
+      tabParkTitle: "遊樂園"
+    },
+    en: {
+      header: "<span>▍</span>Drift Guide",
+      desktop: "💻 Desktop",
+      mobile: "📱 Mobile",
+      zoom: "🔍 Click to zoom",
+      lang: "中文",
+      tabMainTitle: "Drift Bottle",
+      tabParkTitle: "Playground"
+    }
+  };
+  
+  imgContainer.onclick = () => {
+    lightboxImg.src = document.getElementById('displayImage').src;
+    lightbox.classList.add('show');
+  };
+  lightbox.onclick = () => {
+    lightbox.classList.remove('show');
+  };
+
+  // === 雙語資料庫 ===
+  const tutorialData = {
+    zh: {
+      main: [
+        {
+          title: "歡迎來到漂流瓶",
+          slides: [
+            { img: "./images/register.webp", mobileImg: "./images/m_register.webp", subtitle: "註冊與登入", desc: "歡迎來到心情漂流瓶！請先在畫面右上角點擊「註冊 / 登入」，填寫信箱與密碼等基本資料。" },
+            { img: "./images/login.webp", mobileImg: "./images/m_login.webp", subtitle: "登入你的帳號", desc: "輸入你的 Email 與密碼進行登入，系統也附有圖形驗證碼來保障你的帳號安全。" },
+            { img: "./images/home.webp", mobileImg: "./images/m_home.webp", subtitle: "註冊帳號", desc: "第一次來的要註冊，記得要滑到畫面最下方，看完並同意「心情漂流瓶公約」才能打勾喔！" }
+          ]
+        },
+        {
+          title: "探索海底大廳",
+          slides: [
+            { img: "./images/lobby.webp", mobileImg: "./images/m_lobby.webp", subtitle: "海底大廳", desc: "登入後會來到最熱鬧的海底大廳！畫面上方有搜尋列與遊樂場入口，左右兩側藏有熱門貼文與海神殿規的捷徑，中間則是各個海域的漂流瓶。" },
+            { img: "./images/notification.webp", mobileImg: "./images/m_notification.webp", subtitle: "通知與帳號", desc: "畫面右上方除了發文按鈕，還有通知小鈴鐺與你的使用者名稱。點擊小鈴鐺即可隨時查看最新收到的互動通知喔！" }
+          ]
+        },
+        {
+          title: "打造個人空間",
+          slides: [
+            { img: "./images/user_menu.webp", mobileImg: "./images/m_user_menu.webp", subtitle: "個人空間選單", desc: "點選右上角的使用者名稱即可展開選單。這裡是你專屬的空間中樞，包含個人資料、追蹤、收藏、客服、新手教學與網站設定等功能。" },
+            { img: "./images/profile_edit.webp", mobileImg: "./images/m_profile_edit.webp", subtitle: "編輯個人資料", desc: "你可以自由修改姓名、生日、性別、星座與自我介紹等細節，打造專屬的形象。請注意，綁定的 Email 帳號無法更改喔！" },
+            { img: "./images/following.webp", mobileImg: "./images/m_following.webp", subtitle: "我的追蹤", desc: "這裡會清楚列出所有你關注的創作者名單，讓你可以隨時查看追蹤了哪些用戶，不再錯過他們的最新動態。" },
+            { img: "./images/collections.webp", mobileImg: "./images/m_collections.webp", subtitle: "收藏瓶子", desc: "在這裡可以回顧那些曾觸動你的溫暖文字。上方提供便利的關鍵字搜尋列，搭配下方分頁功能，幫你快速找到珍藏的貼文。" },
+            { img: "./images/my_bottles.webp", mobileImg: "./images/m_my_bottles.webp", subtitle: "我的瓶子", desc: "透過專屬的「我的瓶子」頁面，你可以輕鬆管理自己過去發布的所有貼文紀錄，同樣支援搜尋與分頁瀏覽功能。" },
+            { img: "./images/customer_service.webp", mobileImg: "./images/m_customer_service.webp", subtitle: "線上客服中心", desc: "遇到問題或有功能建議？客服中心提供「我要提問」與「我的客服紀錄」板塊，快速選取主旨並詳述問題，我們隨時聽你的聲音！" },
+            { img: "./images/tutorial_guide.webp", mobileImg: "./images/m_tutorial_guide.webp", subtitle: "新手教學", desc: "忘記某個功能怎麼用了嗎？點選「新手教學」就能隨時打開這份漂流指南，重新複習所有的操作步驟與隱藏小秘訣喔！" },
+            { img: "./images/website_settings.webp", mobileImg: "./images/m_website_settings.webp", subtitle: "網站小設定", desc: "在設定中，你可以自由切換「顯示留言時間」與「允許他人追蹤」的開關，隨心所欲地客製化你的隱私與閱讀體驗。" }
+          ]
+        },
+        {
+          title: "拋出你的瓶子",
+          slides: [
+            { img: "./images/write_bottle.webp", mobileImg: "./images/m_write_bottle.webp", subtitle: "拋出你的心事", desc: "選擇發文海域、填寫標題內容後，還能自由選擇要以「實名」或「匿名（偷偷說）」的身分發布，讓海浪替你傳遞心聲。" }
+          ]
+        },
+        {
+          title: "海流導航與社群",
+          slides: [
+            { img: "./images/hot_posts.webp", mobileImg: "./images/m_hot_posts.webp", subtitle: "熱門貼文", desc: "點擊可以在左側看到最近大家都在討論的內容，這是依據已被收藏人數多寡來排名的熱門榜單。" },
+            { img: "./images/temple_rules.webp", mobileImg: "./images/m_temple_rules.webp", subtitle: "海神殿規", desc: "來到這邊要遵守的規則與溫馨小提醒（如友善交流、拒絕海洋垃圾等），一起維護友善的海洋環境。" },
+            { img: "./images/summon_current.webp", mobileImg: "./images/m_summon_current.webp", subtitle: "呼喚海流", desc: "想看新瓶子？按了「呼喚海流」之後會隨機刷新瓶子，或者等待 60 秒後系統也會自動幫你刷新畫面。" },
+            { img: "./images/channel_categories.webp", mobileImg: "./images/m_channel_categories.webp", subtitle: "頻道分類", desc: "這邊可以選擇貼文分類，有分所有文章(全海域)，或是只看單一頻道(憤怒、秘密、傷心、厭世/躺平、開心)。" }
+          ]
+        },
+        {
+          title: "尋找共鳴與留言",
+          slides: [
+            { img: "./images/search.webp", mobileImg: "./images/m_search.webp", subtitle: "搜尋特定話題", desc: "使用畫面上方的搜尋列，打上你要找的類型、標題或內容，就會出現所有跟他相關的漂流瓶文章。" },
+            { img: "./images/comments.webp", mobileImg: "./images/m_comments.webp", subtitle: "安全的留言空間", desc: "留言區隱藏了具體時間，改用 B1、B2 等樓層編號標示。準備留言時也能自由勾選實名或匿名身分送出。" }
+          ]
+        },
+        {
+          title: "專屬 AI 特助",
+          slides: [
+            { img: "./images/pet_home.webp", mobileImg: "./images/m_pet_home.webp", subtitle: "你的桌寵夥伴", desc: "這是一個會跑來跑去陪伴你的小傢伙！點兩下會跑向你，不需要時也能把牠拉回「桌寵的家」睡覺，點擊可叫醒。" },
+            { img: "./images/ai_assistant.webp", mobileImg: "./images/m_ai_assistant.webp", subtitle: "AI 特助聊天", desc: "點擊桌寵喚醒 AI 特助陪你聊天。右上角按鈕提供回主頁、切換夜間模式、字體放大縮小與多國語言切換功能！" }
+          ]
+        }
+      ],
+      park: [
+        {
+          title: "秘密海域遊樂場",
+          slides: [
+            { img: "./images/park_lobby.webp", mobileImg: "./images/m_park_lobby.webp", subtitle: "秘密海域大廳", desc: "心情有點悶？點擊大廳的「遊樂場」按鈕，這裡準備了六款各具特色的專屬舒壓遊戲等你來探索！" }
+          ]
+        },
+        {
+          title: "海兔養成記",
+          slides: [
+            { img: "./images/seahare_home.webp", mobileImg: "./images/m_seahare_home.webp", subtitle: "遇見你的海兔", desc: "進入遊戲可享受「無限重抽」的樂趣，直到遇見命中注定的那隻專屬海兔，並幫可愛的牠取個名字！" },
+            { img: "./images/seahare_tasks.webp", mobileImg: "./images/m_seahare_tasks.webp", subtitle: "任務與裝扮", desc: "每天完成餵食、淨化水質等任務賺取積分，可至商城兌換背景特效。還能創建連線房間跟好友展示海兔！" }
+          ]
+        },
+        {
+          title: "今日塔羅瓶",
+          slides: [
+            { img: "./images/tarot_categories.webp", mobileImg: "./images/m_tarot_categories.webp", subtitle: "選擇占卜主題", desc: "提供無次數限制的專屬塔羅占卜。你可以直接點選預設的感情、事業等主題，或在下方輸入框自訂你想詢問的問題。" },
+            { img: "./images/tarot_shuffle.webp", mobileImg: "./images/m_tarot_shuffle.webp", subtitle: "扇形牌陣與抽卡", desc: "確認問題後會展開扇形牌陣。請靜下心，憑直覺由左至右依序抽出三張正位牌，分別代表你的過去、現在與未來。" },
+            { img: "./images/tarot_result.webp", mobileImg: "./images/m_tarot_result.webp", subtitle: "AI 占卜結果", desc: "抽牌完成後，系統會結合 AI 為你進行深度的牌義綜合分析，生成詳盡的專屬占卜報告與指引。" },
+            { img: "./images/tarot_save.webp", mobileImg: "./images/m_tarot_save.webp", subtitle: "再問一次與收藏", desc: "解析結束後，你可以點選「再問一次」重新沉澱思緒測算，或是點擊「收藏此占卜」將這份指引完整保存下來。" },
+            { img: "./images/tarot_collection.webp", mobileImg: "./images/m_tarot_collection.webp", subtitle: "魔法收藏本", desc: "點擊右上角進入「魔法收藏本」就能查看所有收藏。裡面會清楚標註測算的年月日與時間、詢問的主題、抽到的卡牌，以及完整的 AI 講解紀錄喔！" }
+          ]
+        },
+        {
+          title: "突然想拼圖",
+          slides: [
+            { img: "./images/puzzle_intro.webp", mobileImg: "./images/m_puzzle_intro.webp", subtitle: "海洋生物拼圖", desc: "以「海洋生物」為主題的任務導向拼圖小遊戲。每幅拼圖皆由 9 個固定位置的區塊組成，碎片分為普通與高級。" },
+            { img: "./images/puzzle_gacha.webp", mobileImg: "./images/m_puzzle_gacha.webp", subtitle: "喚醒石與抽卡", desc: "玩家可透過完成每日任務獲取專屬道具「召喚石」，消耗召喚石進行抽卡，隨機獲取普通或高級的拼圖碎片。" },
+            { img: "./images/puzzle_workshop.webp", mobileImg: "./images/m_puzzle_workshop.webp", subtitle: "碎片工坊與寶箱", desc: "擁有多餘碎片時，可利用右上角「碎片工坊」將碎片兌換成寶箱，開啟寶箱將必定「保底」獲得拼圖碎片！" },
+            { img: "./images/puzzle_cabinet.webp", mobileImg: "./images/m_puzzle_cabinet.webp", subtitle: "拼圖收藏展示櫃", desc: "點擊「我的收藏」進入展示櫃，會即時同步並視覺化所有海洋生物的收集進度，帶給你滿滿的解鎖成就感。" }
+          ]
+        },
+        {
+          title: "每日便利貼",
+          slides: [
+            { img: "./images/notes_wall.webp", mobileImg: "./images/m_notes_wall.webp", subtitle: "無聲樹洞", desc: "宛如「無聲樹洞」的匿名情感交流空間，所有留言 24 小時後自動清除。為保持純粹，此區刻意關閉回覆與評論功能。" },
+            { img: "./images/notes_write.webp", mobileImg: "./images/m_notes_write.webp", subtitle: "純粹的抒發", desc: "每則便利貼設有最高 50 字的字數上限，且系統嚴格限制每人「每日僅限留言一次」，送出後即不可修改。" }
+          ]
+        },
+        {
+          title: "瓶命射擊",
+          slides: [
+            { img: "./images/shooting_menu.webp", mobileImg: "./images/m_shooting_menu.webp", subtitle: "動態狙擊挑戰", desc: "考驗反應力與精準度！分為簡單、普通、困難三種級別。設有連擊加成機制，但誤擊干擾物「魚」將被扣分懲罰。" },
+            { img: "./images/shooting_game.webp", mobileImg: "./images/m_shooting_game.webp", subtitle: "干擾與增益", desc: "準確狙擊掉落的「瓶子」拿高分。擊中隨機掉落的「發光沙漏」可延長剩餘時間，擊中「發光貝殼」則能補充彈藥數量！" }
+          ]
+        },
+        {
+          title: "接住小瓶",
+          slides: [
+            { img: "./images/catch_menu.webp", mobileImg: "./images/m_catch_menu.webp", subtitle: "接物挑戰", desc: "快節奏的刺激接物遊戲！在 30 秒的單局限時內，敏捷操控籃子接住掉落的漂流瓶累積積分，分為三種難度級別。" },
+            { img: "./images/catch_game.webp", mobileImg: "./images/m_catch_game.webp", subtitle: "閃避與護盾", desc: "必須完美閃避扣分炸彈！隨機掉落的「雙倍星」能讓 3 秒內得分翻倍，「無敵護盾」能擋下一次炸彈的扣分懲罰。" }
+          ]
+        }
+      ]
+    },
+    en: {
+      main: [
+        {
+          title: "Welcome to Drift",
+          slides: [
+            { img: "./images/register.webp", mobileImg: "./images/m_register.webp", subtitle: "Register & Login", desc: "Welcome to Mood Drift Bottle! Click 'Register / Login' in the top right corner to fill in your email and basic information." },
+            { img: "./images/login.webp", mobileImg: "./images/m_login.webp", subtitle: "Log in to account", desc: "Enter your Email and password to log in. We also provide a graphic captcha to ensure your account security." },
+            { img: "./images/home.webp", mobileImg: "./images/m_home.webp", subtitle: "Account Registration", desc: "First-timers must register. Scroll to the bottom, read and agree to the 'Drift Bottle Convention' to proceed!" }
+          ]
+        },
+        {
+          title: "Explore Ocean Lobby",
+          slides: [
+            { img: "./images/lobby.webp", mobileImg: "./images/m_lobby.webp", subtitle: "Ocean Lobby", desc: "Welcome to the bustling Ocean Lobby! It features a search bar, playground entrance, hot posts, rules, and drifting bottles in the center." },
+            { img: "./images/notification.webp", mobileImg: "./images/m_notification.webp", subtitle: "Notifications", desc: "The top right corner has a post button, notification bell, and your username. Click the bell to view your latest interaction notifications!" }
+          ]
+        },
+        {
+          title: "Personal Space",
+          slides: [
+            { img: "./images/user_menu.webp", mobileImg: "./images/m_user_menu.webp", subtitle: "Personal Menu", desc: "Click your username to expand the menu. This is your personal hub for profile, following, collections, customer service, and settings." },
+            { img: "./images/profile_edit.webp", mobileImg: "./images/m_profile_edit.webp", subtitle: "Edit Profile", desc: "Customize your name, birthday, gender, zodiac, and bio. Note: Your bound Email account cannot be changed!" },
+            { img: "./images/following.webp", mobileImg: "./images/m_following.webp", subtitle: "My Following", desc: "This lists all the creators you follow. You can check their updates anytime and never miss out on their latest posts." },
+            { img: "./images/collections.webp", mobileImg: "./images/m_collections.webp", subtitle: "Bottle Collections", desc: "Review words that touched your heart. Use the keyword search and pagination features to quickly find your saved posts." },
+            { img: "./images/my_bottles.webp", mobileImg: "./images/m_my_bottles.webp", subtitle: "My Bottles", desc: "Easily manage all the posts you've published in the past through the 'My Bottles' page, which also supports search and pagination." },
+            { img: "./images/customer_service.webp", mobileImg: "./images/m_customer_service.webp", subtitle: "Customer Service", desc: "Have questions or suggestions? The customer service center provides a 'Submit Question' and 'My Records' section. We're always listening!" },
+            { img: "./images/tutorial_guide.webp", mobileImg: "./images/m_tutorial_guide.webp", subtitle: "Tutorial Guide", desc: "Forgot how to use a feature? Click 'Tutorial Guide' to open this manual anytime and review all operations and hidden tips!" },
+            { img: "./images/website_settings.webp", mobileImg: "./images/m_website_settings.webp", subtitle: "Website Settings", desc: "In settings, you can toggle 'Show Comment Time' and 'Allow Others to Follow' to customize your privacy and reading experience." }
+          ]
+        },
+        {
+          title: "Throw a Bottle",
+          slides: [
+            { img: "./images/write_bottle.webp", mobileImg: "./images/m_write_bottle.webp", subtitle: "Share Your Thoughts", desc: "Choose a sea area, fill in the title and content, and choose to post with your 'Real Name' or 'Anonymous' identity." }
+          ]
+        },
+        {
+          title: "Currents & Community",
+          slides: [
+            { img: "./images/hot_posts.webp", mobileImg: "./images/m_hot_posts.webp", subtitle: "Hot Posts", desc: "Click to see popular discussions on the left, ranked by the number of times they've been collected by users." },
+            { img: "./images/temple_rules.webp", mobileImg: "./images/m_temple_rules.webp", subtitle: "Temple Rules", desc: "Rules and gentle reminders (like friendly communication, no marine litter) to maintain a friendly ocean environment." },
+            { img: "./images/summon_current.webp", mobileImg: "./images/m_summon_current.webp", subtitle: "Summon Current", desc: "Want new bottles? Click 'Summon Current' to randomly refresh, or wait 60 seconds for an automatic refresh." },
+            { img: "./images/channel_categories.webp", mobileImg: "./images/m_channel_categories.webp", subtitle: "Channel Categories", desc: "Choose post categories here: All posts (all seas), or specific channels (Angry, Secret, Sad, Lying flat, Happy)." }
+          ]
+        },
+        {
+          title: "Find & Comment",
+          slides: [
+            { img: "./images/search.webp", mobileImg: "./images/m_search.webp", subtitle: "Search Topics", desc: "Use the top search bar to type keywords, titles, or content to find related drift bottle articles." },
+            { img: "./images/comments.webp", mobileImg: "./images/m_comments.webp", subtitle: "Safe Comments", desc: "The comment area hides exact times and uses floor numbers like B1, B2. You can freely choose real name or anonymous when replying." }
+          ]
+        },
+        {
+          title: "AI Assistant",
+          slides: [
+            { img: "./images/pet_home.webp", mobileImg: "./images/m_pet_home.webp", subtitle: "Desktop Pet", desc: "A little companion that runs around! Double click to call it, or drag it back to the 'Pet Home' to sleep." },
+            { img: "./images/ai_assistant.webp", mobileImg: "./images/m_ai_assistant.webp", subtitle: "AI Assistant Chat", desc: "Click the pet to wake up the AI assistant. The top right offers home return, dark mode, text zoom, and language switch!" }
+          ]
+        }
+      ],
+      park: [
+        {
+          title: "Secret Park Lobby",
+          slides: [
+            { img: "./images/park_lobby.webp", mobileImg: "./images/m_park_lobby.webp", subtitle: "Secret Park Lobby", desc: "Feeling bored? Click 'Playground' in the lobby to explore six unique stress-relief games waiting for you!" }
+          ]
+        },
+        {
+          title: "Sea Hare Raising",
+          slides: [
+            { img: "./images/seahare_home.webp", mobileImg: "./images/m_seahare_home.webp", subtitle: "Meet Your Sea Hare", desc: "Enjoy 'unlimited rerolls' until you meet your destined sea hare, and give your cute companion a name!" },
+            { img: "./images/seahare_tasks.webp", mobileImg: "./images/m_seahare_tasks.webp", subtitle: "Tasks & Dress Up", desc: "Complete daily tasks like feeding to earn points for background effects. You can also create rooms to show off to friends!" }
+          ]
+        },
+        {
+          title: "Daily Tarot",
+          slides: [
+            { img: "./images/tarot_categories.webp", mobileImg: "./images/m_tarot_categories.webp", subtitle: "Choose Topic", desc: "Unlimited tarot readings. Choose default topics like love or career, or type your own question in the input box below." },
+            { img: "./images/tarot_shuffle.webp", mobileImg: "./images/m_tarot_shuffle.webp", subtitle: "Shuffle & Draw", desc: "Calm your mind and draw three upright cards from left to right, representing your past, present, and future." },
+            { img: "./images/tarot_result.webp", mobileImg: "./images/m_tarot_result.webp", subtitle: "AI Interpretation", desc: "After drawing, the system uses AI to provide a deep, comprehensive analysis and personalized reading report." },
+            { img: "./images/tarot_save.webp", mobileImg: "./images/m_tarot_save.webp", subtitle: "Ask Again & Save", desc: "You can click 'Ask Again' to recalculate, or click 'Save Reading' to keep this guidance permanently." },
+            { img: "./images/tarot_collection.webp", mobileImg: "./images/m_tarot_collection.webp", subtitle: "Magic Collection", desc: "Click the top right to enter the 'Magic Collection'. It marks the date, topic, drawn cards, and full AI explanation records!" }
+          ]
+        },
+        {
+          title: "Sudden Puzzle",
+          slides: [
+            { img: "./images/puzzle_intro.webp", mobileImg: "./images/m_puzzle_intro.webp", subtitle: "Marine Life Puzzle", desc: "A task-oriented puzzle game themed around 'Marine Life'. Each puzzle has 9 fixed blocks with normal and premium fragments." },
+            { img: "./images/puzzle_gacha.webp", mobileImg: "./images/m_puzzle_gacha.webp", subtitle: "Summon & Draw", desc: "Complete daily tasks to get 'Summon Stones'. Spend them to draw random normal or premium puzzle fragments." },
+            { img: "./images/puzzle_workshop.webp", mobileImg: "./images/m_puzzle_workshop.webp", subtitle: "Fragment Workshop", desc: "Have extra fragments? Use the 'Fragment Workshop' to exchange them for chests. Opening chests guarantees a fragment!" },
+            { img: "./images/puzzle_cabinet.webp", mobileImg: "./images/m_puzzle_cabinet.webp", subtitle: "Puzzle Cabinet", desc: "Click 'My Collection' to sync and visualize your marine life collection progress, giving you a full sense of achievement." }
+          ]
+        },
+        {
+          title: "Daily Notes",
+          slides: [
+            { img: "./images/notes_wall.webp", mobileImg: "./images/m_notes_wall.webp", subtitle: "Silent Tree Hole", desc: "An anonymous emotional space like a 'Silent Tree Hole'. All messages clear after 24 hours. Replies and comments are disabled." },
+            { img: "./images/notes_write.webp", mobileImg: "./images/m_notes_write.webp", subtitle: "Pure Expression", desc: "Each note has a 50-word limit, and you can strictly 'leave one message per day'. It cannot be edited after submission." }
+          ]
+        },
+        {
+          title: "Bottle Shooting",
+          slides: [
+            { img: "./images/shooting_menu.webp", mobileImg: "./images/m_shooting_menu.webp", subtitle: "Dynamic Sniper", desc: "Test your reflexes! Easy, Normal, and Hard levels. Features a combo bonus, but shooting the interference 'Fish' deducts points." },
+            { img: "./images/shooting_game.webp", mobileImg: "./images/m_shooting_game.webp", subtitle: "Buffs & Debuffs", desc: "Accurately shoot falling 'bottles' for high scores. Hit the 'glowing hourglass' to add time, or 'glowing shell' to refill ammo!" }
+          ]
+        },
+        {
+          title: "Catch the Bottle",
+          slides: [
+            { img: "./images/catch_menu.webp", mobileImg: "./images/m_catch_menu.webp", subtitle: "Catch Challenge", desc: "Fast-paced catching game! In a 30-second limit, agilely control the basket to catch falling drift bottles for points across three difficulties." },
+            { img: "./images/catch_game.webp", mobileImg: "./images/m_catch_game.webp", subtitle: "Dodge & Shield", desc: "Perfectly dodge point-deducting bombs! Random 'Double Stars' double points for 3 seconds, and 'Invincible Shields' block one bomb penalty." }
+          ]
+        }
+      ]
+    }
+  };
+
+  let currentLang = 'zh'; 
+  let currentDeviceMode = 'desktop'; 
+  let currentCategory = 'main'; 
+  let currentSubIndex = 0;      
+  let currentSlideIndex = 0;    
+
+  // === 語言切換邏輯 ===
+  langToggle.onclick = () => {
+    currentLang = currentLang === 'zh' ? 'en' : 'zh';
+    
+    // 更新靜態 UI 文字
+    document.getElementById('headerTitle').innerHTML = uiTexts[currentLang].header;
+    document.getElementById('btnDesktop').innerText = uiTexts[currentLang].desktop;
+    document.getElementById('btnMobile').innerText = uiTexts[currentLang].mobile;
+    document.getElementById('zoomHint').innerText = uiTexts[currentLang].zoom;
+    document.getElementById('langText').innerText = uiTexts[currentLang].lang;
+    document.getElementById('tabMain').title = uiTexts[currentLang].tabMainTitle;
+    document.getElementById('tabPark').title = uiTexts[currentLang].tabParkTitle;
+    
+    // 重新渲染選單與幻燈片
+    renderSubMenu();
+    renderSlide();
+  };
 
   // === 控制當前顯示的設備版本 ===
-  let currentDeviceMode = 'desktop'; 
-  const toggleBtns = document.querySelectorAll('.toggle-btn');
+  const toggleBtns = document.querySelectorAll('.device-toggle .toggle-btn');
   toggleBtns.forEach(btn => {
     btn.onclick = (e) => {
       toggleBtns.forEach(b => b.classList.remove('active'));
@@ -580,130 +912,9 @@
     }
   }
 
-  // === 資料庫 ===
-  const tutorialData = {
-    main: [
-      {
-        title: "歡迎來到漂流瓶",
-        slides: [
-          { img: "./images/register.webp", mobileImg: "./images/m_register.webp", subtitle: "註冊與登入", desc: "歡迎來到心情漂流瓶！請先在畫面右上角點擊「註冊 / 登入」，填寫信箱與密碼等基本資料。" },
-          { img: "./images/login.webp", mobileImg: "./images/m_login.webp", subtitle: "登入你的帳號", desc: "輸入你的 Email 與密碼進行登入，系統也附有圖形驗證碼來保障你的帳號安全。" },
-          { img: "./images/home.webp", mobileImg: "./images/m_home.webp", subtitle: "註冊帳號", desc: "第一次來的要註冊，記得要滑到畫面最下方，看完並同意「心情漂流瓶公約」才能打勾喔！" }
-        ]
-      },
-      {
-        title: "探索海底大廳",
-        slides: [
-          { img: "./images/lobby.webp", mobileImg: "./images/m_lobby.webp", subtitle: "海底大廳", desc: "登入後會來到最熱鬧的海底大廳！畫面上方有搜尋列與遊樂場入口，左右兩側藏有熱門貼文與海神殿規的捷徑，中間則是各個海域的漂流瓶。" },
-          { img: "./images/notification.webp", mobileImg: "./images/m_notification.webp", subtitle: "通知與帳號", desc: "畫面右上方除了發文按鈕，還有通知小鈴鐺與你的使用者名稱。點擊小鈴鐺即可隨時查看最新收到的互動通知喔！" }
-        ]
-      },
-      {
-        title: "打造個人空間",
-        slides: [
-          { img: "./images/user_menu.webp", mobileImg: "./images/m_user_menu.webp", subtitle: "個人空間選單", desc: "點選右上角的使用者名稱即可展開選單。這裡是你專屬的空間中樞，包含個人資料、追蹤、收藏、客服、新手教學與網站設定等功能。" },
-          { img: "./images/profile_edit.webp", mobileImg: "./images/m_profile_edit.webp", subtitle: "編輯個人資料", desc: "你可以自由修改姓名、生日、性別、星座與自我介紹等細節，打造專屬的形象。請注意，綁定的 Email 帳號無法更改喔！" },
-          { img: "./images/following.webp", mobileImg: "./images/m_following.webp", subtitle: "我的追蹤", desc: "這裡會清楚列出所有你關注的創作者名單，讓你可以隨時查看追蹤了哪些用戶，不再錯過他們的最新動態。" },
-          { img: "./images/collections.webp", mobileImg: "./images/m_collections.webp", subtitle: "收藏瓶子", desc: "在這裡可以回顧那些曾觸動你的溫暖文字。上方提供便利的關鍵字搜尋列，搭配下方分頁功能，幫你快速找到珍藏的貼文。" },
-          { img: "./images/my_bottles.webp", mobileImg: "./images/m_my_bottles.webp", subtitle: "我的瓶子", desc: "透過專屬的「我的瓶子」頁面，你可以輕鬆管理自己過去發布的所有貼文紀錄，同樣支援搜尋與分頁瀏覽功能。" },
-          { img: "./images/customer_service.webp", mobileImg: "./images/m_customer_service.webp", subtitle: "線上客服中心", desc: "遇到問題或有功能建議？客服中心提供「我要提問」與「我的客服紀錄」板塊，快速選取主旨並詳述問題，我們隨時聽你的聲音！" },
-          { img: "./images/website_settings.webp", mobileImg: "./images/m_website_settings.webp", subtitle: "網站小設定", desc: "在設定中，你可以自由切換「顯示留言時間」與「允許他人追蹤」的開關，隨心所欲地客製化你的隱私與閱讀體驗。" }
-        ]
-      },
-      {
-        title: "拋出你的瓶子",
-        slides: [
-          { img: "./images/write_bottle.webp", mobileImg: "./images/m_write_bottle.webp", subtitle: "拋出你的心事", desc: "選擇發文海域、填寫標題內容後，還能自由選擇要以「實名」或「匿名（偷偷說）」的身分發布，讓海浪替你傳遞心聲。" }
-        ]
-      },
-      {
-        title: "海流導航與社群",
-        slides: [
-          { img: "./images/hot_posts.webp", mobileImg: "./images/m_hot_posts.webp", subtitle: "熱門貼文", desc: "點擊可以在左側看到最近大家都在討論的內容，這是依據已被收藏人數多寡來排名的熱門榜單。" },
-          { img: "./images/temple_rules.webp", mobileImg: "./images/m_temple_rules.webp", subtitle: "海神殿規", desc: "來到這邊要遵守的規則與溫馨小提醒（如友善交流、拒絕海洋垃圾等），一起維護友善的海洋環境。" },
-          { img: "./images/summon_current.webp", mobileImg: "./images/m_summon_current.webp", subtitle: "呼喚海流", desc: "想看新瓶子？按了「呼喚海流」之後會隨機刷新瓶子，或者等待 60 秒後系統也會自動幫你刷新畫面。" },
-          { img: "./images/channel_categories.webp", mobileImg: "./images/m_channel_categories.webp", subtitle: "頻道分類", desc: "這邊可以選擇貼文分類，有分所有文章(全海域)，或是只看單一頻道(憤怒、秘密、傷心、厭世/躺平、開心)。" }
-        ]
-      },
-      {
-        title: "尋找共鳴與留言",
-        slides: [
-          { img: "./images/search.webp", mobileImg: "./images/m_search.webp", subtitle: "搜尋特定話題", desc: "使用畫面上方的搜尋列，打上你要找的類型、標題或內容，就會出現所有跟他相關的漂流瓶文章。" },
-          { img: "./images/comments.webp", mobileImg: "./images/m_comments.webp", subtitle: "安全的留言空間", desc: "留言區隱藏了具體時間，改用 B1、B2 等樓層編號標示。準備留言時也能自由勾選實名或匿名身分送出。" }
-        ]
-      },
-      {
-        title: "專屬 AI 特助",
-        slides: [
-          { img: "./images/pet_home.webp", mobileImg: "./images/m_pet_home.webp", subtitle: "你的桌寵夥伴", desc: "這是一個會跑來跑去陪伴你的小傢伙！點兩下會跑向你，不需要時也能把牠拉回「桌寵的家」睡覺，點擊可叫醒。" },
-          { img: "./images/ai_assistant.webp", mobileImg: "./images/m_ai_assistant.webp", subtitle: "AI 特助聊天", desc: "點擊桌寵喚醒 AI 特助陪你聊天。右上角按鈕提供回主頁、切換夜間模式、字體放大縮小與多國語言切換功能！" }
-        ]
-      }
-    ],
-    park: [
-      {
-        title: "秘密海域遊樂場",
-        slides: [
-          { img: "./images/park_lobby.webp", mobileImg: "./images/m_park_lobby.webp", subtitle: "秘密海域大廳", desc: "心情有點悶？點擊大廳的「遊樂場」按鈕，這裡準備了六款各具特色的專屬舒壓遊戲等你來探索！" }
-        ]
-      },
-      {
-        title: "海兔養成記",
-        slides: [
-          { img: "./images/seahare_home.webp", mobileImg: "./images/m_seahare_home.webp", subtitle: "遇見你的海兔", desc: "進入遊戲可享受「無限重抽」的樂趣，直到遇見命中注定的那隻專屬海兔，並幫可愛的牠取個名字！" },
-          { img: "./images/seahare_tasks.webp", mobileImg: "./images/m_seahare_tasks.webp", subtitle: "任務與裝扮", desc: "每天完成餵食、淨化水質等任務賺取積分，可至商城兌換背景特效。還能創建連線房間跟好友展示海兔！" }
-        ]
-      },
-      {
-        title: "今日塔羅瓶",
-        slides: [
-          { img: "./images/tarot_categories.webp", mobileImg: "./images/m_tarot_categories.webp", subtitle: "選擇占卜主題", desc: "提供無次數限制的專屬塔羅占卜。你可以直接點選預設的感情、事業等主題，或在下方輸入框自訂你想詢問的問題。" },
-          { img: "./images/tarot_shuffle.webp", mobileImg: "./images/m_tarot_shuffle.webp", subtitle: "扇形牌陣與抽卡", desc: "確認問題後會展開扇形牌陣。請靜下心，憑直覺由左至右依序抽出三張正位牌，分別代表你的過去、現在與未來。" },
-          { img: "./images/tarot_result.webp", mobileImg: "./images/m_tarot_result.webp", subtitle: "AI 占卜結果", desc: "抽牌完成後，系統會結合 AI 為你進行深度的牌義綜合分析，生成詳盡的專屬占卜報告與指引。" },
-          { img: "./images/tarot_save.webp", mobileImg: "./images/m_tarot_save.webp", subtitle: "再問一次與收藏", desc: "解析結束後，你可以點選「再問一次」重新沉澱思緒測算，或是點擊「收藏此占卜」將這份指引完整保存下來。" },
-          { img: "./images/tarot_collection.webp", mobileImg: "./images/m_tarot_collection.webp", subtitle: "魔法收藏本", desc: "點擊右上角進入「魔法收藏本」就能查看所有收藏。裡面會清楚標註測算的年月日與時間、詢問的主題、抽到的卡牌，以及完整的 AI 講解紀錄喔！" }
-        ]
-      },
-      {
-        title: "突然想拼圖",
-        slides: [
-          { img: "./images/puzzle_intro.webp", mobileImg: "./images/m_puzzle_intro.webp", subtitle: "海洋生物拼圖", desc: "以「海洋生物」為主題的任務導向拼圖小遊戲。每幅拼圖皆由 9 個固定位置的區塊組成，碎片分為普通與高級。" },
-          { img: "./images/puzzle_gacha.webp", mobileImg: "./images/m_puzzle_gacha.webp", subtitle: "喚醒石與抽卡", desc: "玩家可透過完成每日任務獲取專屬道具「召喚石」，消耗召喚石進行抽卡，隨機獲取普通或高級的拼圖碎片。" },
-          { img: "./images/puzzle_workshop.webp", mobileImg: "./images/m_puzzle_workshop.webp", subtitle: "碎片工坊與寶箱", desc: "擁有多餘碎片時，可利用右上角「碎片工坊」將碎片兌換成寶箱，開啟寶箱將必定「保底」獲得拼圖碎片！" },
-          { img: "./images/puzzle_cabinet.webp", mobileImg: "./images/m_puzzle_cabinet.webp", subtitle: "拼圖收藏展示櫃", desc: "點擊「我的收藏」進入展示櫃，會即時同步並視覺化所有海洋生物的收集進度，帶給你滿滿的解鎖成就感。" }
-        ]
-      },
-      {
-        title: "每日便利貼",
-        slides: [
-          { img: "./images/notes_wall.webp", mobileImg: "./images/m_notes_wall.webp", subtitle: "無聲樹洞", desc: "宛如「無聲樹洞」的匿名情感交流空間，所有留言 24 小時後自動清除。為保持純粹，此區刻意關閉回覆與評論功能。" },
-          { img: "./images/notes_write.webp", mobileImg: "./images/m_notes_write.webp", subtitle: "純粹的抒發", desc: "每則便利貼設有最高 50 字的字數上限，且系統嚴格限制每人「每日僅限留言一次」，送出後即不可修改。" }
-        ]
-      },
-      {
-        title: "瓶命射擊",
-        slides: [
-          { img: "./images/shooting_menu.webp", mobileImg: "./images/m_shooting_menu.webp", subtitle: "動態狙擊挑戰", desc: "考驗反應力與精準度！分為簡單、普通、困難三種級別。設有連擊加成機制，但誤擊干擾物「魚」將被扣分懲罰。" },
-          { img: "./images/shooting_game.webp", mobileImg: "./images/m_shooting_game.webp", subtitle: "干擾與增益", desc: "準確狙擊掉落的「瓶子」拿高分。擊中隨機掉落的「發光沙漏」可延長剩餘時間，擊中「發光貝殼」則能補充彈藥數量！" }
-        ]
-      },
-      {
-        title: "接住小瓶",
-        slides: [
-          { img: "./images/catch_menu.webp", mobileImg: "./images/m_catch_menu.webp", subtitle: "接物挑戰", desc: "快節奏的刺激接物遊戲！在 30 秒的單局限時內，敏捷操控籃子接住掉落的漂流瓶累積積分，分為三種難度級別。" },
-          { img: "./images/catch_game.webp", mobileImg: "./images/m_catch_game.webp", subtitle: "閃避與護盾", desc: "必須完美閃避扣分炸彈！隨機掉落的「雙倍星」能讓 3 秒內得分翻倍，「無敵護盾」能擋下一次炸彈的扣分懲罰。" }
-        ]
-      }
-    ]
-  };
-
-  let currentCategory = 'main'; 
-  let currentSubIndex = 0;      
-  let currentSlideIndex = 0;    
-
   function renderSubMenu() {
     subSidebar.innerHTML = ''; 
-    const items = tutorialData[currentCategory];
+    const items = tutorialData[currentLang][currentCategory]; // 根據當前語言抓取資料
     
     items.forEach((item, index) => {
       const btn = document.createElement('div');
@@ -720,7 +931,7 @@
   }
 
   function renderSlide() {
-    const slideData = tutorialData[currentCategory][currentSubIndex].slides;
+    const slideData = tutorialData[currentLang][currentCategory][currentSubIndex].slides;
     const currentSlide = slideData[currentSlideIndex];
 
     displayImage.src = currentDeviceMode === 'mobile' ? currentSlide.mobileImg : currentSlide.img;
@@ -755,7 +966,7 @@
   };
   
   nextBtn.onclick = () => {
-    const maxSlides = tutorialData[currentCategory][currentSubIndex].slides.length;
+    const maxSlides = tutorialData[currentLang][currentCategory][currentSubIndex].slides.length;
     if (currentSlideIndex < maxSlides - 1) {
       currentSlideIndex++;
       renderSlide();
@@ -776,6 +987,7 @@
     };
   });
 
+  // 初始化
   renderSubMenu();
   renderSlide();
 </script>

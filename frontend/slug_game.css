@@ -2233,3 +2233,236 @@
 .room-loading-bar { width: 0%; height: 100%; border-radius: 10px; background: linear-gradient(90deg, var(--accent-color), #ff8fab); }
 .room-loading-percent { margin-top: 8px; font-weight: 900; color: var(--text-dim); }
 @keyframes roomLoadingHop { from { transform: translateY(0); } to { transform: translateY(-8px); } }
+
+        /* ==================================================
+           🧜 【飼養手冊＝互動教學】小助理帶著玩家實際操作
+           ================================================== */
+        #tourLayer { position: fixed; inset: 0; z-index: 20000; pointer-events: none; }
+        #tourLayer[hidden] { display: none; }
+        /* 只看說明的步驟擋住點擊；要動手做的步驟加上 .off，玩家才碰得到遊戲 */
+        .tour-blocker { position: absolute; inset: 0; pointer-events: auto; }
+        .tour-blocker.off { display: none; }
+
+        /* 聚光燈：本身透明，外面用超大的陰影把整個畫面壓暗 */
+        .tour-spot {
+            position: fixed;
+            border-radius: 22px;
+            border: 3px solid #fff;
+            box-shadow: 0 0 0 9999px rgba(45, 26, 52, 0.58), 0 0 0 7px rgba(255, 182, 193, 0.75);
+            pointer-events: none;
+            transition: left 0.3s ease, top 0.3s ease, width 0.3s ease, height 0.3s ease, border-radius 0.3s ease;
+            animation: tourSpotPulse 1.8s ease-in-out infinite;
+        }
+        .tour-spot.none { border-width: 0; animation: none; box-shadow: 0 0 0 9999px rgba(45, 26, 52, 0.58); }
+        @keyframes tourSpotPulse {
+            0%, 100% { box-shadow: 0 0 0 9999px rgba(45, 26, 52, 0.58), 0 0 0 6px rgba(255, 182, 193, 0.8); }
+            50% { box-shadow: 0 0 0 9999px rgba(45, 26, 52, 0.58), 0 0 0 12px rgba(255, 182, 193, 0.25); }
+        }
+
+        /* 右上角的退出按鈕 */
+        .tour-exit {
+            position: fixed;
+            top: calc(14px + env(safe-area-inset-top, 0px));
+            right: calc(14px + env(safe-area-inset-right, 0px));
+            z-index: 3;
+            pointer-events: auto;
+            min-height: 44px;
+            padding: 8px 18px;
+            border-radius: 999px;
+            border: 3px solid var(--border-color);
+            background: #fff;
+            color: var(--text-dark);
+            font-size: 0.95rem;
+            font-weight: 900;
+            cursor: pointer;
+            box-shadow: 0 4px 0 var(--border-color);
+        }
+        .tour-exit:active { transform: translateY(4px); box-shadow: none; }
+
+        /* 小助理 + 對話泡泡 */
+        .tour-card {
+            position: fixed;
+            z-index: 2;
+            width: min(390px, calc(100vw - 24px));
+            display: flex;
+            align-items: flex-end;
+            gap: 4px;
+            pointer-events: auto;
+            transition: left 0.3s ease, top 0.3s ease;
+        }
+        .tour-guide { flex: 0 0 78px; height: 84px; animation: tourGuideBob 3s ease-in-out infinite; }
+        .tour-guide svg { width: 100%; height: 100%; overflow: visible; filter: drop-shadow(0 6px 8px rgba(0, 0, 0, 0.18)); }
+        @keyframes tourGuideBob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
+        .tg-line { stroke: #1a4c6d; stroke-width: 3.5; stroke-linejoin: round; stroke-linecap: round; }
+        .tg-tail { fill: #7ac2c4; }
+        .tg-fin { fill: #50b4ba; }
+        .tg-cat, .tg-paw { fill: #fcfdfe; }
+        .tg-red { stroke: #b83e33; stroke-width: 3.5; stroke-linecap: round; fill: none; }
+        .tg-blush { fill: #ffbaba; }
+        .tg-bubble { fill: #e0f2f5; stroke: #1a4c6d; stroke-width: 2.5; }
+        .tg-dolphin { fill: #9bcbf1; }
+        .tg-wave { animation: tgPawWave 1.8s ease-in-out infinite; transform-origin: 75px 48px; }
+        @keyframes tgPawWave {
+            0%, 100% { transform: rotate(0deg); }
+            20% { transform: rotate(-12deg); }
+            40% { transform: rotate(8deg); }
+            60% { transform: rotate(-10deg); }
+            80% { transform: rotate(6deg); }
+        }
+
+        .tour-bubble {
+            position: relative;
+            flex: 1;
+            min-width: 0;
+            background: #fff;
+            border: 4px solid var(--border-color);
+            border-radius: 24px;
+            padding: 14px 16px 12px;
+            box-shadow: 0 14px 34px rgba(0, 0, 0, 0.22);
+        }
+        /* 泡泡的小尾巴指向小助理 */
+        .tour-bubble::before {
+            content: '';
+            position: absolute;
+            left: -13px; bottom: 22px;
+            width: 18px; height: 18px;
+            background: #fff;
+            border-left: 4px solid var(--border-color);
+            border-bottom: 4px solid var(--border-color);
+            border-radius: 0 0 0 6px;
+            transform: rotate(45deg);
+        }
+        .tour-progress { display: flex; gap: 5px; margin-bottom: 8px; }
+        .tour-progress span { flex: 1; height: 5px; border-radius: 5px; background: #fde2e8; }
+        .tour-progress span.on { background: var(--accent-color); }
+        .tour-title { margin: 0 0 6px; font-size: 1.12rem; font-weight: 900; color: var(--text-dark); }
+        .tour-text { margin: 0; font-size: 0.92rem; line-height: 1.6; font-weight: 700; color: var(--text-dim); }
+
+        /* 要玩家動手做的事 */
+        .tour-task { margin-top: 10px; padding: 9px 12px; border-radius: 14px; font-size: 0.9rem; font-weight: 900; line-height: 1.45; }
+        .tour-task:empty { display: none; }
+        .tour-task.todo { background: #fff4e5; color: #c2410c; border: 2px dashed #fdba74; }
+        .tour-task.hint { background: #fff1f2; color: #be123c; border: 2px dashed #fda4af; }
+        .tour-task.done { background: #ecfdf5; color: #047857; border: 2px solid #6ee7b7; }
+        .tour-task.note { background: #f1f5f9; color: #475569; border: 2px solid #e2e8f0; }
+
+        .tour-actions { display: flex; gap: 8px; margin-top: 12px; justify-content: flex-end; align-items: center; flex-wrap: wrap; }
+        .tour-btn { min-height: 40px; padding: 8px 14px; border-radius: 14px; border: none; font-size: 0.9rem; font-weight: 900; cursor: pointer; }
+        .tour-btn[hidden] { display: none; }
+        .tour-btn.primary { background: var(--text-dark); color: #fff; box-shadow: 0 4px 0 rgba(0, 0, 0, 0.18); }
+        .tour-btn.primary:active:not(:disabled) { transform: translateY(4px); box-shadow: none; }
+        .tour-btn.primary:disabled { opacity: 0.38; cursor: not-allowed; box-shadow: none; }
+        .tour-btn.primary.ready { animation: tourReady 0.9s ease-in-out infinite; }
+        @keyframes tourReady { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.07); } }
+        .tour-btn.ghost { background: #f1f5f9; color: var(--text-dim); }
+        .tour-btn.link { margin-right: auto; padding: 8px 2px; background: none; color: var(--text-dim); text-decoration: underline; }
+
+        @media (max-width: 420px) {
+            /* 手機上縮小一點、往角落靠，才不會壓到中間的「積分」 */
+            .tour-exit { top: calc(10px + env(safe-area-inset-top, 0px)); right: calc(8px + env(safe-area-inset-right, 0px)); padding: 6px 12px; font-size: 0.82rem; min-height: 40px; }
+        }
+        @media (max-width: 370px) {
+            .tour-exit { padding: 6px 9px; font-size: 0.76rem; right: calc(6px + env(safe-area-inset-right, 0px)); }
+        }
+        @media (max-width: 420px) {
+            .tour-guide { flex-basis: 62px; height: 68px; }
+            .tour-bubble { padding: 12px 13px 10px; border-radius: 20px; }
+            .tour-title { font-size: 1.02rem; }
+            .tour-text { font-size: 0.86rem; }
+            .tour-btn { padding: 8px 11px; font-size: 0.85rem; }
+        }
+        @media (prefers-reduced-motion: reduce) {
+            .tour-spot, .tour-guide, .tg-wave, .tour-btn.primary.ready { animation: none; }
+            .tour-spot, .tour-card { transition: none; }
+        }
+
+        /* ==================================================
+           📖 【文字版飼養手冊】以前這裡完全沒有樣式，手冊只是一段文字埋在頁面最底下，
+              打開了也看不到。現在做成跟其他彈窗同一套的置中視窗，內容太長就在裡面捲動
+           ================================================== */
+        .manual-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 10060;
+            display: none;               /* 由 openManualText() 打開 */
+            align-items: center;
+            justify-content: center;
+            padding: calc(16px + env(safe-area-inset-top, 0px)) 16px calc(16px + env(safe-area-inset-bottom, 0px));
+            background: rgba(255, 240, 245, 0.82);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+        }
+        .manual-box {
+            width: min(470px, 100%);
+            max-height: min(86vh, 780px);
+            max-height: min(86dvh, 780px);
+            display: flex;
+            flex-direction: column;
+            background: #fff;
+            border: 4px solid var(--border-color);
+            border-radius: 30px;
+            box-shadow: 0 20px 50px rgba(255, 182, 193, 0.45);
+            overflow: hidden;
+            animation: popIn 0.4s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+        }
+        .manual-header {
+            flex: 0 0 auto;
+            padding: 20px 20px 12px;
+            text-align: center;
+            font-size: 1.35rem;
+            font-weight: 900;
+            letter-spacing: 2px;
+            color: var(--text-dark);
+            border-bottom: 2px dashed #ffe4ec;
+        }
+        .manual-content {
+            flex: 1 1 auto;
+            min-height: 0;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+            overscroll-behavior: contain;
+            padding: 14px 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .manual-section {
+            display: flex;
+            gap: 14px;
+            align-items: flex-start;
+            padding: 12px 14px;
+            border-radius: 18px;
+            background: var(--card-bg);
+            border: 2px solid #ffe4ec;
+        }
+        .manual-img { flex: 0 0 48px; height: 48px; }
+        .manual-img svg { width: 100%; height: 100%; display: block; }
+        .manual-text { min-width: 0; }
+        .manual-text h3 { margin: 2px 0 4px; font-size: 1.02rem; font-weight: 900; }
+        .manual-text p { margin: 0; font-size: 0.9rem; line-height: 1.6; font-weight: 700; color: var(--text-dim); }
+        .manual-footer {
+            flex: 0 0 auto;
+            display: flex;
+            gap: 10px;
+            padding: 12px 16px 16px;
+            border-top: 2px dashed #ffe4ec;
+        }
+        .manual-footer .modal-btn { font-size: 0.98rem; }
+        @media (max-width: 420px) {
+            .manual-box { border-radius: 24px; }
+            .manual-header { font-size: 1.2rem; padding: 16px 16px 10px; }
+            .manual-content { padding: 12px; }
+            .manual-section { gap: 10px; padding: 10px 12px; }
+            .manual-img { flex-basis: 40px; height: 40px; }
+            .manual-text p { font-size: 0.86rem; }
+            .manual-footer { padding: 10px 12px 14px; }
+            .manual-footer .modal-btn { font-size: 0.9rem; min-height: 46px; }
+        }
+
+        /* 互動教學讓位：玩家打開身份證、任務等視窗時整層先藏起來 */
+        #tourLayer.tour-paused { visibility: hidden; }
+        /* 正在餵食、擦玻璃、丟球：暗幕和對話框先收起來，只留右上角的退出 */
+        #tourLayer.tour-busy .tour-spot,
+        #tourLayer.tour-busy .tour-card,
+        #tourLayer.tour-busy .tour-blocker { visibility: hidden; }
+        .tour-task { white-space: pre-line; }
