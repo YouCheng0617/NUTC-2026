@@ -11,7 +11,7 @@
 
     </script>
 
-        <link rel="stylesheet" href="slug_game.css?v=20261006d">
+        <link rel="stylesheet" href="slug_game.css?v=20261006f">
 
 </head>
 <body>
@@ -162,60 +162,86 @@
 <button id="btnOpenManual" onclick="openManual()">📖 飼養手冊</button>
 
 <!-- 🌟 【海兔飼養手冊】彈窗 -->
-<div class="manual-overlay" id="manualOverlay">
-    <div class="manual-box">
-        <div class="manual-header">
-            ✨ 海兔飼養秘笈 ✨
-        </div>
+<!-- 📖 【文字版飼養手冊】跟互動教學講同一套內容，給想直接看重點的玩家 -->
+<div class="manual-overlay" id="manualOverlay" onclick="if (event.target === this) closeManual()">
+    <div class="manual-box" role="dialog" aria-labelledby="manualTitle">
+        <div class="manual-header" id="manualTitle">海兔飼養手冊</div>
         <div class="manual-content">
-            
-            <!-- 教學區塊 1：照顧 -->
+
             <div class="manual-section">
                 <div class="manual-img">
-                    <svg viewBox="0 0 100 100"><path d="M 50 90 Q 30 65 38 45 Q 45 25 28 8 Q 42 22 48 42 Q 52 65 50 90 Z" fill="#4ade80" stroke="#14532d" stroke-width="2"/></svg>
+                    <svg viewBox="0 0 64 64"><ellipse cx="32" cy="42" rx="24" ry="13" fill="#fff" stroke="#6b4c4a" stroke-width="3.5"/><path d="M20 31 C17 18 21 10 25 12 C28 14 26 25 25 31" fill="#6b4c4a"/><path d="M31 30 C30 16 36 9 39 12 C42 15 36 24 35 30" fill="#6b4c4a"/><circle cx="26" cy="41" r="2.4" fill="#6b4c4a"/><circle cx="38" cy="41" r="2.4" fill="#6b4c4a"/></svg>
                 </div>
                 <div class="manual-text">
-                    <h3 style="color: #10b981;">1. 照顧寶寶</h3>
-                    <p>海兔會肚子餓，水質也會隨時間變髒喔！記得點擊下方的「餵食海藻」和「淨化水質」保持牠的健康！每次互動都能賺取積分💰</p>
+                    <h3 style="color: #db2777;">認識你的海兔</h3>
+                    <p>把滑鼠移到海兔身上就能摸摸牠，手機的話點一下。按住不放可以把牠拖到魚缸任何地方；在空白處點兩下（手機連點兩下），牠就會一跳一跳地游過去。</p>
                 </div>
             </div>
 
-            <!-- 教學區塊 2：運動 -->
             <div class="manual-section">
                 <div class="manual-img">
-                    <svg viewBox="0 0 120 120"><circle cx="60" cy="60" r="45" fill="#bae6fd" stroke="#0284c7" stroke-width="4"/><circle cx="45" cy="45" r="10" fill="#ffffff" opacity="0.8"/></svg>
+                    <svg viewBox="0 0 100 100"><path d="M 50 90 Q 30 65 38 45 Q 45 25 28 8 Q 42 22 48 42 Q 52 65 50 90 Z" fill="#4ade80" stroke="#14532d" stroke-width="3"/></svg>
                 </div>
                 <div class="manual-text">
-                    <h3 style="color: #3b82f6;">2. 活力運動</h3>
-                    <p>點擊「活力運動」，把球丟進魚缸裡讓海兔撿！如果不餵牠吃飽，牠可是會生氣拒絕運動的喔！</p>
+                    <h3 style="color: #10b981;">餵食海藻</h3>
+                    <p>按鈕上的綠色條是飽食度，會隨時間慢慢變少。點「餵食海藻」後，把海藻拿到海兔嘴邊再放開，牠吃到才會加飽食度和積分；太餓的話海兔會沒力氣運動。</p>
                 </div>
             </div>
 
-            <!-- 教學區塊 3：裝扮與商店 -->
             <div class="manual-section">
                 <div class="manual-img">
-                    <svg viewBox="0 0 100 100"><polygon points="50,5 61,35 95,35 68,55 79,85 50,65 21,85 32,55 5,35 39,35" fill="#facc15"/></svg>
+                    <svg viewBox="0 0 64 64"><path d="M32 6 C24 20 14 30 14 41 A18 18 0 0 0 50 41 C50 30 40 20 32 6 Z" fill="#7dd3fc" stroke="#0284c7" stroke-width="3.5" stroke-linejoin="round"/><path d="M23 42 A9 9 0 0 0 30 50" fill="none" stroke="#fff" stroke-width="3.5" stroke-linecap="round"/></svg>
                 </div>
                 <div class="manual-text">
-                    <h3 style="color: #f59e0b;">3. 換裝與特效</h3>
-                    <p>賺夠積分後，點擊「🛍️ 裝扮與互動」解鎖新幻獸、超酷背景和浮誇特效。買過的道具會自動收進房主的「百寶袋」裡！</p>
+                    <h3 style="color: #0284c7;">淨化水質</h3>
+                    <p>水會隨時間變髒，畫面越來越混濁。藍色條是清澈度，變成橘色、紅色或按鈕出現「!」，就是該清理了：點「淨化水質」，拿抹布在魚缸上來回擦。</p>
                 </div>
             </div>
 
-            <!-- 教學區塊 4：多人連線 -->
             <div class="manual-section">
                 <div class="manual-img">
-                    <svg viewBox="0 0 100 100"><path d="M 10 20 L 90 20 L 90 70 L 60 70 L 40 90 L 40 70 L 10 70 Z" fill="#fbcfe8" stroke="#db2777" stroke-width="4"/></svg>
+                    <svg viewBox="0 0 120 120"><circle cx="60" cy="60" r="45" fill="#bae6fd" stroke="#0284c7" stroke-width="5"/><circle cx="45" cy="45" r="10" fill="#ffffff" opacity="0.8"/></svg>
                 </div>
                 <div class="manual-text">
-                    <h3 style="color: #ec4899;">4. 多人派對</h3>
-                    <p>點擊右上角「📡 連線」可以建立房間，把六碼代碼貼給朋友，大家就能一起在魚缸裡聊天串門子啦！</p>
+                    <h3 style="color: #3b82f6;">活力運動</h3>
+                    <p>點「活力運動」，把球丟進魚缸，海兔會游過去把球撿回來。肚子太餓的時候牠會拒絕運動，記得先餵飽喔。</p>
+                </div>
+            </div>
+
+            <div class="manual-section">
+                <div class="manual-img">
+                    <svg viewBox="0 0 64 64"><rect x="9" y="12" width="46" height="42" rx="8" fill="#fef9c3" stroke="#ca8a04" stroke-width="3.5"/><path d="M9 24 H55" stroke="#ca8a04" stroke-width="3.5"/><path d="M21 7 V16 M43 7 V16" stroke="#ca8a04" stroke-width="3.5" stroke-linecap="round"/><path d="M23 38 L29 44 L42 31" fill="none" stroke="#16a34a" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                </div>
+                <div class="manual-text">
+                    <h3 style="color: #ca8a04;">每日簽到與任務</h3>
+                    <p>每天打開遊戲記得簽到，連續簽 14 天，第 7 天和第 14 天的獎勵會翻倍。「任務」裡每天都有新任務，完成後回來領積分。</p>
+                </div>
+            </div>
+
+            <div class="manual-section">
+                <div class="manual-img">
+                    <svg viewBox="0 0 100 100"><polygon points="50,5 61,35 95,35 68,55 79,85 50,65 21,85 32,55 5,35 39,35" fill="#facc15" stroke="#ca8a04" stroke-width="3" stroke-linejoin="round"/></svg>
+                </div>
+                <div class="manual-text">
+                    <h3 style="color: #f59e0b;">身份證與商店</h3>
+                    <p>「身份證」可以看海兔的名片、幫牠取名字。積分可以拿去商店：「圖鑑」換海兔的品種，「背景」和「特效」把魚缸布置得更漂亮（手機點右下角的購物籃）。</p>
+                </div>
+            </div>
+
+            <div class="manual-section">
+                <div class="manual-img">
+                    <svg viewBox="0 0 100 100"><path d="M 10 20 L 90 20 L 90 70 L 60 70 L 40 90 L 40 70 L 10 70 Z" fill="#fbcfe8" stroke="#db2777" stroke-width="5" stroke-linejoin="round"/></svg>
+                </div>
+                <div class="manual-text">
+                    <h3 style="color: #ec4899;">和朋友一起玩</h3>
+                    <p>點右上角「連線」→「創立房間」，把 6 碼邀請碼分享給朋友；朋友按「加入房間」輸入邀請碼，就能在同一個魚缸裡一起玩、一起聊天。</p>
                 </div>
             </div>
 
         </div>
         <div class="manual-footer">
-            <button class="modal-btn btn-confirm" onclick="closeManual()" style="width: 100%; background: #78350f; box-shadow: 0 5px 0 #451a03; color: white; font-size: 1.2rem;">我知道啦！</button>
+            <button class="modal-btn btn-cancel" type="button" onclick="closeManual(); startTour();">再跟小助理學一次</button>
+            <button class="modal-btn btn-confirm" type="button" onclick="closeManual()">我知道啦！</button>
         </div>
     </div>
 </div>
@@ -717,7 +743,7 @@
         </div>
     </div>
 
-        <script src="slug_game.js?v=20261006d"></script>
+        <script src="slug_game.js?v=20261006f"></script>
 
 </body>
 </html>

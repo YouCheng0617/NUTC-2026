@@ -2375,3 +2375,94 @@
             .tour-spot, .tour-guide, .tg-wave, .tour-btn.primary.ready { animation: none; }
             .tour-spot, .tour-card { transition: none; }
         }
+
+        /* ==================================================
+           📖 【文字版飼養手冊】以前這裡完全沒有樣式，手冊只是一段文字埋在頁面最底下，
+              打開了也看不到。現在做成跟其他彈窗同一套的置中視窗，內容太長就在裡面捲動
+           ================================================== */
+        .manual-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 10060;
+            display: none;               /* 由 openManualText() 打開 */
+            align-items: center;
+            justify-content: center;
+            padding: calc(16px + env(safe-area-inset-top, 0px)) 16px calc(16px + env(safe-area-inset-bottom, 0px));
+            background: rgba(255, 240, 245, 0.82);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+        }
+        .manual-box {
+            width: min(470px, 100%);
+            max-height: min(86vh, 780px);
+            max-height: min(86dvh, 780px);
+            display: flex;
+            flex-direction: column;
+            background: #fff;
+            border: 4px solid var(--border-color);
+            border-radius: 30px;
+            box-shadow: 0 20px 50px rgba(255, 182, 193, 0.45);
+            overflow: hidden;
+            animation: popIn 0.4s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+        }
+        .manual-header {
+            flex: 0 0 auto;
+            padding: 20px 20px 12px;
+            text-align: center;
+            font-size: 1.35rem;
+            font-weight: 900;
+            letter-spacing: 2px;
+            color: var(--text-dark);
+            border-bottom: 2px dashed #ffe4ec;
+        }
+        .manual-content {
+            flex: 1 1 auto;
+            min-height: 0;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+            overscroll-behavior: contain;
+            padding: 14px 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .manual-section {
+            display: flex;
+            gap: 14px;
+            align-items: flex-start;
+            padding: 12px 14px;
+            border-radius: 18px;
+            background: var(--card-bg);
+            border: 2px solid #ffe4ec;
+        }
+        .manual-img { flex: 0 0 48px; height: 48px; }
+        .manual-img svg { width: 100%; height: 100%; display: block; }
+        .manual-text { min-width: 0; }
+        .manual-text h3 { margin: 2px 0 4px; font-size: 1.02rem; font-weight: 900; }
+        .manual-text p { margin: 0; font-size: 0.9rem; line-height: 1.6; font-weight: 700; color: var(--text-dim); }
+        .manual-footer {
+            flex: 0 0 auto;
+            display: flex;
+            gap: 10px;
+            padding: 12px 16px 16px;
+            border-top: 2px dashed #ffe4ec;
+        }
+        .manual-footer .modal-btn { font-size: 0.98rem; }
+        @media (max-width: 420px) {
+            .manual-box { border-radius: 24px; }
+            .manual-header { font-size: 1.2rem; padding: 16px 16px 10px; }
+            .manual-content { padding: 12px; }
+            .manual-section { gap: 10px; padding: 10px 12px; }
+            .manual-img { flex-basis: 40px; height: 40px; }
+            .manual-text p { font-size: 0.86rem; }
+            .manual-footer { padding: 10px 12px 14px; }
+            .manual-footer .modal-btn { font-size: 0.9rem; min-height: 46px; }
+        }
+
+        /* 互動教學讓位：玩家打開身份證、任務等視窗時整層先藏起來 */
+        #tourLayer.tour-paused { visibility: hidden; }
+        /* 正在餵食、擦玻璃、丟球：暗幕和對話框先收起來，只留右上角的退出 */
+        #tourLayer.tour-busy .tour-spot,
+        #tourLayer.tour-busy .tour-card,
+        #tourLayer.tour-busy .tour-blocker { visibility: hidden; }
+        .tour-task { white-space: pre-line; }

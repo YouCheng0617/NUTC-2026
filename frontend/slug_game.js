@@ -3446,7 +3446,11 @@ const effectData = {
         async function initGameData() {
             // 1. 先第一時間讀取本地存檔，讓畫面瞬間恢復！
             loadingUI.set(14, '正在翻出你的存檔…', 'Finding your save…');
+            const hadSave = !!localStorage.getItem(getSaveKey());
             loadGame();
+            // 這個功能加進來以前就在玩的人，不要突然被教學打擾
+            if (gameState.tutorialSeen === undefined) gameState.tutorialSeen = hadSave;
+            maybeAutoStartTour();
             checkDaily();
             // 2. 判斷要不要顯示抽獎畫面，並且更新全部的按鈕與圖案
             loadingUI.set(32, '正在布置海兔的家…', 'Setting up the tank…');
@@ -5151,8 +5155,8 @@ function updateLangUI() {
         renderShop();
         updateUI();
         
-        // 🐣 新增這行：遊戲開始時，自動打開教學手冊讓玩家看！
-        openManual(); 
+        // 🐣 第一次照顧海兔：自動開始互動教學
+        maybeAutoStartTour();
         
     }, 500);
 }
@@ -11843,8 +11847,23 @@ function checkDaily() {
         // 🌟 新增：幫按鈕貼上標籤，啟動呼吸跟紅點
         document.getElementById('btnDailyGift').classList.add('needs-attention');
         
-        setTimeout(() => { openCheckInModal(); }, 500); 
+        setTimeout(openCheckInWhenFree, 500);
     }
+}
+
+// 自動彈出的簽到日曆要排隊：開場動畫、孵化畫面、互動教學都結束了才出來。
+// 以前一進遊戲就直接打開，新玩家會看到日曆蓋在孵化畫面上；
+// 領養完自動開始的教學也被它擋住，教學叫你摸海兔、拖海兔時，點到的都是日曆
+function openCheckInWhenFree() {
+    const gacha = document.getElementById('gachaScreen');
+    const busy = document.getElementById('introOverlay')
+        || (gacha && getComputedStyle(gacha).display !== 'none')
+        || tourActive
+        || !gameState.tutorialSeen
+        || (document.getElementById('manualOverlay') || {}).style.display === 'flex';   // 文字版手冊開著也先別蓋上去
+    if (busy) { setTimeout(openCheckInWhenFree, 600); return; }
+    if (gameState.daily && gameState.daily.todayClaimed) return;   // 等的期間已經簽過了
+    openCheckInModal();
 }
 
 // 打開日曆並把 14 天的格子畫出來
@@ -12645,7 +12664,18 @@ const TOUR_STEPS = [
     },
     {
         target: ['#btnFeed'], action: 'feed',
-        canDo: () => (gameState.hunger !== undefined ? gameState.hunger : 100) < 100 && !(gameState.cooldowns.feed > 0),
+        canDo: () => !(gameState.cooldowns.feed > 0),
+        // 新玩家飽食度是 100，吃很飽就不能餵，所以先讓牠稍微餓一點來練習
+        prepare: () => {
+            if ((gameState.hunger !== undefined ? gameState.hunger : 100) < 90) return null;
+            gameState.hunger = 70;
+            gameState.lastHungerTime = Date.now();
+            updateHungerUI();
+            saveGame();
+            return ['我讓海兔肚子有點餓了，換你來餵餵看！', "I've made it a little hungry — your turn to feed it!"];
+        },
+        waitText: () => ['海兔還在消化剛剛的海藻，再等 ' + gameState.cooldowns.feed + ' 秒就可以餵了…',
+                         'Still digesting — ' + gameState.cooldowns.feed + 's to go…'],
         title: ['餵食海藻', 'Feeding'],
         text: ['按鈕上的綠色條是飽食度，會隨時間慢慢變少。太餓的話，海兔會沒力氣運動。',
                "The green bar is how full it is. It drains over time — a hungry bunny won't exercise."],
@@ -12655,7 +12685,19 @@ const TOUR_STEPS = [
     },
     {
         target: ['#btnClean'], action: 'clean',
-        canDo: () => (gameState.dirtiness || 0) > 5 && !(gameState.cooldowns.clean > 0),
+        canDo: () => !(gameState.cooldowns.clean > 0),
+        // 水太乾淨的話「淨化水質」按了沒反應，所以先把水弄髒一點點讓玩家練習
+        //（25 還不到髒水提醒的門檻，不會跳出「水變混濁了」的提示來打擾）
+        prepare: () => {
+            if ((gameState.dirtiness || 0) > 5) return null;
+            gameState.dirtiness = 25;
+            gameState.lastDirtTime = Date.now();
+            renderWaterQuality();
+            saveGame();
+            return ['我先把水弄髒一點點，讓你練習擦擦看！', "I've made the water a bit cloudy so you can practice!"];
+        },
+        waitText: () => ['剛剛才擦過，再等 ' + gameState.cooldowns.clean + ' 秒就可以練習了…',
+                         'Just cleaned — ' + gameState.cooldowns.clean + 's until you can try…'],
         title: ['淨化水質', 'Cleaning the water'],
         text: ['水會隨時間變髒，畫面會越來越混濁。藍色條是清澈度，變橘、變紅或出現驚嘆號，就是該幫牠洗澡了。',
                'The water gets cloudy over time. The blue bar shows how clear it is — orange, red or a "!" means it needs a wash.'],
@@ -12673,14 +12715,16 @@ const TOUR_STEPS = [
         blockedText: ['海兔現在在休息（或太餓了），這一步先看說明就好。', "It's resting (or too hungry) now, so just read along."]
     },
     {
-        target: ['#btnIdCard'],
+        target: ['#btnIdCard'], action: 'idcard',
         title: ['身份證', 'ID card'],
-        text: ['這裡可以看海兔的名片，也可以幫牠取名字。', "See your sea bunny's ID card and give it a name."]
+        text: ['這裡可以看海兔的名片，也可以幫牠取名字。', "See your sea bunny's ID card and give it a name."],
+        task: ['試試看：點「身份證」看看名片，看完把它關掉', 'Try it: open the ID card, then close it']
     },
     {
-        target: ['.interaction-group button[onclick="openDailyModal()"]'],
+        target: ['.interaction-group button[onclick="openDailyModal()"]'], action: 'daily',
         title: ['每日任務', 'Daily tasks'],
-        text: ['每天都有新任務，像是餵食、淨化水質。完成後記得回來這裡領積分。', 'New tasks every day — come back here to claim your points.']
+        text: ['每天都有新任務，像是餵食、淨化水質。完成後記得回來這裡領積分。', 'New tasks every day — come back here to claim your points.'],
+        task: ['試試看：點「任務」看看今天有什麼任務，看完把它關掉', "Try it: open Tasks to see today's list, then close it"]
     },
     {
         target: ['.points-display'],
@@ -12688,12 +12732,12 @@ const TOUR_STEPS = [
         text: ['照顧海兔、完成任務都能賺積分，積分可以拿去商店買東西。', 'Earn points by caring for your bunny and finishing tasks, then spend them in the shop.']
     },
     {
-        target: ['#uiPanel .tabs', '#btnOpenShop'],
+        target: ['#uiPanel .tabs', '#btnOpenShop'], free: true,   // 可以點開看看，但不強制
         title: ['商店', 'Shop'],
         text: ['「圖鑑」可以換海兔的品種，「背景」和「特效」能把魚缸布置得更漂亮。', 'Change breeds in the catalog, and decorate the tank with backgrounds and effects.']
     },
     {
-        target: ['#btnToggleMp'],
+        target: ['#btnToggleMp'], free: true,
         title: ['和朋友一起玩', 'Play with friends'],
         text: ['按「連線」可以開房間，把 6 碼邀請碼分享給朋友，就能在同一個魚缸裡一起玩、一起聊天。',
                'Tap "Online" to open a room and share the 6-character code so friends can join your tank.']
@@ -12729,8 +12773,23 @@ function tourFindTarget(step) {
     return null;
 }
 
+// 第一次進到遊戲畫面就自動開始教學（不管有沒有經過孵化畫面：
+// 新帳號登入時後端會自動建一隻海兔，孵化畫面會直接被跳過）
+function maybeAutoStartTour() {
+    if (gameState.tutorialSeen || tourActive) return;
+    const gacha = document.getElementById('gachaScreen');
+    const waiting = document.getElementById('introOverlay')
+        || !gameState.hasAdopted
+        || (gacha && getComputedStyle(gacha).display !== 'none')
+        || tourModalOpen();
+    if (waiting) { setTimeout(maybeAutoStartTour, 600); return; }
+    startTour();
+}
+
 function startTour() {
     installTourHooks();
+    gameState.tutorialSeen = true;   // 開始過就算看過，之後不會再自動跳出來
+    saveGame();
     closeManual();
     // 手機上商店是蓋滿畫面的彈窗，開著的話先收起來
     const panel = tourEl('uiPanel');
@@ -12742,7 +12801,39 @@ function startTour() {
     showTourStep(0);
     clearInterval(tourTicker);
     // 海兔會動、按鈕會因為視窗大小移位，所以聚光燈要一直跟著
-    tourTicker = setInterval(positionTour, 150);
+    tourTicker = setInterval(tourTick, 150);
+}
+
+// 有視窗蓋在畫面上嗎（身份證、任務、簽到、取名、手機上的商店…）
+function tourModalOpen() {
+    for (const el of document.querySelectorAll('.name-modal-overlay, .manual-overlay')) {
+        if (getComputedStyle(el).display !== 'none') return true;
+    }
+    const panel = tourEl('uiPanel');
+    if (panel && panel.classList.contains('open')) {
+        const r = panel.getBoundingClientRect();
+        if (r.height > innerHeight * 0.8 && getComputedStyle(panel).pointerEvents !== 'none') return true;
+    }
+    return false;
+}
+
+function tourTick() {
+    if (!tourActive) return;
+    const layer = tourEl('tourLayer');
+    // 玩家打開了身份證、任務這些視窗：教學先整個讓位，關掉後再回來
+    const modal = tourModalOpen();
+    // 正在餵海藻、擦玻璃、丟球：把暗幕和對話框收起來，不要擋到手指
+    const busy = isFeedingActive || isCleaningActive || isExercisingActive;
+    layer.classList.toggle('tour-paused', modal);
+    layer.classList.toggle('tour-busy', busy && !modal);
+    if (modal) return;
+
+    const step = TOUR_STEPS[tourIndex];
+    if (tourMode === 'watch' && step.action && !tourStepDone) {
+        if ((!step.canDo || step.canDo()) && tourFindTarget(step)) { showTourStep(tourIndex); return; }   // 冷卻結束了
+        if (step.waitText && step.canDo && !step.canDo()) setTourTask(tt(...step.waitText()), 'note');     // 更新倒數
+    }
+    positionTour();
 }
 
 function endTour(finished) {
@@ -12774,9 +12865,16 @@ function showTourStep(i) {
     tourEl('tourTitle').textContent = tt(...step.title);
     tourEl('tourText').textContent = tt(...step.text);
 
-    if (tourMode === 'action') setTourTask(tt(...step.task), 'todo');
-    else if (step.action) setTourTask(step.blockedText ? tt(...step.blockedText) : tt('這一步先看說明就好。', 'Just read along for this one.'), 'note');
-    else setTourTask('', '');
+    if (tourMode === 'action') {
+        // 需要的話先幫玩家準備好練習的條件（例如把水弄髒一點）
+        const note = step.prepare ? step.prepare() : null;
+        setTourTask((note ? tt(...note) + '\n' : '') + tt(...step.task), 'todo');
+    } else if (step.action) {
+        // 還在冷卻就顯示倒數，冷卻一結束 tourTick 會自動切成可以操作
+        const coolingDown = step.waitText && step.canDo && !step.canDo();
+        setTourTask(coolingDown ? tt(...step.waitText())
+            : step.blockedText ? tt(...step.blockedText) : tt('這一步先看說明就好。', 'Just read along for this one.'), 'note');
+    } else setTourTask('', '');
 
     const prev = tourEl('tourPrev'), skip = tourEl('tourSkip'), next = tourEl('tourNext'), extra = tourEl('tourExtra');
     prev.hidden = tourIndex === 0;
@@ -12790,7 +12888,7 @@ function showTourStep(i) {
     if (step.extra) extra.textContent = tt(...step.extra);
 
     // 只看說明的時候擋住點擊；要動手做的時候讓玩家碰得到遊戲
-    tourEl('tourBlocker').classList.toggle('off', tourMode === 'action');
+    tourEl('tourBlocker').classList.toggle('off', tourMode === 'action' || !!step.free);
     positionTour();
 }
 
@@ -12882,6 +12980,8 @@ function installTourHooks() {
     wrap('completeFeedingAction', (ok) => tourNotify(ok ? 'feed' : 'feed-miss'));
     wrap('finishCleaningAction', (ok) => tourNotify(ok ? 'clean' : 'clean-miss'));
     wrap('finishExerciseSuccess', () => tourNotify('exercise'));
+    wrap('openIdCardModal', () => tourNotify('idcard'));
+    wrap('openDailyModal', () => tourNotify('daily'));
 
     // 摸摸、雙擊召喚：海兔身上會多一個狀態 class
     const slug = tourEl('slugContainer');
