@@ -3585,22 +3585,32 @@ const effectData = {
 
             let safeTop = stageRect.top;
             let safeBottom = stageRect.bottom;
+            let cornerTop = stageRect.top;   // 角落小按鈕允許海兔耳朵鑽進去的上限
+            const visHForCorners = slugEl.getBoundingClientRect().height || slugEl.offsetHeight;
 
-            // 電腦版與手機版共用同一份清單，實際存在且看得見的才會被算進去
+            // 電腦版與手機版共用同一份清單，實際存在且看得見的才會被算進去。
+            // 上方的 .top-bar 本身是一整條透明的容器，真正看得到的只有裡面的小膠囊（返回、積分、EN），
+            // 所以拿裡面的東西來算，不拿整條
             const blockers = [
-                '.top-bar', '#btnOpenManual', '#btnToggleMp', '.mp-panel',
+                '.top-bar > *', '#btnOpenManual', '#btnToggleMp', '.mp-panel',
                 '#btnOpenShop', '.interaction-group', '#uiPanel'
             ];
 
-            for (const selector of blockers) {
-                const el = document.querySelector(selector);
-                if (!el) continue;
-
+            for (const el of document.querySelectorAll(blockers.join(','))) {
                 const rect = el.getBoundingClientRect();
                 // 隱藏的元件高度是 0；手機版的 uiPanel 是整頁透明容器，會蓋滿舞台所以要跳過
                 if (rect.height <= 0 || rect.height > stageRect.height * 0.8) continue;
                 // 水平方向完全沒有跟舞台重疊的就不影響海兔
                 if (rect.right <= stageRect.left || rect.left >= stageRect.right) continue;
+                // 角落的小按鈕（飼養手冊、連線、積分、購物籃）只佔一小塊，而且層級比海兔高，
+                // 海兔跑到底下時按鈕照樣看得到、點得到。以前把它們當成整條牆，
+                // 電腦版海兔上下只剩 82px 能跑，只能一直待在下面，所以只有橫跨大半個畫面的才算整條擋住。
+                // 不過手機上海兔比較小，整隻鑽進按鈕底下就找不到了，所以上方的小按鈕最多只能蓋掉牠上面 40%（耳朵），
+                // 臉和身體一定要露出來
+                if (rect.width < stageRect.width * 0.45) {
+                    if (rect.bottom <= stageMiddle) cornerTop = Math.max(cornerTop, rect.bottom - visHForCorners * 0.4);
+                    continue;
+                }
 
                 if (rect.bottom <= stageMiddle) {
                     safeTop = Math.max(safeTop, rect.bottom);
@@ -3608,6 +3618,8 @@ const effectData = {
                     safeBottom = Math.min(safeBottom, rect.top);
                 }
             }
+
+            safeTop = Math.max(safeTop, cornerTop);
 
             // 海兔會依螢幕縮放，所以用實際看到的大小來算邊界；
             // 縮放以中心為軸，版面框與視覺框之間的差要補回來
