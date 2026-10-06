@@ -10,7 +10,23 @@ let currentFilterStatus = "all";
 // 🌟 附加圖片限制 (需與後端 CS.upload.ts 一致)
 const MAX_IMAGES = 3;
 const MAX_IMAGE_SIZE = 5 * 1024 * 1024;
-const ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp"];
+const ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/jpg", "image/pjpeg", "image/png", "image/webp", "image/heic", "image/heif"];
+// 有些瀏覽器不認得 .heic（file.type 會是空的），這時改看副檔名
+const ALLOWED_IMAGE_EXTS = ["jpg", "jpeg", "png", "webp", "heic", "heif"];
+
+function fileExt(file) {
+  return (file.name.split(".").pop() || "").toLowerCase();
+}
+
+function isAllowedImage(file) {
+  if (ALLOWED_IMAGE_TYPES.includes(file.type)) return true;
+  return !file.type && ALLOWED_IMAGE_EXTS.includes(fileExt(file));
+}
+
+// iPhone 的 HEIC 照片：大部分瀏覽器預覽不了，送出後後端會轉成 JPG
+function isHeic(file) {
+  return ["image/heic", "image/heif"].includes(file.type) || ["heic", "heif"].includes(fileExt(file));
+}
 let selectedImages = []; // { file, previewUrl }
 
 // 🌟 HTML 跳脫防 XSS
@@ -165,15 +181,15 @@ window.handleImageSelect = function (event) {
       alert(`最多只能上傳 ${MAX_IMAGES} 張圖片！`);
       break;
     }
-    if (!ALLOWED_IMAGE_TYPES.includes(file.type)) {
-      alert(`「${file.name}」格式不支援，僅接受 JPG、PNG、WEBP！`);
+    if (!isAllowedImage(file)) {
+      alert(`「${file.name}」格式不支援，僅接受 JPG、JPEG、PNG、WEBP、HEIC！`);
       continue;
     }
     if (file.size > MAX_IMAGE_SIZE) {
       alert(`「${file.name}」超過 5MB，請壓縮後再上傳！`);
       continue;
     }
-    selectedImages.push({ file, previewUrl: URL.createObjectURL(file) });
+    selectedImages.push({ file, previewUrl: URL.createObjectURL(file), heic: isHeic(file) });
   }
 
   renderSelectedImages();
@@ -198,7 +214,10 @@ function renderSelectedImages() {
 
   const previews = selectedImages.map((img, i) => `
     <div class="cs-image-item">
-      <img src="${img.previewUrl}" alt="附加圖片 ${i + 1}" />
+      ${img.heic
+        // HEIC 先試著預覽（Safari 可以），載不出來就換成說明小卡
+        ? `<img src="${img.previewUrl}" alt="附加圖片 ${i + 1}" onerror="this.replaceWith(Object.assign(document.createElement('div'), { className: 'cs-image-heic', innerHTML: '📷<span>HEIC 照片</span><small>送出後會轉成 JPG</small>' }))" />`
+        : `<img src="${img.previewUrl}" alt="附加圖片 ${i + 1}" />`}
       <button type="button" class="cs-image-remove" onclick="removeSelectedImage(${i})" title="移除這張圖片">✕</button>
     </div>
   `).join("");

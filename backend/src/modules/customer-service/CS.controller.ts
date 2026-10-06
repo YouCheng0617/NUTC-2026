@@ -29,7 +29,7 @@ export class CSController {
             const files = (req.files as Express.Multer.File[] | undefined) ?? [];
             const images = await saveCSImages(files);
             if (images === null) {
-                return res.status(400).json({ message: "圖片格式錯誤，僅接受 jpg、png、webp" });
+                return res.status(400).json({ message: "圖片格式錯誤，僅接受 jpg、jpeg、png、webp、heic" });
             }
 
             try {

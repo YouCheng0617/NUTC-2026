@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>心情漂流瓶 - 客服與問題反饋中心</title>
   <link rel="stylesheet" href="test.css?v=24" />
-  <link rel="stylesheet" href="customer-service.css" />
+  <link rel="stylesheet" href="customer-service.css?v=2" />
 </head>
 
 <body>
@@ -117,9 +117,9 @@
                 <span id="image-counter" class="char-counter">0 / 3</span>
               </label>
               <div id="cs-image-list" class="cs-image-list"></div>
-              <input type="file" id="cs-image-input" accept="image/jpeg,image/png,image/webp" multiple hidden
+              <input type="file" id="cs-image-input" accept="image/jpeg,image/png,image/webp,image/heic,image/heif,.jpg,.jpeg,.png,.webp,.heic,.heif" multiple hidden
                 onchange="handleImageSelect(event)" />
-              <p class="image-hint">支援 JPG、PNG、WEBP，最多 3 張，單張 5MB 以內（可附上錯誤畫面截圖）</p>
+              <p class="image-hint">支援 JPG、JPEG、PNG、WEBP、HEIC（iPhone 照片），最多 3 張，單張 5MB 以內（可附上錯誤畫面截圖）</p>
             </div>
 
             <!-- 溫馨提示小卡 -->
@@ -177,7 +177,7 @@
   <!-- 提示 Toast 訊息 -->
   <div id="cs-toast" class="cs-toast" style="display: none;"></div>
 
-  <script src="customer-service.js"></script>
+  <script src="customer-service.js?v=2"></script>
 </body>
 
 </html>
