@@ -4221,27 +4221,16 @@ function completeFeedingAction(isSuccess) {
                 showFloatText('😋 嚼嚼嚼！美味海藻 +80');
                 fetchAPI('/pet-games/interact', 'POST', { action: 'feed' });
             } else {
-             slugEl.style.transform = slugTransform();
+                // 沒吃到：不加飽食度、不加分、不進冷卻，可以馬上再試一次
+                slugEl.style.transform = slugTransform();
                 showFloatText('海藻掉在路上了～再試一次吧！');
             }
-        
-            gameState.points += 80;
-                gameState.cooldowns.feed = 8;
-                
-                // 🌟 每次餵食增加 35% 飽足度（最多 100%）
-                gameState.hunger = Math.min(100, (gameState.hunger || 0) + 35);
-                gameState.lastHungerTime = Date.now();
-                updateHungerUI();
 
-                if (!gameState.cooldownUntil) gameState.cooldownUntil = { feed: 0, clean: 0, pet: 0 };
-                gameState.cooldownUntil.feed = Date.now() + (8 * 1000);
-                saveGame();
-                updateUI();
-                showFloatText('😋 嚼嚼嚼！美味海藻 +80');
-                fetchAPI('/pet-games/interact', 'POST', { action: 'feed' });
+            // 以前這裡還有一整段「加分、加飽食度、送出餵食」的程式碼放在 if/else 外面，
+            // 導致海藻掉在路上也會漲飽食度，吃到的時候則被算兩次（積分 +160、飽食度 +70、API 送兩次）
 
-                // 吃完後把海兔推回安全範圍，避免牠停在商店面板底下被擋住
-                clampSlugIntoSafeArea();
+            // 吃完（或沒吃到）都把海兔推回安全範圍，避免牠停在商店面板底下被擋住
+            clampSlugIntoSafeArea();
         }
         // 🌟 【活力運動：拋接球與海兔流汗撿球收納系統】
         let isExercisingActive = false;
