@@ -1,37 +1,89 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="zh-TW">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>每日便利貼 - 秘密海域</title>
-    <link rel="stylesheet" href="notes.css">
-</head>
-<body>
-<!-- 頂部導航 -->
-<header class="top-bar">
-    <h1 id="page-title">📝 每日便利貼</h1>
-    <div style="display: flex; gap: 10px;">
-        <button class="btn-back" id="btn-lang" onclick="toggleLang()">EN</button>
-        <button class="btn-back" id="btn-back" onclick="window.location.href='games.html'">回到大廳</button>
-    </div>
-</header>
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    />
+    <title>每日便利貼 - 秘密海域 3D</title>
+    <link rel="stylesheet" href="notes.css" />
+  </head>
+  <body>
+    <!-- 頂部導航 -->
+    <header class="top-bar">
+      <h1 id="page-title">📝 每日便利貼</h1>
+      <div style="display: flex; gap: 8px; align-items: center">
+        <button
+          class="btn-back btn-refresh"
+          id="btn-refresh"
+          onclick="refreshNotes()"
+        >
+          🔄 換一批
+        </button>
+        <button class="btn-back" id="btn-lang" onclick="toggleLang()">
+          EN
+        </button>
+        <button
+          class="btn-back"
+          id="btn-back"
+          onclick="window.location.href = 'games.html'"
+        >
+          回到大廳
+        </button>
+      </div>
+    </header>
 
-    <div class="container">
-        <!-- 新增便利貼的控制台 -->
-        <div class="note-creator glass-panel">
-            <textarea id="note-text" placeholder="今天想記錄點什麼呢？..." rows="3" maxlength="50"></textarea>
-            <div class="creator-actions">
-                <span id="char-count" class="char-count">0 / 50</span>
-                <button id="add-note-btn" class="btn-action">發佈便利貼</button>
-            </div>
-        </div>
+    <!-- 🌐 3D 10張環繞互動舞台 -->
+    <div class="sphere-viewport" id="sphere-viewport">
+      <div id="notes-board" class="sphere-world">
+        <!-- JS 會在此排列出 10 張便利貼 -->
+      </div>
 
-        <!-- 便利貼展示佈告欄 -->
-        <div id="notes-board" class="notes-grid">
-            <!-- JS 會將便利貼卡片渲染在這裡 -->
-        </div>
+      <div class="drag-hint" id="drag-hint">
+        👆 滑動旋轉 3D 空間，點擊任一張便利貼可居中特寫
+      </div>
     </div>
+
+    <!-- ✏️ 右下角浮動發布按鈕 -->
+    <button
+      class="fab-create-btn"
+      id="fab-create-btn"
+      onclick="toggleCreatorModal(true)"
+    >
+      ✏️ 貼上心事
+    </button>
+
+    <!-- 📝 發布便利貼彈窗 -->
+    <div
+      id="creator-modal"
+      class="creator-modal"
+      style="display: none"
+      onclick="if (event.target === this) toggleCreatorModal(false);"
+    >
+      <div class="note-creator glass-panel">
+        <div class="creator-header">
+          <h3 id="modal-title">📝 寫下今天的便利貼</h3>
+          <span class="close-modal-btn" onclick="toggleCreatorModal(false)"
+            >✕</span
+          >
+        </div>
+        <textarea
+          id="note-text"
+          placeholder="今天想記錄點什麼呢？..."
+          rows="3"
+          maxlength="50"
+        ></textarea>
+        <div class="creator-actions">
+          <span id="char-count" class="char-count">0 / 50</span>
+          <button id="add-note-btn" class="btn-action">發佈便利貼</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 吐司提示容器 -->
+    <div id="toast-container"></div>
 
     <script src="notes.js"></script>
-</body>
+  </body>
 </html>
