@@ -117,7 +117,8 @@ window.toggleCreatorModal = function (show) {
     lastY = 0;
   let lastInteractTime = Date.now();
 
-  const getRadius = () => (window.innerWidth <= 600 ? 230 : 400);
+  // 🌟 手機改為 165px，確保 360 度旋轉時便利貼都在直立螢幕視野內
+  const getRadius = () => (window.innerWidth <= 600 ? 165 : 400);
 
   const fetchNotes = async () => {
     try {
@@ -196,12 +197,14 @@ window.toggleCreatorModal = function (show) {
     for (let i = 0; i < total; i++) {
       // 🌟 核心修復：使用 (i + 0.5) / total 避免剛好落在 1 與 -1 的死點
       // 並乘上 0.76 收縮南北極，確保每張牌都至少有 60% 以上的水平旋轉半徑
-      const yNorm = (1 - ((i + 0.5) / total) * 2) * 0.76;
+      // 🌟 垂直收縮係數改為 0.65，避免最上方的牌衝撞到頂部導覽列
+      const yNorm = (1 - ((i + 0.5) / total) * 2) * 0.65;
       const radiusAtY = Math.sqrt(Math.max(0.15, 1 - yNorm * yNorm));
       const theta = phi * i;
 
       const x0 = Math.cos(theta) * radiusAtY * radius;
-      const y0 = yNorm * radius * 0.9;
+      // 🌟 垂直高度乘上 0.85，給頂部和底部的 UI 留出充足空間
+      const y0 = yNorm * radius * 0.85;
       const z0 = Math.sin(theta) * radiusAtY * radius;
 
       coords.push({ x0, y0, z0 });

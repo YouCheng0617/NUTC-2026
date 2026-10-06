@@ -358,3 +358,81 @@ body::before {
     .top-bar h1 { font-size: 1.15rem; }
     .drag-hint { bottom: 75px; font-size: 0.75rem; }
 }
+/* 確保按鈕與標題絕對不折行 */
+.btn-back {
+    background: rgba(255, 255, 255, 0.15); 
+    color: white; 
+    border: 1px solid rgba(255,255,255,0.4);
+    padding: 6px 14px; 
+    border-radius: 20px; 
+    cursor: pointer; 
+    transition: 0.25s;
+    font-weight: bold; 
+    font-size: 0.9rem;
+    white-space: nowrap; /* 🌟 強制文字單行，不被擠成兩行 */
+}
+
+/* =========================================
+   📱 手機版 RWD 專屬優化 (極致防擠壓)
+========================================= */
+@media screen and (max-width: 600px) {
+    /* 1. 頂部導覽列：單行緊湊排版 */
+    .top-bar {
+        padding: 8px 10px;
+    }
+    .top-bar h1 {
+        font-size: 0.95rem;
+        white-space: nowrap; /* 標題不折行 */
+        letter-spacing: 0;
+    }
+    .top-bar > div {
+        gap: 5px !important; /* 縮小按鈕之間的間距 */
+    }
+    .btn-back {
+        padding: 4px 8px;     /* 縮小按鈕內邊距 */
+        font-size: 0.76rem;   /* 適度縮小字體 */
+        border-radius: 12px;
+        white-space: nowrap;  /* 「換一批」「回到大廳」絕不拆行 */
+    }
+
+    /* 2. 手機版便利貼尺寸：小巧精緻，避免互相遮蓋 */
+    .note-card {
+        width: 124px;
+        min-height: 92px;
+        left: -62px;
+        top: -46px;
+        padding: 10px 8px 6px 8px;
+        border-radius: 3px 12px 3px 12px;
+    }
+    .note-card::before {
+        width: 38px;
+        height: 12px;
+        top: -5px;
+    }
+    .note-text { 
+        font-size: 0.76rem;
+        line-height: 1.35;
+    }
+    .note-footer { 
+        font-size: 0.65rem;
+        margin-top: 4px;
+        padding-top: 3px;
+    }
+
+    /* 3. 底部提示條與發布按鈕 */
+    .drag-hint {
+        bottom: 68px;
+        font-size: 0.72rem;
+        padding: 5px 12px;
+        max-width: 90%;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    .fab-create-btn {
+        bottom: 16px;
+        right: 16px;
+        padding: 8px 16px;
+        font-size: 0.88rem;
+    }
+}
