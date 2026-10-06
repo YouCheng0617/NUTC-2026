@@ -524,10 +524,11 @@ export const searchBottle = async (keyword: string, memberId?: number) => {
 
 /*獲取熱門瓶子 (依收藏數排序)*/
 /* 熱門瓶子：互動分數 ÷ 時間衰減（Hacker News 的做法），新文章熱起來也上得了榜
- *   分數 = (按讚×1 + 留言×2 + 收藏×3) ÷ (發文經過的小時數 + 2) ^ 1.5
+ *   分數 = (留言×2 + 收藏×3) ÷ (發文經過的小時數 + 2) ^ 1.5
+ *   （瓶子的按讚在畫面上按不到：卡片的按鈕列藏起來了、文章頁只有收藏，所以不算讚數）
  *   只從最近 14 天挑；不夠的話用比較舊、收藏多的文章補滿，看板才不會空 */
 const POPULAR_WINDOW_DAYS = 14;
-const POPULAR_WEIGHTS = { like: 1, comment: 2, save: 3 };
+const POPULAR_WEIGHTS = { comment: 2, save: 3 };
 const POPULAR_GRAVITY = 1.5;
 const POPULAR_CANDIDATES = 300; // 最近 14 天最多拿幾篇來算分數
 
@@ -561,7 +562,6 @@ export const getPopularBottles = async (limit: number = 10, memberId?: number) =
     const now = Date.now();
     const score = (b: typeof recent[number]) => {
         const interactions =
-            b._count.likes * POPULAR_WEIGHTS.like +
             b._count.Comment * POPULAR_WEIGHTS.comment +
             b._count.saves * POPULAR_WEIGHTS.save;
         const hours = Math.max(0, (now - b.created_at.getTime()) / 3600000);
@@ -579,7 +579,7 @@ export const getPopularBottles = async (limit: number = 10, memberId?: number) =
     if (ranked.length < limit) {
         const filler = await prisma.bottle.findMany({
             where: { ...baseWhere, bottle_id: { notIn: ranked.map((b) => b.bottle_id) } },
-            orderBy: [{ saves: { _count: "desc" } }, { likes: { _count: "desc" } }, { created_at: "desc" }],
+            orderBy: [{ saves: { _count: "desc" } }, { Comment: { _count: "desc" } }, { created_at: "desc" }],
             take: limit - ranked.length,
             include
         });
