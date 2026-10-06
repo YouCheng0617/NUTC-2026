@@ -433,6 +433,8 @@ let GAME_TOKEN = localStorage.getItem('authToken') || localStorage.getItem('acce
 
                 // 加入房間（房主開完房也會收到這個）
                 socket.on('room_joined', (data) => {
+                    // 從加入視窗進來的：伺服器答應了，視窗就可以收起來，接著跑進房間的加載畫面
+                    if (isJoinModalOpen()) closeJoinRoomModal();
                     const apply = () => {
                         // 房主開房後也會收到 room_joined，這時候不能把房主身分洗掉
                         isRoomHost = rejoinAsHost && isRejoining ? true : (data.roomId === myCreatedRoomId);
@@ -496,6 +498,11 @@ let GAME_TOKEN = localStorage.getItem('authToken') || localStorage.getItem('acce
                     // 自動回房失敗（通常是房間在斷線期間已經被銷毀了）就回大廳，不要跳錯誤視窗
                     if (isRejoining) {
                         dropToLobby('原本的房間已經解散了，請重新開房或加入其他房間');
+                        return;
+                    }
+                    // 從加入視窗送出的（房號打錯、房間滿了）：錯誤直接顯示在視窗裡，可以馬上改
+                    if (joinPending && isJoinModalOpen()) {
+                        showJoinError(err.message || '加入失敗，請再試一次');
                         return;
                     }
                     alert(err.message || "發生錯誤");
@@ -601,12 +608,122 @@ let GAME_TOKEN = localStorage.getItem('authToken') || localStorage.getItem('acce
                 return;
             }
             if (isRoomBusy()) return;
-            const code = prompt("請輸入 6 碼房間邀請碼 (大寫英數):");
-            if (code && code.trim().length > 0) {
-                isRoomRequesting = true;
-                socket.emit('join_room', { roomId: code.trim().toUpperCase(), playerData: getPlayerData() });
-            }
+            openJoinRoomModal();
         }
+
+        // 🚪 【加入房間視窗】取代瀏覽器內建的 prompt：6 格邀請碼、錯誤直接顯示在視窗裡
+        let joinPending = false;      // 已送出加入請求、還在等伺服器回應
+        let joinTimeout = null;
+
+        function joinEls() {
+            return {
+                overlay: document.getElementById('joinRoomOverlay'),
+                modal: document.getElementById('joinRoomModal'),
+                input: document.getElementById('joinCodeInput'),
+                box: document.querySelector('#joinRoomOverlay .join-code'),
+                slots: document.querySelectorAll('#joinRoomOverlay .join-code-slot'),
+                error: document.getElementById('joinRoomError'),
+                btn: document.getElementById('btnJoinConfirm')
+            };
+        }
+
+        function isJoinModalOpen() {
+            const o = document.getElementById('joinRoomOverlay');
+            return !!o && o.style.display === 'flex';
+        }
+
+        function openJoinRoomModal() {
+            const el = joinEls();
+            if (!el.overlay) return;
+            const en = currLang === 'en';
+            document.getElementById('joinRoomTitle').textContent = en ? "Join a friend's room" : '加入朋友的房間';
+            document.getElementById('joinRoomSub').textContent = en ? 'Enter the 6-character invite code' : '輸入朋友分享給你的 6 碼邀請碼';
+            document.getElementById('btnJoinCancel').textContent = en ? 'Cancel' : '取消';
+            el.input.value = '';
+            el.error.textContent = '';
+            joinPending = false;
+            renderJoinCode();
+            el.overlay.style.display = 'flex';
+            setTimeout(() => el.input.focus(), 60);
+        }
+
+        function closeJoinRoomModal() {
+            const el = joinEls();
+            clearTimeout(joinTimeout);
+            joinPending = false;
+            if (el.overlay) el.overlay.style.display = 'none';
+            if (el.input) el.input.blur();
+        }
+
+        // 只收英文和數字、自動轉大寫，貼上整串也會自動整理
+        function renderJoinCode() {
+            const el = joinEls();
+            const clean = el.input.value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 6);
+            if (el.input.value !== clean) el.input.value = clean;
+            el.slots.forEach((slot, i) => {
+                slot.textContent = clean[i] || '';
+                slot.classList.toggle('filled', i < clean.length);
+                // 6 格都填滿就不用再顯示游標了，不然會壓在最後一個字上
+                slot.classList.toggle('active', clean.length < 6 && i === clean.length);
+            });
+            // 伺服器的房號幾乎都是 6 碼，極少數會更短，所以 4 碼以上就讓它送
+            el.btn.disabled = joinPending || clean.length < 4;
+            el.btn.textContent = joinPending
+                ? (currLang === 'en' ? 'Joining…' : '加入中…')
+                : (currLang === 'en' ? 'Join' : '加入房間');
+        }
+
+        function showJoinError(message) {
+            const el = joinEls();
+            clearTimeout(joinTimeout);
+            joinPending = false;
+            el.error.textContent = message;
+            el.box.classList.add('error');
+            el.modal.classList.remove('shake');
+            void el.modal.offsetWidth;
+            el.modal.classList.add('shake');
+            renderJoinCode();
+            el.input.focus();
+            el.input.select();
+        }
+
+        function submitJoinRoom() {
+            const el = joinEls();
+            const code = el.input.value.trim().toUpperCase();
+            if (joinPending || code.length < 4) return;
+            if (!socket || !socket.connected) {
+                showJoinError(currLang === 'en' ? 'Not connected to the server. Please try again.' : '還沒連上伺服器，請稍後再試一次');
+                return;
+            }
+            joinPending = true;
+            isRoomRequesting = true;
+            el.error.textContent = '';
+            el.box.classList.remove('error');
+            renderJoinCode();
+            socket.emit('join_room', { roomId: code, playerData: getPlayerData() });
+            // 伺服器一直沒回就別讓按鈕卡在「加入中」
+            clearTimeout(joinTimeout);
+            joinTimeout = setTimeout(() => {
+                isRoomRequesting = false;
+                showJoinError(currLang === 'en' ? 'The server did not respond. Please try again.' : '伺服器沒有回應，請再試一次');
+            }, 8000);
+        }
+
+        (function setupJoinRoomModal() {
+            const el = joinEls();
+            if (!el.input) return;
+            el.input.addEventListener('input', () => {
+                el.error.textContent = '';
+                el.box.classList.remove('error');
+                renderJoinCode();
+            });
+            el.input.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') { e.preventDefault(); submitJoinRoom(); }
+                if (e.key === 'Escape') closeJoinRoomModal();
+            });
+            el.input.addEventListener('focus', () => el.box.classList.add('focused'));
+            el.input.addEventListener('blur', () => el.box.classList.remove('focused'));
+        })();
 
         function leaveSocketRoom() { 
             if(isMockMode) {
