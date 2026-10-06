@@ -1228,6 +1228,18 @@ function updateRoomUI(text) {
             el.innerHTML = `<span style="font-size:0.8em; color:var(--text-dim);"></span><br/><span></span>`;
             el.children[0].textContent = name;
             el.children[2].textContent = message;
+
+            // 手機版：點別人的對話泡泡就直接打開聊天列，馬上可以回覆
+            const isPhone = (window.matchMedia && window.matchMedia('(pointer: coarse)').matches) || window.innerWidth <= 768;
+            if (isPhone && name !== '系統' && !isMyChatName(name)) {
+                el.classList.add('tappable');
+                el.setAttribute('role', 'button');
+                el.setAttribute('aria-label', (currLang === 'en' ? 'Reply to ' : '回覆 ') + name);
+                el.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    openChatBar();
+                });
+            }
             document.body.appendChild(el);
 
             const follow = () => {

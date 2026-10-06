@@ -2670,3 +2670,17 @@
             box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
         }
         @media (max-width: 420px) { .chat-log { max-height: 28vh; } }
+
+        /* 💬 手機版：別人的對話泡泡可以點，點了直接打開聊天列 */
+        .chat-bubble.floating.tappable {
+            pointer-events: auto;
+            cursor: pointer;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .chat-bubble.floating.tappable:active { filter: brightness(0.96); }
+        /* 小小的提示：讓人知道這個泡泡可以點來回覆 */
+        .chat-bubble.floating.tappable > span:last-child::after {
+            content: '  ›';
+            color: var(--accent-color);
+            font-weight: 900;
+        }
