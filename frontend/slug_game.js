@@ -4390,26 +4390,32 @@ slugEl.style.transform = slugTransform(`scaleX(${direction})`);
             }
         }
         // 🌟 【水質系統：隨時間自然變髒與渲染引擎】
+        // 🌊 把「距離上次變髒過了多久」換算成髒污度補上去（每 200 秒 1 點，10 分鐘累積 3 點）
+        function catchUpDirt() {
+            const now = Date.now();
+            const lastTime = gameState.lastDirtTime || now;
+            const elapsedSeconds = (now - lastTime) / 1000;
+            if (elapsedSeconds < 200) return false;
+
+            const addDirt = Math.floor(elapsedSeconds / 200);
+            gameState.dirtiness = Math.min(100, (gameState.dirtiness || 0) + addDirt);
+            gameState.lastDirtTime = now;
+            saveGame();
+            return true;
+        }
+
         function startWaterPollutionSystem() {
-            // 每 10 秒檢查一次水質變化（10 分鐘增加 3%，換算每 200 秒增加 1 點髒污度）
+            // 每 10 秒檢查一次水質變化
             setInterval(() => {
-                const now = Date.now();
-                const lastTime = gameState.lastDirtTime || now;
-                const elapsedSeconds = (now - lastTime) / 1000;
-                
-                // 🌟 每過 200 秒（3.33 分鐘）增加 1 點髒污（600 秒 = 10 分鐘累積 3 點）
-                if (elapsedSeconds >= 200) {
-                    const addDirt = Math.floor(elapsedSeconds / 200);
-                    gameState.dirtiness = Math.min(100, (gameState.dirtiness || 0) + addDirt);
-                    gameState.lastDirtTime = now;
-                    saveGame();
-                    renderWaterQuality();
-                }
+                if (catchUpDirt()) renderWaterQuality();
             }, 10000);
 
-            // 剛進入遊戲立即渲染當前水質。
-            // 這層本來有 0.3 秒的淡入，玩家會看到畫面「過一下才慢慢變混濁」，
-            // 所以第一次要直接就是最後的樣子，之後再把淡入效果還回去
+            // 剛進遊戲就先把「離開這段時間」累積的髒污補上。
+            // 以前這件事只在上面的計時器裡做，要等 10 秒才第一次跑，
+            // 但開場動畫 6～7 秒就結束了，玩家會先看到乾淨的水、過幾秒才突然變混濁
+            catchUpDirt();
+
+            // 第一次要直接就是最後的樣子：這層本來有 0.3 秒的淡入，之後再把淡入效果還回去
             const overlay = document.getElementById('dirtOverlay');
             if (overlay) {
                 overlay.style.transition = 'none';
@@ -4490,23 +4496,29 @@ slugEl.style.transform = slugTransform(`scaleX(${direction})`);
         }
 
         // 🌟 【飢餓度系統：獨立外層定時器】
+        // 🍃 把「距離上次消耗過了多久」換算成飽足度扣掉（每 10 秒扣 1%，約 16 分鐘餓扁）
+        function catchUpHunger() {
+            const now = Date.now();
+            const lastTime = gameState.lastHungerTime || now;
+            const elapsedSeconds = (now - lastTime) / 1000;
+            if (elapsedSeconds < 10) return false;
+
+            const dropHunger = Math.floor(elapsedSeconds / 10);
+            gameState.hunger = Math.max(0, (gameState.hunger !== undefined ? gameState.hunger : 100) - dropHunger);
+            gameState.lastHungerTime = now;
+            saveGame();
+            return true;
+        }
+
         function startHungerSystem() {
             // 每 2 秒檢查一次飢餓度
             setInterval(() => {
-                const now = Date.now();
-                const lastTime = gameState.lastHungerTime || now;
-                const elapsedSeconds = (now - lastTime) / 1000;
-
-                // 🌟 設定：每過 10 秒自然消耗 1% 飽足度（約 16 分鐘餓扁，方便測試與養成）
-                if (elapsedSeconds >= 10) {
-                    const dropHunger = Math.floor(elapsedSeconds / 10);
-                    gameState.hunger = Math.max(0, (gameState.hunger !== undefined ? gameState.hunger : 100) - dropHunger);
-                    gameState.lastHungerTime = now;
-                    saveGame();
-                    updateHungerUI();
-                }
+                if (catchUpHunger()) updateHungerUI();
             }, 2000);
 
+            // 跟水質一樣：剛進遊戲就先補算離開期間餓掉的部分，
+            // 不然飽足條跟「餓扁」的樣子要等第一次計時器跑了才會出現
+            catchUpHunger();
             updateHungerUI();
         }
 
