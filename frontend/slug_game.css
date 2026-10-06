@@ -59,7 +59,17 @@
         .mp-btn.secondary { background: #ffffff; color: var(--text-dark); border: 2px solid var(--text-dark); box-shadow: 0 4px 0 var(--text-dark); }
         
         /* 🌟 【其他玩家與聊天泡泡】別人進來房間時的顯示設定 */
-        .other-player { position: absolute; width: 280px; height: 180px; pointer-events: none; transition: left 0.15s ease-out, top 0.15s ease-out; z-index: 8; }
+        /* 其他玩家的海兔：跟自己的海兔一樣大小的框、一樣的縮放（再小一點點），手機上才不會大得塞不下 */
+        .other-player {
+            position: absolute; width: 340px; height: 240px; pointer-events: none; z-index: 8;
+            transform: scale(calc(var(--slug-scale, 1) * 0.85));
+            transition: left 0.35s ease-out, top 0.35s ease-out;
+        }
+        .other-player .op-body { width: 100%; height: 100%; transition: transform 0.25s ease-out; }
+        /* 海兔預設臉朝左，往右走就把身體翻過來（名字不跟著翻） */
+        .other-player.face-right .op-body { transform: scaleX(-1); }
+        /* 名字在縮放的框裡，手機上會被一起縮到看不清楚，所以把縮放除回來，維持正常字級 */
+        .other-player .other-player-name { font-size: calc(1.05rem / (var(--slug-scale, 1) * 0.85)); }
         .other-player-name { position: absolute; top: -10px; width: 100%; text-align: center; font-weight: 900; font-size: 1.1rem; color: var(--text-dark); text-shadow: 2px 2px 0 #fff, -2px -2px 0 #fff, 2px -2px 0 #fff, -2px 2px 0 #fff; z-index: 10; }  
         .chat-bubble { position: absolute; top: -65px; left: 50%; transform: translateX(-50%); background: white; padding: 8px 15px; border-radius: 20px; border: 2px solid var(--accent-color); font-weight: 900; font-size: 1rem; color: var(--text-dark); white-space: nowrap; box-shadow: 0 5px 15px rgba(255, 182, 193, 0.4); animation: chatPop 0.3s cubic-bezier(0.18, 0.89, 0.32, 1.28); z-index: 30; }
         .chat-bubble::after { content: ''; position: absolute; bottom: -8px; left: 50%; transform: translateX(-50%); border-width: 8px 8px 0; border-style: solid; border-color: white transparent transparent transparent; }

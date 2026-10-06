@@ -373,7 +373,7 @@ let GAME_TOKEN = localStorage.getItem('authToken') || localStorage.getItem('acce
                     isRoomHost = true; 
                     currentRoomId = data.roomId; 
                     updateRoomUI(`房間代碼: ${currentRoomId} (房主)`); 
-                    showFloatText('創立房間成功！'); 
+                    showFloatText('創立房間成功！'); broadcastMove(true);
                 }));
                 
                 // 加入別人的房間 -> 代表我是作客的
@@ -382,7 +382,7 @@ let GAME_TOKEN = localStorage.getItem('authToken') || localStorage.getItem('acce
                     isRoomHost = false; 
                     currentRoomId = data.roomId; 
                     updateRoomUI(`已加入房間: ${currentRoomId}`); 
-                    showFloatText('加入房間成功！');
+                    showFloatText('加入房間成功！'); broadcastMove(true);
                     document.getElementById('otherPlayersLayer').innerHTML = ''; 
                     otherPlayersData = {};
                     // 把房間裡原有的玩家畫出來
@@ -392,12 +392,25 @@ let GAME_TOKEN = localStorage.getItem('authToken') || localStorage.getItem('acce
                 }));
 
                 socket.on('player_joined', (p) => { addOtherPlayer(p); showFloatText(`${p.petName} 來串門子了！`); });
-                socket.on('player_moved', (data) => { /* 寶寶專屬護法陣型，不吃原本亂跑的設定 */ });
+                // 別人移動了：照他傳來的比例座標放到我的畫面上，往右走就轉頭朝右
+                socket.on('player_moved', (data) => {
+                    const p = otherPlayersData[data.socketId];
+                    if (!p) return;
+                    const prevX = hasSharedPos(p) ? p.x : null;
+                    p.x = data.x;
+                    p.y = data.y;
+                    const el = document.getElementById(`player-${data.socketId}`);
+                    if (el && prevX !== null && hasSharedPos(p) && Math.abs(p.x - prevX) > 0.003) {
+                        el.classList.toggle('face-right', p.x > prevX);
+                    }
+                    placeOtherPlayer(data.socketId);
+                });
                 socket.on('player_left', (data) => {
                     const el = document.getElementById(`player-${data.socketId}`);
                     if(el) { el.remove(); delete otherPlayersData[data.socketId]; }
                 });
                 socket.on('receive_message', (data) => { showChatBubble(data.senderName, data.message); });
+                setInterval(() => broadcastMove(), 250);
                 socket.on('error', (err) => {
                     isRoomRequesting = false;   // 房號錯、房間滿之類的，直接跳提示，不會出現加載畫面
                     alert(err.message || "發生錯誤");
@@ -538,8 +551,30 @@ function copyRoomId() {
             } 
         }
 
-        function broadcastMove(x, y) { 
-            if (socket && currentRoomId && !isMockMode) { socket.emit('move', { roomId: currentRoomId, x, y }); } 
+        // 🌐 【送出自己的位置】傳的是 0～1 的比例，不是像素：
+        //    電腦和手機的舞台大小不一樣，像素傳過去會跑到別的地方，甚至跑出畫面
+        let lastSentPos = null;
+        let lastSentAt = 0;
+        let pendingSend = null;
+        function broadcastMove(force = false) {
+            if (!socket || !currentRoomId || isMockMode) return;
+            const pos = slugPosToRatio();
+            if (!pos) return;
+
+            // 沒什麼移動就不用送
+            if (force !== true && lastSentPos
+                && Math.abs(pos.x - lastSentPos.x) < 0.004 && Math.abs(pos.y - lastSentPos.y) < 0.004) return;
+
+            // 最多每 120ms 送一次，拖曳時才不會塞爆連線
+            const wait = 120 - (Date.now() - lastSentAt);
+            if (wait > 0 && force !== true) {
+                clearTimeout(pendingSend);
+                pendingSend = setTimeout(() => broadcastMove(), wait);
+                return;
+            }
+            lastSentAt = Date.now();
+            lastSentPos = pos;
+            socket.emit('move', { roomId: currentRoomId, x: Number(pos.x.toFixed(4)), y: Number(pos.y.toFixed(4)) });
         }
         
         // 🌟 【單機展示模式】沒網路時的備用方案，假裝有人陪你玩
@@ -552,32 +587,69 @@ function copyRoomId() {
 
             // 隨便捏造兩隻可愛的海兔鄰居
             const fakePlayers = [
-                { socketId: 'fake_1', petName: '隔壁小明', petColor: 'ocean', x: 50, y: 80 },
-                { socketId: 'fake_2', petName: '可愛兔兔', petColor: 'sakura', x: 220, y: 140 }
+                { socketId: 'fake_1', petName: '隔壁小明', petColor: 'ocean', x: 0.12, y: 0.3 },
+                { socketId: 'fake_2', petName: '可愛兔兔', petColor: 'sakura', x: 0.88, y: 0.6 }
             ];
             fakePlayers.forEach(p => addOtherPlayer(p));
         }
 
-        // 🌟 【寶寶專屬：好友護法列陣系統】讓好友乖乖排在你旁邊
-        function updateFriendsPosition() {
+        // 🌐 【位置換算】以「海兔在這台裝置上能待的安全範圍」為準，換成 0～1 的比例。
+        //    0 是最左／最上、1 是最右／最下，所以不管畫面多大，換回來一定落在看得到、不會被按鈕擋住的地方
+        const clamp01 = (v) => Math.max(0, Math.min(1, v));
+
+        function slugPosToRatio() {
             const slugEl = document.getElementById('slugContainer');
-            const cx = parseFloat(slugEl.style.left) || (window.innerWidth / 2 - 170);
-            const cy = parseFloat(slugEl.style.top) || (window.innerHeight * 0.29 - 120);
+            // 名片模式時海兔被搬到最外層，座標系統不一樣，先不送
+            if (!slugEl || slugEl.classList.contains('card-mode')) return null;
+            const b = getSlugSafeBounds();
+            if (!b) return null;
+            // 用畫面上「現在」的位置，跳到一半、追海藻到一半也能送出中間點，對方看起來才順
+            const cs = getComputedStyle(slugEl);
+            const left = parseFloat(cs.left), top = parseFloat(cs.top);
+            if (isNaN(left) || isNaN(top)) return null;
+            return {
+                x: b.maxX > b.minX ? clamp01((left - b.minX) / (b.maxX - b.minX)) : 0.5,
+                y: b.maxY > b.minY ? clamp01((top - b.minY) / (b.maxY - b.minY)) : 0.5
+            };
+        }
 
-            // 排列位置：左、右、左下、右下
-            const offsets = [
-                { dx: -240, dy: 20 }, { dx: 260, dy: 20 },
-                { dx: -130, dy: 160 }, { dx: 150, dy: 160 }
-            ];
+        function ratioToStagePos(rx, ry) {
+            const b = getSlugSafeBounds();
+            if (!b) return null;
+            return { left: b.minX + clamp01(rx) * (b.maxX - b.minX), top: b.minY + clamp01(ry) * (b.maxY - b.minY) };
+        }
 
-            Object.keys(otherPlayersData).forEach((id, index) => {
-                const el = document.getElementById(`player-${id}`);
-                if (el) {
-                    const offset = offsets[index % 4];
-                    el.style.left = (cx + offset.dx) + 'px';
-                    el.style.top = (cy + offset.dy) + 'px';
-                }
-            });
+        // 還沒收到過位置的玩家（剛加入、或對方用的是舊版只傳像素）先放在這幾個預設位置
+        const DEFAULT_FRIEND_SLOTS = [
+            { x: 0.12, y: 0.3 }, { x: 0.88, y: 0.3 }, { x: 0.2, y: 0.85 },
+            { x: 0.8, y: 0.85 }, { x: 0.5, y: 1 }, { x: 0.5, y: 0 }
+        ];
+        function hasSharedPos(p) {
+            const ok = (v) => typeof v === 'number' && isFinite(v) && v >= 0 && v <= 1;
+            // 後端在對方還沒動過時存的是 (0, 0)，當作還不知道位置
+            return ok(p.x) && ok(p.y) && !(p.x === 0 && p.y === 0);
+        }
+
+        function placeOtherPlayer(id, instant = false) {
+            const el = document.getElementById(`player-${id}`);
+            const p = otherPlayersData[id];
+            if (!el || !p) return;
+            let ratio = p;
+            if (!hasSharedPos(p)) {
+                const index = Object.keys(otherPlayersData).indexOf(id);
+                ratio = DEFAULT_FRIEND_SLOTS[Math.max(0, index) % DEFAULT_FRIEND_SLOTS.length];
+            }
+            const pos = ratioToStagePos(ratio.x, ratio.y);
+            if (!pos) return;
+            if (instant) el.style.transition = 'none';
+            el.style.left = pos.left + 'px';
+            el.style.top = pos.top + 'px';
+            if (instant) { void el.offsetWidth; el.style.transition = ''; }
+        }
+
+        // 視窗大小或手機轉向改變時，大家都要依新的畫面重新擺
+        function placeAllOtherPlayers() {
+            Object.keys(otherPlayersData).forEach(id => placeOtherPlayer(id, true));
         }
 
 // 把其他玩家畫到畫面上（完整全配版！）
@@ -591,7 +663,8 @@ function copyRoomId() {
             // 🌟 幫每個朋友生出完整的 SVG 結構，包含尾巴、斑點跟專屬漸層！
             el.innerHTML = `
                 <div class="other-player-name"></div>
-                <svg viewBox="0 0 340 240" style="width: 100%; height: 100%; transform: scale(0.9); transform-origin: top left; filter: drop-shadow(0 10px 10px rgba(0,0,0,0.1));">
+                <div class="op-body">
+                <svg viewBox="0 0 340 240" style="width: 100%; height: 100%; filter: drop-shadow(0 10px 10px rgba(0,0,0,0.1));">
                     <defs>
                         <!-- 替每個朋友建立專屬的耳朵漸層 ID，才不會大家都共用到同一個顏色 -->
                         <linearGradient id="earGrad-${p.socketId}" x1="0%" y1="0%" x2="0%" y2="100%">
@@ -637,12 +710,13 @@ function copyRoomId() {
                             <path d="M -7 5 Q 0 12 7 5" fill="none" stroke="#2c3e50" stroke-width="3.5" stroke-linecap="round"/>
                         </g>
                     </g>
-                </svg>`;
+                </svg>
+                </div>`;
             // 寵物名稱來自其他玩家，用 textContent 放入避免被塞 HTML
             el.querySelector('.other-player-name').textContent = p.petName;
             document.getElementById('otherPlayersLayer').appendChild(el);
             
-            updateFriendsPosition(); // 呼叫排隊系統
+            placeOtherPlayer(p.socketId, true);   // 第一次出現直接放好，不要從左上角滑過來
         }
 
 // 🌟 【切換介面顯示狀態】進入房間後，把商店收起來，只有房主能開百寶袋
@@ -3374,6 +3448,8 @@ const effectData = {
             const raw = h > w ? w / 680 : Math.min(w / 1150, h / 470);
             const scale = Math.max(0.45, Math.min(1.4, raw));
             slugEl.style.setProperty('--slug-scale', scale.toFixed(3));
+            const friendsLayer = document.getElementById('otherPlayersLayer');
+            if (friendsLayer) friendsLayer.style.setProperty('--slug-scale', scale.toFixed(3));
             return scale;
         }
 
@@ -3457,6 +3533,7 @@ const effectData = {
         let stageResizeTimer = null;
         window.addEventListener('resize', () => {
             updateSlugScale();
+            placeAllOtherPlayers();
             // 如果正在餵食或運動中，先不打擾牠
             if (!isFeedingActive && !isExercisingActive) clampSlugIntoSafeArea();
 
@@ -3470,6 +3547,7 @@ const effectData = {
             setTimeout(() => {
                 updateSlugScale();
                 clampSlugIntoSafeArea();
+                placeAllOtherPlayers();
                 applyBg();
             }, 300);
         });
@@ -11107,7 +11185,7 @@ default:
                 updateFloatingButtonPosition(); // 讓挑釁按鈕乖乖跟著海兔一起跑
                 
                 // 拖曳時，隨機挑選時機同步你的座標給大家看 (避免伺服器大塞車)
-                if (Math.random() < 0.2) broadcastMove(newLeft, newTop);
+                broadcastMove();
             }
 
             function onEnd(e) {
