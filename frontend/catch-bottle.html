@@ -516,7 +516,7 @@
         </button>
       </div>
 
-      <div id="rules-box" class="rules-box">
+      <div id="rules-box" class="rules-box" data-i18n="rules-content">
         🍾 <b>漂流瓶</b>：+10 分 ｜ 💣 <b>水雷炸彈</b>：-15 分<br />
         <span style="color: #ffd700"
           >🌟 <b>雙倍星</b>：3 秒內得分翻倍（+20 分）！</span
@@ -562,11 +562,12 @@
           "
           >0</span
         >
-        分
+        <span data-i18n="score-unit"> 分</span>
       </p>
 
       <div
         id="new-record-msg"
+        data-i18n="new-record"
         style="
           display: none;
           color: #4da6ff;
@@ -638,7 +639,13 @@
         return String(str).replace(
           /[&<>'"]/g,
           (c) =>
-            ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#39;", '"': "&quot;" })[c],
+            ({
+              "&": "&amp;",
+              "<": "&lt;",
+              ">": "&gt;",
+              "'": "&#39;",
+              '"': "&quot;",
+            })[c],
         );
       }
 
@@ -656,11 +663,12 @@
           "diff-normal": "🟡 普通",
           "diff-hard": "🔴 困難",
           "game-rules": "📖 遊戲說明",
+          "rules-content":
+            '🍾 <b>漂流瓶</b>：+10 分 ｜ 💣 <b>水雷炸彈</b>：-15 分<br /><span style="color: #ffd700">🌟 <b>雙倍星</b>：3 秒內得分翻倍（+20 分）！</span><br /><span style="color: #4da6ff">🛡️ <b>海洋護盾</b>：持續 3 秒，抵擋 1 次炸彈傷害！</span>',
           "start-game": "開始遊戲",
           "game-over": "時間到！",
           "play-again": "再玩一次",
           "close-btn": "關閉",
-          // 👇 新增的動態翻譯詞彙
           "high-score": " 最高分：",
           "leaderboard-btn": "🏆 看 [{diff}] 排行榜",
           "leaderboard-title": "🏆 [{diff}] 排行榜",
@@ -669,7 +677,13 @@
           "diff-hard-label": "困難",
           "score-text-1": "你的 ",
           "score-text-2": " 總得分是：",
-          "score-label": "分數: ", // 👈 補上這行
+          "score-label": "分數: ",
+          "score-unit": " 分",
+          "new-record": "🎉 恭喜破紀錄啦！🎉",
+          "shield-active": "護盾啟動!",
+          "shield-fade": "護盾消退",
+          "shield-break": "護盾破裂!",
+          "double-score": "雙倍積分!",
         },
         en: {
           "toggle-btn": "🌐 中文",
@@ -681,11 +695,12 @@
           "diff-normal": "🟡 Normal",
           "diff-hard": "🔴 Hard",
           "game-rules": "📖 Rules",
+          "rules-content":
+            '🍾 <b>Drift Bottle</b>: +10 pts ｜ 💣 <b>Bomb</b>: -15 pts<br /><span style="color: #ffd700">🌟 <b>Double Star</b>: 2x score for 3s (+20 pts)!</span><br /><span style="color: #4da6ff">🛡️ <b>Shield</b>: Lasts 3s, blocks 1 bomb!</span>',
           "start-game": "Start Game",
           "game-over": "Time's Up!",
           "play-again": "Play Again",
           "close-btn": "Close",
-          // 👇 新增的動態翻譯詞彙
           "high-score": " High Score: ",
           "leaderboard-btn": "🏆 [{diff}] Leaderboard",
           "leaderboard-title": "🏆 [{diff}] Leaderboard",
@@ -694,7 +709,13 @@
           "diff-hard-label": "Hard",
           "score-text-1": "Your ",
           "score-text-2": " total score is:",
-          "score-label": "Score: ", // 👈 補上這行
+          "score-label": "Score: ",
+          "score-unit": " pts",
+          "new-record": "🎉 New High Score! 🎉",
+          "shield-active": "Shield Active!",
+          "shield-fade": "Shield Faded",
+          "shield-break": "Shield Broken!",
+          "double-score": "2X Score!",
         },
       };
 
