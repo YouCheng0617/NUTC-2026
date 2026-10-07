@@ -73,7 +73,8 @@ let currentAuthorId = null; // 🌟 記住目前正在看哪位作者的文章
 
 // 👇 分頁設定與狀態紀錄
 let currentPage = 1;
-const POSTS_PER_PAGE = 6;
+// 一頁幾個瓶子：電腦版 6 個（3 欄 × 2 排）；手機版瓶子排在 3D 球上（home_mobile.js），放 10 個比較像一顆球
+const POSTS_PER_PAGE = window.matchMedia("(max-width: 768px)").matches ? 10 : 6;
 
 // 🌟 一進來就看到全海域！
 let currentBoard = sessionStorage.getItem("savedBoard") || "全海域";

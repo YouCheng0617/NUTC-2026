@@ -6,6 +6,12 @@
    3. 拿掉「呼喚海流」按鈕，改成在最上面往下拉刷新
 ======================================================= */
 
+/* 👤 訪客模式（沒登入，index.html 在 <html> 標上 is-guest）：電腦版、手機版的通知鈴鐺都不顯示 */
+html.is-guest .notification-bell,
+html.is-guest .mobile-bell-wrapper {
+  display: none !important;
+}
+
 /* 電腦版用不到的東西先藏起來 */
 .home-sheet-btn,
 .home-sheet-overlay,
@@ -146,34 +152,88 @@
     box-sizing: border-box !important;
   }
 
-  /* ---------- 2. 瓶子：跟電腦版一樣三欄、中間錯開，整頁不捲動 ----------
-     一頁 6 個瓶子排成 3 欄 × 2 排，--bottle（瓶子直徑）由 home_mobile.js 依剩下的高度算好；
-     瓶塞、間距、字的大小都跟著 --bottle 等比例縮放 */
+  /* ---------- 2. 瓶子：跟「每日便利貼」一樣排在 3D 球上，用手指轉 ----------
+     --bottle（瓶子直徑）與 --sphere-h（球的區域高度）由 home_mobile.js 依剩下的空間算好；
+     每個瓶子的位置、大小、遠近由 home_mobile.js 寫進 --t（transform）、opacity、filter
+     頁面可以上下滑（在球以外的地方滑），底部留空間給「全海域」按鈕 */
   #feed-view {
-    --bottle: clamp(64px, 27vw, 140px);
-    overflow: hidden !important;
-    padding-bottom: 0 !important;
+    --bottle: clamp(64px, 27vw, 120px);
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+    padding-bottom: 110px !important;
   }
   #post-container {
-    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
-    row-gap: calc(var(--bottle) * 0.3) !important;
-    column-gap: 4px !important;
-    padding: calc(var(--bottle) * 0.28) 8px 0 !important; /* 留給第一排的瓶塞，才不會頂到上面的卡片 */
+    display: block !important;
+    position: relative !important;
+    height: var(--sphere-h, 320px) !important;
     min-height: 0 !important;
-    justify-items: center !important;
+    padding: 0 !important;
+    margin: 0 auto !important;
+    max-width: none !important;
+    touch-action: none; /* 手指在球上拖是轉球，不要讓瀏覽器拿去捲動 */
+    user-select: none;
+    -webkit-user-select: none;
+    cursor: grab;
   }
+  #post-container:active { cursor: grabbing; }
   #post-container .post-card,
-  #post-container .post-card:nth-child(even),
-  #post-container .post-card:nth-child(odd) {
+  #post-container .post-card:nth-child(n) {
+    position: absolute !important;
+    left: 50% !important;
+    top: 50% !important;
     width: var(--bottle) !important;
     height: var(--bottle) !important;
+    margin: calc(var(--bottle) * -0.5) 0 0 calc(var(--bottle) * -0.5) !important;
     padding: calc(var(--bottle) * 0.08) calc(var(--bottle) * 0.06) !important;
     box-sizing: border-box !important;
-    margin-top: 0 !important;
     justify-content: center !important;
+    will-change: transform, opacity;
   }
-  #post-container .post-card:nth-child(3n + 2) {
-    margin-top: calc(var(--bottle) * 0.32) !important;
+  /* 3D 位置用變數套上：index.css 的 .post-card:hover 有 transform !important，
+     手機點過之後會一直停在 hover，不用更高的優先順序蓋過去，瓶子會跳回正中間；
+     呼喚海流的飛走動畫進行中就讓給動畫 */
+  #post-container .post-card:not(.swept-away),
+  #post-container .post-card:not(.swept-away):hover {
+    transform: var(--t, none) !important;
+    /* index.css 的瓶子有漂浮動畫 ocean-gentle-flow（改 top 0 ↔ -12px）。
+       Chrome 會讓上面的 top: 50% !important 贏，但 iPhone Safari 讓動畫贏，
+       瓶子會全部被拉到球區域最上面、一邊漂一邊轉，所以 3D 球裡的瓶子不要這個動畫 */
+    animation: none !important;
+  }
+  /* 正前方那個瓶子亮一點，看得出來可以點開 */
+  /* 🫧 每個瓶子本身的立體感：像一顆會反光的玻璃球
+     由上到下的圖層：左上的亮反光點 → 右下的反射光 → 玻璃本體（中間透亮、邊緣變深，看起來是圓的） */
+  #post-container .post-card {
+    background:
+      radial-gradient(ellipse 26% 15% at 31% 19%, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.35) 55%, rgba(255, 255, 255, 0) 100%),
+      radial-gradient(ellipse 5% 5% at 20% 34%, rgba(255, 255, 255, 0.85), rgba(255, 255, 255, 0) 100%),
+      radial-gradient(ellipse 30% 16% at 66% 86%, rgba(255, 255, 255, 0.4), rgba(255, 255, 255, 0) 100%),
+      radial-gradient(circle at 45% 40%, rgba(240, 249, 255, 0.85) 0, rgba(186, 230, 253, 0.7) 45%, rgba(56, 152, 210, 0.7) 82%, rgba(8, 92, 150, 0.85) 100%) !important;
+    border: 1.5px solid rgba(255, 255, 255, 0.75) !important;
+    box-shadow:
+      inset calc(var(--bottle) * -0.07) calc(var(--bottle) * -0.09) calc(var(--bottle) * 0.16) rgba(3, 60, 110, 0.35),
+      inset calc(var(--bottle) * 0.05) calc(var(--bottle) * 0.06) calc(var(--bottle) * 0.12) rgba(255, 255, 255, 0.6),
+      0 calc(var(--bottle) * 0.1) calc(var(--bottle) * 0.18) rgba(0, 30, 70, 0.3) !important;
+  }
+  /* 瓶塞：木頭的圓柱感（左右暗、中間亮，上緣一條亮邊） */
+  #post-container .post-card::before {
+    background:
+      linear-gradient(180deg, rgba(255, 255, 255, 0.35) 0 12%, rgba(255, 255, 255, 0) 12%),
+      linear-gradient(90deg, #6d4526 0%, #b8865a 35%, #c99a6b 48%, #8f6038 78%, #5e3a1f 100%) !important;
+    box-shadow: inset 0 -2px 3px rgba(0, 0, 0, 0.25) !important;
+  }
+  /* 瓶口：透明玻璃環，上亮下暗 */
+  #post-container .post-card::after {
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.95) 0%, rgba(214, 238, 252, 0.9) 45%, rgba(147, 197, 233, 0.9) 100%) !important;
+    box-shadow: 0 2px 4px rgba(0, 40, 80, 0.25), inset 0 1px 1px rgba(255, 255, 255, 0.9) !important;
+  }
+  /* 正前方的瓶子：外圈一道白光，看得出來可以點開 */
+  #post-container .post-card.is-front:not(.swept-away) {
+    box-shadow:
+      0 0 0 3px rgba(255, 255, 255, 0.8),
+      inset calc(var(--bottle) * -0.07) calc(var(--bottle) * -0.09) calc(var(--bottle) * 0.16) rgba(3, 60, 110, 0.35),
+      inset calc(var(--bottle) * 0.05) calc(var(--bottle) * 0.06) calc(var(--bottle) * 0.12) rgba(255, 255, 255, 0.6),
+      0 calc(var(--bottle) * 0.12) calc(var(--bottle) * 0.22) rgba(0, 30, 70, 0.35) !important;
   }
   /* 瓶塞跟著縮小 */
   #post-container .post-card::before {
@@ -273,17 +333,13 @@
    📱 今日一題、我的海域在手機上改成精簡版；畫面不要整個被拖動
 ======================================================= */
 @media screen and (max-width: 768px) {
-  /* 整個畫面固定住：不左右晃、不上下彈，只有瓶子列表自己捲動（雙指縮放還是可以） */
+  /* 畫面不要左右晃（上下可以滑；雙指縮放還是可以） */
   html,
   body {
     -webkit-text-size-adjust: 100%;
     text-size-adjust: 100%;
     overflow-x: hidden !important;
-    overscroll-behavior: none !important;
     touch-action: pan-y pinch-zoom;
-  }
-  #feed-view {
-    overscroll-behavior: none !important;
   }
 
   /* ---------- 今日一題 ---------- */

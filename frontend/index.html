@@ -480,8 +480,16 @@
         };
       })();
     </script>
+    <!-- 👤 訪客模式（沒登入）：在最外層標上 is-guest，不顯示通知鈴鐺。放在 head 先跑，鈴鐺才不會先閃一下 -->
+    <script>
+      try {
+        if (!localStorage.getItem("authToken")) document.documentElement.classList.add("is-guest");
+      } catch (e) {
+        document.documentElement.classList.add("is-guest");
+      }
+    </script>
     <!-- 📱 手機版首頁調整：要放在 head 最後，才蓋得過上面 index.css 與內嵌樣式的手機規則 -->
-    <link rel="stylesheet" href="home_mobile.css?v=4" />
+    <link rel="stylesheet" href="home_mobile.css?v=13" />
   </head>
 
   <body>
@@ -2030,10 +2038,10 @@
     <
     <script defer src="https://cdnjs.cloudflare.com/ajax/libs/marked/12.0.2/marked.min.js"></script>
     <script defer src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.1.6/purify.min.js"></script>
-    <script type="module" src="index.js?v=61"></script>
+    <script type="module" src="index.js?v=62"></script>
     <script defer src="daily_question.js?v=2"></script>
     <script defer src="my_ocean.js?v=2"></script>
-    <script defer src="home_mobile.js?v=4"></script>
+    <script defer src="home_mobile.js?v=14"></script>
 
     <!-- 🌟 整合面板專屬交互控制 -->
     <script>
