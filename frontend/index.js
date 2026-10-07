@@ -3269,9 +3269,15 @@ window.openNotificationTarget = async function (notifId, targetId, isRead, cardE
     if (popup) popup.style.display = "none";
   };
 
-  // 3. 這篇就在目前的清單裡，直接開
+  await openBottleById(targetId, closePopup);
+};
+
+// 🔎 用瓶子 ID 打開詳情：已經在清單裡就直接開，不在就跟後端單獨要這一篇
+//    通知、首頁「我的海域」共用；beforeOpen 是打開前要做的事（例如收起通知視窗）
+window.openBottleById = async function (targetId, beforeOpen = () => {}) {
+  // 這篇就在目前的清單裡，直接開
   if (posts.find((p) => String(p.id) === String(targetId))) {
-    closePopup();
+    beforeOpen();
     openPostDetail(targetId);
     return;
   }
@@ -3336,10 +3342,10 @@ window.openNotificationTarget = async function (notifId, targetId, isRead, cardE
       posts.push(post);
     }
 
-    closePopup();
+    beforeOpen();
     openPostDetail(post.id);
   } catch (error) {
-    console.error("打開通知對應的貼文失敗：", error);
+    console.error("打開漂流瓶失敗：", error);
     showOceanToast("連線失敗，等一下再試試看 😢");
   }
 };

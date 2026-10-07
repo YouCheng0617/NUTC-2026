@@ -9,6 +9,7 @@ import {
     saveBottles,
     getMyLikedBottles,
     getMySavedBottles,
+    getFollowingFeed,
     deleteMyBottle as deleteMyBottleService,
     getTodayBottle,
     reportBottle,
@@ -477,6 +478,20 @@ export const bottleController = {
             res.status(200).json(bottles);
         } catch (error) {
             console.error("Error fetching liked bottles:", error);
+            res.status(500).json({ message: "內部伺服器錯誤" });
+        }
+    },
+
+    /* 首頁「我的海域」：追蹤的人最近 7 天的新瓶（不含匿名） */
+    async getFollowingFeedController(req: AuthRequest, res: Response) {
+        try {
+            const memberId = req.user?.member_id as number;
+            if (!isValidId(memberId)) {
+                return res.status(400).json({ message: "無效的會員，請重新登入" });
+            }
+            res.status(200).json(await getFollowingFeed(memberId));
+        } catch (error) {
+            console.error("Error fetching following feed:", error);
             res.status(500).json({ message: "內部伺服器錯誤" });
         }
     },

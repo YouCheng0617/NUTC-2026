@@ -726,3 +726,51 @@ export const updateMyBottle = async (bottleId: number, memberId: number, title: 
     });
     return { changed: true, ...updated };
 };
+
+/*
+ * 首頁「我的海域」：追蹤的人最近 7 天的新瓶
+ * 匿名發的不列（不然等於把匿名作者公開了），有封鎖關係的、還沒審核或違規的也不列
+ */
+export const FOLLOWING_FEED_DAYS = 7;
+const FOLLOWING_FEED_LIMIT = 20;
+
+export const getFollowingFeed = async (memberId: number) => {
+    const [follows, blockedIds] = await Promise.all([
+        prisma.follow.findMany({ where: { follower_id: memberId }, select: { following_id: true } }),
+        getBlockedMemberIds(memberId),
+    ]);
+    const blocked = new Set(blockedIds);
+    const followingIds = follows.map(f => f.following_id).filter(id => !blocked.has(id));
+    if (followingIds.length === 0) return { followingCount: 0, bottles: [] };
+
+    const bottles = await prisma.bottle.findMany({
+        where: {
+            member_id: { in: followingIds },
+            is_anonymous: false,
+            status: 1,
+            created_at: { gte: new Date(Date.now() - FOLLOWING_FEED_DAYS * 86400000) },
+        },
+        orderBy: { created_at: "desc" },
+        take: FOLLOWING_FEED_LIMIT,
+        select: {
+            bottle_id: true,
+            title: true,
+            content: true,
+            created_at: true,
+            author: { select: { name: true } },
+            categories: { select: { category: { select: { name: true } } } },
+        },
+    });
+
+    return {
+        followingCount: followingIds.length,
+        bottles: bottles.map(b => ({
+            bottle_id: b.bottle_id,
+            title: b.title,
+            preview: b.content.replace(/\s+/g, " ").trim().slice(0, 60),
+            created_at: b.created_at,
+            member_name: b.author?.name || "未知使用者",
+            category_list: b.categories.map(c => c.category?.name).filter(Boolean),
+        })),
+    };
+};

@@ -12,6 +12,7 @@ export function bottleRouter() {
     bottleRouter.get("/mybottles", authCheck, bottleController.getMyBottles);
     bottleRouter.get("/liked", authCheck, bottleController.getMyLikedBottlesList);
     bottleRouter.get("/saved", authCheck, bottleController.getMySavedBottlesList);
+    bottleRouter.get("/following-feed", authCheck, bottleController.getFollowingFeedController); // 首頁「我的海域」
     bottleRouter.get("/search", optionalAuthCheck, bottleController.searchBottlesController);
     bottleRouter.get("/popular", optionalAuthCheck, bottleController.getPopularBottlesController);
     bottleRouter.post("/:bottleId/vote", authCheck, bottleController.votePollController);

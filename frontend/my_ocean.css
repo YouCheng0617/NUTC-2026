@@ -1,0 +1,77 @@
+/* 🌊 我的海域（my_ocean.js），樣子跟今日一題的卡片一致 */
+#my-ocean-card {
+  --mo-ink: #0f2942;
+  --mo-muted: #4b6a85;
+  --mo-accent: #0284c7;
+  --mo-new: #f43f5e;
+
+  width: min(640px, calc(100% - 32px));
+  margin: 16px auto 0;
+  padding: 0 20px 16px;
+  box-sizing: border-box;
+  border: 2px solid rgba(255, 255, 255, 0.7);
+  border-radius: 22px;
+  background: rgba(240, 249, 255, 0.82);
+  backdrop-filter: blur(8px);
+  box-shadow: 0 10px 30px rgba(0, 30, 70, 0.18), inset 0 0 18px rgba(255, 255, 255, 0.6);
+  color: var(--mo-ink);
+}
+#my-ocean-card[hidden] { display: none; }
+#my-ocean-card.is-collapsed { padding-bottom: 0; }
+
+.mo-toggle {
+  display: flex; align-items: center; gap: 10px;
+  width: 100%; padding: 14px 0;
+  border: none; background: none; color: inherit; font: inherit;
+  cursor: pointer; text-align: left;
+}
+.mo-badge { font-weight: 900; color: var(--mo-accent); }
+.mo-chevron { margin-left: auto; color: var(--mo-muted); font-size: 0.9rem; }
+.mo-count {
+  display: inline-block; min-width: 18px; margin-left: 6px; padding: 1px 7px;
+  border-radius: 999px; background: var(--mo-new); color: #fff;
+  font-size: 0.75rem; font-weight: 900; text-align: center;
+}
+
+.mo-tabs { display: flex; gap: 8px; margin-bottom: 10px; }
+.mo-tab {
+  padding: 7px 14px; border: 2px solid rgba(2, 132, 199, 0.25); border-radius: 999px;
+  background: #fff; color: var(--mo-muted); font: inherit; font-weight: 800; font-size: 0.9rem; cursor: pointer;
+}
+.mo-tab.is-active { border-color: var(--mo-accent); background: var(--mo-accent); color: #fff; }
+
+.mo-list { display: flex; flex-direction: column; gap: 8px; }
+.mo-item {
+  display: flex; flex-direction: column; gap: 4px;
+  width: 100%; padding: 10px 14px;
+  border: 1px solid rgba(2, 132, 199, 0.18); border-radius: 14px;
+  background: #fff; color: inherit; font: inherit; text-align: left; cursor: pointer;
+  transition: transform 0.15s, border-color 0.15s;
+}
+.mo-item:hover { transform: translateY(-2px); border-color: var(--mo-accent); }
+.mo-item-top { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.mo-board {
+  flex: none; padding: 1px 8px; border-radius: 999px;
+  background: rgba(2, 132, 199, 0.12); color: var(--mo-accent); font-size: 0.75rem; font-weight: 800;
+}
+.mo-title { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 900; }
+.mo-new { flex: none; padding: 1px 7px; border-radius: 6px; background: var(--mo-new); color: #fff; font-size: 0.7rem; font-weight: 900; }
+.mo-preview { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--mo-muted); font-size: 0.88rem; }
+.mo-meta { color: #7b94aa; font-size: 0.78rem; font-weight: 700; }
+
+.mo-empty { margin: 6px 0 2px; color: var(--mo-muted); font-size: 0.9rem; font-weight: 700; text-align: center; }
+.mo-more {
+  align-self: center; margin-top: 2px; padding: 6px 14px;
+  border: none; border-radius: 999px; background: rgba(2, 132, 199, 0.1);
+  color: var(--mo-accent); font: inherit; font-size: 0.88rem; font-weight: 800;
+  text-decoration: none; cursor: pointer;
+}
+.mo-more:hover { background: rgba(2, 132, 199, 0.18); }
+
+@media (max-width: 480px) {
+  #my-ocean-card { padding: 0 14px 14px; border-radius: 18px; }
+  .mo-tab { padding: 6px 11px; font-size: 0.85rem; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .mo-item { transition: none; }
+}
