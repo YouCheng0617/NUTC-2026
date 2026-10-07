@@ -12,6 +12,7 @@
     </script>
 
         <link rel="stylesheet" href="slug_game.css?v=20261006k">
+        <link rel="stylesheet" href="memory_game.css?v=20261007a">
 
 </head>
 <body>
@@ -418,6 +419,7 @@
         <button class="mp-btn" onclick="createSocketRoom()" id="btnCreateRoom">創立房間</button>
         <button class="mp-btn secondary" onclick="joinSocketRoom()" id="btnJoinRoom">加入房間</button>
         <button class="mp-btn" onclick="sendChatPrompt()" id="btnChat" style="display:none; background: var(--accent-color);">💬 聊天</button>
+        <button class="mp-btn" onclick="MemoryGame.open()" id="btnMemoryGame" style="display:none; background: #a78bfa;">🃏 翻牌對決</button>
         <button class="mp-btn secondary" onclick="leaveSocketRoom()" id="btnLeaveRoom" style="display:none; border-color: #ef4444; color: #ef4444;">離開房間</button>
     </div>
 
@@ -770,6 +772,7 @@
     </div>
 
         <script src="slug_game.js?v=20261006k"></script>
+        <script src="memory_game.js?v=20261007a"></script>
 
 </body>
 </html>

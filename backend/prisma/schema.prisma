@@ -357,6 +357,8 @@ model Pet {
   last_feed_task_claim  DateTime? // 餵食
   last_clean_task_claim DateTime? // 清理魚缸
 
+  memory_wins Int @default(0) // 記憶翻牌對決勝場數（贏滿 10 場送小丑皮膚）
+
   member       Member         @relation(fields: [member_id], references: [member_id], onDelete: Cascade)
   PetInventory PetInventory[]
 }

@@ -38,6 +38,19 @@ export const gameConfig = {
         coinsPerExchange: 50,
         dailyLimit: 0           // 每天最多換幾次（0 = 不限制）
     },
+    // 記憶翻牌對決（連線房間裡玩，邏輯在 memoryGame.ts）
+    memoryGame: {
+        pairOptions: [10, 20, 30, 50], // 房主可選的組數，牌面從 shop.pet_color 隨機抽
+        maxStreak: 3,                  // 翻對可以繼續翻，同一回合最多連續翻對 3 組就換人
+        turnSeconds: 30,               // 每回合限時，時間到自動換下一位
+        minPlayers: 2,
+        // 小丑牌：一對算 3 組。設計師還沒畫好牌面，先關著；打開後會取代其中一組寵物牌
+        joker: { enabled: false, value: 3 },
+        // 機會／命運牌：規則還沒定，先留開關，邏輯尚未實作
+        chanceCards: { enabled: false },
+        // 贏滿幾場送小丑皮膚（存進 PetInventory 的 pet_color / joker，設計師畫好後前端 speciesData 補上 joker 就能穿）
+        jokerSkin: { winsRequired: 10, itemName: "joker" }
+    },
     shop: {
         pet_color: {
             snow: 0,              // 經典雪兔

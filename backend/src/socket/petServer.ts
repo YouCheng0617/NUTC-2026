@@ -1,4 +1,5 @@
 import { Server, Socket } from 'socket.io';
+import { setupMemoryGame, memoryHandleLeave, memoryForget } from './memoryGame.js';
 
 // ... (Player 和 Room 介面保持不變) ...
 interface Player {
@@ -81,6 +82,7 @@ export const setupPetSocket = (io: Server) => {
 
         socket.on('disconnect', () => {
             handleLeave(socket, io);
+            memoryForget(socket.id);
         });
 
         socket.on('leave_room', () => {
@@ -101,7 +103,10 @@ export const setupPetSocket = (io: Server) => {
             }
         });
 
-        // 4. 發送訊息
+        // 4. 記憶翻牌對決（邏輯在 memoryGame.ts）
+        setupMemoryGame(io, socket, (roomId) => rooms.get(roomId), (socketId) => socketRoomMap.get(socketId));
+
+        // 5. 發送訊息
         socket.on('send_message', ({ roomId, message }: { roomId: string; message: string }) => {
             const room = rooms.get(roomId);
             if (room) {
@@ -165,6 +170,7 @@ function handleLeave(socket: Socket, io: Server) {
         socketRoomMap.delete(socket.id);
         room.players.delete(socket.id);
         socket.leave(roomId);
+        memoryHandleLeave(io, roomId, socket.id);
 
         io.to(roomId).emit('player_left', { socketId: socket.id });
         io.to(roomId).emit('receive_message', {

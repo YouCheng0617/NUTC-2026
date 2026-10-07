@@ -402,6 +402,7 @@ let GAME_TOKEN = localStorage.getItem('authToken') || localStorage.getItem('acce
             try {
                 // 不限制重連次數（以前是 3 次，網路閃幾下就永遠斷線了），連線等待也放寬到 8 秒
                 socket = io(API_BASE, { timeout: 8000, transports: ['websocket', 'polling'] });
+                if (window.MemoryGame) MemoryGame.bindSocket(socket);   // 🃏 翻牌對決（memory_game.js）
 
                 socket.on('connect', () => {
                     console.log('Socket 連線成功!');
@@ -737,6 +738,7 @@ let GAME_TOKEN = localStorage.getItem('authToken') || localStorage.getItem('acce
             } else if(socket) {
                 socket.emit('leave_room'); 
             }
+            if (window.MemoryGame) MemoryGame.leaveRoom();
             currentRoomId = null;
             rejoinRoomId = null;
             isRejoining = false;
@@ -1171,6 +1173,7 @@ function updateRoomUI(text) {
         document.getElementById('btnCreateRoom').style.display = 'none'; 
         document.getElementById('btnJoinRoom').style.display = 'none'; 
         document.getElementById('btnChat').style.display = 'block'; 
+        document.getElementById('btnMemoryGame').style.display = 'block';
         document.getElementById('btnLeaveRoom').style.display = 'block';
         
         // 隱藏互動按鈕與商店區塊
@@ -1194,6 +1197,7 @@ function updateRoomUI(text) {
         document.getElementById('btnCreateRoom').style.display = 'block'; 
         document.getElementById('btnJoinRoom').style.display = 'block'; 
         document.getElementById('btnChat').style.display = 'none'; 
+        document.getElementById('btnMemoryGame').style.display = 'none';
         document.getElementById('btnLeaveRoom').style.display = 'none';
         
         // 恢復原狀，顯示互動按鈕與商店

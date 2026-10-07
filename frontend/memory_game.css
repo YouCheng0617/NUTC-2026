@@ -1,0 +1,173 @@
+/* 🃏 記憶翻牌對決 */
+.mg-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 9000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 12px;
+    background: rgba(15, 23, 42, 0.45);
+    backdrop-filter: blur(4px);
+    font-family: 'Nunito', sans-serif;
+}
+.mg-overlay[hidden] { display: none; }
+
+.mg-panel {
+    display: flex;
+    flex-direction: column;
+    width: min(1100px, 100%);
+    height: min(860px, 100%);
+    padding: 14px 16px 16px;
+    border: 4px solid #fbcfe8;
+    border-radius: 24px;
+    background: #fffaf5;
+    box-shadow: 0 10px 0 rgba(251, 207, 232, 0.8), 0 20px 40px rgba(0, 0, 0, 0.2);
+    box-sizing: border-box;
+}
+
+.mg-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+.mg-title { font-size: 1.3rem; font-weight: 900; color: #4a3b3b; }
+.mg-close {
+    width: 36px; height: 36px;
+    border: none; border-radius: 50%;
+    background: #fee2e2; color: #b91c1c;
+    font-size: 1rem; font-weight: 900; cursor: pointer;
+}
+
+/* 等待畫面 */
+.mg-lobby, .mg-result {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    text-align: center;
+    color: #4a3b3b;
+}
+.mg-lobby[hidden], .mg-result[hidden], .mg-game[hidden], .mg-host-only[hidden], .mg-wait[hidden] { display: none; }
+.mg-rules { max-width: 520px; margin: 0; line-height: 1.7; font-weight: 700; }
+.mg-wins { margin: 0; font-weight: 900; color: #a16207; }
+.mg-wait { font-weight: 800; color: #64748b; }
+.mg-host-only { display: flex; flex-direction: column; align-items: center; gap: 12px; }
+.mg-label { font-weight: 900; }
+.mg-pairs { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; }
+.mg-pair-btn {
+    min-width: 76px;
+    padding: 10px 14px;
+    border: 3px solid #bfdbfe;
+    border-radius: 14px;
+    background: #eff6ff;
+    color: #1d4ed8;
+    font-weight: 900;
+    font-size: 1rem;
+    cursor: pointer;
+}
+.mg-pair-btn.is-active { border-color: #1d4ed8; background: #1d4ed8; color: #fff; }
+.mg-start {
+    padding: 12px 28px;
+    border: none;
+    border-radius: 16px;
+    background: #f472b6;
+    color: #fff;
+    font-size: 1.1rem;
+    font-weight: 900;
+    cursor: pointer;
+    box-shadow: 0 5px 0 #db2777;
+}
+.mg-start:active { transform: translateY(4px); box-shadow: none; }
+
+/* 對決中 */
+.mg-game { flex: 1; min-height: 0; display: flex; flex-direction: column; gap: 8px; }
+.mg-scores { display: flex; flex-wrap: wrap; gap: 6px; }
+.mg-score {
+    display: flex; align-items: center; gap: 6px;
+    padding: 4px 10px 4px 4px;
+    border: 3px solid transparent;
+    border-radius: 999px;
+    background: #f1f5f9;
+    font-weight: 800;
+    color: #334155;
+    font-size: 0.9rem;
+}
+.mg-score.is-turn { border-color: #f472b6; background: #fdf2f8; }
+.mg-score.is-me .mg-score-name { color: #db2777; }
+.mg-score-icon { width: 30px; height: 26px; }
+.mg-score-icon svg { width: 100%; height: 100%; }
+.mg-score-name { max-width: 9em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.mg-score-num { min-width: 1.6em; padding: 0 6px; border-radius: 999px; background: #fff; text-align: center; }
+
+.mg-status { font-weight: 900; color: #64748b; min-height: 1.4em; }
+.mg-status.is-mine { color: #db2777; }
+
+.mg-board-wrap { flex: 1; min-height: 0; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+.mg-board { display: grid; gap: 6px; justify-content: center; }
+
+.mg-card {
+    aspect-ratio: 4 / 5;
+    padding: 0;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    perspective: 600px;
+}
+.mg-inner {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    transition: transform 0.35s ease;
+    transform-style: preserve-3d;
+}
+.mg-card.is-flipped .mg-inner { transform: rotateY(180deg); }
+.mg-back, .mg-front {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 10px;
+    backface-visibility: hidden;
+    box-sizing: border-box;
+}
+.mg-back {
+    border: 3px solid #93c5fd;
+    background: repeating-linear-gradient(45deg, #dbeafe 0 8px, #bfdbfe 8px 16px);
+    font-size: clamp(0.8rem, 2.5vw, 1.4rem);
+}
+.mg-card:not(.is-flipped):hover .mg-back { border-color: #f472b6; }
+.mg-front {
+    transform: rotateY(180deg);
+    border: 3px solid #fbcfe8;
+    background: #fff;
+    padding: 6%;
+}
+.mg-front svg { width: 100%; height: 100%; }
+.mg-card.is-matched { cursor: default; }
+.mg-card.is-matched .mg-front { border-color: #cbd5e1; opacity: 0.55; }
+.mg-card.is-matched.is-mine .mg-front { border-color: #f472b6; opacity: 1; }
+.mg-card.is-wrong .mg-front { border-color: #ef4444; animation: mg-shake 0.35s; }
+
+.mg-joker { display: flex; flex-direction: column; align-items: center; font-size: clamp(1rem, 4vw, 2.2rem); line-height: 1; }
+.mg-joker small { font-size: 0.45em; font-weight: 900; color: #7c3aed; }
+
+@keyframes mg-shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-4px); }
+    75% { transform: translateX(4px); }
+}
+
+/* 結果 */
+.mg-result-title { font-size: 1.8rem; font-weight: 900; }
+.mg-ranking { margin: 0; padding: 0 0 0 1.4em; min-width: min(320px, 90%); text-align: left; }
+.mg-ranking li { display: flex; justify-content: space-between; gap: 12px; padding: 6px 4px; font-weight: 800; }
+.mg-ranking li.is-winner { color: #db2777; }
+.mg-note { margin: 0; color: #64748b; font-weight: 700; }
+
+@media (max-width: 600px) {
+    .mg-overlay { padding: 6px; }
+    .mg-panel { padding: 10px; border-radius: 18px; }
+    .mg-title { font-size: 1.1rem; }
+    .mg-board { gap: 4px; }
+    .mg-back, .mg-front { border-width: 2px; border-radius: 6px; }
+}
