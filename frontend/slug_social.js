@@ -53,6 +53,13 @@
         '這個兌換碼的名額已經用完了': 'This code has been used up.',
         '兌換太頻繁了，請 10 分鐘後再試。': 'Too many tries. Please wait 10 minutes.',
         '兌換失敗，請稍後再試': "Couldn't redeem. Please try again later.",
+        // ---- 登入驗證（auth.middleware.ts）：兌換碼這類要登入的 API 會回這些 ----
+        '無此授權或格式錯誤': 'Please log in first',
+        '此憑證已被封鎖，請重新登入': 'Your login has expired. Please log in again.',
+        '憑證無效或過期，請重新登入': 'Your login has expired. Please log in again.',
+        '找不到使用者': 'Account not found',
+        '帳號已被封鎖，若有疑問請聯繫客服': 'This account has been banned. Contact support if you have questions.',
+        '帳號未啟用，請先驗證帳號': 'This account is not activated yet. Please verify it first.',
         // ---- 公告板（announcement）----
         '房號格式不對，是 6 碼英文或數字喔': 'The room code should be 6 letters or numbers.',
         '找不到這個房間，請確認房間還開著': "Can't find that room — is it still open?",

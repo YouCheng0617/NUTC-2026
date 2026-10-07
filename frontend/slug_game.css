@@ -2991,7 +2991,8 @@
 /* 🎁 右上角的兌換碼按鈕（語言按鈕旁邊）＋跳出來的視窗 */
         .top-right { display: flex; align-items: center; gap: 10px; }
         .redeem-open-btn { gap: 6px; }
-        .redeem-modal { position: relative; width: min(440px, calc(100vw - 32px)); }
+        /* .name-modal 預設最寬 340px，會把輸入框擠到提示字被裁掉，這裡放寬 */
+        .redeem-modal { position: relative; width: min(440px, calc(100vw - 32px)); max-width: 440px; }
         .redeem-close { position: absolute; top: 14px; right: 14px; }
         @media (max-width: 480px) {
             /* 手機上空間不夠：只留禮物圖示 */
@@ -3002,6 +3003,7 @@
             display: flex; flex-direction: column; align-items: center; gap: 8px;
             padding: 8px 4px 4px;
             text-align: center; color: var(--text-dark);
+            overflow-wrap: anywhere;   /* 英文長字、活動名稱太長時自動換行，不會超出框外 */
         }
         .redeem-icon { font-size: 2.2rem; line-height: 1; }
         .redeem-title { margin: 0; font-size: 1.1rem; font-weight: 900; }
@@ -3009,7 +3011,12 @@
         .redeem-form { display: flex; gap: 8px; width: min(420px, 100%); }
         .redeem-input {
             flex: 1; min-width: 0; padding: 10px 14px; border-radius: 14px; border: 3px solid var(--border-color);
-            font-family: inherit; font-size: 1.05rem; font-weight: 900; letter-spacing: 2px; text-transform: uppercase;
+            font-family: inherit; font-size: 1.05rem; font-weight: 900; letter-spacing: 1px; text-transform: uppercase;
+            color: var(--text-dark); text-overflow: ellipsis;
+        }
+        /* 提示字不用加粗、不用字距，才放得下「例如：SEABUNNY2026」 */
+        .redeem-input::placeholder {
+            font-size: 0.9rem; font-weight: 700; letter-spacing: 0; text-transform: none; color: #b8a2a6;
         }
         .redeem-input:focus { outline: none; border-color: #f472b6; }
         .redeem-btn {
@@ -3027,8 +3034,14 @@
         .redeem-rewards { margin: 0; padding-left: 1.2em; }
         .redeem-rewards li { margin: 2px 0; }
         .redeem-owned { margin-left: 6px; padding: 1px 8px; border-radius: 999px; background: #e2e8f0; color: #475569; font-size: 0.72rem; }
-        @media (max-width: 420px) {
+        /* 📱 手機：視窗內距縮小，輸入框和按鈕改上下排、都拉滿寬，比較好按 */
+        @media (max-width: 480px) {
+            .redeem-modal { padding: 26px 16px 20px; border-radius: 28px; }
+            .redeem-close { top: 10px; right: 10px; width: 44px; height: 44px; }
+            .redeem-sub { padding: 0 8px; }
             .redeem-form { flex-direction: column; }
+            .redeem-input { min-height: 48px; text-align: center; }
+            .redeem-btn { width: 100%; min-height: 48px; }
         }
 
 /* 😴 【待機畫面】跟論壇主頁同一套樣式（slug_idle.js），中間換成玩家自己睡覺的海兔 */
