@@ -1,205 +1,2093 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="zh-TW">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>心情漂流瓶 - 論壇</title>
+    <link rel="stylesheet" href="index.css?v=58" />
+    <style>
+      /* ==================================================
+         🌊 頂部 Header 全新配置：左側 Logo + 鈴鐺
+         ================================================== */
+      .light-header {
+        display: flex !important;
+        align-items: center !important;
+        justify-content: space-between !important;
+        padding: 10px 18px !important;
+        gap: 10px !important;
+      }
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>心情漂流瓶</title>
-    <link rel="stylesheet" href="index.css">
-</head>
-<script>
-    // 🌟 全自動等待魔法：等整個網頁的 HTML 都準備好後才開始抓人
-    document.addEventListener('DOMContentLoaded', () => {
+      .header-left-box {
+        display: flex !important;
+        align-items: center !important;
+        gap: 12px !important;
+        flex-shrink: 0 !important;
+      }
 
-        // 用 ID 抓人，絕對精準
-        const myBtn = document.getElementById('magic-btn');
+      .header-left-box .logo {
+        margin: 0 !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        font-size: 1.25rem !important;
+        cursor: pointer !important;
+      }
 
-        if (myBtn) {
-            myBtn.addEventListener('click', () => {
-                // 加上爆破動畫
-                myBtn.classList.add('pop-effect');
+      /* 🔔 移到 Logo 右邊的鈴鐺按鈕 */
+      .header-bell-wrapper {
+        position: relative !important;
+        display: inline-flex !important;
+        align-items: center !important;
+      }
 
-                // 等 0.5 秒動畫跑完，優雅跳轉到秘密基地
-                setTimeout(() => {
-                    window.location.href = 'test.html';
-                    setTimeout(() => {
-                        myBtn.classList.remove('pop-effect');
-                    }, 100);
-                }, 500);
-            });
-        } else {
-            console.log('後台回報：依然找不到 magic-btn，請確認 HTML 是否有成功存檔。');
+      .header-bell-wrapper .notification-bell {
+        width: 36px !important;
+        height: 36px !important;
+        font-size: 1rem !important;
+        background: rgba(255, 255, 255, 0.25) !important;
+        border: 1px solid rgba(255, 255, 255, 0.45) !important;
+        border-radius: 50% !important;
+        cursor: pointer !important;
+      }
+
+      /* 右上角：整合按鈕 (🎮 探索中心) */
+      .header-hub-btn {
+        background: linear-gradient(135deg, #ff7e5f, #feb47b) !important;
+        border: 1.5px solid #ffffff !important;
+        color: #ffffff !important;
+        padding: 6px 14px !important;
+        border-radius: 20px !important;
+        font-size: 0.92rem !important;
+        font-weight: 800 !important;
+        cursor: pointer !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        gap: 5px !important;
+        box-shadow: 0 4px 12px rgba(255, 126, 95, 0.35) !important;
+        transition: 0.2s !important;
+        white-space: nowrap !important;
+      }
+
+      .header-hub-btn:hover {
+        transform: scale(1.05) !important;
+        filter: brightness(1.1) !important;
+      }
+
+      /* ==================================================
+         🪟 整合控制台視窗 (Hub Modal)
+         ================================================== */
+      #hub-modal.modal {
+        position: fixed !important;
+        inset: 0 !important;
+        width: 100vw !important;
+        height: 100vh !important;
+        background: rgba(0, 15, 35, 0.75) !important;
+        backdrop-filter: blur(8px) !important;
+        -webkit-backdrop-filter: blur(8px) !important;
+        z-index: 150000 !important;
+        display: none;
+        justify-content: center !important;
+        align-items: center !important;
+        padding: 15px !important;
+        box-sizing: border-box !important;
+      }
+
+      .hub-card {
+        background: linear-gradient(
+          160deg,
+          rgba(10, 35, 65, 0.96) 0%,
+          rgba(2, 20, 45, 0.98) 100%
+        ) !important;
+        border: 1.5px solid rgba(77, 166, 255, 0.5) !important;
+        box-shadow:
+          0 20px 50px rgba(0, 0, 0, 0.6),
+          inset 0 0 25px rgba(77, 166, 255, 0.2) !important;
+        border-radius: 24px !important;
+        width: 100% !important;
+        max-width: 480px !important;
+        max-height: 90vh !important;
+        overflow-y: auto !important;
+        padding: 24px 20px !important;
+        position: relative !important;
+        box-sizing: border-box !important;
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 16px !important;
+        animation: hubFadeIn 0.25s ease-out !important;
+      }
+
+      @keyframes hubFadeIn {
+        from {
+          opacity: 0;
+          transform: scale(0.92) translateY(10px);
         }
-    });
-
-    // 強制執行：在網頁讀取完畢後，檢查早晚切換夜間模式
-    window.addEventListener('DOMContentLoaded', () => {
-        const hour = new Date().getHours();
-        if (hour < 6 || hour >= 18) {
-            document.body.classList.add('night-mode');
+        to {
+          opacity: 1;
+          transform: scale(1) translateY(0);
         }
-    });
+      }
 
-    // 🌟 已修復：全自動動態日期顯示邏輯
-    window.addEventListener('DOMContentLoaded', () => {
-        const dateElement = document.getElementById('date-display');
-        if (dateElement) {
-            const today = new Date();
-            const year = today.getFullYear();
-            const month = String(today.getMonth() + 1).padStart(2, '0');
-            const day = String(today.getDate()).padStart(2, '0');
-            
-            // 自動組合成 YYYY.MM.DD 格式（例如：2026.07.02）
-            dateElement.innerText = `${year}.${month}.${day}`;
+      .hub-close-btn {
+        position: absolute !important;
+        top: 14px !important;
+        right: 16px !important;
+        font-size: 22px !important;
+        color: #94a3b8 !important;
+        cursor: pointer !important;
+        line-height: 1 !important;
+        transition: 0.2s !important;
+        z-index: 20 !important;
+      }
+      .hub-close-btn:hover {
+        color: #ff4d4d !important;
+      }
+
+      /* 1. 視窗頂部列：左邊使用者資訊，旁邊獨立客服 */
+      .hub-top-row {
+        display: flex !important;
+        align-items: center !important;
+        justify-content: space-between !important;
+        gap: 10px !important;
+        padding-right: 28px !important; /* 避開右上角叉叉 */
+        position: relative !important;
+      }
+
+      .hub-user-trigger {
+        display: flex !important;
+        align-items: center !important;
+        gap: 8px !important;
+        background: rgba(255, 255, 255, 0.1) !important;
+        border: 1px solid rgba(255, 255, 255, 0.25) !important;
+        padding: 6px 12px !important;
+        border-radius: 20px !important;
+        cursor: pointer !important;
+        transition: 0.2s !important;
+      }
+      .hub-user-trigger:hover {
+        background: rgba(255, 255, 255, 0.2) !important;
+      }
+
+      .hub-avatar-img {
+        width: 32px !important;
+        height: 32px !important;
+        border-radius: 50% !important;
+        object-fit: cover !important;
+        border: 1.5px solid #fff !important;
+      }
+
+      .hub-name-text {
+        font-size: 0.95rem !important;
+        font-weight: 800 !important;
+        color: #ffffff !important;
+        max-width: 130px !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+        white-space: nowrap !important;
+      }
+
+      /* 獨立的客服按鈕 */
+      .hub-cs-btn {
+        background: rgba(2, 132, 199, 0.3) !important;
+        border: 1px solid #38bdf8 !important;
+        color: #e0f2fe !important;
+        padding: 6px 14px !important;
+        border-radius: 18px !important;
+        font-size: 0.88rem !important;
+        font-weight: 800 !important;
+        cursor: pointer !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        gap: 4px !important;
+        transition: 0.2s !important;
+      }
+      .hub-cs-btn:hover {
+        background: #0284c7 !important;
+        color: #ffffff !important;
+        transform: translateY(-1px) !important;
+      }
+
+      /* 2. 中間發文長條按鈕 */
+      .hub-new-post-bar {
+        width: 100% !important;
+        padding: 13px !important;
+        background: linear-gradient(135deg, #00b4db, #0083b0) !important;
+        border: 1px solid rgba(255, 255, 255, 0.4) !important;
+        color: #ffffff !important;
+        font-size: 1.05rem !important;
+        font-weight: 900 !important;
+        border-radius: 14px !important;
+        cursor: pointer !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        gap: 8px !important;
+        box-shadow: 0 4px 15px rgba(0, 180, 219, 0.35) !important;
+        transition: 0.2s !important;
+        box-sizing: border-box !important;
+      }
+      .hub-new-post-bar:hover {
+        transform: translateY(-2px) !important;
+        box-shadow: 0 6px 20px rgba(0, 180, 219, 0.5) !important;
+      }
+
+      /* 3. 下方六個遊戲網格卡片 */
+      .hub-section-title {
+        font-size: 0.88rem !important;
+        color: #94a3b8 !important;
+        font-weight: 700 !important;
+        margin: 2px 0 -6px 2px !important;
+      }
+
+      .hub-games-grid {
+        display: grid !important;
+        grid-template-columns: repeat(3, 1fr) !important;
+        gap: 10px !important;
+      }
+
+      .hub-game-tile {
+        background: rgba(255, 255, 255, 0.08) !important;
+        border: 1px solid rgba(255, 255, 255, 0.18) !important;
+        border-radius: 14px !important;
+        padding: 12px 6px !important;
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: center !important;
+        justify-content: center !important;
+        gap: 6px !important;
+        cursor: pointer !important;
+        text-decoration: none !important;
+        color: #ffffff !important;
+        transition: 0.25s cubic-bezier(0.25, 0.8, 0.25, 1) !important;
+      }
+      .hub-game-tile:hover {
+        background: rgba(77, 166, 255, 0.25) !important;
+        border-color: #38bdf8 !important;
+        transform: translateY(-3px) scale(1.03) !important;
+      }
+
+      .hub-game-emoji {
+        font-size: 2rem !important;
+        line-height: 1 !important;
+      }
+
+      .hub-game-label {
+        font-size: 0.82rem !important;
+        font-weight: 800 !important;
+        text-align: center !important;
+        color: #e2e8f0 !important;
+        line-height: 1.2 !important;
+      }
+
+      /* 下拉選單樣式微調 */
+      .hub-card .user-dropdown-menu {
+        top: 48px !important;
+        left: 0 !important;
+        right: auto !important;
+        background: #ffffff !important;
+        border-radius: 14px !important;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4) !important;
+        width: 170px !important;
+        z-index: 200 !important;
+      }
+
+      /* 📱 極窄手機螢幕 (<= 360px) 微調 */
+      @media screen and (max-width: 360px) {
+        .header-left-box .logo {
+          font-size: 1.05rem !important;
         }
-    });
-
-    // 🌟 天氣 API 魔法
-    window.addEventListener('load', () => {
-        if (navigator.geolocation) {
-            navigator.geolocation.getCurrentPosition((position) => {
-                const lat = position.coords.latitude;
-                const lon = position.coords.longitude;
-                fetchWeatherByCoords(lat, lon);
-            }, () => {
-                // 如果使用者拒絕定位，預設顯示台中
-                fetchWeatherByCity("Taichung");
-            });
-        } else {
-            fetchWeatherByCity("Taichung");
+        .header-left-box .logo img {
+          width: 24px !important;
         }
-
-        // 用經緯度抓天氣
-        function fetchWeatherByCoords(lat, lon) {
-            const apiKey = 'e126fab7abb9c316feaa6a400d7a30aa';
-            const url = `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${apiKey}&units=metric&lang=zh_tw`;
-            
-            fetch(url)
-                .then(response => response.json())
-                .then(data => {
-                    const weatherEl = document.getElementById('weather-display');
-                    if (weatherEl && data.weather) {
-                        const desc = data.weather[0].description;
-                        const temp = Math.round(data.main.temp);
-                        weatherEl.innerText = `天氣：${desc} ${temp}°C`;
-                    }
-                })
-                .catch(err => {
-                    console.error("天氣抓取失敗:", err);
-                    const weatherEl = document.getElementById('weather-display');
-                    if (weatherEl) weatherEl.innerText = "天氣：深海平靜";
-                });
+        .hub-games-grid {
+          grid-template-columns: repeat(2, 1fr) !important;
         }
+      }
+    </style>
 
-        // 用城市名抓天氣 (備用計畫)
-        function fetchWeatherByCity(city) {
-            const apiKey = 'e126fab7abb9c316feaa6a400d7a30aa';
-            const url = `https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${apiKey}&units=metric&lang=zh_tw`;
-            
-            fetch(url)
-                .then(response => response.json())
-                .then(data => {
-                    const weatherEl = document.getElementById('weather-display');
-                    if (weatherEl && data.weather) {
-                        const desc = data.weather[0].description;
-                        const temp = Math.round(data.main.temp);
-                        weatherEl.innerText = `天氣：${desc} ${temp}°C`;
-                    }
-                })
-                .catch(() => {
-                    const weatherEl = document.getElementById('weather-display');
-                    if (weatherEl) weatherEl.innerText = "天氣：深海平靜";
-                });
+    <!-- ==================================================
+         🌊 進站載入畫面
+         樣式與控制器都寫在這裡，不放進 index.css —— 外部樣式表還在載的時候，
+         載入畫面本身就會先破圖，那就本末倒置了
+         ================================================== -->
+    <style>
+      #tt-loading {
+        position: fixed;
+        inset: 0;
+        z-index: 2147483000;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+        background: linear-gradient(180deg, #2e9fd4 0%, #1b6fa8 55%, #0d4876 100%);
+        font-family: "PingFang TC", "Microsoft JhengHei", sans-serif;
+        transition: opacity 0.5s ease;
+      }
+      #tt-loading.tt-done { opacity: 0; pointer-events: none; }
+      .tt-load-inner { position: relative; z-index: 2; text-align: center; padding: 0 24px; }
+      .tt-bottle {
+        width: min(96px, 24vw);
+        height: auto;
+        display: block;
+        margin: 0 auto 18px;
+        filter: drop-shadow(0 10px 18px rgba(0, 30, 60, 0.35));
+        animation: tt-bob 3s ease-in-out infinite;
+      }
+      @keyframes tt-bob {
+        0%, 100% { transform: translateY(0) rotate(-7deg); }
+        50% { transform: translateY(-12px) rotate(7deg); }
+      }
+      .tt-load-title {
+        font-size: clamp(1.25rem, 5.5vw, 1.75rem);
+        font-weight: 900;
+        letter-spacing: 3px;
+        color: #ffffff;
+        text-shadow: 0 3px 14px rgba(0, 40, 80, 0.55);
+        margin-bottom: 18px;
+      }
+      .tt-bar {
+        width: min(240px, 62vw);
+        height: 8px;
+        margin: 0 auto 12px;
+        border-radius: 99px;
+        background: rgba(255, 255, 255, 0.24);
+        overflow: hidden;
+        box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.28);
+      }
+      .tt-bar-fill {
+        width: 0;
+        height: 100%;
+        border-radius: 99px;
+        background: linear-gradient(90deg, #8ee3ff, #ffffff);
+        box-shadow: 0 0 12px rgba(160, 230, 255, 0.85);
+        transition: width 0.3s ease-out;
+      }
+      .tt-load-text {
+        font-size: 0.85rem;
+        font-weight: 800;
+        letter-spacing: 1px;
+        color: rgba(255, 255, 255, 0.82);
+        text-shadow: 0 2px 8px rgba(0, 35, 70, 0.6);
+      }
+      /* 背景慢慢往上飄的泡泡 */
+      .tt-bubbles { position: absolute; inset: 0; z-index: 1; pointer-events: none; }
+      .tt-bubbles span {
+        position: absolute;
+        bottom: -60px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.3);
+        box-shadow: inset -2px -3px 6px rgba(255, 255, 255, 0.5);
+        animation: tt-bubble linear infinite;
+      }
+      .tt-bubbles span:nth-child(1) { left: 10%; width: 14px; height: 14px; animation-duration: 7s;   animation-delay: 0s; }
+      .tt-bubbles span:nth-child(2) { left: 26%; width: 9px;  height: 9px;  animation-duration: 5.4s; animation-delay: 1.3s; }
+      .tt-bubbles span:nth-child(3) { left: 42%; width: 20px; height: 20px; animation-duration: 8.4s; animation-delay: 0.6s; }
+      .tt-bubbles span:nth-child(4) { left: 60%; width: 12px; height: 12px; animation-duration: 6.2s; animation-delay: 2.2s; }
+      .tt-bubbles span:nth-child(5) { left: 76%; width: 17px; height: 17px; animation-duration: 7.6s; animation-delay: 0.4s; }
+      .tt-bubbles span:nth-child(6) { left: 90%; width: 10px; height: 10px; animation-duration: 5.2s; animation-delay: 1.7s; }
+      @keyframes tt-bubble {
+        0%   { transform: translateY(0); opacity: 0; }
+        12%  { opacity: 0.85; }
+        85%  { opacity: 0.6; }
+        100% { transform: translateY(-115vh) translateX(14px); opacity: 0; }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .tt-bubbles { display: none; }
+        .tt-bottle { animation: none; }
+        .tt-bar-fill { transition: none; }
+      }
+    </style>
+
+    <script>
+      // 🌊 載入畫面控制器：要「畫面上的東西都備好」才放人進來，
+      //    不然會先看到沒有背景圖的純色底、再看到貼文整塊長出來
+      window.__ttLoading = (function () {
+        var MIN_MS = 600;          // 至少顯示這麼久，免得一閃而過像破圖
+        var CAP_BEFORE_READY = 85; // 還沒備好之前，進度最多爬到這裡
+        var CLIMB_MS = 4000;       // 沒有別的消息時，進度自己爬到上限要花多久
+        var startAt = Date.now();
+        var pct = 0, left = false;
+        // 會造成破圖的就這兩樣：背景圖還沒到（底下是一片純色）、貼文還沒回來（版面是空的）
+        var postsReady = false, bgReady = false;
+        var label = '正在潛進海裡…';
+
+        function el(id) { return document.getElementById(id); }
+        function isReady() { return postsReady && bgReady; }
+        function render() {
+          if (left) return;
+          var shown;
+          if (isReady()) {
+            shown = 100;
+          } else {
+            // 進度自己會跟著時間慢慢爬，階段訊息只是把它往前推，不會讓它停在原地發呆
+            var climb = Math.min(CAP_BEFORE_READY, (Date.now() - startAt) / CLIMB_MS * CAP_BEFORE_READY);
+            shown = Math.min(CAP_BEFORE_READY, Math.max(pct, climb));
+          }
+          var bar = el('tt-bar-fill'), txt = el('tt-load-text');
+          if (bar) bar.style.width = shown + '%';
+          if (txt) txt.textContent = shown >= 100 ? '準備好了！' : label;
         }
-    });
-
-    // 今日新增漂流瓶數量 API
-    document.addEventListener("DOMContentLoaded", async () => {
-        const countElement = document.getElementById('today-count-number');
-        if (!countElement) return;
-
-        try {
-            const response = await fetch('https://163.17.135.120/bottles/today');
-            if (!response.ok) {
-                throw new Error(`HTTP 錯誤！狀態碼: ${response.status}`);
+        function set(p, text) {
+          if (left) return;
+          pct = Math.max(pct, Math.min(100, p));
+          if (text) label = text;
+          render();
+        }
+        function close() {
+          if (left) return;
+          left = true;
+          var bar = el('tt-bar-fill'), txt = el('tt-load-text'), box = el('tt-loading');
+          if (bar) bar.style.width = '100%';
+          if (txt) txt.textContent = '準備好了！';
+          setTimeout(function () {
+            if (box) {
+              box.classList.add('tt-done');
+              setTimeout(function () { if (box && box.parentNode) box.parentNode.removeChild(box); }, 520);
             }
-            const data = await response.json();
-            countElement.innerText = data.todayBottles;
-        } catch (error) {
-            console.error("無法取得今日投遞人數，使用預設值:", error);
-            countElement.innerText = "0";
+          }, 260);
         }
-    });
-</script>
-
-<body>
-    <div class="bottle-background">
-        <img src="images/bottle.webp" class="bottle b1">
-        <img src="images/bottle.webp" class="bottle b2">
-        <img src="images/bottle.webp" class="bottle b3">
-        <img src="images/bottle.webp" class="bottle b4">
-    </div>
-    <div class="bottle-background">
-        <div class="bottle b1"></div>
-        <div class="bottle b2"></div>
-        <div class="bottle b3"></div>
-        <div class="bottle b4"></div>
-        <div class="bottle b5"></div>
-        <div class="bottle b6"></div>
-        <div class="bottle b7"></div>
-        <div class="bottle b8"></div>
-    </div>
-    <div class="ocean-container">
-
-        <div class="vertical-title">
-            <span class="char">心</span>
-            <span class="char">情</span>
-            <span class="char">漂</span>
-            <span class="char">流</span>
-            <span class="char">瓶</span>
-        </div>
-
-        <div class="glass-panel center-board">
-            <div class="mini-bubble bubble-1"></div>
-            <div class="mini-bubble bubble-2"></div>
-            <div class="mini-bubble bubble-3"></div>
-            <img class="main-fish" src="images/fish.webp" alt="粉色雙魚">
-            <div class="btn-groove">
-                <div class="enter-btn" id="magic-btn">👇 點擊進入</div>
-            </div>
-        </div>
-        <div class="top-right-info">
-            <div id="date-display">--.--.--</div>
-            <div id="weather-display">天氣偵測中...</div>
-        </div>
-        <div class="bottom-right-info">
-            <div class="greeting">現在的心情是什麼呢？</div>
-            <div class="stats" style="cursor: pointer;">
-                今天 發現 <span id="today-count-number">0</span> 瓶 新漂流瓶
-            </div>
-        </div>
-    </div>
-</body>
-<script>
-    // 隨機問候語
-    function updateGreeting() {
-        const greetings = [
-            "現在的心情是什麼呢？",
-            "今天有什麼想對大海說的嗎？",
-            "每一份心情，都值得被傾聽。",
-            "讓海浪帶走煩惱，留下寧靜。",
-            "將心事裝進瓶子，讓它隨波逐流。",
-            "你的故事，正在前往未知的遠方。",
-            "撿到一個漂流瓶，裡面裝著什麼故事？",
-        ];
-        const greetingEl = document.querySelector('.greeting');
-        if (greetingEl) {
-            const randomIndex = Math.floor(Math.random() * greetings.length);
-            greetingEl.innerText = greetings[randomIndex];
-        } else {
-            setTimeout(updateGreeting, 500);
+        function tryClose() {
+          if (left || !isReady()) return;
+          var seen = Date.now() - startAt;
+          if (seen >= MIN_MS) close();
+          else setTimeout(tryClose, MIN_MS - seen);
         }
-    }
-    updateGreeting();
-</script>
+
+        // 進度條固定重畫，才不會停在原地看起來像當掉
+        var ticker = setInterval(function () { if (left) clearInterval(ticker); else render(); }, 150);
+
+        document.addEventListener('DOMContentLoaded', function () {
+          set(30, '正在整理版面…');
+          // 背景圖沒載好的話，底下會先是一片純色，所以要等它。
+          // 這裡只等背景圖，不等 window.load —— 那要等頁面上每一張圖都載完，
+          // 網路慢的時候會讓人多盯著載入畫面好幾秒，但那些圖晚一點到並不會破圖
+          var bg = new Image();
+          bg.onload = bg.onerror = function () {
+            bgReady = true;
+            set(60, '正在打撈今天的漂流瓶…');
+            tryClose();
+          };
+          bg.src = 'images/background.webp';
+        });
+
+        // 保險絲：不管後端或圖片出什麼事，最多 10 秒一定要放人進來
+        setTimeout(function () { postsReady = true; bgReady = true; close(); }, 10000);
+
+        return {
+          set: set,
+          // index.js 第一次把貼文畫出來時會呼叫這個
+          postsDone: function () { postsReady = true; set(90, '就快好了…'); tryClose(); }
+        };
+      })();
+    </script>
+  </head>
+
+  <body>
+    <!-- 🌊 進站載入畫面：蓋住「背景圖還沒載好、貼文還沒回來」的那幾秒 -->
+    <div id="tt-loading">
+      <div class="tt-bubbles" aria-hidden="true">
+        <span></span><span></span><span></span><span></span><span></span><span></span>
+      </div>
+      <div class="tt-load-inner">
+        <!-- 漂流瓶：簡單的扁平剪影 -->
+        <svg class="tt-bottle" viewBox="0 0 80 120" aria-hidden="true">
+          <!-- 瓶身 -->
+          <path d="M33 16 v12 c0 6 -13 13 -13 25 v50 c0 5 4 9 9 9 h22 c5 0 9 -4 9 -9 v-50 c0 -12 -13 -19 -13 -25 v-12 z"
+                fill="rgba(255,255,255,0.14)" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round"/>
+          <!-- 瓶子裡的水 -->
+          <path d="M20 74 c7 -4 12 3 19 -1 c7 -4 13 3 21 -1 v31 c0 5 -4 9 -9 9 h-22 c-5 0 -9 -4 -9 -9 z"
+                fill="#8ed8f8" opacity="0.85"/>
+          <!-- 瓶中信 -->
+          <rect x="31" y="56" width="18" height="26" rx="3" transform="rotate(-12 40 69)"
+                fill="#fff4dc" stroke="#e5d2a8" stroke-width="2"/>
+          <!-- 軟木塞 -->
+          <rect x="31" y="3" width="18" height="14" rx="4" fill="#d9a066" stroke="#ffffff" stroke-width="3.5"/>
+        </svg>
+        <div class="tt-load-title">心情漂流瓶</div>
+        <div class="tt-bar"><div class="tt-bar-fill" id="tt-bar-fill"></div></div>
+        <div class="tt-load-text" id="tt-load-text">正在潛進海裡…</div>
+      </div>
+    </div>
+    <div
+      class="sidebar-overlay"
+      id="mobile-sidebar-overlay"
+      onclick="toggleMobileSidebar()"
+    ></div>
+
+    <div id="forum-view">
+      <!-- ==================================================
+           🌊 頂部導覽列 (電腦版豪華大氣 + 手機版精簡整潔)
+           ================================================== -->
+      <header class="light-header">
+        <!-- 1. 左側：Logo -->
+        <div
+          class="logo"
+          onclick="window.location.href = 'index.html'"
+          title="回到主頁"
+        >
+          <img
+            src="images/fish_logo.webp"
+            style="width: 28px; margin-right: 8px; vertical-align: middle"
+          />心情漂流瓶
+        </div>
+
+        <!-- 2. 電腦版專屬：遊樂場 & 新手教學按鈕 (手機自動隱藏) -->
+        <div class="desktop-nav-links">
+          <button
+            class="header-game-btn"
+            onclick="
+              event.stopPropagation();
+              window.location.href = 'games.html';
+            "
+          >
+            🎮 <span>遊樂場</span>
+          </button>
+          <button
+            class="header-tutorial-btn"
+            onclick="
+              event.stopPropagation();
+              window.location.href = 'tutorial.html';
+            "
+          >
+            📖 <span>新手教學</span>
+          </button>
+        </div>
+
+        <!-- 3. 手機版專屬：Logo 右側鈴鐺 (電腦版自動隱藏) -->
+        <div class="mobile-bell-wrapper">
+          <div
+            class="notification-bell"
+            onclick="toggleNotificationPopup(event)"
+            title="查看最新通知"
+          >
+            🔔
+            <span class="badge notification-badge-sync" style="display: none"
+              >0</span
+            >
+          </div>
+        </div>
+
+        <!-- 4. 搜尋列 (電腦版居中自適應，手機版自動換至第二行滿版) -->
+        <div class="search-container">
+          <div class="search-box-wrapper">
+            <input
+              type="text"
+              class="search-input light-search"
+              placeholder="🔍 搜尋海域、標題、內容..."
+              id="main-search-input"
+              autocomplete="off"
+            />
+            <span
+              id="clear-search-btn"
+              class="clear-search-btn"
+              title="清除搜尋"
+              >清除</span
+            >
+            <div
+              id="search-history-dropdown"
+              class="search-history-box"
+              style="display: none"
+            ></div>
+          </div>
+        </div>
+
+        <!-- 5. 右側動作區 -->
+        <div class="nav-actions">
+          <button id="login-trigger" class="btn-login">註冊 / 登入</button>
+
+          <!-- 電腦版專屬：鈴鐺 + 個人名字下拉選單 + 發文按鈕 (手機自動隱藏) -->
+          <div
+            id="user-profile"
+            class="desktop-user-profile"
+            style="display: none"
+          >
+            <div style="position: relative; display: flex; align-items: center">
+              <div
+                class="notification-bell"
+                id="notification-bell-btn"
+                onclick="toggleNotificationPopup(event)"
+                title="查看最新通知"
+              >
+                🔔
+                <span
+                  id="notification-badge"
+                  class="badge notification-badge-sync"
+                  style="display: none"
+                  >0</span
+                >
+              </div>
+            </div>
+
+            <div class="user-menu-wrapper">
+              <div
+                class="user-info-trigger"
+                id="user-menu-btn"
+                onclick="toggleDesktopUserMenu(event)"
+              >
+                <img
+                  id="user-avatar"
+                  src="images/fish_logo.webp"
+                  alt="頭像"
+                  class="avatar-img"
+                />
+                <span id="user-name" class="user-name-text"></span>
+                <span class="menu-arrow">▼</span>
+              </div>
+
+              <div class="user-dropdown-menu" id="user-dropdown">
+                <div class="menu-item" id="open-profile">👤 個人資料</div>
+                <div class="menu-item" onclick="openActivityModal()">
+                  📰 動態消息
+                </div>
+                <div
+                  class="menu-item"
+                  onclick="window.location.href = 'customer-service.html'"
+                >
+                  💬 線上客服
+                </div>
+                <div
+                  class="menu-item"
+                  onclick="window.location.href = 'tutorial.html'"
+                >
+                  📖 新手教學
+                </div>
+                <div class="menu-item" onclick="openSettingsModal()">
+                  ⚙️ 網站設定
+                </div>
+                <div class="menu-divider"></div>
+                <div class="menu-item logout-item" id="logout-btn">
+                  🚪 退出登入
+                </div>
+              </div>
+            </div>
+
+            <button id="btn-new-post" class="btn-post">✏️ 發文</button>
+          </div>
+
+          <!-- 手機版專屬：[ ☰ 整合按鈕 ] (電腦版自動隱藏) -->
+          <button
+            class="mobile-hub-btn"
+            onclick="openHubModal()"
+            title="開啟選單"
+          >
+            更多
+          </button>
+        </div>
+
+        <!-- 通用通知彈窗 -->
+        <div
+          class="notif-popup-container"
+          id="notif-popup"
+          style="display: none"
+        >
+          <div class="notif-popup-header">
+            <span class="title">通知中心</span>
+            <button
+              class="mark-all-btn"
+              onclick="markAllAsReadAPI(event)"
+              title="將所有通知標記為已讀"
+            >
+              🫧 全部已讀
+            </button>
+          </div>
+          <div class="notif-popup-list" id="notif-list-container">
+            <div style="text-align: center; color: #88bbff; padding: 30px 0">
+              載入中...🌊
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <!-- 📱 手機版專屬彈出控制台 (新手教學 + 客服雙排寬敞版) -->
+      <div
+        id="hub-modal"
+        class="modal"
+        style="display: none"
+        onclick="
+          if (event.target === this)
+            this.style.setProperty('display', 'none', 'important');
+        "
+      >
+        <div
+          class="hub-card"
+          style="
+            display: flex !important;
+            flex-direction: column !important;
+            width: 92% !important;
+            max-width: 340px !important;
+            box-sizing: border-box !important;
+            gap: 12px !important;
+            position: relative !important;
+          "
+        >
+          <!-- 1. 第一排：使用者資訊 ── 獨立大顆 ✕ (絕不重疊) -->
+          <div
+            class="hub-header-bar"
+            style="
+              display: flex !important;
+              flex-direction: row !important;
+              align-items: center !important;
+              justify-content: space-between !important;
+              width: 100% !important;
+              gap: 12px !important;
+              box-sizing: border-box !important;
+            "
+          >
+            <!-- 👤 使用者資訊與下拉選單容器 -->
+            <div style="position: relative; flex: 1; min-width: 0">
+              <div
+                class="hub-user-trigger"
+                onclick="
+                  event.stopPropagation();
+                  toggleHubDropdown(event);
+                "
+                style="
+                  display: inline-flex !important;
+                  align-items: center !important;
+                  gap: 6px !important;
+                  padding: 6px 12px !important;
+                  border-radius: 20px !important;
+                  background: rgba(255, 255, 255, 0.12) !important;
+                  border: 1.5px solid rgba(255, 255, 255, 0.28) !important;
+                  cursor: pointer !important;
+                  max-width: 100% !important;
+                  box-sizing: border-box !important;
+                "
+              >
+                <img
+                  id="hub-avatar"
+                  src="images/fish_logo.webp"
+                  class="hub-avatar-img"
+                  style="
+                    width: 24px;
+                    height: 24px;
+                    border-radius: 50%;
+                    object-fit: cover;
+                    flex-shrink: 0;
+                  "
+                />
+                <span
+                  id="hub-name"
+                  class="hub-name-text"
+                  style="
+                    font-size: 0.85rem;
+                    font-weight: 700;
+                    color: #fff;
+                    overflow: hidden;
+                    text-overflow: ellipsis;
+                    white-space: nowrap;
+                  "
+                  >載入中...</span
+                >
+                <span
+                  style="
+                    color: #fff;
+                    font-size: 0.7rem;
+                    margin-left: 2px;
+                    flex-shrink: 0;
+                  "
+                  >▼</span
+                >
+              </div>
+
+              <!-- 下拉選單 (純白底 ＋ 純黑字) -->
+              <div
+                id="hub-user-dropdown"
+                style="
+                  display: none;
+                  position: absolute;
+                  top: calc(100% + 8px);
+                  left: 0;
+                  min-width: 180px;
+                  background: #ffffff !important;
+                  border-radius: 14px;
+                  box-shadow: 0 12px 35px rgba(0, 0, 0, 0.35);
+                  z-index: 999999;
+                  padding: 6px 0;
+                  overflow: hidden;
+                  border: 1px solid #e2e8f0;
+                "
+              >
+                <div
+                  class="menu-item"
+                  style="
+                    padding: 10px 18px;
+                    color: #000000 !important;
+                    font-size: 0.9rem;
+                    font-weight: 600;
+                    cursor: pointer;
+                    display: flex;
+                    align-items: center;
+                    gap: 8px;
+                  "
+                  onclick="
+                    document
+                      .getElementById('hub-modal')
+                      .style.setProperty('display', 'none', 'important');
+                    document.getElementById('open-profile')?.click();
+                  "
+                >
+                  👤 <span style="color: #000000 !important">個人資料</span>
+                </div>
+                <div
+                  class="menu-item"
+                  style="
+                    padding: 10px 18px;
+                    color: #000000 !important;
+                    font-size: 0.9rem;
+                    font-weight: 600;
+                    cursor: pointer;
+                    display: flex;
+                    align-items: center;
+                    gap: 8px;
+                  "
+                  onclick="
+                    document
+                      .getElementById('hub-modal')
+                      .style.setProperty('display', 'none', 'important');
+                    typeof openActivityModal === 'function' &&
+                      openActivityModal();
+                  "
+                >
+                  📰 <span style="color: #000000 !important">動態消息</span>
+                </div>
+                <div
+                  class="menu-item"
+                  style="
+                    padding: 10px 18px;
+                    color: #000000 !important;
+                    font-size: 0.9rem;
+                    font-weight: 600;
+                    cursor: pointer;
+                    display: flex;
+                    align-items: center;
+                    gap: 8px;
+                  "
+                  onclick="
+                    document
+                      .getElementById('hub-modal')
+                      .style.setProperty('display', 'none', 'important');
+                    typeof openSettingsModal === 'function' &&
+                      openSettingsModal();
+                  "
+                >
+                  ⚙️ <span style="color: #000000 !important">網站設定</span>
+                </div>
+                <div
+                  style="height: 1px; background: #e5e7eb; margin: 5px 0"
+                ></div>
+                <div
+                  class="menu-item logout-item"
+                  style="
+                    padding: 10px 18px;
+                    color: #dc2626 !important;
+                    font-size: 0.9rem;
+                    font-weight: 700;
+                    cursor: pointer;
+                    display: flex;
+                    align-items: center;
+                    gap: 8px;
+                  "
+                  onclick="document.getElementById('logout-btn')?.click()"
+                >
+                  🚪 <span style="color: #dc2626 !important">退出登入</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- ✕ 關閉按鈕：獨立在右上角，大顆好按不遮擋 -->
+            <button
+              type="button"
+              onclick="
+                event.preventDefault();
+                event.stopPropagation();
+                document
+                  .getElementById('hub-modal')
+                  .style.setProperty('display', 'none', 'important');
+                return false;
+              "
+              style="
+                width: 34px !important;
+                height: 34px !important;
+                min-width: 34px !important;
+                border-radius: 50% !important;
+                background: rgba(255, 255, 255, 0.15) !important;
+                border: 1.5px solid rgba(255, 255, 255, 0.35) !important;
+                color: #ffffff !important;
+                font-size: 16px !important;
+                display: flex !important;
+                align-items: center !important;
+                justify-content: center !important;
+                cursor: pointer !important;
+                flex-shrink: 0 !important;
+                z-index: 999999 !important;
+              "
+              title="關閉"
+            >
+              ✕
+            </button>
+          </div>
+
+          <!-- 2. 第二排：新手教學 與 客服 (各佔 50%，寬敞好點、字體水平絕不擠成直排) -->
+          <div
+            class="hub-dual-actions"
+            style="
+              display: flex !important;
+              flex-direction: row !important;
+              gap: 8px !important;
+              width: 100% !important;
+              box-sizing: border-box !important;
+            "
+          >
+            <button
+              type="button"
+              onclick="
+                event.stopPropagation();
+                window.location.href = 'tutorial.html';
+              "
+              style="
+                flex: 1 1 50% !important;
+                padding: 9px 0 !important;
+                font-size: 0.85rem !important;
+                font-weight: 700 !important;
+                border-radius: 12px !important;
+                border: 1px solid #38bdf8 !important;
+                background: rgba(0, 180, 219, 0.35) !important;
+                color: #fff !important;
+                cursor: pointer !important;
+              "
+            >
+              📖 新手教學
+            </button>
+            <button
+              type="button"
+              onclick="
+                event.stopPropagation();
+                window.location.href = 'customer-service.html';
+              "
+              style="
+                flex: 1 1 50% !important;
+                padding: 9px 0 !important;
+                font-size: 0.85rem !important;
+                font-weight: 700 !important;
+                border-radius: 12px !important;
+                border: 1px solid #34d399 !important;
+                background: rgba(16, 185, 129, 0.35) !important;
+                color: #fff !important;
+                cursor: pointer !important;
+              "
+            >
+              💬 線上客服
+            </button>
+          </div>
+
+          <!-- 3. 第三排：發文長條按鈕 -->
+          <button
+            type="button"
+            class="hub-new-post-bar"
+            onclick="handleHubPostClick()"
+            style="
+              width: 100% !important;
+              padding: 11px !important;
+              background: linear-gradient(135deg, #00b4db, #0083b0) !important;
+              border: 1px solid rgba(255, 255, 255, 0.4) !important;
+              color: #fff !important;
+              font-size: 0.95rem !important;
+              font-weight: 800 !important;
+              border-radius: 12px !important;
+              cursor: pointer !important;
+            "
+          >
+            ✏️ 撰寫漂流瓶
+          </button>
+
+          <!-- 4. 第四排：六個遊戲按鈕 -->
+          <div
+            class="hub-section-title"
+            style="
+              font-size: 0.85rem !important;
+              color: #94a3b8 !important;
+              font-weight: 700 !important;
+              margin-top: 4px !important;
+            "
+          >
+            🎮 秘密海域遊樂場
+          </div>
+          <div
+            class="hub-games-grid"
+            style="
+              display: grid !important;
+              grid-template-columns: repeat(2, 1fr) !important;
+              gap: 8px !important;
+              width: 100% !important;
+              box-sizing: border-box !important;
+            "
+          >
+            <a
+              class="hub-game-tile"
+              href="slug_game.html"
+              style="
+                background: rgba(255, 255, 255, 0.08) !important;
+                border: 1px solid rgba(255, 255, 255, 0.18) !important;
+                border-radius: 12px !important;
+                padding: 10px 4px !important;
+                display: flex !important;
+                flex-direction: column !important;
+                align-items: center !important;
+                justify-content: center !important;
+                gap: 4px !important;
+                text-decoration: none !important;
+                color: #ffffff !important;
+              "
+            >
+              <span class="hub-game-emoji" style="font-size: 1.6rem !important"
+                >🐰</span
+              >
+              <span
+                class="hub-game-label"
+                style="
+                  font-size: 0.78rem !important;
+                  font-weight: 800 !important;
+                  color: #e2e8f0 !important;
+                "
+                >海兔養成記</span
+              >
+            </a>
+            <a
+              class="hub-game-tile"
+              href="Tarot_Bottle_Project/index.html"
+              style="
+                background: rgba(255, 255, 255, 0.08) !important;
+                border: 1px solid rgba(255, 255, 255, 0.18) !important;
+                border-radius: 12px !important;
+                padding: 10px 4px !important;
+                display: flex !important;
+                flex-direction: column !important;
+                align-items: center !important;
+                justify-content: center !important;
+                gap: 4px !important;
+                text-decoration: none !important;
+                color: #ffffff !important;
+              "
+            >
+              <span class="hub-game-emoji" style="font-size: 1.6rem !important"
+                >🔮</span
+              >
+              <span
+                class="hub-game-label"
+                style="
+                  font-size: 0.78rem !important;
+                  font-weight: 800 !important;
+                  color: #e2e8f0 !important;
+                "
+                >今日塔羅瓶</span
+              >
+            </a>
+            <a
+              class="hub-game-tile"
+              href="puzzle.html"
+              style="
+                background: rgba(255, 255, 255, 0.08) !important;
+                border: 1px solid rgba(255, 255, 255, 0.18) !important;
+                border-radius: 12px !important;
+                padding: 10px 4px !important;
+                display: flex !important;
+                flex-direction: column !important;
+                align-items: center !important;
+                justify-content: center !important;
+                gap: 4px !important;
+                text-decoration: none !important;
+                color: #ffffff !important;
+              "
+            >
+              <span class="hub-game-emoji" style="font-size: 1.6rem !important"
+                >🧩</span
+              >
+              <span
+                class="hub-game-label"
+                style="
+                  font-size: 0.78rem !important;
+                  font-weight: 800 !important;
+                  color: #e2e8f0 !important;
+                "
+                >突然想拼圖</span
+              >
+            </a>
+            <a
+              class="hub-game-tile"
+              href="notes.html"
+              style="
+                background: rgba(255, 255, 255, 0.08) !important;
+                border: 1px solid rgba(255, 255, 255, 0.18) !important;
+                border-radius: 12px !important;
+                padding: 10px 4px !important;
+                display: flex !important;
+                flex-direction: column !important;
+                align-items: center !important;
+                justify-content: center !important;
+                gap: 4px !important;
+                text-decoration: none !important;
+                color: #ffffff !important;
+              "
+            >
+              <span class="hub-game-emoji" style="font-size: 1.6rem !important"
+                >📝</span
+              >
+              <span
+                class="hub-game-label"
+                style="
+                  font-size: 0.78rem !important;
+                  font-weight: 800 !important;
+                  color: #e2e8f0 !important;
+                "
+                >每日便利貼</span
+              >
+            </a>
+            <a
+              class="hub-game-tile"
+              href="smash.html"
+              style="
+                background: rgba(255, 255, 255, 0.08) !important;
+                border: 1px solid rgba(255, 255, 255, 0.18) !important;
+                border-radius: 12px !important;
+                padding: 10px 4px !important;
+                display: flex !important;
+                flex-direction: column !important;
+                align-items: center !important;
+                justify-content: center !important;
+                gap: 4px !important;
+                text-decoration: none !important;
+                color: #ffffff !important;
+              "
+            >
+              <span class="hub-game-emoji" style="font-size: 1.6rem !important"
+                >💥</span
+              >
+              <span
+                class="hub-game-label"
+                style="
+                  font-size: 0.78rem !important;
+                  font-weight: 800 !important;
+                  color: #e2e8f0 !important;
+                "
+                >瓶命射擊</span
+              >
+            </a>
+            <a
+              class="hub-game-tile"
+              href="catch-bottle.html"
+              style="
+                background: rgba(255, 255, 255, 0.08) !important;
+                border: 1px solid rgba(255, 255, 255, 0.18) !important;
+                border-radius: 12px !important;
+                padding: 10px 4px !important;
+                display: flex !important;
+                flex-direction: column !important;
+                align-items: center !important;
+                justify-content: center !important;
+                gap: 4px !important;
+                text-decoration: none !important;
+                color: #ffffff !important;
+              "
+            >
+              <span class="hub-game-emoji" style="font-size: 1.6rem !important"
+                >🤲</span
+              >
+              <span
+                class="hub-game-label"
+                style="
+                  font-size: 0.78rem !important;
+                  font-weight: 800 !important;
+                  color: #e2e8f0 !important;
+                "
+                >接住小瓶</span
+              >
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <div class="container light-container">
+        <aside class="sidebar light-sidebar">
+          <h3>熱門看板</h3>
+          <ul>
+            <li class="active">🌊 全海域</li>
+            <li>😡 極度憤怒中</li>
+            <li>🤫 沒人懂的秘密</li>
+            <li>💔 破碎的碎片</li>
+            <li>😑 極度厭世/躺平</li>
+            <li>😁 開心的事</li>
+          </ul>
+        </aside>
+
+        <main class="main-feed" id="feed-view">
+          <div id="post-container">
+            <div class="empty-state-text" style="display: none">
+              目前沒有漂流瓶，快來拋出第一個吧！🌊
+            </div>
+          </div>
+        </main>
+
+        <main
+          class="main-feed ocean-detail-card"
+          id="detail-view"
+          style="display: none"
+        >
+          <div class="detail-nav-bar">
+            <div class="back-action" onclick="closePostDetail()">
+              <span class="back-arrow">&larr;</span>
+              <span class="back-text">返回海域</span>
+            </div>
+
+            <div style="display: flex; gap: 12px; align-items: center">
+              <div
+                class="report-action"
+                onclick="openReportModal()"
+                title="檢舉此瓶子"
+              >
+                ⚠️ 檢舉
+              </div>
+              <div class="board-badge">
+                <img src="images/fish_logo.webp" class="board-icon" />
+                <span id="detail-board-tag">綜合閒聊</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="detail-scroll-body">
+            <h2 id="detail-post-title" class="detail-title"></h2>
+
+            <div class="detail-author-box">
+              <img src="images/fish_logo.webp" class="detail-avatar" />
+              <div class="detail-author-text">
+                <div id="detail-author-tag" class="detail-author-name"></div>
+                <div class="detail-post-time">今天發布</div>
+                <button
+                  id="follow-author-btn"
+                  class="follow-btn"
+                  onclick="toggleFollow()"
+                >
+                  + 追蹤
+                </button>
+              </div>
+            </div>
+
+            <div id="detail-post-content" class="detail-content"></div>
+            <div
+              id="detail-post-poll"
+              class="ocean-poll-box"
+              style="display: none"
+            ></div>
+            <div class="detail-comments-wrapper">
+              <h3 class="comments-title">
+                💬 共 <span id="detail-comment-count">0</span> 則留言
+              </h3>
+
+              <div id="detail-comments-list" class="comments-list"></div>
+            </div>
+          </div>
+
+          <div class="comment-action-bar">
+            <button
+              type="button"
+              id="save-bottle-btn"
+              class="save-btn"
+              title="收藏這個瓶子"
+              onclick="this.classList.toggle('active')"
+            >
+              ⭐
+            </button>
+            <input
+              type="text"
+              id="new-comment-input"
+              placeholder="寫下溫暖的留言..."
+              class="comment-input"
+              autocomplete="off"
+            />
+            <label
+              style="
+                font-size: 0.9rem;
+                color: #6688aa;
+                display: flex;
+                align-items: center;
+                gap: 4px;
+                cursor: pointer;
+                user-select: none;
+                white-space: nowrap;
+              "
+            >
+              <input type="checkbox" id="main-comment-anon" /> 🎭 匿名
+            </label>
+            <button type="button" onclick="submitComment()" class="send-btn">
+              送出
+            </button>
+          </div>
+        </main>
+
+        <aside class="right-panel light-right-panel">
+          <h3>熱門話題</h3>
+          <div class="tag-cloud">
+            <span class="tag"># AI革命</span><span class="tag"># 心情點滴</span>
+          </div>
+        </aside>
+      </div>
+    </div>
+
+    <!-- 📝 發文視窗 -->
+    <div id="post-modal" class="modal">
+      <div class="modal-content ocean-post-modal">
+        <span class="close-btn" id="close-post-modal">&times;</span>
+        <div class="post-modal-header">
+          <h2>📝 撰寫漂流瓶</h2>
+          <p>把你的心事裝進瓶子，讓海浪替你傳遞...</p>
+        </div>
+        <form id="new-post-form" class="ocean-post-form">
+          <div class="form-row">
+            <select id="post-board" required class="ocean-input">
+              <option value="" disabled selected>🌊 選擇拋出的海域...</option>
+              <option value="1">😡 極度憤怒中</option>
+              <option value="2">🤫 沒人懂的秘密</option>
+              <option value="3">💔 破碎的碎片</option>
+              <option value="4">😑 極度厭世/躺平</option>
+              <option value="5">😁 開心的事</option>
+            </select>
+            <select id="post-identity" required class="ocean-input">
+              <option value="真實姓名">👤 實名發布</option>
+              <option value="匿名">🎭 偷偷說 (匿名)</option>
+            </select>
+          </div>
+          <input
+            type="text"
+            id="post-title-input"
+            placeholder="為這瓶心事下個標題吧！"
+            required
+            class="ocean-input"
+            autocomplete="off"
+          />
+          <textarea
+            id="post-content-input"
+            placeholder="寫下你想說的話..."
+            required
+            class="ocean-input ocean-textarea"
+          ></textarea>
+          <div
+            id="post-content-preview"
+            class="ocean-input ocean-textarea md-content md-preview"
+            style="display: none"
+          ></div>
+          <div class="md-helper">
+            <details class="md-hint">
+              <summary>✍️ 支援 Markdown 語法</summary>
+              <table class="md-hint-table"><tr><td>**粗體**</td><td><strong>粗體</strong></td></tr><tr><td>*斜體*</td><td><em>斜體</em></td></tr><tr><td>~~刪除線~~</td><td><del>刪除線</del></td></tr><tr><td>`程式碼`</td><td><code>程式碼</code></td></tr><tr><td># 標題</td><td>大標題（## 小一點）</td></tr><tr><td>- 項目</td><td>清單（1. 是編號清單）</td></tr><tr><td>> 引用</td><td>引用一段話</td></tr><tr><td>[文字](https://...)</td><td>連結</td></tr><tr><td>```<br>程式碼<br>```</td><td>程式碼區塊</td></tr><tr><td>空一行</td><td>開始新的一段</td></tr></table>
+            </details>
+            <button
+              type="button"
+              id="post-preview-toggle"
+              class="md-preview-toggle"
+              onclick="togglePostPreview()"
+            >
+              👀 預覽
+            </button>
+          </div>
+
+          <!-- 📊 Threads 風格投票選項設定區 -->
+          <div class="poll-creator-section">
+            <button type="button" id="btn-toggle-poll" class="poll-toggle-btn">
+              📊 附帶投票活動
+            </button>
+
+            <div
+              id="poll-inputs-container"
+              class="poll-inputs-container"
+              style="display: none"
+            >
+              <div class="poll-header-line">
+                <span>投票選項（2～4 項）</span>
+                <span class="poll-close-text" onclick="togglePollCreator(false)"
+                  >✕ 取消投票</span
+                >
+              </div>
+              <div id="poll-options-list">
+                <input
+                  type="text"
+                  class="ocean-input poll-opt-input"
+                  placeholder="選項 1"
+                  maxlength="30"
+                />
+                <input
+                  type="text"
+                  class="ocean-input poll-opt-input"
+                  placeholder="選項 2"
+                  maxlength="30"
+                />
+              </div>
+              <button
+                type="button"
+                id="btn-add-poll-option"
+                class="btn-add-option"
+                onclick="addPollOption()"
+              >
+                + 新增選項
+              </button>
+            </div>
+          </div>
+
+          <button type="submit" class="ocean-submit-btn">拋出漂流瓶</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- 👤 個人資訊視窗 -->
+    <div id="profile-modal" class="modal">
+      <div
+        class="modal-content light-modal"
+        style="
+          width: 400px;
+          text-align: center;
+          max-height: 90vh;
+          overflow-y: auto;
+        "
+      >
+        <span class="close-btn" id="close-profile-modal">&times;</span>
+        <h2 style="color: #0055a5; margin-bottom: 20px; font-weight: 900">
+          個人資訊
+        </h2>
+        <div class="profile-detail">
+          <div id="profile-view-mode">
+            <h3 id="detail-name" style="margin: 5px 0; font-size: 1.4rem">
+              姓名
+            </h3>
+            <p id="detail-email" style="color: #888; font-size: 0.9rem">
+              email@example.com
+            </p>
+            <hr style="border: 0; border-top: 1px solid #eee; margin: 15px 0" />
+            <div style="text-align: left; padding: 0 20px; line-height: 2">
+              <div>
+                <strong>🎂 生日：</strong
+                ><span id="detail-birthday">未填寫</span>
+              </div>
+              <div>
+                <strong>🚻 性別：</strong><span id="detail-gender">未填寫</span>
+              </div>
+              <div>
+                <strong>✨ 星座：</strong><span id="detail-zodiac">未填寫</span>
+              </div>
+              <div style="margin-top: 10px"><strong>📝 自我介紹：</strong></div>
+              <div
+                id="detail-bio"
+                style="
+                  background: #f9fbfd;
+                  padding: 10px;
+                  border-radius: 8px;
+                  font-size: 0.9rem;
+                  word-break: break-word;
+                "
+              >
+                尚未填寫自我介紹...
+              </div>
+            </div>
+            <button
+              id="btn-edit-profile"
+              class="btn-submit"
+              style="margin-top: 15px; padding: 10px; border-radius: 20px"
+            >
+              ✏️ 編輯個人資料
+            </button>
+          </div>
+
+          <div
+            id="profile-edit-mode"
+            style="display: none; text-align: left; padding: 0 10px"
+          >
+            <label style="font-weight: bold; font-size: 0.9rem; color: #555"
+              >姓名：</label
+            >
+            <input
+              type="text"
+              id="edit-name"
+              class="light-input"
+              style="padding: 10px; margin-bottom: 10px"
+            />
+
+            <label style="font-weight: bold; font-size: 0.9rem; color: #555"
+              >Email (帳號綁定不可更改)：</label
+            >
+            <input
+              type="text"
+              id="edit-email"
+              class="light-input"
+              style="
+                padding: 10px;
+                margin-bottom: 10px;
+                background: #eef2f6;
+                color: #999;
+                cursor: not-allowed;
+              "
+              disabled
+            />
+
+            <div style="display: flex; gap: 10px">
+              <div style="flex: 1">
+                <label style="font-weight: bold; font-size: 0.9rem; color: #555"
+                  >🎂 生日：</label
+                >
+                <input
+                  type="date"
+                  id="edit-birthday"
+                  class="light-input"
+                  style="padding: 10px; margin-bottom: 10px"
+                />
+              </div>
+              <div style="flex: 1">
+                <label style="font-weight: bold; font-size: 0.9rem; color: #555"
+                  >🚻 性別：</label
+                >
+                <select
+                  id="edit-gender"
+                  class="light-input"
+                  style="padding: 10px; margin-bottom: 10px"
+                >
+                  <option value="未填寫">未填寫</option>
+                  <option value="男">男</option>
+                  <option value="女">女</option>
+                  <option value="不公開">不公開</option>
+                </select>
+              </div>
+            </div>
+
+            <label style="font-weight: bold; font-size: 0.9rem; color: #555"
+              >✨ 星座：</label
+            >
+            <select
+              id="edit-zodiac"
+              class="light-input"
+              style="padding: 10px; margin-bottom: 10px"
+            >
+              <option value="未填寫">未填寫</option>
+              <option value="牡羊座">牡羊座</option>
+              <option value="金牛座">金牛座</option>
+              <option value="雙子座">雙子座</option>
+              <option value="巨蟹座">巨蟹座</option>
+              <option value="獅子座">獅子座</option>
+              <option value="處女座">處女座</option>
+              <option value="天秤座">天秤座</option>
+              <option value="天蠍座">天蠍座</option>
+              <option value="射手座">射手座</option>
+              <option value="摩羯座">摩羯座</option>
+              <option value="水瓶座">水瓶座</option>
+              <option value="雙魚座">雙魚座</option>
+            </select>
+
+            <label style="font-weight: bold; font-size: 0.9rem; color: #555"
+              >📝 自我介紹：</label
+            >
+            <textarea
+              id="edit-bio"
+              class="light-input"
+              placeholder="介紹一下自己吧～支援 Markdown 語法"
+              style="
+                padding: 10px;
+                margin-bottom: 15px;
+                height: 80px;
+                resize: none;
+              "
+            ></textarea>
+
+            <div style="display: flex; gap: 10px">
+              <button
+                id="btn-cancel-edit"
+                class="btn-submit"
+                style="
+                  background: #f1f5f9;
+                  color: #475569;
+                  box-shadow: none;
+                  border-radius: 20px;
+                "
+              >
+                取消
+              </button>
+              <button
+                id="btn-save-profile"
+                class="btn-submit"
+                style="border-radius: 20px"
+              >
+                💾 儲存變更
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ⚠️ 檢舉視窗 -->
+    <div id="report-modal" class="modal">
+      <div
+        class="modal-content light-modal"
+        style="width: 320px; text-align: center; padding: 25px"
+      >
+        <span class="close-btn" onclick="closeReportModal()">&times;</span>
+        <h3 style="color: #ef4444; margin-top: 0; font-size: 1.3rem">
+          ⚠️ 檢舉此瓶子
+        </h3>
+        <p style="color: #64748b; font-size: 0.9rem; margin-bottom: 15px">
+          請告訴我們這個瓶子出了什麼問題：
+        </p>
+        <textarea
+          id="report-reason"
+          class="light-input"
+          rows="3"
+          placeholder="例如：這篇文章包含惡意攻擊與髒話..."
+        ></textarea>
+        <button
+          class="btn-submit"
+          style="
+            background: #ef4444;
+            box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3);
+            border-radius: 20px;
+          "
+          onclick="submitReport()"
+        >
+          送出檢舉
+        </button>
+      </div>
+    </div>
+
+    <!-- 🚫 封鎖確認視窗（在瓶子畫面雙擊作者、手機長按作者叫出來） -->
+    <div id="block-modal" class="modal" onclick="if (event.target === this) closeBlockModal()">
+      <div
+        class="modal-content light-modal"
+        style="width: 320px; max-width: calc(100% - 32px); box-sizing: border-box; text-align: center; padding: 25px"
+      >
+        <span class="close-btn" onclick="closeBlockModal()">&times;</span>
+        <h3 style="color: #ef4444; margin-top: 0; font-size: 1.3rem">
+          🚫 確認要封鎖嗎？
+        </h3>
+        <p style="color: #334155; font-size: 1rem; margin-bottom: 6px">
+          要封鎖「<strong id="block-target-name"></strong>」嗎？
+        </p>
+        <p style="color: #64748b; font-size: 0.85rem; margin-bottom: 18px; line-height: 1.6">
+          封鎖後你們會互相看不到對方的漂流瓶與留言，<br />
+          追蹤關係也會一併解除。對方不會收到通知。
+        </p>
+        <div style="display: flex; gap: 10px; justify-content: center">
+          <button
+            class="btn-submit"
+            style="background: #94a3b8; border-radius: 20px; flex: 1"
+            onclick="closeBlockModal()"
+          >
+            取消
+          </button>
+          <button
+            id="block-confirm-btn"
+            class="btn-submit"
+            style="
+              background: #ef4444;
+              box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3);
+              border-radius: 20px;
+              flex: 1;
+            "
+            onclick="confirmBlockAuthor()"
+          >
+            確認封鎖
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 🫂 我的追蹤視窗 -->
+    <div id="following-modal" class="modal">
+      <div
+        class="modal-content light-modal"
+        style="width: 380px; max-height: 80vh; overflow-y: auto; padding: 25px"
+      >
+        <span class="close-btn" onclick="closeFollowingModal()">&times;</span>
+        <h2
+          style="
+            color: #0055a5;
+            font-weight: 900;
+            text-align: center;
+            margin-bottom: 20px;
+            margin-top: 10px;
+          "
+        >
+          🫂 我的追蹤
+        </h2>
+
+        <div id="following-list-container">
+          <div style="text-align: center; color: #888; padding: 30px 0">
+            正在潛入深海尋找你追蹤的用戶...🌊
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 📰 動態消息視窗：追蹤、粉絲、封鎖、收藏、我的瓶子都從這裡進去 -->
+    <div id="activity-modal" class="modal" onclick="if (event.target === this) closeActivityModal()">
+      <div
+        class="modal-content light-modal"
+        style="width: 380px; max-height: 80vh; overflow-y: auto; padding: 25px"
+      >
+        <span class="close-btn" onclick="closeActivityModal()">&times;</span>
+        <h2
+          style="
+            color: #0055a5;
+            font-weight: 900;
+            text-align: center;
+            margin-bottom: 20px;
+            margin-top: 10px;
+          "
+        >
+          📰 動態消息
+        </h2>
+
+        <div class="activity-list">
+          <button type="button" class="activity-item" onclick="openActivityItem('following')">
+            <span class="activity-icon">🫂</span>
+            <span class="activity-text">
+              <span class="activity-title">我的追蹤</span>
+              <span class="activity-desc">你正在追蹤的人</span>
+            </span>
+            <span class="activity-arrow">›</span>
+          </button>
+          <button type="button" class="activity-item" onclick="openActivityItem('followers')">
+            <span class="activity-icon">👥</span>
+            <span class="activity-text">
+              <span class="activity-title">我的粉絲</span>
+              <span class="activity-desc">追蹤你的人，可以回追蹤</span>
+            </span>
+            <span class="activity-arrow">›</span>
+          </button>
+          <button type="button" class="activity-item" onclick="openActivityItem('blocked')">
+            <span class="activity-icon">🚫</span>
+            <span class="activity-text">
+              <span class="activity-title">封鎖名單</span>
+              <span class="activity-desc">查看、解除封鎖</span>
+            </span>
+            <span class="activity-arrow">›</span>
+          </button>
+          <button type="button" class="activity-item" onclick="openActivityItem('saved')">
+            <span class="activity-icon">⭐</span>
+            <span class="activity-text">
+              <span class="activity-title">收藏瓶子</span>
+              <span class="activity-desc">你收藏起來的漂流瓶</span>
+            </span>
+            <span class="activity-arrow">›</span>
+          </button>
+          <button type="button" class="activity-item" onclick="openActivityItem('mine')">
+            <span class="activity-icon">📝</span>
+            <span class="activity-text">
+              <span class="activity-title">我的瓶子</span>
+              <span class="activity-desc">你丟進海裡的漂流瓶</span>
+            </span>
+            <span class="activity-arrow">›</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 👥 粉絲名單視窗 -->
+    <div id="followers-modal" class="modal" onclick="if (event.target === this) closeFollowersModal()">
+      <div
+        class="modal-content light-modal"
+        style="width: 380px; max-height: 80vh; overflow-y: auto; padding: 25px"
+      >
+        <span class="close-btn" onclick="closeFollowersModal()">&times;</span>
+        <h2
+          style="
+            color: #0055a5;
+            font-weight: 900;
+            text-align: center;
+            margin-bottom: 20px;
+            margin-top: 10px;
+          "
+        >
+          👥 我的粉絲
+        </h2>
+
+        <div id="followers-list-container">
+          <div style="text-align: center; color: #888; padding: 30px 0">
+            正在打撈你的粉絲名單...🌊
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 🚫 封鎖名單視窗 -->
+    <div id="blocked-modal" class="modal" onclick="if (event.target === this) closeBlockedModal()">
+      <div
+        class="modal-content light-modal"
+        style="width: 380px; max-height: 80vh; overflow-y: auto; padding: 25px"
+      >
+        <span class="close-btn" onclick="closeBlockedModal()">&times;</span>
+        <h2
+          style="
+            color: #0055a5;
+            font-weight: 900;
+            text-align: center;
+            margin-bottom: 20px;
+            margin-top: 10px;
+          "
+        >
+          🚫 封鎖名單
+        </h2>
+
+        <div id="blocked-list-container">
+          <div style="text-align: center; color: #888; padding: 30px 0">
+            正在讀取封鎖名單...🌊
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ⚙️ 網站設定小彈窗 -->
+    <div id="settings-modal" class="modal">
+      <div
+        class="modal-content light-modal"
+        style="width: 340px; padding: 30px 25px"
+      >
+        <span class="close-btn" onclick="closeSettingsModal()">&times;</span>
+        <h2
+          style="
+            color: #0055a5;
+            font-weight: 900;
+            text-align: center;
+            margin-top: 0;
+            margin-bottom: 20px;
+          "
+        >
+          ⚙️ 網站小設定
+        </h2>
+
+        <div class="settings-list">
+          <div
+            class="setting-item"
+            style="
+              display: flex;
+              justify-content: space-between;
+              align-items: center;
+              padding: 12px 0;
+              border-bottom: 1px solid #eef2f6;
+            "
+          >
+            <div>
+              <div style="font-weight: bold; color: #333; font-size: 1rem">
+                顯示留言時間
+              </div>
+              <div style="font-size: 0.8rem; color: #8899aa; margin-top: 3px">
+                開啟或隱藏留言發布時間
+              </div>
+            </div>
+            <label class="switch">
+              <input
+                type="checkbox"
+                id="setting-show-comment-time"
+                onchange="toggleCommentTimeSetting(this.checked)"
+              />
+              <span class="slider round"></span>
+            </label>
+          </div>
+
+          <div
+            class="setting-item"
+            style="
+              display: flex;
+              justify-content: space-between;
+              align-items: center;
+              padding: 12px 0;
+            "
+          >
+            <div>
+              <div style="font-weight: bold; color: #333; font-size: 1rem">
+                允許他人追蹤
+              </div>
+              <div style="font-size: 0.8rem; color: #8899aa; margin-top: 3px">
+                非匿名發文時是否開放被追蹤
+              </div>
+            </div>
+            <label class="switch">
+              <input
+                type="checkbox"
+                id="setting-allow-follow"
+                onchange="toggleAllowFollowSetting(this.checked)"
+              />
+              <span class="slider round"></span>
+            </label>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 🔥 左側懸浮：熱門漂流瓶抽屜 -->
+    <div class="ocean-popular-board collapsed" id="ocean-popular-board">
+      <div
+        class="popular-drawer-handle"
+        onclick="
+          document
+            .getElementById('ocean-popular-board')
+            .classList.toggle('collapsed')
+        "
+        title="點擊收起/展開熱門貼文"
+      >
+        <span>🔥 熱門</span>
+        <i id="popular-arrow">▶</i>
+      </div>
+      <div class="popular-content-wrapper">
+        <div class="popular-header">
+          <span class="popular-icon">🔥</span> 熱門海域
+        </div>
+        <div id="popular-posts-list" class="popular-list-container">
+          <div style="text-align: center; color: #88bbff; padding: 25px 0">
+            正在打撈熱門瓶子...🌊
+          </div>
+        </div>
+        <div class="popular-footer">✨ 大家都在討論的心事</div>
+      </div>
+    </div>
+
+    <!-- 🌊 右側懸浮：深海公約抽屜 -->
+    <div class="ocean-rules-board collapsed" id="ocean-rules-board">
+      <div
+        class="rules-drawer-handle"
+        onclick="
+          document
+            .getElementById('ocean-rules-board')
+            .classList.toggle('collapsed')
+        "
+        title="點擊收起/展開殿規"
+      >
+        <span>📜 殿規</span>
+        <i id="rules-arrow">▶</i>
+      </div>
+      <div class="rules-content-wrapper">
+        <div class="rules-header">
+          <span class="rules-icon">📜</span> 海神殿規
+        </div>
+        <ul class="rules-list">
+          <li>
+            <strong>🚫 拒絕海洋垃圾：</strong><br />
+            請勿隨意拋棄廣告或謾罵，海龜會噎到！
+          </li>
+          <li>
+            <strong>🐚 藏好蚌殼裡的珍珠：</strong><br />
+            請勿在瓶中透露真實姓名、電話、社交帳號或定位，保護自己的隱密空間，也尊重他人的深海隱私。
+          </li>
+          <li>
+            <strong>🏴‍☠️ 警惕狡猾的海盜：</strong><br />
+            這片海域只交流心情、不流通金幣！嚴禁借貸、推銷、引流私聊或金錢交易，別讓偽裝成寶藏的陷阱偷走信任。
+          </li>
+          <li>
+            <strong>⚠️ 提前標記暗礁海域：</strong><br />
+            若瓶中包含較沉重、引發不安或極端情緒的內容，請在開頭標註警語，讓路過的小魚能做好心理準備再拾起。
+          </li>
+          <li>
+            <strong>🛟 暴風雨中的救生圈：</strong><br />
+            若遭遇無法獨自承受的滔天巨浪，漂流瓶無法取代專業協助，請及時抓住身邊的燈塔或撥打心理諮商專線尋求靠岸。
+          </li>
+          <li>
+            <strong>🫧 留下溫柔的氣泡：</strong><br />
+            拾起別人的瓶子時，請多給予傾聽與陪伴，少一點嚴苛批判與人生說教；每個人需要的往往不是解答，而是一句「我懂你」。
+          </li>
+          <li>
+            <strong>🚨 遇到海怪請通報：</strong><br />
+            若發現違規內容，請勇敢點擊「檢舉」呼叫海神衛隊。
+          </li>
+          <li>
+            <strong>🤿 適度換氣：</strong><br />
+            潛水太久會缺氧，記得偶爾浮出水面看看現實的風景！
+          </li>
+        </ul>
+        <div class="rules-footer">✨ 願這片海域，能接住你所有的情緒</div>
+      </div>
+    </div>
+
+    <div class="ocean-refresh-btn" onclick="callOceanCurrent()">
+      🌊 呼喚海流
+    </div>
+
+    <!-- 🌟 手機版海域選擇遮罩與按鈕 -->
+    <div
+      id="board-sheet-overlay"
+      class="board-sheet-overlay"
+      onclick="toggleBoardSheet()"
+    ></div>
+
+    <div
+      id="mobile-board-btn"
+      class="mobile-board-trigger"
+      onclick="toggleBoardSheet()"
+    >
+      <span id="mobile-board-name">🌊 全海域</span>
+      <span class="board-arrow">▲</span>
+    </div>
+
+    <!-- 把原本的 v=30 改成 v=35 -->
+    <
+    <script defer src="https://cdnjs.cloudflare.com/ajax/libs/marked/12.0.2/marked.min.js"></script>
+    <script defer src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.1.6/purify.min.js"></script>
+    <script type="module" src="index.js?v=58"></script>
+
+    <!-- 🌟 整合面板專屬交互控制 -->
+    <script>
+      window.openHubModal = function () {
+        const modal = document.getElementById("hub-modal");
+        if (modal) modal.style.display = "flex";
+        syncUserInfoToHub();
+      };
+
+      window.closeHubModal = function () {
+        const modal = document.getElementById("hub-modal");
+        if (modal) modal.style.display = "none";
+        const dropdown = document.getElementById("hub-user-dropdown");
+        if (dropdown) dropdown.style.display = "none";
+      };
+
+      window.toggleDesktopUserMenu = function (e) {
+        e.stopPropagation();
+        const dropdown = document.getElementById("user-dropdown");
+        if (dropdown) dropdown.classList.toggle("show-dropdown");
+      };
+
+      window.toggleHubDropdown = function (e) {
+        e.stopPropagation();
+        const dropdown = document.getElementById("hub-user-dropdown");
+        if (dropdown)
+          dropdown.style.display =
+            dropdown.style.display === "none" ? "block" : "none";
+      };
+
+      window.handleHubPostClick = function () {
+        const token = localStorage.getItem("authToken");
+        if (!token) {
+          alert("請先登入才能發文喔！");
+          window.location.href = "login.html";
+          return;
+        }
+        if (window.isAdminUser && window.isAdminUser()) {
+          alert("管理員帳號無法發文，請切換至一般帳號發文");
+          return;
+        }
+        closeHubModal();
+        const postModal = document.getElementById("post-modal");
+        if (postModal)
+          postModal.style.setProperty("display", "flex", "important");
+      };
+
+      function syncUserInfoToHub() {
+        const user = JSON.parse(localStorage.getItem("currentUser") || "{}");
+        const nameEl = document.getElementById("hub-name");
+        const avatarEl = document.getElementById("hub-avatar");
+        if (nameEl)
+          nameEl.innerText =
+            user.name || (user.email ? user.email.split("@")[0] : "請先登入");
+        if (avatarEl && user.avatar) avatarEl.src = user.avatar;
+      }
+
+      window.addEventListener("click", (e) => {
+        const hubModal = document.getElementById("hub-modal");
+        if (hubModal && e.target === hubModal) closeHubModal();
+        const desktopDropdown = document.getElementById("user-dropdown");
+        if (desktopDropdown) desktopDropdown.classList.remove("show-dropdown");
+        const hubDropdown = document.getElementById("hub-user-dropdown");
+        if (hubDropdown) hubDropdown.style.display = "none";
+      });
+    </script>
+  </body>
 </html>

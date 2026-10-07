@@ -15,7 +15,7 @@
     const user = JSON.parse(localStorage.getItem("currentUser") || "{}");
     if (!token || user.role !== "ADMIN") {
       alert("權限不足：您不是管理員，無法進入後台！");
-      window.location.href = "test.html";
+      window.location.href = "index.html";
     }
   </script>
 </head>
@@ -59,7 +59,7 @@
       </li>
     </ul>
     <div class="sidebar-footer">
-      <button class="btn-return" onclick="window.location.href = 'test.html'">
+      <button class="btn-return" onclick="window.location.href = 'index.html'">
         🏠 返回前台
       </button>
       <button class="btn-logout" onclick="adminLogout()">🚪 登出系統</button>
