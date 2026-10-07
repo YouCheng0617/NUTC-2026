@@ -4599,6 +4599,8 @@ function checkCleanCompleted() {
                     slugEl.classList.remove('is-eating-munch');
                     slugEl.style.transform = slugTransform('scaleX(1)');
                     if (faceGroup) faceGroup.innerHTML = originalFaceHTML;
+                    // 吃之前如果是餓扁的臉，吃完飽足度已經回來了，要馬上換回正常的臉
+                    renderStarvingState();
                 }, 1800);
 
                 // 餵食加分與冷卻
@@ -4794,6 +4796,8 @@ function completeFeedingAction(isSuccess) {
                     slugEl.classList.remove('is-eating-munch');
                     slugEl.style.transform = slugTransform();
                     if (faceGroup) faceGroup.innerHTML = originalFaceHTML;
+                    // 吃之前如果是餓扁的臉，吃完飽足度已經回來了，要馬上換回正常的臉
+                    renderStarvingState();
                 }, 1800);
 
                 gameState.points += 80;
