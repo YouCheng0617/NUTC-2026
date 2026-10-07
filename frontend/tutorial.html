@@ -68,14 +68,14 @@
     overflow: hidden;
   }
 
-  /* === 頂部標題與語言切換區塊 (動態排版防遮擋) === */
+  /* === 頂部標題與語言切換區塊 === */
   .header-group {
     position: absolute;
     top: 22px; 
     left: 25px;
     display: flex;
     align-items: center;
-    gap: 15px; /* 標題跟按鈕的間距 */
+    gap: 15px; 
     z-index: 100;
   }
 
@@ -84,11 +84,10 @@
     font-weight: bold;
     color: #f4ecd8; 
     letter-spacing: 2px;
-    white-space: nowrap; /* 防止標題換行 */
+    white-space: nowrap; 
   }
   .tutorial-header span { color: #5ab9ff; }
 
-  /* 語言切換按鈕 */
   .lang-toggle-btn {
     background: #0f1929; 
     border-radius: 20px;
@@ -114,7 +113,7 @@
     filter: drop-shadow(0 0 2px rgba(90, 185, 255, 0.5));
   }
 
-  /* 版本切換開關 (加入半透明與毛玻璃效果) */
+  /* 版本切換開關 */
   .device-toggle {
     position: absolute;
     top: 20px; 
@@ -380,16 +379,13 @@
   }
   .lightbox-close:hover { color: #5ab9ff; }
 
-  /* ========================================== */
-  /* === RWD 響應式設計：針對平板與手機介面 === */
-  /* ========================================== */
+  /* === RWD 響應式設計 === */
   @media (max-width: 900px) {
     .tutorial-window {
       flex-direction: column; 
       height: 95vh;
     }
     
-    /* 手機版：標題與按鈕改為上下排列，避免擠壓 */
     .header-group {
       top: 12px; 
       left: 15px;
@@ -405,7 +401,6 @@
       font-size: 12px;
     }
     
-    /* 手機版：保留開關並精巧放置於右上角 */
     .device-toggle {
       top: 12px;
       right: 60px; 
@@ -425,7 +420,7 @@
       flex-direction: row;
       justify-content: center;
       padding: 10px 0;
-      padding-top: 70px; /* 稍微加高，給上方標題群組更多空間 */
+      padding-top: 70px;
       border-right: none;
       border-bottom: 1px solid rgba(255, 255, 255, 0.05);
     }
@@ -481,7 +476,6 @@
       font-size: 20px;
     }
   }
-
 </style>
 </head>
 <body>
@@ -502,8 +496,6 @@
 </div>
 
 <div class="tutorial-window">
-  
-  <!-- 更新：將標題與按鈕包裝在 header-group 裡 -->
   <div class="header-group">
     <div class="tutorial-header" id="headerTitle"><span>▍</span>漂流指南</div>
     <div class="lang-toggle-btn" id="langToggle">
@@ -511,7 +503,6 @@
     </div>
   </div>
   
-  <!-- 版本切換開關 -->
   <div class="device-toggle" id="deviceToggle">
     <div class="toggle-btn active" data-mode="desktop" id="btnDesktop">💻 電腦版</div>
     <div class="toggle-btn" data-mode="mobile" id="btnMobile">📱 手機版</div>
@@ -566,7 +557,6 @@
   const nextBtn = document.getElementById('nextBtn');
   const langToggle = document.getElementById('langToggle');
 
-  // UI 介面靜態文字對照表
   const uiTexts = {
     zh: {
       header: "<span>▍</span>漂流指南",
@@ -612,15 +602,18 @@
           title: "探索海底大廳",
           slides: [
             { img: "./images/lobby.webp", mobileImg: "./images/m_lobby.webp", subtitle: "海底大廳", desc: "登入後會來到最熱鬧的海底大廳！畫面上方有搜尋列與遊樂場入口，左右兩側藏有熱門貼文與海神殿規的捷徑，中間則是各個海域的漂流瓶。" },
-            { img: "./images/notification.webp", mobileImg: "./images/m_notification.webp", subtitle: "通知與帳號", desc: "畫面右上方除了發文按鈕，還有通知小鈴鐺與你的使用者名稱。點擊小鈴鐺即可隨時查看最新收到的互動通知喔！" }
+            { img: "./images/notification.webp", mobileImg: "./images/m_notification.webp", subtitle: "通知與帳號", desc: "點擊鈴鐺可直接打開對應的漂流瓶。這裡會收到留言、按讚、審核結果與客服回覆等通知，且同一人重複按讚收藏不會洗版喔！" }
           ]
         },
         {
           title: "打造個人空間",
           slides: [
-            { img: "./images/user_menu.webp", mobileImg: "./images/m_user_menu.webp", subtitle: "個人空間選單", desc: "點選右上角的使用者名稱即可展開選單。這裡是你專屬的空間中樞，包含個人資料、追蹤、收藏、客服、新手教學與網站設定等功能。" },
+            { img: "./images/user_menu.webp", mobileImg: "./images/m_user_menu.webp", subtitle: "個人空間選單", desc: "點選右上角的使用者名稱即可展開選單。這裡是你專屬的空間中樞，包含個人資料、動態消息、客服與網站設定等功能。" },
             { img: "./images/profile_edit.webp", mobileImg: "./images/m_profile_edit.webp", subtitle: "編輯個人資料", desc: "你可以自由修改姓名、生日、性別、星座與自我介紹等細節，打造專屬的形象。請注意，綁定的 Email 帳號無法更改喔！" },
-            { img: "./images/following.webp", mobileImg: "./images/m_following.webp", subtitle: "我的追蹤", desc: "這裡會清楚列出所有你關注的創作者名單，讓你可以隨時查看追蹤了哪些用戶，不再錯過他們的最新動態。" },
+            { img: "./images/dynamic_news_menu.webp", mobileImg: "./images/m_dynamic_news_menu.webp", subtitle: "動態消息選單", desc: "點選選單中的「動態消息」，會開啟專屬的管理視窗，這裡整合了你的追蹤、粉絲、封鎖名單，以及你收藏與發布的瓶子紀錄。" },
+            { img: "./images/following.webp", mobileImg: "./images/m_following.webp", subtitle: "我的追蹤", desc: "進入「我的追蹤」，你可以隨時查看目前追蹤了哪些創作者，不再錯過他們的最新動態。" },
+            { img: "./images/followers.webp", mobileImg: "./images/m_followers.webp", subtitle: "我的粉絲", desc: "「我的粉絲」會清楚列出有哪些人正在關注你，點擊右邊的「+ 回追蹤」即可直接追蹤對方！" },
+            { img: "./images/blocklist.webp", mobileImg: "./images/m_blocklist.webp", subtitle: "封鎖名單", desc: "在「封鎖名單」中可以查看所有被你封鎖的用戶名單，點擊「解除封鎖」即可恢復瀏覽，但不會主動恢復追蹤關係。" },
             { img: "./images/collections.webp", mobileImg: "./images/m_collections.webp", subtitle: "收藏瓶子", desc: "在這裡可以回顧那些曾觸動你的溫暖文字。上方提供便利的關鍵字搜尋列，搭配下方分頁功能，幫你快速找到珍藏的貼文。" },
             { img: "./images/my_bottles.webp", mobileImg: "./images/m_my_bottles.webp", subtitle: "我的瓶子", desc: "透過專屬的「我的瓶子」頁面，你可以輕鬆管理自己過去發布的所有貼文紀錄，同樣支援搜尋與分頁瀏覽功能。" },
             { img: "./images/customer_service.webp", mobileImg: "./images/m_customer_service.webp", subtitle: "線上客服中心", desc: "遇到問題或有功能建議？客服中心提供「我要提問」與「我的客服紀錄」板塊，快速選取主旨並詳述問題，我們隨時聽你的聲音！" },
@@ -631,7 +624,9 @@
         {
           title: "拋出你的瓶子",
           slides: [
-            { img: "./images/write_bottle.webp", mobileImg: "./images/m_write_bottle.webp", subtitle: "拋出你的心事", desc: "選擇發文海域、填寫標題內容後，還能自由選擇要以「實名」或「匿名（偷偷說）」的身分發布，讓海浪替你傳遞心聲。" }
+            { img: "./images/write_bottle.webp", mobileImg: "./images/m_write_bottle.webp", subtitle: "拋出你的心事", desc: "選擇發文海域、填寫標題內容後，還能自由選擇要以「實名」或「匿名（偷偷說）」的身分發布，讓海浪替你傳遞心聲。" },
+            { img: "./images/vote_post.webp", mobileImg: "./images/m_vote_post.webp", subtitle: "附帶投票活動", desc: "發文時可以點擊「附帶投票活動」，設定 2 到 4 個選項讓其他使用者參與投票。若不需要可點擊右上角「取消投票」。" },
+            { img: "./images/markdown_syntax.webp", mobileImg: "./images/m_markdown_syntax.webp", subtitle: "Markdown 語法與換行", desc: "支援 Markdown 排版！送出前記得先點擊「預覽」確認排版效果。請注意：電腦版按 Shift+Enter 換行、Enter 送出；手機與 iPad 則是按鍵盤換行鍵，再點擊「送出」喔。" }
           ]
         },
         {
@@ -647,7 +642,9 @@
           title: "尋找共鳴與留言",
           slides: [
             { img: "./images/search.webp", mobileImg: "./images/m_search.webp", subtitle: "搜尋特定話題", desc: "使用畫面上方的搜尋列，打上你要找的類型、標題或內容，就會出現所有跟他相關的漂流瓶文章。" },
-            { img: "./images/comments.webp", mobileImg: "./images/m_comments.webp", subtitle: "安全的留言空間", desc: "留言區隱藏了具體時間，改用 B1、B2 等樓層編號標示。準備留言時也能自由勾選實名或匿名身分送出。" }
+            { img: "./images/comments.webp", mobileImg: "./images/m_comments.webp", subtitle: "安全的留言空間", desc: "留言區隱藏了具體時間，改用 B1、B2 等樓層編號標示。準備留言時也能自由勾選實名或匿名身分送出。" },
+            { img: "./images/comment_follow.webp", mobileImg: "./images/m_comment_follow.webp", subtitle: "留言互動與追蹤", desc: "每則留言與回覆的名字右邊都有藍色圓鈕「+」，點擊可快速追蹤該留言者。留言輸入框也支援即時 Markdown 預覽！" },
+            { img: "./images/block_user.webp", mobileImg: "./images/m_block_user.webp", subtitle: "封鎖使用者", desc: "電腦雙擊、手機長按名字或頭像即可封鎖，雙方將看不見彼此的內容。請注意：匿名發文/留言、未登入狀態或自己是無法封鎖的喔！" }
           ]
         },
         {
@@ -688,14 +685,15 @@
             { img: "./images/puzzle_intro.webp", mobileImg: "./images/m_puzzle_intro.webp", subtitle: "海洋生物拼圖", desc: "以「海洋生物」為主題的任務導向拼圖小遊戲。每幅拼圖皆由 9 個固定位置的區塊組成，碎片分為普通與高級。" },
             { img: "./images/puzzle_gacha.webp", mobileImg: "./images/m_puzzle_gacha.webp", subtitle: "喚醒石與抽卡", desc: "玩家可透過完成每日任務獲取專屬道具「召喚石」，消耗召喚石進行抽卡，隨機獲取普通或高級的拼圖碎片。" },
             { img: "./images/puzzle_workshop.webp", mobileImg: "./images/m_puzzle_workshop.webp", subtitle: "碎片工坊與寶箱", desc: "擁有多餘碎片時，可利用右上角「碎片工坊」將碎片兌換成寶箱，開啟寶箱將必定「保底」獲得拼圖碎片！" },
-            { img: "./images/puzzle_cabinet.webp", mobileImg: "./images/m_puzzle_cabinet.webp", subtitle: "拼圖收藏展示櫃", desc: "點擊「我的收藏」進入展示櫃，會即時同步並視覺化所有海洋生物的收集進度，帶給你滿滿的解鎖成就感。" }
+            { img: "./images/puzzle_cabinet.webp", mobileImg: "./images/m_puzzle_cabinet.webp", subtitle: "拼圖收藏展示櫃", desc: "進入展示櫃可即時查看所有海洋生物的收集進度。上方不僅可以直接搜尋特定魚種名稱，還能透過下拉選單篩選，單獨檢視第 1 號到第 9 號的特定碎片喔！" },
+            { img: "./images/puzzle_history.webp", mobileImg: "./images/m_puzzle_history.webp", subtitle: "喚醒紀錄", desc: "點擊展示櫃上方的「喚醒紀錄」頁籤，這裡會完整記錄你過去抽到的所有拼圖碎片歷史，包含獲得時間與碎片等級，方便你隨時查詢。" }
           ]
         },
         {
           title: "每日便利貼",
           slides: [
-            { img: "./images/notes_wall.webp", mobileImg: "./images/m_notes_wall.webp", subtitle: "無聲樹洞", desc: "宛如「無聲樹洞」的匿名情感交流空間，所有留言 24 小時後自動清除。為保持純粹，此區刻意關閉回覆與評論功能。" },
-            { img: "./images/notes_write.webp", mobileImg: "./images/m_notes_write.webp", subtitle: "純粹的抒發", desc: "每則便利貼設有最高 50 字的字數上限，且系統嚴格限制每人「每日僅限留言一次」，送出後即不可修改。" }
+            { img: "./images/notes_wall.webp", mobileImg: "./images/m_notes_wall.webp", subtitle: "無聲樹洞與 3D 空間", desc: "宛如「無聲樹洞」的匿名空間，留言 24 小時後自動清除且無法回覆。你可以滑動畫面旋轉 3D 空間，點擊任一張便利貼將其居中特寫，或點擊右上角「換一批」查看更多留言。" },
+            { img: "./images/notes_write.webp", mobileImg: "./images/m_notes_write.webp", subtitle: "純粹的抒發", desc: "點擊右下角「貼上心事」即可撰寫。每則便利貼設有最高 50 字上限，且嚴格限制每人「每日僅限留言一次」，送出後即不可修改，請盡情傾吐最真實的自己吧。" }
           ]
         },
         {
@@ -728,15 +726,18 @@
           title: "Explore Ocean Lobby",
           slides: [
             { img: "./images/lobby.webp", mobileImg: "./images/m_lobby.webp", subtitle: "Ocean Lobby", desc: "Welcome to the bustling Ocean Lobby! It features a search bar, playground entrance, hot posts, rules, and drifting bottles in the center." },
-            { img: "./images/notification.webp", mobileImg: "./images/m_notification.webp", subtitle: "Notifications", desc: "The top right corner has a post button, notification bell, and your username. Click the bell to view your latest interaction notifications!" }
+            { img: "./images/notification.webp", mobileImg: "./images/m_notification.webp", subtitle: "Notifications", desc: "Click the bell to open posts directly. Receive updates on comments, likes, reviews, and CS replies without duplicate spam!" }
           ]
         },
         {
           title: "Personal Space",
           slides: [
-            { img: "./images/user_menu.webp", mobileImg: "./images/m_user_menu.webp", subtitle: "Personal Menu", desc: "Click your username to expand the menu. This is your personal hub for profile, following, collections, customer service, and settings." },
+            { img: "./images/user_menu.webp", mobileImg: "./images/m_user_menu.webp", subtitle: "Personal Menu", desc: "Click your username to expand the menu. This is your personal hub, including profile, dynamic news, customer service, and settings." },
             { img: "./images/profile_edit.webp", mobileImg: "./images/m_profile_edit.webp", subtitle: "Edit Profile", desc: "Customize your name, birthday, gender, zodiac, and bio. Note: Your bound Email account cannot be changed!" },
-            { img: "./images/following.webp", mobileImg: "./images/m_following.webp", subtitle: "My Following", desc: "This lists all the creators you follow. You can check their updates anytime and never miss out on their latest posts." },
+            { img: "./images/dynamic_news_menu.webp", mobileImg: "./images/m_dynamic_news_menu.webp", subtitle: "Dynamic News Menu", desc: "Click 'Dynamic News' to open a management window. It integrates your following, followers, blocklist, and your saved or published bottles." },
+            { img: "./images/following.webp", mobileImg: "./images/m_following.webp", subtitle: "My Following", desc: "Enter 'My Following' to check which creators you are currently following, so you never miss their latest updates." },
+            { img: "./images/followers.webp", mobileImg: "./images/m_followers.webp", subtitle: "My Followers", desc: "'My Followers' clearly lists who is following you. Click '+ Follow Back' on the right to follow them back directly!" },
+            { img: "./images/blocklist.webp", mobileImg: "./images/m_blocklist.webp", subtitle: "Blocklist", desc: "Check all blocked users here. Click 'Unblock' to restore visibility without restoring prior follow relations automatically." },
             { img: "./images/collections.webp", mobileImg: "./images/m_collections.webp", subtitle: "Bottle Collections", desc: "Review words that touched your heart. Use the keyword search and pagination features to quickly find your saved posts." },
             { img: "./images/my_bottles.webp", mobileImg: "./images/m_my_bottles.webp", subtitle: "My Bottles", desc: "Easily manage all the posts you've published in the past through the 'My Bottles' page, which also supports search and pagination." },
             { img: "./images/customer_service.webp", mobileImg: "./images/m_customer_service.webp", subtitle: "Customer Service", desc: "Have questions or suggestions? The customer service center provides a 'Submit Question' and 'My Records' section. We're always listening!" },
@@ -747,7 +748,9 @@
         {
           title: "Throw a Bottle",
           slides: [
-            { img: "./images/write_bottle.webp", mobileImg: "./images/m_write_bottle.webp", subtitle: "Share Your Thoughts", desc: "Choose a sea area, fill in the title and content, and choose to post with your 'Real Name' or 'Anonymous' identity." }
+            { img: "./images/write_bottle.webp", mobileImg: "./images/m_write_bottle.webp", subtitle: "Share Your Thoughts", desc: "Choose a sea area, fill in the title and content, and choose to post with your 'Real Name' or 'Anonymous' identity." },
+            { img: "./images/vote_post.webp", mobileImg: "./images/m_vote_post.webp", subtitle: "Attach a Poll", desc: "When posting, you can click 'Attach a Poll' to set 2 to 4 options for others to vote on. You can click 'Cancel Poll' anytime if you change your mind." },
+            { img: "./images/markdown_syntax.webp", mobileImg: "./images/m_markdown_syntax.webp", subtitle: "Markdown & Line Breaks", desc: "Supports Markdown! Click 'Preview' to check formatting before submitting. Note: On PC, use Shift+Enter for new lines and Enter to submit. On Mobile/iPad, use the return key and tap 'Submit'." }
           ]
         },
         {
@@ -763,7 +766,9 @@
           title: "Find & Comment",
           slides: [
             { img: "./images/search.webp", mobileImg: "./images/m_search.webp", subtitle: "Search Topics", desc: "Use the top search bar to type keywords, titles, or content to find related drift bottle articles." },
-            { img: "./images/comments.webp", mobileImg: "./images/m_comments.webp", subtitle: "Safe Comments", desc: "The comment area hides exact times and uses floor numbers like B1, B2. You can freely choose real name or anonymous when replying." }
+            { img: "./images/comments.webp", mobileImg: "./images/m_comments.webp", subtitle: "Safe Comments", desc: "The comment area hides exact times and uses floor numbers like B1, B2. You can freely choose real name or anonymous when replying." },
+            { img: "./images/comment_follow.webp", mobileImg: "./images/m_comment_follow.webp", subtitle: "Comment Follow", desc: "Click the blue '+' button beside any comment author to follow them immediately. The comment input also supports real-time Markdown preview!" },
+            { img: "./images/block_user.webp", mobileImg: "./images/m_block_user.webp", subtitle: "Block User", desc: "Double-click (PC) or long-press (Mobile) an avatar to block. Note: You cannot block anonymous posts/comments, yourself, or when logged out!" }
           ]
         },
         {
@@ -804,14 +809,15 @@
             { img: "./images/puzzle_intro.webp", mobileImg: "./images/m_puzzle_intro.webp", subtitle: "Marine Life Puzzle", desc: "A task-oriented puzzle game themed around 'Marine Life'. Each puzzle has 9 fixed blocks with normal and premium fragments." },
             { img: "./images/puzzle_gacha.webp", mobileImg: "./images/m_puzzle_gacha.webp", subtitle: "Summon & Draw", desc: "Complete daily tasks to get 'Summon Stones'. Spend them to draw random normal or premium puzzle fragments." },
             { img: "./images/puzzle_workshop.webp", mobileImg: "./images/m_puzzle_workshop.webp", subtitle: "Fragment Workshop", desc: "Have extra fragments? Use the 'Fragment Workshop' to exchange them for chests. Opening chests guarantees a fragment!" },
-            { img: "./images/puzzle_cabinet.webp", mobileImg: "./images/m_puzzle_cabinet.webp", subtitle: "Puzzle Cabinet", desc: "Click 'My Collection' to sync and visualize your marine life collection progress, giving you a full sense of achievement." }
+            { img: "./images/puzzle_cabinet.webp", mobileImg: "./images/m_puzzle_cabinet.webp", subtitle: "Puzzle Cabinet", desc: "Enter the cabinet to see your collection progress. You can directly search for specific fish names or use the dropdown to filter and view specific fragments from No. 1 to No. 9!" },
+            { img: "./images/puzzle_history.webp", mobileImg: "./images/m_puzzle_history.webp", subtitle: "Summon History", desc: "Click the 'Summon History' tab at the top of the cabinet. Here you can find a complete record of all the puzzle fragments you've drawn, including the time and rarity." }
           ]
         },
         {
           title: "Daily Notes",
           slides: [
-            { img: "./images/notes_wall.webp", mobileImg: "./images/m_notes_wall.webp", subtitle: "Silent Tree Hole", desc: "An anonymous emotional space like a 'Silent Tree Hole'. All messages clear after 24 hours. Replies and comments are disabled." },
-            { img: "./images/notes_write.webp", mobileImg: "./images/m_notes_write.webp", subtitle: "Pure Expression", desc: "Each note has a 50-word limit, and you can strictly 'leave one message per day'. It cannot be edited after submission." }
+            { img: "./images/notes_wall.webp", mobileImg: "./images/m_notes_wall.webp", subtitle: "Silent Tree Hole & 3D Space", desc: "An anonymous space where messages clear after 24 hrs. Swipe to rotate the 3D space, click any note to zoom in, or click 'Refresh' at the top right to see more notes!" },
+            { img: "./images/notes_write.webp", mobileImg: "./images/m_notes_write.webp", subtitle: "Pure Expression", desc: "Click 'Post' at the bottom right to write. Each note has a 50-character limit, strictly allowing 'one message per day', and cannot be edited after submission." }
           ]
         },
         {
@@ -838,11 +844,9 @@
   let currentSubIndex = 0;      
   let currentSlideIndex = 0;    
 
-  // === 語言切換邏輯 ===
   langToggle.onclick = () => {
     currentLang = currentLang === 'zh' ? 'en' : 'zh';
     
-    // 更新靜態 UI 文字
     document.getElementById('headerTitle').innerHTML = uiTexts[currentLang].header;
     document.getElementById('btnDesktop').innerText = uiTexts[currentLang].desktop;
     document.getElementById('btnMobile').innerText = uiTexts[currentLang].mobile;
@@ -851,12 +855,10 @@
     document.getElementById('tabMain').title = uiTexts[currentLang].tabMainTitle;
     document.getElementById('tabPark').title = uiTexts[currentLang].tabParkTitle;
     
-    // 重新渲染選單與幻燈片
     renderSubMenu();
     renderSlide();
   };
 
-  // === 控制當前顯示的設備版本 ===
   const toggleBtns = document.querySelectorAll('.device-toggle .toggle-btn');
   toggleBtns.forEach(btn => {
     btn.onclick = (e) => {
@@ -867,7 +869,6 @@
     };
   });
 
-  // === 滑鼠滾輪水平滑動次選單 ===
   subSidebar.addEventListener('wheel', (evt) => {
     if (window.innerWidth <= 900) {
       evt.preventDefault();
@@ -875,7 +876,6 @@
     }
   });
 
-  // === 滑鼠滾輪切換圖片 ===
   let wheelTimeout;
   carouselContainer.addEventListener('wheel', (evt) => {
     evt.preventDefault(); 
@@ -890,7 +890,6 @@
     }, 400); 
   }, { passive: false });
 
-  // === 手機觸控滑動 (Swipe) 切換圖片 ===
   let touchStartX = 0;
   let touchEndX = 0;
 
@@ -914,7 +913,7 @@
 
   function renderSubMenu() {
     subSidebar.innerHTML = ''; 
-    const items = tutorialData[currentLang][currentCategory]; // 根據當前語言抓取資料
+    const items = tutorialData[currentLang][currentCategory];
     
     items.forEach((item, index) => {
       const btn = document.createElement('div');
@@ -987,7 +986,6 @@
     };
   });
 
-  // 初始化
   renderSubMenu();
   renderSlide();
 </script>
