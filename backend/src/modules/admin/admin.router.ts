@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { authCheck, adminCheck, type AuthRequest } from "../middleware/auth.middleware.js";
 import { AdminController } from "./admin.controller.js";
+import { getGameReportsController, updateGameReportStatusController } from "../../socket/gameSafety.controller.js";
 
 const adminController = new AdminController();
 
@@ -15,6 +16,10 @@ export function adminRouter() {
     router.delete("/members/:memberId/delete", authCheck, adminCheck, (req, res) => adminController.deleteMember(req, res));
     router.get("/bottles/reported", authCheck, adminCheck, (req: AuthRequest, res) => adminController.getReportedBottlesController(req, res));
     router.get("/comments", authCheck, adminCheck, (req, res) => adminController.getAllCommentsController(req, res));
+
+    // 🐌 寵物遊戲連線房間的玩家檢舉
+    router.get("/game-reports", authCheck, adminCheck, getGameReportsController);
+    router.put("/game-reports/:id/status", authCheck, adminCheck, updateGameReportStatusController);
 
     // 🌟 客服後台管理
     router.get("/customer-services", authCheck, adminCheck, (req, res) => adminController.getAllCustomerServices(req, res));

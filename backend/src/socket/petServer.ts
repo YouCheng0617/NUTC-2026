@@ -3,6 +3,7 @@ import jwt from 'jsonwebtoken';
 import prisma from '../lib/prisma.js';
 import { setupMemoryGame, memoryHandleLeave, memoryHandleJoin, memoryForget, setRoomKicker } from './memoryGame.js';
 import { getRoomBanMinutesLeft } from './quitPenalty.js';
+import { loadConflicts, hasConflict, isBlockedByHost, blockPlayer, reportPlayer, recordRoomChat, clearRoomChat } from './gameSafety.js';
 
 // ... (Player 和 Room 介面保持不變) ...
 interface Player {
@@ -96,6 +97,7 @@ export const setupPetSocket = (io: Server) => {
             }
             const playerData = { ...data?.playerData, memberId };
             const banned = await banMessage(memberId);
+            await loadConflicts(memberId);
             if (!socket.connected) return; // 驗證期間已經斷線
             if (banned) return socket.emit('error', { message: banned });
 
@@ -127,6 +129,7 @@ export const setupPetSocket = (io: Server) => {
             }
             const playerData = { ...rawPlayerData, memberId };
             const banned = await banMessage(memberId);
+            await loadConflicts(memberId);
             if (!socket.connected) return; // 驗證期間已經斷線
             if (banned) return socket.emit('error', { message: banned });
 
@@ -142,6 +145,13 @@ export const setupPetSocket = (io: Server) => {
             if (room.players.size >= room.maxCapacity) {
                 return socket.emit('error', { message: `房間已滿！(此房間上限為 ${room.maxCapacity} 人)` });
             }
+
+            // 房主（最早進房的人）封鎖了你就不能進；訊息不說是被封鎖，避免尷尬
+            const host = room.players.values().next().value;
+            if (host && await isBlockedByHost(host.memberId, memberId)) {
+                return socket.emit('error', { message: '無法加入這個房間。' });
+            }
+            if (!socket.connected || !rooms.has(roomId)) return;
 
             joinRoomLogic(socket, roomId, playerData);
         });
@@ -172,16 +182,60 @@ export const setupPetSocket = (io: Server) => {
         // 4. 記憶翻牌對決（邏輯在 memoryGame.ts）
         setupMemoryGame(io, socket, (roomId) => rooms.get(roomId), (socketId) => socketRoomMap.get(socketId));
 
-        // 5. 發送訊息
+        // 5. 封鎖、檢舉同房間的玩家（邏輯在 gameSafety.ts）
+        //    前端送 { socketId }，可帶 ack 回呼拿結果：{ ok, message }
+        const findTarget = (targetSocketId: unknown) => {
+            const roomId = socketRoomMap.get(socket.id);
+            const room = roomId ? rooms.get(roomId) : undefined;
+            const me = room?.players.get(socket.id);
+            const target = typeof targetSocketId === 'string' ? room?.players.get(targetSocketId) : undefined;
+            return { roomId, me, target };
+        };
+        const reply = (ack: unknown, result: { ok: boolean; message: string }) => {
+            if (typeof ack === 'function') ack(result);
+            else socket.emit(result.ok ? 'game_safety_result' : 'error', result);
+        };
+
+        socket.on('game_block_player', async (data: { socketId?: string } = {}, ack?: unknown) => {
+            const { me, target } = findTarget(data?.socketId);
+            if (!me || !target) return reply(ack, { ok: false, message: '找不到這位玩家，他可能已經離開房間了。' });
+            try {
+                await blockPlayer(me.memberId, target.memberId, target.petName);
+                reply(ack, { ok: true, message: `已封鎖 ${target.petName}，你們之後互相看不到對方說話，他也進不了你當房主的房間。` });
+            } catch (error) {
+                reply(ack, { ok: false, message: error instanceof Error ? error.message : '封鎖失敗，請稍後再試。' });
+            }
+        });
+
+        socket.on('game_report_player', async (data: { socketId?: string; reason?: string; detail?: string } = {}, ack?: unknown) => {
+            const { roomId, me, target } = findTarget(data?.socketId);
+            if (!roomId || !me || !target) return reply(ack, { ok: false, message: '找不到這位玩家，他可能已經離開房間了。' });
+            try {
+                await reportPlayer({
+                    reporterId: me.memberId, reportedId: target.memberId, reportedPetName: target.petName,
+                    roomId, reason: String(data?.reason ?? ''), detail: data?.detail ?? '',
+                });
+                reply(ack, { ok: true, message: `已送出對 ${target.petName} 的檢舉，管理員會盡快處理，謝謝你！` });
+            } catch (error) {
+                reply(ack, { ok: false, message: error instanceof Error ? error.message : '檢舉失敗，請稍後再試。' });
+            }
+        });
+
+        // 6. 發送訊息
         socket.on('send_message', ({ roomId, message }: { roomId: string; message: string }) => {
             const room = rooms.get(roomId);
             if (room) {
                 const player = room.players.get(socket.id);
-                if (player && message.trim() !== '') { // 優化：防止發送空訊息
-                    io.to(roomId).emit('receive_message', {
+                if (player && typeof message === 'string' && message.trim() !== '') { // 優化：防止發送空訊息
+                    const payload = {
                         senderName: player.petName,
                         message: message.trim(),
                         timestamp: new Date()
+                    };
+                    recordRoomChat(roomId, { memberId: player.memberId, petName: player.petName, message: payload.message, at: payload.timestamp });
+                    // 跟發話者有封鎖關係的人收不到（雙向）
+                    room.players.forEach((p, sid) => {
+                        if (!hasConflict(player.memberId, p.memberId)) io.to(sid).emit('receive_message', payload);
                     });
                 }
             }
@@ -257,6 +311,7 @@ function removeFromRoom(io: Server, socketId: string, reason: 'leave' | 'disconn
         // 房間沒人就刪除
         if (room.players.size === 0) {
             rooms.delete(roomId);
+            clearRoomChat(roomId);
             console.log(`[Socket] 房間 ${roomId} 已清空並自動銷毀`);
         }
     }

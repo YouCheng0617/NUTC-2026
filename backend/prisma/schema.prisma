@@ -61,6 +61,10 @@ model Member {
   followers    Follow[]        @relation("UserFollowedBy") // 哪些人追蹤了這個會員 (我的粉絲)
   blocking     Block[]         @relation("UserBlocks") // 這個會員封鎖了哪些人
   blockedBy    Block[]         @relation("UserBlockedBy") // 哪些人封鎖了這個會員
+  gameBlocking  GameBlock[]  @relation("GameBlocker") // 寵物遊戲裡封鎖了哪些人（跟論壇封鎖分開）
+  gameBlockedBy GameBlock[]  @relation("GameBlocked")
+  gameReports   GameReport[] @relation("GameReporter") // 在寵物遊戲檢舉別人的紀錄
+  gameReported  GameReport[] @relation("GameReported") // 在寵物遊戲被檢舉的紀錄
   PollVote     PollVote[]
   Notification Notification[]
   Pet          Pet?
@@ -289,6 +293,42 @@ model Block {
   // 複合主鍵，確保同一個人不會重複封鎖同一個人
   @@id([blocker_id, blocked_id])
   @@index([blocked_id])
+}
+
+/// 寵物遊戲連線房間的封鎖（遊戲專用，不影響論壇）
+/// 被封鎖的人不能進封鎖者當房主的房間；在別的房間遇到，雙方互相看不到聊天
+model GameBlock {
+  id               Int      @id @default(autoincrement())
+  blocker_id       Int // 封鎖者
+  blocked_id       Int // 被封鎖者
+  blocked_pet_name String // 封鎖當下對方的寵物名字（封鎖名單顯示用，不透露帳號）
+  created_at       DateTime @default(now())
+
+  blocker Member @relation("GameBlocker", fields: [blocker_id], references: [member_id], onDelete: Cascade)
+  blocked Member @relation("GameBlocked", fields: [blocked_id], references: [member_id], onDelete: Cascade)
+
+  @@unique([blocker_id, blocked_id])
+  @@index([blocked_id])
+}
+
+/// 寵物遊戲連線房間的玩家檢舉，送後台審核
+model GameReport {
+  id                Int      @id @default(autoincrement())
+  reporter_id       Int // 檢舉人
+  reported_id       Int // 被檢舉人
+  reported_pet_name String // 檢舉當下對方的寵物名字
+  reason            String // 檢舉理由代碼（harassment / bad_name / trolling / other）
+  detail            String?  @db.VarChar(200) // 檢舉人補充說明
+  evidence          Json // 檢舉當下房間最近的聊天紀錄
+  room_id           String
+  status            Int      @default(0) // 0:待處理, 1:檢舉成立, 2:檢舉不成立
+  created_at        DateTime @default(now())
+
+  reporter Member @relation("GameReporter", fields: [reporter_id], references: [member_id], onDelete: Cascade)
+  reported Member @relation("GameReported", fields: [reported_id], references: [member_id], onDelete: Cascade)
+
+  @@index([reported_id])
+  @@index([status])
 }
 
 model PollOption {

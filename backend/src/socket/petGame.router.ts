@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { authCheck, adminCheck, optionalAuthCheck, type AuthRequest } from "../modules/middleware/auth.middleware.js";
 import { PetGameController } from "./petGame.controller.js";
+import { listGameBlocksController, unblockGameController } from "./gameSafety.controller.js";
 
 
 const petGameController = new PetGameController();
@@ -22,6 +23,10 @@ export function petGameRouter() {
     // 每日任務相關路由
     router.get("/daily-task", authCheck, petGameController.getDailyTaskStatusController);
     router.post("/daily-task/claim", authCheck, petGameController.claimDailyTaskController);
+
+    // 連線房間的封鎖名單（封鎖、檢舉本身走 socket：game_block_player / game_report_player）
+    router.get("/blocks", authCheck, listGameBlocksController);
+    router.delete("/blocks/:blockId", authCheck, unblockGameController);
 
     return router;
 }
