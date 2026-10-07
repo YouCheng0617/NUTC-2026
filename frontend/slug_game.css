@@ -2684,3 +2684,98 @@
             color: var(--accent-color);
             font-weight: 900;
         }
+
+        /* ==================================================
+           📋 【房間公告板】大家正在找人一起玩的房間（資料來自 /announcements）
+           ================================================== */
+        .board-modal {
+            width: min(480px, 92vw) !important;
+            max-width: none !important;
+            max-height: min(86vh, 760px);
+            max-height: min(86dvh, 760px);
+            display: flex;
+            flex-direction: column;
+            padding: 18px 16px 14px !important;
+            text-align: left !important;
+        }
+        .board-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; margin-bottom: 10px; }
+        .board-title { margin: 0; font-size: 1.3rem; font-weight: 900; color: var(--text-dark); }
+        .board-sub { margin: 4px 0 0; font-size: 0.82rem; font-weight: 800; color: var(--text-dim); }
+        .board-close { flex: 0 0 auto; width: 38px; height: 38px; border: none; border-radius: 50%; background: #f1f5f9; color: var(--text-dim); font-size: 1rem; font-weight: 900; cursor: pointer; }
+
+        .board-list {
+            flex: 1 1 auto;
+            min-height: 120px;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+            overscroll-behavior: contain;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            padding: 2px 2px 8px;
+        }
+        .board-empty { margin: auto; padding: 24px 12px; text-align: center; font-size: 0.9rem; font-weight: 800; line-height: 1.6; color: #c9a9ae; }
+
+        .board-post { display: flex; gap: 12px; align-items: center; padding: 12px; border-radius: 18px; background: var(--card-bg); border: 2px solid #ffe4ec; }
+        .board-post.mine { border-color: var(--accent-color); background: #fff1f4; }
+        /* 頭像：API 沒有寵物顏色，用名字的第一個字 */
+        .board-avatar {
+            flex: 0 0 auto;
+            width: 40px; height: 40px;
+            border-radius: 14px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.05rem; font-weight: 900; color: #fff;
+        }
+        .board-main { flex: 1; min-width: 0; }
+        .board-who { display: flex; align-items: baseline; gap: 6px; flex-wrap: wrap; }
+        .board-name { font-size: 0.92rem; font-weight: 900; color: var(--text-dark); }
+        .board-time { font-size: 0.72rem; font-weight: 800; color: #c9a9ae; }
+        .board-msg { margin: 3px 0 6px; font-size: 0.92rem; font-weight: 800; line-height: 1.5; color: var(--text-dark); word-break: break-word; }
+        .board-msg:empty { display: none; }
+        .board-meta { display: flex; gap: 6px; flex-wrap: wrap; }
+        .board-tag { padding: 2px 8px; border-radius: 999px; background: #fff; border: 2px solid #ffe4ec; font-size: 0.72rem; font-weight: 900; color: var(--text-dim); }
+        .board-tag.code { letter-spacing: 1px; color: var(--text-dark); }
+        .board-tag.full { border-color: #fecaca; color: #ef4444; }
+        .board-tag.me { border-color: var(--accent-color); color: #db2777; }
+        .board-tag.soon { border-color: #fde68a; color: #b45309; }
+
+        .board-btn { flex: 0 0 auto; min-height: 40px; padding: 0 16px; border: none; border-radius: 14px; font-size: 0.9rem; font-weight: 900; cursor: pointer; }
+        .board-btn.primary { background: var(--accent-color); color: #fff; box-shadow: 0 4px 0 rgba(255, 140, 160, 0.75); }
+        .board-btn.primary:active:not(:disabled) { transform: translateY(4px); box-shadow: none; }
+        .board-btn.primary.confirm { background: var(--text-dark); box-shadow: 0 4px 0 rgba(0, 0, 0, 0.2); }
+        .board-btn:disabled { opacity: 0.4; cursor: not-allowed; box-shadow: none; }
+
+        .board-compose { flex: 0 0 auto; margin-top: 6px; padding-top: 12px; border-top: 2px dashed #ffe4ec; }
+        .board-compose[hidden] { display: none; }
+        .board-compose-label { margin-bottom: 6px; font-size: 0.85rem; font-weight: 900; color: var(--text-dim); }
+        .board-compose-label b { color: var(--text-dark); letter-spacing: 1px; }
+        .board-compose textarea {
+            width: 100%;
+            box-sizing: border-box;
+            resize: none;
+            padding: 10px 14px;
+            border: 3px solid var(--border-color);
+            border-radius: 16px;
+            background: var(--card-bg);
+            color: var(--text-dark);
+            font-family: inherit;
+            font-size: 16px;   /* 小於 16px 的話 iPhone 一點下去會自動放大畫面 */
+            font-weight: 800;
+            line-height: 1.5;
+            outline: none;
+        }
+        .board-compose textarea:focus { border-color: var(--accent-color); background: #fff; }
+        .board-compose-foot { display: flex; align-items: center; gap: 8px; margin-top: 8px; }
+        .board-count { margin-right: auto; font-size: 0.75rem; font-weight: 900; color: #c9a9ae; }
+        .board-count.full { color: #ef4444; }
+        .board-note { margin-top: 6px; font-size: 0.75rem; font-weight: 800; color: #c9a9ae; }
+        .board-error { min-height: 1.2em; margin-top: 2px; font-size: 0.82rem; font-weight: 800; color: #ef4444; }
+        .board-error.ok { color: #059669; }
+        .board-compose.lobby { display: flex; align-items: center; gap: 10px; font-size: 0.85rem; font-weight: 800; color: var(--text-dim); }
+        .board-compose.lobby[hidden] { display: none; }
+        .board-compose.lobby span { flex: 1; }
+        @media (max-width: 420px) {
+            .board-post { gap: 10px; padding: 10px; }
+            .board-avatar { width: 34px; height: 34px; border-radius: 12px; font-size: 0.95rem; }
+            .board-btn { padding: 0 12px; font-size: 0.85rem; }
+        }

@@ -804,6 +804,235 @@ function copyRoomId() {
             setTimeout(() => input.focus(), 60);
         }
 
+        // =====================================================================
+        // 📋 【房間公告板】大家正在找人一起玩的房間，點「加入」直接進房
+        //    資料來自後端的 /announcements（揪團彈幕）：
+        //    - GET 讀目前所有邀請（同一份也會出現在論壇首頁），每則只活 3 分鐘，房間關了就自動消失
+        //    - POST { roomId, message } 發邀請，最多 30 字，每個帳號 5 分鐘內最多發 3 次
+        //    - 同一個人重發時後端只留最新一則（等於「頂上來」），沒有收回的 API
+        //    沒有即時推送，所以公告板開著的時候每 15 秒重新讀一次
+        // =====================================================================
+        const BOARD_MAX = 30;
+        const BOARD_REFRESH_MS = 15000;
+        let boardPosts = [];
+        let boardState = 'idle';      // idle／loading／ok／failed
+        let boardRefreshTimer = null;
+        let boardClockTimer = null;
+        let boardPublishing = false;
+        let boardSwitchArmed = null;  // 在別的房間時，「加入」要按兩下確認換房
+
+        const boardEl = (id) => document.getElementById(id);
+        const isBoardOpen = () => { const o = boardEl('roomBoardOverlay'); return !!o && o.style.display === 'flex'; };
+        // 字數跟後端一樣用「一個字一個字」算，表情符號才不會被算成兩個
+        const boardLen = (s) => [...String(s || '')].length;
+
+        function boardTimeLeft(iso) {
+            const left = Date.parse(iso || '') - Date.now();
+            if (!isFinite(left) || left <= 0) return null;
+            const sec = Math.ceil(left / 1000);
+            const text = currLang === 'en'
+                ? (sec >= 60 ? Math.ceil(sec / 60) + ' min left' : sec + 's left')
+                : (sec >= 60 ? '還剩 ' + Math.ceil(sec / 60) + ' 分鐘' : '還剩 ' + sec + ' 秒');
+            return { sec, text };
+        }
+
+        function openRoomBoard() {
+            const overlay = boardEl('roomBoardOverlay');
+            if (!overlay) return;
+            overlay.style.display = 'flex';
+            const err = boardEl('boardError');
+            err.textContent = '';
+            err.classList.remove('ok');
+            renderBoardCompose();
+            renderBoardList();
+            loadBoard();
+            clearInterval(boardRefreshTimer);
+            clearInterval(boardClockTimer);
+            boardRefreshTimer = setInterval(loadBoard, BOARD_REFRESH_MS);
+            boardClockTimer = setInterval(renderBoardList, 1000);   // 倒數每秒更新，過期的就拿掉
+        }
+
+        function closeRoomBoard() {
+            const overlay = boardEl('roomBoardOverlay');
+            if (overlay) overlay.style.display = 'none';
+            clearInterval(boardRefreshTimer);
+            clearInterval(boardClockTimer);
+            boardSwitchArmed = null;
+        }
+
+        async function loadBoard() {
+            if (boardState !== 'ok') { boardState = 'loading'; renderBoardList(); }
+            const result = await fetchAPI('/announcements', 'GET');
+            if (result && Array.isArray(result.data)) {
+                boardPosts = result.data.map(a => ({
+                    roomId: String(a.room_id || '').toUpperCase(),
+                    message: a.message || '',
+                    authorName: a.name || (currLang === 'en' ? 'Player' : '玩家'),
+                    playerCount: Number(a.players) || 0,
+                    maxCapacity: Number(a.max_players) || 0,
+                    expiresAt: a.expires_at
+                }));
+                boardState = 'ok';
+            } else if (boardState !== 'ok') {
+                boardState = 'failed';
+            }
+            if (isBoardOpen()) { renderBoardList(); renderBoardCompose(); }
+        }
+
+        function renderBoardList() {
+            const list = boardEl('boardList');
+            if (!list || !isBoardOpen()) return;
+            // 保留捲動位置，每秒重畫倒數時才不會一直跳回最上面
+            const keepScroll = list.scrollTop;
+            list.innerHTML = '';
+            const empty = (zh, en) => {
+                const d = document.createElement('div');
+                d.className = 'board-empty';
+                d.textContent = currLang === 'en' ? en : zh;
+                list.appendChild(d);
+            };
+            const alive = boardPosts.filter(p => boardTimeLeft(p.expiresAt));
+            if (boardState === 'failed' && !alive.length) return empty('公告板暫時讀不到，晚點再來看看吧！', 'Could not load the board. Please try again later.');
+            if (boardState === 'loading' && !alive.length) return empty('正在讀取公告板…', 'Loading…');
+            if (!alive.length) return empty('目前還沒有人在找朋友，開一間房間來發第一則邀請吧！', 'No invites yet — open a room and post the first one!');
+
+            alive.forEach(post => {
+                const mine = post.roomId === currentRoomId;
+                const full = post.maxCapacity > 0 && post.playerCount >= post.maxCapacity;
+                const left = boardTimeLeft(post.expiresAt);
+
+                const card = document.createElement('div');
+                card.className = 'board-post' + (mine ? ' mine' : '');
+                // 頭像：名字第一個字，顏色由名字決定，同一個人每次都一樣
+                const avatar = document.createElement('div');
+                avatar.className = 'board-avatar';
+                avatar.textContent = [...post.authorName][0] || '?';
+                let hash = 0;
+                for (const ch of post.authorName) hash = (hash * 31 + ch.codePointAt(0)) % 360;
+                avatar.style.background = 'hsl(' + hash + ', 70%, 72%)';
+
+                const main = document.createElement('div');
+                main.className = 'board-main';
+                const who = document.createElement('div');
+                who.className = 'board-who';
+                const name = document.createElement('span');
+                name.className = 'board-name';
+                name.textContent = post.authorName;       // 都是其他玩家寫的，一律當純文字
+                const time = document.createElement('span');
+                time.className = 'board-time';
+                time.textContent = left.text;
+                who.append(name, time);
+                const msg = document.createElement('div');
+                msg.className = 'board-msg';
+                msg.textContent = post.message;
+                const meta = document.createElement('div');
+                meta.className = 'board-meta';
+                const tag = (cls, text) => { const t = document.createElement('span'); t.className = 'board-tag ' + cls; t.textContent = text; meta.appendChild(t); };
+                tag('code', (currLang === 'en' ? 'Room ' : '房號 ') + post.roomId);
+                if (post.maxCapacity) tag(full ? 'full' : '', (currLang === 'en' ? 'Players ' : '人數 ') + post.playerCount + '/' + post.maxCapacity);
+                if (mine) tag('me', currLang === 'en' ? 'Your room' : '你在這間');
+                if (left.sec <= 30) tag('soon', currLang === 'en' ? 'Ending soon' : '快要結束');
+                main.append(who, msg, meta);
+                card.append(avatar, main);
+
+                if (!mine) {
+                    const btn = document.createElement('button');
+                    btn.type = 'button';
+                    btn.className = 'board-btn primary';
+                    const switching = boardSwitchArmed === post.roomId;
+                    btn.disabled = full;
+                    if (switching) btn.classList.add('confirm');
+                    btn.textContent = full ? (currLang === 'en' ? 'Full' : '已額滿')
+                        : switching ? (currLang === 'en' ? 'Switch?' : '確定換房？')
+                        : (currLang === 'en' ? 'Join' : '加入');
+                    btn.addEventListener('click', () => joinRoomFromBoard(post.roomId));
+                    card.appendChild(btn);
+                }
+                list.appendChild(card);
+            });
+            list.scrollTop = keepScroll;
+        }
+
+        // 點「加入」：沿用加入房間的視窗送出，房號錯或額滿的提示都會顯示在那裡
+        function joinRoomFromBoard(roomId) {
+            // 已經在別的房間：先按一次變成「確定換房？」，3 秒內再按一次才真的換
+            if (currentRoomId && currentRoomId !== roomId && boardSwitchArmed !== roomId) {
+                boardSwitchArmed = roomId;
+                renderBoardList();
+                setTimeout(() => { if (boardSwitchArmed === roomId) { boardSwitchArmed = null; renderBoardList(); } }, 3000);
+                return;
+            }
+            boardSwitchArmed = null;
+            closeRoomBoard();
+            if (currentRoomId) leaveSocketRoom();
+            openJoinRoomModal();
+            const input = document.getElementById('joinCodeInput');
+            input.value = roomId;
+            renderJoinCode();
+            submitJoinRoom();
+        }
+
+        function renderBoardCompose() {
+            const inRoom = !!currentRoomId && !isMockMode;
+            const roomBox = boardEl('boardComposeRoom');
+            const lobbyBox = boardEl('boardComposeLobby');
+            if (!roomBox || !lobbyBox) return;
+            roomBox.hidden = !inRoom;
+            lobbyBox.hidden = inRoom || isMockMode;
+            if (!inRoom) return;
+
+            boardEl('boardMyRoom').textContent = currentRoomId;
+            const input = boardEl('boardInput');
+            if (boardLen(input.value) > BOARD_MAX) input.value = [...input.value].slice(0, BOARD_MAX).join('');
+            const len = boardLen(input.value);
+            const count = boardEl('boardCount');
+            count.textContent = len + '/' + BOARD_MAX;
+            count.classList.toggle('full', len >= BOARD_MAX);
+
+            const already = boardPosts.some(p => p.roomId === currentRoomId && boardTimeLeft(p.expiresAt));
+            const publish = boardEl('boardPublish');
+            publish.disabled = boardPublishing || input.value.trim().length === 0;
+            publish.textContent = boardPublishing ? (currLang === 'en' ? 'Posting…' : '發送中…')
+                : already ? (currLang === 'en' ? 'Post again' : '再發一次') : (currLang === 'en' ? 'Post invite' : '發出邀請');
+            boardEl('boardNote').textContent = already
+                ? (currLang === 'en' ? 'Posting again moves your invite back to the top for another 3 minutes.' : '再發一次會把邀請頂上來，重新顯示 3 分鐘')
+                : (currLang === 'en' ? 'Invites show here and on the forum home page for 3 minutes.' : '邀請會在這裡和論壇首頁顯示 3 分鐘');
+        }
+
+        async function publishBoardPost() {
+            const input = boardEl('boardInput');
+            const text = input.value.trim();
+            if (!text || !currentRoomId || boardPublishing) return;
+            const err = boardEl('boardError');
+            err.textContent = '';
+            err.classList.remove('ok');
+            boardPublishing = true;
+            renderBoardCompose();
+            const result = await fetchAPI('/announcements', 'POST', { roomId: currentRoomId, message: text });
+            boardPublishing = false;
+            if (result && result.data && !Array.isArray(result.data)) {
+                err.textContent = currLang === 'en' ? 'Invite posted! It stays up for 3 minutes.' : '邀請發出去了，會顯示 3 分鐘！';
+                err.classList.add('ok');
+                await loadBoard();
+            } else {
+                // 後端的錯誤訊息（房號不存在、字太多、發太頻繁）直接給玩家看
+                err.textContent = (result && result.message) || (currLang === 'en' ? 'Could not post. Please try again.' : '發送失敗，請再試一次');
+            }
+            renderBoardCompose();
+        }
+
+        (function setupRoomBoard() {
+            const input = boardEl('boardInput');
+            if (!input) return;
+            input.addEventListener('input', () => { boardEl('boardError').textContent = ''; renderBoardCompose(); });
+            // 後端會把換行換成空白，這裡直接不讓它換行，按 Enter 就送出
+            input.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' && !e.isComposing && e.keyCode !== 229) { e.preventDefault(); publishBoardPost(); }
+            });
+            boardEl('boardPublish').addEventListener('click', publishBoardPost);
+            document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && isBoardOpen()) closeRoomBoard(); });
+        })();
+
         // 💬 【聊天紀錄】只記這次房間裡的訊息；斷線重連回同一間會保留，換房間或離開就清空
         const CHAT_HISTORY_MAX = 100;
         let chatRoomOfLog = null;
@@ -1170,6 +1399,8 @@ function updateRoomUI(text) {
         if (manualBtn) manualBtn.style.display = 'none';
         if (typeof tourActive !== 'undefined' && tourActive) endTour(false);
         closeManual();
+        // 公告板開著的話，換成「幫這間房間發邀請」
+        if (typeof isBoardOpen === 'function' && isBoardOpen()) { renderBoardCompose(); renderBoardList(); }
         document.getElementById('btnCreateRoom').style.display = 'none'; 
         document.getElementById('btnJoinRoom').style.display = 'none'; 
         document.getElementById('btnChat').style.display = 'block'; 
@@ -1194,6 +1425,7 @@ function updateRoomUI(text) {
         // 離開房間就把聊天列收起來，紀錄也清掉
         if (typeof closeChatBar === 'function') closeChatBar();
         if (typeof clearChatHistory === 'function') clearChatHistory();
+        if (typeof isBoardOpen === 'function' && isBoardOpen()) { renderBoardCompose(); renderBoardList(); }
         document.getElementById('btnCreateRoom').style.display = 'block'; 
         document.getElementById('btnJoinRoom').style.display = 'block'; 
         document.getElementById('btnChat').style.display = 'none'; 
@@ -12981,7 +13213,7 @@ const TOUR_STEPS = [
     {
         target: ['#btnToggleMp'], free: true,
         title: ['和朋友一起玩', 'Play with friends'],
-        text: ['按「連線」可以開房間，把 6 碼邀請碼分享給朋友，就能在同一個魚缸裡一起玩、一起聊天。',
+        text: ['按「連線」可以開房間，把 6 碼邀請碼分享給朋友，就能在同一個魚缸裡一起玩、一起聊天。也可以到「房間公告板」發邀請，或看看誰正在找朋友。',
                'Tap "Online" to open a room and share the 6-character code so friends can join your tank.']
     },
     {
