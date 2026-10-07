@@ -9673,10 +9673,6 @@ case 'butterfly': {
                         const clickY = e.clientY - rect.top;
 
                         triggerLightningStrike(clickX, clickY);
-
-                        if (!trialState.effect) {
-                            gameState.points += 5; saveGame(); updateUI(); showFloatText('⚡ 索爾引雷 +5');
-                        }
                     };
 
                     function loopRandomStorm() {
@@ -10071,13 +10067,6 @@ case 'butterfly': {
 
                         const randomAngle = Math.random() * 40 - 110;
                         firePartyPopper(clickX, clickY, randomAngle);
-
-                        if (!trialState.effect) {
-                            gameState.points += 5;
-                            saveGame();
-                            updateUI();
-                            showFloatText('🎉 歡樂派對 +5');
-                        }
                     };
 
                     const popperSpawnSpots = [
@@ -10418,14 +10407,6 @@ case 'butterfly': {
 
                         // 點擊觸發空靈幽靈滑音
                         playGhostSwooshSound(1.35, 0.7);
-
-                        // 試用期間不加積分，正式購買後才加分
-                        if (!trialState.effect) {
-                            gameState.points += 5;
-                            saveGame();
-                            updateUI();
-                            showFloatText('👻 百鬼夜行 +5');
-                        }
                     };
 
                     // 👻 背景群鬼穿梭循環
