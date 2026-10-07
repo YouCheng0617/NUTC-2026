@@ -12,6 +12,79 @@
     let timerTick = null;
     let turnDeadline = 0;
 
+    // ---------- 文字（跟著遊戲右上角的中／英切換） ----------
+    const TEXT = {
+        zh: {
+            title: '🃏 記憶翻牌對決',
+            closeTip: '收起（對決會繼續進行）',
+            rules: '輪流翻兩張牌，翻到一樣的寵物就拿下這組，還可以繼續翻（每回合最多連續翻對 3 組）。<br>全部翻完，拿最多組的人獲勝！每回合限時 30 秒。',
+            albumOpen: '📖 卡牌圖鑑', albumOpenSub: '先看看有哪些牌',
+            pickPairs: '選擇對決組數', start: '開始對決！', wait: '等房主選好組數開始對決…',
+            pairs: (n) => `${n} 組`,
+            back: '← 返回', albumTitle: '📖 卡牌圖鑑', prev: '上一頁', next: '下一頁',
+            albumHint: '左右滑動或按方向鍵翻頁',
+            albumCount: (n) => `共 ${n} 張`,
+            albumPageNo: (p, t) => `第 ${p} / ${t} 頁`,
+            joker: '小丑', jokerRibbon: (v) => `小丑 ×${v}`, jokerMark: '丑',
+            jokerSlot: (v) => `小丑牌・一次拿 ${v} 組`,
+            notYourTurn: '還沒輪到你喔！',
+            winsDone: (w) => `🏆 已贏 ${w} 場，小丑皮膚已解鎖！`,
+            winsSoFar: (w) => `🏆 目前勝場 ${w} / 10（贏滿 10 場送小丑皮膚）`,
+            me: (name) => `${name}（我）`,
+            streak: (a, b) => `・已連續翻對 ${a} / ${b} 組`,
+            myTurn: (streak, secs) => `輪到你翻牌！${streak}（${secs} 秒）`,
+            otherTurn: (name, streak, secs) => `輪到 ${name} 翻牌${streak}（${secs} 秒）`,
+            draw: '🤝 平手！', over: '對決結束！', youWin: '🎉 你贏了！',
+            score: (n) => `${n} 組`, drawNote: '平手不計入勝場喔！',
+            again: '再來一局', backToLobby: '回到等待畫面',
+            error: '翻牌對決發生錯誤',
+            started: (n) => `🃏 翻牌對決開始！共 ${n} 組`,
+            jokerGot: (v) => `🃏 小丑牌！一次拿下 ${v} 組！`,
+            matched: (name) => `配對成功！${name} ✨`,
+            yourTurnToast: '輪到你翻牌囉！🃏',
+            skinUnlocked: (n) => `🃏 恭喜贏滿 ${n} 場，獲得小丑皮膚！`,
+            winPlus: (w) => `🏆 勝場 +1（目前 ${w} 場）`
+        },
+        en: {
+            title: '🃏 Memory Match',
+            closeTip: 'Minimize (the match keeps going)',
+            rules: 'Take turns flipping two cards. Find the same sea bunny to win the pair and keep going (up to 3 pairs in a row).<br>When all cards are gone, whoever has the most pairs wins! 30 seconds per turn.',
+            albumOpen: '📖 Card Album', albumOpenSub: 'See all the cards first',
+            pickPairs: 'How many pairs?', start: 'Start!', wait: 'Waiting for the host to start…',
+            pairs: (n) => `${n} pairs`,
+            back: '← Back', albumTitle: '📖 Card Album', prev: 'Previous page', next: 'Next page',
+            albumHint: 'Swipe or use the arrow keys to turn pages',
+            albumCount: (n) => `${n} cards`,
+            albumPageNo: (p, t) => `Page ${p} / ${t}`,
+            joker: 'Joker', jokerRibbon: (v) => `Joker ×${v}`, jokerMark: 'J',
+            jokerSlot: (v) => `Joker · takes ${v} pairs at once`,
+            notYourTurn: "It's not your turn yet!",
+            winsDone: (w) => `🏆 ${w} wins — Joker skin unlocked!`,
+            winsSoFar: (w) => `🏆 Wins: ${w} / 10 (win 10 to get the Joker skin)`,
+            me: (name) => `${name} (me)`,
+            streak: (a, b) => ` · ${a} / ${b} in a row`,
+            myTurn: (streak, secs) => `Your turn!${streak} (${secs}s)`,
+            otherTurn: (name, streak, secs) => `${name}'s turn${streak} (${secs}s)`,
+            draw: "🤝 It's a draw!", over: 'Match over!', youWin: '🎉 You win!',
+            score: (n) => `${n} pairs`, drawNote: "Draws don't count as wins.",
+            again: 'Play again', backToLobby: 'Back to lobby',
+            error: 'Something went wrong with the match',
+            started: (n) => `🃏 Memory Match started! ${n} pairs`,
+            jokerGot: (v) => `🃏 Joker! You take ${v} pairs at once!`,
+            matched: (name) => `Match! ${name} ✨`,
+            yourTurnToast: 'Your turn! 🃏',
+            skinUnlocked: (n) => `🃏 You won ${n} matches — Joker skin unlocked!`,
+            winPlus: (w) => `🏆 +1 win (${w} total)`
+        }
+    };
+    function isEn() {
+        try { return typeof currLang !== 'undefined' && currLang === 'en'; } catch (e) { return false; }
+    }
+    function T(key, ...args) {
+        const v = (isEn() ? TEXT.en : TEXT.zh)[key];
+        return typeof v === 'function' ? v(...args) : v;
+    }
+
     // ---------- 小工具 ----------
     const $ = (id) => document.getElementById(id);
 
@@ -50,9 +123,9 @@
     }
 
     function speciesName(colorKey) {
-        if (colorKey === JOKER) return '小丑';
+        if (colorKey === JOKER) return T('joker');
         const spec = typeof speciesData !== 'undefined' && speciesData[colorKey];
-        return spec ? (spec.name && spec.name.zh) || colorKey : colorKey;
+        return spec ? (spec.name && (isEn() ? spec.name.en : spec.name.zh)) || colorKey : colorKey;
     }
 
     // 每種海兔專屬的「點數字＋花色符號」，像撲克牌一樣看角落就認得出來（顏色很接近的也分得開）
@@ -83,9 +156,9 @@
         if (face === JOKER) {
             const value = (state && state.jokerValue) || 3;
             return '<div class="mg-face is-joker" style="--c:#7c3aed;--o:#3b0764;--bg:#faf5ff">'
-                + '<div class="mg-idx"><b>丑</b><i>🃏</i></div>'
+                + '<div class="mg-idx"><b>' + T('jokerMark') + '</b><i>🃏</i></div>'
                 + '<div class="mg-medal"><span class="mg-joker-icon">🃏</span></div>'
-                + '<div class="mg-ribbon">小丑 ×' + value + '</div></div>';
+                + '<div class="mg-ribbon">' + T('jokerRibbon', value) + '</div></div>';
         }
         const spec = (typeof speciesData !== 'undefined' && speciesData[face]) || speciesData.snow;
         const mark = CARD_MARK[face] || [speciesName(face).slice(0, 1), '⭐'];
@@ -133,24 +206,22 @@
         overlay.id = 'memoryGameOverlay';
         overlay.hidden = true;
         overlay.innerHTML = `
-            <div class="mg-panel" role="dialog" aria-label="記憶翻牌對決">
+            <div class="mg-panel" role="dialog" data-t-aria="title">
                 <div class="mg-header">
-                    <div class="mg-title">🃏 記憶翻牌對決</div>
-                    <button type="button" class="mg-close" id="mgClose" title="收起（對決會繼續進行）">✕</button>
+                    <div class="mg-title" data-t="title"></div>
+                    <button type="button" class="mg-close" id="mgClose" data-t-title="closeTip">✕</button>
                 </div>
 
                 <div class="mg-lobby" id="mgLobby">
-                    <p class="mg-rules">
-                        輪流翻兩張牌，翻到一樣的寵物就拿下這組，還可以繼續翻（每回合最多連續翻對 3 組）。<br>
-                        全部翻完，拿最多組的人獲勝！每回合限時 30 秒。
-                    </p>
+                    <p class="mg-rules" data-t-html="rules"></p>
                     <p class="mg-wins" id="mgWins"></p>
+                    <button type="button" class="mg-album-open" id="mgAlbumOpen"><span data-t="albumOpen"></span><small data-t="albumOpenSub"></small></button>
                     <div class="mg-host-only" id="mgHostControls">
-                        <div class="mg-label">選擇對決組數</div>
+                        <div class="mg-label" data-t="pickPairs"></div>
                         <div class="mg-pairs" id="mgPairs"></div>
-                        <button type="button" class="mg-start" id="mgStart">開始對決！</button>
+                        <button type="button" class="mg-start" id="mgStart" data-t="start"></button>
                     </div>
-                    <p class="mg-wait" id="mgWait">等房主選好組數開始對決…</p>
+                    <p class="mg-wait" id="mgWait" data-t="wait"></p>
                 </div>
 
                 <div class="mg-game" id="mgGame" hidden>
@@ -160,16 +231,37 @@
                 </div>
 
                 <div class="mg-result" id="mgResult" hidden></div>
+
+                <!-- 📖 卡牌圖鑑：活頁小卡冊，一頁四張，可以翻頁 -->
+                <div class="mg-album" id="mgAlbum" hidden>
+                    <div class="mg-album-bar">
+                        <button type="button" class="mg-album-back" id="mgAlbumBack" data-t="back"></button>
+                        <span class="mg-album-title" data-t="albumTitle"></span>
+                        <span class="mg-album-count" id="mgAlbumCount"></span>
+                    </div>
+                    <div class="mg-album-stage">
+                        <button type="button" class="mg-album-nav prev" id="mgAlbumPrev" data-t-aria="prev">‹</button>
+                        <div class="mg-book" id="mgBook">
+                            <div class="mg-rings" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+                            <div class="mg-page" id="mgPage"></div>
+                        </div>
+                        <button type="button" class="mg-album-nav next" id="mgAlbumNext" data-t-aria="next">›</button>
+                    </div>
+                    <div class="mg-album-foot"><span id="mgAlbumPageNo"></span><span class="mg-album-hint" data-t="albumHint"></span></div>
+                </div>
             </div>`;
         document.body.appendChild(overlay);
+        applyStaticText();
 
         $('mgClose').addEventListener('click', closeOverlay);
+        bindAlbum();
 
         let selectedPairs = 20;
         const pairsBox = $('mgPairs');
         PAIR_OPTIONS.forEach((n) => {
-            const btn = el('button', 'mg-pair-btn' + (n === selectedPairs ? ' is-active' : ''), `${n} 組`);
+            const btn = el('button', 'mg-pair-btn' + (n === selectedPairs ? ' is-active' : ''), T('pairs', n));
             btn.type = 'button';
+            btn.dataset.pairs = n;
             btn.addEventListener('click', () => {
                 selectedPairs = n;
                 pairsBox.querySelectorAll('.mg-pair-btn').forEach((b) => b.classList.toggle('is-active', b === btn));
@@ -185,13 +277,158 @@
         $('mgBoard').addEventListener('click', (e) => {
             const card = e.target.closest('.mg-card');
             if (!card || !state || !boundSocket) return;
-            if (state.turn !== myId()) { showFloatText('還沒輪到你喔！'); return; }
+            if (state.turn !== myId()) { showFloatText(T('notYourTurn')); return; }
             if (card.classList.contains('is-flipped')) return;
             boundSocket.emit('memory_flip', { index: Number(card.dataset.index) });
         });
 
         window.addEventListener('resize', layoutBoard);
         return overlay;
+    }
+
+    // ---------- 📖 卡牌圖鑑（活頁小卡冊） ----------
+    const ALBUM_PER_PAGE = 4;
+    const ALBUM_VIEWS = ['mgLobby', 'mgGame', 'mgResult'];
+    let albumPage = 0;
+    let albumTurning = false;
+    let albumQueued = 0;             // 翻頁動畫中又按了幾下，翻完接著翻
+    let albumReturnTo = 'mgLobby';   // 關掉圖鑑後回到哪個畫面
+
+    function albumFaces() {
+        const keys = typeof speciesData !== 'undefined' ? Object.keys(speciesData) : [];
+        return keys.concat([JOKER]);
+    }
+    function albumPageCount() { return Math.ceil(albumFaces().length / ALBUM_PER_PAGE); }
+
+    function openAlbum() {
+        albumReturnTo = ALBUM_VIEWS.find((id) => !$(id).hidden) || 'mgLobby';
+        ALBUM_VIEWS.forEach((id) => { $(id).hidden = true; });
+        $('mgAlbum').hidden = false;
+        $('mgAlbumCount').textContent = T('albumCount', albumFaces().length);
+        renderAlbumPage();
+    }
+
+    function closeAlbum() {
+        const album = $('mgAlbum');
+        if (!album || album.hidden) return;
+        album.hidden = true;
+        albumQueued = 0;
+        $(albumReturnTo).hidden = false;
+        if (albumReturnTo === 'mgGame') layoutBoard();
+    }
+
+    function isAlbumOpen() {
+        const album = $('mgAlbum');
+        const overlay = $('memoryGameOverlay');
+        return !!(album && !album.hidden && overlay && !overlay.hidden);
+    }
+
+    function renderAlbumPage() {
+        const page = $('mgPage');
+        const faces = albumFaces();
+        const total = albumPageCount();
+        albumPage = Math.max(0, Math.min(total - 1, albumPage));
+        page.innerHTML = '';
+        faces.slice(albumPage * ALBUM_PER_PAGE, (albumPage + 1) * ALBUM_PER_PAGE).forEach((face, i) => {
+            const slot = el('div', 'mg-slot');
+            const sleeve = el('div', 'mg-sleeve');
+            sleeve.innerHTML = cardFaceHTML(face);
+            slot.appendChild(sleeve);
+            const mark = face === JOKER ? [T('jokerMark'), '🃏'] : (CARD_MARK[face] || ['', '']);
+            const label = el('div', 'mg-slot-label');
+            label.appendChild(el('span', 'mg-slot-no', 'No.' + String(albumPage * ALBUM_PER_PAGE + i + 1).padStart(2, '0')));
+            label.appendChild(el('span', 'mg-slot-name', face === JOKER ? T('jokerSlot', (state && state.jokerValue) || 3) : speciesName(face)));
+            label.appendChild(el('span', 'mg-slot-mark', mark[0] + mark[1]));
+            slot.appendChild(label);
+            page.appendChild(slot);
+        });
+        // 最後一頁不滿四張：補空卡套，版面才不會跳
+        for (let k = page.children.length; k < ALBUM_PER_PAGE; k++) {
+            const slot = el('div', 'mg-slot is-empty');
+            slot.appendChild(el('div', 'mg-sleeve'));
+            slot.appendChild(el('div', 'mg-slot-label'));
+            page.appendChild(slot);
+        }
+        $('mgAlbumPageNo').textContent = T('albumPageNo', albumPage + 1, total);
+        $('mgAlbumPrev').disabled = albumPage === 0;
+        $('mgAlbumNext').disabled = albumPage >= total - 1;
+        layoutAlbum();
+    }
+
+    // 卡套大小跟著畫面算：兩欄兩列，牌是 4:5，下面留名字的位置
+    function layoutAlbum() {
+        const page = $('mgPage');
+        if (!page || $('mgAlbum').hidden) return;
+        const cs = getComputedStyle(page);
+        const W = page.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
+        const H = page.clientHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom);
+        const LABEL = 40, GAP_X = 16, GAP_Y = 12;
+        // 一頁四張：直的畫面排 2×2，寬扁的畫面（橫向手機）排 4×1，挑牌比較大的那種
+        const grid = Math.min((W - GAP_X) / 2, ((H - GAP_Y) / 2 - LABEL) * 0.8);
+        const row = Math.min((W - GAP_X * 3) / 4, (H - LABEL) * 0.8);
+        const cols = row > grid ? 4 : 2;
+        const w = Math.floor(Math.max(40, Math.max(grid, row)));
+        page.style.setProperty('--album-cols', cols);
+        page.style.setProperty('--mg-w', w);
+        page.style.setProperty('--slot-w', w + 'px');
+    }
+
+    // 翻頁：整頁像書頁一樣翻過去，翻到一半換內容，再翻回來
+    function turnAlbum(dir) {
+        const next = albumPage + dir;
+        if (albumTurning) { albumQueued += dir; return; }
+        if (next < 0 || next >= albumPageCount()) return;
+        const page = $('mgPage');
+        if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+            albumPage = next;
+            renderAlbumPage();
+            return;
+        }
+        albumTurning = true;
+        page.classList.add(dir > 0 ? 'turn-out-next' : 'turn-out-prev');
+        setTimeout(() => {
+            albumPage = next;
+            renderAlbumPage();
+            page.classList.remove('turn-out-next', 'turn-out-prev');
+            page.classList.add(dir > 0 ? 'turn-in-next' : 'turn-in-prev');
+            setTimeout(() => {
+                page.classList.remove('turn-in-next', 'turn-in-prev');
+                albumTurning = false;
+                if (albumQueued) {
+                    const step = albumQueued > 0 ? 1 : -1;
+                    albumQueued -= step;
+                    turnAlbum(step);
+                }
+            }, 220);
+        }, 220);
+    }
+
+    function bindAlbum() {
+        $('mgAlbumOpen').addEventListener('click', openAlbum);
+        $('mgAlbumBack').addEventListener('click', closeAlbum);
+        $('mgAlbumPrev').addEventListener('click', () => turnAlbum(-1));
+        $('mgAlbumNext').addEventListener('click', () => turnAlbum(1));
+        // 手機：左右滑動翻頁
+        const book = $('mgBook');
+        let startX = null;
+        let startY = 0;
+        book.addEventListener('pointerdown', (e) => { startX = e.clientX; startY = e.clientY; });
+        book.addEventListener('pointerup', (e) => {
+            if (startX === null) return;
+            const dx = e.clientX - startX;
+            const dy = e.clientY - startY;
+            startX = null;
+            if (Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy)) turnAlbum(dx < 0 ? 1 : -1);
+        });
+        book.addEventListener('pointercancel', () => { startX = null; });
+        // 電腦：方向鍵翻頁，Esc 回去
+        document.addEventListener('keydown', (e) => {
+            if (!isAlbumOpen()) return;
+            if (e.key === 'ArrowRight') { e.preventDefault(); turnAlbum(1); }
+            else if (e.key === 'ArrowLeft') { e.preventDefault(); turnAlbum(-1); }
+            else if (e.key === 'Escape') closeAlbum();
+        });
+        window.addEventListener('resize', layoutAlbum);
     }
 
     function openOverlay() {
@@ -211,18 +448,19 @@
         $('mgLobby').hidden = false;
         $('mgGame').hidden = true;
         $('mgResult').hidden = true;
+        $('mgAlbum').hidden = true;   // 對決開始、結束時圖鑑自動收起來
         $('mgHostControls').hidden = !isRoomHost;
         $('mgWait').hidden = !!isRoomHost;
 
         const winsEl = $('mgWins');
         winsEl.textContent = '';
+        lastWins = null;
         if (typeof fetchAPI === 'function' && GAME_TOKEN) {
             const pet = await fetchAPI('/pet-games/my-pet', 'GET');
             const wins = pet && (pet.memory_wins ?? (pet.data && pet.data.memory_wins));
             if (typeof wins === 'number') {
-                winsEl.textContent = wins >= 10
-                    ? `🏆 已贏 ${wins} 場，小丑皮膚已解鎖！`
-                    : `🏆 目前勝場 ${wins} / 10（贏滿 10 場送小丑皮膚）`;
+                lastWins = wins;
+                renderWins();
             }
         }
     }
@@ -230,6 +468,7 @@
     function showGame() {
         $('mgLobby').hidden = true;
         $('mgResult').hidden = true;
+        $('mgAlbum').hidden = true;
         $('mgGame').hidden = false;
     }
 
@@ -279,7 +518,7 @@
             const icon = el('span', 'mg-score-icon');
             icon.innerHTML = petSVG(p.petColor);
             chip.appendChild(icon);
-            chip.appendChild(el('span', 'mg-score-name', p.socketId === myId() ? `${p.petName}（我）` : p.petName));
+            chip.appendChild(el('span', 'mg-score-name', p.socketId === myId() ? T('me', p.petName) : p.petName));
             chip.appendChild(el('span', 'mg-score-num', String(p.score)));
             box.appendChild(chip);
         });
@@ -290,9 +529,9 @@
         const player = state.players.find((p) => p.socketId === state.turn);
         const mine = state.turn === myId();
         const secs = Math.max(0, Math.ceil((turnDeadline - Date.now()) / 1000));
-        const streak = state.streak ? `・已連續翻對 ${state.streak} / ${state.maxStreak} 組` : '';
+        const streak = state.streak ? T('streak', state.streak, state.maxStreak) : '';
         status.textContent = notice
-            || (mine ? `輪到你翻牌！${streak}（${secs} 秒）` : `輪到 ${player ? player.petName : '…'} 翻牌${streak}（${secs} 秒）`);
+            || (mine ? T('myTurn', streak, secs) : T('otherTurn', player ? player.petName : '…', streak, secs));
         status.classList.toggle('is-mine', mine);
     }
 
@@ -309,33 +548,39 @@
 
     function endGame(data) {
         clearInterval(timerTick);
+        lastResult = data;
+        renderResult(data);
+
+        state = null;
+        ensureOverlay().hidden = false;
+        $('mgLobby').hidden = true;
+        $('mgGame').hidden = true;
+        $('mgResult').hidden = false;
+        $('mgAlbum').hidden = true;
+    }
+
+    function renderResult(data) {
         const result = $('mgResult');
         result.innerHTML = '';
         const ranking = [...data.players].sort((a, b) => b.score - a.score);
         const iWon = data.winners.includes(myId());
 
         result.appendChild(el('div', 'mg-result-title',
-            data.draw ? (iWon ? '🤝 平手！' : '對決結束！') : (iWon ? '🎉 你贏了！' : '對決結束！')));
+            data.draw ? (iWon ? T('draw') : T('over')) : (iWon ? T('youWin') : T('over'))));
         const list = el('ol', 'mg-ranking');
         ranking.forEach((p) => {
             const li = el('li', data.winners.includes(p.socketId) ? 'is-winner' : '');
-            li.appendChild(el('span', '', p.socketId === myId() ? `${p.petName}（我）` : p.petName));
-            li.appendChild(el('b', '', `${p.score} 組`));
+            li.appendChild(el('span', '', p.socketId === myId() ? T('me', p.petName) : p.petName));
+            li.appendChild(el('b', '', T('score', p.score)));
             list.appendChild(li);
         });
         result.appendChild(list);
-        if (data.draw) result.appendChild(el('p', 'mg-note', '平手不計入勝場喔！'));
+        if (data.draw) result.appendChild(el('p', 'mg-note', T('drawNote')));
 
-        const again = el('button', 'mg-start', isRoomHost ? '再來一局' : '回到等待畫面');
+        const again = el('button', 'mg-start', isRoomHost ? T('again') : T('backToLobby'));
         again.type = 'button';
         again.addEventListener('click', showLobby);
         result.appendChild(again);
-
-        state = null;
-        ensureOverlay().hidden = false;
-        $('mgLobby').hidden = true;
-        $('mgGame').hidden = true;
-        result.hidden = false;
     }
 
     function resetLocal(message) {
@@ -358,7 +603,7 @@
         socket.on('connect', () => { identify(); if (currentRoomId) socket.emit('memory_sync'); });
         if (socket.connected) identify();
 
-        socket.on('memory_error', ({ message }) => showFloatText(message || '翻牌對決發生錯誤'));
+        socket.on('memory_error', ({ message }) => showFloatText(message || T('error')));
 
         socket.on('memory_started', (s) => {
             state = s;
@@ -367,7 +612,7 @@
             showGame();
             buildBoard();
             setTurn(s.turn, s.turnMsLeft, s.streak);
-            showFloatText(`🃏 翻牌對決開始！共 ${s.pairs} 組`);
+            showFloatText(T('started', s.pairs));
         });
 
         // 中途加入或重連：直接畫出目前盤面
@@ -387,7 +632,7 @@
             state.players = players;
             state.streak = streak;
             renderScores();
-            if (by === myId()) showFloatText(face === JOKER ? '🃏 小丑牌！一次拿下 3 組！' : `配對成功！${speciesName(face)} ✨`);
+            if (by === myId()) showFloatText(face === JOKER ? T('jokerGot', (state && state.jokerValue) || 3) : T('matched', speciesName(face)));
         });
 
         socket.on('memory_mismatch', ({ indices, showMs }) => {
@@ -409,7 +654,7 @@
             document.querySelectorAll('.mg-card.is-flipped:not(.is-matched):not(.is-wrong)').forEach((c) => hideFace(Number(c.dataset.index)));
             (revealed || []).forEach((r) => showFace(r.index, r.face));
             setTurn(turn, turnMsLeft, streak, notice);
-            if (turn === myId() && !streak) showFloatText('輪到你翻牌囉！🃏');
+            if (turn === myId() && !streak) showFloatText(T('yourTurnToast'));
         });
 
         socket.on('memory_players', ({ players }) => { if (state) { state.players = players; renderScores(); } });
@@ -419,9 +664,47 @@
         socket.on('memory_aborted', ({ message }) => resetLocal(message));
 
         socket.on('memory_win_recorded', ({ wins, jokerSkinUnlocked, winsRequired }) => {
-            if (jokerSkinUnlocked) showFloatText(`🃏 恭喜贏滿 ${winsRequired} 場，獲得小丑皮膚！`, 5000);
-            else showFloatText(`🏆 勝場 +1（目前 ${wins} 場）`, 4000);
+            if (jokerSkinUnlocked) showFloatText(T('skinUnlocked', winsRequired), 5000);
+            else showFloatText(T('winPlus', wins), 4000);
         });
+    }
+
+    let lastWins = null;
+    let lastResult = null;
+
+    function renderWins() {
+        const winsEl = $('mgWins');
+        if (!winsEl || typeof lastWins !== 'number') return;
+        winsEl.textContent = lastWins >= 10 ? T('winsDone', lastWins) : T('winsSoFar', lastWins);
+    }
+
+    function applyStaticText() {
+        const overlay = $('memoryGameOverlay');
+        if (!overlay) return;
+        overlay.querySelectorAll('[data-t]').forEach((n) => { n.textContent = T(n.dataset.t); });
+        overlay.querySelectorAll('[data-t-html]').forEach((n) => { n.innerHTML = T(n.dataset.tHtml); });
+        overlay.querySelectorAll('[data-t-aria]').forEach((n) => { n.setAttribute('aria-label', T(n.dataset.tAria)); });
+        overlay.querySelectorAll('[data-t-title]').forEach((n) => { n.title = T(n.dataset.tTitle); });
+        overlay.querySelectorAll('.mg-pair-btn').forEach((b) => { b.textContent = T('pairs', Number(b.dataset.pairs)); });
+    }
+
+    // 遊戲右上角切中／英時呼叫：畫面上看得到的字全部換掉
+    function refreshLang() {
+        if (!$('memoryGameOverlay')) return;
+        applyStaticText();
+        renderWins();
+        if (!$('mgAlbum').hidden) {
+            $('mgAlbumCount').textContent = T('albumCount', albumFaces().length);
+            renderAlbumPage();
+        }
+        // 牌面上的名字也要換：已經翻開的牌重畫一次
+        document.querySelectorAll('.mg-card[data-face]').forEach((card) => {
+            const front = card.querySelector('.mg-front');
+            front.innerHTML = cardFaceHTML(card.dataset.face);
+            front.title = speciesName(card.dataset.face);
+        });
+        if (state) { renderScores(); renderStatus(); }
+        if (!$('mgResult').hidden && lastResult) renderResult(lastResult);
     }
 
     // 離開房間時收起來
@@ -430,5 +713,5 @@
         closeOverlay();
     }
 
-    window.MemoryGame = { bindSocket, open: openOverlay, leaveRoom };
+    window.MemoryGame = { bindSocket, open: openOverlay, leaveRoom, refreshLang };
 })();

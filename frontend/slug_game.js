@@ -5535,6 +5535,7 @@ slugEl.style.transform = slugTransform(`scaleX(${direction})`);
             updateUI();
             updateNameUI();
             updateMpGamesUI();
+            if (window.MemoryGame && MemoryGame.refreshLang) MemoryGame.refreshLang();
         }
 
 function updateLangUI() {
