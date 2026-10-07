@@ -2992,7 +2992,10 @@
         .top-right { display: flex; align-items: center; gap: 10px; }
         .redeem-open-btn { gap: 6px; }
         /* .name-modal 預設最寬 340px，會把輸入框擠到提示字被裁掉，這裡放寬 */
-        .redeem-modal { position: relative; width: min(440px, calc(100vw - 32px)); max-width: 440px; }
+        .redeem-modal {
+            position: relative; width: min(440px, calc(100vw - 32px)); max-width: 440px;
+            max-height: calc(100vh - 32px); max-height: calc(100dvh - 32px); overflow-y: auto;   /* 再高也不會超出螢幕 */
+        }
         .redeem-close { position: absolute; top: 14px; right: 14px; }
         @media (max-width: 480px) {
             /* 手機上空間不夠：只留禮物圖示 */
@@ -3031,8 +3034,20 @@
         .redeem-result.is-error { color: #dc2626; }
         .redeem-result.is-ok { padding: 12px 14px; border-radius: 14px; background: #f0fdf4; border: 2px solid #86efac; color: #166534; text-align: left; }
         .redeem-ok-title { font-weight: 900; margin-bottom: 6px; }
-        .redeem-rewards { margin: 0; padding-left: 1.2em; }
-        .redeem-rewards li { margin: 2px 0; }
+        .redeem-ok-count { font-size: 0.78rem; font-weight: 800; color: #15803d; margin-bottom: 8px; }
+        /* 獎勵一多就會比螢幕還高：改成小標籤自動換行，清單本身可以捲動 */
+        .redeem-rewards {
+            list-style: none; margin: 0; padding: 2px;
+            display: flex; flex-wrap: wrap; gap: 6px;
+            max-height: min(38vh, 240px); overflow-y: auto;
+            overscroll-behavior: contain; -webkit-overflow-scrolling: touch;
+        }
+        .redeem-rewards li {
+            margin: 0; padding: 5px 10px; border-radius: 999px;
+            background: #fff; border: 1.5px solid #bbf7d0;
+            font-size: 0.82rem; line-height: 1.3;
+        }
+        .redeem-rewards li.is-coin { background: #fef9c3; border-color: #fde047; color: #854d0e; }
         .redeem-owned { margin-left: 6px; padding: 1px 8px; border-radius: 999px; background: #e2e8f0; color: #475569; font-size: 0.72rem; }
         /* 📱 手機：視窗內距縮小，輸入框和按鈕改上下排、都拉滿寬，比較好按 */
         @media (max-width: 480px) {

@@ -668,10 +668,19 @@
         head.className = 'redeem-ok-title';
         head.textContent = L(`🎉 兌換成功！「${d.title}」`, `🎉 Redeemed! "${d.title}"`);
         box.appendChild(head);
+        // 東西很多時先告訴玩家總共幾樣，清單可以往下捲
+        const total = (d.coin > 0 ? 1 : 0) + (d.items || []).length;
+        if (total > 1) {
+            const count = document.createElement('div');
+            count.className = 'redeem-ok-count';
+            count.textContent = L(`共 ${total} 樣獎勵`, `${total} rewards in total`);
+            box.appendChild(count);
+        }
         const list = document.createElement('ul');
         list.className = 'redeem-rewards';
         if (d.coin > 0) {
             const li = document.createElement('li');
+            li.className = 'is-coin';
             li.textContent = L(`💰 ${d.coin} 積分`, `💰 ${d.coin} coins`);
             list.appendChild(li);
         }
