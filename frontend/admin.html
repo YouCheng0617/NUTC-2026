@@ -52,6 +52,14 @@
         ⚠️ 檢舉處理
       </li>
       <li onclick="
+            switchAdminTab('game-reports');
+            toggleSidebarIfMobile();
+          ">
+        🎮 遊戲檢舉
+        <span id="game-report-pending-badge" class="badge"
+          style="display: none; margin-left: 6px; background: #ef4444; color: #fff; padding: 1px 8px; border-radius: 999px; font-size: 0.75rem;"></span>
+      </li>
+      <li onclick="
             switchAdminTab('customer-service');
             toggleSidebarIfMobile();
           ">
@@ -418,6 +426,61 @@
         </div>
       </div>
 
+      <!-- 🎮 寵物遊戲連線房間的玩家檢舉（admin_game_reports.js） -->
+      <div id="section-game-reports" class="admin-section" style="display: none">
+        <div class="modern-card">
+          <div class="card-header"
+            style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+            <h3 style="color: #7c3aed; margin: 0;">🎮 遊戲玩家檢舉</h3>
+            <input type="text" id="search-game-reports" placeholder="🔍 搜尋寵物名字、帳號、原因..." style="
+                  padding: 8px 12px;
+                  border: 1px solid #ccc;
+                  border-radius: 6px;
+                  width: 100%;
+                  max-width: 300px;
+                " oninput="filterGameReports()" />
+          </div>
+          <div class="filter-columns"
+            style="padding: 12px 24px; background: #ffffff; border-bottom: 1px solid var(--border-light); display: flex; gap: 10px; flex-wrap: wrap; align-items: center;">
+            <span style="font-size: 0.9rem; font-weight: 600; color: #64748b; margin-right: 5px;">📂 案件狀態：</span>
+            <button id="filter-game-report-pending" class="btn-action"
+              style="background:#3b82f6; color:#fff; border: 1px solid #3b82f6; border-radius: 20px; padding: 4px 12px;"
+              onclick="filterGameReportByStatus('pending')">⏳ 待處理</button>
+            <button id="filter-game-report-upheld" class="btn-action"
+              style="background:#f8fafc; color:#64748b; border: 1px solid #e2e8f0; border-radius: 20px; padding: 4px 12px;"
+              onclick="filterGameReportByStatus('upheld')">✅ 成立</button>
+            <button id="filter-game-report-rejected" class="btn-action"
+              style="background:#f8fafc; color:#64748b; border: 1px solid #e2e8f0; border-radius: 20px; padding: 4px 12px;"
+              onclick="filterGameReportByStatus('rejected')">❎ 不成立</button>
+            <button id="filter-game-report-all" class="btn-action"
+              style="background:#f8fafc; color:#64748b; border: 1px solid #e2e8f0; border-radius: 20px; padding: 4px 12px;"
+              onclick="filterGameReportByStatus('all')">全部</button>
+            <button class="btn-action"
+              style="margin-left: auto; padding: 6px 12px; border: 1px solid #cbd5e1; border-radius: 20px; font-weight: 600; color: #475569; background: #f8fafc; cursor: pointer;"
+              onclick="loadGameReports()">🔄 重新整理</button>
+          </div>
+          <div class="table-responsive">
+            <table class="modern-table">
+              <thead>
+                <tr>
+                  <th>檢舉時間</th>
+                  <th>被檢舉玩家</th>
+                  <th>檢舉原因</th>
+                  <th>補充說明</th>
+                  <th>檢舉人</th>
+                  <th>狀態</th>
+                  <th>操作</th>
+                </tr>
+              </thead>
+              <tbody id="admin-game-reports-body">
+                <!-- 資料會從 JS 渲染進來 -->
+              </tbody>
+            </table>
+          </div>
+          <div id="game-reports-pagination" class="pagination-container"></div>
+        </div>
+      </div>
+
       <!-- 💬 客服問題管理面板 -->
       <div id="section-customer-service" class="admin-section" style="display: none">
         <div class="modern-card">
@@ -654,7 +717,8 @@
       }
     });
   </script>
-  <script src="admin.js?v=2"></script>
+  <script src="admin.js?v=3"></script>
+  <script src="admin_game_reports.js?v=1"></script>
 </body>
 
 </html>
