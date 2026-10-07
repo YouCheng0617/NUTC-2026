@@ -4,6 +4,7 @@ import crypto from 'crypto';
 import prisma from '../lib/prisma.js';
 import { gameConfig } from './gameConfig.js';
 import { applyQuitPenalty } from './quitPenalty.js';
+import { milestonesReached, MILESTONES } from './memoryRewards.js';
 
 /*
  * 記憶翻牌對決（連線房間裡的小遊戲）
@@ -161,7 +162,7 @@ const stopGame = (roomId: string) => {
     games.delete(roomId);
 };
 
-/* 勝場 +1，滿 jokerSkin.winsRequired 場送小丑皮膚 */
+/* 勝場 +1，滿 jokerSkin.winsRequired 場送小丑皮膚；其他里程碑（卡背、披風皇冠、王座）見 memoryRewards.ts */
 const recordWin = async (memberId: number) => {
     const pet = await prisma.pet.upsert({
         where: { member_id: memberId },
@@ -181,7 +182,10 @@ const recordWin = async (memberId: number) => {
             jokerSkinUnlocked = true;
         }
     }
-    return { wins: pet.memory_wins, jokerSkinUnlocked };
+    // 這一場剛好跨過的里程碑，前端用來跳「獲得卡背自選箱」或播王座動畫
+    const newRewards = milestonesReached(pet.memory_wins - 1, pet.memory_wins);
+    const next = MILESTONES.find(m => pet.memory_wins < m.wins) ?? null;
+    return { wins: pet.memory_wins, jokerSkinUnlocked, newRewards, nextMilestone: next };
 };
 
 /* 連線時已驗證的帳號（petServer 存在 socket.data.memberId），沒有才看 memory_identify 的紀錄 */

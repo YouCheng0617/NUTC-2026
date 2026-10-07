@@ -458,6 +458,11 @@ model Pet {
 
   memory_wins Int @default(0) // 記憶翻牌對決勝場數（贏滿 10 場送小丑皮膚）
 
+  // 翻牌對決勝場獎勵（memoryRewards.ts）
+  memory_card_back    String? // 3 勝解鎖：目前套用的卡背（null = 預設卡背）
+  memory_royal_outfit String? // 30 勝解鎖：king / queen（null = 不穿）
+  memory_throne_seen  Boolean @default(false) // 100 勝：是否看過登上王座的動畫
+
   // 翻牌對決中途離開的處罰：當天（台北時間）第幾次、哪一天、禁止進連線房間到什麼時候
   memory_quit_count Int       @default(0)
   memory_quit_date  String?

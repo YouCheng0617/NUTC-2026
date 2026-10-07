@@ -63,7 +63,16 @@ export const gameConfig = {
         // 機會／命運牌：規則還沒定，先留開關，邏輯尚未實作
         chanceCards: { enabled: false },
         // 贏滿幾場送小丑皮膚（存進 PetInventory 的 pet_color / joker，設計師畫好後前端 speciesData 補上 joker 就能穿）
-        jokerSkin: { winsRequired: 10, itemName: "joker" }
+        jokerSkin: { winsRequired: 10, itemName: "joker" },
+        // 其他勝場獎勵（memoryRewards.ts）：
+        //   3 勝 卡背自選箱：解鎖後從 options 挑一種卡背套用，隨時可換（名稱要跟前端 memory_game.js 的 CARD_BACKS 一致）
+        //   30 勝 披風皇冠：國王裝或皇后裝擇一，隨時可換、也可以不穿
+        //   100 勝 登上王座的神秘動畫：達成那場通知前端播放，之後可重播
+        rewards: {
+            cardBackBox: { wins: 3, options: ["classic", "stars", "berry", "mint", "sakura", "candy", "ocean", "royal"] }, // 同 memory_game.js 的 CARD_BACKS
+            royalOutfit: { wins: 30, options: ["king", "queen"] },
+            throneAnimation: { wins: 100 },
+        }
     },
     shop: {
         pet_color: {
