@@ -5,7 +5,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>心情漂流瓶 - 後台管理系統</title>
-  <link rel="stylesheet" href="admin.css?v=2" />
+  <link rel="stylesheet" href="admin.css?v=4" />
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <!-- 🌟 在下方加入這行 -->
   <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels"></script>
@@ -491,7 +491,7 @@
       <div id="section-redeem-codes" class="admin-section" style="display: none">
         <div class="modern-card rd-card">
           <div class="card-header">
-            <h3 style="color: #db2777; margin: 0;">🎁 建立兌換碼</h3>
+            <h3 id="rd-form-title" style="color: #db2777; margin: 0;">🎁 建立兌換碼</h3>
           </div>
           <div class="rd-form">
             <label class="rd-field">
@@ -502,7 +502,7 @@
               <span>兌換碼（留空自動產生）</span>
               <span class="rd-inline">
                 <input type="text" id="rd-code" maxlength="20" placeholder="英文、數字、- 或 _" style="text-transform: uppercase;" />
-                <button type="button" class="btn-action btn-secondary" onclick="rdRandomCode()" title="隨機產生">🎲</button>
+                <button type="button" class="btn-action btn-secondary" id="rd-random-btn" onclick="rdRandomCode()" title="隨機產生">🎲</button>
               </span>
             </label>
             <label class="rd-field">
@@ -538,7 +538,9 @@
           </div>
 
           <div class="rd-submit">
+            <div id="rd-edit-note" class="rd-edit-note" style="display: none;"></div>
             <button type="button" class="btn-action btn-primary" id="rd-create-btn" onclick="rdCreateCode()">🎁 建立兌換碼</button>
+            <button type="button" class="btn-action btn-secondary" id="rd-cancel-btn" onclick="rdCancelEdit()" style="display: none;">取消編輯</button>
             <div id="rd-result" class="rd-result"></div>
           </div>
         </div>
@@ -806,7 +808,7 @@
   </script>
   <script src="admin.js?v=3"></script>
   <script src="admin_game_reports.js?v=1"></script>
-  <script src="admin_redeem_codes.js?v=1"></script>
+  <script src="admin_redeem_codes.js?v=3"></script>
 </body>
 
 </html>

@@ -1039,3 +1039,28 @@ html {
   .rd-item-grid { grid-template-columns: repeat(auto-fill, minmax(84px, 1fr)); max-height: 300px; }
   .rd-picker-head input { flex: 1 1 100%; }
 }
+
+/* 兌換碼列表：獎勵超過 5 樣時收合 */
+.rd-reward-fold summary {
+  cursor: pointer;
+  font-weight: 700;
+  color: #334155;
+  list-style: revert;
+}
+.rd-reward-fold summary:hover { color: #db2777; }
+.rd-fold-hint { margin-left: 4px; font-weight: 500; color: #94a3b8; font-size: 0.85rem; }
+.rd-reward-fold[open] .rd-fold-hint { display: none; }
+.rd-reward-list { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 8px; }
+
+/* 兌換碼編輯模式：已有人兌換時的提醒 */
+.rd-edit-note {
+  flex: 1 1 100%;
+  padding: 10px 14px;
+  border: 1px solid #fcd34d;
+  border-radius: 10px;
+  background: #fffbeb;
+  color: #92400e;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+.rd-field input:disabled { background: #f1f5f9; color: #94a3b8; cursor: not-allowed; }

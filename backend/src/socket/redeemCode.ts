@@ -34,7 +34,8 @@ export interface CreateCodeInput {
     maxUses?: number | null; expiresAt?: string | null; createdBy: number;
 }
 
-export const createRedeemCode = async (input: CreateCodeInput) => {
+/* 建立、修改共用的欄位檢查 */
+const parseSettings = (input: Omit<CreateCodeInput, 'createdBy'>) => {
     const title = typeof input.title === 'string' ? input.title.trim().slice(0, 50) : '';
     if (!title) throw new Error('請輸入活動名稱');
 
@@ -63,6 +64,12 @@ export const createRedeemCode = async (input: CreateCodeInput) => {
     const custom = normalizeCode(input.code);
     if (custom && !CODE_PATTERN.test(custom)) throw new Error('兌換碼只能用英文、數字、- 或 _，長度 4 ~ 20');
 
+    return { title, coin, items, maxUses, expiresAt, custom };
+};
+
+export const createRedeemCode = async (input: CreateCodeInput) => {
+    const { title, coin, items, maxUses, expiresAt, custom } = parseSettings(input);
+
     // 沒指定就自動產生，撞號就重抽
     for (let attempt = 0; attempt < 5; attempt++) {
         const code = custom || generateCode();
@@ -82,6 +89,47 @@ export const createRedeemCode = async (input: CreateCodeInput) => {
         }
     }
     throw new Error('產生兌換碼失敗，請再試一次');
+};
+
+/*
+ * 修改兌換碼設定
+ * - 名稱、到期時間、獎勵隨時可改（已兌換的人不會補發或收回）
+ * - 人數上限不能低於已兌換人數
+ * - 兌換碼本身只有還沒人用過才能改，避免已經公布的碼失效
+ */
+export const updateRedeemCode = async (id: number, input: Omit<CreateCodeInput, 'createdBy'>) => {
+    const existing = await prisma.redeemCode.findUnique({ where: { id } });
+    if (!existing) throw new Error('找不到這個兌換碼');
+
+    const { title, coin, items, maxUses, expiresAt, custom } = parseSettings(input);
+    const code = custom || existing.code;
+    const codeChanged = code !== existing.code;
+    if (codeChanged && existing.used_count > 0) throw new Error('已經有人兌換過，兌換碼本身不能改（其他設定可以改）');
+    if (maxUses !== null && maxUses < existing.used_count) {
+        throw new Error(`已經有 ${existing.used_count} 人兌換，人數上限不能低於 ${existing.used_count}`);
+    }
+
+    try {
+        // 條件更新：送出修改的同時如果剛好有人兌換，上限、改碼的檢查以資料庫當下的人數為準
+        const result = await prisma.redeemCode.updateMany({
+            where: {
+                id,
+                ...(codeChanged ? { used_count: 0 } : {}),
+                ...(maxUses !== null ? { used_count: { lte: maxUses } } : {}),
+            },
+            data: {
+                code, title, reward_coin: coin, reward_items: items as unknown as Prisma.InputJsonValue,
+                max_uses: maxUses, expires_at: expiresAt,
+            },
+        });
+        if (result.count === 0) throw new Error('剛好有人兌換，人數已經變了，請重新整理後再改一次');
+    } catch (error) {
+        if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
+            throw new Error('這個兌換碼已經有人用了，換一個吧');
+        }
+        throw error;
+    }
+    return prisma.redeemCode.findUnique({ where: { id } });
 };
 
 /* 狀態給後台顯示：active / disabled / expired / used_up */

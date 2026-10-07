@@ -1,7 +1,7 @@
 import type { Response } from "express";
 import type { AuthRequest } from "../modules/middleware/auth.middleware.js";
 import {
-    createRedeemCode, listRedeemCodes, setRedeemCodeActive, deleteRedeemCode, listRedeemCodeUses, redeemCode,
+    createRedeemCode, updateRedeemCode, listRedeemCodes, setRedeemCodeActive, deleteRedeemCode, listRedeemCodeUses, redeemCode,
 } from "./redeemCode.js";
 
 const parseId = (raw: unknown) => {
@@ -41,6 +41,19 @@ export const createRedeemCodeController = async (req: AuthRequest, res: Response
         return res.status(201).json({ message: `兌換碼 ${created.code} 建立成功`, data: created });
     } catch (error) {
         return res.status(400).json({ message: error instanceof Error ? error.message : "建立失敗" });
+    }
+};
+
+/* 後台：PUT /admin/redeem-codes/:id { code?, title, coin, items, maxUses?, expiresAt? } 修改設定 */
+export const updateRedeemCodeController = async (req: AuthRequest, res: Response) => {
+    try {
+        const id = parseId(req.params.id);
+        if (!id) return res.status(400).json({ message: "兌換碼編號錯誤" });
+        const { code, title, coin, items, maxUses, expiresAt } = req.body ?? {};
+        const updated = await updateRedeemCode(id, { code, title, coin, items, maxUses, expiresAt });
+        return res.status(200).json({ message: `兌換碼 ${updated?.code} 已更新`, data: updated });
+    } catch (error) {
+        return res.status(400).json({ message: error instanceof Error ? error.message : "更新失敗" });
     }
 };
 

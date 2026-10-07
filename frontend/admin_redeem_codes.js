@@ -197,6 +197,58 @@
         input.value = d.toISOString().slice(0, 16);
     };
 
+    // ---------- 編輯模式：沿用上面的建立表單 ----------
+    let editing = null; // 正在編輯的兌換碼（null = 建立新的）
+
+    function toLocalInput(iso) {
+        const d = new Date(iso);
+        d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
+        return d.toISOString().slice(0, 16);
+    }
+
+    function clearForm() {
+        ['rd-title', 'rd-code', 'rd-coin', 'rd-max-uses', 'rd-expires'].forEach(id => { $(id).value = ''; });
+        selected.clear();
+        renderTabs(); renderItemGrid(); renderSelected();
+    }
+
+    function setEditMode(c) {
+        editing = c;
+        const used = c ? c.used_count : 0;
+        $('rd-form-title').textContent = c ? `✏️ 編輯兌換碼 ${c.code}` : '🎁 建立兌換碼';
+        $('rd-create-btn').textContent = c ? '💾 儲存修改' : '🎁 建立兌換碼';
+        $('rd-cancel-btn').style.display = c ? '' : 'none';
+        // 有人兌換過就不能改碼本身
+        $('rd-code').disabled = !!(c && used > 0);
+        $('rd-random-btn').disabled = !!(c && used > 0);
+        const note = $('rd-edit-note');
+        note.style.display = c && used > 0 ? '' : 'none';
+        note.textContent = c && used > 0
+            ? `⚠️ 已經有 ${used} 人兌換過：兌換碼本身不能改；改獎勵的話，已兌換的人不會補發也不會收回；人數上限不能低於 ${used}。`
+            : '';
+    }
+
+    window.rdEdit = function (id) {
+        const c = allCodes.find(x => Number(x.id) === Number(id));
+        if (!c) return;
+        clearForm();
+        $('rd-title').value = c.title;
+        $('rd-code').value = c.code;
+        $('rd-coin').value = c.reward_coin || '';
+        $('rd-max-uses').value = c.max_uses ?? '';
+        $('rd-expires').value = c.expires_at ? toLocalInput(c.expires_at) : '';
+        (Array.isArray(c.reward_items) ? c.reward_items : []).forEach(s => selected.set(`${s.category}:${s.item}`, { category: s.category, item: s.item }));
+        renderTabs(); renderItemGrid(); renderSelected();
+        $('rd-result').innerHTML = '';
+        setEditMode(c);
+        $('rd-form-title').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    };
+
+    window.rdCancelEdit = function () {
+        clearForm();
+        setEditMode(null);
+    };
+
     window.rdCreateCode = async function () {
         const body = {
             title: $('rd-title').value.trim(),
@@ -209,22 +261,24 @@
         if (!body.title) return alert('請輸入活動名稱');
         if (!body.coin && !body.items.length) return alert('至少要給積分或選一樣道具');
 
+        const isEdit = !!editing;
+        if (isEdit && editing.used_count > 0 && !confirm(`這個兌換碼已經有 ${editing.used_count} 人兌換過，修改後已兌換的人不會補發也不會收回，確定要儲存嗎？`)) return;
+
         const btn = $('rd-create-btn');
         btn.disabled = true;
         try {
-            const res = await fetch(`${API_BASE_URL}/admin/redeem-codes`, {
-                method: 'POST',
+            const res = await fetch(`${API_BASE_URL}/admin/redeem-codes${isEdit ? `/${Number(editing.id)}` : ''}`, {
+                method: isEdit ? 'PUT' : 'POST',
                 headers: { 'Authorization': `Bearer ${token()}`, 'Content-Type': 'application/json' },
                 body: JSON.stringify(body),
             });
             const data = await res.json().catch(() => ({}));
-            if (!res.ok) { alert(`建立失敗：${data.message || '請確認權限或網路狀態'}`); return; }
+            if (!res.ok) { alert(`${isEdit ? '儲存' : '建立'}失敗：${data.message || '請確認權限或網路狀態'}`); return; }
 
-            $('rd-result').innerHTML = `✅ 已建立兌換碼 <code class="rd-code-big">${escapeHTML(data.data.code)}</code>
+            $('rd-result').innerHTML = `✅ ${isEdit ? '已更新' : '已建立'}兌換碼 <code class="rd-code-big">${escapeHTML(data.data.code)}</code>
                 <button type="button" class="btn-action btn-secondary" onclick="rdCopy(${jsArg(data.data.code)})">📋 複製</button>`;
-            ['rd-title', 'rd-code', 'rd-coin', 'rd-max-uses', 'rd-expires'].forEach(id => { $(id).value = ''; });
-            selected.clear();
-            renderTabs(); renderItemGrid(); renderSelected();
+            clearForm();
+            setEditMode(null);
             loadCodes();
         } catch (e) {
             alert('伺服器連線失敗');
@@ -255,14 +309,26 @@
 
     window.rdChangePage = function (p) { page = p; renderCodes(); };
 
+    const REWARD_FOLD_OVER = 5; // 獎勵超過 5 樣就收起來，點開才看得到全部
+
     function rewardHTML(c) {
         const parts = [];
         if (c.reward_coin > 0) parts.push(`<span class="rd-chip rd-chip-coin">🪙 ${c.reward_coin} 積分</span>`);
-        (Array.isArray(c.reward_items) ? c.reward_items : []).forEach(s => {
+        const items = Array.isArray(c.reward_items) ? c.reward_items : [];
+        items.forEach(s => {
             const info = itemInfo(s.category, s.item);
             parts.push(`<span class="rd-chip" data-rd-thumb="${s.category}|${escapeHTML(s.item)}">${thumbHTML(info, 22)} ${CATEGORY_LABEL[s.category] || ''}・${escapeHTML(info.name)}</span>`);
         });
-        return parts.join(' ');
+        if (parts.length <= REWARD_FOLD_OVER) return parts.join(' ');
+
+        const summary = [
+            c.reward_coin > 0 ? `🪙 ${c.reward_coin} 積分` : '',
+            items.length ? `${items.length} 樣道具` : '',
+        ].filter(Boolean).join('＋');
+        return `<details class="rd-reward-fold">
+            <summary>🎁 ${summary}<span class="rd-fold-hint">（共 ${parts.length} 樣，點開看）</span></summary>
+            <div class="rd-reward-list">${parts.join(' ')}</div>
+        </details>`;
     }
 
     function renderCodes() {
@@ -277,6 +343,7 @@
             const badge = STATE_BADGE[c.state] || STATE_BADGE.active;
             const expires = c.expires_at ? new Date(c.expires_at).toLocaleString() : '永久有效';
             const actions = [
+                `<button class="btn-action" style="background:#fdf2f8; color:#be185d; border:1px solid #f9a8d4;" onclick="rdEdit(${Number(c.id)})">✏️ 編輯</button>`,
                 c.is_active
                     ? `<button class="btn-action btn-secondary" onclick="rdSetActive(${Number(c.id)}, false)">⏸️ 停用</button>`
                     : `<button class="btn-action btn-primary" onclick="rdSetActive(${Number(c.id)}, true)">▶️ 啟用</button>`,
@@ -318,6 +385,7 @@
             const res = await fetch(`${API_BASE_URL}/admin/redeem-codes/${id}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token()}` } });
             const data = await res.json().catch(() => ({}));
             if (!res.ok) { alert(`刪除失敗：${data.message || ''}`); return; }
+            if (editing && Number(editing.id) === Number(id)) rdCancelEdit(); // 正在編輯的被刪掉了
             loadCodes();
         } catch (e) { alert('伺服器連線失敗'); }
     };

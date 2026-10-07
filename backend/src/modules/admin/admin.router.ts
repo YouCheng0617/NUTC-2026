@@ -3,7 +3,7 @@ import { authCheck, adminCheck, type AuthRequest } from "../middleware/auth.midd
 import { AdminController } from "./admin.controller.js";
 import { getGameReportsController, updateGameReportStatusController } from "../../socket/gameSafety.controller.js";
 import {
-    listRedeemCodesController, createRedeemCodeController, setRedeemCodeActiveController,
+    listRedeemCodesController, createRedeemCodeController, updateRedeemCodeController, setRedeemCodeActiveController,
     deleteRedeemCodeController, listRedeemCodeUsesController,
 } from "../../socket/redeemCode.controller.js";
 
@@ -28,6 +28,7 @@ export function adminRouter() {
     // 🎁 寵物遊戲兌換碼
     router.get("/redeem-codes", authCheck, adminCheck, listRedeemCodesController);
     router.post("/redeem-codes", authCheck, adminCheck, createRedeemCodeController);
+    router.put("/redeem-codes/:id", authCheck, adminCheck, updateRedeemCodeController);
     router.put("/redeem-codes/:id/active", authCheck, adminCheck, setRedeemCodeActiveController);
     router.delete("/redeem-codes/:id", authCheck, adminCheck, deleteRedeemCodeController);
     router.get("/redeem-codes/:id/uses", authCheck, adminCheck, listRedeemCodeUsesController);
