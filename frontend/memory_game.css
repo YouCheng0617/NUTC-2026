@@ -9,11 +9,14 @@
     padding: 12px;
     background: rgba(15, 23, 42, 0.45);
     backdrop-filter: blur(4px);
-    font-family: 'Nunito', sans-serif;
+    /* 可愛圓體：英文數字用 Nunito，中文用 jf 粉圓（Huninn） */
+    font-family: 'Nunito', 'Huninn', sans-serif;
 }
 .mg-overlay[hidden] { display: none; }
+.mg-overlay button { font-family: inherit; }
 
 .mg-panel {
+    position: relative;   /* 玩法教學面板蓋在這裡面 */
     display: flex;
     flex-direction: column;
     width: min(1100px, 100%);
@@ -26,14 +29,27 @@
     box-sizing: border-box;
 }
 
-.mg-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
-.mg-title { font-size: 1.3rem; font-weight: 900; color: #4a3b3b; }
+.mg-header { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 8px; }
+.mg-title { font-size: 1.3rem; font-weight: 900; color: #4a3b3b; min-width: 0; }
+.mg-header-btns { flex: none; display: flex; align-items: center; gap: 8px; }
 .mg-close {
-    width: 36px; height: 36px;
+    flex: none;
+    width: 40px; height: 40px;
     border: none; border-radius: 50%;
     background: #fee2e2; color: #b91c1c;
     font-size: 1rem; font-weight: 900; cursor: pointer;
 }
+/* 📖 玩法教學按鈕（右上角，關閉鈕旁邊） */
+.mg-rules-btn {
+    display: inline-flex; align-items: center; gap: 6px;
+    min-height: 40px; padding: 6px 14px;
+    border: 3px solid #fbcfe8; border-radius: 999px;
+    background: #fff1f6; color: #db2777;
+    font-size: 0.95rem; font-weight: 900; cursor: pointer;
+    box-shadow: 0 3px 0 #fbcfe8;
+}
+.mg-rules-btn:active { transform: translateY(3px); box-shadow: none; }
+.mg-rules-btn.is-open { background: #fbcfe8; border-color: #f9a8d4; color: #be185d; box-shadow: 0 3px 0 #f9a8d4; }
 
 /* 等待畫面 */
 .mg-lobby, .mg-result {
@@ -46,10 +62,116 @@
     text-align: center;
     color: #4a3b3b;
 }
+/* 等待畫面內容比較多：塞不下就捲動，放得下就置中 */
+.mg-lobby { min-height: 0; overflow-y: auto; justify-content: flex-start; justify-content: safe center; padding: 4px 4px 10px; gap: 16px; }
 .mg-lobby[hidden], .mg-result[hidden], .mg-game[hidden], .mg-host-only[hidden], .mg-wait[hidden] { display: none; }
-.mg-rules { max-width: 520px; margin: 0; line-height: 1.7; font-weight: 700; }
+
+/* 🃏 大標題 */
+.mg-hero { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+.mg-hero-cards { display: flex; gap: 6px; margin-bottom: 2px; }
+.mg-hero-cards i {
+    width: 46px; height: 58px; border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-style: normal; font-size: 1.5rem;
+    border: 3px solid #93c5fd;
+    background: repeating-linear-gradient(45deg, #dbeafe 0 7px, #bfdbfe 7px 14px);
+    box-shadow: 0 4px 0 #93c5fd;
+    animation: mg-hero-bob 2.4s ease-in-out infinite;
+}
+.mg-hero-cards i:nth-child(1) { transform: rotate(-10deg); }
+.mg-hero-cards i:nth-child(2) {
+    width: 54px; height: 68px; font-size: 1.9rem;
+    border-color: #f9a8d4; background: #fff; box-shadow: 0 4px 0 #f9a8d4;
+    animation-delay: 0.3s;
+}
+.mg-hero-cards i:nth-child(3) { transform: rotate(10deg); animation-delay: 0.6s; }
+@keyframes mg-hero-bob { 50% { translate: 0 -6px; } }
+.mg-hero-title {
+    margin: 0;
+    font-size: clamp(2rem, 6vw, 3.1rem); font-weight: 900; line-height: 1.15; letter-spacing: 2px;
+    color: #db2777;
+    text-shadow: 0 3px 0 #fbcfe8, 0 6px 0 rgba(219, 39, 119, 0.12);
+}
+.mg-hero-sub { margin: 0; font-size: 1rem; font-weight: 800; color: #7c6a6a; }
+
+/* 📖 規則小卡：等待畫面和玩法教學面板共用 */
+.mg-rule-cards {
+    width: min(760px, 100%);
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 10px;
+    text-align: left;
+}
+.mg-rule {
+    display: flex; align-items: flex-start; gap: 12px;
+    padding: 12px 14px;
+    border: 3px solid color-mix(in srgb, var(--rc) 30%, #fff);
+    border-radius: 18px;
+    background: #fff;
+    box-shadow: 0 4px 0 color-mix(in srgb, var(--rc) 22%, #fff);
+}
+.mg-rule-icon {
+    flex: none; width: 44px; height: 44px; border-radius: 14px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.5rem; line-height: 1;
+    background: color-mix(in srgb, var(--rc) 14%, #fff);
+}
+.mg-rule-body { min-width: 0; }
+.mg-rule-title { font-size: 1.08rem; font-weight: 900; color: var(--rc); margin: 2px 0 4px; }
+.mg-rule-text { margin: 0; font-size: 0.95rem; font-weight: 800; line-height: 1.65; color: #4a3b3b; overflow-wrap: anywhere; }
+.mg-rule-text b { color: var(--rc); font-weight: 900; }
+
 .mg-wins { margin: 0; font-weight: 900; color: #a16207; }
-.mg-wait { font-weight: 800; color: #64748b; }
+.mg-wait { font-weight: 900; color: #64748b; }
+.mg-lobby-links { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; }
+.mg-rules-more {
+    padding: 10px 22px;
+    border: 3px solid #fbcfe8; border-radius: 16px;
+    background: #fff1f6; color: #db2777;
+    font-size: 1.05rem; font-weight: 900; cursor: pointer;
+    box-shadow: 0 4px 0 #fbcfe8;
+}
+.mg-rules-more:active { transform: translateY(4px); box-shadow: none; }
+
+/* 📖 玩法教學面板：電腦版靠右邊，下面的牌桌還看得到 */
+.mg-rules-sheet {
+    position: absolute; inset: 0; z-index: 30;
+    display: flex; justify-content: flex-end; align-items: stretch;
+    padding: 10px;
+    border-radius: inherit;
+    background: rgba(74, 59, 59, 0.18);
+}
+.mg-rules-sheet[hidden] { display: none; }
+.mg-rules-card {
+    width: min(420px, 100%);
+    display: flex; flex-direction: column; gap: 10px;
+    padding: 14px;
+    border: 3px solid #c4b5fd; border-radius: 20px;
+    background: #fffaf5;
+    box-shadow: 0 6px 0 #c4b5fd, 0 16px 32px rgba(91, 33, 182, 0.2);
+    animation: mg-rules-in-side 0.28s cubic-bezier(0.18, 0.89, 0.32, 1.2);
+}
+@keyframes mg-rules-in-side { from { transform: translateX(40px); opacity: 0; } }
+@keyframes mg-rules-in-up { from { transform: translateY(60px); opacity: 0; } }
+.mg-rules-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.mg-rules-title { font-size: 1.35rem; font-weight: 900; color: #6d28d9; }
+/* 對局進行中：顯示現在輪到誰 */
+.mg-rules-live { padding: 8px 12px; border-radius: 14px; background: #f1f5f9; border: 2px dashed #cbd5e1; }
+.mg-rules-live[hidden] { display: none; }
+.mg-rules-live-status { font-size: 0.95rem; font-weight: 900; color: #475569; }
+.mg-rules-live-note { font-size: 0.78rem; font-weight: 800; color: #94a3b8; margin-top: 2px; }
+.mg-rules-live.is-mine { background: #fdf2f8; border-color: #f472b6; animation: mg-live-pulse 1.2s ease-in-out infinite; }
+.mg-rules-live.is-mine .mg-rules-live-status { color: #db2777; }
+@keyframes mg-live-pulse { 50% { box-shadow: 0 0 0 4px rgba(244, 114, 182, 0.25); } }
+.mg-rules-list {
+    flex: 1; min-height: 0; overflow-y: auto;
+    display: flex; flex-direction: column; gap: 10px;
+    padding: 2px 2px 6px;
+    overscroll-behavior: contain; -webkit-overflow-scrolling: touch;
+}
+.mg-rules-done {
+    flex: none; width: 100%;
+    background: #fbcfe8; color: #be185d; box-shadow: 0 5px 0 #f9a8d4;
+}
+.mg-rules-done:active { box-shadow: none; }
 .mg-host-only { display: flex; flex-direction: column; align-items: center; gap: 12px; }
 .mg-label { font-weight: 900; }
 .mg-pairs { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; }
@@ -98,7 +220,7 @@
 .mg-score-name { max-width: 9em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .mg-score-num { min-width: 1.6em; padding: 0 6px; border-radius: 999px; background: #fff; text-align: center; }
 
-.mg-status { font-weight: 900; color: #64748b; min-height: 1.4em; }
+.mg-status { font-size: 1.02rem; font-weight: 900; color: #64748b; min-height: 1.4em; }
 .mg-status.is-mine { color: #db2777; }
 
 .mg-board-wrap { flex: 1; min-height: 0; display: flex; align-items: center; justify-content: center; overflow: hidden; }
@@ -206,12 +328,52 @@
 .mg-note { margin: 0; color: #64748b; font-weight: 700; }
 
 @media (max-width: 600px) {
-    .mg-overlay { padding: 6px; }
+    .mg-overlay { padding: calc(6px + env(safe-area-inset-top, 0px)) 6px calc(6px + env(safe-area-inset-bottom, 0px)); }
     .mg-panel { padding: 10px; border-radius: 18px; }
-    .mg-title { font-size: 1.1rem; }
+    .mg-title { font-size: 1.05rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .mg-board { gap: 4px; }
     .mg-back { border-width: 2px; }
     .mg-back, .mg-front { border-radius: 6px; }
+
+    /* 📱 等待畫面：規則小卡一欄、字稍微縮小 */
+    .mg-lobby { gap: 12px; }
+    .mg-hero-cards i { width: 38px; height: 48px; font-size: 1.2rem; }
+    .mg-hero-cards i:nth-child(2) { width: 44px; height: 56px; font-size: 1.5rem; }
+    .mg-hero-title { letter-spacing: 1px; }
+    .mg-hero-sub { font-size: 0.9rem; padding: 0 8px; }
+    .mg-rule-cards { grid-template-columns: 1fr; gap: 8px; }
+    .mg-rule { padding: 10px 12px; gap: 10px; border-radius: 16px; }
+    .mg-rule-icon { width: 38px; height: 38px; font-size: 1.25rem; border-radius: 12px; }
+    .mg-rule-title { font-size: 1rem; }
+    .mg-rule-text { font-size: 0.88rem; line-height: 1.6; }
+    .mg-lobby-links { width: 100%; }
+    .mg-lobby-links > button { flex: 1 1 140px; }
+    .mg-pair-btn { min-width: 64px; min-height: 44px; padding: 8px 10px; }
+    .mg-start { min-height: 48px; }
+
+    /* 📱 玩法教學面板：從下面滑上來，上面留一點看得到牌桌和狀態列 */
+    .mg-rules-sheet { align-items: flex-end; padding: 0; }
+    .mg-rules-card {
+        width: 100%; max-height: 82%;
+        padding: 12px 12px calc(12px + env(safe-area-inset-bottom, 0px));
+        border-radius: 22px 22px 16px 16px;
+        animation-name: mg-rules-in-up;
+    }
+    .mg-rules-title { font-size: 1.2rem; }
+}
+/* 📱 很窄的手機：教學按鈕只留圖示，標題才放得下 */
+@media (max-width: 380px) {
+    .mg-rules-btn { padding: 6px 10px; }
+    .mg-rules-btn span:last-child { display: none; }
+}
+/* 📱 手機橫放（很矮）：教學面板改回靠右，不然只剩一點點高度 */
+@media (max-height: 500px) and (min-width: 560px) {
+    .mg-rules-sheet { align-items: stretch; justify-content: flex-end; padding: 6px; }
+    .mg-rules-card { width: min(380px, 60%); max-height: none; border-radius: 18px; animation-name: mg-rules-in-side; }
+    .mg-hero-cards { display: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+    .mg-hero-cards i, .mg-rules-card, .mg-rules-live.is-mine { animation: none; }
 }
 
 /* 📖 卡牌圖鑑入口（大廳） */
@@ -335,7 +497,7 @@
     position: fixed; top: calc(12px + env(safe-area-inset-top, 0px)); left: 50%; z-index: 9500;
     width: min(520px, calc(100vw - 24px)); transform: translateX(-50%);
     border: 3px solid #c4b5fd; border-radius: 20px; overflow: hidden;
-    background: #fffaf5; color: #4a3b3b; font-family: 'Nunito', sans-serif;
+    background: #fffaf5; color: #4a3b3b; font-family: 'Nunito', 'Huninn', sans-serif;
     box-shadow: 0 6px 0 #c4b5fd, 0 16px 32px rgba(91, 33, 182, 0.25);
     animation: mg-invite-in 0.35s cubic-bezier(0.18, 0.89, 0.32, 1.28);
 }

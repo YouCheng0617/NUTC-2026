@@ -17,7 +17,10 @@
         zh: {
             title: '🃏 記憶翻牌對決',
             closeTip: '收起（對決會繼續進行）',
-            rules: '房主開局時，房間裡每個人可以選擇加入或觀戰。<br>輪流翻兩張牌，翻到一樣的寵物就拿下這組，還可以繼續翻（每回合最多連續翻對 3 組）。<br>全部翻完，拿最多組的人獲勝！每回合限時 30 秒，人多的話組數會自動加多。',
+            heroTitle: '記憶翻牌對決', heroSub: '翻出兩隻一樣的海兔，比比看誰的記性最好！',
+            rulesBtn: '玩法教學', rulesTitle: '📖 遊戲規則',
+            rulesFull: '📖 看完整規則', rulesBack: '回到對局', rulesClose: '我知道了',
+            rulesLiveNote: '對局照常進行中，看規則不會暫停喔',
             albumOpen: '📖 卡牌圖鑑', albumOpenSub: '先看看有哪些牌',
             pickPairs: '選擇對決組數', start: '開始對決！', wait: '等房主選好組數開始對決…',
             pairs: (n) => `${n} 組`,
@@ -61,7 +64,10 @@
         en: {
             title: '🃏 Memory Match',
             closeTip: 'Minimize (the match keeps going)',
-            rules: 'When the host starts, everyone in the room can choose to play or watch.<br>Take turns flipping two cards. Find the same sea bunny to win the pair and keep going (up to 3 pairs in a row).<br>When all cards are gone, whoever has the most pairs wins! 30 seconds per turn; more players means more pairs.',
+            heroTitle: 'Memory Match', heroSub: 'Find two matching sea bunnies — who has the best memory?',
+            rulesBtn: 'How to play', rulesTitle: '📖 Game Rules',
+            rulesFull: '📖 Full rules', rulesBack: 'Back to the match', rulesClose: 'Got it',
+            rulesLiveNote: "The match keeps going — reading the rules doesn't pause it",
             albumOpen: '📖 Card Album', albumOpenSub: 'See all the cards first',
             pickPairs: 'How many pairs?', start: 'Start!', wait: 'Waiting for the host to start…',
             pairs: (n) => `${n} pairs`,
@@ -103,6 +109,29 @@
             endedWatching: '🃏 The Memory Match is over!'
         }
     };
+    // 📖 遊戲規則：數字跟 backend/src/socket/gameConfig.ts 的 memoryGame 一致，改規則記得兩邊一起改
+    // lobby: true 的會直接顯示在等待畫面，全部的放在「玩法教學」面板
+    const RULES = [
+        { icon: '🎮', color: '#3b82f6', lobby: true,
+          zh: ['怎麼開局', '房主選好組數按「開始對決」，房間裡每個人有 <b>15 秒</b>決定要<b>加入</b>還是<b>觀戰</b>。至少要 <b>2 個人</b>才能開局，人越多組數會自動加多。'],
+          en: ['Starting', 'The host picks the number of pairs and presses Start. Everyone has <b>15 seconds</b> to <b>join</b> or <b>watch</b>. You need at least <b>2 players</b>; more players means more pairs.'] },
+        { icon: '🃏', color: '#ec4899', lobby: true,
+          zh: ['怎麼翻牌', '輪到你時<b>一次翻兩張</b>，兩張是<b>同一種海兔</b>就拿下這組，還能<b>繼續翻</b>！同一回合最多連續翻對 <b>3 組</b>就換下一位。'],
+          en: ['Flipping', 'On your turn, <b>flip two cards</b>. If they show the <b>same sea bunny</b>, you win the pair and <b>keep going</b>! After <b>3 pairs</b> in a row, it\'s the next player\'s turn.'] },
+        { icon: '⏱️', color: '#f59e0b', lobby: true,
+          zh: ['限時 30 秒', '每回合只有 <b>30 秒</b>，時間到自動換人。輪到你卻整回合沒翻牌會被警告，<b>2 次</b>就會被請出對決。'],
+          en: ['30-second turns', 'Each turn is <b>30 seconds</b>, then it passes on. Skip a whole turn and you get a warning — <b>2 warnings</b> and you\'re out.'] },
+        { icon: '🏆', color: '#16a34a', lobby: true,
+          zh: ['誰會贏', '牌全部翻完，<b>拿最多組的人獲勝</b>！平手不算勝場，<b>贏滿 10 場</b>送小丑皮膚。其他人都離開只剩你的話，牌要翻完 <b>8 成</b>才算贏。'],
+          en: ['Winning', 'When every card is matched, <b>the most pairs wins</b>! Draws don\'t count. <b>Win 10 matches</b> for the Joker skin. If everyone else leaves, you need <b>80%</b> of the cards matched to win.'] },
+        { icon: '👀', color: '#7c3aed',
+          zh: ['觀戰', '觀戰可以看完整局，但<b>不能翻牌</b>。想一起玩的話，下一局開局時按「<b>加入</b>」。'],
+          en: ['Watching', 'Spectators can watch the whole match but <b>can\'t flip cards</b>. Want to play? Press <b>Join</b> when the next match starts.'] },
+        { icon: '🚪', color: '#ef4444',
+          zh: ['中途離開會被處罰', '對決中離開房間、或掛機被請出，會<b>扣積分</b>而且<b>一段時間不能進房</b>。同一天離開越多次越重：第 1 次扣 <b>50 分</b>、<b>3 分鐘</b>不能進房。'],
+          en: ['Leaving early', 'Leaving mid-match (or being removed for idling) <b>costs coins</b> and <b>locks you out of rooms</b> for a while. It gets worse each time that day: the first time is <b>−50 coins</b> and <b>3 minutes</b>.'] }
+    ];
+
     function isEn() {
         try { return typeof currLang !== 'undefined' && currLang === 'en'; } catch (e) { return false; }
     }
@@ -236,13 +265,25 @@
             <div class="mg-panel" role="dialog" data-t-aria="title">
                 <div class="mg-header">
                     <div class="mg-title" data-t="title"></div>
-                    <button type="button" class="mg-close" id="mgClose" data-t-title="closeTip">✕</button>
+                    <div class="mg-header-btns">
+                        <!-- 📖 玩法教學：等待、對局、觀戰、結算都按得到，打開不會暫停對局 -->
+                        <button type="button" class="mg-rules-btn" id="mgRulesBtn" aria-haspopup="dialog"><span aria-hidden="true">📖</span><span data-t="rulesBtn"></span></button>
+                        <button type="button" class="mg-close" id="mgClose" data-t-title="closeTip">✕</button>
+                    </div>
                 </div>
 
                 <div class="mg-lobby" id="mgLobby">
-                    <p class="mg-rules" data-t-html="rules"></p>
+                    <div class="mg-hero">
+                        <div class="mg-hero-cards" aria-hidden="true"><i>🫧</i><i>🃏</i><i>🫧</i></div>
+                        <h2 class="mg-hero-title" data-t="heroTitle"></h2>
+                        <p class="mg-hero-sub" data-t="heroSub"></p>
+                    </div>
+                    <div class="mg-rule-cards" id="mgLobbyRules"></div>
                     <p class="mg-wins" id="mgWins"></p>
-                    <button type="button" class="mg-album-open" id="mgAlbumOpen"><span data-t="albumOpen"></span><small data-t="albumOpenSub"></small></button>
+                    <div class="mg-lobby-links">
+                        <button type="button" class="mg-album-open" id="mgAlbumOpen"><span data-t="albumOpen"></span><small data-t="albumOpenSub"></small></button>
+                        <button type="button" class="mg-rules-more" id="mgRulesMore" data-t="rulesFull"></button>
+                    </div>
                     <div class="mg-host-only" id="mgHostControls">
                         <div class="mg-label" data-t="pickPairs"></div>
                         <div class="mg-pairs" id="mgPairs"></div>
@@ -276,12 +317,29 @@
                     </div>
                     <div class="mg-album-foot"><span id="mgAlbumPageNo"></span><span class="mg-album-hint" data-t="albumHint"></span></div>
                 </div>
+
+                <!-- 📖 玩法教學面板：蓋在牌桌上（電腦在右邊、手機從下面滑上來），對局照常進行 -->
+                <div class="mg-rules-sheet" id="mgRulesSheet" hidden>
+                    <div class="mg-rules-card" role="dialog" aria-labelledby="mgRulesTitle">
+                        <div class="mg-rules-head">
+                            <span class="mg-rules-title" id="mgRulesTitle" data-t="rulesTitle"></span>
+                            <button type="button" class="mg-close" id="mgRulesX" data-t-aria="rulesClose">✕</button>
+                        </div>
+                        <div class="mg-rules-live" id="mgRulesLive" hidden>
+                            <div class="mg-rules-live-status" id="mgRulesLiveStatus"></div>
+                            <div class="mg-rules-live-note" data-t="rulesLiveNote"></div>
+                        </div>
+                        <div class="mg-rules-list" id="mgRulesList"></div>
+                        <button type="button" class="mg-start mg-rules-done" id="mgRulesDone"></button>
+                    </div>
+                </div>
             </div>`;
         document.body.appendChild(overlay);
         applyStaticText();
 
         $('mgClose').addEventListener('click', closeOverlay);
         bindAlbum();
+        bindRules();
 
         let selectedPairs = 20;
         const pairsBox = $('mgPairs');
@@ -312,6 +370,77 @@
 
         window.addEventListener('resize', layoutBoard);
         return overlay;
+    }
+
+    // ---------- 📖 玩法教學（規則面板） ----------
+    // 只是蓋在牌桌上的一層，不碰 state、不送任何東西給伺服器，所以打開也不會影響對局
+    function renderRuleCards(box, rules) {
+        box.innerHTML = '';
+        rules.forEach((r) => {
+            const [title, html] = isEn() ? r.en : r.zh;
+            const card = el('div', 'mg-rule');
+            card.style.setProperty('--rc', r.color);
+            const icon = el('span', 'mg-rule-icon', r.icon);
+            icon.setAttribute('aria-hidden', 'true');
+            const body = el('div', 'mg-rule-body');
+            body.appendChild(el('div', 'mg-rule-title', title));
+            const text = el('p', 'mg-rule-text');
+            text.innerHTML = html;   // 內容是上面寫死的規則，不是玩家輸入
+            body.appendChild(text);
+            card.appendChild(icon);
+            card.appendChild(body);
+            box.appendChild(card);
+        });
+    }
+
+    function isRulesOpen() {
+        const sheet = $('mgRulesSheet');
+        return !!(sheet && !sheet.hidden);
+    }
+
+    function openRules() {
+        renderRuleCards($('mgRulesList'), RULES);
+        renderRulesLive();
+        $('mgRulesSheet').hidden = false;
+        $('mgRulesList').scrollTop = 0;
+        $('mgRulesBtn').classList.add('is-open');
+        $('mgRulesDone').focus({ preventScroll: true });
+    }
+
+    function closeRules() {
+        const sheet = $('mgRulesSheet');
+        if (!sheet || sheet.hidden) return;
+        sheet.hidden = true;
+        $('mgRulesBtn').classList.remove('is-open');
+    }
+
+    // 對局中打開規則：上面顯示現在輪到誰、剩幾秒，輪到自己一眼就看得到
+    function renderRulesLive() {
+        const live = $('mgRulesLive');
+        if (!live) return;
+        $('mgRulesDone').textContent = state ? T('rulesBack') : T('rulesClose');
+        live.hidden = !state;
+        if (!state) return;
+        const status = $('mgStatus');
+        $('mgRulesLiveStatus').textContent = status ? status.textContent : '';
+        live.classList.toggle('is-mine', state.turn === myId() && !isSpectator());
+    }
+
+    function bindRules() {
+        $('mgRulesBtn').addEventListener('click', () => (isRulesOpen() ? closeRules() : openRules()));
+        $('mgRulesMore').addEventListener('click', openRules);
+        $('mgRulesX').addEventListener('click', closeRules);
+        $('mgRulesDone').addEventListener('click', closeRules);
+        // 點面板外面（半透明的地方）也能關
+        $('mgRulesSheet').addEventListener('click', (e) => { if (e.target === e.currentTarget) closeRules(); });
+        // Esc 先關規則面板（用 capture 搶在圖鑑的 Esc 前面）
+        document.addEventListener('keydown', (e) => {
+            if (e.key !== 'Escape' || !isRulesOpen()) return;
+            const overlay = $('memoryGameOverlay');
+            if (!overlay || overlay.hidden) return;
+            e.stopImmediatePropagation();
+            closeRules();
+        }, true);
     }
 
     // ---------- 📖 卡牌圖鑑（活頁小卡冊） ----------
@@ -479,6 +608,9 @@
         $('mgAlbum').hidden = true;   // 對決開始、結束時圖鑑自動收起來
         $('mgHostControls').hidden = !isRoomHost;
         $('mgWait').hidden = !!isRoomHost;
+        renderRuleCards($('mgLobbyRules'), RULES.filter((r) => r.lobby));
+        $('mgLobby').scrollTop = 0;
+        if (isRulesOpen()) renderRulesLive();
 
         const winsEl = $('mgWins');
         winsEl.textContent = '';
@@ -565,6 +697,7 @@
         status.textContent = watching ? `${T('watchingTag')}｜${text}` : text;
         status.classList.toggle('is-mine', mine);
         $('mgGame').classList.toggle('is-spectating', watching);
+        if (isRulesOpen()) renderRulesLive();
     }
 
     function setTurn(turn, msLeft, streak, notice) {
@@ -597,6 +730,7 @@
         $('mgGame').hidden = true;
         $('mgResult').hidden = false;
         $('mgAlbum').hidden = true;
+        if (isRulesOpen()) renderRulesLive();
         notifyStatus();
     }
 
@@ -629,6 +763,7 @@
         state = null;
         hideInvite();
         notifyStatus();
+        if (isRulesOpen()) renderRulesLive();
         const overlay = $('memoryGameOverlay');
         if (overlay && !overlay.hidden) showLobby();
         if (message) showFloatText(message, 4000);
@@ -661,6 +796,8 @@
                 showFloatText(T('startedWatching'), 4000);
             } else {
                 overlay.hidden = false;
+                // 自己有參加：開局了就把規則面板收起來，讓他看得到牌桌
+                if (!isSpectator()) closeRules();
                 showGame();
                 buildBoard();
                 setTurn(s.turn, s.turnMsLeft, s.streak, s.notice);
@@ -853,6 +990,9 @@
         overlay.querySelectorAll('[data-t-aria]').forEach((n) => { n.setAttribute('aria-label', T(n.dataset.tAria)); });
         overlay.querySelectorAll('[data-t-title]').forEach((n) => { n.title = T(n.dataset.tTitle); });
         overlay.querySelectorAll('.mg-pair-btn').forEach((b) => { b.textContent = T('pairs', Number(b.dataset.pairs)); });
+        renderRuleCards($('mgLobbyRules'), RULES.filter((r) => r.lobby));
+        if (isRulesOpen()) { renderRuleCards($('mgRulesList'), RULES); renderRulesLive(); }
+        else $('mgRulesDone').textContent = state ? T('rulesBack') : T('rulesClose');
     }
 
     // 遊戲右上角切中／英時呼叫：畫面上看得到的字全部換掉
