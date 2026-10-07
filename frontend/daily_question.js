@@ -48,6 +48,7 @@
         card.appendChild(el("p", "dq-question", state.question));
 
         const list = el("div", "dq-options" + (voted ? " is-voted" : ""));
+        list.style.setProperty("--dq-cols", state.options.length); // 手機版排成一排用（home_mobile.css）
         state.options.forEach((opt, i) => {
             const btn = el("button", "dq-option");
             btn.type = "button";

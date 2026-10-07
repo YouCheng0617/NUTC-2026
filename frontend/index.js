@@ -2219,6 +2219,43 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   };
 
+  // 🏠 把睡覺的小助理放到小窩正中間
+  //    睡覺時 CSS 有 transform: translate(-50%, -50%) !important，left/top 指的是貓咪的「中心點」，直接放小窩中心即可
+  const placeMascotAtHome = (animate) => {
+    const home = document.getElementById("mascot-home");
+    if (!home || !mascot) return;
+    const homeRect = home.getBoundingClientRect();
+    mascot.style.transition = animate ? "all 0.5s ease-out" : "none";
+    mascot.style.left = `${homeRect.left + homeRect.width / 2}px`;
+    mascot.style.top = `${homeRect.top + homeRect.height / 2}px`;
+  };
+
+  // 睡覺時跟著小窩：小窩會因為打開面板、切換畫面、手機版尺寸而移動或縮放，
+  // 以前只在視窗 resize 時重新對齊，貓咪就會留在原地「離家出走」
+  let followHomeFrame = 0;
+  let lastHomeKey = "";
+  const followHome = () => {
+    if (!window.isMascotSleeping) {
+      followHomeFrame = 0;
+      lastHomeKey = "";
+      return;
+    }
+    const home = document.getElementById("mascot-home");
+    if (home && home.getClientRects().length) {
+      const r = home.getBoundingClientRect();
+      const key = `${Math.round(r.left)},${Math.round(r.top)},${Math.round(r.width)},${mascot.offsetWidth}`;
+      if (key !== lastHomeKey) {
+        // 第一次（剛放進去）有動畫，之後跟著小窩移動就直接到位
+        placeMascotAtHome(lastHomeKey === "");
+        lastHomeKey = key;
+      }
+    }
+    followHomeFrame = requestAnimationFrame(followHome);
+  };
+  const startFollowingHome = () => {
+    if (!followHomeFrame) followHomeFrame = requestAnimationFrame(followHome);
+  };
+
   const stopDrag = () => {
     if (isDragging) {
       isDragging = false;
@@ -2247,17 +2284,8 @@ document.addEventListener("DOMContentLoaded", () => {
             if (awakeMascot) awakeMascot.style.display = "none";
             if (sleepingMascot) sleepingMascot.style.display = "block";
 
-            mascot.style.transition = "all 0.5s ease-out";
-
-            mascot.style.removeProperty("transform");
-            mascot.style.transform = "scale(1)";
-
-            // 🌟 直接抓取小窩的正中心點座標
-            const centerX = homeRect.left + homeRect.width / 2;
-            const centerY = homeRect.top + homeRect.height / 2;
-
-            mascot.style.left = `${centerX}px`;
-            mascot.style.top = `${centerY}px`;
+            // 🌟 放到小窩正中間，之後小窩移動也會跟著過去
+            startFollowingHome();
 
             const dialogueBox = document.getElementById("mermecat-dialogue");
             if (dialogueBox) {
@@ -2282,21 +2310,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   window.addEventListener("resize", () => {
     if (window.isMascotSleeping) {
-      const home = document.getElementById("mascot-home");
-      const cat = document.getElementById("svg-mermecat-mascot");
-      if (home && cat) {
-        const homeRect = home.getBoundingClientRect();
-        cat.style.transition = "none";
-        cat.style.removeProperty("transform");
-        cat.style.transform = "scale(1)";
-
-        const exactX = homeRect.left + (homeRect.width - cat.offsetWidth) / 2;
-        const exactY =
-          homeRect.top + (homeRect.height - cat.offsetHeight) / 2 - 4;
-
-        cat.style.left = `${exactX}px`;
-        cat.style.top = `${exactY}px`;
-      }
+      placeMascotAtHome(false);
       return;
     }
 

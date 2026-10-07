@@ -1,0 +1,355 @@
+/* =======================================================
+   📱 首頁手機版調整（home_mobile.js）
+   放在 <head> 最後載入，蓋過 index.css 與頁面內嵌樣式裡的手機規則
+   1. 熱門、殿規改成從下方滑上來的面板，按鈕放在底部「全海域」兩側
+   2. 瓶子跟電腦版一樣三欄、中間那欄往下錯開，尺寸縮小
+   3. 拿掉「呼喚海流」按鈕，改成在最上面往下拉刷新
+======================================================= */
+
+/* 電腦版用不到的東西先藏起來 */
+.home-sheet-btn,
+.home-sheet-overlay,
+.home-sheet-close,
+.pull-refresh-indicator {
+  display: none;
+}
+
+@media screen and (max-width: 768px) {
+  /* ---------- 1. 熱門、殿規：底部面板 ---------- */
+  .popular-drawer-handle,
+  .rules-drawer-handle {
+    display: none !important;
+  }
+
+  .ocean-popular-board,
+  .ocean-rules-board,
+  .ocean-popular-board.collapsed,
+  .ocean-rules-board.collapsed,
+  .ocean-popular-board:not(.collapsed),
+  .ocean-rules-board:not(.collapsed) {
+    position: fixed !important;
+    top: auto !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+    max-width: none !important;
+    height: auto !important;
+    max-height: 78vh !important;
+    margin: 0 !important;
+    border-radius: 22px 22px 0 0 !important;
+    z-index: 200002 !important; /* 標題列是 200000，面板要蓋在它上面 */
+    transition: transform 0.3s ease, visibility 0.3s !important;
+    box-sizing: border-box !important;
+  }
+  .ocean-popular-board.collapsed,
+  .ocean-rules-board.collapsed {
+    transform: translateY(105%) !important;
+    visibility: hidden !important;
+  }
+  .ocean-popular-board:not(.collapsed),
+  .ocean-rules-board:not(.collapsed) {
+    transform: translateY(0) !important;
+    visibility: visible !important;
+  }
+  .ocean-popular-board .popular-content-wrapper,
+  .ocean-rules-board .rules-content-wrapper {
+    position: static !important;
+    width: 100% !important;
+    max-width: none !important;
+    max-height: 78vh !important;
+    overflow-y: auto !important;
+    padding: 18px 18px calc(18px + env(safe-area-inset-bottom)) !important;
+    box-sizing: border-box !important;
+    transform: none !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+    border-radius: 22px 22px 0 0 !important;
+  }
+  /* 面板頂端的小橫條，看起來就知道是可以收起來的面板 */
+  .ocean-popular-board .popular-content-wrapper::before,
+  .ocean-rules-board .rules-content-wrapper::before {
+    content: "";
+    display: block;
+    width: 44px;
+    height: 5px;
+    margin: -6px auto 12px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.35);
+  }
+
+  .home-sheet-close {
+    display: flex;
+    position: absolute;
+    top: 12px;
+    right: 14px;
+    z-index: 2;
+    width: 34px;
+    height: 34px;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.15);
+    color: #fff;
+    font-size: 1.1rem;
+    cursor: pointer;
+  }
+
+  .home-sheet-overlay {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 200001;
+    background: rgba(0, 0, 0, 0.55);
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s, visibility 0.3s;
+  }
+  .home-sheet-overlay.is-open {
+    opacity: 1;
+    visibility: visible;
+  }
+
+  /* 底部「全海域」兩側的圓形按鈕 */
+  .home-sheet-btn {
+    display: flex;
+    position: fixed;
+    bottom: calc(22px + env(safe-area-inset-bottom));
+    z-index: 9999;
+    width: 50px;
+    height: 50px;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 1px;
+    border: 2px solid #4da6ff;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #0a2341, #0055a5);
+    box-shadow: 0 6px 16px rgba(0, 20, 50, 0.35);
+    color: #fff;
+    font-size: 1.15rem;
+    line-height: 1;
+    cursor: pointer;
+  }
+  .home-sheet-btn small { font-size: 0.6rem; font-weight: 900; }
+  .home-sheet-btn.is-popular { left: 14px; border-color: #facc15; }
+  .home-sheet-btn.is-rules { right: 14px; }
+  body.in-detail-view .home-sheet-btn { display: none; }
+
+  /* 中間的「全海域」縮窄一點，左右才放得下兩顆按鈕 */
+  .mobile-board-trigger {
+    min-width: 0 !important;
+    width: calc(100vw - 150px) !important;
+    max-width: 240px !important;
+    padding: 13px 18px !important;
+    box-sizing: border-box !important;
+  }
+
+  /* ---------- 2. 瓶子：跟電腦版一樣三欄、中間錯開，整頁不捲動 ----------
+     一頁 6 個瓶子排成 3 欄 × 2 排，--bottle（瓶子直徑）由 home_mobile.js 依剩下的高度算好；
+     瓶塞、間距、字的大小都跟著 --bottle 等比例縮放 */
+  #feed-view {
+    --bottle: clamp(64px, 27vw, 140px);
+    overflow: hidden !important;
+    padding-bottom: 0 !important;
+  }
+  #post-container {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    row-gap: calc(var(--bottle) * 0.3) !important;
+    column-gap: 4px !important;
+    padding: calc(var(--bottle) * 0.28) 8px 0 !important; /* 留給第一排的瓶塞，才不會頂到上面的卡片 */
+    min-height: 0 !important;
+    justify-items: center !important;
+  }
+  #post-container .post-card,
+  #post-container .post-card:nth-child(even),
+  #post-container .post-card:nth-child(odd) {
+    width: var(--bottle) !important;
+    height: var(--bottle) !important;
+    padding: calc(var(--bottle) * 0.08) calc(var(--bottle) * 0.06) !important;
+    box-sizing: border-box !important;
+    margin-top: 0 !important;
+    justify-content: center !important;
+  }
+  #post-container .post-card:nth-child(3n + 2) {
+    margin-top: calc(var(--bottle) * 0.32) !important;
+  }
+  /* 瓶塞跟著縮小 */
+  #post-container .post-card::before {
+    top: calc(var(--bottle) * -0.145) !important;
+    width: calc(var(--bottle) * 0.29) !important;
+    height: calc(var(--bottle) * 0.155) !important;
+  }
+  #post-container .post-card::after {
+    top: calc(var(--bottle) * -0.04) !important;
+    width: calc(var(--bottle) * 0.37) !important;
+    height: calc(var(--bottle) * 0.08) !important;
+  }
+  /* 瓶子裡的字（原本是寫在 HTML 上的樣式，要用 !important 蓋過去）
+     瓶子是圓的：越靠上下兩端越窄，所以每一行都限制寬度，太長就變成「…」 */
+  #post-container .post-card > div:first-child {
+    flex-direction: column !important;
+    gap: calc(var(--bottle) * 0.02) !important;
+    margin-bottom: calc(var(--bottle) * 0.02) !important;
+    width: 100% !important;
+  }
+  #post-container .post-card > div:first-child > div {
+    max-width: 100% !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+    box-sizing: border-box !important;
+  }
+  /* 看板（最上面那行，圓在這裡最窄） */
+  #post-container .post-card > div:first-child > div:first-child {
+    max-width: 70% !important;
+    font-size: clamp(7px, calc(var(--bottle) * 0.086), 12px) !important;
+    line-height: 1.2 !important;
+  }
+  /* 作者 */
+  #post-container .post-card > div:first-child > div:nth-child(2) {
+    max-width: 66% !important;
+    font-size: clamp(6.5px, calc(var(--bottle) * 0.077), 11px) !important;
+    line-height: 1.3 !important;
+    padding: 0 calc(var(--bottle) * 0.05) !important;
+  }
+  /* 標題：在中間，最多兩行 */
+  #post-container .post-card h2 {
+    max-width: 82% !important;
+    margin: calc(var(--bottle) * 0.02) 0 0 !important;
+    font-size: clamp(8px, calc(var(--bottle) * 0.104), 15px) !important;
+    line-height: 1.22 !important;
+    display: -webkit-box !important;
+    -webkit-line-clamp: 2 !important;
+    line-clamp: 2 !important;
+    -webkit-box-orient: vertical !important;
+    overflow: hidden !important;
+    word-break: break-all !important;
+  }
+
+  /* ---------- 3. 拿掉呼喚海流按鈕，改成往下拉刷新 ---------- */
+  .ocean-refresh-btn {
+    display: none !important;
+  }
+  #feed-view {
+    overscroll-behavior-y: contain;
+  }
+  .pull-refresh-indicator {
+    display: flex;
+    position: fixed;
+    left: 50%;
+    z-index: 9000;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 16px;
+    border: 2px solid rgba(255, 255, 255, 0.7);
+    border-radius: 999px;
+    background: rgba(10, 35, 65, 0.85);
+    color: #fff;
+    font-size: 0.88rem;
+    font-weight: 900;
+    pointer-events: none;
+    opacity: 0;
+    transform: translate(-50%, -20px);
+    transition: opacity 0.2s, transform 0.2s;
+  }
+  .pull-refresh-indicator.is-pulling { opacity: 1; }
+  .pull-refresh-indicator.is-ready { background: rgba(2, 132, 199, 0.95); }
+  .pull-refresh-indicator .pr-icon { display: inline-block; transition: transform 0.2s; }
+  .pull-refresh-indicator.is-ready .pr-icon { transform: rotate(180deg); }
+  .pull-refresh-indicator.is-loading .pr-icon { animation: pr-spin 0.8s linear infinite; }
+}
+
+@keyframes pr-spin {
+  to { transform: rotate(360deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ocean-popular-board, .ocean-rules-board, .home-sheet-overlay, .pull-refresh-indicator { transition: none !important; }
+}
+
+/* =======================================================
+   📱 今日一題、我的海域在手機上改成精簡版；畫面不要整個被拖動
+======================================================= */
+@media screen and (max-width: 768px) {
+  /* 整個畫面固定住：不左右晃、不上下彈，只有瓶子列表自己捲動（雙指縮放還是可以） */
+  html,
+  body {
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+    overflow-x: hidden !important;
+    overscroll-behavior: none !important;
+    touch-action: pan-y pinch-zoom;
+  }
+  #feed-view {
+    overscroll-behavior: none !important;
+  }
+
+  /* ---------- 今日一題 ---------- */
+  #daily-question-card {
+    margin-top: 12px !important;
+    padding: 0 12px 10px !important;
+    border-radius: 18px !important;
+  }
+  #daily-question-card .dq-head { padding: 9px 0 !important; }
+  #daily-question-card .dq-badge { font-size: 0.85rem !important; }
+  #daily-question-card .dq-question { margin: 0 0 8px !important; font-size: 0.95rem !important; }
+  /* 選項排成一排（欄數由 daily_question.js 依選項數設定） */
+  #daily-question-card .dq-options {
+    grid-template-columns: repeat(var(--dq-cols, 5), minmax(0, 1fr)) !important;
+    gap: 5px !important;
+  }
+  #daily-question-card .dq-option {
+    min-height: 0 !important;
+    padding: 6px 2px 5px !important;
+    gap: 1px !important;
+    border-width: 1.5px !important;
+    border-radius: 12px !important;
+  }
+  #daily-question-card .dq-emoji { font-size: 1.35rem !important; }
+  #daily-question-card .dq-label {
+    font-size: 0.6rem !important;
+    display: -webkit-box !important;
+    -webkit-line-clamp: 2 !important;
+    -webkit-box-orient: vertical !important;
+    overflow: hidden !important;
+  }
+  #daily-question-card .dq-percent { font-size: 0.75rem !important; }
+  #daily-question-card .dq-foot { margin-top: 6px !important; font-size: 0.7rem !important; }
+
+  /* ---------- 我的海域 ---------- */
+  #my-ocean-card {
+    margin-top: 10px !important;
+    padding: 0 12px 10px !important;
+    border-radius: 18px !important;
+  }
+  #my-ocean-card .mo-toggle { padding: 9px 0 !important; }
+  #my-ocean-card .mo-badge { font-size: 0.85rem !important; }
+  #my-ocean-card .mo-tabs { gap: 6px !important; margin-bottom: 6px !important; }
+  #my-ocean-card .mo-tab { padding: 4px 10px !important; font-size: 0.75rem !important; border-width: 1.5px !important; }
+  #my-ocean-card .mo-list { gap: 5px !important; }
+  /* 每則只留一行：看板＋標題，後面接作者與時間；不顯示內容開頭 */
+  #my-ocean-card .mo-item {
+    flex-direction: row !important;
+    align-items: center !important;
+    gap: 6px !important;
+    padding: 7px 10px !important;
+    border-radius: 10px !important;
+  }
+  #my-ocean-card .mo-item-top { flex: 1 1 auto !important; gap: 5px !important; }
+  #my-ocean-card .mo-board { font-size: 0.62rem !important; padding: 0 6px !important; }
+  #my-ocean-card .mo-title { font-size: 0.8rem !important; }
+  #my-ocean-card .mo-preview { display: none !important; }
+  #my-ocean-card .mo-meta { flex: none !important; max-width: 38%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 0.65rem !important; }
+  #my-ocean-card .mo-empty { margin: 2px 0 !important; font-size: 0.75rem !important; }
+  #my-ocean-card .mo-more { padding: 4px 12px !important; font-size: 0.75rem !important; }
+}
+
+/* 今日一題、我的海域在手機上窄一點，兩側多留一些海 */
+@media screen and (max-width: 768px) {
+  #daily-question-card,
+  #my-ocean-card {
+    width: min(calc(100% - 64px), 340px) !important;
+  }
+}
