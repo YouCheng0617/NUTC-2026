@@ -5,6 +5,8 @@ import { createMember, loginMember, forgotPassword, resetPassword, updateMember,
 import { countHelper } from "../../lib/countHelper.js";
 import { verifyCaptcha } from "../../lib/captchaHelper.js";
 import prisma from "../../lib/prisma.js";
+import { consumeUnlockToken } from "../../lib/loginLock.js";
+import { loginAccountLimiter, loginAccountKey } from "../../lib/rateLimiter.js";
 export class AuthController {
 
     async login(req: Request, res: Response) {
@@ -98,6 +100,30 @@ export class AuthController {
             return res.status(500).json({ message: '伺服器發生錯誤，請稍後再試' });
         }
     }
+    /*點登入暫停通知信裡的「是我本人」：解除被暫停的那台裝置，以及目前點連結的這台*/
+    async unlockLogin(req: Request, res: Response) {
+        try {
+            const { token } = req.body;
+            if (!token || typeof token !== "string") {
+                return res.status(400).json({ message: "缺少解除憑證，請從信件中的連結進入。" });
+            }
+
+            const record = consumeUnlockToken(token);
+            if (!record) {
+                return res.status(400).json({ message: "解除連結已失效或已使用過，請稍後直接重新登入，或使用忘記密碼重設。" });
+            }
+
+            await loginAccountLimiter.resetKey(loginAccountKey(record.email, record.lockedIp));
+            await loginAccountLimiter.resetKey(loginAccountKey(record.email, req.ip ?? ""));
+
+            return res.status(200).json({ message: "已解除登入暫停，請重新登入。" });
+
+        } catch (error) {
+            console.error('unlockLogin Controller 錯誤:', error);
+            return res.status(500).json({ message: '伺服器發生錯誤，請稍後再試' });
+        }
+    }
+
     async logout(req: Request, res: Response) {
         try {
             const token = req.headers.authorization?.split(" ")[1] as string;

@@ -1156,6 +1156,12 @@
       // 初始掛載事件
       window.addEventListener("DOMContentLoaded", () => {
         loadCaptcha();
+        // 從登入暫停通知信點「忘記密碼」進來：直接打開忘記密碼表單並帶入信箱
+        const params = new URLSearchParams(window.location.search);
+        if (params.get("tab") === "forgot") {
+          switchTab("forgot");
+          document.getElementById("forgot-email").value = params.get("email") || "";
+        }
         const birthdayInput = document.getElementById("reg-birthday");
         if (birthdayInput)
           birthdayInput.addEventListener("change", updateZodiac);

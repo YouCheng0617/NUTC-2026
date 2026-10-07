@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="zh-TW">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>解除登入暫停 - 心情漂流瓶</title>
+  <link rel="stylesheet" href="login.css" />
+</head>
+
+<body>
+  <div class="login-container">
+    <img src="images/background.webp" class="bg-img" alt="背景" />
+
+    <div class="css-bubbles">
+      <div class="bubble"></div>
+      <div class="bubble"></div>
+      <div class="bubble"></div>
+      <div class="bubble"></div>
+      <div class="bubble"></div>
+    </div>
+
+    <div class="cute-modal"
+      style="display: flex; position: relative; z-index: 1000; background: transparent; backdrop-filter: none;">
+      <div class="cute-modal-content">
+
+        <div class="auth-form bubble-layout"
+          style="display: flex; flex-direction: column; align-items: center; width: 100%;">
+
+          <div class="bg-watermark" style="margin-top: -10px;">心情漂流瓶</div>
+          <h2
+            style="color: #ffffff; margin-top: 20px; margin-bottom: 10px; font-weight: 900; letter-spacing: 2px; text-shadow: 0 2px 6px rgba(0, 0, 0, 0.5);">
+            解除登入暫停</h2>
+
+          <p id="status-message"
+            style="color: #ffffff; font-size: 0.95rem; text-align: center; font-weight: bold; margin-bottom: 25px; text-shadow: 0 1px 4px rgba(0, 0, 0, 0.6);">
+            解除中，請稍候…</p>
+
+          <a href="login.html" id="login-link"
+            style="display: none; margin-top: 10px; color: #ffffff; font-weight: bold; text-decoration: underline; text-shadow: 0 1px 4px rgba(0, 0, 0, 0.6);">
+            前往登入 →
+          </a>
+
+          <a href="login.html?tab=forgot" id="forgot-link"
+            style="display: none; margin-top: 15px; color: #ffffff; font-weight: bold; text-decoration: underline; text-shadow: 0 1px 4px rgba(0, 0, 0, 0.6);">
+            忘記密碼？重設密碼 →
+          </a>
+
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const API_BASE_URL = "https://api.drift-bottles.xyz";
+
+    // 🟢 從網址列抓取信件連結帶來的 Token
+    const urlParams = new URLSearchParams(window.location.search);
+    const urlToken = urlParams.get("token");
+
+    const statusEl = document.getElementById("status-message");
+
+    function showResult(message, ok) {
+      statusEl.innerText = message;
+      statusEl.style.color = ok ? "#ffffff" : "#ff4d4d";
+      document.getElementById("login-link").style.display = "inline-block";
+      document.getElementById("forgot-link").style.display = "inline-block";
+    }
+
+    async function unlockLogin() {
+      if (!urlToken) {
+        showResult("⚠️ 找不到解除憑證，請確認您是從信箱的連結點擊進入的。", false);
+        return;
+      }
+
+      try {
+        const response = await fetch(`${API_BASE_URL}/auth/unlock-login`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "ngrok-skip-browser-warning": "true",
+          },
+          body: JSON.stringify({ token: urlToken }),
+        });
+        const data = await response.json();
+
+        if (response.ok) {
+          showResult("🎉 " + (data.message || "已解除登入暫停，請重新登入。"), true);
+        } else {
+          showResult("❌ " + (data.message || "解除連結已失效，請稍後再試。"), false);
+        }
+      } catch (error) {
+        console.error("連線錯誤:", error);
+        showResult("📡 無法連接到後端伺服器，請稍後再試。", false);
+      }
+    }
+
+    unlockLogin();
+  </script>
+</body>
+
+</html>

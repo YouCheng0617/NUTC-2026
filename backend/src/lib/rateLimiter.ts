@@ -2,6 +2,7 @@ import rateLimit, { ipKeyGenerator } from "express-rate-limit";
 import type { Request, Response } from "express";
 import jwt from "jsonwebtoken";
 import { isAiRequest, type AuthRequest } from "../modules/middleware/auth.middleware.js";
+import { notifyLoginLocked } from "./loginLock.js";
 
 /*
  * 流量限制工具
@@ -93,6 +94,37 @@ export const loginLimiter = rateLimit({
     legacyHeaders: false,
     skipSuccessfulRequests: true,
     handler: limitHandler("登入失敗次數過多，請 15 分鐘後再試。"),
+});
+
+/*
+ * 登入：同一個「帳號 + IP」15 分鐘內失敗 5 次就暫停
+ * 不直接鎖整個帳號，否則知道別人信箱就能故意打錯密碼把對方鎖住；
+ * 這樣攻擊者只會擋到自己，本人從別的網路登入不受影響。
+ * 限制器不查資料庫，信箱存不存在回應都一樣，也不會洩漏哪些信箱有註冊。
+ * 被暫停時會寄信給本人 (loginLock.ts)，信裡可以一鍵解除或去改密碼。
+ */
+export const normalizeLoginEmail = (email: unknown) =>
+    typeof email === "string" ? email.trim().toLowerCase() : "";
+
+export const loginAccountKey = (email: string, ip: string) => `login:${email}:${ipKeyGenerator(ip)}`;
+
+const loginLockedMessage = limitHandler("這個帳號登入失敗次數過多，已暫停 15 分鐘；若是本人，可到信箱收取解除暫停的信件，或使用忘記密碼重設。");
+
+export const loginAccountLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    limit: 5,
+    standardHeaders: "draft-7",
+    legacyHeaders: false,
+    skipSuccessfulRequests: true,
+    keyGenerator: (req) => loginAccountKey(normalizeLoginEmail(req.body?.email), req.ip ?? ""),
+    /*loginAccountKey 裡已經用 ipKeyGenerator 處理 IPv6，套件只看得到這一層，會誤報，所以關掉這項檢查*/
+    validate: { keyGeneratorIpFallback: false },
+    handler: (req, res) => {
+        /*寄信不等它完成，回應時間一致，才不會從快慢看出信箱有沒有註冊*/
+        notifyLoginLocked(normalizeLoginEmail(req.body?.email), req.ip ?? "")
+            .catch((error) => console.error("❌ 登入暫停通知寄送失敗:", error));
+        return loginLockedMessage(req, res);
+    },
 });
 
 /*驗證碼：同一個 IP 每分鐘最多 30 張，避免被拿來塞爆伺服器記憶體*/

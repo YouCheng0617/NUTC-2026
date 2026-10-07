@@ -221,38 +221,15 @@ export const loginMember = async (email: string, password: string) => {
     if (member.status === "INACTIVE") {
         throw new Error("帳號未啟用，請先完成信箱驗證手續。");
     }
-    /*如果帳號被鎖定*/
-    const nowDate = new Date();
-    if (member.locked_time && member.locked_time > nowDate) {
-        const diffMs = member.locked_time.getTime() - nowDate.getTime();
-        const diffMinutes = Math.ceil(diffMs / (60 * 1000));
-        throw new Error(`帳號暫時鎖定中，請 ${diffMinutes} 分鐘後再試。`);
-    }
-
-    /*比對密碼*/
+    /*
+     * 比對密碼
+     * 失敗次數改由 loginAccountLimiter 依「帳號 + IP」計算，不再鎖整個帳號，
+     * 錯誤訊息也和查無此信箱相同，避免被拿來試哪些信箱有註冊
+     */
     const isPasswordValid = await comparePassword(password, member.password);
     if (!isPasswordValid) {
-        /*如果密碼錯誤，增加失敗次數*/
-        const failedTimes = (member.logins_failed || 0) + 1;
-
-        await prisma.member.update({
-            where: { member_id: member.member_id },
-            data: {
-                logins_failed: failedTimes,
-                locked_time: failedTimes >= 5 ? new Date(Date.now() + 20 * 60 * 1000) : null, // 5次失敗後鎖定20分鐘
-            }
-        });
-        throw new Error(`帳號或密碼錯誤! 剩餘嘗試次數: ${Math.max(0, 5 - failedTimes)}`);
+        throw new Error("信箱或密碼錯誤!");
     }
-
-    /*登入成功，重置失敗次數和鎖定時間*/
-    await prisma.member.update({
-        where: { member_id: member.member_id },
-        data: {
-            logins_failed: 0,
-            locked_time: null,
-        }
-    });
 
     const token = generateToken(
         { member_id: member.member_id, email: member.email },
