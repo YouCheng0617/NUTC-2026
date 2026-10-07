@@ -55,6 +55,50 @@
         return spec ? (spec.name && spec.name.zh) || colorKey : colorKey;
     }
 
+    // 每種海兔專屬的「點數字＋花色符號」，像撲克牌一樣看角落就認得出來（顏色很接近的也分得開）
+    const CARD_MARK = {
+        snow: ['雪', '❄️'], ocean: ['海', '🌊'], matcha: ['抹', '🍡'], berry: ['草', '🍓'], choco: ['布', '🍮'],
+        grape: ['薰', '🍇'], lemon: ['檸', '🍋'], sesame: ['芝', '🍘'], sakura: ['櫻', '🌸'], peachSlug: ['桃', '🍑'],
+        banana: ['蕉', '🍌'], blueberry: ['莓', '🫐'], avocado: ['酪', '🥑'], mint: ['薄', '🌿'], springBlossom: ['春', '🌷'],
+        summerBreeze: ['風', '🎐'], autumnMaple: ['楓', '🍁'], winterSnow: ['冬', '⛄'], taro: ['芋', '🍠'], papaya: ['木', '🧡'],
+        watermelon: ['西', '🍉'], kiwi: ['奇', '🥝'], dragonfruit: ['果', '🌺'], mango: ['芒', '🥭'], ruby: ['紅', '❤️'],
+        sapphire: ['藍', '🔷'], emeraldSlug: ['翠', '🍀'], amethyst: ['紫', '🔮'], topaz: ['托', '🔶'], coconut: ['椰', '🥥'],
+        galaxy: ['宇', '🌌'], jade: ['玉', '🍃'], macaron: ['馬', '🍬'], cottonCandy: ['棉', '☁️'], puddingCaramel: ['燒', '🧁'],
+        matchaLatte: ['拿', '🍵'], obsidian: ['曜', '🖤'], sunset: ['霞', '🌅'], pearl: ['珠', '🦪'], halloweenBat: ['蝠', '🦇'],
+        christmasTree: ['誕', '🎄'], valentineRose: ['玫', '🌹'], newYearTiger: ['虎', '🐯'], amber: ['琥', '🍂'], coffee: ['啡', '☕'],
+        coralSlug: ['珊', '🐚'], ghost: ['靈', '👻'], unicorn: ['獨', '🦄'], frost: ['冰', '🧊'], storm: ['雷', '⚡'],
+        phoenix: ['羽', '🔥'], magma: ['熔', '🌋'], dragonSlug: ['龍', '🐉'], starlight: ['星', '🌠'], nebula: ['雲', '✨'],
+        eclipse: ['蝕', '🌑'], gold: ['金', '💰'], abyssSlug: ['淵', '🦑']
+    };
+
+    // 牌的主色：耳朵是白色系的話太淡，改用描邊色
+    function cardMainColor(spec) {
+        const n = parseInt(String(spec.earTop).slice(1), 16);
+        const lum = (0.3 * (n >> 16) + 0.59 * ((n >> 8) & 255) + 0.11 * (n & 255)) / 255;
+        return lum > 0.8 ? spec.outline : spec.earTop;
+    }
+
+    // 牌面：主色外框＋雙框＋圓形徽章＋底部名牌，左上角是點數字和符號
+    function cardFaceHTML(face) {
+        if (face === JOKER) {
+            const value = (state && state.jokerValue) || 3;
+            return '<div class="mg-face is-joker" style="--c:#7c3aed;--o:#3b0764;--bg:#faf5ff">'
+                + '<div class="mg-idx"><b>丑</b><i>🃏</i></div>'
+                + '<div class="mg-medal"><span class="mg-joker-icon">🃏</span></div>'
+                + '<div class="mg-ribbon">小丑 ×' + value + '</div></div>';
+        }
+        const spec = (typeof speciesData !== 'undefined' && speciesData[face]) || speciesData.snow;
+        const mark = CARD_MARK[face] || [speciesName(face).slice(0, 1), '⭐'];
+        const wrap = document.createElement('div');
+        wrap.className = 'mg-face';
+        wrap.style.cssText = '--c:' + cardMainColor(spec) + ';--o:' + spec.outline + ';--bg:' + spec.body;
+        wrap.innerHTML = '<div class="mg-idx"><b></b><i></i></div><div class="mg-medal">' + petSVG(face) + '</div><div class="mg-ribbon"></div>';
+        wrap.querySelector('.mg-idx b').textContent = mark[0];
+        wrap.querySelector('.mg-idx i').textContent = mark[1];
+        wrap.querySelector('.mg-ribbon').textContent = speciesName(face);
+        return wrap.outerHTML;
+    }
+
     // 把一張牌翻成正面（face = 寵物顏色 key 或 joker）
     function showFace(index, face) {
         const card = document.querySelector(`.mg-card[data-index="${index}"]`);
@@ -62,12 +106,7 @@
         const front = card.querySelector('.mg-front');
         if (card.dataset.face !== face) {
             card.dataset.face = face;
-            if (face === JOKER) {
-                // 🃏 設計師還沒畫好小丑牌，先用暫代牌面
-                front.innerHTML = `<div class="mg-joker">🃏<small>×${(state && state.jokerValue) || 3}</small></div>`;
-            } else {
-                front.innerHTML = petSVG(face);
-            }
+            front.innerHTML = cardFaceHTML(face);
             front.title = speciesName(face);
         }
         card.classList.add('is-flipped');
@@ -210,6 +249,9 @@
             if (w > best.size) best = { cols, size: w };
         }
         board.style.gridTemplateColumns = `repeat(${best.cols}, ${Math.floor(best.size)}px)`;
+        // 牌面裡的字和框都照牌寬等比例縮放；牌太小就不放名字，只留色條
+        board.style.setProperty('--mg-w', Math.floor(best.size));
+        board.classList.toggle('is-tiny', best.size < 72);
     }
 
     function buildBoard() {
