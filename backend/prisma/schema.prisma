@@ -359,6 +359,11 @@ model Pet {
 
   memory_wins Int @default(0) // 記憶翻牌對決勝場數（贏滿 10 場送小丑皮膚）
 
+  // 翻牌對決中途離開的處罰：當天（台北時間）第幾次、哪一天、禁止進連線房間到什麼時候
+  memory_quit_count Int       @default(0)
+  memory_quit_date  String?
+  room_ban_until    DateTime?
+
   member       Member         @relation(fields: [member_id], references: [member_id], onDelete: Cascade)
   PetInventory PetInventory[]
 }

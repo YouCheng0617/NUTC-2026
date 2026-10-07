@@ -1,7 +1,8 @@
 import { Server, Socket } from 'socket.io';
 import jwt from 'jsonwebtoken';
 import prisma from '../lib/prisma.js';
-import { setupMemoryGame, memoryHandleLeave, memoryForget } from './memoryGame.js';
+import { setupMemoryGame, memoryHandleLeave, memoryHandleJoin, memoryForget, setRoomKicker } from './memoryGame.js';
+import { getRoomBanMinutesLeft } from './quitPenalty.js';
 
 // ... (Player 和 Room 介面保持不變) ...
 interface Player {
@@ -65,12 +66,21 @@ const isAlreadyInRoom = (io: Server, memberId: number) => {
     if (!existing) return false;
     const oldSocket = io.sockets.sockets.get(existing.socketId);
     if (oldSocket?.connected) return true;
-    removeFromRoom(io, existing.socketId);
+    removeFromRoom(io, existing.socketId, 'disconnect');
     activeMembers.delete(memberId);
     return false;
 };
 
+/* 翻牌對決中途離開被處罰：禁玩期間不能開房、進房 */
+const banMessage = async (memberId: number) => {
+    const minutes = await getRoomBanMinutesLeft(memberId);
+    return minutes ? `你中途離開翻牌對決，還要 ${minutes} 分鐘才能進連線房間喔！` : null;
+};
+
 export const setupPetSocket = (io: Server) => {
+    /* 掛機被請出對決時，人還在房間裡就斷開他的連線，讓他離開房間（重連回來會被禁玩擋住） */
+    setRoomKicker((socketId) => io.sockets.sockets.get(socketId)?.disconnect(true));
+
     io.on('connection', (socket: Socket) => {
         console.log(`[Socket] 玩家連線: ${socket.id}`);
         console.log(`[WebSocket] 有隻海兔跳進來了！Socket ID: ${socket.id}`);
@@ -85,7 +95,9 @@ export const setupPetSocket = (io: Server) => {
                 return socket.emit('error', { message: '請先登入帳號才能開房間！' });
             }
             const playerData = { ...data?.playerData, memberId };
+            const banned = await banMessage(memberId);
             if (!socket.connected) return; // 驗證期間已經斷線
+            if (banned) return socket.emit('error', { message: banned });
 
             if (isAlreadyInRoom(io, memberId)) {
                 return socket.emit('error', { message: '這個帳號已經在其他裝置或分頁的房間裡了，請先在那邊離開房間！' });
@@ -114,7 +126,9 @@ export const setupPetSocket = (io: Server) => {
                 return socket.emit('error', { message: '請先登入帳號才能加入房間！' });
             }
             const playerData = { ...rawPlayerData, memberId };
+            const banned = await banMessage(memberId);
             if (!socket.connected) return; // 驗證期間已經斷線
+            if (banned) return socket.emit('error', { message: banned });
 
             if (isAlreadyInRoom(io, memberId)) {
                 return socket.emit('error', { message: '這個帳號已經在其他裝置或分頁的房間裡了，請先在那邊離開房間！' });
@@ -133,12 +147,12 @@ export const setupPetSocket = (io: Server) => {
         });
 
         socket.on('disconnect', () => {
-            handleLeave(socket, io);
+            handleLeave(socket, io, 'disconnect');
             memoryForget(socket.id);
         });
 
         socket.on('leave_room', () => {
-            handleLeave(socket, io);
+            handleLeave(socket, io, 'leave');
         });
 
         // 3. 移動寵物 (廣播給同房間其他人)
@@ -202,6 +216,7 @@ function joinRoomLogic(socket: Socket, roomId: string, playerData: Omit<Player, 
     });
 
     socket.to(roomId).emit('player_joined', publicPlayer(newPlayer));
+    memoryHandleJoin(socket.nsp.server, socket, roomId, playerData.memberId); // 翻牌對決斷線回來：接回原本的位置
 
     socket.to(roomId).emit('receive_message', {
         senderName: '系統',
@@ -210,14 +225,14 @@ function joinRoomLogic(socket: Socket, roomId: string, playerData: Omit<Player, 
     });
 }
 
-function handleLeave(socket: Socket, io: Server) {
+function handleLeave(socket: Socket, io: Server, reason: 'leave' | 'disconnect') {
     const roomId = socketRoomMap.get(socket.id);
     if (roomId) socket.leave(roomId);
-    removeFromRoom(io, socket.id);
+    removeFromRoom(io, socket.id, reason);
 }
 
 /* 依 socketId 把玩家移出房間（連線物件可能已經不在了，所以只用 id 處理） */
-function removeFromRoom(io: Server, socketId: string) {
+function removeFromRoom(io: Server, socketId: string, reason: 'leave' | 'disconnect') {
     // 直接透過 socket.id 找到所在的 roomId，不需要使用 for 迴圈遍歷所有房間
     const roomId = socketRoomMap.get(socketId);
     if (!roomId) return;
@@ -230,7 +245,7 @@ function removeFromRoom(io: Server, socketId: string) {
         // 清理資料（只清自己這條連線的紀錄，避免把同帳號新連線的紀錄刪掉）
         if (activeMembers.get(player.memberId)?.socketId === socketId) activeMembers.delete(player.memberId);
         room.players.delete(socketId);
-        memoryHandleLeave(io, roomId, socketId);
+        memoryHandleLeave(io, roomId, socketId, reason, room.players.size === 0);
 
         io.to(roomId).emit('player_left', { socketId });
         io.to(roomId).emit('receive_message', {

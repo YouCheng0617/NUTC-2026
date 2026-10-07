@@ -40,12 +40,25 @@ export const gameConfig = {
     },
     // 記憶翻牌對決（連線房間裡玩，邏輯在 memoryGame.ts）
     memoryGame: {
-        pairOptions: [10, 20, 30, 50], // 房主可選的組數，牌面從 shop.pet_color 隨機抽
+        // 寵物牌組數（不含鬼牌），牌面從 shop.pet_color 隨機抽，最多就是寵物顏色的種類數。
+        // 人多不能選太少：依房間人數有最低組數（鬼牌開啟時再另外多一對）
+        minPairsByPlayers: { 2: 12, 3: 18, 4: 24, 5: 30, 6: 44 } as Record<number, number>,
         maxStreak: 3,                  // 翻對可以繼續翻，同一回合最多連續翻對 3 組就換人
         turnSeconds: 30,               // 每回合限時，時間到自動換下一位
         minPlayers: 2,
-        // 小丑牌：一對算 3 組。設計師還沒畫好牌面，先關著；打開後會取代其中一組寵物牌
-        joker: { enabled: false, value: 3 },
+        idleStrikesToKick: 2,          // 輪到時整回合沒翻牌記一次，累計 2 次就請出對決（斷線的人也一樣）
+        forfeitWinRatio: 0.8,          // 有人退出後只剩 1 人：寵物牌（不含鬼牌）翻完 80% 才算他贏，不到就作廢
+        // 中途離開（按離開房間、或掛機／斷線沒回來被請出）的處罰：當天第 1～4 次，第 5 次起都照第 4 次。
+        // 積分扣到 0 為止；banMinutes 期間不能開房、進房
+        quitPenalties: [
+            { coin: 50, banMinutes: 3 },
+            { coin: 100, banMinutes: 5 },
+            { coin: 250, banMinutes: 10 },
+            { coin: 1000, banMinutes: 60 },
+        ],
+        // 鬼牌：牌堆多放一對，但翻到任何一張就把還沒配對的牌全部重洗（已配對的不動）、不加分、直接換下一位。
+        // 設計師還沒畫好牌面，先關著
+        joker: { enabled: false },
         // 機會／命運牌：規則還沒定，先留開關，邏輯尚未實作
         chanceCards: { enabled: false },
         // 贏滿幾場送小丑皮膚（存進 PetInventory 的 pet_color / joker，設計師畫好後前端 speciesData 補上 joker 就能穿）

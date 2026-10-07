@@ -3,6 +3,7 @@ import jwt from 'jsonwebtoken';
 import crypto from 'crypto';
 import prisma from '../lib/prisma.js';
 import { gameConfig } from './gameConfig.js';
+import { applyQuitPenalty } from './quitPenalty.js';
 
 /*
  * 記憶翻牌對決（連線房間裡的小遊戲）
@@ -10,24 +11,36 @@ import { gameConfig } from './gameConfig.js';
  * 牌的位置只存在伺服器，翻開時才告訴大家那張是什麼，避免有人從前端偷看答案。
  * 輪流翻牌：翻對加分並可以繼續翻（最多連續 maxStreak 組），翻錯或時間到就換下一位。
  * 全部翻完分數最高的人贏；只有一個最高分、而且至少兩個不同的登入帳號參加，才記一場勝場。
+ * 鬼牌（開關在 gameConfig）：牌堆多一對，但不用配對，翻到任何一張就把還沒配對的牌重洗，不加分、直接換下一位。
+ *
+ * 中途退出：
+ * - 按離開房間 → 直接出局；斷線 → 位置先保留，連回來可以接著玩
+ * - 輪到你一整回合都沒翻牌記一次警告，累計 idleStrikesToKick 次就被請出對決
+ * - 有人出局後剩 2 人以上繼續玩；只剩 1 人時，寵物牌翻完 forfeitWinRatio（80%）才算他贏，不到就整局作廢
+ * - 出局的人照 quitPenalties 扣積分、一段時間不能進連線房間（quitPenalty.ts）
  */
 
 const cfg = gameConfig.memoryGame;
 const JOKER = 'joker';
 const MISMATCH_SHOW_MS = 1200; // 翻錯時兩張牌給大家看多久再蓋回去
+const JOKER_SHOW_MS = 1500;    // 翻到鬼牌時先給大家看一下再洗牌
+const JOKER_REMOVED = '__joker__'; // 鬼牌翻開後在 matchedBy 的標記（不屬於任何玩家）
 
 interface MemoryPlayer {
     socketId: string;
     petName: string;
     petColor: string;
     score: number;
+    memberId: number | undefined; // 登入帳號，用來斷線重連找回位置、記勝場；不會送給前端
+    strikes: number;     // 輪到時整回合沒翻牌的次數
+    connected: boolean;  // 斷線中位置先保留
 }
 
 interface MemoryGame {
     roomId: string;
     pairs: number;
     faces: string[];              // 每個位置的牌面（寵物顏色 key 或 joker），不會整包送給前端
-    matchedBy: (string | null)[]; // 被誰翻對（socketId），null = 還沒翻對
+    matchedBy: (string | null)[]; // 被誰翻對（socketId），null = 還沒翻對；鬼牌翻開後是 JOKER_REMOVED
     revealed: number[];           // 這回合翻開中的牌（最多 2 張）
     players: MemoryPlayer[];      // 依輪流順序
     turnIndex: number;
@@ -36,9 +49,15 @@ interface MemoryGame {
     turnTimer: NodeJS.Timeout | null;
     turnEndsAt: number;
     turnSeq: number;              // 每換一次人 +1，延遲執行的動作用來確認還是同一回合
+    flippedThisTurn: boolean;     // 這回合有沒有翻過牌（沒翻就記警告）
+    distinctMembersAtStart: number; // 開局時有幾個不同的登入帳號（記勝場用）
 }
 
 const games = new Map<string, MemoryGame>();
+
+/* 掛機被請出、人還在房間裡時，由 petServer 把他請出房間（避免 import 互相引用） */
+let kickFromRoom: (socketId: string) => void = () => {};
+export const setRoomKicker = (fn: (socketId: string) => void) => { kickFromRoom = fn; };
 /* 用登入憑證確認身分：socketId -> 會員 ID（沒登入的人可以玩，但不記勝場） */
 const verifiedMembers = new Map<string, number>();
 
@@ -52,9 +71,17 @@ const shuffle = <T>(arr: T[]) => {
     return arr;
 };
 
-const pairValue = (face: string) => (face === JOKER ? cfg.joker.value : 1);
-
 const currentPlayer = (game: MemoryGame) => game.players[game.turnIndex];
+
+/* 房間人數對應的最低組數（不含鬼牌）；表上沒有的人數就用比它少的人數裡最高的那個 */
+const minPairsFor = (playerCount: number) => {
+    const table = cfg.minPairsByPlayers;
+    const counts = Object.keys(table).map(Number).filter(n => n <= playerCount);
+    return counts.length ? table[Math.max(...counts)]! : Math.min(...Object.values(table));
+};
+
+/* 送給前端的玩家清單：拿掉會員 ID */
+const publicPlayers = (game: MemoryGame) => game.players.map(({ memberId: _memberId, ...p }) => p);
 
 /* 給前端的公開狀態：只包含已翻對與目前翻開中的牌面 */
 const publicState = (game: MemoryGame) => ({
@@ -63,12 +90,11 @@ const publicState = (game: MemoryGame) => ({
     cardCount: game.faces.length,
     matched: game.matchedBy.map((by, i) => (by ? { index: i, face: game.faces[i], by } : null)).filter(Boolean),
     revealed: game.revealed.map(i => ({ index: i, face: game.faces[i] })),
-    players: game.players,
+    players: publicPlayers(game),
     turn: currentPlayer(game)?.socketId ?? null,
     streak: game.streak,
     maxStreak: cfg.maxStreak,
     turnMsLeft: Math.max(0, game.turnEndsAt - Date.now()),
-    jokerValue: cfg.joker.value,
 });
 
 const startTurnTimer = (io: Server, game: MemoryGame) => {
@@ -79,7 +105,19 @@ const startTurnTimer = (io: Server, game: MemoryGame) => {
         const timedOut = currentPlayer(game);
         game.revealed = [];
         game.locked = false;
-        nextTurn(io, game, timedOut ? `${timedOut.petName} 想太久了，換下一位！` : undefined);
+        if (!timedOut) return nextTurn(io, game);
+
+        if (game.flippedThisTurn) {
+            nextTurn(io, game, `${timedOut.petName} 想太久了，換下一位！`);
+            return;
+        }
+        // 整回合一張都沒翻：記警告，累計到上限就請出對決
+        timedOut.strikes++;
+        if (timedOut.strikes >= cfg.idleStrikesToKick) {
+            removePlayer(io, game, game.turnIndex, `${timedOut.petName} 輪到時 ${cfg.idleStrikesToKick} 次都沒翻牌，被請出對決了！`, true);
+            return;
+        }
+        nextTurn(io, game, `${timedOut.petName} 這回合沒有翻牌（警告 ${timedOut.strikes}/${cfg.idleStrikesToKick}），再一次就會被請出對決！`);
     }, cfg.turnSeconds * 1000);
 };
 
@@ -87,6 +125,7 @@ const nextTurn = (io: Server, game: MemoryGame, notice?: string) => {
     game.turnSeq++;
     game.turnIndex = (game.turnIndex + 1) % game.players.length;
     game.streak = 0;
+    game.flippedThisTurn = false;
     startTurnTimer(io, game);
     io.to(game.roomId).emit('memory_turn', {
         turn: currentPlayer(game)!.socketId,
@@ -131,6 +170,43 @@ const memberOf = (io: Server, socketId: string): number | undefined => {
     return typeof fromSocket === 'number' ? fromSocket : verifiedMembers.get(socketId);
 };
 
+/* 寵物牌都配對完就結束（鬼牌沒翻到也算結束） */
+const allPairsMatched = (game: MemoryGame) => game.faces.every((f, i) => f === JOKER || game.matchedBy[i]);
+
+/* 翻到鬼牌：先給大家看，再把還沒配對的牌（包含這回合翻開的另一張、另一張鬼牌）位置全部打亂，換下一位 */
+const triggerJoker = (io: Server, game: MemoryGame, jokerIndex: number) => {
+    game.locked = true;
+    if (game.turnTimer) clearTimeout(game.turnTimer); // 展示期間不要被逾時換人打斷
+    const player = currentPlayer(game);
+    const seq = game.turnSeq;
+
+    setTimeout(() => {
+        if (games.get(game.roomId) !== game) return;
+        game.matchedBy[jokerIndex] = JOKER_REMOVED;
+        game.revealed = [];
+
+        const open = game.faces.map((_, i) => i).filter(i => !game.matchedBy[i]);
+        const reshuffled = shuffle(open.map(i => game.faces[i]!));
+        open.forEach((pos, k) => { game.faces[pos] = reshuffled[k]!; });
+
+        // 前端把翻到的鬼牌當成「已拿走」顯示，已配對的牌組位置不動
+        io.to(game.roomId).emit('memory_matched', {
+            indices: [jokerIndex], face: JOKER, by: JOKER_REMOVED, players: publicPlayers(game), streak: 0,
+        });
+        game.locked = false;
+        const notice = `🃏 ${player?.petName ?? ''} 翻到鬼牌！還沒配對的牌全部重新洗過，換下一位！`;
+        if (game.turnSeq === seq) {
+            nextTurn(io, game, notice);
+        } else {
+            // 展示期間翻牌的人離開、已經換過人了：不要再跳過一位，只重新計時
+            startTurnTimer(io, game);
+            io.to(game.roomId).emit('memory_turn', {
+                turn: currentPlayer(game)!.socketId, turnMsLeft: Math.max(0, game.turnEndsAt - Date.now()), revealed: [], notice,
+            });
+        }
+    }, JOKER_SHOW_MS);
+};
+
 const finishGame = async (io: Server, game: MemoryGame) => {
     stopGame(game.roomId);
 
@@ -138,16 +214,15 @@ const finishGame = async (io: Server, game: MemoryGame) => {
     const winners = game.players.filter(p => p.score === topScore);
 
     io.to(game.roomId).emit('memory_ended', {
-        players: game.players,
+        players: publicPlayers(game),
         winners: winners.map(p => p.socketId),
         draw: winners.length > 1,
     });
 
-    /* 平手不算；同一個帳號開兩個分頁也不算 */
-    const distinctMembers = new Set(game.players.map(p => memberOf(io, p.socketId)).filter(Boolean));
+    /* 平手不算；開局時要有兩個以上不同的登入帳號（同一個帳號開兩個分頁不算） */
     const winner = winners.length === 1 ? winners[0]! : null;
-    const winnerMemberId = winner ? memberOf(io, winner.socketId) : undefined;
-    if (!winner || !winnerMemberId || distinctMembers.size < cfg.minPlayers) return;
+    const winnerMemberId = winner ? (winner.memberId ?? memberOf(io, winner.socketId)) : undefined;
+    if (!winner || !winnerMemberId || game.distinctMembersAtStart < cfg.minPlayers) return;
 
     try {
         const result = await recordWin(winnerMemberId);
@@ -186,14 +261,21 @@ export const setupMemoryGame = (io: Server, socket: Socket, getRoom: RoomLookup,
         if (room.players.size < cfg.minPlayers) return socket.emit('memory_error', { message: `至少要 ${cfg.minPlayers} 個人才能開始對決！` });
 
         const pairCount = Number(pairs);
-        if (!cfg.pairOptions.includes(pairCount)) return socket.emit('memory_error', { message: '請選擇正確的組數！' });
-
         const allFaces = Object.keys(gameConfig.shop.pet_color);
-        if (allFaces.length < pairCount) return socket.emit('memory_error', { message: '寵物種類不夠，無法開這麼多組！' });
+        const minPairs = minPairsFor(room.players.size);
+        const jokerNote = cfg.joker.enabled ? '（另外加一對鬼牌）' : '';
+        if (!Number.isInteger(pairCount)) return socket.emit('memory_error', { message: '請選擇正確的組數！' });
+        if (pairCount < minPairs) {
+            return socket.emit('memory_error', { message: `${room.players.size} 個人至少要選 ${minPairs} 組${jokerNote}才能開始喔！` });
+        }
+        if (pairCount > allFaces.length) {
+            return socket.emit('memory_error', { message: `最多只能選 ${allFaces.length} 組喔！` });
+        }
 
         const chosen = shuffle([...allFaces]).slice(0, pairCount);
-        if (cfg.joker.enabled) chosen[0] = JOKER; // 小丑取代其中一組，總張數不變
-        const faces = shuffle(chosen.flatMap(f => [f, f]));
+        const deck = chosen.flatMap(f => [f, f]);
+        if (cfg.joker.enabled) deck.push(JOKER, JOKER); // 鬼牌一對，但翻到一張就觸發洗牌
+        const faces = shuffle(deck);
 
         const game: MemoryGame = {
             roomId,
@@ -203,6 +285,7 @@ export const setupMemoryGame = (io: Server, socket: Socket, getRoom: RoomLookup,
             revealed: [],
             players: shuffle(Array.from(room.players.entries()).map(([socketId, p]) => ({
                 socketId, petName: p.petName, petColor: p.petColor, score: 0,
+                memberId: memberOf(io, socketId), strikes: 0, connected: true,
             }))),
             turnIndex: 0,
             streak: 0,
@@ -210,7 +293,10 @@ export const setupMemoryGame = (io: Server, socket: Socket, getRoom: RoomLookup,
             turnTimer: null,
             turnEndsAt: 0,
             turnSeq: 0,
+            flippedThisTurn: false,
+            distinctMembersAtStart: 0,
         };
+        game.distinctMembersAtStart = new Set(game.players.map(p => p.memberId).filter(Boolean)).size;
         games.set(roomId, game);
         startTurnTimer(io, game);
         io.to(roomId).emit('memory_started', publicState(game));
@@ -229,7 +315,13 @@ export const setupMemoryGame = (io: Server, socket: Socket, getRoom: RoomLookup,
         if (game.matchedBy[i] || game.revealed.includes(i)) return;
 
         game.revealed.push(i);
+        game.flippedThisTurn = true;
         io.to(game.roomId).emit('memory_revealed', { index: i, face: game.faces[i], by: socket.id });
+
+        if (game.faces[i] === JOKER) {
+            triggerJoker(io, game, i);
+            return;
+        }
         if (game.revealed.length < 2) return;
 
         // 機會／命運牌：規則定好後在這裡處理（cfg.chanceCards.enabled）
@@ -242,13 +334,13 @@ export const setupMemoryGame = (io: Server, socket: Socket, getRoom: RoomLookup,
             game.matchedBy[b] = socket.id;
             game.revealed = [];
             game.streak++;
-            player.score += pairValue(game.faces[a]!);
+            player.score += 1;
 
             io.to(game.roomId).emit('memory_matched', {
-                indices: [a, b], face: game.faces[a], by: socket.id, players: game.players, streak: game.streak,
+                indices: [a, b], face: game.faces[a], by: socket.id, players: publicPlayers(game), streak: game.streak,
             });
 
-            if (game.matchedBy.every(Boolean)) {
+            if (allPairsMatched(game)) {
                 void finishGame(io, game);
                 return;
             }
@@ -283,21 +375,34 @@ export const setupMemoryGame = (io: Server, socket: Socket, getRoom: RoomLookup,
     });
 };
 
-/* 玩家離開房間：從對決中移除，剩不到兩人就結束（不記勝場） */
-export const memoryHandleLeave = (io: Server, roomId: string, socketId: string) => {
-    verifiedMembers.delete(socketId);
-    const game = games.get(roomId);
-    if (!game) return;
+/* 出局處罰：扣積分、禁止進房一段時間，人還連著就告訴他並請出房間 */
+const penalize = async (io: Server, player: MemoryPlayer, kick: boolean) => {
+    if (!player.memberId) return;
+    try {
+        const p = await applyQuitPenalty(player.memberId);
+        const socket = io.sockets.sockets.get(player.socketId);
+        if (!socket?.connected) return;
+        socket.emit('error', {
+            message: `你今天第 ${p.count} 次中途離開翻牌對決，扣 ${p.deducted} 積分，${p.banMinutes} 分鐘內不能進連線房間。`,
+        });
+        if (kick) kickFromRoom(player.socketId);
+    } catch (error) {
+        console.error('❌ [翻牌對決] 中途離開處罰失敗:', error);
+    }
+};
 
-    const idx = game.players.findIndex(p => p.socketId === socketId);
-    if (idx === -1) return;
+/* 把玩家請出對決（主動離開、或警告滿了），出局的人照 quitPenalties 處罰 */
+const removePlayer = (io: Server, game: MemoryGame, idx: number, message: string, kick = false) => {
     const wasTurn = idx === game.turnIndex;
-    const leaver = game.players[idx]!;
-    game.players.splice(idx, 1);
+    const [removed] = game.players.splice(idx, 1);
+    if (removed) void penalize(io, removed, kick);
 
+    if (game.players.length === 0) {
+        stopGame(game.roomId);
+        return;
+    }
     if (game.players.length < cfg.minPlayers) {
-        stopGame(roomId);
-        io.to(roomId).emit('memory_aborted', { message: `${leaver.petName} 離開了，人數不足，翻牌對決結束。` });
+        finishByForfeit(io, game, message);
         return;
     }
 
@@ -306,10 +411,67 @@ export const memoryHandleLeave = (io: Server, roomId: string, socketId: string) 
         game.revealed = [];
         game.locked = false;
         game.turnIndex = (game.turnIndex - 1 + game.players.length) % game.players.length; // nextTurn 會再 +1
-        nextTurn(io, game, `${leaver.petName} 離開了，換下一位！`);
+        nextTurn(io, game, message);
     } else {
-        io.to(roomId).emit('memory_players', { players: game.players });
+        io.to(game.roomId).emit('memory_players', { players: publicPlayers(game), notice: message });
     }
+};
+
+/* 只剩一個人：寵物牌（不含鬼牌）翻完 forfeitWinRatio 才算他贏，不到就整局作廢 */
+const finishByForfeit = (io: Server, game: MemoryGame, message: string) => {
+    const matchedPairs = game.faces.filter((f, i) => f !== JOKER && game.matchedBy[i]).length / 2;
+    if (matchedPairs >= game.pairs * cfg.forfeitWinRatio) {
+        void finishGame(io, game);
+        return;
+    }
+    stopGame(game.roomId);
+    io.to(game.roomId).emit('memory_aborted', {
+        message: `${message} 只剩一個人，牌還沒翻到 ${Math.round(cfg.forfeitWinRatio * 100)}%，這局不算。`,
+    });
+};
+
+/* 玩家離開房間：按離開就出局；斷線先保留位置，輪到沒翻一樣記警告 */
+export const memoryHandleLeave = (io: Server, roomId: string, socketId: string, reason: 'leave' | 'disconnect', roomEmpty: boolean) => {
+    verifiedMembers.delete(socketId);
+    const game = games.get(roomId);
+    if (!game) return;
+    if (roomEmpty) {
+        stopGame(roomId); // 房間裡都沒人了
+        return;
+    }
+
+    const idx = game.players.findIndex(p => p.socketId === socketId);
+    if (idx === -1) return;
+    const player = game.players[idx]!;
+
+    if (reason === 'disconnect' && player.memberId) {
+        player.connected = false;
+        io.to(roomId).emit('memory_players', { players: publicPlayers(game), notice: `${player.petName} 斷線了，位置先幫他保留。` });
+        return;
+    }
+    removePlayer(io, game, idx, `${player.petName} 離開了對決。`);
+};
+
+/* 斷線的人用同一個帳號回到房間：接回原本的位置與分數 */
+export const memoryHandleJoin = (io: Server, socket: Socket, roomId: string, memberId: number) => {
+    const game = games.get(roomId);
+    const seat = game?.players.find(p => p.memberId === memberId);
+    if (!game || !seat) return;
+
+    const oldId = seat.socketId;
+    seat.socketId = socket.id;
+    seat.connected = true;
+    game.matchedBy = game.matchedBy.map(by => (by === oldId ? socket.id : by));
+
+    socket.emit('memory_state', publicState(game));
+    // 其他人的畫面用 socketId 判斷輪到誰，換了連線要重新告訴大家
+    socket.to(roomId).emit('memory_turn', {
+        turn: currentPlayer(game)!.socketId,
+        turnMsLeft: Math.max(0, game.turnEndsAt - Date.now()),
+        revealed: game.revealed.map(i => ({ index: i, face: game.faces[i] })),
+        notice: `${seat.petName} 回來了！`,
+        streak: game.streak,
+    });
 };
 
 /* socket 斷線但不在房間裡時，也要清掉身分紀錄 */

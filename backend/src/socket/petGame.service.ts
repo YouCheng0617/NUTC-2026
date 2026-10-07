@@ -262,7 +262,7 @@ export const getPetCoin = async (memberId: number) => {
 /**
  * 輔助函式：取得台北時區 YYYY-MM-DD 日期字串
  */
-function getTodayDateStr(date: Date = new Date()): string {
+export function getTodayDateStr(date: Date = new Date()): string {
     const formatter = new Intl.DateTimeFormat('zh-TW', {
         timeZone: 'Asia/Taipei',
         year: 'numeric',
