@@ -812,16 +812,19 @@ function copyRoomId() {
         //    - GET 讀目前所有邀請（同一份也會出現在論壇首頁），每則只活 3 分鐘，房間關了就自動消失
         //    - POST { roomId, message } 發邀請，最多 30 字，每個帳號 5 分鐘內最多發 3 次
         //    - 同一個人重發時後端只留最新一則（等於「頂上來」），沒有收回的 API
-        //    沒有即時推送，所以公告板開著的時候每 15 秒重新讀一次
+        //    沒有即時推送，所以公告板開著的時候每 10 秒重新讀一次，也可以按「刷新」馬上讀
         // =====================================================================
         const BOARD_MAX = 30;
-        const BOARD_REFRESH_MS = 15000;
+        const BOARD_REFRESH_MS = 10000;
         let boardPosts = [];
         let boardState = 'idle';      // idle／loading／ok／failed
         let boardRefreshTimer = null;
         let boardClockTimer = null;
         let boardPublishing = false;
         let boardSwitchArmed = null;  // 在別的房間時，「加入」要按兩下確認換房
+        let boardLoadedAt = 0;        // 上次成功讀到公告板的時間
+        let boardLoading = false;
+        let boardLastFailed = false;
 
         const boardEl = (id) => document.getElementById(id);
         const isBoardOpen = () => { const o = boardEl('roomBoardOverlay'); return !!o && o.style.display === 'flex'; };
@@ -838,10 +841,67 @@ function copyRoomId() {
             return { sec, text };
         }
 
+        // 公告板上固定的字：打開時、切語言時都套一次
+        function renderBoardStatic() {
+            const en = currLang === 'en';
+            const set = (id, zh, enText) => { const el = boardEl(id); if (el) el.textContent = en ? enText : zh; };
+            set('boardTitle', '房間公告板', 'Room Board');
+            set('boardSub', '大家正在找人一起玩的房間，點「加入」就能進房聊天', 'Rooms looking for friends — press Join to hop in and chat');
+            set('boardComposePrefix', '幫房間', 'Invite friends to room');
+            set('boardComposeSuffix', '發邀請', '');
+            set('boardLobbyText', '先開一間房間，就能在這裡發邀請找朋友', 'Open a room first, then you can post an invite here');
+            set('boardLobbyCreate', '創立房間', 'Create room');
+            set('btnRoomBoard', '📋 房間公告板', '📋 Room Board');
+            const input = boardEl('boardInput');
+            if (input) {
+                input.placeholder = en ? 'Say something to invite everyone… (e.g. Memory Match, anyone?)' : '寫一句話邀請大家來玩…（例如：一起來翻牌對決！）';
+                input.setAttribute('aria-label', en ? 'Invite message' : '邀請內容');
+            }
+            const close = boardEl('boardClose');
+            if (close) close.setAttribute('aria-label', en ? 'Close' : '關閉');
+            renderBoardUpdated();
+        }
+
+        // 「幾秒前更新」：每秒跟著倒數一起更新
+        function renderBoardUpdated() {
+            const en = currLang === 'en';
+            const label = boardEl('boardUpdated');
+            const btn = boardEl('boardRefresh');
+            const btnText = boardEl('boardRefreshText');
+            if (btnText) btnText.textContent = boardLoading ? (en ? 'Refreshing…' : '刷新中…') : (en ? 'Refresh' : '刷新');
+            if (btn) { btn.disabled = boardLoading; btn.classList.toggle('is-loading', boardLoading); }
+            if (!label) return;
+            const auto = en ? `auto-refreshes every ${BOARD_REFRESH_MS / 1000}s` : `每 ${BOARD_REFRESH_MS / 1000} 秒自動刷新`;
+            if (boardLastFailed) {
+                label.textContent = en ? `Couldn't refresh — will try again · ${auto}` : `刷新失敗，等一下會再試・${auto}`;
+            } else if (!boardLoadedAt) {
+                label.textContent = auto;
+            } else {
+                const sec = Math.floor((Date.now() - boardLoadedAt) / 1000);
+                const ago = sec < 3 ? (en ? 'Just updated' : '剛剛更新') : (en ? `Updated ${sec}s ago` : `${sec} 秒前更新`);
+                label.textContent = `${ago}・${auto}`;
+            }
+            label.classList.toggle('is-failed', boardLastFailed);
+        }
+
+        // 按「刷新」：馬上讀一次，自動刷新的倒數也從現在重新算
+        async function refreshBoard() {
+            if (boardLoading) return;
+            clearInterval(boardRefreshTimer);
+            boardRefreshTimer = setInterval(loadBoard, BOARD_REFRESH_MS);
+            await loadBoard();
+        }
+
+        // 切回這個分頁時，公告板開著就馬上刷新（背景分頁的計時器會被瀏覽器放慢）
+        document.addEventListener('visibilitychange', () => {
+            if (document.visibilityState === 'visible' && isBoardOpen()) refreshBoard();
+        });
+
         function openRoomBoard() {
             const overlay = boardEl('roomBoardOverlay');
             if (!overlay) return;
             overlay.style.display = 'flex';
+            renderBoardStatic();
             const err = boardEl('boardError');
             err.textContent = '';
             err.classList.remove('ok');
@@ -851,7 +911,7 @@ function copyRoomId() {
             clearInterval(boardRefreshTimer);
             clearInterval(boardClockTimer);
             boardRefreshTimer = setInterval(loadBoard, BOARD_REFRESH_MS);
-            boardClockTimer = setInterval(renderBoardList, 1000);   // 倒數每秒更新，過期的就拿掉
+            boardClockTimer = setInterval(() => { renderBoardList(); renderBoardUpdated(); }, 1000);   // 倒數每秒更新，過期的就拿掉
         }
 
         function closeRoomBoard() {
@@ -863,8 +923,15 @@ function copyRoomId() {
         }
 
         async function loadBoard() {
+            if (boardLoading) return;
+            boardLoading = true;
+            renderBoardUpdated();
             if (boardState !== 'ok') { boardState = 'loading'; renderBoardList(); }
             const result = await fetchAPI('/announcements', 'GET');
+            boardLoading = false;
+            boardLastFailed = !(result && Array.isArray(result.data));
+            if (!boardLastFailed) boardLoadedAt = Date.now();
+            renderBoardUpdated();
             if (result && Array.isArray(result.data)) {
                 boardPosts = result.data.map(a => ({
                     roomId: String(a.room_id || '').toUpperCase(),
@@ -1504,6 +1571,20 @@ function updateRoomUI(text) {
             set('txtGameMemoryTag1', en ? 'Memory' : '記憶力');
             set('txtGameMemoryTag2', en ? '2-6 players' : '2～6 人');
             set('txtGameMemoryGo', isRoomHost ? (en ? 'Start' : '開局') : (en ? 'Join' : '進去'));
+            // 對決進行中或等大家回覆時，按鈕跟著換字：參加的人回牌桌、沒參加的人觀戰
+            const status = (typeof MemoryGame !== 'undefined' && MemoryGame.status) ? MemoryGame.status() : 'idle';
+            if (status === 'playing') {
+                set('txtGameMemoryDesc', en ? 'The match is on — back to the table!' : '對決進行中，回到牌桌繼續翻');
+                set('txtGameMemoryGo', en ? 'Back' : '回牌桌');
+            } else if (status === 'watching') {
+                set('txtGameMemoryDesc', en ? 'A match is on — come and watch' : '對決進行中，可以進去觀戰');
+                set('txtGameMemoryGo', en ? 'Watch' : '觀戰');
+            } else if (status === 'inviting') {
+                set('txtGameMemoryDesc', en ? 'The host is starting — answer the invite above' : '房主開局了，在上方選要加入還是觀戰');
+                set('txtGameMemoryGo', en ? 'Open' : '查看');
+            }
+            const memCard = document.getElementById('btnGameMemory');
+            if (memCard) memCard.classList.toggle('is-live', status !== 'idle');
             set('txtGameSoon', en ? 'More games coming…' : '更多遊戲準備中…');
             const memBtn = document.getElementById('btnGameMemory');
             if (memBtn) memBtn.disabled = typeof MemoryGame === 'undefined';
@@ -5536,6 +5617,7 @@ slugEl.style.transform = slugTransform(`scaleX(${direction})`);
             updateNameUI();
             updateMpGamesUI();
             if (window.MemoryGame && MemoryGame.refreshLang) MemoryGame.refreshLang();
+            if (isBoardOpen()) { renderBoardStatic(); renderBoardCompose(); renderBoardList(); }
         }
 
 function updateLangUI() {

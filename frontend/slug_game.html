@@ -11,8 +11,8 @@
 
     </script>
 
-        <link rel="stylesheet" href="slug_game.css?v=20261007i">
-        <link rel="stylesheet" href="memory_game.css?v=20261007i">
+        <link rel="stylesheet" href="slug_game.css?v=20261007k">
+        <link rel="stylesheet" href="memory_game.css?v=20261007k">
 
 </head>
 <body>
@@ -432,12 +432,17 @@
                     <h2 class="board-title" id="boardTitle">房間公告板</h2>
                     <p class="board-sub" id="boardSub">大家正在找人一起玩的房間，點「加入」就能進房聊天</p>
                 </div>
-                <button class="board-close" type="button" onclick="closeRoomBoard()" aria-label="關閉">✕</button>
+                <button class="board-close" type="button" onclick="closeRoomBoard()" aria-label="關閉" id="boardClose">✕</button>
+            </div>
+            <!-- 多久前更新＋刷新按鈕；開著的時候也會每 10 秒自動刷新 -->
+            <div class="board-tools">
+                <span class="board-updated" id="boardUpdated"></span>
+                <button type="button" class="board-refresh" id="boardRefresh" onclick="refreshBoard()"><span class="board-refresh-icon" aria-hidden="true">🔄</span><span id="boardRefreshText">刷新</span></button>
             </div>
             <div class="board-list" id="boardList"></div>
             <!-- 在房間裡：可以幫這間房間發邀請 -->
             <div class="board-compose" id="boardComposeRoom" hidden>
-                <div class="board-compose-label">幫房間 <b id="boardMyRoom"></b> 發邀請</div>
+                <div class="board-compose-label"><span id="boardComposePrefix">幫房間</span> <b id="boardMyRoom"></b> <span id="boardComposeSuffix">發邀請</span></div>
                 <textarea id="boardInput" rows="2" placeholder="寫一句話邀請大家來玩…（例如：一起來翻牌對決！）" aria-label="邀請內容"></textarea>
                 <div class="board-compose-foot">
                     <span class="board-count" id="boardCount">0/30</span>
@@ -448,8 +453,8 @@
             </div>
             <!-- 不在房間裡：先開房才能發 -->
             <div class="board-compose lobby" id="boardComposeLobby" hidden>
-                <span>先開一間房間，就能在這裡發邀請找朋友</span>
-                <button type="button" class="board-btn primary" onclick="closeRoomBoard(); createSocketRoom();">創立房間</button>
+                <span id="boardLobbyText">先開一間房間，就能在這裡發邀請找朋友</span>
+                <button type="button" class="board-btn primary" id="boardLobbyCreate" onclick="closeRoomBoard(); createSocketRoom();">創立房間</button>
             </div>
         </div>
     </div>
@@ -829,8 +834,8 @@
         </div>
     </div>
 
-        <script src="slug_game.js?v=20261007i"></script>
-        <script src="memory_game.js?v=20261007i"></script>
+        <script src="slug_game.js?v=20261007k"></script>
+        <script src="memory_game.js?v=20261007k"></script>
 
 </body>
 </html>

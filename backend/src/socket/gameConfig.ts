@@ -45,6 +45,7 @@ export const gameConfig = {
         minPairsByPlayers: { 2: 12, 3: 18, 4: 24, 5: 30, 6: 44 } as Record<number, number>,
         maxStreak: 3,                  // 翻對可以繼續翻，同一回合最多連續翻對 3 組就換人
         turnSeconds: 30,               // 每回合限時，時間到自動換下一位
+        inviteSeconds: 15,             // 房主開局後等大家回覆「加入／觀戰」幾秒，時間到就用有加入的人開局
         minPlayers: 2,
         idleStrikesToKick: 2,          // 輪到時整回合沒翻牌記一次，累計 2 次就請出對決（斷線的人也一樣）
         forfeitWinRatio: 0.8,          // 有人退出後只剩 1 人：寵物牌（不含鬼牌）翻完 80% 才算他贏，不到就作廢

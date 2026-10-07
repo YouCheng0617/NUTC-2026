@@ -13,6 +13,12 @@ import { applyQuitPenalty } from './quitPenalty.js';
  * 全部翻完分數最高的人贏；只有一個最高分、而且至少兩個不同的登入帳號參加，才記一場勝場。
  * 鬼牌（開關在 gameConfig）：牌堆多一對，但不用配對，翻到任何一張就把還沒配對的牌重洗，不加分、直接換下一位。
  *
+ * 開局邀請（觀戰模式）：
+ * - 房主按開始後先問房間裡每個人要不要加入（memory_invite），房主自己自動加入
+ * - 大家都回覆完、或 inviteSeconds 秒到了，就用有加入的人開局；不到 minPlayers 人就取消
+ * - 沒加入、沒回覆、開局後才進房的人都是觀眾：收得到盤面，但不能翻牌、不算勝場、不會被處罰
+ * - 參加的人比房主選的組數需要的多時，自動加到 minPairsByPlayers 的最低組數
+ *
  * 中途退出：
  * - 按離開房間 → 直接出局；斷線 → 位置先保留，連回來可以接著玩
  * - 輪到你一整回合都沒翻牌記一次警告，累計 idleStrikesToKick 次就被請出對決
@@ -55,6 +61,18 @@ interface MemoryGame {
 
 const games = new Map<string, MemoryGame>();
 
+/* 開局前的邀請：等大家回覆要加入還是觀戰 */
+interface MemoryInvite {
+    roomId: string;
+    pairs: number;
+    hostId: string;
+    accepted: Set<string>;  // 要加入的 socketId（房主一開始就在裡面）
+    declined: Set<string>;  // 選觀戰的 socketId
+    timer: NodeJS.Timeout | null;
+    endsAt: number;
+}
+const invites = new Map<string, MemoryInvite>();
+
 /* 掛機被請出、人還在房間裡時，由 petServer 把他請出房間（避免 import 互相引用） */
 let kickFromRoom: (socketId: string) => void = () => {};
 export const setRoomKicker = (fn: (socketId: string) => void) => { kickFromRoom = fn; };
@@ -62,6 +80,8 @@ export const setRoomKicker = (fn: (socketId: string) => void) => { kickFromRoom 
 const verifiedMembers = new Map<string, number>();
 
 type RoomLookup = (roomId: string) => { players: Map<string, { petName: string; petColor: string }> } | undefined;
+/* 房間查詢：setupMemoryGame 時記下來，玩家離開時（memoryHandleLeave）也用得到 */
+let roomLookup: RoomLookup = () => undefined;
 
 const shuffle = <T>(arr: T[]) => {
     for (let i = arr.length - 1; i > 0; i--) {
@@ -235,7 +255,88 @@ const finishGame = async (io: Server, game: MemoryGame) => {
     }
 };
 
+/* 給前端的邀請狀態：誰加入了、還有幾個人沒回覆 */
+const publicInvite = (invite: MemoryInvite) => {
+    const room = roomLookup(invite.roomId);
+    const players = room ? Array.from(room.players.entries()) : [];
+    const nameOf = (id: string) => room?.players.get(id)?.petName ?? '';
+    return {
+        pairs: invite.pairs,
+        hostId: invite.hostId,
+        hostName: nameOf(invite.hostId),
+        msLeft: Math.max(0, invite.endsAt - Date.now()),
+        joined: players.filter(([id]) => invite.accepted.has(id)).map(([socketId, p]) => ({ socketId, petName: p.petName })),
+        watching: players.filter(([id]) => invite.declined.has(id)).map(([socketId]) => socketId),
+        waiting: players.filter(([id]) => !invite.accepted.has(id) && !invite.declined.has(id)).length,
+    };
+};
+
+const cancelInvite = (io: Server, invite: MemoryInvite, message: string) => {
+    if (invite.timer) clearTimeout(invite.timer);
+    invites.delete(invite.roomId);
+    io.to(invite.roomId).emit('memory_invite_cancelled', { message });
+};
+
+/* 邀請結束：用有加入、而且還在房間裡的人開局 */
+const beginGame = (io: Server, invite: MemoryInvite) => {
+    if (invites.get(invite.roomId) !== invite) return;
+    if (invite.timer) clearTimeout(invite.timer);
+    invites.delete(invite.roomId);
+
+    const room = roomLookup(invite.roomId);
+    if (!room) return;
+    const seats = Array.from(room.players.entries()).filter(([id]) => invite.accepted.has(id));
+    if (seats.length < cfg.minPlayers) {
+        io.to(invite.roomId).emit('memory_invite_cancelled', { message: `加入的人不到 ${cfg.minPlayers} 位，這局先取消了。` });
+        return;
+    }
+
+    const allFaces = Object.keys(gameConfig.shop.pet_color);
+    const minPairs = minPairsFor(seats.length);
+    const pairCount = Math.min(allFaces.length, Math.max(invite.pairs, minPairs));
+    const chosen = shuffle([...allFaces]).slice(0, pairCount);
+    const deck = chosen.flatMap(f => [f, f]);
+    if (cfg.joker.enabled) deck.push(JOKER, JOKER); // 鬼牌一對，但翻到一張就觸發洗牌
+    const faces = shuffle(deck);
+
+    const game: MemoryGame = {
+        roomId: invite.roomId,
+        pairs: pairCount,
+        faces,
+        matchedBy: faces.map(() => null),
+        revealed: [],
+        players: shuffle(seats.map(([socketId, p]) => ({
+            socketId, petName: p.petName, petColor: p.petColor, score: 0,
+            memberId: memberOf(io, socketId), strikes: 0, connected: true,
+        }))),
+        turnIndex: 0,
+        streak: 0,
+        locked: false,
+        turnTimer: null,
+        turnEndsAt: 0,
+        turnSeq: 0,
+        flippedThisTurn: false,
+        distinctMembersAtStart: 0,
+    };
+    game.distinctMembersAtStart = new Set(game.players.map(p => p.memberId).filter(Boolean)).size;
+    games.set(invite.roomId, game);
+    startTurnTimer(io, game);
+    io.to(invite.roomId).emit('memory_started', {
+        ...publicState(game),
+        notice: pairCount > invite.pairs ? `有 ${seats.length} 個人參加，組數自動加到 ${pairCount} 組！` : null,
+    });
+};
+
+/* 房間裡每個人都回覆了就不用等倒數 */
+const checkInviteDone = (io: Server, invite: MemoryInvite) => {
+    const room = roomLookup(invite.roomId);
+    if (!room) return;
+    const allAnswered = Array.from(room.players.keys()).every(id => invite.accepted.has(id) || invite.declined.has(id));
+    if (allAnswered) beginGame(io, invite);
+};
+
 export const setupMemoryGame = (io: Server, socket: Socket, getRoom: RoomLookup, getRoomIdOf: (socketId: string) => string | undefined) => {
+    roomLookup = getRoom;
 
     /* 登入身分：前端連線後把登入憑證送來，驗證通過才記勝場 */
     socket.on('memory_identify', ({ token }: { token?: string } = {}) => {
@@ -249,7 +350,7 @@ export const setupMemoryGame = (io: Server, socket: Socket, getRoom: RoomLookup,
         }
     });
 
-    /* 房主開局 */
+    /* 房主開局：先問大家要不要加入 */
     socket.on('memory_start', ({ pairs }: { pairs?: number } = {}) => {
         const roomId = getRoomIdOf(socket.id);
         const room = roomId ? getRoom(roomId) : undefined;
@@ -258,48 +359,45 @@ export const setupMemoryGame = (io: Server, socket: Socket, getRoom: RoomLookup,
         const hostId = room.players.keys().next().value;
         if (hostId !== socket.id) return socket.emit('memory_error', { message: '只有房主可以開始翻牌對決喔！' });
         if (games.has(roomId)) return socket.emit('memory_error', { message: '翻牌對決已經在進行中了！' });
+        if (invites.has(roomId)) return socket.emit('memory_error', { message: '正在等大家回覆要不要加入，請稍等！' });
         if (room.players.size < cfg.minPlayers) return socket.emit('memory_error', { message: `至少要 ${cfg.minPlayers} 個人才能開始對決！` });
 
+        // 組數先用兩人局的最低組數檢查；開局時再依實際加入的人數自動補到最低組數
         const pairCount = Number(pairs);
         const allFaces = Object.keys(gameConfig.shop.pet_color);
-        const minPairs = minPairsFor(room.players.size);
-        const jokerNote = cfg.joker.enabled ? '（另外加一對鬼牌）' : '';
+        const minPairs = minPairsFor(cfg.minPlayers);
         if (!Number.isInteger(pairCount)) return socket.emit('memory_error', { message: '請選擇正確的組數！' });
         if (pairCount < minPairs) {
-            return socket.emit('memory_error', { message: `${room.players.size} 個人至少要選 ${minPairs} 組${jokerNote}才能開始喔！` });
+            return socket.emit('memory_error', { message: `至少要選 ${minPairs} 組才能開始喔！` });
         }
         if (pairCount > allFaces.length) {
             return socket.emit('memory_error', { message: `最多只能選 ${allFaces.length} 組喔！` });
         }
 
-        const chosen = shuffle([...allFaces]).slice(0, pairCount);
-        const deck = chosen.flatMap(f => [f, f]);
-        if (cfg.joker.enabled) deck.push(JOKER, JOKER); // 鬼牌一對，但翻到一張就觸發洗牌
-        const faces = shuffle(deck);
-
-        const game: MemoryGame = {
-            roomId,
-            pairs: pairCount,
-            faces,
-            matchedBy: faces.map(() => null),
-            revealed: [],
-            players: shuffle(Array.from(room.players.entries()).map(([socketId, p]) => ({
-                socketId, petName: p.petName, petColor: p.petColor, score: 0,
-                memberId: memberOf(io, socketId), strikes: 0, connected: true,
-            }))),
-            turnIndex: 0,
-            streak: 0,
-            locked: false,
-            turnTimer: null,
-            turnEndsAt: 0,
-            turnSeq: 0,
-            flippedThisTurn: false,
-            distinctMembersAtStart: 0,
+        const invite: MemoryInvite = {
+            roomId, pairs: pairCount, hostId: socket.id,
+            accepted: new Set([socket.id]), declined: new Set(),
+            timer: null, endsAt: Date.now() + cfg.inviteSeconds * 1000,
         };
-        game.distinctMembersAtStart = new Set(game.players.map(p => p.memberId).filter(Boolean)).size;
-        games.set(roomId, game);
-        startTurnTimer(io, game);
-        io.to(roomId).emit('memory_started', publicState(game));
+        invites.set(roomId, invite);
+        invite.timer = setTimeout(() => beginGame(io, invite), cfg.inviteSeconds * 1000);
+        io.to(roomId).emit('memory_invite', publicInvite(invite));
+    });
+
+    /* 回覆邀請：join = true 加入，false 觀戰 */
+    socket.on('memory_invite_reply', ({ join }: { join?: boolean } = {}) => {
+        const roomId = getRoomIdOf(socket.id);
+        const invite = roomId ? invites.get(roomId) : undefined;
+        if (!invite || socket.id === invite.hostId) return;
+        if (join === true) {
+            invite.declined.delete(socket.id);
+            invite.accepted.add(socket.id);
+        } else {
+            invite.accepted.delete(socket.id);
+            invite.declined.add(socket.id);
+        }
+        io.to(invite.roomId).emit('memory_invite_update', publicInvite(invite));
+        checkInviteDone(io, invite);
     });
 
     /* 翻牌 */
@@ -372,6 +470,8 @@ export const setupMemoryGame = (io: Server, socket: Socket, getRoom: RoomLookup,
         const roomId = getRoomIdOf(socket.id);
         const game = roomId ? games.get(roomId) : undefined;
         if (game) socket.emit('memory_state', publicState(game));
+        const invite = roomId ? invites.get(roomId) : undefined;
+        if (invite) socket.emit('memory_invite', publicInvite(invite));
     });
 };
 
@@ -433,6 +533,22 @@ const finishByForfeit = (io: Server, game: MemoryGame, message: string) => {
 /* 玩家離開房間：按離開就出局；斷線先保留位置，輪到沒翻一樣記警告 */
 export const memoryHandleLeave = (io: Server, roomId: string, socketId: string, reason: 'leave' | 'disconnect', roomEmpty: boolean) => {
     verifiedMembers.delete(socketId);
+
+    const invite = invites.get(roomId);
+    if (invite) {
+        if (roomEmpty) {
+            if (invite.timer) clearTimeout(invite.timer);
+            invites.delete(roomId);
+        } else if (socketId === invite.hostId) {
+            cancelInvite(io, invite, '房主離開了，這局翻牌對決取消。');
+        } else {
+            invite.accepted.delete(socketId);
+            invite.declined.delete(socketId);
+            io.to(roomId).emit('memory_invite_update', publicInvite(invite));
+            checkInviteDone(io, invite);
+        }
+    }
+
     const game = games.get(roomId);
     if (!game) return;
     if (roomEmpty) {

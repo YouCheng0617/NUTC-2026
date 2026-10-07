@@ -2906,3 +2906,29 @@
             .mp-games { bottom: calc(62px + env(safe-area-inset-bottom, 0px)); }
             .gc-desc { display: none; }
         }
+
+/* 🎮 翻牌對決進行中：按鈕左上角亮一個 LIVE 小紅點 */
+.game-card.is-live::after {
+    content: 'LIVE'; position: absolute; top: -9px; left: 16px;
+    padding: 1px 8px; border-radius: 999px;
+    background: #ef4444; color: #fff; font-size: 0.68rem; font-weight: 900; letter-spacing: 0.5px;
+    box-shadow: 0 2px 0 #b91c1c;
+    animation: game-live-pulse 1.4s ease-in-out infinite;
+}
+@keyframes game-live-pulse { 50% { opacity: 0.55; } }
+@media (prefers-reduced-motion: reduce) { .game-card.is-live::after { animation: none; } }
+
+/* 📋 公告板：多久前更新＋刷新按鈕 */
+        .board-tools { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin: -2px 0 8px; }
+        .board-updated { font-size: 0.75rem; font-weight: 800; color: var(--text-dim); }
+        .board-updated.is-failed { color: #dc2626; }
+        .board-refresh {
+            flex: 0 0 auto; display: inline-flex; align-items: center; gap: 5px;
+            padding: 6px 12px; border: 2px solid #fbcfe8; border-radius: 999px;
+            background: #fff; color: #db2777; font-family: inherit; font-size: 0.82rem; font-weight: 900; cursor: pointer;
+        }
+        .board-refresh:disabled { opacity: 0.7; cursor: default; }
+        .board-refresh-icon { display: inline-block; }
+        .board-refresh.is-loading .board-refresh-icon { animation: board-spin 0.8s linear infinite; }
+        @keyframes board-spin { to { transform: rotate(360deg); } }
+        @media (prefers-reduced-motion: reduce) { .board-refresh.is-loading .board-refresh-icon { animation: none; } }

@@ -4,7 +4,7 @@
 // 點牌 → 送 memory_flip → 伺服器告訴大家翻到什麼、有沒有配對、輪到誰。
 // 會用到 slug_game.js 的 socket、currentRoomId、isRoomHost、speciesData、GAME_TOKEN、showFloatText、fetchAPI。
 (function () {
-    const PAIR_OPTIONS = [10, 20, 30, 50];
+    const PAIR_OPTIONS = [12, 20, 30, 44, 58];
     const JOKER = 'joker';
 
     let boundSocket = null;
@@ -17,7 +17,7 @@
         zh: {
             title: '🃏 記憶翻牌對決',
             closeTip: '收起（對決會繼續進行）',
-            rules: '輪流翻兩張牌，翻到一樣的寵物就拿下這組，還可以繼續翻（每回合最多連續翻對 3 組）。<br>全部翻完，拿最多組的人獲勝！每回合限時 30 秒。',
+            rules: '房主開局時，房間裡每個人可以選擇加入或觀戰。<br>輪流翻兩張牌，翻到一樣的寵物就拿下這組，還可以繼續翻（每回合最多連續翻對 3 組）。<br>全部翻完，拿最多組的人獲勝！每回合限時 30 秒，人多的話組數會自動加多。',
             albumOpen: '📖 卡牌圖鑑', albumOpenSub: '先看看有哪些牌',
             pickPairs: '選擇對決組數', start: '開始對決！', wait: '等房主選好組數開始對決…',
             pairs: (n) => `${n} 組`,
@@ -25,8 +25,8 @@
             albumHint: '左右滑動或按方向鍵翻頁',
             albumCount: (n) => `共 ${n} 張`,
             albumPageNo: (p, t) => `第 ${p} / ${t} 頁`,
-            joker: '小丑', jokerRibbon: (v) => `小丑 ×${v}`, jokerMark: '丑',
-            jokerSlot: (v) => `小丑牌・一次拿 ${v} 組`,
+            joker: '小丑', jokerRibbon: '小丑牌', jokerMark: '丑',
+            jokerSlot: '小丑牌，翻到就把沒配對的牌重新洗過',
             notYourTurn: '還沒輪到你喔！',
             winsDone: (w) => `🏆 已贏 ${w} 場，小丑皮膚已解鎖！`,
             winsSoFar: (w) => `🏆 目前勝場 ${w} / 10（贏滿 10 場送小丑皮膚）`,
@@ -43,12 +43,25 @@
             matched: (name) => `配對成功！${name} ✨`,
             yourTurnToast: '輪到你翻牌囉！🃏',
             skinUnlocked: (n) => `🃏 恭喜贏滿 ${n} 場，獲得小丑皮膚！`,
-            winPlus: (w) => `🏆 勝場 +1（目前 ${w} 場）`
+            winPlus: (w) => `🏆 勝場 +1（目前 ${w} 場）`,
+            inviteTitle: (host) => `${host} 開了翻牌對決！`,
+            inviteHostTitle: '等大家回覆要不要加入…',
+            inviteSub: (pairs, secs) => `共 ${pairs} 組・${secs} 秒後開局`,
+            inviteJoined: (names) => `已加入：${names}`,
+            inviteWaiting: (n) => `還有 ${n} 人沒回覆`,
+            inviteJoin: '加入對決', inviteWatch: '觀戰就好',
+            inviteJoinedMe: '✅ 你已加入，等開局…', inviteWatchMe: '👀 你選擇觀戰',
+            inviteCancelled: '翻牌對決取消了',
+            inviteBusy: '正在等大家回覆…',
+            watchingTag: '👀 觀戰中',
+            watchingNoFlip: '觀戰中不能翻牌喔，下一局開局時記得按「加入」！',
+            startedWatching: '🃏 翻牌對決開始了！你在觀戰，點「翻牌對決」就能看',
+            endedWatching: '🃏 翻牌對決結束了！'
         },
         en: {
             title: '🃏 Memory Match',
             closeTip: 'Minimize (the match keeps going)',
-            rules: 'Take turns flipping two cards. Find the same sea bunny to win the pair and keep going (up to 3 pairs in a row).<br>When all cards are gone, whoever has the most pairs wins! 30 seconds per turn.',
+            rules: 'When the host starts, everyone in the room can choose to play or watch.<br>Take turns flipping two cards. Find the same sea bunny to win the pair and keep going (up to 3 pairs in a row).<br>When all cards are gone, whoever has the most pairs wins! 30 seconds per turn; more players means more pairs.',
             albumOpen: '📖 Card Album', albumOpenSub: 'See all the cards first',
             pickPairs: 'How many pairs?', start: 'Start!', wait: 'Waiting for the host to start…',
             pairs: (n) => `${n} pairs`,
@@ -56,8 +69,8 @@
             albumHint: 'Swipe or use the arrow keys to turn pages',
             albumCount: (n) => `${n} cards`,
             albumPageNo: (p, t) => `Page ${p} / ${t}`,
-            joker: 'Joker', jokerRibbon: (v) => `Joker ×${v}`, jokerMark: 'J',
-            jokerSlot: (v) => `Joker · takes ${v} pairs at once`,
+            joker: 'Joker', jokerRibbon: 'Joker', jokerMark: 'J',
+            jokerSlot: 'Joker: reshuffles the unmatched cards',
             notYourTurn: "It's not your turn yet!",
             winsDone: (w) => `🏆 ${w} wins — Joker skin unlocked!`,
             winsSoFar: (w) => `🏆 Wins: ${w} / 10 (win 10 to get the Joker skin)`,
@@ -74,7 +87,20 @@
             matched: (name) => `Match! ${name} ✨`,
             yourTurnToast: 'Your turn! 🃏',
             skinUnlocked: (n) => `🃏 You won ${n} matches — Joker skin unlocked!`,
-            winPlus: (w) => `🏆 +1 win (${w} total)`
+            winPlus: (w) => `🏆 +1 win (${w} total)`,
+            inviteTitle: (host) => `${host} started a Memory Match!`,
+            inviteHostTitle: 'Waiting for everyone to answer…',
+            inviteSub: (pairs, secs) => `${pairs} pairs · starts in ${secs}s`,
+            inviteJoined: (names) => `Playing: ${names}`,
+            inviteWaiting: (n) => `${n} still deciding`,
+            inviteJoin: 'Join', inviteWatch: 'Just watch',
+            inviteJoinedMe: "✅ You're in — waiting to start…", inviteWatchMe: "👀 You're watching",
+            inviteCancelled: 'The match was cancelled',
+            inviteBusy: 'Waiting for everyone to answer…',
+            watchingTag: '👀 Watching',
+            watchingNoFlip: "You're watching this one — press Join next time!",
+            startedWatching: '🃏 A Memory Match started! Open it to watch',
+            endedWatching: '🃏 The Memory Match is over!'
         }
     };
     function isEn() {
@@ -277,6 +303,7 @@
         $('mgBoard').addEventListener('click', (e) => {
             const card = e.target.closest('.mg-card');
             if (!card || !state || !boundSocket) return;
+            if (isSpectator()) { showFloatText(T('watchingNoFlip')); return; }
             if (state.turn !== myId()) { showFloatText(T('notYourTurn')); return; }
             if (card.classList.contains('is-flipped')) return;
             boundSocket.emit('memory_flip', { index: Number(card.dataset.index) });
@@ -530,9 +557,12 @@
         const mine = state.turn === myId();
         const secs = Math.max(0, Math.ceil((turnDeadline - Date.now()) / 1000));
         const streak = state.streak ? T('streak', state.streak, state.maxStreak) : '';
-        status.textContent = notice
+        const text = notice
             || (mine ? T('myTurn', streak, secs) : T('otherTurn', player ? player.petName : '…', streak, secs));
+        const watching = isSpectator();
+        status.textContent = watching ? `${T('watchingTag')}｜${text}` : text;
         status.classList.toggle('is-mine', mine);
+        $('mgGame').classList.toggle('is-spectating', watching);
     }
 
     function setTurn(turn, msLeft, streak, notice) {
@@ -549,6 +579,14 @@
     function endGame(data) {
         clearInterval(timerTick);
         lastResult = data;
+        const overlay = $('memoryGameOverlay');
+        const wasPlayer = data.players.some((p) => p.socketId === myId());
+        if (!wasPlayer && (!overlay || overlay.hidden)) {
+            state = null;
+            showFloatText(T('endedWatching'));
+            notifyStatus();
+            return;
+        }
         renderResult(data);
 
         state = null;
@@ -557,6 +595,7 @@
         $('mgGame').hidden = true;
         $('mgResult').hidden = false;
         $('mgAlbum').hidden = true;
+        notifyStatus();
     }
 
     function renderResult(data) {
@@ -586,6 +625,8 @@
     function resetLocal(message) {
         clearInterval(timerTick);
         state = null;
+        hideInvite();
+        notifyStatus();
         const overlay = $('memoryGameOverlay');
         if (overlay && !overlay.hidden) showLobby();
         if (message) showFloatText(message, 4000);
@@ -607,13 +648,35 @@
 
         socket.on('memory_started', (s) => {
             state = s;
+            hideInvite();
             turnDeadline = Date.now() + (s.turnMsLeft || 0);
-            ensureOverlay().hidden = false;
-            showGame();
-            buildBoard();
-            setTurn(s.turn, s.turnMsLeft, s.streak);
-            showFloatText(T('started', s.pairs));
+            const overlay = ensureOverlay();
+            if (isSpectator() && overlay.hidden) {
+                // 觀眾：不要突然跳出牌桌，提示一下就好，想看再打開
+                showGame();
+                buildBoard();
+                setTurn(s.turn, s.turnMsLeft, s.streak, s.notice);
+                showFloatText(T('startedWatching'), 4000);
+            } else {
+                overlay.hidden = false;
+                showGame();
+                buildBoard();
+                setTurn(s.turn, s.turnMsLeft, s.streak, s.notice);
+                showFloatText(isSpectator() ? T('startedWatching') : T('started', s.pairs));
+            }
+            notifyStatus();
         });
+
+        // 房主開局：問大家要不要加入
+        socket.on('memory_invite', (data) => showInvite(data));
+        socket.on('memory_invite_update', (data) => { if (invite) showInvite(data); });
+        socket.on('memory_invite_cancelled', ({ message }) => {
+            hideInvite();
+            notifyStatus();
+            showFloatText(message || T('inviteCancelled'), 4000);
+        });
+        // 剛進房：問伺服器有沒有對決或邀請正在進行
+        socket.on('room_joined', () => socket.emit('memory_sync'));
 
         // 中途加入或重連：直接畫出目前盤面
         socket.on('memory_state', (s) => {
@@ -622,6 +685,7 @@
             showGame();
             buildBoard();
             setTurn(s.turn, s.turnMsLeft, s.streak);
+            notifyStatus();
         });
 
         socket.on('memory_revealed', ({ index, face }) => { if (state) showFace(index, face); });
@@ -632,7 +696,7 @@
             state.players = players;
             state.streak = streak;
             renderScores();
-            if (by === myId()) showFloatText(face === JOKER ? T('jokerGot', (state && state.jokerValue) || 3) : T('matched', speciesName(face)));
+            if (by === myId() && face !== JOKER) showFloatText(T('matched', speciesName(face)));
         });
 
         socket.on('memory_mismatch', ({ indices, showMs }) => {
@@ -657,7 +721,13 @@
             if (turn === myId() && !streak) showFloatText(T('yourTurnToast'));
         });
 
-        socket.on('memory_players', ({ players }) => { if (state) { state.players = players; renderScores(); } });
+        socket.on('memory_players', ({ players, notice }) => {
+            if (!state) return;
+            state.players = players;
+            renderScores();
+            if (notice) { renderStatus(notice); setTimeout(() => { if (state) renderStatus(); }, 2500); }
+            notifyStatus();
+        });
 
         socket.on('memory_ended', endGame);
 
@@ -671,6 +741,101 @@
 
     let lastWins = null;
     let lastResult = null;
+
+    // ---------- 🃏 開局邀請：房間裡每個人都會跳出來，選加入或觀戰 ----------
+    let invite = null;        // 伺服器給的邀請狀態
+    let inviteDeadline = 0;
+    let inviteTick = null;
+    let myInviteChoice = null; // 'join' | 'watch'
+    let inviteTotal = 15000;   // 倒數條的總長度（第一次收到邀請時的剩餘時間）
+
+    function isSpectator() {
+        return !!state && !state.players.some((p) => p.socketId === myId());
+    }
+
+    function ensureInvite() {
+        let box = $('mgInvite');
+        if (box) return box;
+        box = el('div', 'mg-invite');
+        box.id = 'mgInvite';
+        box.hidden = true;
+        box.setAttribute('role', 'dialog');
+        box.innerHTML = `
+            <div class="mg-invite-card">
+                <div class="mg-invite-icon" aria-hidden="true">🃏</div>
+                <div class="mg-invite-body">
+                    <div class="mg-invite-title" id="mgInviteTitle"></div>
+                    <div class="mg-invite-sub" id="mgInviteSub"></div>
+                    <div class="mg-invite-joined" id="mgInviteJoined"></div>
+                </div>
+                <div class="mg-invite-actions" id="mgInviteActions">
+                    <button type="button" class="mg-invite-join" id="mgInviteJoin"></button>
+                    <button type="button" class="mg-invite-watch" id="mgInviteWatch"></button>
+                </div>
+            </div>
+            <div class="mg-invite-bar"><i id="mgInviteBar"></i></div>`;
+        document.body.appendChild(box);
+        const reply = (join) => {
+            if (!boundSocket || !invite) return;
+            myInviteChoice = join ? 'join' : 'watch';
+            boundSocket.emit('memory_invite_reply', { join });
+            renderInvite();
+        };
+        $('mgInviteJoin').addEventListener('click', () => reply(true));
+        $('mgInviteWatch').addEventListener('click', () => reply(false));
+        return box;
+    }
+
+    function showInvite(data) {
+        const isNew = !invite;
+        invite = data;
+        inviteDeadline = Date.now() + (data.msLeft || 0);
+        if (isNew) { myInviteChoice = null; inviteTotal = data.msLeft || 15000; }
+        // 伺服器那邊記得我選了什麼（例如重新整理後），以伺服器為準
+        if (data.joined.some((p) => p.socketId === myId())) myInviteChoice = 'join';
+        else if ((data.watching || []).includes(myId())) myInviteChoice = 'watch';
+        ensureInvite().hidden = false;
+        renderInvite();
+        clearInterval(inviteTick);
+        inviteTick = setInterval(renderInvite, 250);
+        notifyStatus();
+    }
+
+    function hideInvite() {
+        invite = null;
+        myInviteChoice = null;
+        clearInterval(inviteTick);
+        const box = $('mgInvite');
+        if (box) box.hidden = true;
+    }
+
+    function renderInvite() {
+        if (!invite) return;
+        const isHost = invite.hostId === myId();
+        const secs = Math.max(0, Math.ceil((inviteDeadline - Date.now()) / 1000));
+        $('mgInviteTitle').textContent = isHost ? T('inviteHostTitle') : T('inviteTitle', invite.hostName);
+        $('mgInviteSub').textContent = T('inviteSub', invite.pairs, secs);
+        const names = invite.joined.map((p) => (p.socketId === myId() ? T('me', p.petName) : p.petName)).join('、');
+        $('mgInviteJoined').textContent = T('inviteJoined', names) + (invite.waiting ? `｜${T('inviteWaiting', invite.waiting)}` : '');
+        $('mgInviteActions').hidden = isHost;
+        const join = $('mgInviteJoin');
+        const watch = $('mgInviteWatch');
+        join.textContent = myInviteChoice === 'join' ? T('inviteJoinedMe') : T('inviteJoin');
+        watch.textContent = myInviteChoice === 'watch' ? T('inviteWatchMe') : T('inviteWatch');
+        join.classList.toggle('is-chosen', myInviteChoice === 'join');
+        watch.classList.toggle('is-chosen', myInviteChoice === 'watch');
+        $('mgInviteBar').style.width = Math.max(0, Math.min(100, ((inviteDeadline - Date.now()) / inviteTotal) * 100)) + '%';
+    }
+
+    // 連線面板上的「翻牌對決」按鈕要跟著換字（開局、觀戰中、邀請中）
+    function getStatus() {
+        if (state) return isSpectator() ? 'watching' : 'playing';
+        if (invite) return 'inviting';
+        return 'idle';
+    }
+    function notifyStatus() {
+        if (typeof updateMpGamesUI === 'function') updateMpGamesUI();
+    }
 
     function renderWins() {
         const winsEl = $('mgWins');
@@ -690,6 +855,7 @@
 
     // 遊戲右上角切中／英時呼叫：畫面上看得到的字全部換掉
     function refreshLang() {
+        renderInvite();
         if (!$('memoryGameOverlay')) return;
         applyStaticText();
         renderWins();
@@ -705,13 +871,15 @@
         });
         if (state) { renderScores(); renderStatus(); }
         if (!$('mgResult').hidden && lastResult) renderResult(lastResult);
+        renderInvite();
     }
 
     // 離開房間時收起來
     function leaveRoom() {
         resetLocal();
+        hideInvite();
         closeOverlay();
     }
 
-    window.MemoryGame = { bindSocket, open: openOverlay, leaveRoom, refreshLang };
+    window.MemoryGame = { bindSocket, open: openOverlay, leaveRoom, refreshLang, status: getStatus };
 })();

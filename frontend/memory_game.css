@@ -329,3 +329,43 @@
     .mg-slot-name { font-size: 0.78rem; }
     .mg-album-hint { display: none; }
 }
+
+/* 🃏 開局邀請：房主按開始後，房間裡每個人畫面上方都會滑下來這張卡，選加入或觀戰 */
+.mg-invite {
+    position: fixed; top: calc(12px + env(safe-area-inset-top, 0px)); left: 50%; z-index: 9500;
+    width: min(520px, calc(100vw - 24px)); transform: translateX(-50%);
+    border: 3px solid #c4b5fd; border-radius: 20px; overflow: hidden;
+    background: #fffaf5; color: #4a3b3b; font-family: 'Nunito', sans-serif;
+    box-shadow: 0 6px 0 #c4b5fd, 0 16px 32px rgba(91, 33, 182, 0.25);
+    animation: mg-invite-in 0.35s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+}
+.mg-invite[hidden] { display: none; }
+@keyframes mg-invite-in { from { transform: translate(-50%, -140%); } }
+.mg-invite-card { display: flex; align-items: center; gap: 12px; padding: 12px 14px 10px; }
+.mg-invite-icon { flex: none; font-size: 2rem; line-height: 1; }
+.mg-invite-body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.mg-invite-title { font-size: 1rem; font-weight: 900; }
+.mg-invite-sub { font-size: 0.82rem; font-weight: 800; color: #7c3aed; }
+.mg-invite-joined { font-size: 0.78rem; font-weight: 700; color: #64748b; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.mg-invite-actions { flex: none; display: flex; flex-direction: column; gap: 6px; }
+.mg-invite-actions[hidden] { display: none; }
+.mg-invite-actions button {
+    min-width: 96px; padding: 7px 12px; border-radius: 12px;
+    font-family: inherit; font-size: 0.88rem; font-weight: 900; cursor: pointer; white-space: nowrap;
+}
+.mg-invite-join { border: none; background: #f472b6; color: #fff; box-shadow: 0 3px 0 #db2777; }
+.mg-invite-watch { border: 2px solid #c4b5fd; background: #fff; color: #6d28d9; }
+.mg-invite-actions button.is-chosen { outline: 3px solid #fde047; outline-offset: 1px; }
+.mg-invite-actions button:active { transform: translateY(2px); }
+.mg-invite-bar { height: 5px; background: #ede9fe; }
+.mg-invite-bar i { display: block; height: 100%; width: 100%; background: linear-gradient(90deg, #a78bfa, #f472b6); transition: width 0.25s linear; }
+@media (max-width: 420px) {
+    .mg-invite-card { gap: 8px; padding: 10px 10px 8px; }
+    .mg-invite-icon { font-size: 1.5rem; }
+    .mg-invite-actions button { min-width: 84px; padding: 6px 8px; font-size: 0.8rem; }
+}
+@media (prefers-reduced-motion: reduce) { .mg-invite { animation: none; } }
+
+/* 👀 觀戰中：牌不能點，游標換掉，狀態列換成紫色 */
+.mg-game.is-spectating .mg-card { cursor: not-allowed; }
+.mg-game.is-spectating .mg-status { color: #7c3aed; }
