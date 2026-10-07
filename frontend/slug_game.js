@@ -448,6 +448,8 @@ let GAME_TOKEN = localStorage.getItem('authToken') || localStorage.getItem('acce
                             data.players.forEach(p => { if (p.socketId !== socket.id) addOtherPlayer(p); });
                         }
                         broadcastMove(true);
+                        // 大家剛進來都站在同一個預設位置，後進來的人自己讓開，跳到離別人最遠的空位
+                        if (!isRoomHost) moveToFreeSpot();
                     };
 
                     // 斷線後自動回房：直接套用，不用再看一次加載畫面
@@ -1301,6 +1303,49 @@ function copyRoomId() {
             if (instant) { void el.offsetWidth; el.style.transition = ''; }
         }
 
+        // 🌐 【進房讓位】找一個離其他海兔最遠的位置，自己跳過去，再把新位置傳給大家。
+        //    用比例座標算，所以不管對方是電腦還是手機，看到的都不會疊在一起
+        const FREE_SPOT_XS = [0.1, 0.3, 0.5, 0.7, 0.9];
+        const FREE_SPOT_YS = [0.15, 0.5, 0.85];
+        function otherPlayerRatios() {
+            const ids = Object.keys(otherPlayersData);
+            const list = ids.map((id, i) => hasSharedPos(otherPlayersData[id])
+                ? otherPlayersData[id] : DEFAULT_FRIEND_SLOTS[i % DEFAULT_FRIEND_SLOTS.length]);
+            // 對方還沒傳過位置時，他自己的畫面上多半站在正中間，也一起避開
+            if (ids.some(id => !hasSharedPos(otherPlayersData[id]))) list.push({ x: 0.5, y: 0.5 });
+            return list;
+        }
+        function ratioGap(a, b) {
+            // 海兔比較寬，左右要隔遠一點才不會疊到
+            return Math.hypot((a.x - b.x) * 1.4, a.y - b.y);
+        }
+        function moveToFreeSpot() {
+            const slugEl = document.getElementById('slugContainer');
+            const others = otherPlayerRatios();
+            const me = slugPosToRatio();
+            if (!slugEl || !me || !others.length) return;
+            if (document.body.classList.contains('is-dragging-global')) return;
+            const nearest = (spot) => Math.min(...others.map(o => ratioGap(spot, o)));
+            if (nearest(me) >= 0.45) return;      // 本來就離大家夠遠，不用動
+            let best = null;
+            FREE_SPOT_XS.forEach(x => FREE_SPOT_YS.forEach(y => {
+                const spot = { x, y };
+                const gap = nearest(spot);
+                // 一樣空的位置，挑離自己現在比較近的，跳的距離短一點
+                const score = gap - ratioGap(spot, me) * 0.05;
+                if (!best || score > best.score) best = { spot, score };
+            }));
+            const pos = best && ratioToStagePos(best.spot.x, best.spot.y);
+            if (!pos) return;
+            slugEl.style.transition = 'left 0.7s ease-in-out, top 0.7s ease-in-out';
+            slugEl.style.left = pos.left + 'px';
+            slugEl.style.top = pos.top + 'px';
+            setTimeout(() => {
+                slugEl.style.transition = '';
+                broadcastMove(true);
+            }, 750);
+        }
+
         // 視窗大小或手機轉向改變時，大家都要依新的畫面重新擺
         function placeAllOtherPlayers() {
             Object.keys(otherPlayersData).forEach(id => placeOtherPlayer(id, true));
@@ -1404,7 +1449,7 @@ function updateRoomUI(text) {
         document.getElementById('btnCreateRoom').style.display = 'none'; 
         document.getElementById('btnJoinRoom').style.display = 'none'; 
         document.getElementById('btnChat').style.display = 'block'; 
-        document.getElementById('btnMemoryGame').style.display = 'block';
+        updateMpGamesUI();
         document.getElementById('btnLeaveRoom').style.display = 'block';
         
         // 隱藏互動按鈕與商店區塊
@@ -1429,7 +1474,7 @@ function updateRoomUI(text) {
         document.getElementById('btnCreateRoom').style.display = 'block'; 
         document.getElementById('btnJoinRoom').style.display = 'block'; 
         document.getElementById('btnChat').style.display = 'none'; 
-        document.getElementById('btnMemoryGame').style.display = 'none';
+        updateMpGamesUI();
         document.getElementById('btnLeaveRoom').style.display = 'none';
         
         // 恢復原狀，顯示互動按鈕與商店
@@ -1441,6 +1486,28 @@ function updateRoomUI(text) {
         if (btnCatalog) btnCatalog.style.display = 'none';
     }
 }
+
+        // 🎮 【連線小遊戲】在房間裡才出現，填在商店的位置；房主和其他人看到的說明不一樣
+        function updateMpGamesUI() {
+            const box = document.getElementById('mpGames');
+            if (!box) return;
+            box.hidden = !currentRoomId;
+            if (!currentRoomId) return;
+            const en = currLang === 'en';
+            const set = (id, text) => { const el = document.getElementById(id); if (el) el.textContent = text; };
+            set('txtMpGamesTitle', en ? '🎮 Party games' : '🎮 連線小遊戲');
+            set('txtMpGamesSub', en ? 'Play with everyone in this room' : '和房間裡的朋友一起玩');
+            set('txtGameMemoryTitle', en ? 'Memory Match' : '翻牌對決');
+            set('txtGameMemoryDesc', isRoomHost
+                ? (en ? 'You are the host: pick the pairs and start' : '你是房主，選好組數就能開局')
+                : (en ? 'Wait for the host to start, or watch the game' : '等房主開局，先進去等'));
+            set('txtGameMemoryTag1', en ? 'Memory' : '記憶力');
+            set('txtGameMemoryTag2', en ? '2-6 players' : '2～6 人');
+            set('txtGameMemoryGo', isRoomHost ? (en ? 'Start' : '開局') : (en ? 'Join' : '進去'));
+            set('txtGameSoon', en ? 'More games coming…' : '更多遊戲準備中…');
+            const memBtn = document.getElementById('btnGameMemory');
+            if (memBtn) memBtn.disabled = typeof MemoryGame === 'undefined';
+        }
 
         // 🌟 產生對話泡泡
         // 泡泡不放進海兔裡面：海兔往右跑時整個容器會左右翻面，放在裡面的字會變成鏡像。
@@ -5467,6 +5534,7 @@ slugEl.style.transform = slugTransform(`scaleX(${direction})`);
             renderShop();
             updateUI();
             updateNameUI();
+            updateMpGamesUI();
         }
 
 function updateLangUI() {

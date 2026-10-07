@@ -2779,3 +2779,130 @@
             .board-avatar { width: 34px; height: 34px; border-radius: 12px; font-size: 0.95rem; }
             .board-btn { padding: 0 12px; font-size: 0.85rem; }
         }
+
+/* 🎮 【連線小遊戲】房間裡才出現，填在原本商店的位置 */
+        .mp-games { flex: 1; min-height: 0; display: flex; flex-direction: column; gap: 12px; }
+        .mp-games[hidden] { display: none; }
+        .mp-games-head { display: flex; align-items: baseline; gap: 10px; padding: 0 4px; }
+        .mp-games-title { font-size: 1.05rem; font-weight: 900; color: var(--text-dark); }
+        .mp-games-sub { font-size: 0.82rem; font-weight: 800; color: var(--text-dim); }
+        .mp-games-list { flex: 1; min-height: 0; display: grid; grid-template-columns: 2fr 1fr; gap: 15px; }
+
+        .game-card {
+            position: relative; display: flex; align-items: center; gap: 18px;
+            border-radius: 22px; padding: 14px 22px; min-height: 0; text-align: left;
+            font-family: inherit; color: var(--text-dark);
+        }
+        button.game-card { cursor: pointer; transition: transform 0.12s, box-shadow 0.12s; }
+        button.game-card:disabled { cursor: not-allowed; opacity: 0.55; }
+
+        /* 🃏 翻牌對決：藍色條紋牌背 + 粉紅牌面，跟對決裡的牌同一套顏色 */
+        .game-memory {
+            background: linear-gradient(135deg, #eff6ff 0%, #fdf2f8 100%);
+            border: 3px solid #93c5fd;
+            box-shadow: 0 5px 0 #93c5fd;
+        }
+        .game-memory:hover:not(:disabled) { border-color: #f472b6; box-shadow: 0 5px 0 #f472b6; }
+        .game-memory:active:not(:disabled) { transform: translateY(5px); box-shadow: 0 0 0 transparent; }
+
+        .gc-art { position: relative; flex: 0 0 auto; width: 104px; height: 82px; }
+        .gm-card {
+            position: absolute; left: 50%; top: 50%; width: 46px; height: 58px; margin: -29px 0 0 -23px;
+            border-radius: 9px; box-sizing: border-box; transition: transform 0.25s ease;
+        }
+        .gm-back {
+            border: 3px solid #93c5fd;
+            background: repeating-linear-gradient(45deg, #dbeafe 0 6px, #bfdbfe 6px 12px);
+        }
+        .gm-left { transform: translateX(-26px) rotate(-14deg); }
+        .gm-right { transform: translateX(26px) rotate(14deg); }
+        .gm-front {
+            display: flex; align-items: center; justify-content: center;
+            border: 3px solid #f9a8d4; background: #fff; transform: translateY(-4px);
+        }
+        .gm-front svg { width: 34px; height: 28px; }
+        .game-memory:hover:not(:disabled) .gm-left { transform: translateX(-32px) rotate(-20deg); }
+        .game-memory:hover:not(:disabled) .gm-right { transform: translateX(32px) rotate(20deg); }
+        .game-memory:hover:not(:disabled) .gm-front { animation: gm-flip 0.6s ease; }
+        @keyframes gm-flip {
+            0% { transform: translateY(-4px) rotateY(0); }
+            50% { transform: translateY(-10px) rotateY(90deg); }
+            100% { transform: translateY(-4px) rotateY(0); }
+        }
+
+        .gc-text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 5px; }
+        .gc-title { font-size: 1.2rem; font-weight: 900; color: #1e3a8a; }
+        .gc-desc { font-size: 0.85rem; font-weight: 800; color: #64748b; }
+        .gc-tags { display: flex; flex-wrap: wrap; gap: 6px; }
+        .gc-tags span {
+            font-size: 0.72rem; font-weight: 900; padding: 2px 9px; border-radius: 999px;
+            background: #fff; border: 2px solid #bfdbfe; color: #2563eb;
+        }
+        .gc-tags span + span { border-color: #fbcfe8; color: #db2777; }
+        .gc-go {
+            flex: 0 0 auto; padding: 9px 18px; border-radius: 999px;
+            background: #f472b6; color: #fff; font-weight: 900; font-size: 0.95rem;
+            box-shadow: 0 3px 0 #db2777;
+        }
+
+        .game-soon {
+            justify-content: center; flex-direction: column; gap: 6px;
+            border: 3px dashed #e2e8f0; background: #f8fafc; color: #94a3b8;
+            font-size: 0.85rem; font-weight: 800; text-align: center;
+        }
+        .gc-soon-icon { font-size: 1.5rem; filter: grayscale(0.6); opacity: 0.7; }
+
+        @media (prefers-reduced-motion: reduce) {
+            .gm-card { transition: none; }
+            .game-memory:hover:not(:disabled) .gm-front { animation: none; }
+        }
+
+        /* 電腦但畫面矮：面板也矮，小遊戲排緊一點 */
+        @media screen and (min-width: 769px) and (max-height: 560px) {
+            .mp-games { gap: 8px; }
+            .mp-games-sub { display: none; }
+            .game-card { padding: 8px 16px; }
+            .gc-art { transform: scale(0.8); margin: -8px -10px; }
+            .gc-desc { display: none; }
+        }
+
+        /* 平板寬度：說明太長就換行，不擠掉按鈕 */
+        @media screen and (min-width: 769px) and (max-width: 1100px) {
+            .mp-games-list { grid-template-columns: 1fr; }
+            .game-soon { display: none; }
+        }
+
+        /* 📱 手機：面板是隱形容器，小遊戲變成一條浮在底部按鈕上方的長條，右邊讓給購物籃按鈕 */
+        @media screen and (max-width: 768px) {
+            .mp-games {
+                position: absolute;
+                left: 15px; right: 82px;
+                bottom: calc(76px + env(safe-area-inset-bottom, 0px));
+                flex: none; gap: 0;
+                pointer-events: auto;
+                z-index: 85;
+            }
+            .ui-panel.open .mp-games { display: none; }
+            .mp-games-head, .game-soon { display: none; }
+            .mp-games-list { display: block; }
+            .game-card { width: 100%; gap: 10px; padding: 7px 10px 7px 6px; border-radius: 18px; }
+            .game-memory { box-shadow: 0 4px 10px rgba(0,0,0,0.1), 0 4px 0 #93c5fd; }
+            .game-memory:active:not(:disabled) { transform: translateY(4px); box-shadow: 0 0 0 transparent; }
+            .gc-art { width: 64px; height: 46px; }
+            .gm-card { width: 28px; height: 36px; margin: -18px 0 0 -14px; border-radius: 6px; border-width: 2px; }
+            .gm-back { background: repeating-linear-gradient(45deg, #dbeafe 0 4px, #bfdbfe 4px 8px); }
+            .gm-left { transform: translateX(-16px) rotate(-14deg); }
+            .gm-right { transform: translateX(16px) rotate(14deg); }
+            .gm-front { transform: translateY(-2px); }
+            .gm-front svg { width: 22px; height: 18px; }
+            .gc-text { gap: 2px; }
+            .gc-title { font-size: 0.95rem; }
+            .gc-desc { font-size: 0.72rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+            .gc-tags { display: none; }
+            .gc-go { padding: 7px 13px; font-size: 0.85rem; }
+        }
+        /* 橫向手機：底部按鈕往下貼，小遊戲跟著往下 */
+        @media screen and (max-width: 768px) and (max-height: 520px), screen and (max-height: 520px) and (pointer: coarse) {
+            .mp-games { bottom: calc(62px + env(safe-area-inset-bottom, 0px)); }
+            .gc-desc { display: none; }
+        }

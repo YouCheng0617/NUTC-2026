@@ -11,7 +11,7 @@
 
     </script>
 
-        <link rel="stylesheet" href="slug_game.css?v=20261007b">
+        <link rel="stylesheet" href="slug_game.css?v=20261007d">
         <link rel="stylesheet" href="memory_game.css?v=20261007a">
 
 </head>
@@ -420,7 +420,6 @@
         <button class="mp-btn secondary" onclick="joinSocketRoom()" id="btnJoinRoom">加入房間</button>
         <button class="mp-btn secondary" onclick="openRoomBoard()" id="btnRoomBoard">📋 房間公告板</button>
         <button class="mp-btn" onclick="sendChatPrompt()" id="btnChat" style="display:none; background: var(--accent-color);">💬 聊天</button>
-        <button class="mp-btn" onclick="MemoryGame.open()" id="btnMemoryGame" style="display:none; background: #a78bfa;">🃏 翻牌對決</button>
         <button class="mp-btn secondary" onclick="leaveSocketRoom()" id="btnLeaveRoom" style="display:none; border-color: #ef4444; color: #ef4444;">離開房間</button>
     </div>
 
@@ -648,6 +647,33 @@
             </button>
         </div>
 
+        <!-- 🎮 【連線小遊戲】只在連線房間裡出現，放在原本商店的位置；每個遊戲的按鈕照遊戲主題設計 -->
+        <div class="mp-games" id="mpGames" hidden>
+            <div class="mp-games-head">
+                <span class="mp-games-title" id="txtMpGamesTitle">🎮 連線小遊戲</span>
+                <span class="mp-games-sub" id="txtMpGamesSub">和房間裡的朋友一起玩</span>
+            </div>
+            <div class="mp-games-list">
+                <!-- 🃏 翻牌對決：牌桌風格，三張牌攤開，中間那張翻出海兔 -->
+                <button class="game-card game-memory" id="btnGameMemory" onclick="MemoryGame.open()">
+                    <span class="gc-art" aria-hidden="true">
+                        <span class="gm-card gm-back gm-left"></span>
+                        <span class="gm-card gm-back gm-right"></span>
+                        <span class="gm-card gm-front">
+                            <svg viewBox="0 0 40 32"><path d="M10 12 C8 4 11 1 13 2 C15 3 14 9 14 12 Z M18 11 C17 3 21 0 23 2 C25 4 21 9 21 11 Z" fill="#f9a8d4"/><path d="M5 26 C1 24 2 15 10 13 C19 11 29 12 34 17 C38 21 35 28 26 29 C17 30 9 28 5 26 Z" fill="#fbcfe8"/><circle cx="13" cy="20" r="1.8" fill="#6b4c4a"/><circle cx="21" cy="20" r="1.8" fill="#6b4c4a"/></svg>
+                        </span>
+                    </span>
+                    <span class="gc-text">
+                        <span class="gc-title" id="txtGameMemoryTitle">翻牌對決</span>
+                        <span class="gc-desc" id="txtGameMemoryDesc">翻出一樣的海兔，配對最多的人贏</span>
+                        <span class="gc-tags"><span id="txtGameMemoryTag1">記憶力</span><span id="txtGameMemoryTag2">2～6 人</span></span>
+                    </span>
+                    <span class="gc-go" id="txtGameMemoryGo">開局</span>
+                </button>
+                <div class="game-card game-soon" aria-hidden="true"><span class="gc-soon-icon">🎲</span><span id="txtGameSoon">更多遊戲準備中…</span></div>
+            </div>
+        </div>
+
         <div class="tabs">
             <button class="tab active" id="tabSpecies" onclick="switchTab('species')">幻獸圖鑑</button>
             <button class="tab" id="tabBg" onclick="switchTab('bg')">背景</button>
@@ -803,7 +829,7 @@
         </div>
     </div>
 
-        <script src="slug_game.js?v=20261007b"></script>
+        <script src="slug_game.js?v=20261007d"></script>
         <script src="memory_game.js?v=20261007a"></script>
 
 </body>
