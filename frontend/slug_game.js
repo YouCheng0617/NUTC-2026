@@ -19,7 +19,7 @@ let GAME_TOKEN = localStorage.getItem('authToken') || localStorage.getItem('acce
         
         // 🌟 2. 殺掉單機測試防呆！如果沒抓到真實帳號，就不准他玩！
         if (!GAME_TOKEN) {
-            alert("請先登入帳號才能看見您的海兔喔！");
+            alert(typeof trText === 'function' ? trText("請先登入帳號才能看見您的海兔喔！") : "請先登入帳號才能看見您的海兔喔！");
             window.location.href = "login.html"; // 封印解除！無情踢回登入頁
         }
         
@@ -226,7 +226,7 @@ let GAME_TOKEN = localStorage.getItem('authToken') || localStorage.getItem('acce
             };
 
             // 點到海兔本身或任何介面元件都不算召喚
-            const UI_SELECTOR = '#slugContainer, button, input, .ui-panel.open, .top-bar, .mp-panel,'
+            const UI_SELECTOR = '#slugContainer, .other-player, button, input, .ui-panel.open, .top-bar, .mp-panel,'
                 + ' .item-card, .pet-name-tag, #petInteractiveHand, #floatingRecallBtn, #paintPalettePanel';
             const isOnUI = (target) => !(target && target.closest) || !!target.closest(UI_SELECTOR);
 
@@ -509,10 +509,10 @@ let GAME_TOKEN = localStorage.getItem('authToken') || localStorage.getItem('acce
                     }
                     // 從加入視窗送出的（房號打錯、房間滿了）：錯誤直接顯示在視窗裡，可以馬上改
                     if (joinPending && isJoinModalOpen()) {
-                        showJoinError(err.message || '加入失敗，請再試一次');
+                        showJoinError(trText(err.message || '加入失敗，請再試一次'));
                         return;
                     }
-                    alert(err.message || "發生錯誤");
+                    alert(trText(err.message || "發生錯誤"));
                 });
             } catch (e) { console.log('Socket.IO 未連線'); }
         }
@@ -557,7 +557,7 @@ let GAME_TOKEN = localStorage.getItem('authToken') || localStorage.getItem('acce
             const overlay = document.getElementById('roomLoadingOverlay');
             const bar = document.getElementById('roomLoadingBar');
             const percent = document.getElementById('roomLoadingPercent');
-            document.getElementById('roomLoadingText').innerText = text;
+            document.getElementById('roomLoadingText').innerText = typeof trText === 'function' ? trText(text) : text;
             bar.style.width = '0%';
             percent.innerText = '0%';
             overlay.style.display = 'flex';
@@ -596,7 +596,7 @@ let GAME_TOKEN = localStorage.getItem('authToken') || localStorage.getItem('acce
         async function createSocketRoom() {
             if (isRoomBusy()) return;
             if (!(await waitForSocket())) {
-                if(confirm("伺服器未連線！要先開啟「單機模擬展示」看看連線後的樣子嗎？")) {
+                if(confirm(trText("伺服器未連線！要先開啟「單機模擬展示」看看連線後的樣子嗎？"))) {
                     startMockMultiplayer();
                 }
                 return;
@@ -609,7 +609,7 @@ let GAME_TOKEN = localStorage.getItem('authToken') || localStorage.getItem('acce
         async function joinSocketRoom() {
             if (isRoomBusy()) return;
             if (!(await waitForSocket())) {
-                if(confirm("伺服器未連線！要先開啟「單機模擬展示」看看連線後的樣子嗎？")) {
+                if(confirm(trText("伺服器未連線！要先開啟「單機模擬展示」看看連線後的樣子嗎？"))) {
                     startMockMultiplayer();
                 }
                 return;
@@ -1085,7 +1085,7 @@ function copyRoomId() {
                 await loadBoard();
             } else {
                 // 後端的錯誤訊息（房號不存在、字太多、發太頻繁）直接給玩家看
-                err.textContent = (result && result.message) || (currLang === 'en' ? 'Could not post. Please try again.' : '發送失敗，請再試一次');
+                err.textContent = trText((result && result.message) || (currLang === 'en' ? 'Could not post. Please try again.' : '發送失敗，請再試一次'));
             }
             renderBoardCompose();
         }
@@ -1172,7 +1172,12 @@ function copyRoomId() {
             line.className = 'chat-msg-line';
             const text = document.createElement('div');
             text.className = 'chat-msg-text';
-            text.textContent = message;
+            if (isSystem) {
+                text.dataset.raw = message;   // 切語言時用原文重翻
+                text.textContent = typeof trText === 'function' ? trText(message) : message;
+            } else {
+                text.textContent = message;
+            }
             const time = document.createElement('span');
             time.className = 'chat-msg-time';
             time.textContent = formatChatTime(ts);
@@ -1488,14 +1493,30 @@ function copyRoomId() {
         }
 
 // 🌟 【切換介面顯示狀態】進入房間後，把商店收起來，只有房主能開百寶袋
-function updateRoomUI(text) {
+// 房間狀態那行：存原文，切語言時重畫（不能整個 updateRoomUI 重跑，大廳那邊會清掉聊天紀錄）
+let lastRoomStatusText = '尚未連線';
+function roomStatusLabel(text) {
+    if (currLang !== 'en') return text;
+    let m;
+    if (text === '尚未連線') return 'Not connected';
+    if ((m = text.match(/^房間代碼: (\S+) \(房主\)$/))) return `Room code: ${m[1]} (host)`;
+    if ((m = text.match(/^房間代碼: (\S+) \(模擬展示\)$/))) return `Room code: ${m[1]} (demo)`;
+    if ((m = text.match(/^已加入房間: (\S+)$/))) return `Joined room: ${m[1]}`;
+    return text;
+}
+function renderRoomStatus(text) {
+    lastRoomStatusText = text;
     const statusEl = document.getElementById('roomStatusText');
-    
+    const label = roomStatusLabel(text);
     if (currentRoomId && text !== "尚未連線") {
-        statusEl.innerHTML = text + ` <button onclick="copyRoomId()" style="background: var(--accent-color); border: none; border-radius: 8px; cursor: pointer; padding: 4px 8px; font-size: 0.85rem; color: white; font-weight: 900; margin-left: 8px; box-shadow: 0 3px 0 rgba(255, 182, 193, 0.8); vertical-align: middle;" onmousedown="this.style.transform='translateY(3px)'; this.style.boxShadow='none';" onmouseup="this.style.transform='none'; this.style.boxShadow='0 3px 0 rgba(255, 182, 193, 0.8)';">📋 複製</button>`;
+        statusEl.innerHTML = label + ` <button onclick="copyRoomId()" style="background: var(--accent-color); border: none; border-radius: 8px; cursor: pointer; padding: 4px 8px; font-size: 0.85rem; color: white; font-weight: 900; margin-left: 8px; box-shadow: 0 3px 0 rgba(255, 182, 193, 0.8); vertical-align: middle;" onmousedown="this.style.transform='translateY(3px)'; this.style.boxShadow='none';" onmouseup="this.style.transform='none'; this.style.boxShadow='0 3px 0 rgba(255, 182, 193, 0.8)';">${currLang === 'en' ? '📋 Copy' : '📋 複製'}</button>`;
     } else {
-        statusEl.innerText = text;
+        statusEl.innerText = label;
     }
+}
+
+function updateRoomUI(text) {
+    renderRoomStatus(text);
 
     const btnFeed = document.getElementById('btnFeed');
     const btnClean = document.getElementById('btnClean');
@@ -5617,6 +5638,8 @@ slugEl.style.transform = slugTransform(`scaleX(${direction})`);
             updateNameUI();
             updateMpGamesUI();
             if (window.MemoryGame && MemoryGame.refreshLang) MemoryGame.refreshLang();
+            if (window.SlugSocial) SlugSocial.refreshLang();
+            renderRoomStatus(lastRoomStatusText);
             if (isBoardOpen()) { renderBoardStatic(); renderBoardCompose(); renderBoardList(); }
         }
 
@@ -5832,7 +5855,7 @@ function updateLangUI() {
             const modal = document.getElementById('nameModalOverlay');
             const input = document.getElementById('petNameInput');
             
-            document.getElementById('txtModalTitle').innerText = isPaidRename ? '修改名字 (扣 1000 積分)' : '給海兔寶寶取名';
+            document.getElementById('txtModalTitle').innerText = trText(isPaidRename ? '修改名字 (扣 1000 積分)' : '給海兔寶寶取名');
             input.value = gameState.petName || ''; 
             modal.style.display = 'flex';
         }
@@ -6985,14 +7008,8 @@ if (window.gearClockInterval) clearInterval(window.gearClockInterval);
                         const clickX = e.clientX - rect.left - 30;
                         const clickY = e.clientY - rect.top - 20;
 
+                        // 點一下只召喚懷錶兔子，不加積分、不跳通知
                         spawnPocketWatchRabbit(clickX, clickY);
-
-                        if (!trialState.effect) {
-                            gameState.points += 5;
-                            saveGame();
-                            updateUI();
-                            showFloatText('🐇 立耳愛麗絲小兔 +5');
-                        }
                     };
                     break;
                     
@@ -11094,7 +11111,7 @@ case 'fish': {
                         });
 
                         const countEl = document.getElementById('txtStaffCount');
-                        if (countEl) countEl.innerText = `🎼 樂譜 (${window.collectedStaffNotes.length}/32)`;
+                        if (countEl) countEl.innerText = trText(`🎼 樂譜 (${window.collectedStaffNotes.length}/32)`);
 
                         if (autoScrollToEnd) {
                             setTimeout(() => {
@@ -11199,10 +11216,10 @@ case 'fish': {
                         e.stopPropagation();
                         window.staffIsLooping = !window.staffIsLooping;
                         if (window.staffIsLooping) {
-                            loopBtn.innerText = '🔁 循環: 開';
+                            loopBtn.innerText = trText('🔁 循環: 開');
                             loopBtn.classList.add('active-toggle');
                         } else {
-                            loopBtn.innerText = '🔁 循環: 關';
+                            loopBtn.innerText = trText('🔁 循環: 關');
                             loopBtn.classList.remove('active-toggle');
                         }
                     };
@@ -11215,7 +11232,7 @@ case 'fish': {
                     function playScoreSequence() {
                         if (window.collectedStaffNotes.length === 0) return;
                         isPlayingStaff = true;
-                        playBtn.innerText = '🎶 停止';
+                        playBtn.innerText = trText('🎶 停止');
                         playBtn.style.background = '#10b981';
 
                         let step = 0;
@@ -11233,7 +11250,7 @@ case 'fish': {
                                     return;
                                 } else {
                                     isPlayingStaff = false;
-                                    playBtn.innerText = '▶️ 播放';
+                                    playBtn.innerText = trText('▶️ 播放');
                                     playBtn.style.background = '#9333ea';
                                     return;
                                 }
@@ -11266,7 +11283,7 @@ case 'fish': {
                         if (isPlayingStaff) {
                             isPlayingStaff = false;
                             if (window.staffPlayTimeout) clearTimeout(window.staffPlayTimeout);
-                            playBtn.innerText = '▶️ 播放';
+                            playBtn.innerText = trText('▶️ 播放');
                             playBtn.style.background = '#9333ea';
                             document.querySelectorAll('.pinned-grand-note').forEach(n => n.classList.remove('playing-active'));
                         } else {
@@ -11286,7 +11303,7 @@ case 'fish': {
                         renderStaffTrack(false);
                         const track = document.getElementById('staffNotesTrack');
                         if (track) track.scrollTo({ left: 0, behavior: 'smooth' });
-                        playBtn.innerText = '▶️ 播放';
+                        playBtn.innerText = trText('▶️ 播放');
                         playBtn.style.background = '#9333ea';
                         showFloatText('🧹 五線譜已清空');
                     };
@@ -11870,7 +11887,8 @@ default:
 
         // duration 只當成「至少要停多久」，真正的停留時間會取字數估算與它的較大值
         function showFloatText(text, duration = 0) {
-            const msg = String(text == null ? '' : text);
+            // 寫死中文的提示、後端送來的中文訊息，英文模式下換成英文（slug_social.js 的 trText）
+            const msg = String(text == null ? '' : (typeof trText === 'function' ? trText(text) : text));
             if (!msg) return;
             const life = Math.min(TOAST_MAX_MS, Math.max(toastReadTime(msg), duration || 0));
             const anim = `floatNoticeStay ${life}ms cubic-bezier(0.18, 0.89, 0.32, 1.28) forwards`;
@@ -12429,7 +12447,7 @@ default:
             });
 
             if (newTaunts.length === 0) {
-                alert('至少要輸入一句嘲諷字句哦！');
+                alert(trText('至少要輸入一句嘲諷字句哦！'));
                 return;
             }
 

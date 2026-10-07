@@ -2932,3 +2932,307 @@
         .board-refresh.is-loading .board-refresh-icon { animation: board-spin 0.8s linear infinite; }
         @keyframes board-spin { to { transform: rotate(360deg); } }
         @media (prefers-reduced-motion: reduce) { .board-refresh.is-loading .board-refresh-icon { animation: none; } }
+
+/* 🪪 別人的海兔可以點：只有畫出來的身體算，透明的空白處讓點擊穿過去 */
+        .other-player .op-body svg { pointer-events: none; }
+        .other-player .op-body svg :is(path, ellipse, circle) { pointer-events: visiblePainted; cursor: pointer; }
+        .other-player .other-player-name { pointer-events: auto; cursor: pointer; }
+        .other-player.is-blocked .other-player-name::before { content: '🚫 '; }
+        .other-player.is-blocked .op-body { opacity: 0.55; }
+
+/* 🪪 玩家小卡 */
+        .pc-modal { position: relative; width: min(380px, calc(100vw - 32px)); text-align: left; }
+        .pc-close { position: absolute; top: 14px; right: 14px; }
+        .pc-head { display: flex; align-items: center; gap: 12px; margin: 0 40px 14px 0; }
+        .pc-avatar { flex: 0 0 auto; width: 72px; height: 56px; }
+        .pc-avatar svg { width: 100%; height: 100%; }
+        .pc-who { min-width: 0; }
+        .pc-name { margin: 0; font-size: 1.2rem; font-weight: 900; color: var(--text-dark); overflow-wrap: anywhere; }
+        .pc-species { margin: 2px 0 0; font-size: 0.82rem; font-weight: 800; color: var(--text-dim); }
+        .pc-view { display: flex; flex-direction: column; gap: 10px; }
+        .pc-view[hidden] { display: none; }
+        .pc-action {
+            width: 100%; padding: 12px 14px; border-radius: 16px; text-align: left;
+            border: 3px solid var(--border-color); background: #fff; color: var(--text-dark);
+            font-family: inherit; font-size: 1rem; font-weight: 900; cursor: pointer;
+        }
+        .pc-action.chat { border-color: #bfdbfe; color: #1d4ed8; }
+        .pc-action.block { border-color: #e2e8f0; color: #475569; }
+        .pc-action.report { border-color: #fecaca; color: #b91c1c; }
+        .pc-action:active { transform: translateY(2px); }
+        .pc-text { margin: 0; font-size: 0.9rem; font-weight: 700; line-height: 1.6; color: var(--text-dark); }
+        .pc-reasons { display: flex; flex-direction: column; gap: 6px; }
+        .pc-reason {
+            display: flex; align-items: center; gap: 8px; padding: 8px 12px; border-radius: 12px;
+            border: 2px solid var(--border-color); font-weight: 800; font-size: 0.9rem; cursor: pointer;
+        }
+        .pc-reason.is-checked { border-color: #f87171; background: #fef2f2; }
+        .pc-reason input { accent-color: #ef4444; }
+        #pcDetail {
+            width: 100%; box-sizing: border-box; resize: none; padding: 10px 12px; border-radius: 12px;
+            border: 2px solid var(--border-color); font-family: inherit; font-size: 0.9rem;
+        }
+        .pc-count { margin-top: -6px; text-align: right; font-size: 0.75rem; font-weight: 800; color: var(--text-dim); }
+        .pc-row { display: flex; justify-content: flex-end; gap: 8px; }
+        .board-btn.danger { background: #ef4444; border-color: #ef4444; color: #fff; }
+        .board-btn.danger:disabled { opacity: 0.5; }
+        .pc-notice { min-height: 0; margin-top: 8px; font-size: 0.85rem; font-weight: 800; color: #dc2626; }
+        .pc-notice:empty { display: none; }
+        .pc-notice.ok { color: #059669; }
+
+/* 🚫 封鎖名單 */
+        .bl-modal { width: min(440px, calc(100vw - 32px)); text-align: left; }
+        .bl-list { display: flex; flex-direction: column; gap: 8px; max-height: 50vh; overflow-y: auto; }
+        .bl-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 10px 12px; border-radius: 14px; border: 2px solid var(--border-color); background: #fff; }
+        .bl-who { min-width: 0; }
+        .bl-name { font-weight: 900; color: var(--text-dark); overflow-wrap: anywhere; }
+        .bl-when { font-size: 0.75rem; font-weight: 800; color: var(--text-dim); }
+
+/* 🎁 右上角的兌換碼按鈕（語言按鈕旁邊）＋跳出來的視窗 */
+        .top-right { display: flex; align-items: center; gap: 10px; }
+        .redeem-open-btn { gap: 6px; }
+        .redeem-modal { position: relative; width: min(440px, calc(100vw - 32px)); }
+        .redeem-close { position: absolute; top: 14px; right: 14px; }
+        @media (max-width: 480px) {
+            /* 手機上空間不夠：只留禮物圖示 */
+            .top-right { gap: 6px; }
+            .redeem-open-text { display: none; }
+        }
+        .redeem-box {
+            display: flex; flex-direction: column; align-items: center; gap: 8px;
+            padding: 8px 4px 4px;
+            text-align: center; color: var(--text-dark);
+        }
+        .redeem-icon { font-size: 2.2rem; line-height: 1; }
+        .redeem-title { margin: 0; font-size: 1.1rem; font-weight: 900; }
+        .redeem-sub { margin: 0; font-size: 0.85rem; font-weight: 700; color: var(--text-dim); max-width: 420px; }
+        .redeem-form { display: flex; gap: 8px; width: min(420px, 100%); }
+        .redeem-input {
+            flex: 1; min-width: 0; padding: 10px 14px; border-radius: 14px; border: 3px solid var(--border-color);
+            font-family: inherit; font-size: 1.05rem; font-weight: 900; letter-spacing: 2px; text-transform: uppercase;
+        }
+        .redeem-input:focus { outline: none; border-color: #f472b6; }
+        .redeem-btn {
+            flex: 0 0 auto; padding: 10px 18px; border: none; border-radius: 14px;
+            background: #f472b6; color: #fff; font-family: inherit; font-size: 1rem; font-weight: 900; cursor: pointer;
+            box-shadow: 0 4px 0 #db2777;
+        }
+        .redeem-btn:disabled { opacity: 0.5; cursor: default; }
+        .redeem-btn:active:not(:disabled) { transform: translateY(4px); box-shadow: none; }
+        .redeem-result { width: min(420px, 100%); font-size: 0.9rem; font-weight: 800; }
+        .redeem-result:empty { display: none; }
+        .redeem-result.is-error { color: #dc2626; }
+        .redeem-result.is-ok { padding: 12px 14px; border-radius: 14px; background: #f0fdf4; border: 2px solid #86efac; color: #166534; text-align: left; }
+        .redeem-ok-title { font-weight: 900; margin-bottom: 6px; }
+        .redeem-rewards { margin: 0; padding-left: 1.2em; }
+        .redeem-rewards li { margin: 2px 0; }
+        .redeem-owned { margin-left: 6px; padding: 1px 8px; border-radius: 999px; background: #e2e8f0; color: #475569; font-size: 0.72rem; }
+        @media (max-width: 420px) {
+            .redeem-form { flex-direction: column; }
+        }
+
+/* 😴 【待機畫面】跟論壇主頁同一套樣式（slug_idle.js），中間換成玩家自己睡覺的海兔 */
+.slug-idle {
+  position: fixed;
+  inset: 0;
+  z-index: 2000000; /* 蓋過遊戲裡所有視窗、提示 */
+  container-type: size;
+  overflow: hidden;
+  cursor: pointer;
+  outline: none;
+  background: radial-gradient(
+    ellipse at 50% 40%,
+    #1d4063 0%,
+    #13304c 55%,
+    #0c2238 100%
+  );
+  color: #e6f1fa;
+  font-family: "PingFang TC", sans-serif;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  animation: slug-idle-in 0.5s ease;
+}
+@keyframes slug-idle-in {
+  from {
+    opacity: 0;
+  }
+}
+.slug-idle.leaving {
+  animation: slug-idle-out 0.35s ease forwards;
+}
+@keyframes slug-idle-out {
+  to {
+    opacity: 0;
+  }
+}
+
+.slug-idle-center {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 6cqh 6cqw 14cqh;
+  box-sizing: border-box;
+}
+.slug-idle-time {
+  font-size: clamp(36px, 19cqmin, 120px);
+  font-weight: 300;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.02em;
+}
+.slug-idle-date {
+  margin-top: 1.6cqh;
+  font-size: clamp(12px, 4.2cqmin, 22px);
+  color: #9fc3dd;
+  letter-spacing: 0.1em;
+}
+.slug-idle-pet {
+  width: 42cqmin;
+  height: auto;
+  margin-top: 4cqh;
+  transform-origin: 50% 90%;
+  animation: slug-idle-breathe 3.2s ease-in-out infinite;
+}
+@keyframes slug-idle-breathe {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.03, 0.98);
+  }
+}
+.slug-idle-zzz {
+  fill: #e6f1fa;
+  font-family: sans-serif;
+  font-weight: 700;
+  animation: slug-idle-zzz 3s linear infinite;
+}
+.slug-idle-zzz-2 {
+  animation-delay: 1.5s;
+}
+@keyframes slug-idle-zzz {
+  0% {
+    transform: translateY(0);
+    opacity: 0;
+  }
+  40% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-14px);
+    opacity: 0;
+  }
+}
+.slug-idle-title {
+  margin-top: 2cqh;
+  font-size: clamp(14px, 5cqmin, 26px);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+}
+.slug-idle-quote {
+  margin-top: 1.2cqh;
+  max-width: 80cqw;
+  text-align: center;
+  font-size: clamp(12px, 3.9cqmin, 19px);
+  line-height: 1.7;
+  color: #b8d3e8;
+}
+.slug-idle-hint {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: calc(6cqh + env(safe-area-inset-bottom, 0px));
+  z-index: 2;
+  text-align: center;
+  font-size: clamp(12px, 3.8cqmin, 18px);
+  letter-spacing: 0.12em;
+  animation: slug-idle-hint 2.8s ease-in-out infinite;
+}
+@keyframes slug-idle-hint {
+  0%,
+  100% {
+    opacity: 0.45;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+/* 遠處漂浮的泡泡瓶：大小由 font-size 決定，木塞與瓶口照首頁 .post-card 的比例 */
+.slug-idle-bottle {
+  position: absolute;
+  z-index: 1;
+  width: 1em;
+  height: 1em;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle at 30% 30%,
+    rgba(224, 242, 254, 0.75),
+    rgba(125, 211, 252, 0.45)
+  );
+  border: max(1px, 0.014em) solid rgba(255, 255, 255, 0.6);
+  box-shadow: inset 0 0 0.1em rgba(255, 255, 255, 0.6);
+  animation: slug-idle-drift ease-in-out infinite alternate;
+}
+.slug-idle-bottle::before {
+  content: "";
+  position: absolute;
+  top: -0.17em;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0.32em;
+  height: 0.18em;
+  background: #a67c52;
+  border-radius: 0.04em 0.04em 0 0;
+}
+.slug-idle-bottle::after {
+  content: "";
+  position: absolute;
+  top: -0.04em;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0.39em;
+  height: 0.085em;
+  background: rgba(224, 242, 254, 0.9);
+  border-radius: 0.07em;
+}
+.slug-idle-bottle.far {
+  filter: blur(1px);
+}
+@keyframes slug-idle-drift {
+  from {
+    transform: translate(0, 0) rotate(-8deg);
+  }
+  to {
+    transform: translate(3cqw, -3cqh) rotate(8deg);
+  }
+}
+
+/* 往上冒的氣泡 */
+.slug-idle-bubble {
+  position: absolute;
+  z-index: 1;
+  bottom: -4cqh;
+  border-radius: 50%;
+  border: 1px solid rgba(216, 236, 250, 0.45);
+  background: rgba(216, 236, 250, 0.12);
+  animation: slug-idle-rise linear infinite;
+}
+@keyframes slug-idle-rise {
+  to {
+    transform: translateY(-115cqh);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .slug-idle,
+  .slug-idle * {
+    animation: none !important;
+  }
+}
+.slug-idle-pet { width: 46cqmin; }

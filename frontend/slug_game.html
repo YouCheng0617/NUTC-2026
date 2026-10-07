@@ -11,8 +11,8 @@
 
     </script>
 
-        <link rel="stylesheet" href="slug_game.css?v=20261007k">
-        <link rel="stylesheet" href="memory_game.css?v=20261007k">
+        <link rel="stylesheet" href="slug_game.css?v=20261007s">
+        <link rel="stylesheet" href="memory_game.css?v=20261007s">
 
 </head>
 <body>
@@ -160,13 +160,13 @@
     </script>
 
     <!-- 🌟 召喚手冊的懸浮按鈕 (放在左上角) -->
-<button id="btnOpenManual" onclick="openManual()">📖 飼養手冊</button>
+<button id="btnOpenManual" onclick="openManual()" data-en="📖 Guide">📖 飼養手冊</button>
 
 <!-- 🌟 【海兔飼養手冊】彈窗 -->
 <!-- 📖 【文字版飼養手冊】跟互動教學講同一套內容，給想直接看重點的玩家 -->
 <div class="manual-overlay" id="manualOverlay" onclick="if (event.target === this) closeManual()">
     <div class="manual-box" role="dialog" aria-labelledby="manualTitle">
-        <div class="manual-header" id="manualTitle">海兔飼養手冊</div>
+        <div class="manual-header" id="manualTitle" data-en="Sea Bunny Care Guide">海兔飼養手冊</div>
         <div class="manual-content">
 
             <div class="manual-section">
@@ -174,8 +174,8 @@
                     <svg viewBox="0 0 64 64"><ellipse cx="32" cy="42" rx="24" ry="13" fill="#fff" stroke="#6b4c4a" stroke-width="3.5"/><path d="M20 31 C17 18 21 10 25 12 C28 14 26 25 25 31" fill="#6b4c4a"/><path d="M31 30 C30 16 36 9 39 12 C42 15 36 24 35 30" fill="#6b4c4a"/><circle cx="26" cy="41" r="2.4" fill="#6b4c4a"/><circle cx="38" cy="41" r="2.4" fill="#6b4c4a"/></svg>
                 </div>
                 <div class="manual-text">
-                    <h3 style="color: #db2777;">認識你的海兔</h3>
-                    <p>把滑鼠移到海兔身上就能摸摸牠，手機的話點一下。按住不放可以把牠拖到魚缸任何地方；在空白處點兩下（手機連點兩下），牠就會一跳一跳地游過去。</p>
+                    <h3 style="color: #db2777;" data-en="Meet your sea bunny">認識你的海兔</h3>
+                    <p data-en="Hover over your sea bunny to pet it (tap on a phone). Press and hold to drag it anywhere in the tank; double-click an empty spot (double-tap on a phone) and it will hop over.">把滑鼠移到海兔身上就能摸摸牠，手機的話點一下。按住不放可以把牠拖到魚缸任何地方；在空白處點兩下（手機連點兩下），牠就會一跳一跳地游過去。</p>
                 </div>
             </div>
 
@@ -184,8 +184,8 @@
                     <svg viewBox="0 0 100 100"><path d="M 50 90 Q 30 65 38 45 Q 45 25 28 8 Q 42 22 48 42 Q 52 65 50 90 Z" fill="#4ade80" stroke="#14532d" stroke-width="3"/></svg>
                 </div>
                 <div class="manual-text">
-                    <h3 style="color: #10b981;">餵食海藻</h3>
-                    <p>按鈕上的綠色條是飽食度，會隨時間慢慢變少。點「餵食海藻」後，把海藻拿到海兔嘴邊再放開，牠吃到才會加飽食度和積分；太餓的話海兔會沒力氣運動。</p>
+                    <h3 style="color: #10b981;" data-en="Feed seaweed">餵食海藻</h3>
+                    <p data-en="The green bar on the button is fullness, and it slowly drops over time. Tap &quot;Feed&quot;, then bring the seaweed to its mouth and let go — it only counts once it eats. A very hungry sea bunny is too weak to exercise.">按鈕上的綠色條是飽食度，會隨時間慢慢變少。點「餵食海藻」後，把海藻拿到海兔嘴邊再放開，牠吃到才會加飽食度和積分；太餓的話海兔會沒力氣運動。</p>
                 </div>
             </div>
 
@@ -194,8 +194,8 @@
                     <svg viewBox="0 0 64 64"><path d="M32 6 C24 20 14 30 14 41 A18 18 0 0 0 50 41 C50 30 40 20 32 6 Z" fill="#7dd3fc" stroke="#0284c7" stroke-width="3.5" stroke-linejoin="round"/><path d="M23 42 A9 9 0 0 0 30 50" fill="none" stroke="#fff" stroke-width="3.5" stroke-linecap="round"/></svg>
                 </div>
                 <div class="manual-text">
-                    <h3 style="color: #0284c7;">淨化水質</h3>
-                    <p>水會隨時間變髒，畫面越來越混濁。藍色條是清澈度，變成橘色、紅色或按鈕出現「!」，就是該清理了：點「淨化水質」，拿抹布在魚缸上來回擦。</p>
+                    <h3 style="color: #0284c7;" data-en="Clean the water">淨化水質</h3>
+                    <p data-en="The water gets dirty over time and the tank turns cloudy. The blue bar is clarity — when it turns orange or red, or the button shows &quot;!&quot;, it's time to clean: tap &quot;Clean&quot; and wipe the tank with the cloth.">水會隨時間變髒，畫面越來越混濁。藍色條是清澈度，變成橘色、紅色或按鈕出現「!」，就是該清理了：點「淨化水質」，拿抹布在魚缸上來回擦。</p>
                 </div>
             </div>
 
@@ -204,8 +204,8 @@
                     <svg viewBox="0 0 120 120"><circle cx="60" cy="60" r="45" fill="#bae6fd" stroke="#0284c7" stroke-width="5"/><circle cx="45" cy="45" r="10" fill="#ffffff" opacity="0.8"/></svg>
                 </div>
                 <div class="manual-text">
-                    <h3 style="color: #3b82f6;">活力運動</h3>
-                    <p>點「活力運動」，把球丟進魚缸，海兔會游過去把球撿回來。肚子太餓的時候牠會拒絕運動，記得先餵飽喔。</p>
+                    <h3 style="color: #3b82f6;" data-en="Exercise">活力運動</h3>
+                    <p data-en="Tap &quot;Exercise&quot; and throw the ball into the tank — your sea bunny will fetch it. It won't exercise when it's too hungry, so feed it first.">點「活力運動」，把球丟進魚缸，海兔會游過去把球撿回來。肚子太餓的時候牠會拒絕運動，記得先餵飽喔。</p>
                 </div>
             </div>
 
@@ -214,8 +214,8 @@
                     <svg viewBox="0 0 64 64"><rect x="9" y="12" width="46" height="42" rx="8" fill="#fef9c3" stroke="#ca8a04" stroke-width="3.5"/><path d="M9 24 H55" stroke="#ca8a04" stroke-width="3.5"/><path d="M21 7 V16 M43 7 V16" stroke="#ca8a04" stroke-width="3.5" stroke-linecap="round"/><path d="M23 38 L29 44 L42 31" fill="none" stroke="#16a34a" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></svg>
                 </div>
                 <div class="manual-text">
-                    <h3 style="color: #ca8a04;">每日簽到與任務</h3>
-                    <p>每天打開遊戲記得簽到，連續簽 14 天，第 7 天和第 14 天的獎勵會翻倍。「任務」裡每天都有新任務，完成後回來領積分。</p>
+                    <h3 style="color: #ca8a04;" data-en="Daily check-in &amp; tasks">每日簽到與任務</h3>
+                    <p data-en="Check in every day for 14 days in a row — the rewards on days 7 and 14 are doubled. &quot;Tasks&quot; has new tasks every day; finish them and come back for coins.">每天打開遊戲記得簽到，連續簽 14 天，第 7 天和第 14 天的獎勵會翻倍。「任務」裡每天都有新任務，完成後回來領積分。</p>
                 </div>
             </div>
 
@@ -224,8 +224,8 @@
                     <svg viewBox="0 0 100 100"><polygon points="50,5 61,35 95,35 68,55 79,85 50,65 21,85 32,55 5,35 39,35" fill="#facc15" stroke="#ca8a04" stroke-width="3" stroke-linejoin="round"/></svg>
                 </div>
                 <div class="manual-text">
-                    <h3 style="color: #f59e0b;">身份證與商店</h3>
-                    <p>「身份證」可以看海兔的名片、幫牠取名字。積分可以拿去商店：「圖鑑」換海兔的品種，「背景」和「特效」把魚缸布置得更漂亮（手機點右下角的購物籃）。</p>
+                    <h3 style="color: #f59e0b;" data-en="ID card &amp; shop">身份證與商店</h3>
+                    <p data-en="&quot;ID card&quot; shows your sea bunny's profile and lets you name it. Spend coins in the shop: &quot;Species&quot; changes its look, and &quot;Background&quot; and &quot;Effects&quot; decorate the tank (on a phone, tap the basket in the bottom-right).">「身份證」可以看海兔的名片、幫牠取名字。積分可以拿去商店：「圖鑑」換海兔的品種，「背景」和「特效」把魚缸布置得更漂亮（手機點右下角的購物籃）。</p>
                 </div>
             </div>
 
@@ -234,15 +234,15 @@
                     <svg viewBox="0 0 100 100"><path d="M 10 20 L 90 20 L 90 70 L 60 70 L 40 90 L 40 70 L 10 70 Z" fill="#fbcfe8" stroke="#db2777" stroke-width="5" stroke-linejoin="round"/></svg>
                 </div>
                 <div class="manual-text">
-                    <h3 style="color: #ec4899;">和朋友一起玩</h3>
-                    <p>點右上角「連線」→「創立房間」，把 6 碼邀請碼分享給朋友；朋友按「加入房間」輸入邀請碼，就能在同一個魚缸裡一起玩、一起聊天。也可以到「房間公告板」發邀請，或直接加入別人正在找人的房間。</p>
+                    <h3 style="color: #ec4899;" data-en="Play with friends">和朋友一起玩</h3>
+                    <p data-en="Tap &quot;Online&quot; in the top-right → &quot;Create room&quot; and share the 6-character code; friends tap &quot;Join room&quot; and enter it to play and chat in the same tank. You can also post an invite on the &quot;Room Board&quot;, or join a room that's looking for players.">點右上角「連線」→「創立房間」，把 6 碼邀請碼分享給朋友；朋友按「加入房間」輸入邀請碼，就能在同一個魚缸裡一起玩、一起聊天。也可以到「房間公告板」發邀請，或直接加入別人正在找人的房間。</p>
                 </div>
             </div>
 
         </div>
         <div class="manual-footer">
-            <button class="modal-btn btn-cancel" type="button" onclick="closeManual(); startTour();">再跟小助理學一次</button>
-            <button class="modal-btn btn-confirm" type="button" onclick="closeManual()">我知道啦！</button>
+            <button class="modal-btn btn-cancel" type="button" onclick="closeManual(); startTour();" data-en="Take the tour again">再跟小助理學一次</button>
+            <button class="modal-btn btn-confirm" type="button" onclick="closeManual()" data-en="Got it!">我知道啦！</button>
         </div>
     </div>
 </div>
@@ -250,15 +250,15 @@
     <!-- 🌟 【百寶袋彈出視窗】只有連線時的房主才能打開炫耀 -->
     <div class="name-modal-overlay" id="catalogModalOverlay">
         <div class="name-modal" style="width: 90%; max-width: 400px; height: 75vh; display: flex; flex-direction: column; padding: 25px 20px;">
-            <h2 style="margin-top:0; font-weight:900; color: var(--text-dark); margin-bottom: 15px;" id="txtCatalogTitle">🎒 我的百寶袋</h2>
+            <h2 style="margin-top:0; font-weight:900; color: var(--text-dark); margin-bottom: 15px;" id="txtCatalogTitle" data-en="🎒 My Treasure Bag">🎒 我的百寶袋</h2>
             <div class="tabs">
-                <button class="tab active" id="catTabSpecies" onclick="switchCatalogTab('species')">幻獸</button>
-                <button class="tab" id="catTabBg" onclick="switchCatalogTab('bg')">背景</button>
-                <button class="tab" id="catTabEffect" onclick="switchCatalogTab('effect')">特效</button>
+                <button class="tab active" id="catTabSpecies" onclick="switchCatalogTab('species')" data-en="Species">幻獸</button>
+                <button class="tab" id="catTabBg" onclick="switchCatalogTab('bg')" data-en="Background">背景</button>
+                <button class="tab" id="catTabEffect" onclick="switchCatalogTab('effect')" data-en="Effects">特效</button>
             </div>
             <div class="shop-grid" id="catalogGrid" style="flex: 1; align-content: start;"></div>
             <div class="modal-btns" style="margin-top: 15px;">
-                <button class="modal-btn btn-confirm" onclick="closeCatalog()" id="btnCloseCatalog" style="width: 100%;">關閉</button>
+                <button class="modal-btn btn-confirm" onclick="closeCatalog()" id="btnCloseCatalog" style="width: 100%;" data-en="Close">關閉</button>
             </div>
         </div>
     </div>
@@ -351,13 +351,13 @@
     <div class="name-modal-overlay" id="renamePromptModal" style="z-index: 10020; display: none;">
         <div class="name-modal" style="width: 80%; max-width: 300px; text-align: center;">
             <div style="font-size: 3.5rem; margin-bottom: 10px; animation: pulseDay 1.5s infinite;">💳</div>
-            <h3 style="margin-top:0; font-weight:900; color: #3b82f6;">申請修改名字</h3>
+            <h3 style="margin-top:0; font-weight:900; color: #3b82f6;" data-en="Rename your sea bunny">申請修改名字</h3>
             <div style="font-size: 1.05rem; color: var(--text-dark); font-weight: 800; margin-bottom: 20px; line-height: 1.6;">
-                重新辦理手續需要花費 <span style="color: #ef4444; font-size: 1.2rem;">1000 積分</span>
+                <span data-en="Renaming costs">重新辦理手續需要花費</span> <span style="color: #ef4444; font-size: 1.2rem;" data-en="1000 coins">1000 積分</span>
             </div>
             <div class="modal-btns">
-                <button class="modal-btn btn-cancel" onclick="document.getElementById('renamePromptModal').style.display='none'">再想想</button>
-                <button class="modal-btn btn-confirm" onclick="proceedToRename()" style="background: #ef4444; box-shadow: 0 5px 0 #b91c1c; color: white;">付費改名</button>
+                <button class="modal-btn btn-cancel" onclick="document.getElementById('renamePromptModal').style.display='none'" data-en="Maybe later">再想想</button>
+                <button class="modal-btn btn-confirm" onclick="proceedToRename()" style="background: #ef4444; box-shadow: 0 5px 0 #b91c1c; color: white;" data-en="Pay &amp; rename">付費改名</button>
             </div>
         </div>
     </div>
@@ -366,11 +366,11 @@
     <div class="name-modal-overlay" id="nameModalOverlay" style="z-index: 10030; display: none;">
         <div class="name-modal">
             <h2 style="margin-top:0; font-weight:900; color: var(--text-dark);" id="txtModalTitle">給海兔寶寶取名</h2>
-            <input type="text" class="name-input" id="petNameInput" placeholder="輸入可愛的名字..." maxlength="12">
-            <button class="modal-btn btn-random" id="btnRandomName" onclick="generateRandomName()">🎲 幫我隨機想一個</button>
+            <input type="text" class="name-input" id="petNameInput" placeholder="輸入可愛的名字..." maxlength="12" data-en-placeholder="Type a cute name...">
+            <button class="modal-btn btn-random" id="btnRandomName" onclick="generateRandomName()" data-en="🎲 Pick one for me">🎲 幫我隨機想一個</button>
             <div class="modal-btns">
-                <button class="modal-btn btn-cancel" id="btnCancelName" onclick="closeNameModal()">取消</button>
-                <button class="modal-btn btn-confirm" id="btnConfirmName" onclick="confirmName()">確定</button>
+                <button class="modal-btn btn-cancel" id="btnCancelName" onclick="closeNameModal()" data-en="Cancel">取消</button>
+                <button class="modal-btn btn-confirm" id="btnConfirmName" onclick="confirmName()" data-en="OK">確定</button>
             </div>
         </div>
     </div>
@@ -407,7 +407,11 @@
         <button class="lang-btn" onclick="location.href='games.html'" id="btnBack">🏠 返回</button>
     
         <div class="points-display"><span id="txtPts">積分</span>: <span id="pointDisplay">0</span></div>
-        <button class="lang-btn" onclick="toggleLang()" id="btnLang">EN</button>
+        <!-- 右上角：兌換碼（按一下跳出視窗）＋切換語言 -->
+        <div class="top-right">
+            <button class="lang-btn redeem-open-btn" type="button" onclick="SlugSocial.openRedeem()" id="btnRedeem"><span aria-hidden="true">🎁</span><span class="redeem-open-text" id="txtRedeemBtn">兌換碼</span></button>
+            <button class="lang-btn" onclick="toggleLang()" id="btnLang">EN</button>
+        </div>
     </div>
 
   <!-- 🌟 【新增：連線小按鈕】點擊才展開，畫面更乾淨！ -->
@@ -419,6 +423,7 @@
         <button class="mp-btn" onclick="createSocketRoom()" id="btnCreateRoom">創立房間</button>
         <button class="mp-btn secondary" onclick="joinSocketRoom()" id="btnJoinRoom">加入房間</button>
         <button class="mp-btn secondary" onclick="openRoomBoard()" id="btnRoomBoard">📋 房間公告板</button>
+        <button class="mp-btn secondary" onclick="SlugSocial.openBlockList()" id="btnBlockList">🚫 封鎖名單</button>
         <button class="mp-btn" onclick="sendChatPrompt()" id="btnChat" style="display:none; background: var(--accent-color);">💬 聊天</button>
         <button class="mp-btn secondary" onclick="leaveSocketRoom()" id="btnLeaveRoom" style="display:none; border-color: #ef4444; color: #ef4444;">離開房間</button>
     </div>
@@ -464,24 +469,24 @@
         <!-- 這次房間裡的聊天紀錄，每則附上留言時間 -->
         <div class="chat-log-wrap">
             <div class="chat-log" id="chatLog" aria-live="polite">
-                <div class="chat-empty" id="chatEmpty">還沒有人說話，打個招呼吧！</div>
+                <div class="chat-empty" id="chatEmpty" data-en="No one has said anything yet — say hi!">還沒有人說話，打個招呼吧！</div>
             </div>
-            <button type="button" class="chat-newmsg" id="chatNewMsg" hidden>有新訊息 ↓</button>
+            <button type="button" class="chat-newmsg" id="chatNewMsg" hidden data-en="New messages ↓">有新訊息 ↓</button>
         </div>
         <div class="chat-quick" id="chatQuick">
-            <button type="button" class="chat-chip">嗨！</button>
-            <button type="button" class="chat-chip">好可愛～</button>
-            <button type="button" class="chat-chip">一起玩吧！</button>
-            <button type="button" class="chat-chip">謝謝你</button>
-            <button type="button" class="chat-chip">掰掰～</button>
+            <button type="button" class="chat-chip" data-en="Hi!">嗨！</button>
+            <button type="button" class="chat-chip" data-en="So cute~">好可愛～</button>
+            <button type="button" class="chat-chip" data-en="Let's play!">一起玩吧！</button>
+            <button type="button" class="chat-chip" data-en="Thank you">謝謝你</button>
+            <button type="button" class="chat-chip" data-en="Bye~">掰掰～</button>
         </div>
         <div class="chat-row">
             <div class="chat-field">
-                <input id="chatInput" type="text" autocomplete="off" enterkeyhint="send" placeholder="想對大家說些什麼呀？" aria-label="聊天訊息">
+                <input id="chatInput" type="text" autocomplete="off" enterkeyhint="send" placeholder="想對大家說些什麼呀？" aria-label="聊天訊息" data-en-placeholder="Say something to everyone…" data-en-aria="Chat message">
                 <span class="chat-count" id="chatCount">0/40</span>
             </div>
             <button type="button" class="chat-send" id="chatSend" disabled>送出</button>
-            <button type="button" class="chat-close" id="chatClose" aria-label="收起聊天">✕</button>
+            <button type="button" class="chat-close" id="chatClose" aria-label="收起聊天" data-en-aria="Close chat">✕</button>
         </div>
     </div>
 
@@ -498,7 +503,7 @@
             <!-- 看起來是 6 格，底下其實是一個輸入框，手機鍵盤、貼上都能正常用 -->
             <label class="join-code" for="joinCodeInput">
                 <input id="joinCodeInput" type="text" autocomplete="off" autocapitalize="characters"
-                       spellcheck="false" aria-label="房間邀請碼">
+                       spellcheck="false" aria-label="房間邀請碼" data-en-aria="Room code">
                 <span class="join-code-slot"></span><span class="join-code-slot"></span><span class="join-code-slot"></span>
                 <span class="join-code-slot"></span><span class="join-code-slot"></span><span class="join-code-slot"></span>
             </label>
@@ -514,7 +519,7 @@
     <div class="name-modal-overlay room-loading-overlay" id="roomLoadingOverlay" style="z-index: 10050;">
         <div class="name-modal">
             <div class="room-loading-slug">🐌</div>
-            <div class="room-loading-text" id="roomLoadingText">連線中...</div>
+            <div class="room-loading-text" id="roomLoadingText" data-en="Connecting...">連線中...</div>
             <div class="room-loading-track"><div class="room-loading-bar" id="roomLoadingBar"></div></div>
             <div class="room-loading-percent" id="roomLoadingPercent">0%</div>
         </div>
@@ -607,12 +612,12 @@
     </div>
 
 <!-- 🌟 【新增：懸浮召喚商城按鈕】平常待在螢幕正下方 -->
-    <button id="btnOpenShop" onclick="toggleShopPanel()" style="position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%); z-index: 70; background: var(--text-dark); color: white; padding: 14px 32px; border-radius: 30px; border: none; font-size: 1.1rem; font-weight: 900; box-shadow: 0 5px 15px var(--shadow-color); cursor: pointer; white-space: nowrap; transition: 0.2s;">🛍️ 裝扮與互動</button>
+    <button id="btnOpenShop" onclick="toggleShopPanel()" style="position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%); z-index: 70; background: var(--text-dark); color: white; padding: 14px 32px; border-radius: 30px; border: none; font-size: 1.1rem; font-weight: 900; box-shadow: 0 5px 15px var(--shadow-color); cursor: pointer; white-space: nowrap; transition: 0.2s;" data-en="🛍️ Dress up &amp; play">🛍️ 裝扮與互動</button>
 
     <!-- 🌟 【底部的操作商店面板】幫它加上 id="uiPanel" -->
     <div class="ui-panel" id="uiPanel">
         <!-- 🌟 【新增：收起面板按鈕】像個小耳朵一樣長在面板正上方 -->
-        <button onclick="toggleShopPanel()" style="position: absolute; top: -20px; left: 50%; transform: translateX(-50%); background: white; color: var(--text-dark); border: 3px solid var(--border-color); padding: 5px 20px; border-radius: 20px; font-weight: 900; cursor: pointer; box-shadow: 0 4px 10px var(--shadow-color); z-index: 85;">⬇️ 收起</button>
+        <button onclick="toggleShopPanel()" style="position: absolute; top: -20px; left: 50%; transform: translateX(-50%); background: white; color: var(--text-dark); border: 3px solid var(--border-color); padding: 5px 20px; border-radius: 20px; font-weight: 900; cursor: pointer; box-shadow: 0 4px 10px var(--shadow-color); z-index: 85;" data-en="⬇️ Hide">⬇️ 收起</button>
         <div class="interaction-group">
             <!-- 🌟 新增的身份證按鈕 -->
             <button class="btn-interact" id="btnIdCard" onclick="openIdCardModal()" style="background: #eff6ff; border-color: #bfdbfe; box-shadow: 0 5px 0 #bfdbfe; color: #1d4ed8;">
@@ -622,7 +627,7 @@
 <button class="btn-interact" id="btnFeed" onclick="triggerFeedInteraction(event)">
                 <span class="btn-title" id="txtFeedTitle">餵食海藻</span>
                 <!-- 🌟 飽食度進度條 -->
-                <div class="hunger-bar-container" title="飽食度">
+                <div class="hunger-bar-container" title="飽食度" data-en-title="Fullness">
                     <div class="hunger-bar-fill" id="hungerBarFill"></div>
                 </div>
                 <span class="btn-desc" id="txtFeedDesc">冷卻 0s</span>
@@ -630,7 +635,7 @@
             <button class="btn-interact" id="btnClean" onclick="triggerCleanInteraction(event)">
                 <span class="btn-title" id="txtCleanTitle">淨化水質</span>
                 <!-- 🌊 水質清澈度進度條（跟餵食的飽食度用同一套樣式） -->
-                <div class="hunger-bar-container" title="水質清澈度">
+                <div class="hunger-bar-container" title="水質清澈度" data-en-title="Water clarity">
                     <div class="hunger-bar-fill" id="waterBarFill"></div>
                 </div>
                 <span class="btn-desc" id="txtCleanDesc">冷卻 0s</span>
@@ -647,8 +652,8 @@
                 <span class="btn-desc" id="txtDailyDesc" style="color: #ca8a04;">點我領錢</span>
             </button>
             <button class="btn-interact" id="btnCatalog" onclick="openCatalog()" style="display: none; background: var(--text-dark); color: white; border-color: var(--text-dark); box-shadow: 0 5px 0 rgba(0,0,0,0.15);">
-                <span class="btn-title" id="txtCatalogBtn">🎒 百寶袋</span>
-                <span class="btn-desc" id="txtCatalogDesc" style="color: #cbd5e1;">我的收藏</span>
+                <span class="btn-title" id="txtCatalogBtn" data-en="🎒 Treasure Bag">🎒 百寶袋</span>
+                <span class="btn-desc" id="txtCatalogDesc" style="color: #cbd5e1;" data-en="My collection">我的收藏</span>
             </button>
         </div>
 
@@ -834,8 +839,10 @@
         </div>
     </div>
 
-        <script src="slug_game.js?v=20261007k"></script>
-        <script src="memory_game.js?v=20261007k"></script>
+        <script src="slug_game.js?v=20261007s"></script>
+        <script src="memory_game.js?v=20261007s"></script>
+        <script src="slug_social.js?v=20261007s"></script>
+        <script src="slug_idle.js?v=20261007s"></script>
 
 </body>
 </html>

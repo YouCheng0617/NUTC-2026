@@ -192,8 +192,9 @@
         wrap.className = 'mg-face';
         wrap.style.cssText = '--c:' + cardMainColor(spec) + ';--o:' + spec.outline + ';--bg:' + spec.body;
         wrap.innerHTML = '<div class="mg-idx"><b></b><i></i></div><div class="mg-medal">' + petSVG(face) + '</div><div class="mg-ribbon"></div>';
-        wrap.querySelector('.mg-idx b').textContent = mark[0];
-        wrap.querySelector('.mg-idx i').textContent = mark[1];
+        // 英文模式牌角只放符號（中文字看不懂；58 個符號都不一樣，一樣認得出來）
+        wrap.querySelector('.mg-idx b').textContent = isEn() ? mark[1] : mark[0];
+        wrap.querySelector('.mg-idx i').textContent = isEn() ? '' : mark[1];
         wrap.querySelector('.mg-ribbon').textContent = speciesName(face);
         return wrap.outerHTML;
     }
@@ -365,7 +366,7 @@
             const label = el('div', 'mg-slot-label');
             label.appendChild(el('span', 'mg-slot-no', 'No.' + String(albumPage * ALBUM_PER_PAGE + i + 1).padStart(2, '0')));
             label.appendChild(el('span', 'mg-slot-name', face === JOKER ? T('jokerSlot', (state && state.jokerValue) || 3) : speciesName(face)));
-            label.appendChild(el('span', 'mg-slot-mark', mark[0] + mark[1]));
+            label.appendChild(el('span', 'mg-slot-mark', isEn() && face !== JOKER ? mark[1] : mark[0] + mark[1]));
             slot.appendChild(label);
             page.appendChild(slot);
         });
@@ -557,7 +558,8 @@
         const mine = state.turn === myId();
         const secs = Math.max(0, Math.ceil((turnDeadline - Date.now()) / 1000));
         const streak = state.streak ? T('streak', state.streak, state.maxStreak) : '';
-        const text = notice
+        // 伺服器送來的提示是中文，英文模式下翻成英文（slug_social.js 的 trText）
+        const text = (notice && typeof trText === 'function' ? trText(notice) : notice)
             || (mine ? T('myTurn', streak, secs) : T('otherTurn', player ? player.petName : '…', streak, secs));
         const watching = isSpectator();
         status.textContent = watching ? `${T('watchingTag')}｜${text}` : text;
