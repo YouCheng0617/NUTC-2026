@@ -2,6 +2,10 @@ import { Router } from "express";
 import { authCheck, adminCheck, type AuthRequest } from "../middleware/auth.middleware.js";
 import { AdminController } from "./admin.controller.js";
 import { getGameReportsController, updateGameReportStatusController } from "../../socket/gameSafety.controller.js";
+import {
+    listRedeemCodesController, createRedeemCodeController, setRedeemCodeActiveController,
+    deleteRedeemCodeController, listRedeemCodeUsesController,
+} from "../../socket/redeemCode.controller.js";
 
 const adminController = new AdminController();
 
@@ -20,6 +24,13 @@ export function adminRouter() {
     // 🐌 寵物遊戲連線房間的玩家檢舉
     router.get("/game-reports", authCheck, adminCheck, getGameReportsController);
     router.put("/game-reports/:id/status", authCheck, adminCheck, updateGameReportStatusController);
+
+    // 🎁 寵物遊戲兌換碼
+    router.get("/redeem-codes", authCheck, adminCheck, listRedeemCodesController);
+    router.post("/redeem-codes", authCheck, adminCheck, createRedeemCodeController);
+    router.put("/redeem-codes/:id/active", authCheck, adminCheck, setRedeemCodeActiveController);
+    router.delete("/redeem-codes/:id", authCheck, adminCheck, deleteRedeemCodeController);
+    router.get("/redeem-codes/:id/uses", authCheck, adminCheck, listRedeemCodeUsesController);
 
     // 🌟 客服後台管理
     router.get("/customer-services", authCheck, adminCheck, (req, res) => adminController.getAllCustomerServices(req, res));

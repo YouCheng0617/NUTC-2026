@@ -944,3 +944,98 @@ html {
   font-weight: 500;
   padding: 0 10px;
 }
+/* =======================================================
+   🎁 遊戲兌換碼（admin_redeem_codes.js）
+======================================================= */
+.rd-card { margin-bottom: 24px; }
+.rd-form {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 16px;
+  padding: 20px 24px 8px;
+}
+.rd-field { display: flex; flex-direction: column; gap: 6px; font-size: 0.9rem; font-weight: 600; color: #475569; }
+.rd-field-wide { grid-column: 1 / -1; }
+.rd-field input {
+  padding: 9px 12px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  min-width: 0;
+}
+.rd-inline { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.rd-inline input { flex: 1 1 180px; }
+.rd-required { color: var(--danger-color); }
+
+.rd-picker { margin: 8px 24px 0; border: 1px solid var(--border-light); border-radius: 12px; overflow: hidden; }
+.rd-picker-head {
+  display: flex; flex-wrap: wrap; gap: 10px; align-items: center; justify-content: space-between;
+  padding: 12px 14px; background: #f8fafc; border-bottom: 1px solid var(--border-light);
+}
+.rd-picker-head input { padding: 7px 12px; border: 1px solid #cbd5e1; border-radius: 999px; min-width: 0; flex: 0 1 220px; }
+.rd-tabs { display: flex; gap: 6px; flex-wrap: wrap; }
+.rd-tab {
+  padding: 6px 14px; border: 1px solid #e2e8f0; border-radius: 999px;
+  background: #fff; color: #475569; font-weight: 700; cursor: pointer;
+}
+.rd-tab.is-active { background: #db2777; border-color: #db2777; color: #fff; }
+.rd-tab b { display: inline-block; min-width: 18px; margin-left: 4px; padding: 0 5px; border-radius: 999px; background: #fce7f3; color: #be185d; font-size: 0.75rem; }
+.rd-tab.is-active b { background: #fff; }
+
+.rd-item-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
+  gap: 10px;
+  max-height: 340px;
+  overflow-y: auto;
+  padding: 14px;
+}
+.rd-item {
+  position: relative;
+  display: flex; flex-direction: column; align-items: center; gap: 4px;
+  padding: 10px 6px 8px;
+  border: 2px solid #e2e8f0; border-radius: 12px;
+  background: #fff; cursor: pointer;
+}
+.rd-item:hover { border-color: #f9a8d4; }
+.rd-item.is-selected { border-color: #db2777; background: #fdf2f8; }
+.rd-item-name { font-size: 0.82rem; font-weight: 700; color: #334155; text-align: center; line-height: 1.3; }
+.rd-item-cost { font-size: 0.72rem; color: #94a3b8; }
+.rd-check {
+  position: absolute; top: 4px; right: 4px;
+  width: 20px; height: 20px; border-radius: 50%;
+  background: #db2777; color: #fff; font-size: 0.75rem; line-height: 20px; text-align: center;
+}
+.rd-thumb {
+  display: inline-flex; align-items: center; justify-content: center; flex: none;
+  border-radius: 8px; border: 1px solid #e2e8f0; background: #f8fafc; overflow: hidden;
+  vertical-align: middle;
+}
+.rd-thumb svg { width: 100%; height: 100%; }
+
+.rd-selected-wrap { display: flex; gap: 8px; align-items: flex-start; padding: 12px 14px; border-top: 1px solid var(--border-light); background: #fffbfd; }
+.rd-selected-label { font-weight: 700; color: #475569; white-space: nowrap; padding-top: 3px; }
+.rd-selected { display: flex; flex-wrap: wrap; gap: 6px; }
+.rd-chip {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 3px 8px 3px 4px; margin: 2px 0;
+  border: 1px solid #f9a8d4; border-radius: 999px;
+  background: #fff; font-size: 0.82rem; color: #334155; white-space: nowrap;
+}
+.rd-chip button { border: none; background: none; color: #db2777; font-weight: 900; cursor: pointer; padding: 0 2px; }
+.rd-chip-coin { border-color: #fcd34d; background: #fffbeb; padding-left: 8px; }
+.rd-hint { color: #94a3b8; font-size: 0.88rem; }
+
+.rd-submit { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; padding: 18px 24px 22px; }
+.rd-result { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; font-weight: 700; color: #15803d; }
+.rd-code, .rd-code-big { font-family: Consolas, monospace; font-weight: 700; letter-spacing: 1px; color: #0f172a; background: #f1f5f9; padding: 2px 8px; border-radius: 6px; }
+.rd-code-big { font-size: 1.15rem; }
+.rd-mini-btn { border: none; background: none; cursor: pointer; padding: 0 4px; }
+
+@media (max-width: 600px) {
+  .rd-form { padding: 16px; }
+  .rd-picker { margin: 8px 16px 0; }
+  .rd-submit { padding: 16px; }
+  .rd-item-grid { grid-template-columns: repeat(auto-fill, minmax(84px, 1fr)); max-height: 300px; }
+  .rd-picker-head input { flex: 1 1 100%; }
+}

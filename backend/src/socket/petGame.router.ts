@@ -2,6 +2,8 @@ import { Router } from "express";
 import { authCheck, adminCheck, optionalAuthCheck, type AuthRequest } from "../modules/middleware/auth.middleware.js";
 import { PetGameController } from "./petGame.controller.js";
 import { listGameBlocksController, unblockGameController } from "./gameSafety.controller.js";
+import { redeemCodeController } from "./redeemCode.controller.js";
+import { redeemLimiter } from "../lib/rateLimiter.js";
 
 
 const petGameController = new PetGameController();
@@ -27,6 +29,9 @@ export function petGameRouter() {
     // 連線房間的封鎖名單（封鎖、檢舉本身走 socket：game_block_player / game_report_player）
     router.get("/blocks", authCheck, listGameBlocksController);
     router.delete("/blocks/:blockId", authCheck, unblockGameController);
+
+    // 兌換碼（後台建立，玩家輸入後拿積分或道具）
+    router.post("/redeem", authCheck, redeemLimiter, redeemCodeController);
 
     return router;
 }

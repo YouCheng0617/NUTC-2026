@@ -5,7 +5,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>心情漂流瓶 - 後台管理系統</title>
-  <link rel="stylesheet" href="admin.css" />
+  <link rel="stylesheet" href="admin.css?v=2" />
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <!-- 🌟 在下方加入這行 -->
   <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels"></script>
@@ -58,6 +58,12 @@
         🎮 遊戲檢舉
         <span id="game-report-pending-badge" class="badge"
           style="display: none; margin-left: 6px; background: #ef4444; color: #fff; padding: 1px 8px; border-radius: 999px; font-size: 0.75rem;"></span>
+      </li>
+      <li onclick="
+            switchAdminTab('redeem-codes');
+            toggleSidebarIfMobile();
+          ">
+        🎁 遊戲兌換碼
       </li>
       <li onclick="
             switchAdminTab('customer-service');
@@ -481,6 +487,87 @@
         </div>
       </div>
 
+      <!-- 🎁 寵物遊戲兌換碼（admin_redeem_codes.js） -->
+      <div id="section-redeem-codes" class="admin-section" style="display: none">
+        <div class="modern-card rd-card">
+          <div class="card-header">
+            <h3 style="color: #db2777; margin: 0;">🎁 建立兌換碼</h3>
+          </div>
+          <div class="rd-form">
+            <label class="rd-field">
+              <span>活動名稱 <b class="rd-required">*</b></span>
+              <input type="text" id="rd-title" maxlength="50" placeholder="例如：雙十節大禮包" />
+            </label>
+            <label class="rd-field">
+              <span>兌換碼（留空自動產生）</span>
+              <span class="rd-inline">
+                <input type="text" id="rd-code" maxlength="20" placeholder="英文、數字、- 或 _" style="text-transform: uppercase;" />
+                <button type="button" class="btn-action btn-secondary" onclick="rdRandomCode()" title="隨機產生">🎲</button>
+              </span>
+            </label>
+            <label class="rd-field">
+              <span>送多少積分</span>
+              <input type="number" id="rd-coin" min="0" max="1000000" step="1" placeholder="0" />
+            </label>
+            <label class="rd-field">
+              <span>最多幾個人可以用（留空＝不限）</span>
+              <input type="number" id="rd-max-uses" min="1" step="1" placeholder="不限" />
+            </label>
+            <div class="rd-field rd-field-wide">
+              <span>到期時間（留空＝永久有效）</span>
+              <span class="rd-inline">
+                <input type="datetime-local" id="rd-expires" />
+                <button type="button" class="btn-action btn-secondary" onclick="rdSetExpiry(1)">1 天</button>
+                <button type="button" class="btn-action btn-secondary" onclick="rdSetExpiry(7)">7 天</button>
+                <button type="button" class="btn-action btn-secondary" onclick="rdSetExpiry(30)">30 天</button>
+                <button type="button" class="btn-action btn-secondary" onclick="rdSetExpiry(0)">永久</button>
+              </span>
+            </div>
+          </div>
+
+          <div class="rd-picker">
+            <div class="rd-picker-head">
+              <div class="rd-tabs" id="rd-tabs"></div>
+              <input type="text" id="rd-item-search" placeholder="🔍 搜尋道具名稱" oninput="rdFilterItems()" />
+            </div>
+            <div class="rd-item-grid" id="rd-item-grid"></div>
+            <div class="rd-selected-wrap">
+              <span class="rd-selected-label">已選道具：</span>
+              <div class="rd-selected" id="rd-selected"></div>
+            </div>
+          </div>
+
+          <div class="rd-submit">
+            <button type="button" class="btn-action btn-primary" id="rd-create-btn" onclick="rdCreateCode()">🎁 建立兌換碼</button>
+            <div id="rd-result" class="rd-result"></div>
+          </div>
+        </div>
+
+        <div class="modern-card">
+          <div class="card-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+            <h3 style="margin: 0;">📋 兌換碼列表</h3>
+            <button class="btn-action btn-secondary" onclick="loadRedeemCodes()">🔄 重新整理</button>
+          </div>
+          <div class="table-responsive">
+            <table class="modern-table">
+              <thead>
+                <tr>
+                  <th>兌換碼</th>
+                  <th>活動名稱</th>
+                  <th>獎勵</th>
+                  <th>使用人數</th>
+                  <th>到期時間</th>
+                  <th>狀態</th>
+                  <th>操作</th>
+                </tr>
+              </thead>
+              <tbody id="admin-redeem-body"></tbody>
+            </table>
+          </div>
+          <div id="redeem-pagination" class="pagination-container"></div>
+        </div>
+      </div>
+
       <!-- 💬 客服問題管理面板 -->
       <div id="section-customer-service" class="admin-section" style="display: none">
         <div class="modern-card">
@@ -719,6 +806,7 @@
   </script>
   <script src="admin.js?v=3"></script>
   <script src="admin_game_reports.js?v=1"></script>
+  <script src="admin_redeem_codes.js?v=1"></script>
 </body>
 
 </html>

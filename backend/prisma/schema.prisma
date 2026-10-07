@@ -65,6 +65,7 @@ model Member {
   gameBlockedBy GameBlock[]  @relation("GameBlocked")
   gameReports   GameReport[] @relation("GameReporter") // 在寵物遊戲檢舉別人的紀錄
   gameReported  GameReport[] @relation("GameReported") // 在寵物遊戲被檢舉的紀錄
+  redeemUses    RedeemCodeUse[] // 兌換過的兌換碼
   PollVote     PollVote[]
   Notification Notification[]
   Pet          Pet?
@@ -329,6 +330,37 @@ model GameReport {
 
   @@index([reported_id])
   @@index([status])
+}
+
+/// 寵物遊戲兌換碼：後台建立，玩家輸入後拿積分或皮膚、背景、特效
+model RedeemCode {
+  id           Int       @id @default(autoincrement())
+  code         String    @unique // 一律存大寫
+  title        String // 活動名稱（給管理員看，也會顯示在兌換成功訊息）
+  reward_coin  Int       @default(0)
+  reward_items Json // [{ category: "pet_color" | "background_color" | "background_effects", item: "ocean" }]
+  max_uses     Int? // 最多幾個人可以用；null = 不限
+  used_count   Int       @default(0)
+  expires_at   DateTime? // null = 永久有效
+  is_active    Boolean   @default(true) // 管理員可以停用
+  created_by   Int
+  created_at   DateTime  @default(now())
+
+  uses RedeemCodeUse[]
+}
+
+/// 誰兌換過哪個碼（每個帳號同一個碼只能用一次）
+model RedeemCodeUse {
+  id         Int      @id @default(autoincrement())
+  code_id    Int
+  member_id  Int
+  created_at DateTime @default(now())
+
+  code   RedeemCode @relation(fields: [code_id], references: [id], onDelete: Cascade)
+  member Member     @relation(fields: [member_id], references: [member_id], onDelete: Cascade)
+
+  @@unique([code_id, member_id])
+  @@index([member_id])
 }
 
 model PollOption {

@@ -145,6 +145,9 @@ export const commentLimiter = perMemberLimiter(10 * 60 * 1000, 30, "留言太頻
 /*檢舉：每人每小時最多 10 次*/
 export const reportLimiter = perMemberLimiter(60 * 60 * 1000, 10, "檢舉次數過多，請稍後再試。");
 
+/*兌換碼：每人 10 分鐘最多 10 次，避免用腳本亂猜兌換碼*/
+export const redeemLimiter = perMemberLimiter(10 * 60 * 1000, 10, "兌換太頻繁了，請 10 分鐘後再試。");
+
 /*客服：每人每小時最多 5 筆*/
 /* 揪團彈幕：每人 5 分鐘最多 3 則 */
 export const announcementLimiter = perMemberLimiter(5 * 60 * 1000, 3, "揪團彈幕發太頻繁了，請過幾分鐘再試。");
