@@ -21,6 +21,24 @@
             rulesBtn: '玩法教學', rulesTitle: '📖 遊戲規則',
             rulesFull: '📖 看完整規則', rulesBack: '回到對局', rulesClose: '我知道了',
             rulesLiveNote: '對局照常進行中，看規則不會暫停喔',
+            // 🏆 勝場獎勵
+            rewardsTitle: '🏆 勝場獎勵', winsNow: (w) => `目前 ${w} 勝`, winsUnknown: '登入後才會記錄勝場喔',
+            nextGoal: (n, name) => `再贏 ${n} 場解鎖「${name}」`, allDone: '全部獎勵都到手了，你就是翻牌之王！',
+            winsNeed: (n) => `${n} 勝`, lockedLeft: (n) => `還差 ${n} 場`,
+            reward_cardBack: '卡背自選箱', rewardSub_cardBack: '所有卡背隨你換',
+            reward_joker: '小丑海兔', rewardSub_joker: '專屬皮膚',
+            reward_outfit: '披風皇冠', rewardSub_outfit: '國王裝或皇后裝',
+            reward_throne: '登上王座', rewardSub_throne: '神秘動畫',
+            act_cardBack: '選卡背', act_joker: '穿上', act_jokerOn: '穿著中', act_outfit: '換裝', act_throne: '重播',
+            cardBackTitle: '🎴 選擇卡背', cardBackHint: '隨時都能換，只有你自己的畫面會變成這個卡背',
+            outfitTitle: '👑 選擇服裝', outfitNone: '不穿', outfitHint: '穿在魚缸裡的海兔身上，連線時其他人也看得到',
+            outfitRoomNote: '你現在在房間裡：其他人要等你下次進房，才會看到新服裝',
+            using: '使用中', pickDone: '完成',
+            unlockTitle: '🎉 解鎖新獎勵！',
+            unlock_cardBack: '贏滿 3 場！所有卡背都能隨你換囉', unlock_joker: '贏滿 10 場！小丑海兔皮膚已經送進背包',
+            unlock_outfit: '贏滿 30 場！國王裝和皇后裝任你挑', unlockLater: '等等再說',
+            jokerWorn: '🤡 換上小丑海兔了！',
+            throneTitle: '👑 登上王座！', throneSub: '翻牌對決 100 勝，你就是記憶之王！', throneBtn: '太棒了！', throneSkip: '點一下跳過',
             albumOpen: '📖 卡牌圖鑑', albumOpenSub: '先看看有哪些牌',
             pickPairs: '選擇對決組數', start: '開始對決！', wait: '等房主選好組數開始對決…',
             pairs: (n) => `${n} 組`,
@@ -31,8 +49,6 @@
             joker: '小丑', jokerRibbon: '小丑牌', jokerMark: '丑',
             jokerSlot: '小丑牌，翻到就把沒配對的牌重新洗過',
             notYourTurn: '還沒輪到你喔！',
-            winsDone: (w) => `🏆 已贏 ${w} 場，小丑皮膚已解鎖！`,
-            winsSoFar: (w) => `🏆 目前勝場 ${w} / 10（贏滿 10 場送小丑皮膚）`,
             me: (name) => `${name}（我）`,
             streak: (a, b) => `・已連續翻對 ${a} / ${b} 組`,
             myTurn: (streak, secs) => `輪到你翻牌！${streak}（${secs} 秒）`,
@@ -68,6 +84,24 @@
             rulesBtn: 'How to play', rulesTitle: '📖 Game Rules',
             rulesFull: '📖 Full rules', rulesBack: 'Back to the match', rulesClose: 'Got it',
             rulesLiveNote: "The match keeps going — reading the rules doesn't pause it",
+            // 🏆 Win rewards
+            rewardsTitle: '🏆 Win Rewards', winsNow: (w) => `${w} wins`, winsUnknown: 'Log in to keep track of your wins',
+            nextGoal: (n, name) => `${n} more ${n === 1 ? 'win' : 'wins'} to unlock "${name}"`, allDone: "You've got every reward — you're the Memory Master!",
+            winsNeed: (n) => `${n} wins`, lockedLeft: (n) => `${n} to go`,
+            reward_cardBack: 'Card Back Box', rewardSub_cardBack: 'Switch card backs anytime',
+            reward_joker: 'Joker Bunny', rewardSub_joker: 'Exclusive skin',
+            reward_outfit: 'Cape & Crown', rewardSub_outfit: 'King or Queen outfit',
+            reward_throne: 'The Throne', rewardSub_throne: 'Secret animation',
+            act_cardBack: 'Pick', act_joker: 'Wear', act_jokerOn: 'Wearing', act_outfit: 'Dress up', act_throne: 'Replay',
+            cardBackTitle: '🎴 Card Backs', cardBackHint: 'Switch anytime — only your own screen shows it',
+            outfitTitle: '👑 Outfit', outfitNone: 'None', outfitHint: 'Your sea bunny wears it in the tank, and other players see it online',
+            outfitRoomNote: "You're in a room — others will see the new outfit the next time you join",
+            using: 'In use', pickDone: 'Done',
+            unlockTitle: '🎉 New reward unlocked!',
+            unlock_cardBack: '3 wins! Every card back is yours to switch', unlock_joker: '10 wins! The Joker Bunny skin is in your bag',
+            unlock_outfit: '30 wins! Pick the King or Queen outfit', unlockLater: 'Later',
+            jokerWorn: '🤡 Joker Bunny on!',
+            throneTitle: '👑 To the Throne!', throneSub: '100 Memory Match wins — you are the Memory Master!', throneBtn: 'Awesome!', throneSkip: 'Tap to skip',
             albumOpen: '📖 Card Album', albumOpenSub: 'See all the cards first',
             pickPairs: 'How many pairs?', start: 'Start!', wait: 'Waiting for the host to start…',
             pairs: (n) => `${n} pairs`,
@@ -78,8 +112,6 @@
             joker: 'Joker', jokerRibbon: 'Joker', jokerMark: 'J',
             jokerSlot: 'Joker: reshuffles the unmatched cards',
             notYourTurn: "It's not your turn yet!",
-            winsDone: (w) => `🏆 ${w} wins — Joker skin unlocked!`,
-            winsSoFar: (w) => `🏆 Wins: ${w} / 10 (win 10 to get the Joker skin)`,
             me: (name) => `${name} (me)`,
             streak: (a, b) => ` · ${a} / ${b} in a row`,
             myTurn: (streak, secs) => `Your turn!${streak} (${secs}s)`,
@@ -132,6 +164,36 @@
           en: ['Leaving early', 'Leaving mid-match (or being removed for idling) <b>costs coins</b> and <b>locks you out of rooms</b> for a while. It gets worse each time that day: the first time is <b>−50 coins</b> and <b>3 minutes</b>.'] }
     ];
 
+    // 🏆 勝場獎勵：勝場數是後端記的（只有一位贏家、至少 2 個不同帳號才算），這裡依勝場數解鎖
+    // 小丑海兔由後端在 10 勝時放進背包；卡背、服裝的選擇存在 gameState（這台裝置）
+    const REWARDS = [
+        { id: 'cardBack', wins: 3, icon: '🎴' },
+        { id: 'joker', wins: 10, icon: '🤡' },
+        { id: 'outfit', wins: 30, icon: '👑' },
+        { id: 'throne', wins: 100, icon: '🏰' }
+    ];
+    const CARD_BACK_WINS = 3;
+    // 🎴 卡背：樣式在 memory_game.css 的 [data-back="..."]
+    const CARD_BACKS = [
+        { id: 'classic', icon: '🫧', zh: '經典泡泡', en: 'Bubbles' },
+        { id: 'stars', icon: '⭐', zh: '星星夜空', en: 'Starry Night' },
+        { id: 'berry', icon: '🍓', zh: '草莓格紋', en: 'Strawberry Check' },
+        { id: 'mint', icon: '🍃', zh: '薄荷波點', en: 'Mint Dots' },
+        { id: 'sakura', icon: '🌸', zh: '櫻花粉', en: 'Sakura' },
+        { id: 'candy', icon: '🍬', zh: '彩虹糖果', en: 'Rainbow Candy' },
+        { id: 'ocean', icon: '🐚', zh: '海浪貝殼', en: 'Ocean Waves' },
+        { id: 'royal', icon: '👑', zh: '皇家紫金', en: 'Royal Gold' }
+    ];
+
+    function hasGame() { return typeof gameState !== 'undefined' && gameState; }
+    function myWins() { return hasGame() ? (gameState.memoryWins || 0) : 0; }
+    function myCardBack() {
+        const id = hasGame() ? gameState.cardBack : 'classic';
+        return myWins() >= CARD_BACK_WINS && CARD_BACKS.some((b) => b.id === id) ? id : 'classic';
+    }
+    function cardBackIcon(id) { return (CARD_BACKS.find((b) => b.id === id) || CARD_BACKS[0]).icon; }
+    function saveState() { if (typeof saveGame === 'function') saveGame(); }
+
     function isEn() {
         try { return typeof currLang !== 'undefined' && currLang === 'en'; } catch (e) { return false; }
     }
@@ -153,10 +215,13 @@
     }
 
     // 牌面：用寵物顏色畫一隻小海兔（簡化版，100 張同時畫也不會卡）
-    function petSVG(colorKey) {
+    // outfit：king / queen 會加上 slug_game.js 的 OUTFITS 披風皇冠（換裝預覽、王座動畫用）
+    function petSVG(colorKey, outfit) {
         const spec = (typeof speciesData !== 'undefined' && speciesData[colorKey]) || speciesData.snow;
+        const wear = outfit && typeof OUTFITS !== 'undefined' ? OUTFITS[outfit] : null;
         return `
             <svg viewBox="40 15 270 210" aria-hidden="true">
+                ${wear ? wear.back : ''}
                 <g stroke="${spec.outline}" stroke-width="5" stroke-linejoin="round">
                     <path d="M 250 170 C 270 180, 300 190, 290 140 C 280 100, 250 140, 240 170 Z" fill="${spec.tail}"/>
                     <path d="M 260 150 C 290 160, 320 120, 280 80 C 260 60, 230 110, 250 150 Z" fill="${spec.tail}"/>
@@ -174,6 +239,7 @@
                     <circle cx="-17" cy="-3" r="3" fill="#fff"/><circle cx="23" cy="-3" r="3" fill="#fff"/>
                     <path d="M -7 5 Q 0 12 7 5" fill="none" stroke="#2c3e50" stroke-width="4" stroke-linecap="round"/>
                 </g>
+                ${wear ? wear.front : ''}
             </svg>`;
     }
 
@@ -278,8 +344,17 @@
                         <h2 class="mg-hero-title" data-t="heroTitle"></h2>
                         <p class="mg-hero-sub" data-t="heroSub"></p>
                     </div>
+                    <!-- 🏆 勝場獎勵：3／10／30／100 勝，解鎖了就有按鈕可以用 -->
+                    <section class="mg-rewards" id="mgRewards" aria-labelledby="mgRewardsTitle">
+                        <div class="mg-rewards-head">
+                            <span class="mg-rewards-title" id="mgRewardsTitle" data-t="rewardsTitle"></span>
+                            <span class="mg-wins" id="mgWins"></span>
+                        </div>
+                        <div class="mg-rewards-bar"><i id="mgRewardsBar"></i></div>
+                        <div class="mg-rewards-next" id="mgRewardsNext"></div>
+                        <div class="mg-reward-list" id="mgRewardList"></div>
+                    </section>
                     <div class="mg-rule-cards" id="mgLobbyRules"></div>
-                    <p class="mg-wins" id="mgWins"></p>
                     <div class="mg-lobby-links">
                         <button type="button" class="mg-album-open" id="mgAlbumOpen"><span data-t="albumOpen"></span><small data-t="albumOpenSub"></small></button>
                         <button type="button" class="mg-rules-more" id="mgRulesMore" data-t="rulesFull"></button>
@@ -333,6 +408,18 @@
                         <button type="button" class="mg-start mg-rules-done" id="mgRulesDone"></button>
                     </div>
                 </div>
+
+                <!-- 🎴 選卡背／👑 換裝／🎉 解鎖獎勵：跟玩法教學面板同一種樣子 -->
+                <div class="mg-rules-sheet mg-pick-sheet" id="mgPickSheet" hidden>
+                    <div class="mg-rules-card mg-pick-card" role="dialog" aria-labelledby="mgPickTitle">
+                        <div class="mg-rules-head">
+                            <span class="mg-rules-title" id="mgPickTitle"></span>
+                            <button type="button" class="mg-close" id="mgPickX" aria-label="✕">✕</button>
+                        </div>
+                        <div class="mg-pick-body" id="mgPickBody"></div>
+                        <button type="button" class="mg-start mg-rules-done" id="mgPickDone"></button>
+                    </div>
+                </div>
             </div>`;
         document.body.appendChild(overlay);
         applyStaticText();
@@ -340,6 +427,7 @@
         $('mgClose').addEventListener('click', closeOverlay);
         bindAlbum();
         bindRules();
+        bindPick();
 
         let selectedPairs = 20;
         const pairsBox = $('mgPairs');
@@ -443,6 +531,294 @@
         }, true);
     }
 
+    // ---------- 🏆 勝場獎勵 ----------
+    function applyCardBack() {
+        const board = $('mgBoard');
+        if (board) board.dataset.back = myCardBack();
+    }
+
+    // 勝場數：已經跟伺服器拿過就用那個，不然用遊戲啟動時同步的 gameState.memoryWins
+    function knownWins() {
+        if (typeof lastWins === 'number') return lastWins;
+        return hasGame() && (typeof GAME_TOKEN === 'undefined' || GAME_TOKEN) ? myWins() : null;
+    }
+
+    function rewardName(id) { return T('reward_' + id); }
+
+    function renderRewards() {
+        const list = $('mgRewardList');
+        if (!list) return;
+        const w = knownWins();
+        $('mgWins').textContent = w === null ? T('winsUnknown') : T('winsNow', w);
+
+        // 進度條：從上一個里程碑到下一個里程碑
+        const next = REWARDS.find((r) => (w || 0) < r.wins);
+        const prevWins = [...REWARDS].reverse().find((r) => (w || 0) >= r.wins)?.wins || 0;
+        const pct = next ? (((w || 0) - prevWins) / (next.wins - prevWins)) * 100 : 100;
+        $('mgRewardsBar').style.width = Math.max(0, Math.min(100, pct)) + '%';
+        $('mgRewardsNext').textContent = next ? T('nextGoal', next.wins - (w || 0), rewardName(next.id)) : T('allDone');
+
+        list.innerHTML = '';
+        REWARDS.forEach((r) => {
+            const unlocked = (w || 0) >= r.wins;
+            const tile = el('div', 'mg-reward ' + (unlocked ? 'is-unlocked' : 'is-locked'));
+            tile.dataset.reward = r.id;
+            const icon = el('span', 'mg-reward-icon', unlocked ? r.icon : '🔒');
+            icon.setAttribute('aria-hidden', 'true');
+            tile.appendChild(icon);
+            tile.appendChild(el('span', 'mg-reward-need', T('winsNeed', r.wins)));
+            tile.appendChild(el('span', 'mg-reward-name', rewardName(r.id)));
+            tile.appendChild(el('span', 'mg-reward-sub', T('rewardSub_' + r.id)));
+            if (!unlocked) {
+                tile.appendChild(el('span', 'mg-reward-lock', T('lockedLeft', r.wins - (w || 0))));
+            } else {
+                const wearing = r.id === 'joker' && hasGame() && gameState.currentSpecies === 'joker';
+                const btn = el('button', 'mg-reward-btn', wearing ? T('act_jokerOn') : T('act_' + r.id));
+                btn.type = 'button';
+                btn.disabled = wearing;
+                btn.addEventListener('click', () => rewardAction(r.id));
+                tile.appendChild(btn);
+            }
+            list.appendChild(tile);
+        });
+    }
+
+    function rewardAction(id) {
+        if (id === 'cardBack') openPick('cardBack');
+        else if (id === 'outfit') openPick('outfit');
+        else if (id === 'joker') wearJoker();
+        else if (id === 'throne') playThrone();
+    }
+
+    // 小丑海兔：後端 10 勝時已經放進背包，這裡確保本機清單也有，然後直接穿上（equipItem 會通知伺服器）
+    function ensureJokerOwned() {
+        if (!hasGame() || myWins() < 10 || typeof speciesData === 'undefined' || !speciesData.joker) return;
+        if (!gameState.unlockedSpecies.includes('joker')) {
+            gameState.unlockedSpecies.push('joker');
+            saveState();
+            if (typeof renderShop === 'function') renderShop();
+        }
+    }
+    function wearJoker() {
+        ensureJokerOwned();
+        if (typeof equipItem === 'function') equipItem('joker', 'species');
+        showFloatText(T('jokerWorn'));
+        renderRewards();
+    }
+
+    // ---------- 🎴 選卡背／👑 換裝／🎉 解鎖通知（同一個面板） ----------
+    let pickMode = null;   // 'cardBack' | 'outfit' | 'unlock:cardBack' ...
+
+    function isPickOpen() {
+        const sheet = $('mgPickSheet');
+        return !!(sheet && !sheet.hidden);
+    }
+    function openPick(mode) {
+        ensureOverlay().hidden = false;
+        closeRules();
+        pickMode = mode;
+        renderPick();
+        $('mgPickSheet').hidden = false;
+        $('mgPickBody').scrollTop = 0;
+        $('mgPickDone').focus({ preventScroll: true });
+    }
+    function closePick() {
+        const sheet = $('mgPickSheet');
+        if (sheet) sheet.hidden = true;
+        pickMode = null;
+    }
+
+    function renderPick() {
+        const body = $('mgPickBody');
+        if (!body || !pickMode) return;
+        body.innerHTML = '';
+        const done = $('mgPickDone');
+        $('mgPickX').setAttribute('aria-label', T('rulesClose'));
+
+        if (pickMode === 'cardBack') {
+            $('mgPickTitle').textContent = T('cardBackTitle');
+            body.appendChild(el('p', 'mg-pick-hint', T('cardBackHint')));
+            const grid = el('div', 'mg-pick-grid is-backs');
+            const current = myCardBack();
+            CARD_BACKS.forEach((b) => {
+                const opt = el('button', 'mg-pick-opt' + (b.id === current ? ' is-active' : ''));
+                opt.type = 'button';
+                opt.setAttribute('aria-pressed', b.id === current);
+                const sample = el('div', 'mg-back-sample');
+                sample.dataset.back = b.id;
+                sample.appendChild(el('div', 'mg-back'));
+                opt.appendChild(sample);
+                opt.appendChild(el('span', 'mg-pick-name', isEn() ? b.en : b.zh));
+                if (b.id === current) opt.appendChild(el('span', 'mg-pick-using', T('using')));
+                opt.addEventListener('click', () => {
+                    gameState.cardBack = b.id;
+                    saveState();
+                    applyCardBack();
+                    renderPick();
+                });
+                grid.appendChild(opt);
+            });
+            body.appendChild(grid);
+            done.textContent = T('pickDone');
+            return;
+        }
+
+        if (pickMode === 'outfit') {
+            $('mgPickTitle').textContent = T('outfitTitle');
+            body.appendChild(el('p', 'mg-pick-hint', T('outfitHint')));
+            if (typeof currentRoomId !== 'undefined' && currentRoomId) body.appendChild(el('p', 'mg-pick-note', T('outfitRoomNote')));
+            const grid = el('div', 'mg-pick-grid is-outfits');
+            const current = typeof activeOutfit === 'function' ? activeOutfit() : 'none';
+            const species = hasGame() ? gameState.currentSpecies : 'snow';
+            ['king', 'queen', 'none'].forEach((kind) => {
+                const opt = el('button', 'mg-pick-opt' + (kind === current ? ' is-active' : ''));
+                opt.type = 'button';
+                opt.setAttribute('aria-pressed', kind === current);
+                const pic = el('div', 'mg-outfit-sample');
+                pic.innerHTML = petSVG(species, kind === 'none' ? null : kind);
+                opt.appendChild(pic);
+                const name = kind === 'none' ? T('outfitNone') : (OUTFITS[kind].name[isEn() ? 'en' : 'zh']);
+                opt.appendChild(el('span', 'mg-pick-name', name));
+                if (kind === current) opt.appendChild(el('span', 'mg-pick-using', T('using')));
+                opt.addEventListener('click', () => {
+                    gameState.outfit = kind;
+                    saveState();
+                    if (typeof applyOutfit === 'function') applyOutfit();
+                    renderPick();
+                });
+                grid.appendChild(opt);
+            });
+            body.appendChild(grid);
+            done.textContent = T('pickDone');
+            return;
+        }
+
+        // 🎉 剛解鎖：大圖示＋一句話，按鈕直接去用
+        const id = pickMode.split(':')[1];
+        const r = REWARDS.find((x) => x.id === id);
+        $('mgPickTitle').textContent = T('unlockTitle');
+        const hero = el('div', 'mg-unlock');
+        hero.appendChild(el('div', 'mg-unlock-icon', r ? r.icon : '🎉'));
+        hero.appendChild(el('div', 'mg-unlock-name', rewardName(id)));
+        hero.appendChild(el('p', 'mg-unlock-text', T('unlock_' + id)));
+        const later = el('button', 'mg-unlock-later', T('unlockLater'));
+        later.type = 'button';
+        later.addEventListener('click', closePick);
+        hero.appendChild(later);
+        body.appendChild(hero);
+        done.textContent = T('act_' + id);
+    }
+
+    function bindPick() {
+        $('mgPickX').addEventListener('click', closePick);
+        $('mgPickSheet').addEventListener('click', (e) => { if (e.target === e.currentTarget) closePick(); });
+        $('mgPickDone').addEventListener('click', () => {
+            if (pickMode && pickMode.startsWith('unlock:')) {
+                const id = pickMode.split(':')[1];
+                closePick();
+                rewardAction(id);
+            } else {
+                closePick();
+            }
+            renderRewards();
+        });
+        document.addEventListener('keydown', (e) => {
+            if (e.key !== 'Escape' || !isPickOpen()) return;
+            e.stopImmediatePropagation();
+            closePick();
+        }, true);
+    }
+
+    // 後端記好勝場後通知（只有贏家收得到）：更新勝場、剛好到里程碑就跳解鎖通知，100 勝播王座動畫
+    function onWinRecorded(wins) {
+        if (typeof wins !== 'number') return;
+        lastWins = wins;
+        if (hasGame()) { gameState.memoryWins = wins; saveState(); }
+        ensureJokerOwned();
+        if (typeof applyOutfit === 'function') applyOutfit();
+        renderRewards();
+        const hit = REWARDS.find((r) => r.wins === wins);
+        if (!hit) return;
+        // 結算畫面先出來，等一下再跳
+        setTimeout(() => {
+            if (hit.id === 'throne') playThrone();
+            else openPick('unlock:' + hit.id);
+        }, 1200);
+    }
+
+    // ---------- 🏰 100 勝：登上王座 ----------
+    function playThrone() {
+        const old = $('mgThrone');
+        if (old) old.remove();
+        const species = hasGame() ? gameState.currentSpecies : 'snow';
+        const outfit = typeof activeOutfit === 'function' && activeOutfit() !== 'none' ? activeOutfit() : 'king';
+
+        const box = el('div', 'mg-throne');
+        box.id = 'mgThrone';
+        box.setAttribute('role', 'dialog');
+        box.setAttribute('aria-labelledby', 'mgThroneTitle');
+        box.innerHTML = `
+            <div class="mg-throne-rays" aria-hidden="true"></div>
+            <div class="mg-throne-stage" aria-hidden="true">
+                <div class="mg-throne-carpet"></div>
+                <svg class="mg-throne-chair" viewBox="0 0 200 220">
+                    <path d="M40 34 Q100 -6 160 34 L160 150 L40 150 Z" fill="#facc15" stroke="#a16207" stroke-width="6" stroke-linejoin="round"/>
+                    <path d="M58 48 Q100 20 142 48 L142 140 L58 140 Z" fill="#dc2626" stroke="#7f1d1d" stroke-width="4" stroke-linejoin="round"/>
+                    <circle cx="100" cy="24" r="10" fill="#ef4444" stroke="#a16207" stroke-width="4"/>
+                    <rect x="40" y="168" width="18" height="44" rx="6" fill="#facc15" stroke="#a16207" stroke-width="5"/>
+                    <rect x="142" y="168" width="18" height="44" rx="6" fill="#facc15" stroke="#a16207" stroke-width="5"/>
+                    <rect x="12" y="100" width="32" height="64" rx="10" fill="#fbbf24" stroke="#a16207" stroke-width="5"/>
+                    <rect x="156" y="100" width="32" height="64" rx="10" fill="#fbbf24" stroke="#a16207" stroke-width="5"/>
+                    <rect x="24" y="142" width="152" height="30" rx="12" fill="#facc15" stroke="#a16207" stroke-width="6"/>
+                    <rect x="40" y="132" width="120" height="16" rx="8" fill="#ef4444" stroke="#7f1d1d" stroke-width="4"/>
+                </svg>
+                <div class="mg-throne-pet">${petSVG(species, outfit)}</div>
+                <div class="mg-throne-flash"></div>
+                <div class="mg-throne-confetti"></div>
+            </div>
+            <div class="mg-throne-text">
+                <h2 class="mg-throne-title" id="mgThroneTitle"></h2>
+                <p class="mg-throne-sub"></p>
+                <button type="button" class="mg-start mg-throne-btn"></button>
+            </div>
+            <div class="mg-throne-skip"></div>`;
+        box.querySelector('.mg-throne-title').textContent = T('throneTitle');
+        box.querySelector('.mg-throne-sub').textContent = T('throneSub');
+        box.querySelector('.mg-throne-btn').textContent = T('throneBtn');
+        box.querySelector('.mg-throne-skip').textContent = T('throneSkip');
+
+        // 彩帶：位置、顏色、轉速都隨機
+        const confetti = box.querySelector('.mg-throne-confetti');
+        const colors = ['#f472b6', '#facc15', '#60a5fa', '#34d399', '#c084fc', '#fb923c'];
+        for (let i = 0; i < 32; i++) {
+            const bit = el('i');
+            bit.style.setProperty('--x', (Math.random() * 220 - 110).toFixed(0) + '%');
+            bit.style.setProperty('--y', (Math.random() * -160 - 40).toFixed(0) + '%');
+            bit.style.setProperty('--r', (Math.random() * 720 - 360).toFixed(0) + 'deg');
+            bit.style.setProperty('--d', (Math.random() * 0.3).toFixed(2) + 's');
+            bit.style.background = colors[i % colors.length];
+            confetti.appendChild(bit);
+        }
+
+        let finished = false;
+        const close = () => { box.remove(); document.removeEventListener('keydown', onKey, true); };
+        const onKey = (e) => { if (e.key === 'Escape') { e.stopImmediatePropagation(); close(); } };
+        const finish = () => { finished = true; box.classList.add('is-done'); box.querySelector('.mg-throne-btn').focus({ preventScroll: true }); };
+        const timer = setTimeout(finish, 4400);
+        // 播放中點一下：直接跳到最後（坐上王座＋文字）
+        box.addEventListener('click', (e) => {
+            if (finished) return;
+            if (e.target.closest('.mg-throne-btn')) return;
+            clearTimeout(timer);
+            box.classList.add('is-skip');
+            finish();
+        });
+        box.querySelector('.mg-throne-btn').addEventListener('click', close);
+        document.addEventListener('keydown', onKey, true);
+        document.body.appendChild(box);
+        if (typeof playDingSound === 'function') playDingSound(3);
+    }
+
     // ---------- 📖 卡牌圖鑑（活頁小卡冊） ----------
     const ALBUM_PER_PAGE = 4;
     const ALBUM_VIEWS = ['mgLobby', 'mgGame', 'mgResult'];
@@ -452,7 +828,8 @@
     let albumReturnTo = 'mgLobby';   // 關掉圖鑑後回到哪個畫面
 
     function albumFaces() {
-        const keys = typeof speciesData !== 'undefined' ? Object.keys(speciesData) : [];
+        // 勝場獎勵的皮膚（小丑海兔，key 剛好也叫 joker）不是牌，不放進圖鑑
+        const keys = typeof speciesData !== 'undefined' ? Object.keys(speciesData).filter((k) => !speciesData[k].rewardWins) : [];
         return keys.concat([JOKER]);
     }
     function albumPageCount() { return Math.ceil(albumFaces().length / ALBUM_PER_PAGE); }
@@ -612,15 +989,19 @@
         $('mgLobby').scrollTop = 0;
         if (isRulesOpen()) renderRulesLive();
 
-        const winsEl = $('mgWins');
-        winsEl.textContent = '';
+        // 先用遊戲啟動時同步的勝場畫出來，再跟伺服器拿最新的
         lastWins = null;
+        ensureJokerOwned();
+        renderRewards();
         if (typeof fetchAPI === 'function' && GAME_TOKEN) {
             const pet = await fetchAPI('/pet-games/my-pet', 'GET');
             const wins = pet && (pet.memory_wins ?? (pet.data && pet.data.memory_wins));
             if (typeof wins === 'number') {
                 lastWins = wins;
-                renderWins();
+                if (hasGame()) { gameState.memoryWins = wins; saveState(); }
+                ensureJokerOwned();
+                if (typeof applyOutfit === 'function') applyOutfit();
+                renderRewards();
             }
         }
     }
@@ -656,11 +1037,12 @@
     function buildBoard() {
         const board = $('mgBoard');
         board.innerHTML = '';
+        applyCardBack();
         for (let i = 0; i < state.cardCount; i++) {
             const card = el('button', 'mg-card');
             card.type = 'button';
             card.dataset.index = i;
-            card.innerHTML = `<div class="mg-inner"><div class="mg-back">🫧</div><div class="mg-front"></div></div>`;
+            card.innerHTML = `<div class="mg-inner"><div class="mg-back"></div><div class="mg-front"></div></div>`;
             board.appendChild(card);
         }
         state.matched.forEach((m) => { showFace(m.index, m.face); markMatched(m.index, m.by); });
@@ -875,6 +1257,7 @@
         socket.on('memory_win_recorded', ({ wins, jokerSkinUnlocked, winsRequired }) => {
             if (jokerSkinUnlocked) showFloatText(T('skinUnlocked', winsRequired), 5000);
             else showFloatText(T('winPlus', wins), 4000);
+            onWinRecorded(wins);
         });
     }
 
@@ -977,9 +1360,15 @@
     }
 
     function renderWins() {
-        const winsEl = $('mgWins');
-        if (!winsEl || typeof lastWins !== 'number') return;
-        winsEl.textContent = lastWins >= 10 ? T('winsDone', lastWins) : T('winsSoFar', lastWins);
+        renderRewards();
+        if (isPickOpen()) renderPick();
+        const throne = $('mgThrone');
+        if (throne) {
+            throne.querySelector('.mg-throne-title').textContent = T('throneTitle');
+            throne.querySelector('.mg-throne-sub').textContent = T('throneSub');
+            throne.querySelector('.mg-throne-btn').textContent = T('throneBtn');
+            throne.querySelector('.mg-throne-skip').textContent = T('throneSkip');
+        }
     }
 
     function applyStaticText() {

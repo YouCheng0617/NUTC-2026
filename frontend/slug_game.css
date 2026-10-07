@@ -1172,6 +1172,9 @@
         .item-cost { font-size: 0.9rem; font-weight: 900; color: white; background: var(--accent-color); padding: 4px 8px; border-radius: 12px; display: inline-block; margin: 0 auto; }
         .item-cost.owned { background: #e2e8f0; color: var(--text-dim); }
         .item-card.equipped .item-cost.owned { background: var(--text-dark); color: white; }
+        /* 🏆 翻牌對決勝場獎勵（小丑海兔）：還沒拿到時顯示要贏幾場 */
+        .item-cost.reward-lock { background: #fef3c7; color: #a16207; font-size: 0.78rem; }
+        .item-card.is-reward-lock .item-color-preview { opacity: 0.55; filter: grayscale(0.4); }
 
         /* 🌊 【開場動畫】掉進海裡 → 盲盒沉下來 → 打開 */
         #introOverlay {

@@ -644,7 +644,11 @@ let GAME_TOKEN = localStorage.getItem('authToken') || localStorage.getItem('acce
 
         // 同一次遊戲固定用同一個 id（以前每次都重抽 0～999，還有機會跟別人撞號被當成「已經在別的房間」）
         const MP_MEMBER_ID = Math.floor(Math.random() * 1e9);
-        function getPlayerData() { return { memberId: MP_MEMBER_ID, petName: gameState.petName || '小可愛', petColor: gameState.currentSpecies }; }
+        // outfit：後端會把 playerData 原封不動轉給房間裡其他人，所以國王裝／皇后裝夾帶在這裡（進房時才會送）
+        function getPlayerData() {
+            const outfit = activeOutfit();
+            return { memberId: MP_MEMBER_ID, petName: gameState.petName || '小可愛', petColor: gameState.currentSpecies, ...(outfit !== 'none' ? { outfit } : {}) };
+        }
         
         async function createSocketRoom() {
             if (isRoomBusy()) return;
@@ -1482,6 +1486,8 @@ function copyRoomId() {
             if (old) old.remove();
             otherPlayersData[p.socketId] = p;
             const spec = speciesData[p.petColor] || speciesData['snow'];
+            // 別人送來的服裝只認國王／皇后兩種，其他值一律不畫
+            const outfit = OUTFITS[p.outfit] || null;
             const el = document.createElement('div'); 
             el.className = 'other-player'; 
             el.id = `player-${p.socketId}`; 
@@ -1501,6 +1507,7 @@ function copyRoomId() {
                     </defs>
                     <g filter="url(#handDrawn)">
                         <ellipse cx="170" cy="205" rx="120" ry="15" fill="rgba(0,0,0,0.12)" />
+                        ${outfit ? outfit.back : ''}
 
                         <!-- 🌟 補回毛茸茸的尾巴 -->
                         <g class="anim-tail" stroke="${spec.outline}" stroke-width="4" stroke-linejoin="round">
@@ -1535,6 +1542,7 @@ function copyRoomId() {
                             <circle cx="22" cy="-2" r="2.5" fill="#ffffff" />
                             <path d="M -7 5 Q 0 12 7 5" fill="none" stroke="#2c3e50" stroke-width="3.5" stroke-linecap="round"/>
                         </g>
+                        ${outfit ? outfit.front : ''}
                     </g>
                 </svg>
                 </div>`;
@@ -1864,8 +1872,55 @@ const i18n = {
             customBgColor: '#dbeafe', // 🎨 免費的自選純色背景，玩家挑的顏色存在這
             unlockedBgs: ['sky'],
             unlockedEffects: ['none'],
-            cooldowns: { feed: 0, clean: 0, pet: 0 }
+            cooldowns: { feed: 0, clean: 0, pet: 0 },
+            // 🏆 翻牌對決勝場獎勵（勝場數以伺服器 my-pet 的 memory_wins 為準；卡背、服裝的選擇只存在這台裝置）
+            memoryWins: 0,
+            cardBack: 'classic',   // 3 勝解鎖，memory_game.js 的 CARD_BACKS
+            outfit: 'none'         // 30 勝解鎖：none / king / queen
         };
+
+        // 👑 翻牌對決 30 勝的國王裝／皇后裝：座標跟海兔 SVG 一樣（viewBox 0 0 340 240）
+        //    back 畫在身體後面（披風），front 畫在最前面（皇冠＋扣環）；memory_game.js 的王座動畫也用這份
+        const OUTFIT_REWARD_WINS = 30;
+        const OUTFITS = {
+            king: {
+                name: { zh: '國王裝', en: 'King' },
+                back: `
+                    <path d="M 148 110 C 182 78, 252 82, 290 116 C 308 140, 302 182, 286 204 L 196 200 Z" fill="#dc2626" stroke="#7f1d1d" stroke-width="4" stroke-linejoin="round"/>
+                    <path d="M 152 104 C 186 78, 250 82, 286 112" fill="none" stroke="#ffffff" stroke-width="10" stroke-linecap="round"/>
+                    <g fill="#1f2937"><circle cx="186" cy="88" r="2.4"/><circle cx="222" cy="83" r="2.4"/><circle cx="258" cy="92" r="2.4"/></g>`,
+                front: `
+                    <circle cx="160" cy="112" r="7" fill="#facc15" stroke="#a16207" stroke-width="3"/>
+                    <path d="M 106 108 L 101 77 L 117 91 L 130 68 L 143 91 L 159 77 L 154 108 Z" fill="#facc15" stroke="#a16207" stroke-width="4" stroke-linejoin="round"/>
+                    <rect x="102" y="100" width="56" height="11" rx="4" fill="#fbbf24" stroke="#a16207" stroke-width="3"/>
+                    <circle cx="130" cy="95" r="4.5" fill="#ef4444"/>
+                    <g fill="#fef3c7" stroke="#a16207" stroke-width="2.5"><circle cx="101" cy="75" r="4"/><circle cx="130" cy="66" r="4"/><circle cx="159" cy="75" r="4"/></g>`
+            },
+            queen: {
+                name: { zh: '皇后裝', en: 'Queen' },
+                back: `
+                    <path d="M 148 110 C 182 78, 252 82, 290 116 C 308 140, 302 182, 286 204 L 196 200 Z" fill="#c084fc" stroke="#6b21a8" stroke-width="4" stroke-linejoin="round"/>
+                    <path d="M 152 104 C 186 78, 250 82, 286 112" fill="none" stroke="#fbcfe8" stroke-width="10" stroke-linecap="round"/>
+                    <g fill="#f472b6"><circle cx="186" cy="88" r="2.6"/><circle cx="222" cy="83" r="2.6"/><circle cx="258" cy="92" r="2.6"/></g>`,
+                front: `
+                    <circle cx="160" cy="112" r="7" fill="#fbcfe8" stroke="#be185d" stroke-width="3"/>
+                    <path d="M 108 108 C 110 93, 121 88, 130 74 C 139 88, 150 93, 152 108 Z" fill="#fde68a" stroke="#a16207" stroke-width="4" stroke-linejoin="round"/>
+                    <path d="M 104 109 Q 130 99 156 109" fill="none" stroke="#a16207" stroke-width="4" stroke-linecap="round"/>
+                    <path d="M 130 102 C 124 96 118 92 122 87 C 125 84 129 86 130 89 C 131 86 135 84 138 87 C 142 92 136 96 130 102 Z" fill="#ec4899" stroke="#9d174d" stroke-width="2"/>
+                    <g fill="#ffffff" stroke="#f9a8d4" stroke-width="2"><circle cx="115" cy="101" r="3.2"/><circle cx="145" cy="101" r="3.2"/></g>`
+            }
+        };
+        // 這隻海兔現在穿的服裝（30 勝才算數）
+        function activeOutfit(state = gameState) {
+            return (state.memoryWins || 0) >= OUTFIT_REWARD_WINS && OUTFITS[state.outfit] ? state.outfit : 'none';
+        }
+        function applyOutfit() {
+            const kind = activeOutfit();
+            const back = document.getElementById('slugOutfitBack');
+            const front = document.getElementById('slugOutfitFront');
+            if (back) back.innerHTML = kind === 'none' ? '' : OUTFITS[kind].back;
+            if (front) front.innerHTML = kind === 'none' ? '' : OUTFITS[kind].front;
+        }
 
         // 🌟 【圖鑑資料庫：幻獸、背景、特效】
         /* ... 原本的顏色與商品設定，完全保留不變 ... */
@@ -1927,7 +1982,9 @@ const i18n = {
             nebula: { name: {zh: '璀璨星雲', en: 'Cosmic Nebula'}, cost: 1350, body: '#2e1065', outline: '#fbcfe8', earTop: '#c084fc', tail: '#e879f9', spot: '#818cf8', blush: '#f472b6' },
             eclipse: { name: {zh: '日蝕幻影', en: 'Solar Eclipse'}, cost: 1400, body: '#0f172a', outline: '#fbbf24', earTop: '#334155', tail: '#f59e0b', spot: '#1e293b', blush: '#f87171' },
             gold: { name: {zh: '招財純金', en: 'Pure Gold'}, cost: 1450, body: '#fef08a', outline: '#b45309', earTop: '#f59e0b', tail: '#f59e0b', spot: '#b45309', blush: '#fbbf24' },
-            abyssSlug: { name: {zh: '深淵使者', en: 'Abyss Herald'}, cost: 1500, body: '#030712', outline: '#14b8a6', earTop: '#0d9488', tail: '#0f766e', spot: '#115e59', blush: '#2dd4bf' }
+            abyssSlug: { name: {zh: '深淵使者', en: 'Abyss Herald'}, cost: 1500, body: '#030712', outline: '#14b8a6', earTop: '#0d9488', tail: '#0f766e', spot: '#115e59', blush: '#2dd4bf' },
+            // 🃏 翻牌對決贏滿 10 場送的（後端記勝場時放進背包），不能用積分買、不會出現在抽蛋和卡牌圖鑑
+            joker: { name: {zh: '小丑海兔', en: 'Joker Bunny'}, cost: 99999, rewardWins: 10, body: '#fefce8', outline: '#581c87', earTop: '#a855f7', tail: '#22c55e', spot: '#ef4444', blush: '#ef4444' }
         };
 
         // 🏠 【背景插畫零件】每件家具都以「底部中央」為原點繪製，
@@ -4181,6 +4238,7 @@ const effectData = {
                     // 同步名字與金幣 (還沒取過名時，資料庫是預設的「神秘雪兔」，不覆蓋)
                     if (data.is_named && data.pet_name) gameState.petName = data.pet_name;
                     if (data.coin !== undefined) gameState.points = data.coin;
+                    if (typeof data.memory_wins === 'number') gameState.memoryWins = data.memory_wins;
 
                     // 同步目前裝備：伺服器的值是有效商品才採用；
                     // 資料庫預設值 (「經典雪兔」「基礎藍」) 不在商品清單裡，代表從沒透過伺服器換過裝，保留本機的 (例如抽到的寵物)
@@ -4210,6 +4268,7 @@ const effectData = {
                     updateNameUI();
                     renderShop();
                     updateUI();
+                    applyOutfit();   // 勝場數從伺服器拿到後才知道能不能穿國王裝／皇后裝
                 }
             } catch(e) {
                 console.log('伺服器未連線，繼續使用本地存檔');
@@ -5834,7 +5893,7 @@ function updateLangUI() {
             box.innerText = '...';
             
             setTimeout(() => {
-                const keys = Object.keys(speciesData);
+                const keys = Object.keys(speciesData).filter(k => !speciesData[k].rewardWins);   // 勝場獎勵的皮膚不能抽
                 const randomKey = keys[Math.floor(Math.random() * keys.length)]; // 隨機挑一隻
                 
                 gameState.unlockedSpecies = [randomKey];
@@ -6055,6 +6114,13 @@ function updateLangUI() {
                         equipItem(key, typeKey); // 點了直接穿上
                         if (isCustomColor && wasEquipped) openColorModal();
                     };
+                } else if (item.rewardWins) { // 🏆 勝場獎勵：不能買也不能試用，只告訴玩家怎麼拿
+                    const winsTxt = currLang === 'zh' ? `🏆 翻牌 ${item.rewardWins} 勝` : `🏆 ${item.rewardWins} match wins`;
+                    actionHTML = `<div class="item-cost reward-lock">${winsTxt}</div>`;
+                    card.classList.add('is-reward-lock');
+                    card.onclick = () => showFloatText(currLang === 'zh'
+                        ? `翻牌對決贏滿 ${item.rewardWins} 場就送你！目前 ${gameState.memoryWins || 0} 勝`
+                        : `Win ${item.rewardWins} Memory Matches to get it! You have ${gameState.memoryWins || 0}`);
                 } else if (isTrialing) { // 試用中
                     actionHTML = `
                         <div style="display:flex; gap:6px; justify-content:center; margin-top:5px;">
@@ -6272,6 +6338,7 @@ function tryItem(key, type) {
         // 🌟 【一鍵畫面重繪】每次有改變就叫他幫忙把海兔、背景、特效全部重新畫一次
         function refreshAll() {
             applySlugStyles();
+            applyOutfit();
             applyBg();
             applyEffect();
             renderShop();
