@@ -1064,3 +1064,19 @@ html {
   font-weight: 600;
 }
 .rd-field input:disabled { background: #f1f5f9; color: #94a3b8; cursor: not-allowed; }
+
+/* =======================================================
+   📅 今日一題排程（admin_daily_question.js）
+======================================================= */
+.dq-admin-form { display: flex; flex-direction: column; gap: 14px; padding: 20px 24px 24px; max-width: 640px; }
+.dq-admin-form input[type="date"], .dq-admin-form input[type="text"] { padding: 9px 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 0.95rem; min-width: 0; }
+.dq-admin-tip { margin: 0; color: #64748b; font-size: 0.9rem; }
+.dq-admin-options { display: flex; flex-direction: column; gap: 8px; }
+.dq-admin-option { display: flex; gap: 8px; align-items: center; }
+.dq-admin-option .dq-admin-emoji { width: 64px; flex: none; text-align: center; font-size: 1.2rem; }
+.dq-admin-option .dq-admin-label { flex: 1 1 auto; }
+.dq-admin-emojis { display: flex; gap: 6px; margin-top: 4px; font-size: 1.2rem; }
+.dq-admin-results { display: flex; flex-wrap: wrap; gap: 6px; }
+.dq-admin-result { padding: 2px 8px; border-radius: 999px; background: #f1f5f9; font-size: 0.85rem; white-space: nowrap; }
+.dq-admin-result small { color: #94a3b8; }
+.dq-admin-result.is-top { background: #e0f2fe; color: #0369a1; font-weight: 700; }

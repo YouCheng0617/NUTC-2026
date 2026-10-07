@@ -6,6 +6,7 @@ import {
     listRedeemCodesController, createRedeemCodeController, updateRedeemCodeController, setRedeemCodeActiveController,
     deleteRedeemCodeController, listRedeemCodeUsesController,
 } from "../../socket/redeemCode.controller.js";
+import { listScheduleController, scheduleController, unscheduleController } from "../daily-question/dailyQuestion.controller.js";
 
 const adminController = new AdminController();
 
@@ -32,6 +33,11 @@ export function adminRouter() {
     router.put("/redeem-codes/:id/active", authCheck, adminCheck, setRedeemCodeActiveController);
     router.delete("/redeem-codes/:id", authCheck, adminCheck, deleteRedeemCodeController);
     router.get("/redeem-codes/:id/uses", authCheck, adminCheck, listRedeemCodeUsesController);
+
+    // 📅 首頁今日一題的排程
+    router.get("/daily-questions", authCheck, adminCheck, listScheduleController);
+    router.put("/daily-questions/:date", authCheck, adminCheck, scheduleController);
+    router.delete("/daily-questions/:date", authCheck, adminCheck, unscheduleController);
 
     // 🌟 客服後台管理
     router.get("/customer-services", authCheck, adminCheck, (req, res) => adminController.getAllCustomerServices(req, res));

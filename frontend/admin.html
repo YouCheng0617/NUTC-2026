@@ -5,7 +5,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>心情漂流瓶 - 後台管理系統</title>
-  <link rel="stylesheet" href="admin.css?v=4" />
+  <link rel="stylesheet" href="admin.css?v=5" />
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <!-- 🌟 在下方加入這行 -->
   <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels"></script>
@@ -64,6 +64,12 @@
             toggleSidebarIfMobile();
           ">
         🎁 遊戲兌換碼
+      </li>
+      <li onclick="
+            switchAdminTab('daily-question');
+            toggleSidebarIfMobile();
+          ">
+        📅 今日一題
       </li>
       <li onclick="
             switchAdminTab('customer-service');
@@ -570,6 +576,56 @@
         </div>
       </div>
 
+      <!-- 📅 首頁今日一題的排程（admin_daily_question.js） -->
+      <div id="section-daily-question" class="admin-section" style="display: none">
+        <div class="modern-card" style="margin-bottom: 24px;">
+          <div class="card-header">
+            <h3 id="dq-admin-form-title" style="color: #0284c7; margin: 0;">📅 排程某一天的題目</h3>
+          </div>
+          <div class="dq-admin-form">
+            <p class="dq-admin-tip">沒有排程的日子會自動用內建題庫的題目。已經有人投票的那天不能再改。</p>
+            <label class="rd-field">
+              <span>日期</span>
+              <input type="date" id="dq-admin-date" />
+            </label>
+            <label class="rd-field">
+              <span>題目</span>
+              <input type="text" id="dq-admin-question" maxlength="100" placeholder="例如：今天的心情是？" />
+            </label>
+            <div class="rd-field">
+              <span>選項（2 ~ 6 個，每個都要有 emoji）</span>
+              <div id="dq-admin-options" class="dq-admin-options"></div>
+              <button type="button" class="btn-action btn-secondary" id="dq-admin-add" onclick="dqAddOption()" style="align-self: flex-start;">＋ 新增選項</button>
+            </div>
+            <div class="rd-inline">
+              <button type="button" class="btn-action btn-primary" onclick="dqSave()">💾 儲存排程</button>
+              <button type="button" class="btn-action btn-secondary" onclick="dqResetForm()">清空</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="modern-card">
+          <div class="card-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+            <h3 style="margin: 0;">🗓️ 前後三週的題目</h3>
+            <button class="btn-action btn-secondary" onclick="loadDailyQuestions()">🔄 重新整理</button>
+          </div>
+          <div class="table-responsive">
+            <table class="modern-table">
+              <thead>
+                <tr>
+                  <th>日期</th>
+                  <th>來源</th>
+                  <th>題目</th>
+                  <th>結果</th>
+                  <th>操作</th>
+                </tr>
+              </thead>
+              <tbody id="admin-daily-body"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
       <!-- 💬 客服問題管理面板 -->
       <div id="section-customer-service" class="admin-section" style="display: none">
         <div class="modern-card">
@@ -809,6 +865,7 @@
   <script src="admin.js?v=3"></script>
   <script src="admin_game_reports.js?v=1"></script>
   <script src="admin_redeem_codes.js?v=3"></script>
+  <script src="admin_daily_question.js?v=1"></script>
 </body>
 
 </html>

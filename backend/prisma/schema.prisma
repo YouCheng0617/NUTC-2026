@@ -66,6 +66,7 @@ model Member {
   gameReports   GameReport[] @relation("GameReporter") // 在寵物遊戲檢舉別人的紀錄
   gameReported  GameReport[] @relation("GameReported") // 在寵物遊戲被檢舉的紀錄
   redeemUses    RedeemCodeUse[] // 兌換過的兌換碼
+  dailyVotes    DailyVote[] // 今日一題的投票
   PollVote     PollVote[]
   Notification Notification[]
   Pet          Pet?
@@ -361,6 +362,32 @@ model RedeemCodeUse {
 
   @@unique([code_id, member_id])
   @@index([member_id])
+}
+
+/// 今日一題：每天一個 emoji 小問題（後台可以排程，沒排的日子從內建題庫自動補）
+model DailyQuestion {
+  id         Int      @id @default(autoincrement())
+  date       String   @unique // 台北時間 YYYY-MM-DD
+  question   String   @db.VarChar(100)
+  options    Json // [{ emoji: "😊", label: "開心" }]，2 ~ 6 個
+  created_by Int? // null = 題庫自動產生
+  created_at DateTime @default(now())
+
+  votes DailyVote[]
+}
+
+/// 今日一題的投票（每個帳號每天一票，投了不能改）
+model DailyVote {
+  id           Int      @id @default(autoincrement())
+  question_id  Int
+  member_id    Int
+  option_index Int
+  created_at   DateTime @default(now())
+
+  question DailyQuestion @relation(fields: [question_id], references: [id], onDelete: Cascade)
+  member   Member        @relation(fields: [member_id], references: [member_id], onDelete: Cascade)
+
+  @@unique([question_id, member_id])
 }
 
 model PollOption {
