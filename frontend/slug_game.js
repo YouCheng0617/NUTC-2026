@@ -10740,10 +10740,10 @@ case 'fish': {
                         const style = document.createElement('style');
                         style.id = 'staffMusicStyle';
                         style.innerHTML = `
-                            /* 🌟 1. 滿版背景大五線譜圖層 (電腦版在頂部 95px) */
+                            /* 🌟 1. 滿版背景大五線譜圖層：放在左上「飼養手冊」與右上「連線」按鈕（75px 起、約 50px 高）的下面，才不會被蓋住 */
                             .grand-bg-staff {
                                 position: absolute;
-                                top: 95px;
+                                top: 135px;
                                 left: 0;
                                 width: 100%;
                                 height: 130px;
@@ -10932,10 +10932,25 @@ case 'fish': {
                                 100% { transform: translateY(-115vh) translateX(calc(var(--drift-x) * 1.5)) scale(0.8); opacity: 0; }
                             }
 
+                            /* 💻 矮螢幕的電腦版（舞台只剩 40% 高）：五線譜壓扁，才不會掉出舞台被切掉 */
+                            @media screen and (min-width: 769px) and (max-height: 560px) {
+                                .grand-bg-staff {
+                                    height: 84px !important;
+                                    padding: 5px 0 !important;
+                                }
+                                .grand-clef-symbol { font-size: 2.8rem !important; }
+                                .pinned-grand-note {
+                                    width: 24px !important;
+                                    height: 24px !important;
+                                    font-size: 0.72rem !important;
+                                }
+                            }
+
                             /* 📱 4. 手機版專屬響應式安全區 (完全避開頂部返回鍵、積分與提示欄) */
                             @media screen and (max-width: 768px) {
                                 .grand-bg-staff {
-                                    top: 115px !important; /* 往下移至 115px，完全避開頂部 UI */
+                                    /* 手機的手冊／連線按鈕在 72px＋瀏海高度，約 50px 高，五線譜接在它們下面 */
+                                    top: calc(130px + env(safe-area-inset-top, 0px)) !important;
                                     height: 100px !important;
                                     padding: 6px 0 !important;
                                 }
@@ -11070,9 +11085,9 @@ case 'fish': {
                         if (!track) return;
                         track.innerHTML = '';
 
-                        // 依據螢幕寬度微調偏移比例
-                        const isMobile = window.innerWidth <= 768;
-                        const scaleFactor = isMobile ? 0.72 : 1;
+                        // 依五線譜實際高度（電腦 130px、手機 100px、矮螢幕 84px）等比縮放音高位置
+                        const staffEl = track.parentElement;
+                        const scaleFactor = staffEl && staffEl.offsetHeight ? Math.min(1, staffEl.offsetHeight / 130) * 0.95 : 1;
 
                         window.collectedStaffNotes.forEach((noteData, index) => {
                             const pinnedNote = document.createElement('div');
