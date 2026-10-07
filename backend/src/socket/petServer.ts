@@ -4,6 +4,7 @@ import prisma from '../lib/prisma.js';
 import { setupMemoryGame, memoryHandleLeave, memoryHandleJoin, memoryForget, setRoomKicker } from './memoryGame.js';
 import { getRoomBanMinutesLeft } from './quitPenalty.js';
 import { loadConflicts, hasConflict, isBlockedByHost, blockPlayer, reportPlayer, recordRoomChat, clearRoomChat } from './gameSafety.js';
+import { allowedOutfit } from './memoryRewards.js';
 
 // ... (Player 和 Room 介面保持不變) ...
 interface Player {
@@ -11,9 +12,21 @@ interface Player {
     memberId: number;
     petName: string;
     petColor: string;
+    outfit?: string; // 翻牌對決 30 勝解鎖的 king / queen（沒穿就不帶）
     x: number;
     y: number;
 }
+
+/* 前端送來的玩家資料只留會用到的欄位，服裝要確認真的解鎖了才轉給房間裡其他人 */
+const cleanPlayerData = async (raw: any, memberId: number) => {
+    const outfit = await allowedOutfit(memberId, raw?.outfit);
+    return {
+        memberId,
+        petName: typeof raw?.petName === 'string' && raw.petName.trim() ? raw.petName.trim().slice(0, 20) : '小可愛',
+        petColor: typeof raw?.petColor === 'string' ? raw.petColor.slice(0, 40) : 'snow',
+        ...(outfit ? { outfit } : {}),
+    };
+};
 
 interface Room {
     roomId: string;
@@ -95,7 +108,7 @@ export const setupPetSocket = (io: Server) => {
             if (!memberId) {
                 return socket.emit('error', { message: '請先登入帳號才能開房間！' });
             }
-            const playerData = { ...data?.playerData, memberId };
+            const playerData = await cleanPlayerData(data?.playerData, memberId);
             const banned = await banMessage(memberId);
             await loadConflicts(memberId);
             if (!socket.connected) return; // 驗證期間已經斷線
@@ -127,7 +140,7 @@ export const setupPetSocket = (io: Server) => {
             if (!memberId) {
                 return socket.emit('error', { message: '請先登入帳號才能加入房間！' });
             }
-            const playerData = { ...rawPlayerData, memberId };
+            const playerData = await cleanPlayerData(rawPlayerData, memberId);
             const banned = await banMessage(memberId);
             await loadConflicts(memberId);
             if (!socket.connected) return; // 驗證期間已經斷線

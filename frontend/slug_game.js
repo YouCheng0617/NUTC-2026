@@ -1873,7 +1873,7 @@ const i18n = {
             unlockedBgs: ['sky'],
             unlockedEffects: ['none'],
             cooldowns: { feed: 0, clean: 0, pet: 0 },
-            // 🏆 翻牌對決勝場獎勵（勝場數以伺服器 my-pet 的 memory_wins 為準；卡背、服裝的選擇只存在這台裝置）
+            // 🏆 翻牌對決勝場獎勵（勝場數、卡背、服裝都以伺服器 my-pet 為準，跟著帳號走）
             memoryWins: 0,
             cardBack: 'classic',   // 3 勝解鎖，memory_game.js 的 CARD_BACKS
             outfit: 'none'         // 30 勝解鎖：none / king / queen
@@ -4239,6 +4239,12 @@ const effectData = {
                     if (data.is_named && data.pet_name) gameState.petName = data.pet_name;
                     if (data.coin !== undefined) gameState.points = data.coin;
                     if (typeof data.memory_wins === 'number') gameState.memoryWins = data.memory_wins;
+                    // 翻牌對決的卡背、服裝跟著帳號走：伺服器存過就用伺服器的；
+                    // 伺服器還沒存過（改版前只存在這台裝置）就把這台的選擇補存上去
+                    if (data.memory_card_back) gameState.cardBack = data.memory_card_back;
+                    else if (gameState.cardBack && gameState.cardBack !== 'classic') fetchAPI('/pet-games/memory-rewards/card-back', 'PUT', { cardBack: gameState.cardBack });
+                    if (data.memory_royal_outfit) gameState.outfit = data.memory_royal_outfit;
+                    else if (gameState.outfit && gameState.outfit !== 'none') fetchAPI('/pet-games/memory-rewards/royal-outfit', 'PUT', { outfit: gameState.outfit });
 
                     // 同步目前裝備：伺服器的值是有效商品才採用；
                     // 資料庫預設值 (「經典雪兔」「基礎藍」) 不在商品清單裡，代表從沒透過伺服器換過裝，保留本機的 (例如抽到的寵物)

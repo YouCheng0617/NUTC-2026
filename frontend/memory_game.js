@@ -193,6 +193,18 @@
         return myWins() >= CARD_BACK_WINS && CARD_BACKS.some((b) => b.id === id) ? id : 'classic';
     }
     function saveState() { if (typeof saveGame === 'function') saveGame(); }
+    // 卡背、服裝存到伺服器，換裝置也還在（存不成功就先留在這台，下次打開會再同步）
+    function saveLookToServer(kind, value) {
+        if (typeof fetchAPI !== 'function' || typeof GAME_TOKEN === 'undefined' || !GAME_TOKEN) return;
+        if (kind === 'cardBack') fetchAPI('/pet-games/memory-rewards/card-back', 'PUT', { cardBack: value });
+        else fetchAPI('/pet-games/memory-rewards/royal-outfit', 'PUT', { outfit: value });
+    }
+    // 伺服器 my-pet 回來的卡背、服裝套到遊戲裡（伺服器沒存過就保留這台的）
+    function applyLookFromServer(pet) {
+        if (!pet || !hasGame()) return;
+        if (pet.memory_card_back) gameState.cardBack = pet.memory_card_back;
+        if (pet.memory_royal_outfit) gameState.outfit = pet.memory_royal_outfit;
+    }
 
     function isEn() {
         try { return typeof currLang !== 'undefined' && currLang === 'en'; } catch (e) { return false; }
@@ -653,6 +665,7 @@
                 opt.addEventListener('click', () => {
                     gameState.cardBack = b.id;
                     saveState();
+                    saveLookToServer('cardBack', b.id);
                     applyCardBack();
                     renderPick();
                 });
@@ -683,6 +696,7 @@
                 opt.addEventListener('click', () => {
                     gameState.outfit = kind;
                     saveState();
+                    saveLookToServer('outfit', kind);
                     if (typeof applyOutfit === 'function') applyOutfit();
                     renderPick();
                 });
@@ -998,6 +1012,7 @@
             const wins = pet && (pet.memory_wins ?? (pet.data && pet.data.memory_wins));
             if (typeof wins === 'number') {
                 lastWins = wins;
+                applyLookFromServer(pet.memory_wins !== undefined ? pet : pet.data);
                 if (hasGame()) { gameState.memoryWins = wins; saveState(); }
                 ensureJokerOwned();
                 if (typeof applyOutfit === 'function') applyOutfit();

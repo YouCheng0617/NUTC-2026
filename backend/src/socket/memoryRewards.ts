@@ -65,15 +65,25 @@ export const setCardBack = async (memberId: number, cardBack: unknown) => {
     return getMemoryRewards(memberId);
 };
 
-/* PUT /pet-games/memory-rewards/royal-outfit { outfit }：king / queen，null = 不穿 */
-export const setRoyalOutfit = async (memberId: number, outfit: unknown) => {
+/* PUT /pet-games/memory-rewards/royal-outfit { outfit }：king / queen / none（前端用 "none" 表示不穿，null 也當不穿）
+   資料庫存 "none" 而不是 null：null 留給「從沒選過」，前端才知道要不要把這台裝置以前的選擇補存上來 */
+export const setRoyalOutfit = async (memberId: number, rawOutfit: unknown) => {
+    const outfit = rawOutfit === null ? 'none' : rawOutfit;
     const pet = await getPet(memberId);
     if (pet.memory_wins < R.royalOutfit.wins) throw new Error(`翻牌對決贏滿 ${R.royalOutfit.wins} 場才能穿上披風皇冠喔！`);
-    if (outfit !== null && !(typeof outfit === 'string' && (R.royalOutfit.options as readonly string[]).includes(outfit))) {
+    if (!(typeof outfit === 'string' && (outfit === 'none' || (R.royalOutfit.options as readonly string[]).includes(outfit)))) {
         throw new Error('只能選國王裝或皇后裝');
     }
-    await prisma.pet.update({ where: { member_id: memberId }, data: { memory_royal_outfit: outfit as string | null } });
+    await prisma.pet.update({ where: { member_id: memberId }, data: { memory_royal_outfit: outfit } });
     return getMemoryRewards(memberId);
+};
+
+/* 進連線房間時檢查玩家資料裡的服裝（前端 slug_game.js 的 getPlayerData 會夾帶 outfit）：
+   沒贏滿 30 場、或不是 king / queen，就當作沒穿，避免自己改資料穿上國王裝給別人看 */
+export const allowedOutfit = async (memberId: number, outfit: unknown): Promise<string | undefined> => {
+    if (typeof outfit !== 'string' || !(R.royalOutfit.options as readonly string[]).includes(outfit)) return undefined;
+    const pet = await prisma.pet.findUnique({ where: { member_id: memberId }, select: { memory_wins: true } });
+    return pet && pet.memory_wins >= R.royalOutfit.wins ? outfit : undefined;
 };
 
 /* POST /pet-games/memory-rewards/throne-seen：前端播完王座動畫後呼叫，下次就不會自動再播 */

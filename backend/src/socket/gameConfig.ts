@@ -69,7 +69,8 @@ export const gameConfig = {
         //   30 勝 披風皇冠：國王裝或皇后裝擇一，隨時可換、也可以不穿
         //   100 勝 登上王座的神秘動畫：達成那場通知前端播放，之後可重播
         rewards: {
-            cardBackBox: { wins: 3, options: ["classic", "stars", "berry", "mint", "sakura", "candy", "ocean", "royal"] }, // 同 memory_game.js 的 CARD_BACKS
+            // 同 memory_game.js 的 CARD_BACKS：經典、漂流瓶、瓶中信、浪花、夜海、沙灘、心情彩虹、海兔家族
+            cardBackBox: { wins: 3, options: ["classic", "bottle", "letter", "ocean", "stars", "sand", "mood", "bunny"] },
             royalOutfit: { wins: 30, options: ["king", "queen"] },
             throneAnimation: { wins: 100 },
         }
