@@ -3059,6 +3059,56 @@
             .redeem-btn { width: 100%; min-height: 48px; }
         }
 
+/* ⚠️ 【遊戲提醒彈窗】取代瀏覽器的 alert；翻牌對決中途離開的處罰用橘色（is-penalty） */
+        .game-alert {
+            width: min(360px, calc(100vw - 32px)); max-width: 360px; padding: 28px 22px 22px;
+            max-height: calc(100vh - 32px); max-height: calc(100dvh - 32px); overflow-y: auto;   /* 手機橫放也不會超出螢幕 */
+        }
+        .game-alert.is-penalty { border-color: #fdba74; }
+        .game-alert-icon {
+            width: 64px; height: 64px; margin: 0 auto 12px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 2rem; font-weight: 900; line-height: 1;
+            background: #ffe4ec; color: var(--accent-color);
+        }
+        .game-alert.is-penalty .game-alert-icon { background: #ffedd5; color: #ea580c; }
+        .game-alert-title { margin: 0 0 8px; font-size: 1.2rem; font-weight: 900; color: var(--text-dark); }
+        .game-alert-msg { margin: 0 0 16px; font-size: 0.95rem; font-weight: 700; line-height: 1.6; color: var(--text-dim); overflow-wrap: anywhere; }
+        .game-alert-chips { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin: -4px 0 18px; }
+        .game-alert-chips:empty { display: none; }
+        .game-alert-chip { padding: 6px 12px; border-radius: 999px; background: #fff7ed; border: 2px solid #fed7aa; color: #9a3412; font-size: 0.85rem; font-weight: 900; }
+        .game-alert-chip.is-coin { background: #fef2f2; border-color: #fecaca; color: #b91c1c; }
+        .game-alert-ok { width: 100%; }
+        .game-alert.is-penalty .game-alert-ok { background: #f97316; box-shadow: 0 5px 0 #c2410c; }
+        .game-alert.is-penalty .game-alert-ok:active { box-shadow: 0 0 0 transparent; }
+        /* 📱 手機直放：留白縮小、說明文字靠左比較好讀、按鈕放大好按 */
+        @media (max-width: 480px) {
+            .game-alert {
+                width: calc(100vw - 32px - env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px));
+                padding: 24px 18px calc(18px + env(safe-area-inset-bottom, 0px)); border-radius: 28px;
+            }
+            .game-alert-icon { width: 56px; height: 56px; font-size: 1.7rem; margin-bottom: 10px; }
+            .game-alert-title { font-size: 1.1rem; }
+            .game-alert-msg { font-size: 0.9rem; line-height: 1.65; text-align: left; }
+            .game-alert-chips { gap: 6px; }
+            .game-alert-chip { padding: 6px 10px; font-size: 0.8rem; }
+            .game-alert-ok { min-height: 52px; font-size: 1.05rem; }
+        }
+        /* 📱 超窄螢幕（320px 左右）：標籤再縮一點，三個才不會各占一排 */
+        @media (max-width: 360px) {
+            .game-alert { padding: 20px 14px 16px; }
+            .game-alert-chip { padding: 5px 8px; font-size: 0.74rem; }
+        }
+        /* 📱 手機橫放（很矮）：圖示和留白縮小，整個視窗擠得進螢幕 */
+        @media (max-height: 520px) {
+            .game-alert { padding: 16px 20px 14px; }
+            .game-alert-icon { width: 44px; height: 44px; font-size: 1.4rem; margin-bottom: 6px; }
+            .game-alert-title { margin-bottom: 4px; }
+            .game-alert-msg { margin-bottom: 10px; line-height: 1.5; }
+            .game-alert-chips { margin-bottom: 12px; }
+            .game-alert-ok { min-height: 44px; }
+        }
+
 /* 😴 【待機畫面】跟論壇主頁同一套樣式（slug_idle.js），中間換成玩家自己睡覺的海兔 */
 .slug-idle {
   position: fixed;

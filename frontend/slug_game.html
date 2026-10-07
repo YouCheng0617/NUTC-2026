@@ -11,7 +11,7 @@
 
     </script>
 
-        <link rel="stylesheet" href="slug_game.css?v=20261008c">
+        <link rel="stylesheet" href="slug_game.css?v=20261008e">
         <link rel="stylesheet" href="memory_game.css?v=20261007t">
 
 </head>
@@ -515,6 +515,17 @@
         </div>
     </div>
 
+    <!-- ⚠️ 【遊戲提醒彈窗】取代瀏覽器內建的 alert：連線錯誤、翻牌對決中途離開的處罰都用這個；內容由 showGameAlert() 填 -->
+    <div class="name-modal-overlay" id="gameAlertOverlay" style="z-index: 1000010;" onclick="if (event.target === this) closeGameAlert()">
+        <div class="name-modal game-alert" id="gameAlertBox" role="alertdialog" aria-labelledby="gameAlertTitle" aria-describedby="gameAlertMsg">
+            <div class="game-alert-icon" id="gameAlertIcon" aria-hidden="true"></div>
+            <h2 class="game-alert-title" id="gameAlertTitle"></h2>
+            <p class="game-alert-msg" id="gameAlertMsg"></p>
+            <div class="game-alert-chips" id="gameAlertChips"></div>
+            <button type="button" class="modal-btn btn-confirm game-alert-ok" id="gameAlertOk" onclick="closeGameAlert()"></button>
+        </div>
+    </div>
+
     <!-- 🌟 【連線加載畫面】創房間／進房間時跑 3 秒的假進度條，純前端動畫 -->
     <div class="name-modal-overlay room-loading-overlay" id="roomLoadingOverlay" style="z-index: 10050;">
         <div class="name-modal">
@@ -839,7 +850,7 @@
         </div>
     </div>
 
-        <script src="slug_game.js?v=20261008a"></script>
+        <script src="slug_game.js?v=20261008d"></script>
         <script src="memory_game.js?v=20261007t"></script>
         <script src="slug_social.js?v=20261008c"></script>
         <script src="slug_idle.js?v=20261007t"></script>

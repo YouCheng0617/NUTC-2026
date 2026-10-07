@@ -512,10 +512,63 @@ let GAME_TOKEN = localStorage.getItem('authToken') || localStorage.getItem('acce
                         showJoinError(trText(err.message || '加入失敗，請再試一次'));
                         return;
                     }
-                    alert(trText(err.message || "發生錯誤"));
+                    showGameAlert(err.message || "發生錯誤");
                 });
             } catch (e) { console.log('Socket.IO 未連線'); }
         }
+
+        // ⚠️ 【遊戲提醒彈窗】取代 alert()：存中文原文，切語言時重畫；連續來好幾則就排隊，一則一則看
+        const gameAlertQueue = [];
+        function showGameAlert(message) {
+            gameAlertQueue.push(String(message || '發生錯誤'));
+            if (gameAlertQueue.length === 1) renderGameAlert();
+        }
+        function isGameAlertOpen() { return gameAlertQueue.length > 0; }
+        function renderGameAlert() {
+            const raw = gameAlertQueue[0];
+            if (raw === undefined) return;
+            const zh = currLang !== 'en';
+            const box = document.getElementById('gameAlertBox');
+            const chips = [];
+            let icon = '!', title = zh ? '提醒' : 'Heads up', msg = trText(raw), penalty = false, m;
+            if ((m = raw.match(/第 (\d+) 次中途離開翻牌對決，扣 (\d+) 積分，(\d+) 分鐘/))) {
+                // 翻牌對決中途離開的處罰：重點數字拉出來做成標籤
+                penalty = true; icon = '⏳';
+                title = zh ? '中途離開了翻牌對決' : 'You left a Memory Match early';
+                msg = zh ? '對決打到一半離開，其他玩家就沒辦法好好比完，所以有小小的處罰。今天離開的次數越多，處罰會越重，下次記得打完再走喔！'
+                         : "Leaving halfway spoils the match for everyone else, so there's a small penalty. It grows the more times you leave in a day — try to finish next time!";
+                chips.push({ text: zh ? `扣 ${m[2]} 積分` : `−${m[2]} coins`, cls: 'is-coin' });
+                chips.push({ text: zh ? `${m[3]} 分鐘內不能進房` : `No rooms for ${m[3]} min` });
+                chips.push({ text: zh ? `今天第 ${m[1]} 次` : `#${m[1]} today` });
+            } else if ((m = raw.match(/還要 (\d+) 分鐘才能進連線房間/))) {
+                penalty = true; icon = '⏳';
+                title = zh ? '暫時不能進房間' : 'Rooms locked for now';
+                chips.push({ text: zh ? `還要 ${m[1]} 分鐘` : `${m[1]} min left` });
+            }
+            box.classList.toggle('is-penalty', penalty);
+            document.getElementById('gameAlertIcon').textContent = icon;
+            document.getElementById('gameAlertTitle').textContent = title;
+            document.getElementById('gameAlertMsg').textContent = msg;
+            const chipWrap = document.getElementById('gameAlertChips');
+            chipWrap.innerHTML = '';
+            chips.forEach(c => {
+                const el = document.createElement('span');
+                el.className = 'game-alert-chip' + (c.cls ? ' ' + c.cls : '');
+                el.textContent = c.text;
+                chipWrap.appendChild(el);
+            });
+            document.getElementById('gameAlertOk').textContent = zh ? '我知道了' : 'Got it';
+            document.getElementById('gameAlertOverlay').style.display = 'flex';
+            document.getElementById('gameAlertOk').focus();
+        }
+        function closeGameAlert() {
+            gameAlertQueue.shift();
+            if (gameAlertQueue.length) renderGameAlert();
+            else document.getElementById('gameAlertOverlay').style.display = 'none';
+        }
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && isGameAlertOpen()) closeGameAlert();
+        });
 
         // 按開房／加入時如果還沒連上，先等一下（最多 6 秒），不要馬上就說伺服器沒連線
         function waitForSocket(ms = 6000) {
@@ -5641,6 +5694,7 @@ slugEl.style.transform = slugTransform(`scaleX(${direction})`);
             if (window.SlugSocial) SlugSocial.refreshLang();
             renderRoomStatus(lastRoomStatusText);
             if (isBoardOpen()) { renderBoardStatic(); renderBoardCompose(); renderBoardList(); }
+            if (isGameAlertOpen()) renderGameAlert();
         }
 
 function updateLangUI() {
@@ -12443,7 +12497,7 @@ default:
             });
 
             if (newTaunts.length === 0) {
-                alert(trText('至少要輸入一句嘲諷字句哦！'));
+                showGameAlert('至少要輸入一句嘲諷字句哦！');
                 return;
             }
 
