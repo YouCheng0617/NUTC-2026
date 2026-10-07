@@ -18,7 +18,8 @@ export class AuthController {
             if (!verifyCaptcha(captchaId, userInput)) {
                 return res.status(400).json({ message: "驗證碼錯誤或已過期，請重新輸入" });
             }
-            if (!email || !password) {
+            /*只接受字串，傳物件或陣列進來會讓後面的 trim 拋出內部例外*/
+            if (typeof email !== "string" || typeof password !== "string" || !email || !password) {
                 return res.status(400).json({ message: "信箱與密碼為必填欄位" });
             }
             const token = await loginMember(email, password);

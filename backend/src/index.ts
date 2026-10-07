@@ -1,9 +1,10 @@
 /*nodeJS套件引用區*/
-import express from 'express';
+import express, { type NextFunction, type Request, type Response } from 'express';
 import cors from 'cors';
 import { createServer } from 'http';
 import { Server } from 'socket.io';
 import path from 'path';
+import multer from 'multer';
 
 /*Router引用區*/
 import { initCron } from './lib/cron.js';
@@ -30,6 +31,7 @@ import "dotenv/config";
 
 
 const app = express();
+app.disable('x-powered-by'); /*不在回應標頭透露使用 Express*/
 const httpServer = createServer(app);
 
 export const io = new Server(httpServer, {
@@ -70,6 +72,31 @@ app.get('/', (req, res) => {
 app.get('/captcha', captchaLimiter, (req, res) => {
     const { captchaId, image } = generateCaptcha();
     res.json({ captchaId, image });
+});
+
+/*
+ * 全域錯誤處理：放在所有路由之後
+ * 壞掉的 JSON、太大的請求或沒接住的例外，對外只回固定的 JSON 訊息，
+ * 完整堆疊只寫在伺服器 log，不洩漏主機路徑與套件版本
+ */
+app.use((err: any, req: Request, res: Response, next: NextFunction) => {
+    if (res.headersSent) return next(err);
+
+    const status = Number(err?.status ?? err?.statusCode);
+    const isClientError = status >= 400 && status < 500;
+
+    let message = "伺服器發生錯誤，請稍後再試";
+    if (err?.type === "entity.parse.failed") message = "請求內容格式錯誤";
+    else if (err?.type === "entity.too.large") message = "請求內容太大";
+    else if (err instanceof multer.MulterError) message = "上傳檔案不符合規定";
+    else if (isClientError) message = "請求有誤";
+
+    if (isClientError || err instanceof multer.MulterError) {
+        console.warn(`⚠️ [請求錯誤] ${req.method} ${req.originalUrl}：${err?.message}`);
+    } else {
+        console.error(`❌ [未處理例外] ${req.method} ${req.originalUrl}`, err);
+    }
+    res.status(isClientError ? status : err instanceof multer.MulterError ? 400 : 500).json({ message });
 });
 
 io.on("connection", (socket) => {
