@@ -29,15 +29,15 @@
             reward_joker: '小丑海兔', rewardSub_joker: '專屬皮膚',
             reward_outfit: '披風皇冠', rewardSub_outfit: '國王裝或皇后裝',
             reward_throne: '登上王座', rewardSub_throne: '神秘動畫',
-            act_cardBack: '選卡背', act_joker: '穿上', act_jokerOn: '穿著中', act_outfit: '換裝', act_throne: '重播',
+            act_cardBack: '選卡背', act_joker: '選配色', act_jokerOn: '換配色', act_outfit: '換裝', act_throne: '重播',
             cardBackTitle: '🎴 選擇卡背', cardBackHint: '隨時都能換，只有你自己的畫面會變成這個卡背',
             outfitTitle: '👑 選擇服裝', outfitNone: '不穿', outfitHint: '穿在魚缸裡的海兔身上，連線時其他人也看得到',
             outfitRoomNote: '你現在在房間裡：其他人要等你下次進房，才會看到新服裝',
             using: '使用中', pickDone: '完成',
             unlockTitle: '🎉 解鎖新獎勵！',
-            unlock_cardBack: '贏滿 3 場！所有卡背都能隨你換囉', unlock_joker: '贏滿 10 場！小丑海兔皮膚已經送進背包',
+            unlock_cardBack: '贏滿 3 場！所有卡背都能隨你換囉', unlock_joker: '贏滿 10 場！小丑海兔送進背包了，四種配色任你挑',
             unlock_outfit: '贏滿 30 場！國王裝和皇后裝任你挑', unlockLater: '等等再說',
-            jokerWorn: '🤡 換上小丑海兔了！',
+            jokerWorn: '🤡 換上小丑海兔了！', jokerTitle: '🤡 小丑海兔配色', jokerHint: '選一種配色馬上穿上，隨時都能換；連線時其他人也看得到',
             throneTitle: '👑 登上王座！', throneSub: '翻牌對決 100 勝，你就是記憶之王！', throneBtn: '太棒了！', throneSkip: '點一下跳過',
             albumOpen: '📖 卡牌圖鑑', albumOpenSub: '先看看有哪些牌',
             pickPairs: '選擇對決組數', start: '開始對決！', wait: '等房主選好組數開始對決…',
@@ -92,15 +92,15 @@
             reward_joker: 'Joker Bunny', rewardSub_joker: 'Exclusive skin',
             reward_outfit: 'Cape & Crown', rewardSub_outfit: 'King or Queen outfit',
             reward_throne: 'The Throne', rewardSub_throne: 'Secret animation',
-            act_cardBack: 'Pick', act_joker: 'Wear', act_jokerOn: 'Wearing', act_outfit: 'Dress up', act_throne: 'Replay',
+            act_cardBack: 'Pick', act_joker: 'Pick colors', act_jokerOn: 'Change colors', act_outfit: 'Dress up', act_throne: 'Replay',
             cardBackTitle: '🎴 Card Backs', cardBackHint: 'Switch anytime — only your own screen shows it',
             outfitTitle: '👑 Outfit', outfitNone: 'None', outfitHint: 'Your sea bunny wears it in the tank, and other players see it online',
             outfitRoomNote: "You're in a room — others will see the new outfit the next time you join",
             using: 'In use', pickDone: 'Done',
             unlockTitle: '🎉 New reward unlocked!',
-            unlock_cardBack: '3 wins! Every card back is yours to switch', unlock_joker: '10 wins! The Joker Bunny skin is in your bag',
+            unlock_cardBack: '3 wins! Every card back is yours to switch', unlock_joker: '10 wins! The Joker Bunny is in your bag — pick one of four color sets',
             unlock_outfit: '30 wins! Pick the King or Queen outfit', unlockLater: 'Later',
-            jokerWorn: '🤡 Joker Bunny on!',
+            jokerWorn: '🤡 Joker Bunny on!', jokerTitle: '🤡 Joker Bunny Colors', jokerHint: 'Pick a color set to wear it right away — switch anytime. Other players see it online too',
             throneTitle: '👑 To the Throne!', throneSub: '100 Memory Match wins — you are the Memory Master!', throneBtn: 'Awesome!', throneSkip: 'Tap to skip',
             albumOpen: '📖 Card Album', albumOpenSub: 'See all the cards first',
             pickPairs: 'How many pairs?', start: 'Start!', wait: 'Waiting for the host to start…',
@@ -228,11 +228,17 @@
 
     // 牌面：用寵物顏色畫一隻小海兔（簡化版，100 張同時畫也不會卡）
     // outfit：king / queen 會加上 slug_game.js 的 OUTFITS 披風皇冠（換裝預覽、王座動畫用）
-    function petSVG(colorKey, outfit) {
-        const spec = (typeof speciesData !== 'undefined' && speciesData[colorKey]) || speciesData.snow;
+    // jokerStyle：小丑海兔的配色 a～d（slug_game.js 的 JOKER_STYLES），會加上紅鼻子等配件
+    function petSVG(colorKey, outfit, jokerStyle) {
+        const isJokerSkin = colorKey === 'joker' && typeof speciesSpec === 'function';
+        const spec = isJokerSkin ? speciesSpec('joker', jokerStyle)
+            : ((typeof speciesData !== 'undefined' && speciesData[colorKey]) || speciesData.snow);
         const wear = outfit && typeof OUTFITS !== 'undefined' ? OUTFITS[outfit] : null;
+        const skinExtra = isJokerSkin && typeof jokerExtraSVG === 'function' ? jokerExtraSVG(jokerStyle) : '';
+        // 有披風、皇冠或小丑毛球時畫面要大一點，才不會切到耳朵尖端和身體左邊
+        const viewBox = wear || skinExtra ? '12 0 316 230' : '40 15 270 210';
         return `
-            <svg viewBox="40 15 270 210" aria-hidden="true">
+            <svg viewBox="${viewBox}" aria-hidden="true">
                 ${wear ? wear.back : ''}
                 <g stroke="${spec.outline}" stroke-width="5" stroke-linejoin="round">
                     <path d="M 250 170 C 270 180, 300 190, 290 140 C 280 100, 250 140, 240 170 Z" fill="${spec.tail}"/>
@@ -251,6 +257,7 @@
                     <circle cx="-17" cy="-3" r="3" fill="#fff"/><circle cx="23" cy="-3" r="3" fill="#fff"/>
                     <path d="M -7 5 Q 0 12 7 5" fill="none" stroke="#2c3e50" stroke-width="4" stroke-linecap="round"/>
                 </g>
+                ${skinExtra}
                 ${wear ? wear.front : ''}
             </svg>`;
     }
@@ -587,7 +594,6 @@
                 const wearing = r.id === 'joker' && hasGame() && gameState.currentSpecies === 'joker';
                 const btn = el('button', 'mg-reward-btn', wearing ? T('act_jokerOn') : T('act_' + r.id));
                 btn.type = 'button';
-                btn.disabled = wearing;
                 btn.addEventListener('click', () => rewardAction(r.id));
                 tile.appendChild(btn);
             }
@@ -598,7 +604,7 @@
     function rewardAction(id) {
         if (id === 'cardBack') openPick('cardBack');
         else if (id === 'outfit') openPick('outfit');
-        else if (id === 'joker') wearJoker();
+        else if (id === 'joker') openPick('joker');
         else if (id === 'throne') playThrone();
     }
 
@@ -611,11 +617,21 @@
             if (typeof renderShop === 'function') renderShop();
         }
     }
-    function wearJoker() {
+    // 選一種配色並穿上（還沒穿小丑海兔的話順便換上，equipItem 會通知伺服器）
+    function wearJoker(style) {
         ensureJokerOwned();
-        if (typeof equipItem === 'function') equipItem('joker', 'species');
-        showFloatText(T('jokerWorn'));
+        if (hasGame()) { gameState.jokerStyle = style; saveState(); }
+        const already = hasGame() && gameState.currentSpecies === 'joker';
+        if (!already && typeof equipItem === 'function') equipItem('joker', 'species');
+        else if (typeof refreshAll === 'function') refreshAll();
+        if (!already) showFloatText(T('jokerWorn'));
         renderRewards();
+    }
+    // 記分板上每個人的小丑配色：自己看 gameState，別人看進房時帶來的 playerData
+    function jokerStyleOfPlayer(socketId) {
+        if (socketId === myId()) return hasGame() ? gameState.jokerStyle : null;
+        const p = typeof otherPlayersData !== 'undefined' ? otherPlayersData[socketId] : null;
+        return p ? p.jokerStyle : null;
     }
 
     // ---------- 🎴 選卡背／👑 換裝／🎉 解鎖通知（同一個面板） ----------
@@ -676,6 +692,31 @@
             return;
         }
 
+        if (pickMode === 'joker') {
+            $('mgPickTitle').textContent = T('jokerTitle');
+            body.appendChild(el('p', 'mg-pick-hint', T('jokerHint')));
+            if (typeof currentRoomId !== 'undefined' && currentRoomId) body.appendChild(el('p', 'mg-pick-note', T('outfitRoomNote')));
+            const grid = el('div', 'mg-pick-grid is-jokers');
+            const wearing = hasGame() && gameState.currentSpecies === 'joker';
+            const current = wearing && typeof jokerStyleOf === 'function' ? jokerStyleOf(gameState.jokerStyle) : null;
+            const outfit = typeof activeOutfit === 'function' && activeOutfit() !== 'none' ? activeOutfit() : null;
+            Object.keys(typeof JOKER_STYLES !== 'undefined' ? JOKER_STYLES : {}).forEach((style) => {
+                const opt = el('button', 'mg-pick-opt' + (style === current ? ' is-active' : ''));
+                opt.type = 'button';
+                opt.setAttribute('aria-pressed', style === current);
+                const pic = el('div', 'mg-outfit-sample');
+                pic.innerHTML = petSVG('joker', outfit, style);
+                opt.appendChild(pic);
+                opt.appendChild(el('span', 'mg-pick-name', JOKER_STYLES[style].name[isEn() ? 'en' : 'zh']));
+                if (style === current) opt.appendChild(el('span', 'mg-pick-using', T('using')));
+                opt.addEventListener('click', () => { wearJoker(style); renderPick(); });
+                grid.appendChild(opt);
+            });
+            body.appendChild(grid);
+            done.textContent = T('pickDone');
+            return;
+        }
+
         if (pickMode === 'outfit') {
             $('mgPickTitle').textContent = T('outfitTitle');
             body.appendChild(el('p', 'mg-pick-hint', T('outfitHint')));
@@ -688,7 +729,7 @@
                 opt.type = 'button';
                 opt.setAttribute('aria-pressed', kind === current);
                 const pic = el('div', 'mg-outfit-sample');
-                pic.innerHTML = petSVG(species, kind === 'none' ? null : kind);
+                pic.innerHTML = petSVG(species, kind === 'none' ? null : kind, gameState.jokerStyle);
                 opt.appendChild(pic);
                 const name = kind === 'none' ? T('outfitNone') : (OUTFITS[kind].name[isEn() ? 'en' : 'zh']);
                 opt.appendChild(el('span', 'mg-pick-name', name));
@@ -786,7 +827,7 @@
                     <rect x="24" y="142" width="152" height="30" rx="12" fill="#facc15" stroke="#a16207" stroke-width="6"/>
                     <rect x="40" y="132" width="120" height="16" rx="8" fill="#ef4444" stroke="#7f1d1d" stroke-width="4"/>
                 </svg>
-                <div class="mg-throne-pet">${petSVG(species, outfit)}</div>
+                <div class="mg-throne-pet">${petSVG(species, outfit, hasGame() ? gameState.jokerStyle : null)}</div>
                 <div class="mg-throne-flash"></div>
                 <div class="mg-throne-confetti"></div>
             </div>
@@ -1073,7 +1114,7 @@
             if (p.socketId === state.turn) chip.classList.add('is-turn');
             if (p.socketId === myId()) chip.classList.add('is-me');
             const icon = el('span', 'mg-score-icon');
-            icon.innerHTML = petSVG(p.petColor);
+            icon.innerHTML = petSVG(p.petColor, null, jokerStyleOfPlayer(p.socketId));
             chip.appendChild(icon);
             chip.appendChild(el('span', 'mg-score-name', p.socketId === myId() ? T('me', p.petName) : p.petName));
             chip.appendChild(el('span', 'mg-score-num', String(p.score)));

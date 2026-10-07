@@ -167,11 +167,12 @@
     padding: 2px 2px 6px;
     overscroll-behavior: contain; -webkit-overflow-scrolling: touch;
 }
-.mg-rules-done {
+/* 面板底部的大按鈕用淺粉紅（要寫成 .mg-start.mg-rules-done，不然會被後面的 .mg-start 蓋掉） */
+.mg-start.mg-rules-done {
     flex: none; width: 100%;
     background: #fbcfe8; color: #be185d; box-shadow: 0 5px 0 #f9a8d4;
 }
-.mg-rules-done:active { box-shadow: none; }
+.mg-start.mg-rules-done:active { box-shadow: none; }
 .mg-host-only { display: flex; flex-direction: column; align-items: center; gap: 12px; }
 .mg-label { font-weight: 900; }
 .mg-pairs { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; }
@@ -632,6 +633,8 @@
 .mg-pick-grid { display: grid; gap: 10px; }
 .mg-pick-grid.is-backs { grid-template-columns: repeat(auto-fill, minmax(88px, 1fr)); }
 .mg-pick-grid.is-outfits { grid-template-columns: repeat(3, 1fr); }
+.mg-pick-grid.is-jokers { grid-template-columns: repeat(2, 1fr); }
+.mg-pick-grid.is-jokers .mg-outfit-sample { max-width: 150px; }
 .mg-pick-opt {
     position: relative;
     display: flex; flex-direction: column; align-items: center; gap: 6px;
@@ -652,7 +655,7 @@
     display: flex; align-items: center; justify-content: center;
     border-radius: 10px; font-size: 1.3rem;
 }
-.mg-outfit-sample { width: 100%; max-width: 110px; aspect-ratio: 270 / 210; }
+.mg-outfit-sample { width: 100%; max-width: 110px; aspect-ratio: 316 / 230; }
 .mg-outfit-sample svg { width: 100%; height: 100%; display: block; }
 
 .mg-unlock { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 16px 6px; text-align: center; }

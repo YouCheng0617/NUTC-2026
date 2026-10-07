@@ -29,7 +29,9 @@
     function sleepingSlug() {
         const sd = typeof speciesData !== 'undefined' ? speciesData : null;
         const key = typeof gameState !== 'undefined' && gameState.currentSpecies;
-        const s = (sd && (sd[key] || sd.snow)) || { body: '#fff', outline: '#3f2a2a', earTop: '#3f2a2a', tail: '#3f2a2a', spot: '#3f2a2a', blush: '#fca5a5' };
+        // 小丑海兔照玩家選的配色（slug_game.js 的 speciesSpec）
+        const spec = sd && typeof speciesSpec === 'function' && sd[key] ? speciesSpec(key, gameState.jokerStyle) : null;
+        const s = spec || (sd && (sd[key] || sd.snow)) || { body: '#fff', outline: '#3f2a2a', earTop: '#3f2a2a', tail: '#3f2a2a', spot: '#3f2a2a', blush: '#fca5a5' };
         return `
             <svg class="slug-idle-pet" viewBox="20 0 320 240" aria-hidden="true">
                 <g stroke="${s.outline}" stroke-width="6" stroke-linejoin="round">

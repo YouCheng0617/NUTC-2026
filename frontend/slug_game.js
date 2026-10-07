@@ -647,7 +647,12 @@ let GAME_TOKEN = localStorage.getItem('authToken') || localStorage.getItem('acce
         // outfit：後端會把 playerData 原封不動轉給房間裡其他人，所以國王裝／皇后裝夾帶在這裡（進房時才會送）
         function getPlayerData() {
             const outfit = activeOutfit();
-            return { memberId: MP_MEMBER_ID, petName: gameState.petName || '小可愛', petColor: gameState.currentSpecies, ...(outfit !== 'none' ? { outfit } : {}) };
+            const isJoker = gameState.currentSpecies === 'joker';
+            return {
+                memberId: MP_MEMBER_ID, petName: gameState.petName || '小可愛', petColor: gameState.currentSpecies,
+                ...(outfit !== 'none' ? { outfit } : {}),
+                ...(isJoker ? { jokerStyle: jokerStyleOf(gameState.jokerStyle) } : {})
+            };
         }
         
         async function createSocketRoom() {
@@ -1485,9 +1490,10 @@ function copyRoomId() {
             const old = document.getElementById(`player-${p.socketId}`);
             if (old) old.remove();
             otherPlayersData[p.socketId] = p;
-            const spec = speciesData[p.petColor] || speciesData['snow'];
-            // 別人送來的服裝只認國王／皇后兩種，其他值一律不畫
+            const spec = speciesSpec(p.petColor, p.jokerStyle);
+            // 別人送來的服裝只認國王／皇后兩種，其他值一律不畫；小丑配色只認 a～d（jokerStyleOf 會擋掉）
             const outfit = OUTFITS[p.outfit] || null;
+            const skinExtra = p.petColor === 'joker' ? jokerExtraSVG(p.jokerStyle) : '';
             const el = document.createElement('div'); 
             el.className = 'other-player'; 
             el.id = `player-${p.socketId}`; 
@@ -1542,6 +1548,7 @@ function copyRoomId() {
                             <circle cx="22" cy="-2" r="2.5" fill="#ffffff" />
                             <path d="M -7 5 Q 0 12 7 5" fill="none" stroke="#2c3e50" stroke-width="3.5" stroke-linecap="round"/>
                         </g>
+                        ${skinExtra}
                         ${outfit ? outfit.front : ''}
                     </g>
                 </svg>
@@ -1876,8 +1883,40 @@ const i18n = {
             // 🏆 翻牌對決勝場獎勵（勝場數、卡背、服裝都以伺服器 my-pet 為準，跟著帳號走）
             memoryWins: 0,
             cardBack: 'classic',   // 3 勝解鎖，memory_game.js 的 CARD_BACKS
-            outfit: 'none'         // 30 勝解鎖：none / king / queen
+            outfit: 'none',        // 30 勝解鎖：none / king / queen
+            jokerStyle: 'a'        // 10 勝的小丑海兔配色：a / b / c / d（JOKER_STYLES）
         };
+
+        // 🤡 小丑海兔（翻牌對決 10 勝）：四種配色自選，配件都一樣（紅鼻子、眼睛上下紅菱形、耳朵尖端雙色毛球、亮晶晶眼睛）
+        //    後端只發一個 joker 皮膚，配色選擇存在這台裝置，進房時跟著 playerData 送給其他人
+        const JOKER_STYLES = {
+            a: { name: { zh: '撲克小丑', en: 'Poker Clown' }, body: '#fefce8', outline: '#581c87', earTop: '#a855f7', tail: '#22c55e', spot: '#ef4444', blush: '#fca5a5', pomA: '#facc15', pomB: '#22c55e' },
+            b: { name: { zh: '馬戲團小丑', en: 'Circus Clown' }, body: '#ffffff', outline: '#1e3a8a', earTop: '#ef4444', tail: '#facc15', spot: '#3b82f6', blush: '#fda4af', pomA: '#facc15', pomB: '#3b82f6' },
+            c: { name: { zh: '粉彩小丑', en: 'Pastel Clown' }, body: '#fdf2f8', outline: '#9d174d', earTop: '#f472b6', tail: '#60a5fa', spot: '#a78bfa', blush: '#f9a8d4', pomA: '#fde047', pomB: '#60a5fa' },
+            d: { name: { zh: '撲克牌 Joker', en: 'Card Joker' }, body: '#f1f5f9', outline: '#111827', earTop: '#7c3aed', tail: '#16a34a', spot: '#111827', blush: '#fca5a5', pomA: '#facc15', pomB: '#16a34a' }
+        };
+        function jokerStyleOf(style) { return JOKER_STYLES[style] ? style : 'a'; }
+        // 海兔的顏色：小丑海兔照選的配色，其他品種照 speciesData
+        function speciesSpec(key, jokerStyle) {
+            if (key === 'joker') return { ...speciesData.joker, ...JOKER_STYLES[jokerStyleOf(jokerStyle)] };
+            return speciesData[key] || speciesData.snow;
+        }
+        // 小丑配件（座標跟海兔 SVG 一樣 0 0 340 240），畫在五官上面、皇冠下面
+        function jokerExtraSVG(jokerStyle) {
+            const s = JOKER_STYLES[jokerStyleOf(jokerStyle)];
+            return `
+                <g stroke="${s.outline}" stroke-width="3.5">
+                    <circle cx="110" cy="23" r="10" fill="${s.pomA}"/><circle cx="174" cy="23" r="10" fill="${s.pomB}"/>
+                </g>
+                <g fill="#ffffff" opacity="0.85"><circle cx="106.5" cy="19.5" r="3"/><circle cx="170.5" cy="19.5" r="3"/></g>
+                <g fill="#ef4444" stroke="#b91c1c" stroke-width="1.5" stroke-linejoin="round">
+                    <path d="M 110 129 l 5 7 l -5 7 l -5 -7 Z"/><path d="M 150 129 l 5 7 l -5 7 l -5 -7 Z"/>
+                    <path d="M 110 159 l 6.5 10 l -6.5 10 l -6.5 -10 Z"/><path d="M 150 159 l 6.5 10 l -6.5 10 l -6.5 -10 Z"/>
+                </g>
+                <g fill="#ffffff"><circle cx="107" cy="153" r="1.6"/><circle cx="147" cy="153" r="1.6"/></g>
+                <circle cx="130" cy="160" r="9.5" fill="#ef4444" stroke="#991b1b" stroke-width="3"/>
+                <circle cx="126.5" cy="156.5" r="2.8" fill="#ffffff" opacity="0.85"/>`;
+        }
 
         // 👑 翻牌對決 30 勝的國王裝／皇后裝：座標跟海兔 SVG 一樣（viewBox 0 0 340 240）
         //    back 畫在身體後面（披風），front 畫在最前面（皇冠＋扣環）；memory_game.js 的王座動畫也用這份
@@ -6140,7 +6179,7 @@ function updateLangUI() {
                 }
                 
                 let previewStyle = typeKey === 'species'
-                    ? `background:${item.body}; border: 3px solid ${item.outline}`
+                    ? `background:${speciesSpec(key, gameState.jokerStyle).body}; border: 3px solid ${speciesSpec(key, gameState.jokerStyle).outline}`
                     : `border: 3px solid #cbd5e1`;
 
                 card.innerHTML = `
@@ -6197,7 +6236,7 @@ function updateLangUI() {
                 };
 
                 let previewStyle = typeKey === 'species'
-                    ? `background:${item.body}; border: 3px solid ${item.outline}`
+                    ? `background:${speciesSpec(key, gameState.jokerStyle).body}; border: 3px solid ${speciesSpec(key, gameState.jokerStyle).outline}`
                     : `border: 3px solid #cbd5e1`;
 
                 card.innerHTML = `
@@ -6364,8 +6403,12 @@ function tryItem(key, type) {
 
         // 把海兔塗上你選的顏色
         function applySlugStyles() {
-            const spec = speciesData[trialState.species || gameState.currentSpecies];
-            if(!spec) return;
+            const key = trialState.species || gameState.currentSpecies;
+            if (!speciesData[key]) return;
+            const spec = speciesSpec(key, gameState.jokerStyle);
+            // 🤡 小丑海兔才有的配件
+            const extra = document.getElementById('slugSkinExtra');
+            if (extra) extra.innerHTML = key === 'joker' ? jokerExtraSVG(gameState.jokerStyle) : '';
 
             const root = document.documentElement;
             root.style.setProperty('--c-body', spec.body);
