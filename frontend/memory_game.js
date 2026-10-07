@@ -173,16 +173,17 @@
         { id: 'throne', wins: 100, icon: '🏰' }
     ];
     const CARD_BACK_WINS = 3;
-    // 🎴 卡背：樣式在 memory_game.css 的 [data-back="..."]
+    // 🎴 卡背：照「心情漂流瓶」的主題（大海、漂流瓶、瓶中信、五個心情海域、海兔），樣式在 memory_game.css 的 [data-back="..."]
+    // 存檔裡是舊卡背（已拿掉的）會自動回到 classic
     const CARD_BACKS = [
-        { id: 'classic', icon: '🫧', zh: '經典泡泡', en: 'Bubbles' },
-        { id: 'stars', icon: '⭐', zh: '星星夜空', en: 'Starry Night' },
-        { id: 'berry', icon: '🍓', zh: '草莓格紋', en: 'Strawberry Check' },
-        { id: 'mint', icon: '🍃', zh: '薄荷波點', en: 'Mint Dots' },
-        { id: 'sakura', icon: '🌸', zh: '櫻花粉', en: 'Sakura' },
-        { id: 'candy', icon: '🍬', zh: '彩虹糖果', en: 'Rainbow Candy' },
-        { id: 'ocean', icon: '🐚', zh: '海浪貝殼', en: 'Ocean Waves' },
-        { id: 'royal', icon: '👑', zh: '皇家紫金', en: 'Royal Gold' }
+        { id: 'classic', zh: '海底泡泡', en: 'Sea Bubbles' },
+        { id: 'bottle', zh: '漂流瓶', en: 'Drift Bottle' },
+        { id: 'letter', zh: '瓶中信', en: 'Message in a Bottle' },
+        { id: 'ocean', zh: '浪花朵朵', en: 'Waves' },
+        { id: 'stars', zh: '夜海星光', en: 'Night Sea' },
+        { id: 'sand', zh: '沙灘貝殼', en: 'Seashell Beach' },
+        { id: 'mood', zh: '心情彩虹', en: 'Mood Rainbow' },
+        { id: 'bunny', zh: '海兔家族', en: 'Sea Bunny Family' }
     ];
 
     function hasGame() { return typeof gameState !== 'undefined' && gameState; }
@@ -191,7 +192,6 @@
         const id = hasGame() ? gameState.cardBack : 'classic';
         return myWins() >= CARD_BACK_WINS && CARD_BACKS.some((b) => b.id === id) ? id : 'classic';
     }
-    function cardBackIcon(id) { return (CARD_BACKS.find((b) => b.id === id) || CARD_BACKS[0]).icon; }
     function saveState() { if (typeof saveGame === 'function') saveGame(); }
 
     function isEn() {
