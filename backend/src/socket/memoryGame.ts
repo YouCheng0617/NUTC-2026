@@ -125,6 +125,12 @@ const recordWin = async (memberId: number) => {
     return { wins: pet.memory_wins, jokerSkinUnlocked };
 };
 
+/* 連線時已驗證的帳號（petServer 存在 socket.data.memberId），沒有才看 memory_identify 的紀錄 */
+const memberOf = (io: Server, socketId: string): number | undefined => {
+    const fromSocket = io.sockets.sockets.get(socketId)?.data.memberId;
+    return typeof fromSocket === 'number' ? fromSocket : verifiedMembers.get(socketId);
+};
+
 const finishGame = async (io: Server, game: MemoryGame) => {
     stopGame(game.roomId);
 
@@ -138,9 +144,9 @@ const finishGame = async (io: Server, game: MemoryGame) => {
     });
 
     /* 平手不算；同一個帳號開兩個分頁也不算 */
-    const distinctMembers = new Set(game.players.map(p => verifiedMembers.get(p.socketId)).filter(Boolean));
+    const distinctMembers = new Set(game.players.map(p => memberOf(io, p.socketId)).filter(Boolean));
     const winner = winners.length === 1 ? winners[0]! : null;
-    const winnerMemberId = winner ? verifiedMembers.get(winner.socketId) : undefined;
+    const winnerMemberId = winner ? memberOf(io, winner.socketId) : undefined;
     if (!winner || !winnerMemberId || distinctMembers.size < cfg.minPlayers) return;
 
     try {
@@ -159,6 +165,7 @@ export const setupMemoryGame = (io: Server, socket: Socket, getRoom: RoomLookup,
     /* 登入身分：前端連線後把登入憑證送來，驗證通過才記勝場 */
     socket.on('memory_identify', ({ token }: { token?: string } = {}) => {
         if (typeof token !== 'string') return;
+        socket.data.identifyToken = token; // petServer 開房、進房時也用這個憑證認帳號
         try {
             const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY!) as { member_id?: number };
             if (typeof decoded.member_id === 'number') verifiedMembers.set(socket.id, decoded.member_id);

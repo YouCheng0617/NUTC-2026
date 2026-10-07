@@ -1,4 +1,6 @@
 import { Server, Socket } from 'socket.io';
+import jwt from 'jsonwebtoken';
+import prisma from '../lib/prisma.js';
 import { setupMemoryGame, memoryHandleLeave, memoryForget } from './memoryGame.js';
 
 // ... (Player 和 Room 介面保持不變) ...
@@ -18,7 +20,7 @@ interface Room {
 }
 
 const rooms = new Map<string, Room>();
-const activeMembers = new Map<number, string>(); // 記錄 memberId -> roomId
+const activeMembers = new Map<number, { roomId: string; socketId: string }>(); // 記錄登入帳號 -> 所在房間與連線，同一個帳號只能在一個房間
 const socketRoomMap = new Map<string, string>(); // 優化：記錄 socketId -> roomId，讓離開房間的尋找時間變成 O(1)
 const ABSOLUTE_MAX_PLAYERS = 6;
 
@@ -30,19 +32,63 @@ export const getRoomInfo = (roomId: string) => {
 };
 
 
+/*
+ * 用登入憑證確認是哪個帳號
+ * 以前用前端隨機產生的編號，同一個帳號換台裝置就被當成另一個人，可以重複進房
+ */
+const verifySocketMember = async (socket: Socket): Promise<number | null> => {
+    if (typeof socket.data.memberId === 'number') return socket.data.memberId;
+
+    /* 連線時帶的 auth.token；目前前端沒帶，改用 memory_game.js 一連線就送的 memory_identify 憑證 */
+    const token = socket.handshake.auth?.token ?? socket.data.identifyToken;
+    if (typeof token !== 'string' || !token) return null;
+    try {
+        const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY!) as { member_id?: number };
+        if (typeof decoded.member_id !== 'number') return null;
+
+        const [blacklisted, member] = await Promise.all([
+            prisma.blacklistedToken.findUnique({ where: { token } }),
+            prisma.member.findUnique({ where: { member_id: decoded.member_id }, select: { status: true } }),
+        ]);
+        if (blacklisted || member?.status !== 'ACTIVE') return null;
+
+        socket.data.memberId = decoded.member_id;
+        return decoded.member_id;
+    } catch {
+        return null;
+    }
+};
+
+/* 同一個帳號已經在房間裡：舊連線還活著就擋下；舊連線其實已經斷了（網路閃斷還沒清掉）就幫它離開 */
+const isAlreadyInRoom = (io: Server, memberId: number) => {
+    const existing = activeMembers.get(memberId);
+    if (!existing) return false;
+    const oldSocket = io.sockets.sockets.get(existing.socketId);
+    if (oldSocket?.connected) return true;
+    removeFromRoom(io, existing.socketId);
+    activeMembers.delete(memberId);
+    return false;
+};
+
 export const setupPetSocket = (io: Server) => {
     io.on('connection', (socket: Socket) => {
         console.log(`[Socket] 玩家連線: ${socket.id}`);
         console.log(`[WebSocket] 有隻海兔跳進來了！Socket ID: ${socket.id}`);
         // 1. 創立房間
-        socket.on('create_room', (data: {
+        socket.on('create_room', async (data: {
             playerData: Omit<Player, 'socketId' | 'x' | 'y'>,
             maxPlayers?: number
         }) => {
-            const { playerData, maxPlayers } = data;
+            const { maxPlayers } = data ?? {};
+            const memberId = await verifySocketMember(socket);
+            if (!memberId) {
+                return socket.emit('error', { message: '請先登入帳號才能開房間！' });
+            }
+            const playerData = { ...data?.playerData, memberId };
+            if (!socket.connected) return; // 驗證期間已經斷線
 
-            if (activeMembers.has(playerData.memberId)) {
-                return socket.emit('error', { message: '您已經在另一個房間中了，請先退出再開新房間！' });
+            if (isAlreadyInRoom(io, memberId)) {
+                return socket.emit('error', { message: '這個帳號已經在其他裝置或分頁的房間裡了，請先在那邊離開房間！' });
             }
 
             let capacity = maxPlayers ? Number(maxPlayers) : ABSOLUTE_MAX_PLAYERS;
@@ -62,10 +108,16 @@ export const setupPetSocket = (io: Server) => {
         });
 
         // 2. 加入房間
-        socket.on('join_room', ({ roomId, playerData }: { roomId: string, playerData: Omit<Player, 'socketId' | 'x' | 'y'> }) => {
+        socket.on('join_room', async ({ roomId, playerData: rawPlayerData }: { roomId: string, playerData: Omit<Player, 'socketId' | 'x' | 'y'> }) => {
+            const memberId = await verifySocketMember(socket);
+            if (!memberId) {
+                return socket.emit('error', { message: '請先登入帳號才能加入房間！' });
+            }
+            const playerData = { ...rawPlayerData, memberId };
+            if (!socket.connected) return; // 驗證期間已經斷線
 
-            if (activeMembers.has(playerData.memberId)) {
-                return socket.emit('error', { message: '您已經在另一個房間中了，請先退出再加入！' });
+            if (isAlreadyInRoom(io, memberId)) {
+                return socket.emit('error', { message: '這個帳號已經在其他裝置或分頁的房間裡了，請先在那邊離開房間！' });
             }
 
             const room = rooms.get(roomId);
@@ -137,17 +189,19 @@ function joinRoomLogic(socket: Socket, roomId: string, playerData: Omit<Player, 
     room.players.set(socket.id, newPlayer);
     socket.join(roomId);
 
-    activeMembers.set(playerData.memberId, roomId);
+    activeMembers.set(playerData.memberId, { roomId, socketId: socket.id });
     socketRoomMap.set(socket.id, roomId); // 記錄 socketId -> roomId 的對應
 
-    const allPlayers = Array.from(room.players.values());
+    /* 送給其他玩家的資料不帶會員 ID，避免從寵物名字對回是哪個帳號 */
+    const publicPlayer = ({ memberId: _memberId, ...rest }: Player) => rest;
+    const allPlayers = Array.from(room.players.values()).map(publicPlayer);
     socket.emit('room_joined', {
         roomId,
         maxCapacity: room.maxCapacity,
         players: allPlayers
     });
 
-    socket.to(roomId).emit('player_joined', newPlayer);
+    socket.to(roomId).emit('player_joined', publicPlayer(newPlayer));
 
     socket.to(roomId).emit('receive_message', {
         senderName: '系統',
@@ -157,22 +211,28 @@ function joinRoomLogic(socket: Socket, roomId: string, playerData: Omit<Player, 
 }
 
 function handleLeave(socket: Socket, io: Server) {
-    // 優化：直接透過 socket.id 找到所在的 roomId，不需要使用 for 迴圈遍歷所有房間 (時間複雜度由 O(N) 降為 O(1))
     const roomId = socketRoomMap.get(socket.id);
+    if (roomId) socket.leave(roomId);
+    removeFromRoom(io, socket.id);
+}
+
+/* 依 socketId 把玩家移出房間（連線物件可能已經不在了，所以只用 id 處理） */
+function removeFromRoom(io: Server, socketId: string) {
+    // 直接透過 socket.id 找到所在的 roomId，不需要使用 for 迴圈遍歷所有房間
+    const roomId = socketRoomMap.get(socketId);
     if (!roomId) return;
+    socketRoomMap.delete(socketId);
 
     const room = rooms.get(roomId);
-    if (room && room.players.has(socket.id)) {
-        const player = room.players.get(socket.id)!;
+    if (room && room.players.has(socketId)) {
+        const player = room.players.get(socketId)!;
 
-        // 清理資料
-        activeMembers.delete(player.memberId);
-        socketRoomMap.delete(socket.id);
-        room.players.delete(socket.id);
-        socket.leave(roomId);
-        memoryHandleLeave(io, roomId, socket.id);
+        // 清理資料（只清自己這條連線的紀錄，避免把同帳號新連線的紀錄刪掉）
+        if (activeMembers.get(player.memberId)?.socketId === socketId) activeMembers.delete(player.memberId);
+        room.players.delete(socketId);
+        memoryHandleLeave(io, roomId, socketId);
 
-        io.to(roomId).emit('player_left', { socketId: socket.id });
+        io.to(roomId).emit('player_left', { socketId });
         io.to(roomId).emit('receive_message', {
             senderName: '系統',
             message: `${player.petName} 離開了房間。`,
