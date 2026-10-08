@@ -1888,7 +1888,7 @@ const i18n = {
             jokerStyle: 'a'        // 10 勝的小丑海兔配色：a / b / c / d（JOKER_STYLES）
         };
 
-        // 🤡 小丑海兔（翻牌對決 10 勝）：四種配色自選，配件都一樣（紅鼻子、異色瞳大眼睛穿過細長紅菱形、小嘴巴、兩耳中間的三尖小丑帽）
+        // 🤡 小丑海兔（翻牌對決 10 勝）：四種配色自選，配件都一樣（紅鼻子、異色瞳大眼睛穿過細長紅菱形、小嘴巴、兩耳中間的三尖小丑帽），瞳孔裡的撲克牌花色每種配色不同
         //    後端只發一個 joker 皮膚，配色選擇存在這台裝置，進房時跟著 playerData 送給其他人
         const JOKER_STYLES = {
             a: { name: { zh: '撲克小丑', en: 'Poker Clown' }, body: '#fefce8', outline: '#581c87', earTop: '#a855f7', tail: '#22c55e', spot: '#ef4444', blush: '#fca5a5', pomA: '#facc15', pomB: '#22c55e' },
@@ -1905,12 +1905,12 @@ const i18n = {
         // 小丑海兔的臉：照參考圖一筆一筆描的（勾勾眼線、雙眼皮線、上深下淺的瞳孔、下眼線）
         //    座標是參考圖放大 6 倍後的像素（858×618），整組用 transform 縮成 0.13 倍貼到海兔臉上
         //    兩眼正中間對準紅鼻子（x 130），左眼大約在 x 98、右眼大約在 x 162；嘴巴另外搬到鼻子下面
-        //    liner 是彩色眼線（上眼線外圈、眼尾上揚、下眼線），跟著配色走
+        //    liner 是彩色眼線（上眼線外圈、眼尾上揚、下眼線），ink 是眼線、瞳孔描邊和陰影的顏色（用海兔的描邊色），都跟著配色走
+        //    suit 是瞳孔裡的撲克牌花色點綴（見 JOKER_SUITS）
         //    不用漸層（同一份 SVG 會同時出現在很多地方，id 會撞），瞳孔的上深下淺用半透明疊色做
         const JOKER_FACE_INK = '#2e2640';
         const JOKER_FACE_T = 'translate(73, 100) scale(0.13)';
-        function jokerEyesSVG(irisL, irisR, liner) {
-            const ink = JOKER_FACE_INK;
+        function jokerEyesSVG(irisL, irisR, liner, ink, suit) {
             const irisLShape = 'M 160 330 C 185 322, 240 325, 285 360 C 300 385, 305 410, 305 435 C 270 442, 210 442, 165 438 C 160 400, 158 360, 160 330 Z';
             const irisRShape = 'M 560 400 C 600 370, 660 350, 725 345 C 732 380, 730 420, 722 460 C 680 463, 610 462, 568 458 C 560 440, 558 420, 560 400 Z';
             return `
@@ -1927,6 +1927,7 @@ const i18n = {
                         <circle cx="205" cy="365" r="5"/><circle cx="240" cy="352" r="4"/><circle cx="262" cy="385" r="3.5"/>
                         <circle cx="610" cy="395" r="5"/><circle cx="645" cy="378" r="4"/><circle cx="680" cy="370" r="5"/><circle cx="700" cy="392" r="3.5"/><circle cx="625" cy="415" r="3.5"/><circle cx="665" cy="405" r="3"/>
                     </g>
+                    ${jokerSuitSVG(suit, 232, 372, 26)}${jokerSuitSVG(suit, 650, 386, 26)}
                     <g fill="none" stroke="${ink}" stroke-linecap="round">
                         <path d="M 170 280 C 220 290, 270 320, 295 360" stroke-width="14"/>
                         <path d="M 540 382 C 590 340, 650 300, 715 283" stroke-width="14"/>
@@ -1945,6 +1946,16 @@ const i18n = {
                         <path d="M 565 460 C 640 458, 710 460, 770 465" stroke-width="13"/>
                     </g>
                 </g>`;
+        }
+        // 瞳孔裡的撲克牌花色點綴：每種配色一個花色（撲克 ♠、馬戲團 ♥、粉彩 ♦、Joker ♣）
+        //    座標跟 jokerEyesSVG 一樣是參考圖座標，(x, y) 是花色中心、r 是大小
+        const JOKER_SUITS = { a: 'spade', b: 'heart', c: 'diamond', d: 'club' };
+        function jokerSuitSVG(suit, x, y, r) {
+            const w = 'fill="#ffffff" opacity="0.92"';
+            if (suit === 'heart') return `<path d="M ${x} ${y + r * 0.85} C ${x - r * 1.3} ${y - r * 0.1}, ${x - r * 0.7} ${y - r * 1.05}, ${x} ${y - r * 0.35} C ${x + r * 0.7} ${y - r * 1.05}, ${x + r * 1.3} ${y - r * 0.1}, ${x} ${y + r * 0.85} Z" ${w}/>`;
+            if (suit === 'diamond') return `<path d="M ${x} ${y - r} L ${x + r * 0.62} ${y} L ${x} ${y + r} L ${x - r * 0.62} ${y} Z" ${w}/>`;
+            if (suit === 'club') return `<g ${w}><circle cx="${x}" cy="${y - r * 0.45}" r="${r * 0.42}"/><circle cx="${x - r * 0.48}" cy="${y + r * 0.12}" r="${r * 0.42}"/><circle cx="${x + r * 0.48}" cy="${y + r * 0.12}" r="${r * 0.42}"/><path d="M ${x - r * 0.12} ${y} L ${x - r * 0.32} ${y + r} L ${x + r * 0.32} ${y + r} L ${x + r * 0.12} ${y} Z"/></g>`;
+            return `<path d="M ${x} ${y - r * 0.95} C ${x + r * 1.3} ${y + r * 0.05}, ${x + r * 0.7} ${y + r * 0.9}, ${x + r * 0.05} ${y + r * 0.35} L ${x + r * 0.3} ${y + r} L ${x - r * 0.3} ${y + r} L ${x - r * 0.05} ${y + r * 0.35} C ${x - r * 0.7} ${y + r * 0.9}, ${x - r * 1.3} ${y + r * 0.05}, ${x} ${y - r * 0.95} Z" ${w}/>`;
         }
         // 鈴鐺：頂上小吊環、中間一圈凹槽、底下圓孔＋開縫、左上反光；(cx, cy) 是吊環頂端，k 是大小倍率
         function jokerBellSVG(cx, cy, color, outline, k = 1) {
@@ -1977,18 +1988,47 @@ const i18n = {
             return `
                 <path d="M 127.2 174.2 Q 128.4 173.6 130 175 Q 133.4 177.6 134.4 180 Q 134.4 181.8 132.6 181.4 Q 131 180.8 129.6 178.6 Q 128 176.2 127.2 174.2 Z" fill="${JOKER_FACE_INK}"/>`;
         }
-        // 小丑配件（座標跟海兔 SVG 一樣 0 0 340 240），畫在五官上面、皇冠下面
-        //    小丑海兔自己畫眼睛：異色瞳，左眼耳朵色、右眼尾巴色（原本的眼睛要藏起來：主畫面靠 .is-joker，其他地方畫的時候直接不畫）
-        //    原本的嘴巴會被紅鼻子蓋住，所以在鼻子下面另外畫一個「、」撇嘴
-        function jokerExtraSVG(jokerStyle) {
+        // 肚子餓時的小丑眼睛：上眼皮重重垂下來、眼尾往下掉，只露出下半截瞳孔，左眼下面掛一滴眼淚
+        //    平常藏著（.joker-sad-eye），主畫面 .is-joker.is-starving 時才換上；摸摸／吃東西時一樣換成瞇瞇眼
+        function jokerSadEyesSVG(s) {
+            const eye = (cx, iris, o) => `
+                <path d="M ${cx - 8} ${cy0} C ${cx - 8} ${cy0 + 9}, ${cx + 8} ${cy0 + 9}, ${cx + 8} ${cy0} Z" fill="${iris}" stroke="${s.outline}" stroke-width="1.6" stroke-linejoin="round"/>
+                <path d="M ${cx + o * 13} ${cy0 + 6} Q ${cx + o * 2} ${cy0 - 5} ${cx - o * 10} ${cy0 - 1}" fill="none" stroke="${s.earTop}" stroke-width="5.5" stroke-linecap="round"/>
+                <path d="M ${cx + o * 12} ${cy0 + 6} Q ${cx + o * 2} ${cy0 - 3} ${cx - o * 9} ${cy0}" fill="none" stroke="${s.outline}" stroke-width="4" stroke-linecap="round"/>
+                <path d="M ${cx - 6} ${cy0 + 11} Q ${cx} ${cy0 + 13} ${cx + 7} ${cy0 + 11}" fill="none" stroke="${s.earTop}" stroke-width="2" stroke-linecap="round"/>`;
+            const cy0 = 151;
+            return `
+                ${eye(98, s.earTop, -1)}${eye(162, s.tail, 1)}
+                <path d="M 91 166 C 87 172, 88 177, 91 177 C 94 177, 95 172, 91 166 Z" fill="#93c5fd" stroke="${s.outline}" stroke-width="1.4"/>`;
+        }
+        // 睡覺待機畫面（slug_idle.js）用的小丑配件：帽子、紅菱形、閉著的眼睛（跟著配色的描邊色）、紅鼻子、撇嘴
+        //    待機畫面那隻海兔自己的閉眼睛會跟紅菱形錯開，所以小丑的閉眼睛改在這裡畫
+        function jokerSleepExtraSVG(jokerStyle) {
             const s = JOKER_STYLES[jokerStyleOf(jokerStyle)];
             return `
                 ${jokerHatSVG(s)}
                 <g fill="#ef4444" stroke="#b91c1c" stroke-width="1.5" stroke-linejoin="round">
                     <path d="M 98 118 L 100.8 150 L 98 188 L 95.2 150 Z"/><path d="M 162 118 L 164.8 150 L 162 188 L 159.2 150 Z"/>
                 </g>
-                <g class="normal-eye joker-eye">${jokerEyesSVG(s.earTop, s.tail, s.earTop)}</g>
-                <g class="happy-eye joker-eye" stroke="${JOKER_FACE_INK}" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round" fill="none">
+                <path d="M 85 148 Q 98 158 111 148 M 149 148 Q 162 158 175 148" fill="none" stroke="${s.earTop}" stroke-width="7" stroke-linecap="round"/>
+                <path d="M 86 148 Q 98 157 110 148 M 150 148 Q 162 157 174 148" fill="none" stroke="${s.outline}" stroke-width="4.5" stroke-linecap="round"/>
+                <circle cx="130" cy="160" r="9.5" fill="#ef4444" stroke="#991b1b" stroke-width="3"/>
+                <circle cx="126.5" cy="156.5" r="2.8" fill="#ffffff" opacity="0.85"/>
+                ${jokerMouthSVG()}`;
+        }
+        // 小丑配件（座標跟海兔 SVG 一樣 0 0 340 240），畫在五官上面、皇冠下面
+        //    小丑海兔自己畫眼睛：異色瞳，左眼耳朵色、右眼尾巴色（原本的眼睛要藏起來：主畫面靠 .is-joker，其他地方畫的時候直接不畫）
+        //    原本的嘴巴會被紅鼻子蓋住，所以在鼻子下面另外畫一個「、」撇嘴
+        function jokerExtraSVG(jokerStyle) {
+            const style = jokerStyleOf(jokerStyle), s = JOKER_STYLES[style];
+            return `
+                ${jokerHatSVG(s)}
+                <g fill="#ef4444" stroke="#b91c1c" stroke-width="1.5" stroke-linejoin="round">
+                    <path d="M 98 118 L 100.8 150 L 98 188 L 95.2 150 Z"/><path d="M 162 118 L 164.8 150 L 162 188 L 159.2 150 Z"/>
+                </g>
+                <g class="normal-eye joker-eye">${jokerEyesSVG(s.earTop, s.tail, s.earTop, s.outline, JOKER_SUITS[style])}</g>
+                <g class="normal-eye joker-eye joker-sad-eye">${jokerSadEyesSVG(s)}</g>
+                <g class="happy-eye joker-eye" stroke="${s.outline}" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round" fill="none">
                     <path d="M 91 147 L 101 153 L 91 159"/><path d="M 169 147 L 159 153 L 169 159"/>
                 </g>
                 <circle cx="130" cy="160" r="9.5" fill="#ef4444" stroke="#991b1b" stroke-width="3"/>

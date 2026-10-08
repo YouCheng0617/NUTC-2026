@@ -32,6 +32,8 @@
         // 小丑海兔照玩家選的配色（slug_game.js 的 speciesSpec）
         const spec = sd && typeof speciesSpec === 'function' && sd[key] ? speciesSpec(key, gameState.jokerStyle) : null;
         const s = spec || (sd && (sd[key] || sd.snow)) || { body: '#fff', outline: '#3f2a2a', earTop: '#3f2a2a', tail: '#3f2a2a', spot: '#3f2a2a', blush: '#fca5a5' };
+        // 小丑海兔睡覺時也戴著帽子、紅鼻子（閉著的眼睛改由 jokerSleepExtraSVG 畫，才會對準紅菱形）
+        const jokerSleep = key === 'joker' && typeof jokerSleepExtraSVG === 'function' ? jokerSleepExtraSVG(gameState.jokerStyle) : '';
         return `
             <svg class="slug-idle-pet" viewBox="20 0 320 240" aria-hidden="true">
                 <g stroke="${s.outline}" stroke-width="6" stroke-linejoin="round">
@@ -46,9 +48,10 @@
                 <g transform="translate(130, 150)">
                     <ellipse cx="-35" cy="12" rx="14" ry="8" fill="${s.blush}" opacity="0.85"/>
                     <ellipse cx="35" cy="12" rx="14" ry="8" fill="${s.blush}" opacity="0.85"/>
-                    <path d="M -28 0 Q -20 7 -12 0 M 12 0 Q 20 7 28 0" fill="none" stroke="${s.outline}" stroke-width="4" stroke-linecap="round"/>
-                    <path d="M -5 12 Q 0 15 5 12" fill="none" stroke="${s.outline}" stroke-width="3" stroke-linecap="round"/>
+                    ${jokerSleep ? '' : `<path d="M -28 0 Q -20 7 -12 0 M 12 0 Q 20 7 28 0" fill="none" stroke="${s.outline}" stroke-width="4" stroke-linecap="round"/>
+                    <path d="M -5 12 Q 0 15 5 12" fill="none" stroke="${s.outline}" stroke-width="3" stroke-linecap="round"/>`}
                 </g>
+                ${jokerSleep}
                 <text x="250" y="60" class="slug-idle-zzz" font-size="34">Z</text>
                 <text x="285" y="30" class="slug-idle-zzz slug-idle-zzz-2" font-size="24">z</text>
             </svg>`;
