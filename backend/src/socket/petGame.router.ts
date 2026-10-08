@@ -3,7 +3,7 @@ import { authCheck, adminCheck, optionalAuthCheck, type AuthRequest } from "../m
 import { PetGameController } from "./petGame.controller.js";
 import { listGameBlocksController, unblockGameController } from "./gameSafety.controller.js";
 import { redeemCodeController } from "./redeemCode.controller.js";
-import { getMemoryRewardsController, setCardBackController, setRoyalOutfitController, markThroneSeenController } from "./memoryRewards.controller.js";
+import { getMemoryRewardsController, setCardBackController, setRoyalOutfitController, setJokerStyleController, markThroneSeenController } from "./memoryRewards.controller.js";
 import { redeemLimiter } from "../lib/rateLimiter.js";
 
 
@@ -38,6 +38,7 @@ export function petGameRouter() {
     router.get("/memory-rewards", authCheck, getMemoryRewardsController);
     router.put("/memory-rewards/card-back", authCheck, setCardBackController);
     router.put("/memory-rewards/royal-outfit", authCheck, setRoyalOutfitController);
+    router.put("/memory-rewards/joker-style", authCheck, setJokerStyleController);
     router.post("/memory-rewards/throne-seen", authCheck, markThroneSeenController);
 
     return router;

@@ -1885,11 +1885,11 @@ const i18n = {
             memoryWins: 0,
             cardBack: 'classic',   // 3 勝解鎖，memory_game.js 的 CARD_BACKS
             outfit: 'none',        // 30 勝解鎖：none / king / queen
-            jokerStyle: 'a'        // 10 勝的小丑海兔配色：a / b / c / d（JOKER_STYLES）
+            jokerStyle: 'a'        // 10 勝的小丑海兔配色：a 黑桃 / b 紅心 / c 方塊 / d 梅花（JOKER_STYLES，跟著帳號存在伺服器）
         };
 
         // 🤡 小丑海兔（翻牌對決 10 勝）：四種配色自選，配件都一樣（紅鼻子、異色瞳大眼睛穿過細長紅菱形、小嘴巴、兩耳中間的三尖小丑帽），瞳孔裡的撲克牌花色每種配色不同
-        //    後端只發一個 joker 皮膚，配色選擇存在這台裝置，進房時跟著 playerData 送給其他人
+        //    後端只發一個 joker 皮膚，配色選擇存在伺服器（memory_joker_style，跟著帳號走），進房時跟著 playerData 送給其他人
         const JOKER_STYLES = {
             a: { name: { zh: '撲克小丑', en: 'Poker Clown' }, body: '#fefce8', outline: '#581c87', earTop: '#a855f7', tail: '#22c55e', spot: '#ef4444', blush: '#fca5a5', pomA: '#facc15', pomB: '#22c55e' },
             b: { name: { zh: '馬戲團小丑', en: 'Circus Clown' }, body: '#ffffff', outline: '#1e3a8a', earTop: '#ef4444', tail: '#facc15', spot: '#3b82f6', blush: '#fda4af', pomA: '#facc15', pomB: '#3b82f6' },
@@ -4396,12 +4396,14 @@ const effectData = {
                     if (data.is_named && data.pet_name) gameState.petName = data.pet_name;
                     if (data.coin !== undefined) gameState.points = data.coin;
                     if (typeof data.memory_wins === 'number') gameState.memoryWins = data.memory_wins;
-                    // 翻牌對決的卡背、服裝跟著帳號走：伺服器存過就用伺服器的；
+                    // 翻牌對決的卡背、服裝、小丑配色跟著帳號走：伺服器存過就用伺服器的；
                     // 伺服器還沒存過（改版前只存在這台裝置）就把這台的選擇補存上去
                     if (data.memory_card_back) gameState.cardBack = data.memory_card_back;
                     else if (gameState.cardBack && gameState.cardBack !== 'classic') fetchAPI('/pet-games/memory-rewards/card-back', 'PUT', { cardBack: gameState.cardBack });
                     if (data.memory_royal_outfit) gameState.outfit = data.memory_royal_outfit;
                     else if (gameState.outfit && gameState.outfit !== 'none') fetchAPI('/pet-games/memory-rewards/royal-outfit', 'PUT', { outfit: gameState.outfit });
+                    if (data.memory_joker_style) gameState.jokerStyle = data.memory_joker_style;
+                    else if (gameState.jokerStyle && gameState.jokerStyle !== 'a') fetchAPI('/pet-games/memory-rewards/joker-style', 'PUT', { jokerStyle: gameState.jokerStyle });
 
                     // 同步目前裝備：伺服器的值是有效商品才採用；
                     // 資料庫預設值 (「經典雪兔」「基礎藍」) 不在商品清單裡，代表從沒透過伺服器換過裝，保留本機的 (例如抽到的寵物)

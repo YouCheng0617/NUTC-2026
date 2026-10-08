@@ -44,7 +44,12 @@ export const getMemoryRewards = async (memberId: number) => {
             options: R.cardBackBox.options,
             selected: pet.memory_card_back,
         },
-        jokerSkin: { unlocked: wins >= cfg.jokerSkin.winsRequired, itemName: cfg.jokerSkin.itemName, styles: cfg.jokerSkin.styles },
+        jokerSkin: {
+            unlocked: wins >= cfg.jokerSkin.winsRequired,
+            itemName: cfg.jokerSkin.itemName,
+            styles: cfg.jokerSkin.styles,
+            selected: pet.memory_joker_style,
+        },
         royalOutfit: {
             unlocked: wins >= R.royalOutfit.wins,
             options: R.royalOutfit.options,
@@ -101,6 +106,17 @@ export const ensureJokerSkin = async (memberId: number) => {
 /* 小丑海兔的配色只認 a～d，其他值當作沒帶（前端會用預設的 a） */
 export const allowedJokerStyle = (style: unknown) =>
     typeof style === 'string' && (cfg.jokerSkin.styles as readonly string[]).includes(style) ? style : undefined;
+
+/* PUT /pet-games/memory-rewards/joker-style { jokerStyle }：a 黑桃 / b 紅心 / c 方塊 / d 梅花
+   背包裡有小丑海兔才能選（勝場拿到或兌換碼送的都算） */
+export const setJokerStyle = async (memberId: number, rawStyle: unknown) => {
+    await getPet(memberId);
+    if (!(await ensureJokerSkin(memberId))) throw new Error(`翻牌對決贏滿 ${cfg.jokerSkin.winsRequired} 場才能拿到小丑海兔喔！`);
+    const style = allowedJokerStyle(rawStyle);
+    if (!style) throw new Error('小丑海兔只有黑桃、紅心、方塊、梅花四種配色');
+    await prisma.pet.update({ where: { member_id: memberId }, data: { memory_joker_style: style } });
+    return getMemoryRewards(memberId);
+};
 
 /* POST /pet-games/memory-rewards/throne-seen：前端播完王座動畫後呼叫，下次就不會自動再播 */
 export const markThroneSeen = async (memberId: number) => {

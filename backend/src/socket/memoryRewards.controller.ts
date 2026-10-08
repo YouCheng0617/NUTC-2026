@@ -1,6 +1,6 @@
 import type { Response } from "express";
 import type { AuthRequest } from "../modules/middleware/auth.middleware.js";
-import { getMemoryRewards, setCardBack, setRoyalOutfit, markThroneSeen } from "./memoryRewards.js";
+import { getMemoryRewards, setCardBack, setRoyalOutfit, setJokerStyle, markThroneSeen } from "./memoryRewards.js";
 
 const handle = (fn: (memberId: number, req: AuthRequest) => Promise<unknown>) =>
     async (req: AuthRequest, res: Response) => {
@@ -21,6 +21,9 @@ export const setCardBackController = handle((memberId, req) => setCardBack(membe
 
 /* PUT /pet-games/memory-rewards/royal-outfit { outfit: "king" | "queen" | null } */
 export const setRoyalOutfitController = handle((memberId, req) => setRoyalOutfit(memberId, req.body?.outfit ?? null));
+
+/* PUT /pet-games/memory-rewards/joker-style { jokerStyle: "a" | "b" | "c" | "d" }（黑桃／紅心／方塊／梅花） */
+export const setJokerStyleController = handle((memberId, req) => setJokerStyle(memberId, req.body?.jokerStyle));
 
 /* POST /pet-games/memory-rewards/throne-seen：王座動畫播完後呼叫 */
 export const markThroneSeenController = handle((memberId) => markThroneSeen(memberId));

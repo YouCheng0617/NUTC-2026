@@ -193,17 +193,19 @@
         return myWins() >= CARD_BACK_WINS && CARD_BACKS.some((b) => b.id === id) ? id : 'classic';
     }
     function saveState() { if (typeof saveGame === 'function') saveGame(); }
-    // 卡背、服裝存到伺服器，換裝置也還在（存不成功就先留在這台，下次打開會再同步）
+    // 卡背、服裝、小丑配色存到伺服器，換裝置也還在（存不成功就先留在這台，下次打開會再同步）
     function saveLookToServer(kind, value) {
         if (typeof fetchAPI !== 'function' || typeof GAME_TOKEN === 'undefined' || !GAME_TOKEN) return;
         if (kind === 'cardBack') fetchAPI('/pet-games/memory-rewards/card-back', 'PUT', { cardBack: value });
+        else if (kind === 'jokerStyle') fetchAPI('/pet-games/memory-rewards/joker-style', 'PUT', { jokerStyle: value });
         else fetchAPI('/pet-games/memory-rewards/royal-outfit', 'PUT', { outfit: value });
     }
-    // 伺服器 my-pet 回來的卡背、服裝套到遊戲裡（伺服器沒存過就保留這台的）
+    // 伺服器 my-pet 回來的卡背、服裝、小丑配色套到遊戲裡（伺服器沒存過就保留這台的）
     function applyLookFromServer(pet) {
         if (!pet || !hasGame()) return;
         if (pet.memory_card_back) gameState.cardBack = pet.memory_card_back;
         if (pet.memory_royal_outfit) gameState.outfit = pet.memory_royal_outfit;
+        if (pet.memory_joker_style) gameState.jokerStyle = pet.memory_joker_style;
     }
 
     function isEn() {
@@ -621,6 +623,7 @@
     function wearJoker(style) {
         ensureJokerOwned();
         if (hasGame()) { gameState.jokerStyle = style; saveState(); }
+        saveLookToServer('jokerStyle', style);
         const already = hasGame() && gameState.currentSpecies === 'joker';
         if (!already && typeof equipItem === 'function') equipItem('joker', 'species');
         else if (typeof refreshAll === 'function') refreshAll();
