@@ -12327,6 +12327,10 @@ default:
                 const desc = document.getElementById('txtPetDesc');
                 if (desc) desc.innerText = gameState.cooldowns.pet > 0 ? `${t.cooldown} ${gameState.cooldowns.pet}s` : t.ready;
             }
+            // 冷卻中的按鈕加上 is-cooling：手機版平常把說明文字藏起來，冷卻中才浮出「冷卻 8s」小標籤
+            [['feed', btnFeed], ['clean', btnClean], ['pet', btnPet]].forEach(([type, btn]) => {
+                if (btn) btn.classList.toggle('is-cooling', gameState.cooldowns[type] > 0);
+            });
         }
 
         // 🌟 【物理互動引擎】負責計算你怎麼抓海兔、怎麼摸牠，以及噴出愛心

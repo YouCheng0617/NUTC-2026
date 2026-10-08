@@ -2095,6 +2095,18 @@
                 box-shadow: 0 4px 10px rgba(239, 68, 68, 0.3), 0 4px 0 #ef4444 !important;
             }
             .btn-desc { display: none !important; }
+            /* 冷卻中：說明文字變成浮在按鈕上方的小標籤（不佔按鈕裡的空間，按鈕高度不會跳），按鈕名稱稍微變淡 */
+            .btn-interact { position: relative; }
+            .btn-interact.is-cooling .btn-desc {
+                display: block !important;
+                position: absolute; top: -10px; left: 50%; transform: translateX(-50%);
+                padding: 1px 7px; border-radius: 999px;
+                background: #64748b; color: #fff !important;
+                font-size: 0.62rem; font-weight: 900; line-height: 1.6; white-space: nowrap;
+                box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+                pointer-events: none;
+            }
+            .btn-interact.is-cooling .btn-title { opacity: 0.55; }
             .btn-title { font-size: 0.75rem !important; margin-bottom: 2px !important; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
             /* 按鈕可以被壓縮，字太長就縮小，不要把整排撐到畫面外 */
             .btn-interact { flex: 1 1 0; min-width: 0; }
@@ -3033,6 +3045,16 @@
             font-size: 0.9rem; font-weight: 700; letter-spacing: 0; text-transform: none; color: #b8a2a6;
         }
         .redeem-input:focus { outline: none; border-color: #f472b6; }
+        /* 📋 貼上按鈕放在輸入框裡面靠右，輸入框右邊留位置給它 */
+        .redeem-field { position: relative; flex: 1; min-width: 0; display: flex; }
+        .redeem-field .redeem-input { width: 100%; padding-right: 84px; }
+        .redeem-paste {
+            position: absolute; right: 7px; top: 50%; transform: translateY(-50%);
+            padding: 5px 10px; border-radius: 10px; border: 2px solid #fbcfe8; background: #fdf2f8;
+            color: #db2777; font-family: inherit; font-size: 0.8rem; font-weight: 900; white-space: nowrap; cursor: pointer;
+        }
+        .redeem-paste:hover { background: #fce7f3; }
+        .redeem-paste:active { transform: translateY(-50%) scale(0.95); }
         .redeem-btn {
             flex: 0 0 auto; padding: 10px 18px; border: none; border-radius: 14px;
             background: #f472b6; color: #fff; font-family: inherit; font-size: 1rem; font-weight: 900; cursor: pointer;
@@ -3067,6 +3089,8 @@
             .redeem-sub { padding: 0 8px; }
             .redeem-form { flex-direction: column; }
             .redeem-input { min-height: 48px; text-align: center; }
+            /* 置中的字左右留一樣的空間，才不會被貼上按鈕擠歪 */
+            .redeem-field .redeem-input { padding-left: 84px; }
             .redeem-btn { width: 100%; min-height: 48px; }
         }
 

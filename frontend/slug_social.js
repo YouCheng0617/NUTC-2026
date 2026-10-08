@@ -578,7 +578,10 @@
             <h3 class="redeem-title"></h3>
             <p class="redeem-sub"></p>
             <div class="redeem-form">
-                <input type="text" class="redeem-input" id="redeemInput" maxlength="20" autocomplete="off" autocapitalize="characters" spellcheck="false">
+                <div class="redeem-field">
+                    <input type="text" class="redeem-input" id="redeemInput" maxlength="20" autocomplete="off" autocapitalize="characters" spellcheck="false">
+                    <button type="button" class="redeem-paste" id="redeemPaste"></button>
+                </div>
                 <button type="button" class="redeem-btn" id="redeemBtn"></button>
             </div>
             <div class="redeem-result" id="redeemResult" role="status"></div>`;
@@ -596,10 +599,40 @@
             redeemDraft = clean;
             renderRedeemButton();
         });
+        const paste = $('redeemPaste');
+        paste.textContent = L('📋 貼上', '📋 Paste');
+        paste.setAttribute('aria-label', L('從剪貼簿貼上兌換碼', 'Paste code from clipboard'));
+        paste.addEventListener('click', pasteRedeemCode);
         input.addEventListener('keydown', (e) => { if (e.key === 'Enter' && !e.isComposing) doRedeem(); });
         $('redeemBtn').addEventListener('click', doRedeem);
         renderRedeemButton();
         renderRedeemResult();
+    }
+
+    // 📋 貼上：從剪貼簿抓兌換碼填進去
+    //    複製來的文字常常夾著說明（例如「兌換碼：ABC123」），挑裡面最長的一段英數字當兌換碼
+    async function pasteRedeemCode() {
+        const input = $('redeemInput');
+        if (!input) return;
+        let text = '';
+        try {
+            if (!navigator.clipboard || !navigator.clipboard.readText) throw new Error('no clipboard');
+            text = await navigator.clipboard.readText();
+        } catch (e) {
+            // 瀏覽器不給讀剪貼簿（沒授權、不是 https、舊瀏覽器）：改請玩家自己貼
+            input.focus();
+            showFloatText(L('瀏覽器不讓讀取剪貼簿，請長按輸入框（電腦按 Ctrl+V）貼上', "Your browser blocked the clipboard — long-press the box (or Ctrl+V) to paste"), 3500);
+            return;
+        }
+        const code = (String(text).toUpperCase().match(/[A-Z0-9_-]{4,20}/g) || [])
+            .sort((a, b) => b.length - a.length)[0] || '';
+        if (!code) {
+            showFloatText(L('剪貼簿裡沒有找到兌換碼', 'No code found in your clipboard'), 2500);
+            return;
+        }
+        input.value = code;
+        redeemDraft = code;
+        renderRedeemButton();
     }
 
     function ensureRedeemModal() {
