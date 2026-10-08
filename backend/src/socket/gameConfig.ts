@@ -65,6 +65,7 @@ export const gameConfig = {
         // 贏滿幾場送小丑海兔（存進 PetInventory 的 pet_color / joker，前端 speciesData.joker）。
         // 不在商店販售，只能靠勝場或後台兌換碼拿到；styles 是四種配色，名稱要跟前端 slug_game.js 的 JOKER_STYLES 一致：
         //   a 黑桃（撲克小丑）、b 紅心（馬戲團小丑）、c 方塊（粉彩小丑）、d 梅花（撲克牌 Joker），選了存在 Pet.memory_joker_style
+        //   兌換碼拿到的小丑海兔四種隨時換；只靠勝場拿到的只能選一次（memoryRewards.ts 的 jokerStyleSwitchable）
         jokerSkin: { winsRequired: 10, itemName: "joker", styles: ["a", "b", "c", "d"] },
         // 其他勝場獎勵（memoryRewards.ts）：
         //   3 勝 卡背自選箱：解鎖後從 options 挑一種卡背套用，隨時可換（名稱要跟前端 memory_game.js 的 CARD_BACKS 一致）

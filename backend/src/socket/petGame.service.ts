@@ -1,6 +1,6 @@
 import prisma from '../lib/prisma.js';
 import { gameConfig } from './gameConfig.js';
-import { ensureJokerSkin } from './memoryRewards.js';
+import { ensureJokerSkin, jokerStyleSwitchable } from './memoryRewards.js';
 
 export const renamePet = async (memberId: number, newName: string) => {
 
@@ -252,7 +252,8 @@ export const getMyPetWithInventory = async (memberId: number) => {
 
     return {
         ...pet,
-        is_signed_in_today
+        is_signed_in_today,
+        joker_style_switchable: await jokerStyleSwitchable(memberId) // 小丑配色能不能隨時換（兌換碼拿到的 true，只靠勝場的 false）
     };
 };
 

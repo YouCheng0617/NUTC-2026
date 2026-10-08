@@ -49,6 +49,7 @@ export const getMemoryRewards = async (memberId: number) => {
             itemName: cfg.jokerSkin.itemName,
             styles: cfg.jokerSkin.styles,
             selected: pet.memory_joker_style,
+            switchable: await jokerStyleSwitchable(memberId),
         },
         royalOutfit: {
             unlocked: wins >= R.royalOutfit.wins,
@@ -107,13 +108,33 @@ export const ensureJokerSkin = async (memberId: number) => {
 export const allowedJokerStyle = (style: unknown) =>
     typeof style === 'string' && (cfg.jokerSkin.styles as readonly string[]).includes(style) ? style : undefined;
 
+/* 小丑配色能不能隨時換：用過任何一個「獎勵裡有小丑海兔皮膚」的兌換碼就能換（勝場、兌換碼都拿過也算）；
+   只靠勝場拿到、或還沒有小丑海兔的，只能選一次 */
+export const jokerStyleSwitchable = async (memberId: number) => {
+    const uses = await prisma.redeemCodeUse.findMany({ where: { member_id: memberId }, select: { code: { select: { reward_items: true } } } });
+    return uses.some(u => Array.isArray(u.code.reward_items) && (u.code.reward_items as any[]).some(
+        x => x && x.category === 'pet_color' && x.item === cfg.jokerSkin.itemName,
+    ));
+};
+
+/* 進連線房間時用的配色：配色已經鎖定（勝場拿到、選過了）就一律用帳號存的，不然用送來的 */
+export const roomJokerStyle = async (memberId: number, style: unknown) => {
+    const pet = await prisma.pet.findUnique({ where: { member_id: memberId }, select: { memory_joker_style: true } });
+    if (pet?.memory_joker_style && !(await jokerStyleSwitchable(memberId))) return pet.memory_joker_style;
+    return allowedJokerStyle(style);
+};
+
 /* PUT /pet-games/memory-rewards/joker-style { jokerStyle }：a 黑桃 / b 紅心 / c 方塊 / d 梅花
    背包裡有小丑海兔才能選（勝場拿到或兌換碼送的都算） */
 export const setJokerStyle = async (memberId: number, rawStyle: unknown) => {
-    await getPet(memberId);
+    const pet = await getPet(memberId);
     if (!(await ensureJokerSkin(memberId))) throw new Error(`翻牌對決贏滿 ${cfg.jokerSkin.winsRequired} 場才能拿到小丑海兔喔！`);
     const style = allowedJokerStyle(rawStyle);
     if (!style) throw new Error('小丑海兔只有黑桃、紅心、方塊、梅花四種配色');
+    // 勝場拿到的只能選一次：選過了（不是 null）而且換成別的，就擋下來；第一次選照常存
+    if (pet.memory_joker_style && pet.memory_joker_style !== style && !(await jokerStyleSwitchable(memberId))) {
+        throw new Error('勝場拿到的小丑海兔配色不能再換喔');
+    }
     await prisma.pet.update({ where: { member_id: memberId }, data: { memory_joker_style: style } });
     return getMemoryRewards(memberId);
 };

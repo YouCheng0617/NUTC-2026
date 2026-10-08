@@ -4,7 +4,7 @@ import prisma from '../lib/prisma.js';
 import { setupMemoryGame, memoryHandleLeave, memoryHandleJoin, memoryForget, setRoomKicker } from './memoryGame.js';
 import { getRoomBanMinutesLeft } from './quitPenalty.js';
 import { loadConflicts, hasConflict, isBlockedByHost, blockPlayer, reportPlayer, recordRoomChat, clearRoomChat } from './gameSafety.js';
-import { allowedOutfit, allowedJokerStyle, ensureJokerSkin } from './memoryRewards.js';
+import { allowedOutfit, roomJokerStyle, ensureJokerSkin } from './memoryRewards.js';
 import { gameConfig } from './gameConfig.js';
 
 // ... (Player 和 Room 介面保持不變) ...
@@ -25,7 +25,7 @@ const cleanPlayerData = async (raw: any, memberId: number) => {
     const outfit = await allowedOutfit(memberId, raw?.outfit);
     let petColor = typeof raw?.petColor === 'string' ? raw.petColor.slice(0, 40) : 'snow';
     if (petColor === JOKER && !(await ensureJokerSkin(memberId))) petColor = 'snow';
-    const jokerStyle = petColor === JOKER ? allowedJokerStyle(raw?.jokerStyle) : undefined;
+    const jokerStyle = petColor === JOKER ? await roomJokerStyle(memberId, raw?.jokerStyle) : undefined;
     return {
         memberId,
         petName: typeof raw?.petName === 'string' && raw.petName.trim() ? raw.petName.trim().slice(0, 20) : '小可愛',
