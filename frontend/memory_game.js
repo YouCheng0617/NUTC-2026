@@ -35,9 +35,13 @@
             outfitRoomNote: '你現在在房間裡：其他人要等你下次進房，才會看到新服裝',
             using: '使用中', pickDone: '完成',
             unlockTitle: '🎉 解鎖新獎勵！',
-            unlock_cardBack: '贏滿 3 場！所有卡背都能隨你換囉', unlock_joker: '贏滿 10 場！小丑海兔送進背包了，四種配色任你挑',
+            unlock_cardBack: '贏滿 3 場！所有卡背都能隨你換囉', unlock_joker: '贏滿 10 場！小丑海兔送進背包了，四種配色挑一種',
             unlock_outfit: '贏滿 30 場！國王裝和皇后裝任你挑', unlockLater: '等等再說',
             jokerWorn: '🤡 換上小丑海兔了！', jokerTitle: '🤡 小丑海兔配色', jokerHint: '選一種配色馬上穿上，隨時都能換；連線時其他人也看得到',
+            jokerHintOnce: '勝場拿到的小丑海兔只能選一種配色，選了就不能再換，挑你最喜歡的吧！',
+            jokerHintLocked: (name) => `你的小丑海兔是「${name}」。勝場拿到的配色不能再換，用兌換碼拿到的小丑海兔才能隨時切換`,
+            jokerConfirm: (name) => `確定選「${name}」嗎？選了就不能再換喔`, jokerConfirmYes: '確定', jokerConfirmNo: '再想想',
+            jokerLockedTap: '勝場拿到的小丑海兔配色不能再換喔', act_jokerView: '我的配色',
             throneTitle: '👑 登上王座！', throneSub: '翻牌對決 100 勝，你就是記憶之王！', throneBtn: '太棒了！', throneSkip: '點一下跳過',
             albumOpen: '📖 卡牌圖鑑', albumOpenSub: '先看看有哪些牌',
             pickPairs: '選擇對決組數', start: '開始對決！', wait: '等房主選好組數開始對決…',
@@ -101,6 +105,10 @@
             unlock_cardBack: '3 wins! Every card back is yours to switch', unlock_joker: '10 wins! The Joker Bunny is in your bag — pick one of four color sets',
             unlock_outfit: '30 wins! Pick the King or Queen outfit', unlockLater: 'Later',
             jokerWorn: '🤡 Joker Bunny on!', jokerTitle: '🤡 Joker Bunny Colors', jokerHint: 'Pick a color set to wear it right away — switch anytime. Other players see it online too',
+            jokerHintOnce: 'A Joker Bunny won from matches comes in one color set — once you pick, it stays. Choose your favorite!',
+            jokerHintLocked: (name) => `Your Joker Bunny is "${name}". Colors won from matches can't be changed — only a Joker Bunny from a redeem code can switch anytime`,
+            jokerConfirm: (name) => `Pick "${name}"? You can't change it later`, jokerConfirmYes: 'Yes', jokerConfirmNo: 'Not yet',
+            jokerLockedTap: "Colors won from matches can't be changed", act_jokerView: 'My colors',
             throneTitle: '👑 To the Throne!', throneSub: '100 Memory Match wins — you are the Memory Master!', throneBtn: 'Awesome!', throneSkip: 'Tap to skip',
             albumOpen: '📖 Card Album', albumOpenSub: 'See all the cards first',
             pickPairs: 'How many pairs?', start: 'Start!', wait: 'Waiting for the host to start…',
@@ -193,6 +201,11 @@
         return myWins() >= CARD_BACK_WINS && CARD_BACKS.some((b) => b.id === id) ? id : 'classic';
     }
     function saveState() { if (typeof saveGame === 'function') saveGame(); }
+    // 🤡 小丑海兔配色能不能換：兌換碼拿到的隨時能換；勝場拿到的只能選一次
+    //    gameState.jokerSwitchable 來自後端 my-pet 的 joker_style_switchable；後端還沒回這個欄位（null）時一律當作能換，不會把人鎖住
+    function jokerSwitchable() { return !hasGame() || gameState.jokerSwitchable !== false; }
+    function jokerLocked() { return !jokerSwitchable() && !!gameState.jokerStyleChosen; }        // 已經選過，不能再換
+    function jokerNeedsConfirm() { return !jokerSwitchable() && !gameState.jokerStyleChosen; }   // 第一次選，要先確認
     // 卡背、服裝、小丑配色存到伺服器，換裝置也還在（存不成功就先留在這台，下次打開會再同步）
     function saveLookToServer(kind, value) {
         if (typeof fetchAPI !== 'function' || typeof GAME_TOKEN === 'undefined' || !GAME_TOKEN) return;
@@ -205,7 +218,8 @@
         if (!pet || !hasGame()) return;
         if (pet.memory_card_back) gameState.cardBack = pet.memory_card_back;
         if (pet.memory_royal_outfit) gameState.outfit = pet.memory_royal_outfit;
-        if (pet.memory_joker_style) gameState.jokerStyle = pet.memory_joker_style;
+        if (pet.memory_joker_style) { gameState.jokerStyle = pet.memory_joker_style; gameState.jokerStyleChosen = true; }
+        if (typeof pet.joker_style_switchable === 'boolean') gameState.jokerSwitchable = pet.joker_style_switchable;
     }
 
     function isEn() {
@@ -596,7 +610,8 @@
                 tile.appendChild(el('span', 'mg-reward-lock', T('lockedLeft', r.wins - (w || 0))));
             } else {
                 const wearing = r.id === 'joker' && hasGame() && gameState.currentSpecies === 'joker';
-                const btn = el('button', 'mg-reward-btn', wearing ? T('act_jokerOn') : T('act_' + r.id));
+                const label = r.id === 'joker' && jokerLocked() ? T('act_jokerView') : (wearing ? T('act_jokerOn') : T('act_' + r.id));
+                const btn = el('button', 'mg-reward-btn', label);
                 btn.type = 'button';
                 btn.addEventListener('click', () => rewardAction(r.id));
                 tile.appendChild(btn);
@@ -623,8 +638,12 @@
     }
     // 選一種配色並穿上（還沒穿小丑海兔的話順便換上，equipItem 會通知伺服器）
     function wearJoker(style) {
+        if (jokerLocked() && typeof jokerStyleOf === 'function' && style !== jokerStyleOf(gameState.jokerStyle)) {
+            showFloatText(T('jokerLockedTap'));
+            return;
+        }
         ensureJokerOwned();
-        if (hasGame()) { gameState.jokerStyle = style; saveState(); }
+        if (hasGame()) { gameState.jokerStyle = style; gameState.jokerStyleChosen = true; saveState(); }
         saveLookToServer('jokerStyle', style);
         const already = hasGame() && gameState.currentSpecies === 'joker';
         if (!already && typeof equipItem === 'function') equipItem('joker', 'species');
@@ -641,6 +660,7 @@
 
     // ---------- 🎴 選卡背／👑 換裝／🎉 解鎖通知（同一個面板） ----------
     let pickMode = null;   // 'cardBack' | 'outfit' | 'unlock:cardBack' ...
+    let jokerPending = null;   // 勝場版小丑第一次選配色：點了先記在這裡，按「確定」才真的選
 
     function isPickOpen() {
         const sheet = $('mgPickSheet');
@@ -659,6 +679,7 @@
         const sheet = $('mgPickSheet');
         if (sheet) sheet.hidden = true;
         pickMode = null;
+        jokerPending = null;
     }
 
     function renderPick() {
@@ -699,25 +720,49 @@
 
         if (pickMode === 'joker') {
             $('mgPickTitle').textContent = T('jokerTitle');
-            body.appendChild(el('p', 'mg-pick-hint', T('jokerHint')));
+            const styleName = (s) => JOKER_STYLES[s].name[isEn() ? 'en' : 'zh'];
+            const locked = jokerLocked();
+            const chosen = typeof jokerStyleOf === 'function' ? jokerStyleOf(gameState.jokerStyle) : null;
+            body.appendChild(el('p', 'mg-pick-hint', locked ? T('jokerHintLocked', styleName(chosen)) : T(jokerNeedsConfirm() ? 'jokerHintOnce' : 'jokerHint')));
             if (typeof currentRoomId !== 'undefined' && currentRoomId) body.appendChild(el('p', 'mg-pick-note', T('outfitRoomNote')));
             const grid = el('div', 'mg-pick-grid is-jokers');
             const wearing = hasGame() && gameState.currentSpecies === 'joker';
-            const current = wearing && typeof jokerStyleOf === 'function' ? jokerStyleOf(gameState.jokerStyle) : null;
+            // 鎖住時，選過的那一種一律標成使用中；沒鎖時跟以前一樣，穿著才標
+            const current = locked || wearing ? chosen : null;
             const outfit = typeof activeOutfit === 'function' && activeOutfit() !== 'none' ? activeOutfit() : null;
             Object.keys(typeof JOKER_STYLES !== 'undefined' ? JOKER_STYLES : {}).forEach((style) => {
-                const opt = el('button', 'mg-pick-opt' + (style === current ? ' is-active' : ''));
+                const off = locked && style !== chosen;
+                const opt = el('button', 'mg-pick-opt' + (style === current ? ' is-active' : '') + (off ? ' is-disabled' : '') + (style === jokerPending ? ' is-pending' : ''));
                 opt.type = 'button';
                 opt.setAttribute('aria-pressed', style === current);
+                if (off) opt.setAttribute('aria-disabled', 'true');
                 const pic = el('div', 'mg-outfit-sample');
                 pic.innerHTML = petSVG('joker', outfit, style);
                 opt.appendChild(pic);
-                opt.appendChild(el('span', 'mg-pick-name', JOKER_STYLES[style].name[isEn() ? 'en' : 'zh']));
+                opt.appendChild(el('span', 'mg-pick-name', styleName(style)));
                 if (style === current) opt.appendChild(el('span', 'mg-pick-using', T('using')));
-                opt.addEventListener('click', () => { wearJoker(style); renderPick(); });
+                opt.addEventListener('click', () => {
+                    if (off) { showFloatText(T('jokerLockedTap')); return; }
+                    if (jokerNeedsConfirm()) { jokerPending = style; renderPick(); return; }   // 勝場版第一次選：先問一次
+                    wearJoker(style);
+                    renderPick();
+                });
                 grid.appendChild(opt);
             });
             body.appendChild(grid);
+            if (jokerPending && jokerNeedsConfirm()) {
+                const bar = el('div', 'mg-joker-confirm');
+                bar.appendChild(el('span', 'mg-joker-confirm-text', T('jokerConfirm', styleName(jokerPending))));
+                const yes = el('button', 'mg-joker-confirm-yes', T('jokerConfirmYes'));
+                yes.type = 'button';
+                yes.addEventListener('click', () => { const s = jokerPending; jokerPending = null; wearJoker(s); renderPick(); });
+                const no = el('button', 'mg-joker-confirm-no', T('jokerConfirmNo'));
+                no.type = 'button';
+                no.addEventListener('click', () => { jokerPending = null; renderPick(); });
+                bar.appendChild(yes);
+                bar.appendChild(no);
+                body.appendChild(bar);
+            }
             done.textContent = T('pickDone');
             return;
         }

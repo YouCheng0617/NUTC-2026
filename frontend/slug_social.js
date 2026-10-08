@@ -754,6 +754,8 @@
                 if (!cat) return;
                 const list = cat.list();
                 if (cat.data()[x.item] && !list.includes(x.item)) list.push(x.item);
+                // 兌換碼拿到的小丑海兔配色可以隨時換（不用等重新整理讀到後端的欄位）
+                if (x.category === 'pet_color' && x.item === 'joker') gameState.jokerSwitchable = true;
             });
             saveGame();
             updateUI();

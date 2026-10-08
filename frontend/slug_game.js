@@ -1885,7 +1885,9 @@ const i18n = {
             memoryWins: 0,
             cardBack: 'classic',   // 3 勝解鎖，memory_game.js 的 CARD_BACKS
             outfit: 'none',        // 30 勝解鎖：none / king / queen
-            jokerStyle: 'a'        // 10 勝的小丑海兔配色：a 黑桃 / b 紅心 / c 方塊 / d 梅花（JOKER_STYLES，跟著帳號存在伺服器）
+            jokerStyle: 'a',       // 10 勝的小丑海兔配色：a 黑桃 / b 紅心 / c 方塊 / d 梅花（JOKER_STYLES，跟著帳號存在伺服器）
+            jokerSwitchable: null, // 小丑配色能不能隨時換：兌換碼拿到的 true、只有勝場拿到的 false；null = 後端還沒回，先當作能換
+            jokerStyleChosen: false // 有沒有選過配色（勝場版只能選一次，選過就鎖住）
         };
 
         // 🤡 小丑海兔（翻牌對決 10 勝）：四種配色自選，配件都一樣（紅鼻子、異色瞳大眼睛穿過細長紅菱形、小嘴巴、兩耳中間的三尖小丑帽），瞳孔裡的撲克牌花色每種配色不同
@@ -4402,8 +4404,10 @@ const effectData = {
                     else if (gameState.cardBack && gameState.cardBack !== 'classic') fetchAPI('/pet-games/memory-rewards/card-back', 'PUT', { cardBack: gameState.cardBack });
                     if (data.memory_royal_outfit) gameState.outfit = data.memory_royal_outfit;
                     else if (gameState.outfit && gameState.outfit !== 'none') fetchAPI('/pet-games/memory-rewards/royal-outfit', 'PUT', { outfit: gameState.outfit });
-                    if (data.memory_joker_style) gameState.jokerStyle = data.memory_joker_style;
+                    if (data.memory_joker_style) { gameState.jokerStyle = data.memory_joker_style; gameState.jokerStyleChosen = true; }
                     else if (gameState.jokerStyle && gameState.jokerStyle !== 'a') fetchAPI('/pet-games/memory-rewards/joker-style', 'PUT', { jokerStyle: gameState.jokerStyle });
+                    // 小丑配色能不能隨時換（兌換碼拿到的才能換）：後端有回這個欄位才採用，沒回就維持原樣
+                    if (typeof data.joker_style_switchable === 'boolean') gameState.jokerSwitchable = data.joker_style_switchable;
 
                     // 同步目前裝備：伺服器的值是有效商品才採用；
                     // 資料庫預設值 (「經典雪兔」「基礎藍」) 不在商品清單裡，代表從沒透過伺服器換過裝，保留本機的 (例如抽到的寵物)

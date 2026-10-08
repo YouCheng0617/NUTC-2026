@@ -643,6 +643,21 @@
     background: #fff; cursor: pointer;
 }
 .mg-pick-opt.is-active { border-color: #f472b6; background: #fff1f6; box-shadow: 0 4px 0 #fbcfe8; }
+/* 🤡 勝場版小丑海兔：選過之後其他配色變灰；第一次選時點到的那一種先用黃框標起來，等按「確定」 */
+.mg-pick-opt.is-disabled { opacity: 0.45; filter: grayscale(0.7); cursor: not-allowed; }
+.mg-pick-opt.is-pending { border-color: #f59e0b; background: #fffbeb; box-shadow: 0 4px 0 #fde68a; }
+.mg-joker-confirm {
+    display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 8px;
+    margin-top: 12px; padding: 10px 12px; border-radius: 14px;
+    background: #fffbeb; border: 2px solid #fde68a;
+}
+.mg-joker-confirm-text { flex: 1 1 100%; text-align: center; font-size: 0.9rem; font-weight: 900; color: #92400e; }
+.mg-joker-confirm-yes, .mg-joker-confirm-no {
+    min-height: 38px; padding: 6px 18px; border-radius: 999px; font-size: 0.9rem; font-weight: 900; cursor: pointer;
+}
+.mg-joker-confirm-yes { border: none; background: #f59e0b; color: #fff; box-shadow: 0 3px 0 #b45309; }
+.mg-joker-confirm-no { border: 2px solid #fde68a; background: #fff; color: #92400e; }
+.mg-joker-confirm-yes:active, .mg-joker-confirm-no:active { transform: translateY(3px); box-shadow: none; }
 .mg-pick-name { font-size: 0.85rem; font-weight: 900; color: #4a3b3b; }
 .mg-pick-using {
     position: absolute; top: -9px; right: -6px;
