@@ -581,7 +581,9 @@
 
         list.innerHTML = '';
         REWARDS.forEach((r) => {
-            const unlocked = (w || 0) >= r.wins;
+            // 小丑海兔也可能是兌換碼送的：背包裡有就算解鎖，勝場不夠也能打開配色面板
+            const ownsJoker = r.id === 'joker' && hasGame() && Array.isArray(gameState.unlockedSpecies) && gameState.unlockedSpecies.includes('joker');
+            const unlocked = (w || 0) >= r.wins || ownsJoker;
             const tile = el('div', 'mg-reward ' + (unlocked ? 'is-unlocked' : 'is-locked'));
             tile.dataset.reward = r.id;
             const icon = el('span', 'mg-reward-icon', unlocked ? r.icon : '🔒');
