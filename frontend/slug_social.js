@@ -724,6 +724,10 @@
             });
             saveGame();
             updateUI();
+            // 商店、百寶袋的卡片要重畫，才會從「🏆 翻牌 10 勝」這類鎖住的樣子變成可以穿的「已擁有」
+            if (typeof renderShop === 'function') renderShop();
+            const catalogOverlay = document.getElementById('catalogModalOverlay');
+            if (catalogOverlay && catalogOverlay.style.display === 'flex' && typeof renderCatalog === 'function') renderCatalog();
             if (typeof playDingSound === 'function') playDingSound(2);
             showFloatText(res.message || L('🎁 兌換成功！', '🎁 Redeemed!'), 4000);
             const input = $('redeemInput');
