@@ -50,7 +50,8 @@
         return src.slice(m.index, objectEnd(src, m.index));
     }
 
-    function petThumb(spec) {
+    // extra：小丑海兔這種有自己五官的皮膚，原本的眼睛不畫，改疊上 slug_game.js 的配件（座標同一套）
+    function petThumb(spec, extra = '') {
         return `<svg viewBox="40 15 270 210" aria-hidden="true">
             <g stroke="${spec.outline}" stroke-width="6" stroke-linejoin="round">
                 <path d="M 260 150 C 290 160, 320 120, 280 80 C 260 60, 230 110, 250 150 Z" fill="${spec.tail}"/>
@@ -60,10 +61,11 @@
             </g>
             <g fill="${spec.spot}"><circle cx="125" cy="125" r="6"/><circle cx="210" cy="140" r="6"/><circle cx="160" cy="185" r="6"/></g>
             <g transform="translate(130, 150)">
-                <circle cx="-20" cy="0" r="9" fill="#2c3e50"/><circle cx="20" cy="0" r="9" fill="#2c3e50"/>
+                ${extra ? '' : '<circle cx="-20" cy="0" r="9" fill="#2c3e50"/><circle cx="20" cy="0" r="9" fill="#2c3e50"/>'}
                 <ellipse cx="-36" cy="13" rx="13" ry="7" fill="${spec.blush}" opacity="0.85"/>
                 <ellipse cx="36" cy="13" rx="13" ry="7" fill="${spec.blush}" opacity="0.85"/>
             </g>
+            ${extra}
         </svg>`;
     }
 
@@ -82,15 +84,23 @@
             if (artStart < 0 || bgStart < 0) throw new Error('找不到背景資料');
             const bgs = new Function('gameState', `${src.slice(artStart, objectEnd(src, bgStart))}; return bgData;`)({ customBgColor: '#e2e8f0' });
 
+            // 小丑海兔（翻牌對決獎勵）的五官和帽子：從 const JOKER_STYLES 取到 jokerExtraSVG 結尾；讀不到就畫普通海兔
+            let jokerExtra = null;
+            try {
+                const jStart = src.indexOf('const JOKER_STYLES'), fnStart = src.indexOf('function jokerExtraSVG');
+                if (jStart >= 0 && fnStart > jStart) jokerExtra = new Function(`${src.slice(jStart, objectEnd(src, fnStart))}; return jokerExtraSVG;`)();
+            } catch (e) { console.warn('[兌換碼] 讀不到小丑海兔的配件', e); }
+
             const css = (v) => (typeof v === 'function' ? v() : v) || '#e2e8f0';
+            // rewardWins：翻牌對決勝場獎勵（小丑海兔），商店不賣，只能靠勝場或兌換碼拿到，排在最前面
             const build = (data, thumbOf) => Object.fromEntries(
                 Object.entries(data)
                     .filter(([key, v]) => key !== 'none' && (v.cost || 0) > 0) // 一開始就有的免費項目不用發
-                    .sort((a, b) => (a[1].cost || 0) - (b[1].cost || 0))
-                    .map(([key, v]) => [key, { name: (v.name && v.name.zh) || key, cost: v.cost || 0, thumb: thumbOf(v) }])
+                    .sort((a, b) => (b[1].rewardWins ? 1 : 0) - (a[1].rewardWins ? 1 : 0) || (a[1].cost || 0) - (b[1].cost || 0))
+                    .map(([key, v]) => [key, { name: (v.name && v.name.zh) || key, cost: v.cost || 0, rewardWins: v.rewardWins || 0, thumb: thumbOf(v, key) }])
             );
             catalog = {
-                pet_color: build(species, (v) => ({ type: 'svg', html: petThumb(v) })),
+                pet_color: build(species, (v, key) => ({ type: 'svg', html: petThumb(v, key === 'joker' && jokerExtra ? jokerExtra('a') : '') })),
                 background_color: build(bgs, (v) => ({ type: 'bg', css: css(v.preview) })),
                 background_effects: build(effects, (v) => ({ type: 'bg', css: css(v.preview) })),
             };
@@ -145,7 +155,7 @@
                         onclick="rdToggleItem(${jsArg(tab.category)}, ${jsArg(key)})" title="${escapeHTML(key)}">
                 ${thumbHTML(v, 54)}
                 <span class="rd-item-name">${escapeHTML(v.name)}</span>
-                <span class="rd-item-cost">商店價 ${v.cost}</span>
+                <span class="rd-item-cost ${v.rewardWins ? 'is-reward' : ''}">${v.rewardWins ? `🃏 翻牌對決 ${v.rewardWins} 勝獎勵` : `商店價 ${v.cost}`}</span>
                 ${on ? '<span class="rd-check">✓</span>' : ''}
             </button>`;
         }).join('');

@@ -1001,6 +1001,9 @@ html {
 .rd-item.is-selected { border-color: #db2777; background: #fdf2f8; }
 .rd-item-name { font-size: 0.82rem; font-weight: 700; color: #334155; text-align: center; line-height: 1.3; }
 .rd-item-cost { font-size: 0.72rem; color: #94a3b8; }
+.rd-item-cost.is-reward { color: #7c3aed; font-weight: 600; }
+/* 小丑海兔縮圖：只留平常的眼睛（瞇瞇眼、肚子餓的垂眼是遊戲裡切換用的） */
+.rd-thumb .happy-eye, .rd-thumb .joker-sad-eye { display: none; }
 .rd-check {
   position: absolute; top: 4px; right: 4px;
   width: 20px; height: 20px; border-radius: 50%;
