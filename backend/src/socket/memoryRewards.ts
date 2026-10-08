@@ -44,7 +44,7 @@ export const getMemoryRewards = async (memberId: number) => {
             options: R.cardBackBox.options,
             selected: pet.memory_card_back,
         },
-        jokerSkin: { unlocked: wins >= cfg.jokerSkin.winsRequired, itemName: cfg.jokerSkin.itemName },
+        jokerSkin: { unlocked: wins >= cfg.jokerSkin.winsRequired, itemName: cfg.jokerSkin.itemName, styles: cfg.jokerSkin.styles },
         royalOutfit: {
             unlocked: wins >= R.royalOutfit.wins,
             options: R.royalOutfit.options,
@@ -85,6 +85,22 @@ export const allowedOutfit = async (memberId: number, outfit: unknown): Promise<
     const pet = await prisma.pet.findUnique({ where: { member_id: memberId }, select: { memory_wins: true } });
     return pet && pet.memory_wins >= R.royalOutfit.wins ? outfit : undefined;
 };
+
+/* 有沒有小丑海兔：背包裡有（勝場拿到或兌換碼送的）就算；
+   勝場已經滿了但背包還沒有（例如滿 10 勝之後還沒再贏過），順便補發 */
+export const ensureJokerSkin = async (memberId: number) => {
+    const pet = await prisma.pet.findUnique({ where: { member_id: memberId }, select: { pet_id: true, memory_wins: true } });
+    if (!pet) return false;
+    const key = { pet_id: pet.pet_id, category: 'pet_color', item_name: cfg.jokerSkin.itemName };
+    if (await prisma.petInventory.findUnique({ where: { pet_id_category_item_name: key } })) return true;
+    if (pet.memory_wins < cfg.jokerSkin.winsRequired) return false;
+    await prisma.petInventory.upsert({ where: { pet_id_category_item_name: key }, update: {}, create: key });
+    return true;
+};
+
+/* 小丑海兔的配色只認 a～d，其他值當作沒帶（前端會用預設的 a） */
+export const allowedJokerStyle = (style: unknown) =>
+    typeof style === 'string' && (cfg.jokerSkin.styles as readonly string[]).includes(style) ? style : undefined;
 
 /* POST /pet-games/memory-rewards/throne-seen：前端播完王座動畫後呼叫，下次就不會自動再播 */
 export const markThroneSeen = async (memberId: number) => {

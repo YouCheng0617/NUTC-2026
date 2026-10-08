@@ -4,7 +4,8 @@ import prisma from '../lib/prisma.js';
 import { setupMemoryGame, memoryHandleLeave, memoryHandleJoin, memoryForget, setRoomKicker } from './memoryGame.js';
 import { getRoomBanMinutesLeft } from './quitPenalty.js';
 import { loadConflicts, hasConflict, isBlockedByHost, blockPlayer, reportPlayer, recordRoomChat, clearRoomChat } from './gameSafety.js';
-import { allowedOutfit } from './memoryRewards.js';
+import { allowedOutfit, allowedJokerStyle, ensureJokerSkin } from './memoryRewards.js';
+import { gameConfig } from './gameConfig.js';
 
 // ... (Player 和 Room 介面保持不變) ...
 interface Player {
@@ -13,18 +14,24 @@ interface Player {
     petName: string;
     petColor: string;
     outfit?: string; // 翻牌對決 30 勝解鎖的 king / queen（沒穿就不帶）
+    jokerStyle?: string; // 小丑海兔的配色 a～d（petColor 是 joker 才帶）
     x: number;
     y: number;
 }
 
-/* 前端送來的玩家資料只留會用到的欄位，服裝要確認真的解鎖了才轉給房間裡其他人 */
+/* 前端送來的玩家資料只留會用到的欄位，服裝、小丑海兔要確認真的解鎖了才轉給房間裡其他人 */
+const JOKER = gameConfig.memoryGame.jokerSkin.itemName;
 const cleanPlayerData = async (raw: any, memberId: number) => {
     const outfit = await allowedOutfit(memberId, raw?.outfit);
+    let petColor = typeof raw?.petColor === 'string' ? raw.petColor.slice(0, 40) : 'snow';
+    if (petColor === JOKER && !(await ensureJokerSkin(memberId))) petColor = 'snow';
+    const jokerStyle = petColor === JOKER ? allowedJokerStyle(raw?.jokerStyle) : undefined;
     return {
         memberId,
         petName: typeof raw?.petName === 'string' && raw.petName.trim() ? raw.petName.trim().slice(0, 20) : '小可愛',
-        petColor: typeof raw?.petColor === 'string' ? raw.petColor.slice(0, 40) : 'snow',
+        petColor,
         ...(outfit ? { outfit } : {}),
+        ...(jokerStyle ? { jokerStyle } : {}),
     };
 };
 

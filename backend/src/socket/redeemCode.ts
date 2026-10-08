@@ -5,7 +5,7 @@ import { gameConfig } from './gameConfig.js';
 
 /*
  * 寵物遊戲兌換碼
- * 後台建立：自訂積分＋任意組合的皮膚（pet_color）、背景（background_color）、特效（background_effects），
+ * 後台建立：自訂積分＋任意組合的皮膚（pet_color，包含不在商店賣的小丑海兔）、背景（background_color）、特效（background_effects），
  * 可設到期時間、最多幾個人能用；每個帳號同一個碼只能兌換一次。
  */
 
@@ -22,9 +22,11 @@ export const normalizeCode = (code: unknown) => (typeof code === 'string' ? code
 export const generateCode = (length = 10) =>
     Array.from({ length }, () => CODE_ALPHABET[crypto.randomInt(CODE_ALPHABET.length)]).join('');
 
-/* 商品必須是商店裡要花錢買的東西（經典雪兔、無特效這種一開始就有的免費項目不能拿來發） */
+/* 商品必須是商店裡要花錢買的東西（經典雪兔、無特效這種一開始就有的免費項目不能拿來發）；
+   小丑海兔是翻牌對決獎勵、商店沒賣，但後台可以用兌換碼送 */
 const isValidItem = (x: any): x is RewardItem => {
     if (!x || !REWARD_CATEGORIES.includes(x.category) || typeof x.item !== 'string') return false;
+    if (x.category === 'pet_color' && x.item === gameConfig.memoryGame.jokerSkin.itemName) return true;
     const prices = gameConfig.shop[x.category as Category] as Record<string, number>;
     return Object.prototype.hasOwnProperty.call(prices, x.item) && prices[x.item]! > 0;
 };

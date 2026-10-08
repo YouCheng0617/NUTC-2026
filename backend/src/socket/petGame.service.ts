@@ -1,5 +1,6 @@
 import prisma from '../lib/prisma.js';
 import { gameConfig } from './gameConfig.js';
+import { ensureJokerSkin } from './memoryRewards.js';
 
 export const renamePet = async (memberId: number, newName: string) => {
 
@@ -182,6 +183,18 @@ export const buyShopItem = async (
         return await prisma.pet.update({
             where: { member_id: memberId },
             data: { [category]: itemName },
+            include: { PetInventory: true }
+        });
+    }
+
+    // 小丑海兔不在商店賣：翻牌對決贏滿場數（或兌換碼送的）才能換上
+    if (category === 'pet_color' && itemName === gameConfig.memoryGame.jokerSkin.itemName) {
+        if (!(await ensureJokerSkin(memberId))) {
+            throw new Error(`翻牌對決贏滿 ${gameConfig.memoryGame.jokerSkin.winsRequired} 場才能拿到小丑海兔喔！`);
+        }
+        return await prisma.pet.update({
+            where: { member_id: memberId },
+            data: { pet_color: itemName },
             include: { PetInventory: true }
         });
     }
