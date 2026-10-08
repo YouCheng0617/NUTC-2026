@@ -25,17 +25,21 @@
             rewardsTitle: '🏆 勝場獎勵', winsNow: (w) => `目前 ${w} 勝`, winsUnknown: '登入後才會記錄勝場喔',
             nextGoal: (n, name) => `再贏 ${n} 場解鎖「${name}」`, allDone: '全部獎勵都到手了，你就是翻牌之王！',
             winsNeed: (n) => `${n} 勝`, lockedLeft: (n) => `還差 ${n} 場`,
-            reward_cardBack: '卡背自選箱', rewardSub_cardBack: '所有卡背隨你換',
+            reward_cardBack: '卡背自選箱', rewardSub_cardBack: '挑一種喜歡的卡背',
             reward_joker: '小丑海兔', rewardSub_joker: '專屬皮膚',
             reward_outfit: '披風皇冠', rewardSub_outfit: '國王裝或皇后裝',
             reward_throne: '登上王座', rewardSub_throne: '神秘動畫',
             act_cardBack: '選卡背', act_joker: '選配色', act_jokerOn: '換配色', act_outfit: '換裝', act_throne: '重播',
             cardBackTitle: '🎴 選擇卡背', cardBackHint: '隨時都能換，只有你自己的畫面會變成這個卡背',
+            cardBackHintOnce: '勝場拿到的卡背只能選一種，選了就不能再換，挑你最喜歡的吧！只有你自己的畫面會變成這個卡背',
+            cardBackHintLocked: (name) => `你的卡背是「${name}」。勝場拿到的卡背不能再換，用兌換碼拿到的卡背才能隨時切換`,
+            cardBackConfirm: (name) => `確定選「${name}」嗎？選了就不能再換喔`,
+            cardBackLockedTap: '勝場拿到的卡背不能再換喔', act_cardBackView: '我的卡背',
             outfitTitle: '👑 選擇服裝', outfitNone: '不穿', outfitHint: '穿在魚缸裡的海兔身上，連線時其他人也看得到',
             outfitRoomNote: '你現在在房間裡：其他人要等你下次進房，才會看到新服裝',
             using: '使用中', pickDone: '完成',
             unlockTitle: '🎉 解鎖新獎勵！',
-            unlock_cardBack: '贏滿 3 場！所有卡背都能隨你換囉', unlock_joker: '贏滿 10 場！小丑海兔送進背包了，四種配色挑一種',
+            unlock_cardBack: '贏滿 3 場！卡背自選箱解鎖，挑一種喜歡的卡背吧', unlock_joker: '贏滿 10 場！小丑海兔送進背包了，四種配色挑一種',
             unlock_outfit: '贏滿 30 場！國王裝和皇后裝任你挑', unlockLater: '等等再說',
             jokerWorn: '🤡 換上小丑海兔了！', jokerTitle: '🤡 小丑海兔配色', jokerHint: '選一種配色馬上穿上，隨時都能換；連線時其他人也看得到',
             jokerHintOnce: '勝場拿到的小丑海兔只能選一種配色，選了就不能再換，挑你最喜歡的吧！',
@@ -92,17 +96,21 @@
             rewardsTitle: '🏆 Win Rewards', winsNow: (w) => `${w} wins`, winsUnknown: 'Log in to keep track of your wins',
             nextGoal: (n, name) => `${n} more ${n === 1 ? 'win' : 'wins'} to unlock "${name}"`, allDone: "You've got every reward — you're the Memory Master!",
             winsNeed: (n) => `${n} wins`, lockedLeft: (n) => `${n} to go`,
-            reward_cardBack: 'Card Back Box', rewardSub_cardBack: 'Switch card backs anytime',
+            reward_cardBack: 'Card Back Box', rewardSub_cardBack: 'Pick a card back you love',
             reward_joker: 'Joker Bunny', rewardSub_joker: 'Exclusive skin',
             reward_outfit: 'Cape & Crown', rewardSub_outfit: 'King or Queen outfit',
             reward_throne: 'The Throne', rewardSub_throne: 'Secret animation',
             act_cardBack: 'Pick', act_joker: 'Pick colors', act_jokerOn: 'Change colors', act_outfit: 'Dress up', act_throne: 'Replay',
             cardBackTitle: '🎴 Card Backs', cardBackHint: 'Switch anytime — only your own screen shows it',
+            cardBackHintOnce: 'A card back won from matches is a one-time pick — once you choose, it stays. Only your own screen shows it',
+            cardBackHintLocked: (name) => `Your card back is "${name}". Card backs won from matches can't be changed — only one from a redeem code can switch anytime`,
+            cardBackConfirm: (name) => `Pick "${name}"? You can't change it later`,
+            cardBackLockedTap: "Card backs won from matches can't be changed", act_cardBackView: 'My card back',
             outfitTitle: '👑 Outfit', outfitNone: 'None', outfitHint: 'Your sea bunny wears it in the tank, and other players see it online',
             outfitRoomNote: "You're in a room — others will see the new outfit the next time you join",
             using: 'In use', pickDone: 'Done',
             unlockTitle: '🎉 New reward unlocked!',
-            unlock_cardBack: '3 wins! Every card back is yours to switch', unlock_joker: '10 wins! The Joker Bunny is in your bag — pick one of four color sets',
+            unlock_cardBack: '3 wins! The Card Back Box is open — pick one you love', unlock_joker: '10 wins! The Joker Bunny is in your bag — pick one of four color sets',
             unlock_outfit: '30 wins! Pick the King or Queen outfit', unlockLater: 'Later',
             jokerWorn: '🤡 Joker Bunny on!', jokerTitle: '🤡 Joker Bunny Colors', jokerHint: 'Pick a color set to wear it right away — switch anytime. Other players see it online too',
             jokerHintOnce: 'A Joker Bunny won from matches comes in one color set — once you pick, it stays. Choose your favorite!',
@@ -206,6 +214,10 @@
     function jokerSwitchable() { return !hasGame() || gameState.jokerSwitchable !== false; }
     function jokerLocked() { return !jokerSwitchable() && !!gameState.jokerStyleChosen; }        // 已經選過，不能再換
     function jokerNeedsConfirm() { return !jokerSwitchable() && !gameState.jokerStyleChosen; }   // 第一次選，要先確認
+    // 🎴 卡背能不能換：規則跟小丑配色一樣，gameState.cardBackSwitchable 來自後端 my-pet 的 card_back_switchable（null = 還沒回，當作能換）
+    function cardBackSwitchable() { return !hasGame() || gameState.cardBackSwitchable !== false; }
+    function cardBackLocked() { return !cardBackSwitchable() && !!gameState.cardBackChosen; }
+    function cardBackNeedsConfirm() { return !cardBackSwitchable() && !gameState.cardBackChosen; }
     // 卡背、服裝、小丑配色存到伺服器，換裝置也還在（存不成功就先留在這台，下次打開會再同步）
     function saveLookToServer(kind, value) {
         if (typeof fetchAPI !== 'function' || typeof GAME_TOKEN === 'undefined' || !GAME_TOKEN) return;
@@ -216,7 +228,8 @@
     // 伺服器 my-pet 回來的卡背、服裝、小丑配色套到遊戲裡（伺服器沒存過就保留這台的）
     function applyLookFromServer(pet) {
         if (!pet || !hasGame()) return;
-        if (pet.memory_card_back) gameState.cardBack = pet.memory_card_back;
+        if (pet.memory_card_back) { gameState.cardBack = pet.memory_card_back; gameState.cardBackChosen = true; }
+        if (typeof pet.card_back_switchable === 'boolean') gameState.cardBackSwitchable = pet.card_back_switchable;
         if (pet.memory_royal_outfit) gameState.outfit = pet.memory_royal_outfit;
         if (pet.memory_joker_style) { gameState.jokerStyle = pet.memory_joker_style; gameState.jokerStyleChosen = true; }
         if (typeof pet.joker_style_switchable === 'boolean') gameState.jokerSwitchable = pet.joker_style_switchable;
@@ -610,7 +623,9 @@
                 tile.appendChild(el('span', 'mg-reward-lock', T('lockedLeft', r.wins - (w || 0))));
             } else {
                 const wearing = r.id === 'joker' && hasGame() && gameState.currentSpecies === 'joker';
-                const label = r.id === 'joker' && jokerLocked() ? T('act_jokerView') : (wearing ? T('act_jokerOn') : T('act_' + r.id));
+                const label = r.id === 'joker' && jokerLocked() ? T('act_jokerView')
+                    : r.id === 'cardBack' && cardBackLocked() ? T('act_cardBackView')
+                    : (wearing ? T('act_jokerOn') : T('act_' + r.id));
                 const btn = el('button', 'mg-reward-btn', label);
                 btn.type = 'button';
                 btn.addEventListener('click', () => rewardAction(r.id));
@@ -661,6 +676,7 @@
     // ---------- 🎴 選卡背／👑 換裝／🎉 解鎖通知（同一個面板） ----------
     let pickMode = null;   // 'cardBack' | 'outfit' | 'unlock:cardBack' ...
     let jokerPending = null;   // 勝場版小丑第一次選配色：點了先記在這裡，按「確定」才真的選
+    let cardBackPending = null;   // 勝場版卡背第一次選：同上
 
     function isPickOpen() {
         const sheet = $('mgPickSheet');
@@ -680,6 +696,7 @@
         if (sheet) sheet.hidden = true;
         pickMode = null;
         jokerPending = null;
+        cardBackPending = null;
     }
 
     function renderPick() {
@@ -691,13 +708,24 @@
 
         if (pickMode === 'cardBack') {
             $('mgPickTitle').textContent = T('cardBackTitle');
-            body.appendChild(el('p', 'mg-pick-hint', T('cardBackHint')));
-            const grid = el('div', 'mg-pick-grid is-backs');
+            const backName = (id) => { const b = CARD_BACKS.find((x) => x.id === id); return b ? (isEn() ? b.en : b.zh) : id; };
+            const locked = cardBackLocked();
             const current = myCardBack();
+            body.appendChild(el('p', 'mg-pick-hint', locked ? T('cardBackHintLocked', backName(current)) : T(cardBackNeedsConfirm() ? 'cardBackHintOnce' : 'cardBackHint')));
+            const grid = el('div', 'mg-pick-grid is-backs');
+            const choose = (id) => {
+                gameState.cardBack = id;
+                gameState.cardBackChosen = true;
+                saveState();
+                saveLookToServer('cardBack', id);
+                applyCardBack();
+            };
             CARD_BACKS.forEach((b) => {
-                const opt = el('button', 'mg-pick-opt' + (b.id === current ? ' is-active' : ''));
+                const off = locked && b.id !== current;
+                const opt = el('button', 'mg-pick-opt' + (b.id === current ? ' is-active' : '') + (off ? ' is-disabled' : '') + (b.id === cardBackPending ? ' is-pending' : ''));
                 opt.type = 'button';
                 opt.setAttribute('aria-pressed', b.id === current);
+                if (off) opt.setAttribute('aria-disabled', 'true');
                 const sample = el('div', 'mg-back-sample');
                 sample.dataset.back = b.id;
                 sample.appendChild(el('div', 'mg-back'));
@@ -705,15 +733,27 @@
                 opt.appendChild(el('span', 'mg-pick-name', isEn() ? b.en : b.zh));
                 if (b.id === current) opt.appendChild(el('span', 'mg-pick-using', T('using')));
                 opt.addEventListener('click', () => {
-                    gameState.cardBack = b.id;
-                    saveState();
-                    saveLookToServer('cardBack', b.id);
-                    applyCardBack();
+                    if (off) { showFloatText(T('cardBackLockedTap')); return; }
+                    if (cardBackNeedsConfirm()) { cardBackPending = b.id; renderPick(); return; }   // 勝場版第一次選：先問一次
+                    choose(b.id);
                     renderPick();
                 });
                 grid.appendChild(opt);
             });
             body.appendChild(grid);
+            if (cardBackPending && cardBackNeedsConfirm()) {
+                const bar = el('div', 'mg-joker-confirm');
+                bar.appendChild(el('span', 'mg-joker-confirm-text', T('cardBackConfirm', backName(cardBackPending))));
+                const yes = el('button', 'mg-joker-confirm-yes', T('jokerConfirmYes'));
+                yes.type = 'button';
+                yes.addEventListener('click', () => { const id = cardBackPending; cardBackPending = null; choose(id); renderPick(); });
+                const no = el('button', 'mg-joker-confirm-no', T('jokerConfirmNo'));
+                no.type = 'button';
+                no.addEventListener('click', () => { cardBackPending = null; renderPick(); });
+                bar.appendChild(yes);
+                bar.appendChild(no);
+                body.appendChild(bar);
+            }
             done.textContent = T('pickDone');
             return;
         }

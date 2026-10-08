@@ -1884,6 +1884,8 @@ const i18n = {
             // 🏆 翻牌對決勝場獎勵（勝場數、卡背、服裝都以伺服器 my-pet 為準，跟著帳號走）
             memoryWins: 0,
             cardBack: 'classic',   // 3 勝解鎖，memory_game.js 的 CARD_BACKS
+            cardBackSwitchable: null, // 卡背能不能隨時換：兌換碼拿到的 true、只有勝場拿到的 false；null = 後端還沒回，先當作能換
+            cardBackChosen: false, // 有沒有選過卡背（勝場版只能選一次，選過就鎖住）
             outfit: 'none',        // 30 勝解鎖：none / king / queen
             jokerStyle: 'a',       // 10 勝的小丑海兔配色：a 黑桃 / b 紅心 / c 方塊 / d 梅花（JOKER_STYLES，跟著帳號存在伺服器）
             jokerSwitchable: null, // 小丑配色能不能隨時換：兌換碼拿到的 true、只有勝場拿到的 false；null = 後端還沒回，先當作能換
@@ -4400,8 +4402,10 @@ const effectData = {
                     if (typeof data.memory_wins === 'number') gameState.memoryWins = data.memory_wins;
                     // 翻牌對決的卡背、服裝、小丑配色跟著帳號走：伺服器存過就用伺服器的；
                     // 伺服器還沒存過（改版前只存在這台裝置）就把這台的選擇補存上去
-                    if (data.memory_card_back) gameState.cardBack = data.memory_card_back;
+                    if (data.memory_card_back) { gameState.cardBack = data.memory_card_back; gameState.cardBackChosen = true; }
                     else if (gameState.cardBack && gameState.cardBack !== 'classic') fetchAPI('/pet-games/memory-rewards/card-back', 'PUT', { cardBack: gameState.cardBack });
+                    // 卡背能不能隨時換（兌換碼拿到的才能換）：後端有回這個欄位才採用，沒回就維持原樣
+                    if (typeof data.card_back_switchable === 'boolean') gameState.cardBackSwitchable = data.card_back_switchable;
                     if (data.memory_royal_outfit) gameState.outfit = data.memory_royal_outfit;
                     else if (gameState.outfit && gameState.outfit !== 'none') fetchAPI('/pet-games/memory-rewards/royal-outfit', 'PUT', { outfit: gameState.outfit });
                     if (data.memory_joker_style) { gameState.jokerStyle = data.memory_joker_style; gameState.jokerStyleChosen = true; }
