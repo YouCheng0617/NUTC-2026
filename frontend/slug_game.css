@@ -775,7 +775,11 @@
         .slug-container.is-eating-munch .happy-eye {
             display: block !important;
         }
-
+        /* 🤡 小丑海兔：原本的眼睛藏起來，改用 jokerExtraSVG 畫的異色瞳（才會疊在紅菱形上面） */
+        .slug-container.is-joker .normal-eye:not(.joker-eye),
+        .slug-container.is-joker .happy-eye:not(.joker-eye) {
+            display: none !important;
+        }
         /* 🌟 細緻線條嘴巴：咀嚼時一開一張閉合動畫 */
         #chewingLineMouth {
             transform-box: fill-box;

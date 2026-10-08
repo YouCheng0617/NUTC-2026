@@ -1542,10 +1542,11 @@ function copyRoomId() {
                         <g transform="translate(130, 150)">
                             <ellipse cx="-35" cy="12" rx="14" ry="8" fill="${spec.blush}" opacity="0.85"/>
                             <ellipse cx="35" cy="12" rx="14" ry="8" fill="${spec.blush}" opacity="0.85"/>
+                            ${skinExtra ? '' : `
                             <circle cx="-20" cy="0" r="7" fill="#2c3e50" />
                             <circle cx="20" cy="0" r="7" fill="#2c3e50" />
                             <circle cx="-18" cy="-2" r="2.5" fill="#ffffff" />
-                            <circle cx="22" cy="-2" r="2.5" fill="#ffffff" />
+                            <circle cx="22" cy="-2" r="2.5" fill="#ffffff" />`}
                             <path d="M -7 5 Q 0 12 7 5" fill="none" stroke="#2c3e50" stroke-width="3.5" stroke-linecap="round"/>
                         </g>
                         ${skinExtra}
@@ -1887,7 +1888,7 @@ const i18n = {
             jokerStyle: 'a'        // 10 勝的小丑海兔配色：a / b / c / d（JOKER_STYLES）
         };
 
-        // 🤡 小丑海兔（翻牌對決 10 勝）：四種配色自選，配件都一樣（紅鼻子、眼睛上下紅菱形、耳朵尖端雙色毛球、亮晶晶眼睛）
+        // 🤡 小丑海兔（翻牌對決 10 勝）：四種配色自選，配件都一樣（紅鼻子、異色瞳大眼睛穿過細長紅菱形、小嘴巴、兩耳中間的三尖小丑帽）
         //    後端只發一個 joker 皮膚，配色選擇存在這台裝置，進房時跟著 playerData 送給其他人
         const JOKER_STYLES = {
             a: { name: { zh: '撲克小丑', en: 'Poker Clown' }, body: '#fefce8', outline: '#581c87', earTop: '#a855f7', tail: '#22c55e', spot: '#ef4444', blush: '#fca5a5', pomA: '#facc15', pomB: '#22c55e' },
@@ -1901,21 +1902,98 @@ const i18n = {
             if (key === 'joker') return { ...speciesData.joker, ...JOKER_STYLES[jokerStyleOf(jokerStyle)] };
             return speciesData[key] || speciesData.snow;
         }
+        // 小丑海兔的臉：照參考圖一筆一筆描的（勾勾眼線、雙眼皮線、上深下淺的瞳孔、下眼線）
+        //    座標是參考圖放大 6 倍後的像素（858×618），整組用 transform 縮成 0.13 倍貼到海兔臉上
+        //    兩眼正中間對準紅鼻子（x 130），左眼大約在 x 98、右眼大約在 x 162；嘴巴另外搬到鼻子下面
+        //    liner 是彩色眼線（上眼線外圈、眼尾上揚、下眼線），跟著配色走
+        //    不用漸層（同一份 SVG 會同時出現在很多地方，id 會撞），瞳孔的上深下淺用半透明疊色做
+        const JOKER_FACE_INK = '#2e2640';
+        const JOKER_FACE_T = 'translate(73, 100) scale(0.13)';
+        function jokerEyesSVG(irisL, irisR, liner) {
+            const ink = JOKER_FACE_INK;
+            const irisLShape = 'M 160 330 C 185 322, 240 325, 285 360 C 300 385, 305 410, 305 435 C 270 442, 210 442, 165 438 C 160 400, 158 360, 160 330 Z';
+            const irisRShape = 'M 560 400 C 600 370, 660 350, 725 345 C 732 380, 730 420, 722 460 C 680 463, 610 462, 568 458 C 560 440, 558 420, 560 400 Z';
+            return `
+                <g transform="${JOKER_FACE_T}">
+                    <path d="${irisLShape}" fill="${irisL}" stroke="${ink}" stroke-width="5" stroke-linejoin="round"/>
+                    <path d="M 160 330 C 185 322, 240 325, 285 360 C 292 372, 297 382, 300 392 C 250 384, 200 382, 159 384 Z" fill="${ink}" opacity="0.5"/>
+                    <path d="M 159 384 C 200 382, 250 384, 300 392 C 302 400, 303 406, 304 412 C 250 406, 200 405, 160 408 Z" fill="${ink}" opacity="0.25"/>
+                    <path d="M 162 418 C 210 415, 260 418, 305 424 L 305 435 C 270 442, 210 442, 165 438 Z" fill="#f9a8d4" opacity="0.45"/>
+                    <path d="${irisRShape}" fill="${irisR}" stroke="${ink}" stroke-width="5" stroke-linejoin="round"/>
+                    <path d="M 560 400 C 600 370, 660 350, 725 345 C 728 365, 729 385, 729 400 C 670 397, 610 400, 559 410 Z" fill="${ink}" opacity="0.5"/>
+                    <path d="M 559 410 C 610 400, 670 397, 729 400 C 729 410, 728 418, 727 425 C 670 420, 615 421, 560 428 Z" fill="${ink}" opacity="0.25"/>
+                    <path d="M 561 436 C 620 432, 680 432, 725 436 L 722 460 C 680 463, 610 462, 568 458 Z" fill="#f9a8d4" opacity="0.45"/>
+                    <g fill="#ffffff" opacity="0.85">
+                        <circle cx="205" cy="365" r="5"/><circle cx="240" cy="352" r="4"/><circle cx="262" cy="385" r="3.5"/>
+                        <circle cx="610" cy="395" r="5"/><circle cx="645" cy="378" r="4"/><circle cx="680" cy="370" r="5"/><circle cx="700" cy="392" r="3.5"/><circle cx="625" cy="415" r="3.5"/><circle cx="665" cy="405" r="3"/>
+                    </g>
+                    <g fill="none" stroke="${ink}" stroke-linecap="round">
+                        <path d="M 170 280 C 220 290, 270 320, 295 360" stroke-width="14"/>
+                        <path d="M 540 382 C 590 340, 650 300, 715 283" stroke-width="14"/>
+                    </g>
+                    <g fill="none" stroke="${liner}" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M 70 382 C 76 326, 126 284, 190 283 C 252 285, 294 328, 314 420" stroke-width="14"/>
+                        <path d="M 82 382 C 62 378, 44 366, 28 344" stroke-width="16"/>
+                        <path d="M 528 392 C 598 336, 700 308, 798 305 L 842 312" stroke-width="14"/>
+                        <path d="M 828 330 C 850 326, 866 316, 880 298" stroke-width="16"/>
+                    </g>
+                    <path d="M 70 388 C 75 330, 125 292, 190 292 C 250 294, 290 335, 310 425 L 300 430 C 282 365, 245 330, 190 330 C 140 330, 105 352, 95 390 Z" fill="${ink}" stroke="${ink}" stroke-width="8" stroke-linejoin="round"/>
+                    <path d="M 532 398 C 600 345, 700 318, 795 315 L 835 322 L 838 350 C 790 342, 700 348, 640 368 C 600 380, 568 398, 548 414 Z" fill="${ink}" stroke="${ink}" stroke-width="8" stroke-linejoin="round"/>
+                    <g fill="none" stroke="${liner}" stroke-linecap="round">
+                        <path d="M 105 440 C 170 432, 240 436, 300 446" stroke-width="13"/>
+                        <path d="M 110 465 C 140 460, 175 458, 205 460" stroke-width="9" opacity="0.5"/>
+                        <path d="M 565 460 C 640 458, 710 460, 770 465" stroke-width="13"/>
+                    </g>
+                </g>`;
+        }
+        // 鈴鐺：頂上小吊環、中間一圈凹槽、底下圓孔＋開縫、左上反光；(cx, cy) 是吊環頂端，k 是大小倍率
+        function jokerBellSVG(cx, cy, color, outline, k = 1) {
+            return `
+                <g transform="translate(${cx} ${cy}) scale(${k}) translate(0 14.5)">
+                    <circle cx="0" cy="-11.5" r="3" fill="none" stroke="${outline}" stroke-width="2.5"/>
+                    <circle cx="0" cy="0" r="10" fill="${color}" stroke="${outline}" stroke-width="3.5"/>
+                    <path d="M -9.6 -1.5 Q 0 2 9.6 -1.5" fill="none" stroke="${outline}" stroke-width="2"/>
+                    <circle cx="0" cy="4.6" r="2.3" fill="${outline}"/>
+                    <path d="M 0 5 L 0 9.6" stroke="${outline}" stroke-width="2.2" stroke-linecap="round"/>
+                    <ellipse cx="-4" cy="-5" rx="2.6" ry="1.8" fill="#ffffff" opacity="0.85" transform="rotate(-30 -4 -5)"/>
+                </g>`;
+        }
+        // 弄臣帽：小小一頂三尖帽戴在兩耳中間（耳朵保留），左右兩個尖角往外翹，中間尖角往上長、頂端往前偏左折下來，
+        //    尖端微微垂在帽子正面偏左（折下來那片用淡灰色當反面）；三個尖端都朝下，鈴鐺才是自然垂掛
+        //    兩邊尖角用耳朵色、中間尖角白色、帽帶用 pomA（顏色跟著配色走）
+        function jokerHatSVG(s) {
+            const ink = s.outline;
+            const line = `stroke="${ink}" stroke-width="4" stroke-linejoin="round" stroke-linecap="round"`;
+            return `
+                <path d="M 112 106 C 106 90, 96 80, 82 78 C 92 90, 100 100, 104 110 Z" fill="${s.earTop}" ${line}/>
+                <path d="M 150 104 C 156 88, 166 78, 180 76 C 170 88, 162 98, 158 108 Z" fill="${s.earTop}" ${line}/>
+                <path d="M 108 108 C 110 86, 116 64, 126 56 C 129 52, 135 52, 138 56 C 146 64, 152 86, 154 106 Z" fill="#ffffff" ${line}/>
+                <path d="M 123 58 C 128 52, 139 53, 141 59 C 139 69, 131 80, 119 86 C 117 76, 118 66, 123 58 Z" fill="#e9ecf3" ${line}/>
+                <path d="M 102 110 C 118 102, 144 102, 160 108 L 160 116 C 144 110, 118 110, 102 118 Z" fill="${s.pomA}" ${line}/>
+                ${jokerBellSVG(82, 74, s.pomA, ink, 0.5)}${jokerBellSVG(180, 72, s.pomA, ink, 0.5)}${jokerBellSVG(119, 84, s.pomA, ink, 0.5)}`;
+        }
+        // 嘴巴：鼻子下面一個小小的「、」撇嘴，左上細、右下圓
+        function jokerMouthSVG() {
+            return `
+                <path d="M 127.2 174.2 Q 128.4 173.6 130 175 Q 133.4 177.6 134.4 180 Q 134.4 181.8 132.6 181.4 Q 131 180.8 129.6 178.6 Q 128 176.2 127.2 174.2 Z" fill="${JOKER_FACE_INK}"/>`;
+        }
         // 小丑配件（座標跟海兔 SVG 一樣 0 0 340 240），畫在五官上面、皇冠下面
+        //    小丑海兔自己畫眼睛：異色瞳，左眼耳朵色、右眼尾巴色（原本的眼睛要藏起來：主畫面靠 .is-joker，其他地方畫的時候直接不畫）
+        //    原本的嘴巴會被紅鼻子蓋住，所以在鼻子下面另外畫一個「、」撇嘴
         function jokerExtraSVG(jokerStyle) {
             const s = JOKER_STYLES[jokerStyleOf(jokerStyle)];
             return `
-                <g stroke="${s.outline}" stroke-width="3.5">
-                    <circle cx="110" cy="23" r="10" fill="${s.pomA}"/><circle cx="174" cy="23" r="10" fill="${s.pomB}"/>
-                </g>
-                <g fill="#ffffff" opacity="0.85"><circle cx="106.5" cy="19.5" r="3"/><circle cx="170.5" cy="19.5" r="3"/></g>
+                ${jokerHatSVG(s)}
                 <g fill="#ef4444" stroke="#b91c1c" stroke-width="1.5" stroke-linejoin="round">
-                    <path d="M 110 129 l 5 7 l -5 7 l -5 -7 Z"/><path d="M 150 129 l 5 7 l -5 7 l -5 -7 Z"/>
-                    <path d="M 110 159 l 6.5 10 l -6.5 10 l -6.5 -10 Z"/><path d="M 150 159 l 6.5 10 l -6.5 10 l -6.5 -10 Z"/>
+                    <path d="M 98 118 L 100.8 150 L 98 188 L 95.2 150 Z"/><path d="M 162 118 L 164.8 150 L 162 188 L 159.2 150 Z"/>
                 </g>
-                <g fill="#ffffff"><circle cx="107" cy="153" r="1.6"/><circle cx="147" cy="153" r="1.6"/></g>
+                <g class="normal-eye joker-eye">${jokerEyesSVG(s.earTop, s.tail, s.earTop)}</g>
+                <g class="happy-eye joker-eye" stroke="${JOKER_FACE_INK}" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round" fill="none">
+                    <path d="M 91 147 L 101 153 L 91 159"/><path d="M 169 147 L 159 153 L 169 159"/>
+                </g>
                 <circle cx="130" cy="160" r="9.5" fill="#ef4444" stroke="#991b1b" stroke-width="3"/>
-                <circle cx="126.5" cy="156.5" r="2.8" fill="#ffffff" opacity="0.85"/>`;
+                <circle cx="126.5" cy="156.5" r="2.8" fill="#ffffff" opacity="0.85"/>
+                ${jokerMouthSVG()}`;
         }
 
         // 👑 翻牌對決 30 勝的國王裝／皇后裝：座標跟海兔 SVG 一樣（viewBox 0 0 340 240）
@@ -6409,6 +6487,8 @@ function tryItem(key, type) {
             // 🤡 小丑海兔才有的配件
             const extra = document.getElementById('slugSkinExtra');
             if (extra) extra.innerHTML = key === 'joker' ? jokerExtraSVG(gameState.jokerStyle) : '';
+            const slugEl = document.getElementById('slugContainer');
+            if (slugEl) slugEl.classList.toggle('is-joker', key === 'joker');   // 藏起原本的眼睛，換成小丑的異色瞳
 
             const root = document.documentElement;
             root.style.setProperty('--c-body', spec.body);

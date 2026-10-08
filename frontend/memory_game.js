@@ -235,7 +235,7 @@
             : ((typeof speciesData !== 'undefined' && speciesData[colorKey]) || speciesData.snow);
         const wear = outfit && typeof OUTFITS !== 'undefined' ? OUTFITS[outfit] : null;
         const skinExtra = isJokerSkin && typeof jokerExtraSVG === 'function' ? jokerExtraSVG(jokerStyle) : '';
-        // 有披風、皇冠或小丑毛球時畫面要大一點，才不會切到耳朵尖端和身體左邊
+        // 有披風、皇冠或小丑帽時畫面要大一點，才不會切到耳朵尖端和身體左邊
         const viewBox = wear || skinExtra ? '12 0 316 230' : '40 15 270 210';
         return `
             <svg viewBox="${viewBox}" aria-hidden="true">
@@ -253,8 +253,8 @@
                 <g transform="translate(130, 150)">
                     <ellipse cx="-35" cy="12" rx="14" ry="8" fill="${spec.blush}" opacity="0.85"/>
                     <ellipse cx="35" cy="12" rx="14" ry="8" fill="${spec.blush}" opacity="0.85"/>
-                    <circle cx="-20" cy="0" r="8" fill="#2c3e50"/><circle cx="20" cy="0" r="8" fill="#2c3e50"/>
-                    <circle cx="-17" cy="-3" r="3" fill="#fff"/><circle cx="23" cy="-3" r="3" fill="#fff"/>
+                    ${skinExtra ? '' : `<circle cx="-20" cy="0" r="8" fill="#2c3e50"/><circle cx="20" cy="0" r="8" fill="#2c3e50"/>
+                    <circle cx="-17" cy="-3" r="3" fill="#fff"/><circle cx="23" cy="-3" r="3" fill="#fff"/>`}
                     <path d="M -7 5 Q 0 12 7 5" fill="none" stroke="#2c3e50" stroke-width="4" stroke-linecap="round"/>
                 </g>
                 ${skinExtra}
