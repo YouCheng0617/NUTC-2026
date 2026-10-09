@@ -499,8 +499,8 @@ let GAME_TOKEN = localStorage.getItem('authToken') || localStorage.getItem('acce
                 socket.on('receive_message', (data) => whenRoomReady(() => {
                     recordChat(data.senderName, data.message, data.timestamp);
                     const sticker = data.senderName !== '系統' && stickerOf(data.message);
-                    if (sticker && isInMiniGame()) flySticker(data.senderName, sticker);
-                    else if (data.senderName !== '系統') showChatBubble(data.senderName, data.message);
+                    if (sticker && isInMiniGame()) flySticker(data.senderName, sticker, data.senderId);
+                    else if (data.senderName !== '系統') showChatBubble(data.senderName, data.message, data.senderId);
                 }));
                 setInterval(() => broadcastMove(), 250);
 
@@ -1464,7 +1464,7 @@ function copyRoomId() {
 
         // 從右邊飄到左邊，下面掛著是誰送的。
         // 畫面上半部切成幾條軌道（一條剛好放一張），同一條軌道要等上一張整張飄進來才接著放，就不會疊在一起
-        function flySticker(name, st) {
+        function flySticker(name, st, senderId) {
             const phone = innerWidth <= 600;
             const cardW = phone ? 104 : 142, laneH = phone ? 128 : 170;
             // 手機的底部按鈕比較矮，可以用到比較下面
@@ -1485,13 +1485,14 @@ function copyRoomId() {
             setTimeout(() => {
                 const flying = document.querySelectorAll('.sticker-fly');
                 if (flying.length >= STICKER_ON_SCREEN_MAX) flying[0].remove();
-                launchSticker(name, st, top0 + lane * laneH, dur);
+                launchSticker(name, st, top0 + lane * laneH, dur, senderId);
             }, wait);
         }
 
-        function launchSticker(name, st, top, dur) {
+        function launchSticker(name, st, top, dur, senderId) {
             const el = document.createElement('div');
-            el.className = 'sticker-fly' + (isMyChatName(name) ? ' mine' : '');
+            const mine = senderId ? !!(socket && senderId === socket.id) : isMyChatName(name);
+            el.className = 'sticker-fly' + (mine ? ' mine' : '');
             el.style.top = top + 'px';
             el.style.setProperty('--fly-dur', dur.toFixed(2) + 's');
             const img = document.createElement('img');
@@ -1950,21 +1951,25 @@ function updateRoomUI(text) {
         // 🌟 產生對話泡泡
         // 泡泡不放進海兔裡面：海兔往右跑時整個容器會左右翻面，放在裡面的字會變成鏡像。
         // 改成浮在畫面上，每一格都跟著海兔頭頂的位置走
-        function showChatBubble(name, message) {
+        // senderId：後端有附上發話者的 socketId 就用它找海兔（同名的人也分得出來）；舊版後端沒有就照舊用名字找
+        function showChatBubble(name, message, senderId) {
             let targetEl = document.getElementById('slugContainer');
-            // 如果不是自己說的，就貼到對應的玩家頭上
-            if (name !== gameState.petName && name !== '系統') {
+            if (senderId) {
+                if (!(socket && senderId === socket.id)) targetEl = document.getElementById(`player-${senderId}`) || null;
+            } else if (name !== gameState.petName && name !== '系統') {
+                // 如果不是自己說的，就貼到對應的玩家頭上
                 const others = document.querySelectorAll('.other-player-name');
                 others.forEach(node => { if (node.innerText === name) targetEl = node.parentElement; });
             }
             if (!targetEl) return;
 
             // 同一個人連續講話：舊的泡泡直接換掉，不要疊成一坨
-            document.querySelectorAll('.chat-bubble.floating').forEach(old => { if (old.dataset.speaker === name) old.remove(); });
+            const speaker = senderId || name;
+            document.querySelectorAll('.chat-bubble.floating').forEach(old => { if (old.dataset.speaker === speaker) old.remove(); });
 
             const el = document.createElement('div');
             el.className = 'chat-bubble floating';
-            el.dataset.speaker = name;
+            el.dataset.speaker = speaker;
             // 名稱與訊息來自其他玩家，一律當純文字顯示
             el.innerHTML = `<span style="font-size:0.8em; color:var(--text-dim);"></span><br/><span></span>`;
             el.children[0].textContent = name;
