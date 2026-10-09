@@ -11,7 +11,7 @@
 
     </script>
 
-        <link rel="stylesheet" href="slug_game.css?v=20261010c">
+        <link rel="stylesheet" href="slug_game.css?v=20261011d">
         <link rel="stylesheet" href="memory_game.css?v=20261009c">
 
 </head>
@@ -243,6 +243,33 @@
         <div class="manual-footer">
             <button class="modal-btn btn-cancel" type="button" onclick="closeManual(); startTour();" data-en="Take the tour again">再跟小助理學一次</button>
             <button class="modal-btn btn-confirm" type="button" onclick="closeManual()" data-en="Got it!">我知道啦！</button>
+        </div>
+    </div>
+</div>
+
+<!-- 📖 點「飼養手冊」先選要看哪一種：文字版或跟小助理實際操作 -->
+<div class="manual-overlay" id="manualPickOverlay" onclick="if (event.target === this) closeManualPick()">
+    <div class="manual-box manual-pick" role="dialog" aria-labelledby="manualPickTitle">
+        <div class="manual-header" id="manualPickTitle" data-en="Sea Bunny Care Guide">海兔飼養手冊</div>
+        <div class="manual-pick-list">
+            <p class="manual-pick-sub" data-en="How would you like to learn?">想用哪一種方式看呢？</p>
+            <button class="manual-pick-card is-tour" type="button" onclick="pickManual('tour')">
+                <span class="manual-pick-icon" aria-hidden="true">🖐️</span>
+                <span class="manual-pick-body">
+                    <span class="manual-pick-name" data-en="Hands-on tour">實作教學</span>
+                    <span class="manual-pick-desc" data-en="Your guide walks you through feeding, cleaning and more. Try each step yourself.">小助理帶你一步一步，實際操作餵食、擦玻璃等功能</span>
+                </span>
+            </button>
+            <button class="manual-pick-card is-text" type="button" onclick="pickManual('text')">
+                <span class="manual-pick-icon" aria-hidden="true">📖</span>
+                <span class="manual-pick-body">
+                    <span class="manual-pick-name" data-en="Text guide">文字版手冊</span>
+                    <span class="manual-pick-desc" data-en="All the key points on one page. Quick to look up anytime.">一頁看完所有重點，忘記的時候快速查</span>
+                </span>
+            </button>
+        </div>
+        <div class="manual-footer">
+            <button class="modal-btn btn-cancel" type="button" onclick="closeManualPick()" data-en="Close">關閉</button>
         </div>
     </div>
 </div>
@@ -863,7 +890,7 @@
         </div>
     </div>
 
-        <script src="slug_game.js?v=20261010b"></script>
+        <script src="slug_game.js?v=20261011b"></script>
         <script src="memory_game.js?v=20261009h"></script>
         <script src="slug_social.js?v=20261010d"></script>
         <script src="slug_idle.js?v=20261009c"></script>

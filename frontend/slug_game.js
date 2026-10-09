@@ -6041,9 +6041,12 @@ slugEl.style.transform = slugTransform(`scaleX(${direction})`);
             renderRoomStatus(lastRoomStatusText);
             if (isBoardOpen()) { renderBoardStatic(); renderBoardCompose(); renderBoardList(); }
             if (isGameAlertOpen()) renderGameAlert();
+            if (typeof refreshTourLang === 'function') refreshTourLang();
         }
 
 function updateLangUI() {
+    // 讓 CSS 分得出現在是中文還是英文（例如英文字比較長，小螢幕的按鈕要允許換行）
+    document.documentElement.lang = currLang === 'en' ? 'en' : 'zh-TW';
             const t = i18n[currLang];
             document.getElementById('btnBack').innerText = t.backBtn;
             document.getElementById('btnLang').innerText = t.langBtn;
@@ -13688,10 +13691,23 @@ let currentPaintPalette = 0;
             }, 500); 
         }
         // 🌟 打開與關閉手冊的函數
-// 「飼養手冊」按鈕現在會開始互動教學；原本的文字版手冊保留在教學最後一步可以打開
+// 「飼養手冊」按鈕：先讓玩家選要跟小助理實際操作，還是直接看文字版
+// （新手第一次進遊戲還是會自動開始互動教學，見 maybeAutoStartTour）
 function openManual() {
     if (currentRoomId) return;   // 連線房間裡不開飼養手冊
-    startTour();
+    if (tourActive) return;
+    closeManual();
+    document.getElementById('manualPickOverlay').style.display = 'flex';
+}
+
+function closeManualPick() {
+    document.getElementById('manualPickOverlay').style.display = 'none';
+}
+
+function pickManual(kind) {
+    closeManualPick();
+    if (kind === 'tour') startTour();
+    else openManualText();
 }
 
 function openManualText() {
@@ -13711,7 +13727,7 @@ const TOUR_STEPS = [
     {
         title: ['嗨，我是小助理！', "Hi, I'm your guide!"],
         text: ['我平常住在心情漂流瓶的主頁，今天來帶你認識海兔的家。跟著我的提示實際操作看看，隨時可以按右上角的「退出教學」離開。',
-               "I usually live on the Mood Bottle home page. Let me show you around — follow my hints and try things out. Tap \"Exit\" any time."]
+               "I usually live on the Mood Bottle home page. Let me show you around — follow my hints and try things out. Tap \"Exit tour\" at the top right any time."]
     },
     {
         target: ['#slugContainer'], action: 'pet',
@@ -13863,13 +13879,14 @@ function startTour() {
     gameState.tutorialSeen = true;   // 開始過就算看過，之後不會再自動跳出來
     saveGame();
     closeManual();
+    closeManualPick();
     // 手機上商店是蓋滿畫面的彈窗，開著的話先收起來
     const panel = tourEl('uiPanel');
     if (panel && panel.classList.contains('open') && typeof toggleShopPanel === 'function') toggleShopPanel();
 
     tourActive = true;
     tourEl('tourLayer').hidden = false;
-    tourEl('tourExit').textContent = tt('✕ 退出教學', '✕ Exit');
+    tourEl('tourExit').textContent = tt('✕ 退出教學', '✕ Exit tour');
     showTourStep(0);
     clearInterval(tourTicker);
     // 海兔會動、按鈕會因為視窗大小移位，所以聚光燈要一直跟著
@@ -13962,6 +13979,20 @@ function showTourStep(i) {
     // 只看說明的時候擋住點擊；要動手做的時候讓玩家碰得到遊戲
     tourEl('tourBlocker').classList.toggle('off', tourMode === 'action' || !!step.free);
     positionTour();
+}
+
+// 教學進行中切換語言：當下這一步重畫一次，退出鈕也跟著換
+function refreshTourLang() {
+    if (!tourActive) return;
+    tourEl('tourExit').textContent = tt('✕ 退出教學', '✕ Exit tour');
+    const done = tourStepDone;
+    if (!done) showTourStep(tourIndex);
+    else {
+        const step = TOUR_STEPS[tourIndex];
+        tourEl('tourTitle').textContent = tt(...step.title);
+        tourEl('tourText').textContent = tt(...step.text);
+        setTourTask(tt('做得好！', 'Nice!'), 'done');
+    }
 }
 
 function nextTourStep() {
@@ -14098,3 +14129,10 @@ function installTourHooks() {
 function closeManual() {
     document.getElementById('manualOverlay').style.display = 'none';
 }
+
+// 按 Esc 關掉手冊或選擇視窗
+document.addEventListener('keydown', (e) => {
+    if (e.key !== 'Escape') return;
+    closeManualPick();
+    closeManual();
+});
