@@ -1974,49 +1974,71 @@ const i18n = {
             return speciesData[key] || speciesData.snow;
         }
         // 小丑海兔的臉：照參考圖一筆一筆描的（勾勾眼線、雙眼皮線、上深下淺的瞳孔、下眼線）
-        //    座標是參考圖放大 6 倍後的像素（858×618），整組用 transform 縮成 0.13 倍貼到海兔臉上
-        //    兩眼正中間對準紅鼻子（x 130），左眼大約在 x 98、右眼大約在 x 162；嘴巴另外搬到鼻子下面
+        //    座標是參考圖放大 6 倍後的像素（858×618），左右眼各自用 transform 縮小貼到海兔臉上
+        //    🎯 眼睛位置都看 JOKER_EYE：d = 瞳孔中心離紅鼻子（x 130）多遠，s = 大眼睛縮放
+        //       大眼睛、紅菱形、瞇瞇眼、肚子餓的垂眼、睡覺的閉眼都照這兩個數字排，要調距離只改這裡
+        //       （收得越近眼睛要越小，不然眼尾會撞到紅鼻子）
         //    liner 是彩色眼線（上眼線外圈、眼尾上揚、下眼線），ink 是眼線、瞳孔描邊和陰影的顏色（用海兔的描邊色），都跟著配色走
         //    suit 是瞳孔裡的撲克牌花色點綴（見 JOKER_SUITS）
         //    不用漸層（同一份 SVG 會同時出現在很多地方，id 會撞），瞳孔的上深下淺用半透明疊色做
         const JOKER_FACE_INK = '#2e2640';
-        const JOKER_FACE_T = 'translate(73, 100) scale(0.13)';
+        const JOKER_EYE = { d: 27, s: 0.13 };
+        const jokerEyeX = (side) => 130 + side * JOKER_EYE.d;   // side：-1 左眼、1 右眼
+        // 參考圖裡兩個瞳孔的中心，和貼到海兔臉上的高度
+        const JOKER_EYE_REF = { L: { x: 232, y: 385, cy: 150 }, R: { x: 645, y: 405, cy: 152.5 } };
+        // 紅菱形妝：細長的菱形穿過瞳孔中心
+        function jokerDiamondsSVG() {
+            const one = (x) => `<path d="M ${x} 118 L ${x + 2.8} 150 L ${x} 188 L ${x - 2.8} 150 Z"/>`;
+            return one(jokerEyeX(-1)) + one(jokerEyeX(1));
+        }
+        // 睡覺的閉眼：彎彎一條，w 是半寬
+        function jokerClosedEyesD(w) {
+            const one = (x) => `M ${x - w} 148 Q ${x} ${148 + w * 0.75} ${x + w} 148`;
+            return one(jokerEyeX(-1)) + ' ' + one(jokerEyeX(1));
+        }
+        function jokerEyeT(side) {
+            const r = side < 0 ? JOKER_EYE_REF.L : JOKER_EYE_REF.R, s = JOKER_EYE.s;
+            return `translate(${(jokerEyeX(side) - r.x * s).toFixed(2)}, ${(r.cy - r.y * s).toFixed(2)}) scale(${s})`;
+        }
         function jokerEyesSVG(irisL, irisR, liner, ink, suit) {
             const irisLShape = 'M 160 330 C 185 322, 240 325, 285 360 C 300 385, 305 410, 305 435 C 270 442, 210 442, 165 438 C 160 400, 158 360, 160 330 Z';
             const irisRShape = 'M 560 400 C 600 370, 660 350, 725 345 C 732 380, 730 420, 722 460 C 680 463, 610 462, 568 458 C 560 440, 558 420, 560 400 Z';
-            return `
-                <g transform="${JOKER_FACE_T}">
+            const left = `
+                <g transform="${jokerEyeT(-1)}">
                     <path d="${irisLShape}" fill="${irisL}" stroke="${ink}" stroke-width="5" stroke-linejoin="round"/>
                     <path d="M 160 330 C 185 322, 240 325, 285 360 C 292 372, 297 382, 300 392 C 250 384, 200 382, 159 384 Z" fill="${ink}" opacity="0.5"/>
                     <path d="M 159 384 C 200 382, 250 384, 300 392 C 302 400, 303 406, 304 412 C 250 406, 200 405, 160 408 Z" fill="${ink}" opacity="0.25"/>
                     <path d="M 162 418 C 210 415, 260 418, 305 424 L 305 435 C 270 442, 210 442, 165 438 Z" fill="#f9a8d4" opacity="0.45"/>
+                    <g fill="#ffffff" opacity="0.85"><circle cx="205" cy="365" r="5"/><circle cx="240" cy="352" r="4"/><circle cx="262" cy="385" r="3.5"/></g>
+                    ${jokerSuitSVG(suit, 232, 372, 26)}
+                    <path d="M 170 280 C 220 290, 270 320, 295 360" fill="none" stroke="${ink}" stroke-width="14" stroke-linecap="round"/>
+                    <g fill="none" stroke="${liner}" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M 70 382 C 76 326, 126 284, 190 283 C 252 285, 294 328, 314 420" stroke-width="14"/>
+                        <path d="M 82 382 C 62 378, 44 366, 28 344" stroke-width="16"/>
+                    </g>
+                    <path d="M 70 388 C 75 330, 125 292, 190 292 C 250 294, 290 335, 310 425 L 300 430 C 282 365, 245 330, 190 330 C 140 330, 105 352, 95 390 Z" fill="${ink}" stroke="${ink}" stroke-width="8" stroke-linejoin="round"/>
+                    <g fill="none" stroke="${liner}" stroke-linecap="round">
+                        <path d="M 105 440 C 170 432, 240 436, 300 446" stroke-width="13"/>
+                        <path d="M 110 465 C 140 460, 175 458, 205 460" stroke-width="9" opacity="0.5"/>
+                    </g>
+                </g>`;
+            const right = `
+                <g transform="${jokerEyeT(1)}">
                     <path d="${irisRShape}" fill="${irisR}" stroke="${ink}" stroke-width="5" stroke-linejoin="round"/>
                     <path d="M 560 400 C 600 370, 660 350, 725 345 C 728 365, 729 385, 729 400 C 670 397, 610 400, 559 410 Z" fill="${ink}" opacity="0.5"/>
                     <path d="M 559 410 C 610 400, 670 397, 729 400 C 729 410, 728 418, 727 425 C 670 420, 615 421, 560 428 Z" fill="${ink}" opacity="0.25"/>
                     <path d="M 561 436 C 620 432, 680 432, 725 436 L 722 460 C 680 463, 610 462, 568 458 Z" fill="#f9a8d4" opacity="0.45"/>
-                    <g fill="#ffffff" opacity="0.85">
-                        <circle cx="205" cy="365" r="5"/><circle cx="240" cy="352" r="4"/><circle cx="262" cy="385" r="3.5"/>
-                        <circle cx="610" cy="395" r="5"/><circle cx="645" cy="378" r="4"/><circle cx="680" cy="370" r="5"/><circle cx="700" cy="392" r="3.5"/><circle cx="625" cy="415" r="3.5"/><circle cx="665" cy="405" r="3"/>
-                    </g>
-                    ${jokerSuitSVG(suit, 232, 372, 26)}${jokerSuitSVG(suit, 650, 386, 26)}
-                    <g fill="none" stroke="${ink}" stroke-linecap="round">
-                        <path d="M 170 280 C 220 290, 270 320, 295 360" stroke-width="14"/>
-                        <path d="M 540 382 C 590 340, 650 300, 715 283" stroke-width="14"/>
-                    </g>
+                    <g fill="#ffffff" opacity="0.85"><circle cx="610" cy="395" r="5"/><circle cx="645" cy="378" r="4"/><circle cx="680" cy="370" r="5"/><circle cx="700" cy="392" r="3.5"/><circle cx="625" cy="415" r="3.5"/><circle cx="665" cy="405" r="3"/></g>
+                    ${jokerSuitSVG(suit, 650, 386, 26)}
+                    <path d="M 540 382 C 590 340, 650 300, 715 283" fill="none" stroke="${ink}" stroke-width="14" stroke-linecap="round"/>
                     <g fill="none" stroke="${liner}" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M 70 382 C 76 326, 126 284, 190 283 C 252 285, 294 328, 314 420" stroke-width="14"/>
-                        <path d="M 82 382 C 62 378, 44 366, 28 344" stroke-width="16"/>
                         <path d="M 528 392 C 598 336, 700 308, 798 305 L 842 312" stroke-width="14"/>
                         <path d="M 828 330 C 850 326, 866 316, 880 298" stroke-width="16"/>
                     </g>
-                    <path d="M 70 388 C 75 330, 125 292, 190 292 C 250 294, 290 335, 310 425 L 300 430 C 282 365, 245 330, 190 330 C 140 330, 105 352, 95 390 Z" fill="${ink}" stroke="${ink}" stroke-width="8" stroke-linejoin="round"/>
                     <path d="M 532 398 C 600 345, 700 318, 795 315 L 835 322 L 838 350 C 790 342, 700 348, 640 368 C 600 380, 568 398, 548 414 Z" fill="${ink}" stroke="${ink}" stroke-width="8" stroke-linejoin="round"/>
-                    <g fill="none" stroke="${liner}" stroke-linecap="round">
-                        <path d="M 105 440 C 170 432, 240 436, 300 446" stroke-width="13"/>
-                        <path d="M 110 465 C 140 460, 175 458, 205 460" stroke-width="9" opacity="0.5"/>
-                        <path d="M 565 460 C 640 458, 710 460, 770 465" stroke-width="13"/>
-                    </g>
+                    <path d="M 565 460 C 640 458, 710 460, 770 465" fill="none" stroke="${liner}" stroke-width="13" stroke-linecap="round"/>
                 </g>`;
+            return left + right;
         }
         // 瞳孔裡的撲克牌花色點綴：每種配色一個花色（撲克 ♠、馬戲團 ♥、粉彩 ♦、Joker ♣）
         //    座標跟 jokerEyesSVG 一樣是參考圖座標，(x, y) 是花色中心、r 是大小
@@ -2069,8 +2091,8 @@ const i18n = {
                 <path d="M ${cx - 6} ${cy0 + 11} Q ${cx} ${cy0 + 13} ${cx + 7} ${cy0 + 11}" fill="none" stroke="${s.earTop}" stroke-width="2" stroke-linecap="round"/>`;
             const cy0 = 151;
             return `
-                ${eye(98, s.earTop, -1)}${eye(162, s.tail, 1)}
-                <path d="M 91 166 C 87 172, 88 177, 91 177 C 94 177, 95 172, 91 166 Z" fill="#93c5fd" stroke="${s.outline}" stroke-width="1.4"/>`;
+                ${eye(jokerEyeX(-1), s.earTop, -1)}${eye(jokerEyeX(1), s.tail, 1)}
+                <path transform="translate(${jokerEyeX(-1) - 98} 0)" d="M 91 166 C 87 172, 88 177, 91 177 C 94 177, 95 172, 91 166 Z" fill="#93c5fd" stroke="${s.outline}" stroke-width="1.4"/>`;
         }
         // 睡覺待機畫面（slug_idle.js）用的小丑配件：帽子、紅菱形、閉著的眼睛（跟著配色的描邊色）、紅鼻子、撇嘴
         //    待機畫面那隻海兔自己的閉眼睛會跟紅菱形錯開，所以小丑的閉眼睛改在這裡畫
@@ -2079,10 +2101,10 @@ const i18n = {
             return `
                 ${jokerHatSVG(s)}
                 <g fill="#ef4444" stroke="#b91c1c" stroke-width="1.5" stroke-linejoin="round">
-                    <path d="M 98 118 L 100.8 150 L 98 188 L 95.2 150 Z"/><path d="M 162 118 L 164.8 150 L 162 188 L 159.2 150 Z"/>
+                    ${jokerDiamondsSVG()}
                 </g>
-                <path d="M 85 148 Q 98 158 111 148 M 149 148 Q 162 158 175 148" fill="none" stroke="${s.earTop}" stroke-width="7" stroke-linecap="round"/>
-                <path d="M 86 148 Q 98 157 110 148 M 150 148 Q 162 157 174 148" fill="none" stroke="${s.outline}" stroke-width="4.5" stroke-linecap="round"/>
+                <path d="${jokerClosedEyesD(13)}" fill="none" stroke="${s.earTop}" stroke-width="7" stroke-linecap="round"/>
+                <path d="${jokerClosedEyesD(12)}" fill="none" stroke="${s.outline}" stroke-width="4.5" stroke-linecap="round"/>
                 <circle cx="130" cy="160" r="9.5" fill="#ef4444" stroke="#991b1b" stroke-width="3"/>
                 <circle cx="126.5" cy="156.5" r="2.8" fill="#ffffff" opacity="0.85"/>
                 ${jokerMouthSVG()}`;
@@ -2095,12 +2117,12 @@ const i18n = {
             return `
                 ${jokerHatSVG(s)}
                 <g fill="#ef4444" stroke="#b91c1c" stroke-width="1.5" stroke-linejoin="round">
-                    <path d="M 98 118 L 100.8 150 L 98 188 L 95.2 150 Z"/><path d="M 162 118 L 164.8 150 L 162 188 L 159.2 150 Z"/>
+                    ${jokerDiamondsSVG()}
                 </g>
                 <g class="normal-eye joker-eye">${jokerEyesSVG(s.earTop, s.tail, s.earTop, s.outline, JOKER_SUITS[style])}</g>
                 <g class="normal-eye joker-eye joker-sad-eye">${jokerSadEyesSVG(s)}</g>
                 <g class="happy-eye joker-eye" stroke="${s.outline}" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round" fill="none">
-                    <path d="M 91 147 L 101 153 L 91 159"/><path d="M 169 147 L 159 153 L 169 159"/>
+                    <path d="M ${jokerEyeX(-1) - 5} 147 L ${jokerEyeX(-1) + 5} 153 L ${jokerEyeX(-1) - 5} 159"/><path d="M ${jokerEyeX(1) + 5} 147 L ${jokerEyeX(1) - 5} 153 L ${jokerEyeX(1) + 5} 159"/>
                 </g>
                 <circle cx="130" cy="160" r="9.5" fill="#ef4444" stroke="#991b1b" stroke-width="3"/>
                 <circle cx="126.5" cy="156.5" r="2.8" fill="#ffffff" opacity="0.85"/>
