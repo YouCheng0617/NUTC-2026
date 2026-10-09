@@ -691,10 +691,19 @@
         $('mgPickBody').scrollTop = 0;
         $('mgPickDone').focus({ preventScroll: true });
     }
+    // 🏠 從主頁（商店、百寶袋）直接打開小丑配色：翻牌大視窗藏起來只露出選單，關掉時一起收掉
+    //    翻牌視窗原本就開著的話（例如在獎勵畫面），就照平常一樣蓋在上面
+    function openJokerPicker() {
+        const overlay = ensureOverlay();
+        if (overlay.hidden) overlay.classList.add('is-pick-only');
+        openPick('joker');
+    }
     function closePick() {
         const sheet = $('mgPickSheet');
         if (sheet) sheet.hidden = true;
         pickMode = null;
+        const overlay = $('memoryGameOverlay');
+        if (overlay && overlay.classList.contains('is-pick-only')) { overlay.classList.remove('is-pick-only'); overlay.hidden = true; }
         jokerPending = null;
         cardBackPending = null;
     }
@@ -1558,5 +1567,5 @@
         closeOverlay();
     }
 
-    window.MemoryGame = { bindSocket, open: openOverlay, leaveRoom, refreshLang, status: getStatus };
+    window.MemoryGame = { bindSocket, open: openOverlay, leaveRoom, refreshLang, status: getStatus, openJokerPicker };
 })();

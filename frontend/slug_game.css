@@ -782,6 +782,8 @@
         }
         /* 🤡 小丑海兔肚子餓：換成垂下來的沒精神眼睛（摸摸／吃東西時上面的規則一樣會換成瞇瞇眼） */
         .joker-sad-eye { display: none; }
+        /* 🤡 小丑海兔吃東西：原本的「、」撇嘴先藏起來，換成嚼嚼嚼的嘴巴（位置在 completeFeedingAction 的 mouthDy） */
+        .slug-container.is-eating-munch .joker-mouth { display: none; }
         .slug-container.is-joker.is-starving .joker-eye.normal-eye:not(.joker-sad-eye) { display: none !important; }
         .slug-container.is-joker.is-starving .joker-sad-eye { display: block; }
         /* 🌟 細緻線條嘴巴：咀嚼時一開一張閉合動畫 */

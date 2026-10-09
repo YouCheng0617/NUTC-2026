@@ -140,6 +140,12 @@
     background: rgba(74, 59, 59, 0.18);
 }
 .mg-rules-sheet[hidden] { display: none; }
+/* 🏠 從主頁直接打開小丑配色（openJokerPicker）：翻牌大視窗變透明、其他內容藏起來，只露出置中的選單 */
+.mg-overlay.is-pick-only { z-index: 10050; }   /* 要蓋過百寶袋視窗（z-index 10000） */
+.mg-overlay.is-pick-only .mg-panel { background: transparent; border-color: transparent; box-shadow: none; }
+.mg-overlay.is-pick-only .mg-panel > :not(.mg-pick-sheet) { visibility: hidden; }
+.mg-overlay.is-pick-only .mg-pick-sheet { justify-content: center; align-items: center; background: transparent; }
+.mg-overlay.is-pick-only .mg-pick-card { max-height: 100%; }
 .mg-rules-card {
     width: min(420px, 100%);
     display: flex; flex-direction: column; gap: 10px;

@@ -1901,6 +1901,16 @@ const i18n = {
             d: { name: { zh: '撲克牌 Joker', en: 'Card Joker' }, body: '#f1f5f9', outline: '#111827', earTop: '#7c3aed', tail: '#16a34a', spot: '#111827', blush: '#fca5a5', pomA: '#facc15', pomB: '#16a34a' }
         };
         function jokerStyleOf(style) { return JOKER_STYLES[style] ? style : 'a'; }
+        // 商店、百寶袋的小丑海兔卡片：穿著時再點一次打開配色選單（選單在 memory_game.js，載不到就照舊只負責穿上）
+        function canPickJokerColors(typeKey, key) {
+            return typeKey === 'species' && key === 'joker' && typeof MemoryGame !== 'undefined' && typeof MemoryGame.openJokerPicker === 'function';
+        }
+        // 勝場拿到、已經選過配色的人不能再換，按鈕改寫「看配色」（規則跟 memory_game.js 的 jokerLocked 一樣；字數跟「換配色」一樣才不會擠成兩行）
+        function jokerColorsLabel() {
+            const locked = gameState.jokerSwitchable === false && !!gameState.jokerStyleChosen;
+            if (locked) return currLang === 'zh' ? '🎨 看配色' : '🎨 View';
+            return currLang === 'zh' ? '🎨 換配色' : '🎨 Colors';
+        }
         // 海兔的顏色：小丑海兔照選的配色，其他品種照 speciesData
         function speciesSpec(key, jokerStyle) {
             if (key === 'joker') return { ...speciesData.joker, ...JOKER_STYLES[jokerStyleOf(jokerStyle)] };
@@ -1990,7 +2000,7 @@ const i18n = {
         // 嘴巴：鼻子下面一個小小的「、」撇嘴，左上細、右下圓
         function jokerMouthSVG() {
             return `
-                <path d="M 127.2 174.2 Q 128.4 173.6 130 175 Q 133.4 177.6 134.4 180 Q 134.4 181.8 132.6 181.4 Q 131 180.8 129.6 178.6 Q 128 176.2 127.2 174.2 Z" fill="${JOKER_FACE_INK}"/>`;
+                <path class="joker-mouth" d="M 127.2 174.2 Q 128.4 173.6 130 175 Q 133.4 177.6 134.4 180 Q 134.4 181.8 132.6 181.4 Q 131 180.8 129.6 178.6 Q 128 176.2 127.2 174.2 Z" fill="${JOKER_FACE_INK}"/>`;
         }
         // 肚子餓時的小丑眼睛：上眼皮重重垂下來、眼尾往下掉，只露出下半截瞳孔，左眼下面掛一滴眼淚
         //    平常藏著（.joker-sad-eye），主畫面 .is-joker.is-starving 時才換上；摸摸／吃東西時一樣換成瞇瞇眼
@@ -5031,21 +5041,29 @@ function checkCleanCompleted() {
 
                 const faceGroup = slugEl.querySelector('g[transform="translate(130, 150)"]');
                 const originalFaceHTML = faceGroup ? faceGroup.innerHTML : '';
+                // 嘴邊的海藻和嚼嚼嚼的嘴巴畫在嘴巴的位置；小丑海兔的嘴在紅鼻子下面，要往下挪，不然看起來像用鼻子吃
+                // 瞇瞇眼要標 happy-eye，小丑海兔才會藏掉這組、只留自己的（不然會有兩組）
+                const mouthDy = slugEl.classList.contains('is-joker') ? 20 : 0;
 
                 if (faceGroup) {
                     faceGroup.innerHTML = `
                         <ellipse cx="-35" cy="12" rx="18" ry="11" fill="var(--c-blush)" opacity="0.95"/>
                         <ellipse cx="35" cy="12" rx="18" ry="11" fill="var(--c-blush)" opacity="0.95"/>
-                        <g stroke="#2c3e50" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round" fill="none">
+                        <g class="happy-eye" stroke="#2c3e50" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round" fill="none">
                             <path d="M -26 -2 L -18 3 L -26 8" />
                             <path d="M 26 -2 L 18 3 L 26 8" />
                         </g>
-                        <g id="chewingAlgaePiece" transform="translate(0, 10)">
+                        <g transform="translate(0, ${mouthDy})">
+                        <!-- 往下 10 對準嘴巴：要寫在外層，#chewingAlgaePiece 自己的 transform 會被 CSS 動畫蓋掉 -->
+                        <g transform="translate(0, 10)">
+                        <g id="chewingAlgaePiece">
                             <path class="algae-soft-blade-1" d="M 0 0 C -6 6, -12 12, -8 22 C -5 27, 2 22, 0 14 C -1 8, 1 3, 0 0 Z" fill="#22c55e" stroke="#14532d" stroke-width="1.1" stroke-linejoin="round"/>
                             <path class="algae-soft-blade-2" d="M -2 3 C -8 7, -14 14, -10 19 C -7 21, -3 16, -3 10 Z" fill="#4ade80" stroke="#14532d" stroke-width="0.9" stroke-linejoin="round"/>
                             <path d="M 1 2 C 4 5, 6 10, 3 13 C 1 11, 1 6, 1 2 Z" fill="#86efac" stroke="#14532d" stroke-width="0.7"/>
                         </g>
+                        </g>
                         <path id="chewingLineMouth" d="M -6 6 Q 0 11 6 6" fill="none" stroke="#2c3e50" stroke-width="1.8" stroke-linecap="round"/>
+                        </g>
                     `;
                 }
 
@@ -5228,21 +5246,29 @@ function completeFeedingAction(isSuccess) {
 
                 const faceGroup = slugEl.querySelector('g[transform="translate(130, 150)"]');
                 const originalFaceHTML = faceGroup ? faceGroup.innerHTML : '';
+                // 嘴邊的海藻和嚼嚼嚼的嘴巴畫在嘴巴的位置；小丑海兔的嘴在紅鼻子下面，要往下挪，不然看起來像用鼻子吃
+                // 瞇瞇眼要標 happy-eye，小丑海兔才會藏掉這組、只留自己的（不然會有兩組）
+                const mouthDy = slugEl.classList.contains('is-joker') ? 20 : 0;
 
                 if (faceGroup) {
                     faceGroup.innerHTML = `
                         <ellipse cx="-35" cy="12" rx="18" ry="11" fill="var(--c-blush)" opacity="0.95"/>
                         <ellipse cx="35" cy="12" rx="18" ry="11" fill="var(--c-blush)" opacity="0.95"/>
-                        <g stroke="#2c3e50" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round" fill="none">
+                        <g class="happy-eye" stroke="#2c3e50" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round" fill="none">
                             <path d="M -26 -2 L -18 3 L -26 8" />
                             <path d="M 26 -2 L 18 3 L 26 8" />
                         </g>
-                        <g id="chewingAlgaePiece" transform="translate(0, 10)">
+                        <g transform="translate(0, ${mouthDy})">
+                        <!-- 往下 10 對準嘴巴：要寫在外層，#chewingAlgaePiece 自己的 transform 會被 CSS 動畫蓋掉 -->
+                        <g transform="translate(0, 10)">
+                        <g id="chewingAlgaePiece">
                             <path class="algae-soft-blade-1" d="M 0 0 C -6 6, -12 12, -8 22 C -5 27, 2 22, 0 14 C -1 8, 1 3, 0 0 Z" fill="#22c55e" stroke="#14532d" stroke-width="1.1" stroke-linejoin="round"/>
                             <path class="algae-soft-blade-2" d="M -2 3 C -8 7, -14 14, -10 19 C -7 21, -3 16, -3 10 Z" fill="#4ade80" stroke="#14532d" stroke-width="0.9" stroke-linejoin="round"/>
                             <path d="M 1 2 C 4 5, 6 10, 3 13 C 1 11, 1 6, 1 2 Z" fill="#86efac" stroke="#14532d" stroke-width="0.7"/>
                         </g>
+                        </g>
                         <path id="chewingLineMouth" d="M -6 6 Q 0 11 6 6" fill="none" stroke="#2c3e50" stroke-width="1.8" stroke-linecap="round"/>
+                        </g>
                     `;
                 }
 
@@ -6281,11 +6307,15 @@ function updateLangUI() {
                     // 自選純色：穿上之後再點一次就打開調色盤
                     const isCustomColor = typeKey === 'bg' && key === 'none';
                     if (isCustomColor) btnText = isEquipped ? t.pickColor : t.owned;
+                    // 🤡 小丑海兔：穿上之後再點一次就打開配色選單（跟翻牌對決獎勵畫面同一個，只能選一次的規則也一樣）
+                    const isJokerColors = canPickJokerColors(typeKey, key);
+                    if (isJokerColors && isEquipped) btnText = jokerColorsLabel();
                     actionHTML = `<div class="item-cost owned">${btnText}</div>`;
                     card.onclick = () => {
                         const wasEquipped = isEquipped;
                         equipItem(key, typeKey); // 點了直接穿上
                         if (isCustomColor && wasEquipped) openColorModal();
+                        if (isJokerColors && wasEquipped) MemoryGame.openJokerPicker();
                     };
                 } else if (item.rewardWins) { // 🏆 勝場獎勵：不能買也不能試用，只告訴玩家怎麼拿
                     const winsTxt = currLang === 'zh' ? `🏆 翻牌 ${item.rewardWins} 勝` : `🏆 ${item.rewardWins} match wins`;
@@ -6358,8 +6388,12 @@ function updateLangUI() {
                 card.className = `item-card ${isEquipped ? 'equipped' : ''}`;
                 
                 let btnText = isEquipped ? t.equip : t.owned;
-                card.onclick = () => { 
-                    equipItem(key, typeKey); 
+                // 🤡 小丑海兔穿著時再點一次：打開配色選單
+                const isJokerColors = canPickJokerColors(typeKey, key);
+                if (isJokerColors && isEquipped) btnText = jokerColorsLabel();
+                card.onclick = () => {
+                    if (isJokerColors && isEquipped) { MemoryGame.openJokerPicker(); return; }
+                    equipItem(key, typeKey);
                     renderCatalog(); // 點擊換上後馬上刷新按鈕狀態
                 };
 
