@@ -11,7 +11,7 @@
 
     </script>
 
-        <link rel="stylesheet" href="slug_game.css?v=20261011d">
+        <link rel="stylesheet" href="slug_game.css?v=20261012c">
         <link rel="stylesheet" href="memory_game.css?v=20261009c">
 
 </head>
@@ -239,6 +239,16 @@
                 </div>
             </div>
 
+            <div class="manual-section">
+                <div class="manual-img">
+                    <img src="images/stickers/love.svg" alt="" style="width: 100%; height: 100%; object-fit: cover; object-position: 50% 62%; border-radius: 12px; display: block;">
+                </div>
+                <div class="manual-text">
+                    <h3 style="color: #db2777;" data-en="Send stickers">傳貼圖</h3>
+                    <p data-en="In a room, tap &quot;🐰 Stickers&quot; (or the sticker button next to the chat box) to pick from 43 sea bunny stickers — your sea bunny says it in a speech bubble. Inside online mini-games like Memory Match you can't type, but you can tap the sticker button at the top right: stickers float across everyone's screen like danmaku. One sticker every 1.5 seconds.">在房間裡按「🐰 貼圖」（或聊天列輸入框旁的貼圖按鈕），有 43 款海兔貼圖可以選，你的海兔會用對話泡泡把貼圖「說」出來。在翻牌對決這類連線小遊戲裡不能打字，但可以按右上角的貼圖按鈕，貼圖會像彈幕一樣從大家的畫面飄過去。每 1.5 秒可以傳一張。</p>
+                </div>
+            </div>
+
         </div>
         <div class="manual-footer">
             <button class="modal-btn btn-cancel" type="button" onclick="closeManual(); startTour();" data-en="Take the tour again">再跟小助理學一次</button>
@@ -453,6 +463,7 @@
         <button class="mp-btn secondary" onclick="SlugSocial.openBlockList()" id="btnBlockList">🚫 封鎖名單</button>
         <button class="mp-btn secondary" onclick="SlugSocial.openRules()" id="btnGameRules">📜 連線公約</button>
         <button class="mp-btn" onclick="sendChatPrompt()" id="btnChat" style="display:none; background: var(--accent-color);">💬 聊天</button>
+        <button class="mp-btn" onclick="openStickerPanel()" id="btnSticker" style="display:none; background: #f9a8d4;">🐰 貼圖</button>
         <button class="mp-btn secondary" onclick="leaveSocketRoom()" id="btnLeaveRoom" style="display:none; border-color: #ef4444; color: #ef4444;">離開房間</button>
     </div>
 
@@ -506,6 +517,8 @@
             </div>
             <button type="button" class="chat-newmsg" id="chatNewMsg" hidden data-en="New messages ↓">有新訊息 ↓</button>
         </div>
+        <!-- 🐰 貼圖：點一下就送出，房間裡每個人都會看到它像彈幕一樣從畫面飄過 -->
+        <div class="chat-stickers" id="chatStickers" hidden role="listbox" aria-label="貼圖" data-en-aria="Stickers"></div>
         <div class="chat-quick" id="chatQuick">
             <button type="button" class="chat-chip" data-en="Hi!">嗨！</button>
             <button type="button" class="chat-chip" data-en="So cute~">好可愛～</button>
@@ -514,6 +527,7 @@
             <button type="button" class="chat-chip" data-en="Bye~">掰掰～</button>
         </div>
         <div class="chat-row">
+            <button type="button" class="chat-sticker-toggle" id="chatStickerToggle" aria-label="貼圖" data-en-aria="Stickers" aria-expanded="false"><img src="images/stickers/happy.svg" alt=""></button>
             <div class="chat-field">
                 <input id="chatInput" type="text" autocomplete="off" enterkeyhint="send" placeholder="想對大家說些什麼呀？" aria-label="聊天訊息" data-en-placeholder="Say something to everyone…" data-en-aria="Chat message">
                 <span class="chat-count" id="chatCount">0/40</span>
@@ -890,8 +904,8 @@
         </div>
     </div>
 
-        <script src="slug_game.js?v=20261011b"></script>
-        <script src="memory_game.js?v=20261009h"></script>
+        <script src="slug_game.js?v=20261012f"></script>
+        <script src="memory_game.js?v=20261012a"></script>
         <script src="slug_social.js?v=20261010d"></script>
         <script src="slug_idle.js?v=20261009c"></script>
 

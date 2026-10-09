@@ -498,7 +498,9 @@ let GAME_TOKEN = localStorage.getItem('authToken') || localStorage.getItem('acce
                 // 收到訊息：記進聊天紀錄（含留言時間）；系統訊息只進紀錄，不要冒在自己海兔頭上
                 socket.on('receive_message', (data) => whenRoomReady(() => {
                     recordChat(data.senderName, data.message, data.timestamp);
-                    if (data.senderName !== '系統') showChatBubble(data.senderName, data.message);
+                    const sticker = data.senderName !== '系統' && stickerOf(data.message);
+                    if (sticker && isInMiniGame()) flySticker(data.senderName, sticker);
+                    else if (data.senderName !== '系統') showChatBubble(data.senderName, data.message);
                 }));
                 setInterval(() => broadcastMove(), 250);
 
@@ -854,9 +856,10 @@ function copyRoomId() {
 
         function sendChatPrompt() { openChatBar(); }
 
-        function openChatBar() {
+        function openChatBar(opts = {}) {
             const bar = document.getElementById('chatBar');
             if (!bar || !currentRoomId) return;
+            if (typeof isInMiniGame === 'function' && isInMiniGame()) return;
             const en = currLang === 'en';
             const input = document.getElementById('chatInput');
             input.placeholder = en ? 'Say something to everyone…' : '想對大家說些什麼呀？';
@@ -867,7 +870,7 @@ function copyRoomId() {
             chatUnread = 0;
             renderChatUnread();
             scrollChatToBottom();
-            setTimeout(() => input.focus(), 60);
+            if (!opts.noFocus) setTimeout(() => input.focus(), 60);
         }
 
         // =====================================================================
@@ -1236,9 +1239,18 @@ function copyRoomId() {
             line.className = 'chat-msg-line';
             const text = document.createElement('div');
             text.className = 'chat-msg-text';
+            const sticker = !isSystem && stickerOf(message);
             if (isSystem) {
                 text.dataset.raw = message;   // 切語言時用原文重翻
                 text.textContent = typeof trText === 'function' ? trText(message) : message;
+            } else if (sticker) {
+                // 貼圖只認清單裡的，圖片一律用我們自己的檔案
+                text.classList.add('is-sticker');
+                const img = document.createElement('img');
+                img.src = stickerSrc(sticker.id);
+                img.alt = stickerName(sticker);
+                img.title = stickerName(sticker);
+                text.appendChild(img);
             } else {
                 text.textContent = message;
             }
@@ -1292,12 +1304,262 @@ function copyRoomId() {
             lastChatAt = Date.now();
             if (isMockMode) {
                 recordChat(gameState.petName || '我的海兔', msg, Date.now());
-                showChatBubble(gameState.petName || '我的海兔', msg);
+                const sticker = stickerOf(msg);
+                if (sticker && isInMiniGame()) flySticker(gameState.petName || '我的海兔', sticker);
+                else showChatBubble(gameState.petName || '我的海兔', msg);
             }
             else if (socket && socket.connected) socket.emit('send_message', { roomId: currentRoomId, message: msg });
             else { showFloatText(currLang === 'en' ? 'Reconnecting… try again in a moment' : '正在重新連線，等一下再傳喔'); return false; }
             return true;
         }
+
+        // =====================================================================
+        // 🐰 【貼圖】在房間裡點一下貼圖就送出，大家的畫面上都會像彈幕一樣飄過去
+        //    沿用聊天的 send_message 傳一段代碼 [[sticker:id]]（後端原樣轉發，封鎖也照樣有效），
+        //    收到時只認下面清單裡的 id，圖片一律用 images/stickers/ 裡我們自己的檔案
+        // =====================================================================
+        const STICKERS = [
+            ['happy', '開心', 'Happy'], ['laugh', '笑到流淚', 'LOL'], ['love', '愛心眼', 'In love'], ['shy', '害羞', 'Shy'],
+            ['kiss', '親親', 'Kiss'], ['wink', '眨眼', 'Wink'], ['smug', '得意', 'Smug'], ['content', '滿足', 'Content'],
+            ['hopeful', '期待', 'Hopeful'], ['please', '拜託', 'Please'], ['cry', '大哭', 'Crying'], ['sob', '哭哭', 'Sob'],
+            ['hurt', '委屈', 'Hurt'], ['sad', '難過', 'Sad'], ['angry', '生氣', 'Angry'], ['rage', '暴怒', 'Furious'],
+            ['pout', '嘟嘴', 'Pout'], ['hmph', '哼', 'Hmph'], ['speechless', '無言', 'Speechless'], ['stunned', '傻眼', 'Stunned'],
+            ['shock', '嚇一跳', 'Shocked'], ['surprise', '驚訝', 'Surprised'], ['blank', '呆萌', 'Blank'], ['dizzy', '頭暈', 'Dizzy'],
+            ['melt', '暈爛', 'Melting'], ['sideeye', '斜眼', 'Side-eye'], ['sly', '賊笑', 'Sly'], ['doubt', '懷疑', 'Doubtful'],
+            ['breakdown', '崩潰', 'Breakdown'], ['awkward', '尷尬', 'Awkward'], ['think', '思考', 'Thinking'], ['idea', '想到了', 'Got it!'],
+            ['ok', '好喔', 'OK'], ['no', '不要', 'No'], ['sleepy', '想睡', 'Sleepy'], ['night', '晚安', 'Good night'],
+            ['hungry', '肚子餓', 'Hungry'], ['eat', '吃海藻', 'Yummy'], ['cold', '好冷', 'Cold'], ['hot', '好熱', 'Hot'],
+            ['sick', '生病', 'Sick'], ['dead', '靈魂出竅', 'Dead'], ['rich', '發財', 'Rich']
+        ].map(([id, zh, en]) => ({ id, zh, en }));
+        const STICKER_RE = /^\[\[sticker:([a-z]+)\]\]$/;
+        const STICKER_GAP_MS = 1500;     // 貼圖比文字大很多，間隔拉長一點，避免整個畫面被洗版
+        const STICKER_ON_SCREEN_MAX = 8; // 同時最多飄幾張，太多就先把最舊的收掉
+        const STICKER_MAX_WAIT_MS = 6000; // 軌道都滿了要等太久的就不飄（聊天紀錄裡還是看得到）
+        let lastStickerAt = 0;
+        const stickerLaneFreeAt = [];     // 每條軌道什麼時候空出來（上一張整張飄進畫面、留一點間距之後）
+
+        function stickerOf(message) {
+            const m = STICKER_RE.exec(String(message || '').trim());
+            return m ? (STICKERS.find(st => st.id === m[1]) || null) : null;
+        }
+        function stickerSrc(id) { return 'images/stickers/' + id + '.svg'; }
+        function stickerName(st) { return currLang === 'en' ? st.en : st.zh; }
+
+        function sendSticker(id) {
+            if (!STICKERS.some(st => st.id === id) || !currentRoomId) return false;
+            if (Date.now() - lastStickerAt < STICKER_GAP_MS) { flashStickerCooldown(); return false; }
+            // 跟文字共用同一條送出路線（斷線提示、模擬模式都一樣）；貼圖有自己的間隔，不受打字的連發間隔影響
+            lastChatAt = 0;
+            if (!sendChatMessage('[[sticker:' + id + ']]')) return false;
+            lastStickerAt = Date.now();
+            flashStickerCooldown();
+            return true;
+        }
+
+        // 剛送出：貼圖面板淡一下，告訴玩家要等一下才能再送
+        function flashStickerCooldown() {
+            const panels = ['chatStickers', 'mgStickerTray'].map(id => document.getElementById(id)).filter(Boolean);
+            panels.forEach(p => p.classList.add('is-cooling'));
+            clearTimeout(flashStickerCooldown.t);
+            flashStickerCooldown.t = setTimeout(() => panels.forEach(p => p.classList.remove('is-cooling')),
+                Math.max(200, STICKER_GAP_MS - (Date.now() - lastStickerAt)));
+        }
+
+        // 現在是不是在連線小遊戲的畫面（翻牌對決的視窗開著；只拿來選小丑配色的那種不算）
+        function isInMiniGame() {
+            const o = document.getElementById('memoryGameOverlay');
+            return !!(currentRoomId && o && !o.hidden && !o.classList.contains('is-pick-only'));
+        }
+
+        // 🎮 小遊戲裡的貼圖：右上角一顆貼圖按鈕，打開是只有貼圖的面板（沒有打字的地方）
+        function buildStickerButtons(box) {
+            STICKERS.forEach(st => {
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = 'chat-sticker';
+                btn.dataset.id = st.id;
+                const img = document.createElement('img');
+                img.src = stickerSrc(st.id);
+                img.loading = 'lazy';
+                img.alt = '';
+                btn.appendChild(img);
+                btn.addEventListener('click', () => sendSticker(st.id));
+                box.appendChild(btn);
+            });
+        }
+
+        function renderGameStickerText() {
+            const btn = document.getElementById('mgStickerBtn');
+            const tray = document.getElementById('mgStickerTray');
+            const label = currLang === 'en' ? 'Stickers' : '貼圖';
+            if (btn) { btn.title = label; btn.setAttribute('aria-label', label); }
+            if (tray) {
+                tray.setAttribute('aria-label', label);
+                const hint = tray.querySelector('.mg-sticker-hint');
+                if (hint) hint.textContent = currLang === 'en' ? 'Tap a sticker — it floats across everyone\'s screen' : '點一張貼圖，就會從大家的畫面飄過去';
+                tray.querySelectorAll('.chat-sticker').forEach(b => {
+                    const st = STICKERS.find(x => x.id === b.dataset.id);
+                    b.title = stickerName(st);
+                    b.setAttribute('aria-label', stickerName(st));
+                });
+            }
+        }
+
+        function setGameStickerTray(open) {
+            const tray = document.getElementById('mgStickerTray');
+            const btn = document.getElementById('mgStickerBtn');
+            if (!tray) return;
+            tray.hidden = !open;
+            if (btn) { btn.classList.toggle('is-open', open); btn.setAttribute('aria-expanded', open ? 'true' : 'false'); }
+        }
+
+        function setupGameStickers(overlay) {
+            if (overlay.dataset.stickers) return;
+            const btns = overlay.querySelector('.mg-header-btns');
+            const panel = overlay.querySelector('.mg-panel');
+            if (!btns || !panel) return;
+            overlay.dataset.stickers = '1';
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = 'mg-sticker-btn';
+            btn.id = 'mgStickerBtn';
+            btn.setAttribute('aria-expanded', 'false');
+            btn.innerHTML = '<img src="' + stickerSrc('happy') + '" alt="">';
+            btn.addEventListener('click', () => setGameStickerTray(document.getElementById('mgStickerTray').hidden));
+            btns.insertBefore(btn, btns.firstChild);
+
+            const tray = document.createElement('div');
+            tray.className = 'mg-sticker-tray';
+            tray.id = 'mgStickerTray';
+            tray.hidden = true;
+            tray.setAttribute('role', 'dialog');
+            tray.innerHTML = '<div class="mg-sticker-head"><span class="mg-sticker-hint"></span><button type="button" class="mg-sticker-close" aria-label="✕">✕</button></div><div class="mg-sticker-grid"></div>';
+            buildStickerButtons(tray.querySelector('.mg-sticker-grid'));
+            tray.querySelector('.mg-sticker-close').addEventListener('click', () => setGameStickerTray(false));
+            panel.appendChild(tray);
+            renderGameStickerText();
+        }
+
+        // 翻牌對決的視窗是 memory_game.js 用到才建的：出現之後補上貼圖按鈕；
+        // 一打開小遊戲就把聊天列收起來（遊戲裡只能傳貼圖），關掉時順便收起貼圖面板
+        (function watchMiniGame() {
+            let watched = null;
+            const onToggle = () => {
+                const o = document.getElementById('memoryGameOverlay');
+                if (!o) return;
+                const btn = document.getElementById('mgStickerBtn');
+                if (btn) btn.hidden = !currentRoomId || o.classList.contains('is-pick-only');
+                if (isInMiniGame()) { if (typeof closeChatBar === 'function') closeChatBar(); }
+                else setGameStickerTray(false);
+            };
+            new MutationObserver(() => {
+                const o = document.getElementById('memoryGameOverlay');
+                if (!o || o === watched) return;
+                watched = o;
+                setupGameStickers(o);
+                new MutationObserver(onToggle).observe(o, { attributes: true, attributeFilter: ['hidden', 'class'] });
+                onToggle();
+            }).observe(document.body, { childList: true });
+        })();
+
+        // 從右邊飄到左邊，下面掛著是誰送的。
+        // 畫面上半部切成幾條軌道（一條剛好放一張），同一條軌道要等上一張整張飄進來才接著放，就不會疊在一起
+        function flySticker(name, st) {
+            const phone = innerWidth <= 600;
+            const cardW = phone ? 104 : 142, laneH = phone ? 128 : 170;
+            // 手機的底部按鈕比較矮，可以用到比較下面
+            const top0 = phone ? 70 : 80, bottom = Math.max(top0 + laneH * 2, phone ? innerHeight - 230 : innerHeight * 0.62);
+            const lanes = Math.max(2, Math.floor((bottom - top0) / laneH));
+            const dur = 6.2 + Math.random() * 1.4;
+            const now = Date.now();
+            // 選最快空出來的軌道（一樣快就隨便挑一條，才不會都擠在最上面）
+            let lane = -1, wait = Infinity;
+            for (let i = 0; i < lanes; i++) {
+                const w = Math.max(0, (stickerLaneFreeAt[i] || 0) - now) + Math.random() * 120;
+                if (w < wait) { wait = w; lane = i; }
+            }
+            if (wait > STICKER_MAX_WAIT_MS) return;
+            const speed = (innerWidth + cardW) / dur;               // 每秒幾 px
+            stickerLaneFreeAt[lane] = now + wait + ((cardW + 28) / speed) * 1000;
+
+            setTimeout(() => {
+                const flying = document.querySelectorAll('.sticker-fly');
+                if (flying.length >= STICKER_ON_SCREEN_MAX) flying[0].remove();
+                launchSticker(name, st, top0 + lane * laneH, dur);
+            }, wait);
+        }
+
+        function launchSticker(name, st, top, dur) {
+            const el = document.createElement('div');
+            el.className = 'sticker-fly' + (isMyChatName(name) ? ' mine' : '');
+            el.style.top = top + 'px';
+            el.style.setProperty('--fly-dur', dur.toFixed(2) + 's');
+            const img = document.createElement('img');
+            img.src = stickerSrc(st.id);
+            img.alt = stickerName(st);
+            const who = document.createElement('span');
+            who.className = 'sticker-fly-name';
+            who.textContent = name;   // 名稱來自其他玩家，當純文字
+            el.appendChild(img);
+            el.appendChild(who);
+            el.addEventListener('animationend', (e) => { if (e.target === el) el.remove(); });
+            document.body.appendChild(el);
+        }
+
+        function renderStickerPanel() {
+            const panel = document.getElementById('chatStickers');
+            if (!panel) return;
+            if (!panel.children.length) {
+                STICKERS.forEach(st => {
+                    const btn = document.createElement('button');
+                    btn.type = 'button';
+                    btn.className = 'chat-sticker';
+                    btn.dataset.id = st.id;
+                    btn.setAttribute('role', 'option');
+                    const img = document.createElement('img');
+                    img.src = stickerSrc(st.id);
+                    img.loading = 'lazy';
+                    img.alt = '';
+                    btn.appendChild(img);
+                    btn.addEventListener('click', () => sendSticker(st.id));
+                    panel.appendChild(btn);
+                });
+            }
+            panel.querySelectorAll('.chat-sticker').forEach(btn => {
+                const st = STICKERS.find(x => x.id === btn.dataset.id);
+                btn.title = stickerName(st);
+                btn.setAttribute('aria-label', stickerName(st));
+            });
+        }
+
+        function setStickerPanel(open) {
+            const panel = document.getElementById('chatStickers');
+            const toggle = document.getElementById('chatStickerToggle');
+            if (!panel) return;
+            if (open) renderStickerPanel();
+            panel.hidden = !open;
+            document.getElementById('chatBar').classList.toggle('has-stickers', open);
+            if (toggle) {
+                toggle.classList.toggle('is-on', open);
+                toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+            }
+        }
+
+        // 房間畫面上的「貼圖」按鈕：打開聊天列並直接展開貼圖（手機上不叫出鍵盤）
+        function openStickerPanel() {
+            if (!currentRoomId) return;
+            openChatBar({ noFocus: true });
+            setStickerPanel(true);
+        }
+
+        (function setupStickers() {
+            const toggle = document.getElementById('chatStickerToggle');
+            if (!toggle) return;
+            toggle.addEventListener('click', () => {
+                const panel = document.getElementById('chatStickers');
+                setStickerPanel(panel.hidden);
+            });
+        })();
 
         (function setupChatBar() {
             const bar = document.getElementById('chatBar');
@@ -1607,7 +1869,8 @@ function updateRoomUI(text) {
         if (typeof isBoardOpen === 'function' && isBoardOpen()) { renderBoardCompose(); renderBoardList(); }
         document.getElementById('btnCreateRoom').style.display = 'none'; 
         document.getElementById('btnJoinRoom').style.display = 'none'; 
-        document.getElementById('btnChat').style.display = 'block'; 
+        document.getElementById('btnChat').style.display = 'block';
+        document.getElementById('btnSticker').style.display = 'block';
         updateMpGamesUI();
         document.getElementById('btnLeaveRoom').style.display = 'block';
         
@@ -1632,7 +1895,9 @@ function updateRoomUI(text) {
         if (typeof isBoardOpen === 'function' && isBoardOpen()) { renderBoardCompose(); renderBoardList(); }
         document.getElementById('btnCreateRoom').style.display = 'block'; 
         document.getElementById('btnJoinRoom').style.display = 'block'; 
-        document.getElementById('btnChat').style.display = 'none'; 
+        document.getElementById('btnChat').style.display = 'none';
+        document.getElementById('btnSticker').style.display = 'none';
+        if (typeof setStickerPanel === 'function') setStickerPanel(false);
         updateMpGamesUI();
         document.getElementById('btnLeaveRoom').style.display = 'none';
         
@@ -1703,7 +1968,18 @@ function updateRoomUI(text) {
             // 名稱與訊息來自其他玩家，一律當純文字顯示
             el.innerHTML = `<span style="font-size:0.8em; color:var(--text-dim);"></span><br/><span></span>`;
             el.children[0].textContent = name;
-            el.children[2].textContent = message;
+            const sticker = name !== '系統' && stickerOf(message);
+            if (sticker) {
+                // 貼圖也是海兔「說出來」的，只是泡泡裡放圖片（只認清單裡的貼圖、用我們自己的檔案）
+                el.classList.add('is-sticker');
+                const img = document.createElement('img');
+                img.className = 'chat-bubble-sticker';
+                img.src = stickerSrc(sticker.id);
+                img.alt = stickerName(sticker);
+                el.children[2].appendChild(img);
+            } else {
+                el.children[2].textContent = message;
+            }
 
             // 手機版：點別人的對話泡泡就直接打開聊天列，馬上可以回覆
             const isPhone = (window.matchMedia && window.matchMedia('(pointer: coarse)').matches) || window.innerWidth <= 768;
@@ -1723,8 +1999,13 @@ function updateRoomUI(text) {
                 // 玩家離開房間的話，就留在最後的位置
                 if (targetEl.isConnected) {
                     const r = targetEl.getBoundingClientRect();
-                    el.style.left = (r.left + r.width / 2) + 'px';
-                    el.style.top = (r.top + r.height * 0.1) + 'px';
+                    // 泡泡是「底邊貼在海兔頭上」往上長的：海兔在畫面上方、泡泡又比較高（貼圖）時會超出畫面，
+                    // 所以上下左右都夾在畫面裡面
+                    const w = el.offsetWidth, h = el.offsetHeight, pad = 8;
+                    const x = Math.min(Math.max(r.left + r.width / 2, w / 2 + pad), innerWidth - w / 2 - pad);
+                    const y = Math.max(r.top + r.height * 0.1, h + pad);
+                    el.style.left = x + 'px';
+                    el.style.top = y + 'px';
                 }
                 requestAnimationFrame(follow);
             };
@@ -1762,7 +2043,7 @@ const i18n = {
                     bg: ["新場景還在打草稿，先別偷看 (๑•̀ㅂ•́)و", "下一個世界正在施工中，工人加班趕工 ( ･ั﹏･ั)", "再等等，這裡會多一片新風景 (´･ω･`)"],
                     effect: ["新特效正在實驗室裡試放…… ( °ω° )", "魔法還沒調好，再等一下下 (・∀・)", "下一個驚喜正在充能中…… (๑˃̵ᴗ˂̵)"]
                 },
-                mpBtn: "📡 連線", roomNotConnected: "尚未連線", createRoom: "創立房間", joinRoom: "加入房間", chat: "💬 聊天", leaveRoom: "離開房間",
+                mpBtn: "📡 連線", roomNotConnected: "尚未連線", createRoom: "創立房間", joinRoom: "加入房間", chat: "💬 聊天", sticker: "🐰 貼圖", leaveRoom: "離開房間",
 
                 // 🌟 14天簽到與累計簽到
                 dailyGiftTitle: "14天簽到",
@@ -1825,7 +2106,7 @@ const i18n = {
                     bg: ["The new scene is still a sketch, no peeking (๑•̀ㅂ•́)و", "The next world is under construction ( ･ั﹏･ั)", "Come back later, a new view is on the way (´･ω･`)"],
                     effect: ["A new effect is being test-fired... ( °ω° )", "The magic isn't tuned yet, hang tight (・∀・)", "The next surprise is charging up (๑˃̵ᴗ˂̵)"]
                 },
-                mpBtn: "📡 Connect", roomNotConnected: "Not Connected", createRoom: "Create Room", joinRoom: "Join Room", chat: "💬 Chat", leaveRoom: "Leave Room",
+                mpBtn: "📡 Connect", roomNotConnected: "Not Connected", createRoom: "Create Room", joinRoom: "Join Room", chat: "💬 Chat", sticker: "🐰 Stickers", leaveRoom: "Leave Room",
 
                 // 🌟 14-day check-in and streak reward
                 dailyGiftTitle: "14-Day Check-in",
@@ -6159,6 +6440,9 @@ function updateLangUI() {
             document.getElementById('btnCreateRoom').innerText = t.createRoom;
             document.getElementById('btnJoinRoom').innerText = t.joinRoom;
             document.getElementById('btnChat').innerText = t.chat;
+            document.getElementById('btnSticker').innerText = t.sticker;
+            if (typeof renderStickerPanel === 'function') renderStickerPanel();
+            if (typeof renderGameStickerText === 'function') renderGameStickerText();
             document.getElementById('btnLeaveRoom').innerText = t.leaveRoom;
         }
 
@@ -13826,8 +14110,8 @@ const TOUR_STEPS = [
     {
         target: ['#btnToggleMp'], free: true,
         title: ['和朋友一起玩', 'Play with friends'],
-        text: ['按「連線」可以開房間，把 6 碼邀請碼分享給朋友，就能在同一個魚缸裡一起玩、一起聊天。也可以到「房間公告板」發邀請，或看看誰正在找朋友。',
-               'Tap "Online" to open a room and share the 6-character code so friends can join your tank.']
+        text: ['按「連線」可以開房間，把 6 碼邀請碼分享給朋友，就能在同一個魚缸裡一起玩、一起聊天。也可以到「房間公告板」發邀請，或看看誰正在找朋友。進房後還能傳海兔貼圖，玩翻牌對決時貼圖會像彈幕一樣飄過去喔！',
+               'Tap "Online" to open a room and share the 6-character code so friends can join your tank. In a room you can send sea bunny stickers too — during Memory Match they float across the screen like danmaku!']
     },
     {
         title: ['你已經會了！', "You're all set!"],
