@@ -223,7 +223,6 @@ body {
 .bottle {
     position: fixed;
     width: 60px;
-    background-image: url('bottle.webp'); /* 請換成妳的圖片路徑 */
     background-size: contain;
     background-repeat: no-repeat;
     opacity: 0.15;

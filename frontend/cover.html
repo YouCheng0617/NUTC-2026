@@ -119,7 +119,7 @@
         if (!countElement) return;
 
         try {
-            const response = await fetch('https://163.17.135.120/bottles/today');
+            const response = await fetch('https://api.drift-bottles.xyz/bottles/today');
             if (!response.ok) {
                 throw new Error(`HTTP 錯誤！狀態碼: ${response.status}`);
             }
