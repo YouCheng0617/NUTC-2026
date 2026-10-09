@@ -3253,7 +3253,7 @@ async function fetchAndRenderNotifications() {
         const timeStr = notif.created_at
           ? new Date(notif.created_at).toLocaleString()
           : notif.time || "";
-        const notificationText = notif.content || notif.message || "";
+        const notificationText = stickersToText(notif.content || notif.message || "");
         // target_id 依通知類型代表不同東西：瓶子類是漂流瓶 id，
         // 追蹤通知是會員 id，客服通知是客服單 id，所以類型也要一起傳過去
         const targetId = notif.target_id ?? notif.targetId ?? "";
@@ -4602,20 +4602,79 @@ function highlightInHtml(html, keyword) {
   return tpl.innerHTML;
 }
 
+// =========================================
+// 🐰 海兔貼圖：發文、留言、回覆裡打 [[sticker:id]] 就會顯示成貼圖
+//   清單要跟 slug_game.js 的 STICKERS 一致（同一套圖，放在 images/stickers/）
+// =========================================
+const STICKERS = [
+  ["happy", "開心"], ["laugh", "笑到流淚"], ["love", "愛心眼"], ["shy", "害羞"], ["kiss", "親親"], ["wink", "眨眼"],
+  ["smug", "得意"], ["content", "滿足"], ["hopeful", "期待"], ["please", "拜託"], ["cry", "大哭"], ["sob", "哭哭"],
+  ["hurt", "委屈"], ["sad", "難過"], ["angry", "生氣"], ["rage", "暴怒"], ["pout", "嘟嘴"], ["hmph", "哼"],
+  ["speechless", "無言"], ["stunned", "傻眼"], ["shock", "嚇一跳"], ["surprise", "驚訝"], ["blank", "呆萌"], ["dizzy", "頭暈"],
+  ["melt", "暈爛"], ["sideeye", "斜眼"], ["sly", "賊笑"], ["doubt", "懷疑"], ["breakdown", "崩潰"], ["awkward", "尷尬"],
+  ["think", "思考"], ["idea", "想到了"], ["ok", "好喔"], ["no", "不要"], ["sleepy", "想睡"], ["night", "晚安"],
+  ["hungry", "肚子餓"], ["eat", "吃海藻"], ["cold", "好冷"], ["hot", "好熱"], ["sick", "生病"], ["dead", "靈魂出竅"], ["rich", "發財"],
+];
+const STICKER_NAME = new Map(STICKERS);
+const STICKER_TOKEN_RE = /\[\[sticker:([a-z]+)\]\]/g;
+
+// 已經過安全過濾的 HTML：只在文字裡找貼圖代碼換成圖片（程式碼區塊裡的不換，讓人可以示範怎麼打）
+function renderStickersInHtml(html) {
+  if (!html.includes("[[sticker:")) return html;
+  const tpl = document.createElement("template");
+  tpl.innerHTML = html;
+  const walker = document.createTreeWalker(tpl.content, NodeFilter.SHOW_TEXT);
+  const nodes = [];
+  while (walker.nextNode()) {
+    const n = walker.currentNode;
+    if (n.nodeValue.includes("[[sticker:") && !n.parentElement?.closest("code, pre")) nodes.push(n);
+  }
+  nodes.forEach((node) => {
+    const text = node.nodeValue;
+    const frag = document.createDocumentFragment();
+    let last = 0;
+    STICKER_TOKEN_RE.lastIndex = 0;
+    let m;
+    while ((m = STICKER_TOKEN_RE.exec(text)) !== null) {
+      if (!STICKER_NAME.has(m[1])) continue; // 不在清單裡的就當一般文字
+      frag.appendChild(document.createTextNode(text.slice(last, m.index)));
+      const img = document.createElement("img");
+      img.className = "md-sticker";
+      img.src = `images/stickers/${m[1]}.svg`;
+      img.alt = `［貼圖：${STICKER_NAME.get(m[1])}］`;
+      img.title = STICKER_NAME.get(m[1]);
+      img.loading = "lazy";
+      frag.appendChild(img);
+      last = m.index + m[0].length;
+    }
+    if (last === 0) return;
+    frag.appendChild(document.createTextNode(text.slice(last)));
+    node.parentNode.replaceChild(frag, node);
+  });
+  return tpl.innerHTML;
+}
+
+// 純文字的地方（列表卡片摘要、通知）：貼圖代碼換成「［貼圖：開心］」
+function stickersToText(text) {
+  return String(text || "").replace(STICKER_TOKEN_RE, (all, id) =>
+    STICKER_NAME.has(id) ? `［貼圖：${STICKER_NAME.get(id)}］` : all,
+  );
+}
+
 // 文章內容、留言 → 排版好的安全 HTML
 function renderMarkdown(text, keyword = "") {
   const source = String(text || "");
   if (!ensureMarkdown()) {
     // 退回純文字：跳脫後保留換行
-    return highlightText(escapeHTML(source), keyword).replace(/\n/g, "<br>");
+    return highlightInHtml(renderStickersInHtml(escapeHTML(source).replace(/\n/g, "<br>")), keyword);
   }
   const html = sanitizeMarkdownHtml(window.marked.parse(source));
-  return highlightInHtml(html, keyword);
+  return highlightInHtml(renderStickersInHtml(html), keyword);
 }
 
 // 列表卡片用：把語法符號拿掉，只留文字
 function markdownToPlainText(text) {
-  const source = String(text || "");
+  const source = stickersToText(text);
   if (!ensureMarkdown()) return source;
   const html = sanitizeMarkdownHtml(window.marked.parse(source))
     // 區塊結尾補空白，不然兩段文字會黏在一起
@@ -4651,6 +4710,7 @@ function mdMiniHelperHtml() {
     <div class="md-mini-helper">
       <div class="md-mini-bar">
         <span class="md-mini-hint">${hint}</span>
+        <button type="button" class="md-mini-sticker-btn" onclick="openStickerPicker(this)" aria-label="貼圖">🐰 貼圖</button>
         <button type="button" class="md-mini-preview-btn" onclick="toggleMiniPreview(this)">👀 預覽</button>
       </div>
       <div class="md-mini-preview md-content" style="display: none"></div>
@@ -4727,6 +4787,114 @@ document.addEventListener("keydown", (e) => {
     if (sendBtn) sendBtn.click();
   }
 });
+
+// ---------- 🐰 貼圖選單：點貼圖按鈕跳出 43 張，選了就插在游標的位置 ----------
+// 按鈕要找到它服務的輸入框：留言／回覆是同一區塊裡的 textarea；發文、改文用 data-sticker-target 指定
+function stickerTargetOf(btn) {
+  if (btn.dataset.stickerTarget) return document.getElementById(btn.dataset.stickerTarget);
+  return btn.closest(MINI_HOST_SELECTOR)?.querySelector("textarea") || null;
+}
+
+function insertSticker(ta, id) {
+  if (!ta || !STICKER_NAME.has(id)) return;
+  // 發文是預覽模式的話先切回編輯，才看得到插進去的位置
+  if (ta.id === "post-content-input" && ta.style.display === "none") setPostPreview(false);
+  const token = `[[sticker:${id}]]`;
+  const start = ta.selectionStart ?? ta.value.length;
+  const end = ta.selectionEnd ?? ta.value.length;
+  ta.value = ta.value.slice(0, start) + token + ta.value.slice(end);
+  const caret = start + token.length;
+  ta.focus();
+  ta.setSelectionRange(caret, caret);
+  // 讓自動長高、預覽跟著更新
+  ta.dispatchEvent(new Event("input", { bubbles: true }));
+}
+
+function closeStickerPicker() {
+  document.getElementById("sticker-picker")?.remove();
+  document.querySelectorAll(".sticker-btn-open").forEach((b) => b.classList.remove("sticker-btn-open"));
+}
+
+window.openStickerPicker = function (btn) {
+  const wasOpen = btn.classList.contains("sticker-btn-open");
+  closeStickerPicker();
+  if (wasOpen) return;
+  const ta = stickerTargetOf(btn);
+  if (!ta) return;
+
+  const box = document.createElement("div");
+  box.id = "sticker-picker";
+  box.className = "sticker-picker";
+  box.setAttribute("role", "dialog");
+  box.setAttribute("aria-label", "選一張貼圖");
+  box.innerHTML = `
+    <div class="sticker-picker-head">
+      <span>選一張海兔貼圖</span>
+      <button type="button" class="sticker-picker-close" aria-label="關閉">✕</button>
+    </div>
+    <div class="sticker-picker-grid">${STICKERS.map(([id, zh]) =>
+      `<button type="button" class="sticker-picker-item" data-id="${id}" title="${zh}" aria-label="${zh}"><img src="images/stickers/${id}.svg" alt="" loading="lazy"></button>`,
+    ).join("")}</div>`;
+  box.querySelector(".sticker-picker-close").addEventListener("click", closeStickerPicker);
+  box.querySelectorAll(".sticker-picker-item").forEach((item) =>
+    item.addEventListener("click", () => {
+      insertSticker(ta, item.dataset.id);
+      closeStickerPicker();
+    }),
+  );
+  // 不要讓點選單時把外面的視窗關掉
+  box.addEventListener("click", (e) => e.stopPropagation());
+  document.body.appendChild(box);
+  btn.classList.add("sticker-btn-open");
+
+  // 電腦：貼在按鈕旁邊（上面放得下就放上面）；手機：從畫面下方滑上來
+  if (window.innerWidth > 600) {
+    const r = btn.getBoundingClientRect();
+    const w = box.offsetWidth, h = box.offsetHeight;
+    const left = Math.min(Math.max(8, r.right - w), window.innerWidth - w - 8);
+    const top = r.top - h - 8 >= 8 ? r.top - h - 8 : Math.min(r.bottom + 8, window.innerHeight - h - 8);
+    box.style.left = `${left}px`;
+    box.style.top = `${Math.max(8, top)}px`;
+  } else {
+    box.classList.add("is-sheet");
+  }
+};
+
+document.addEventListener("click", (e) => {
+  if (!document.getElementById("sticker-picker")) return;
+  if (e.target.closest("#sticker-picker, .sticker-btn-open")) return;
+  closeStickerPicker();
+});
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape") closeStickerPicker();
+});
+
+// 發文框（首頁、單篇、收藏頁都有）和改文框：旁邊補一顆貼圖按鈕
+function addPostStickerButtons() {
+  ["post-content-input", "edit-bottle-content-input"].forEach((id) => {
+    const ta = document.getElementById(id);
+    if (!ta || document.querySelector(`[data-sticker-target="${id}"]`)) return;
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "md-sticker-btn";
+    btn.dataset.stickerTarget = id;
+    btn.textContent = "🐰 貼圖";
+    btn.setAttribute("onclick", "openStickerPicker(this)");
+    const helper = id === "post-content-input" ? ta.parentElement.querySelector(".md-helper") : null;
+    if (helper) {
+      // 首頁的發文框有 Markdown 說明列：放在「預覽」前面
+      const preview = helper.querySelector("#post-preview-toggle");
+      helper.insertBefore(btn, preview || null);
+    } else {
+      const row = document.createElement("div");
+      row.className = "md-sticker-row";
+      row.appendChild(btn);
+      ta.insertAdjacentElement("afterend", row);
+    }
+  });
+}
+addPostStickerButtons();
+document.addEventListener("DOMContentLoaded", addPostStickerButtons);
 
 // ---------- 發文視窗：預覽切換 ----------
 function setPostPreview(on) {
@@ -4950,6 +5118,7 @@ window.openEditBottleModal = function (bottleId, e) {
   document.getElementById("edit-bottle-left").textContent = `還可以修改約 ${left} 分鐘`;
   document.getElementById("edit-bottle-title-input").value = p.title || "";
   document.getElementById("edit-bottle-content-input").value = p.desc || "";
+  addPostStickerButtons();
   modal.style.display = "block";
 };
 

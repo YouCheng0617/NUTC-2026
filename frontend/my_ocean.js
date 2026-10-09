@@ -58,7 +58,8 @@
         top.appendChild(el("span", "mo-title", b.title || "（無標題）"));
         if (isNew) top.appendChild(el("span", "mo-new", "NEW"));
         btn.appendChild(top);
-        const preview = b.preview ?? String(b.content || "").replace(/\s+/g, " ").trim().slice(0, 60);
+        // 貼圖代碼 [[sticker:id]] 在摘要裡換成「［貼圖］」，不要露出代碼
+        const preview = b.preview ?? String(b.content || "").replace(/\[\[sticker:[a-z]+\]\]/g, "［貼圖］").replace(/\s+/g, " ").trim().slice(0, 60);
         if (preview) btn.appendChild(el("span", "mo-preview", preview));
         btn.appendChild(el("span", "mo-meta", `${b.member_name || "匿名使用者"}・${timeAgo(b.created_at)}`));
         btn.addEventListener("click", () => {

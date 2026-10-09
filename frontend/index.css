@@ -5031,3 +5031,134 @@ textarea.custom-reply-input {
   top: var(--site-header-h, 60px) !important;
   height: calc(100vh - var(--site-header-h, 60px)) !important;
 }
+
+/* =========================================
+   🐰 海兔貼圖：發文、留言、回覆裡的貼圖＋選貼圖的視窗
+   ========================================= */
+.md-content img.md-sticker {
+  display: inline-block;
+  width: 120px;
+  max-width: 45%;
+  height: auto;
+  margin: 2px 4px;
+  vertical-align: middle;
+  border-radius: 0;
+}
+.reply-body.md-content img.md-sticker,
+.md-mini-preview img.md-sticker { width: 96px; }
+
+/* 留言／回覆小工具列：貼圖按鈕緊貼在預覽前面 */
+.md-mini-sticker-btn {
+  flex-shrink: 0;
+  margin-left: auto;
+  padding: 1px 10px;
+  border-radius: 999px;
+  border: 1px solid #fbcfe8;
+  background: #ffffff;
+  color: #db2777;
+  font-size: 0.72rem;
+  font-weight: 700;
+  line-height: 1.6;
+  cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+.md-mini-sticker-btn + .md-mini-preview-btn { margin-left: 0; }
+.md-mini-sticker-btn:hover,
+.md-mini-sticker-btn.sticker-btn-open {
+  background: #f472b6;
+  border-color: #f472b6;
+  color: #ffffff;
+}
+
+/* 發文框、改文框旁邊的貼圖按鈕 */
+.md-sticker-row { display: flex; justify-content: flex-end; margin: -4px 0 10px; }
+.md-sticker-btn {
+  flex-shrink: 0;
+  padding: 5px 14px;
+  border-radius: 999px;
+  border: 1.5px solid #f9a8d4;
+  background: #ffffff;
+  color: #db2777;
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+.md-helper .md-sticker-btn { margin-left: auto; }
+.md-sticker-btn:hover,
+.md-sticker-btn.sticker-btn-open {
+  background: #f472b6;
+  border-color: #f472b6;
+  color: #ffffff;
+}
+
+/* 選貼圖的視窗 */
+.sticker-picker {
+  position: fixed;
+  z-index: 2100000; /* 發文視窗（200000）、各種彈窗上面都要看得到 */
+  width: min(380px, calc(100vw - 16px));
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px;
+  border-radius: 18px;
+  border: 2px solid #fbcfe8;
+  background: #ffffff;
+  box-shadow: 0 14px 34px rgba(30, 60, 90, 0.25);
+  animation: stickerPickerIn 0.18s ease-out;
+}
+.sticker-picker-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.9rem;
+  font-weight: 800;
+  color: #db2777;
+}
+.sticker-picker-close {
+  width: 30px;
+  height: 30px;
+  border: none;
+  border-radius: 50%;
+  background: #fde2ec;
+  color: #be185d;
+  font-weight: 900;
+  cursor: pointer;
+}
+.sticker-picker-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+  max-height: 300px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+}
+.sticker-picker-item {
+  padding: 2px;
+  border: 2px solid transparent;
+  border-radius: 12px;
+  background: #fff7fb;
+  cursor: pointer;
+  transition: transform 0.1s ease, border-color 0.15s ease;
+}
+.sticker-picker-item img { display: block; width: 100%; height: auto; aspect-ratio: 370 / 320; }
+.sticker-picker-item:hover { border-color: #f472b6; transform: translateY(-2px); }
+.sticker-picker-item:active { transform: scale(0.94); }
+.sticker-picker-item:focus-visible { outline: 3px solid #f472b6; outline-offset: 1px; }
+/* 手機：從畫面下方滑上來 */
+.sticker-picker.is-sheet {
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: auto;
+  border-radius: 20px 20px 0 0;
+  padding-bottom: calc(10px + env(safe-area-inset-bottom, 0px));
+  animation: stickerSheetIn 0.22s ease-out;
+}
+.sticker-picker.is-sheet .sticker-picker-grid { max-height: 46vh; }
+@keyframes stickerPickerIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+@keyframes stickerSheetIn { from { transform: translateY(100%); } to { transform: none; } }
+@media (prefers-reduced-motion: reduce) {
+  .sticker-picker, .sticker-picker.is-sheet { animation: none; }
+}
