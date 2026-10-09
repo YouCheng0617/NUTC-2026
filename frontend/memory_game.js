@@ -45,7 +45,7 @@
             jokerHintOnce: '勝場拿到的小丑海兔只能選一種配色，選了就不能再換，挑你最喜歡的吧！',
             jokerHintLocked: (name) => `你的小丑海兔是「${name}」。勝場拿到的配色不能再換，用兌換碼拿到的小丑海兔才能隨時切換`,
             jokerConfirm: (name) => `確定選「${name}」嗎？選了就不能再換喔`, jokerConfirmYes: '確定', jokerConfirmNo: '再想想',
-            jokerLockedTap: '勝場拿到的小丑海兔配色不能再換喔', act_jokerView: '我的配色',
+            jokerLockedTap: '勝場拿到的小丑海兔配色不能再換喔', act_jokerView: '我的配色', jokerTeaserLink: '🔍 看介紹',
             throneTitle: '👑 登上王座！', throneSub: '翻牌對決 100 勝，你就是記憶之王！', throneBtn: '太棒了！', throneSkip: '點一下跳過',
             albumOpen: '📖 卡牌圖鑑', albumOpenSub: '先看看有哪些牌',
             pickPairs: '選擇對決組數', start: '開始對決！', wait: '等房主選好組數開始對決…',
@@ -116,7 +116,7 @@
             jokerHintOnce: 'A Joker Bunny won from matches comes in one color set — once you pick, it stays. Choose your favorite!',
             jokerHintLocked: (name) => `Your Joker Bunny is "${name}". Colors won from matches can't be changed — only a Joker Bunny from a redeem code can switch anytime`,
             jokerConfirm: (name) => `Pick "${name}"? You can't change it later`, jokerConfirmYes: 'Yes', jokerConfirmNo: 'Not yet',
-            jokerLockedTap: "Colors won from matches can't be changed", act_jokerView: 'My colors',
+            jokerLockedTap: "Colors won from matches can't be changed", act_jokerView: 'My colors', jokerTeaserLink: '🔍 Sneak peek',
             throneTitle: '👑 To the Throne!', throneSub: '100 Memory Match wins — you are the Memory Master!', throneBtn: 'Awesome!', throneSkip: 'Tap to skip',
             albumOpen: '📖 Card Album', albumOpenSub: 'See all the cards first',
             pickPairs: 'How many pairs?', start: 'Start!', wait: 'Waiting for the host to start…',
@@ -621,6 +621,13 @@
             tile.appendChild(el('span', 'mg-reward-sub', T('rewardSub_' + r.id)));
             if (!unlocked) {
                 tile.appendChild(el('span', 'mg-reward-lock', T('lockedLeft', r.wins - (w || 0))));
+                // 🤡 還沒拿到的小丑海兔：點卡片打開神秘介紹（slug_game.js 的 openJokerTeaser，不露出長相）
+                if (r.id === 'joker' && typeof openJokerTeaser === 'function') {
+                    const peek = el('button', 'mg-reward-teaser', T('jokerTeaserLink'));
+                    peek.type = 'button';
+                    peek.addEventListener('click', openJokerTeaser);
+                    tile.appendChild(peek);
+                }
             } else {
                 const wearing = r.id === 'joker' && hasGame() && gameState.currentSpecies === 'joker';
                 const label = r.id === 'joker' && jokerLocked() ? T('act_jokerView')

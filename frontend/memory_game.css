@@ -622,6 +622,14 @@
 .mg-reward-name { font-size: 0.95rem; font-weight: 900; color: #4a3b3b; margin-top: 2px; }
 .mg-reward-sub { font-size: 0.72rem; font-weight: 800; color: #94a3b8; }
 .mg-reward-lock { margin-top: 6px; font-size: 0.78rem; font-weight: 900; color: #94a3b8; }
+/* 🤡 還沒拿到的小丑海兔：看神秘介紹 */
+.mg-reward-teaser {
+    margin-top: 6px; min-height: 30px; padding: 3px 12px;
+    border: 2px solid #c4b5fd; border-radius: 999px;
+    background: #f5f3ff; color: #6d28d9;
+    font-size: 0.78rem; font-weight: 900; cursor: pointer;
+}
+.mg-reward-teaser:active { transform: translateY(2px); }
 .mg-reward-btn {
     margin-top: 6px; min-height: 34px; padding: 4px 14px;
     border: 2px solid #fbcfe8; border-radius: 999px;

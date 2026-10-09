@@ -1906,6 +1906,63 @@ const i18n = {
             return typeKey === 'species' && key === 'joker' && typeof MemoryGame !== 'undefined' && typeof MemoryGame.openJokerPicker === 'function';
         }
         // 勝場拿到、已經選過配色的人不能再換，按鈕改寫「看配色」（規則跟 memory_game.js 的 jokerLocked 一樣；字數跟「換配色」一樣才不會擠成兩行）
+        // 🤡 小丑海兔的神秘介紹：還沒拿到的人點商店卡片、翻牌獎勵卡片時跳出來
+        //    只放黑色剪影＋問號和文字介紹，不畫出真正的樣子，讓人想去拿；memory_game.js 的獎勵卡片也會呼叫這裡
+        function openJokerTeaser() {
+            const zh = currLang === 'zh';
+            const need = (speciesData.joker && speciesData.joker.rewardWins) || 10;
+            const wins = gameState.memoryWins || 0;
+            const left = Math.max(0, need - wins);
+            const perks = zh ? [
+                ['🎭', '專屬表情', '開心、肚子餓、睡覺的時候，都有只屬於它的神情'],
+                ['🃏', '撲克牌的祕密', '每一種配色，都藏著一張不一樣的牌'],
+                ['🎨', '四種配色', '挑一種最像你的；兌換碼拿到的還能隨時換'],
+                ['🔔', '叮叮噹噹', '走到哪裡都聽得到它來了']
+            ] : [
+                ['🎭', 'Its own expressions', 'Happy, hungry, sleepy — it has a look all its own'],
+                ['🃏', 'A card up its sleeve', 'Every color set hides a different card'],
+                ['🎨', 'Four color sets', 'Pick the one that suits you; redeem-code owners can switch anytime'],
+                ['🔔', 'Jingle jingle', 'Everyone hears it coming']
+            ];
+            let overlay = document.getElementById('jokerTeaserOverlay');
+            if (!overlay) {
+                overlay = document.createElement('div');
+                overlay.id = 'jokerTeaserOverlay';
+                overlay.className = 'name-modal-overlay joker-teaser-overlay';
+                overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.style.display = 'none'; });
+                document.body.appendChild(overlay);
+            }
+            // 剪影：普通海兔的輪廓塗黑（不畫帽子、五官），中間一個大問號
+            const silhouette = `
+                <svg class="joker-teaser-pic" viewBox="20 0 300 230" aria-hidden="true">
+                    <path d="M 250 170 C 270 180, 300 190, 290 140 C 280 100, 250 140, 240 170 Z M 260 150 C 290 160, 320 120, 280 80 C 260 60, 230 110, 250 150 Z" fill="#1e1b4b"/>
+                    <path d="M 70 190 C 20 180, 30 120, 90 110 C 160 100, 220 105, 260 130 C 290 150, 280 200, 200 210 C 130 220, 90 200, 70 190 Z" fill="#1e1b4b"/>
+                    <path d="M 100 105 C 80 50, 95 20, 110 25 C 125 30, 120 90, 115 105 Z M 145 100 C 135 45, 160 15, 175 25 C 190 35, 165 85, 160 100 Z" fill="#1e1b4b"/>
+                    <text x="165" y="182" text-anchor="middle" font-size="78" font-weight="900" fill="#fde68a">?</text>
+                    <g fill="#fde68a"><path d="M 60 50 l 4 10 l 10 4 l -10 4 l -4 10 l -4 -10 l -10 -4 l 10 -4 Z"/><path d="M 280 40 l 3 7 l 7 3 l -7 3 l -3 7 l -3 -7 l -7 -3 l 7 -3 Z"/><path d="M 300 200 l 2.5 6 l 6 2.5 l -6 2.5 l -2.5 6 l -2.5 -6 l -6 -2.5 l 6 -2.5 Z"/></g>
+                </svg>`;
+            const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
+            overlay.innerHTML = `
+                <div class="name-modal joker-teaser" role="dialog" aria-labelledby="jokerTeaserTitle">
+                    <button type="button" class="joker-teaser-x" aria-label="${zh ? '關閉' : 'Close'}">✕</button>
+                    ${silhouette}
+                    <h3 id="jokerTeaserTitle" class="joker-teaser-title">${zh ? '🤡 神秘的小丑海兔' : '🤡 The Mysterious Joker Bunny'}</h3>
+                    <p class="joker-teaser-sub">${zh ? '翻牌對決的傳說獎勵，到底長什麼樣子？只有拿到的人才知道……' : "Memory Match's legendary prize. What does it look like? Only its owners know…"}</p>
+                    <ul class="joker-teaser-perks">
+                        ${perks.map(([icon, title, desc]) => `<li><span class="joker-teaser-icon">${icon}</span><span><b>${esc(title)}</b>${esc(desc)}</span></li>`).join('')}
+                    </ul>
+                    <div class="joker-teaser-progress">
+                        <div class="joker-teaser-bar"><i style="width:${Math.min(100, (wins / need) * 100)}%"></i></div>
+                        <span>${zh ? `目前 ${wins} / ${need} 勝${left ? `，還差 ${left} 場` : ''}` : `${wins} / ${need} wins${left ? ` — ${left} to go` : ''}`}</span>
+                    </div>
+                    <p class="joker-teaser-how">${zh ? `翻牌對決贏滿 ${need} 場就送你，活動兌換碼也有機會拿到！` : `Win ${need} Memory Matches to get it — or catch it from an event redeem code!`}</p>
+                    <button type="button" class="joker-teaser-ok">${zh ? '好期待！' : "Can't wait!"}</button>
+                </div>`;
+            const close = () => { overlay.style.display = 'none'; };
+            overlay.querySelector('.joker-teaser-x').addEventListener('click', close);
+            overlay.querySelector('.joker-teaser-ok').addEventListener('click', close);
+            overlay.style.display = 'flex';
+        }
         function jokerColorsLabel() {
             const locked = gameState.jokerSwitchable === false && !!gameState.jokerStyleChosen;
             if (locked) return currLang === 'zh' ? '🎨 看配色' : '🎨 View';
@@ -6321,9 +6378,9 @@ function updateLangUI() {
                     const winsTxt = currLang === 'zh' ? `🏆 翻牌 ${item.rewardWins} 勝` : `🏆 ${item.rewardWins} match wins`;
                     actionHTML = `<div class="item-cost reward-lock">${winsTxt}</div>`;
                     card.classList.add('is-reward-lock');
-                    card.onclick = () => showFloatText(currLang === 'zh'
+                    card.onclick = () => (key === 'joker' ? openJokerTeaser() : showFloatText(currLang === 'zh'
                         ? `翻牌對決贏滿 ${item.rewardWins} 場就送你！目前 ${gameState.memoryWins || 0} 勝`
-                        : `Win ${item.rewardWins} Memory Matches to get it! You have ${gameState.memoryWins || 0}`);
+                        : `Win ${item.rewardWins} Memory Matches to get it! You have ${gameState.memoryWins || 0}`));
                 } else if (isTrialing) { // 試用中
                     actionHTML = `
                         <div style="display:flex; gap:6px; justify-content:center; margin-top:5px;">
@@ -6336,12 +6393,14 @@ function updateLangUI() {
                     card.onclick = () => tryItem(key, typeKey);
                 }
                 
+                // 還沒拿到的勝場獎勵（小丑海兔）：預覽換成問號神秘盒，不露出配色
+                const isMystery = typeKey === 'species' && item.rewardWins && !isUnlocked;
                 let previewStyle = typeKey === 'species'
                     ? `background:${speciesSpec(key, gameState.jokerStyle).body}; border: 3px solid ${speciesSpec(key, gameState.jokerStyle).outline}`
                     : `border: 3px solid #cbd5e1`;
 
                 card.innerHTML = `
-                    <div class="item-color-preview" style="${previewStyle}"></div>
+                    <div class="item-color-preview${isMystery ? ' is-mystery' : ''}" style="${isMystery ? '' : previewStyle}">${isMystery ? '?' : ''}</div>
                     <div class="item-name">${item.name[currLang]}</div>
                     ${actionHTML}
                 `;
