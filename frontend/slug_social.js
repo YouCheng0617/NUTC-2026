@@ -806,16 +806,134 @@
         if (blBtn) blBtn.textContent = L('🚫 封鎖名單', '🚫 Blocklist');
         if (isShown('playerCardOverlay')) renderPlayerCard();
         if (isShown('blockListOverlay')) renderBlockList();
+        if (isShown('rulesOverlay')) renderRules();
+        const rulesBtn = $('btnGameRules');
+        if (rulesBtn) rulesBtn.textContent = L('📜 連線公約', '📜 Room Rules');
         // 聊天紀錄裡的系統訊息（誰進來、誰離開）也跟著換
         document.querySelectorAll('.chat-msg.system .chat-msg-text[data-raw]').forEach((el) => {
             el.textContent = trText(el.dataset.raw);
         });
     }
 
+    // =====================================================================
+    // 📜 遊戲公約：第一次進連線房間時跳出來，按「我知道了」才關；聊天列、連線選單隨時能再打開
+    //    遊戲沒有自動過濾髒話，所以重點放在「遇到難聽的話怎麼封鎖、檢舉」
+    //    看過了記在這台裝置（每個帳號分開記）；公約改版時把 RULES_VERSION +1，大家會再看到一次
+    // =====================================================================
+    const RULES_VERSION = 1;
+    const RULES = [
+        ['💬', ['友善說話', '不罵人、不嘲笑別人，也不說髒話、歧視或讓人不舒服的話。'],
+               ['Be kind', 'No insults or mocking, and no swearing, slurs or anything meant to upset people.']],
+        ['🙈', ['保護隱私', '不問也不說電話、地址、學校、社群帳號這些個人資料，自己的和別人的都一樣。'],
+               ['Keep it private', "Don't ask for or share phone numbers, addresses, schools or social accounts — yours or anyone else's."]],
+        ['🙅', ['不騷擾', '別人不想聊就停下來，不洗版，也不要一直跟著別人跑。'],
+               ['No harassment', "If someone doesn't want to chat, stop. No spamming, and don't follow people around."]],
+        ['🎮', ['公平遊戲', '不作弊、不用外掛，翻牌對決打到一半不要跑掉。'],
+               ['Play fair', "No cheating or hacks, and don't leave a Memory Match halfway."]]
+    ];
+    function rulesSeenKey() {
+        let who = 'guest';
+        try { const u = JSON.parse(localStorage.getItem('currentUser') || '{}'); who = u.email || u.name || 'guest'; } catch (e) { /* 讀不到就當訪客 */ }
+        return `slugRulesSeen_v${RULES_VERSION}_${who}`;
+    }
+    function hasSeenRules() { try { return localStorage.getItem(rulesSeenKey()) === '1'; } catch (e) { return false; } }
+    function markRulesSeen() { try { localStorage.setItem(rulesSeenKey(), '1'); } catch (e) { /* 存不了就下次再看一次 */ } }
+
+    function ensureRules() {
+        if ($('rulesOverlay')) return;
+        const overlay = document.createElement('div');
+        overlay.className = 'name-modal-overlay';
+        overlay.id = 'rulesOverlay';
+        overlay.style.zIndex = '10049';
+        // 第一次看要按按鈕才關，點旁邊不會關；之後再打開的可以點旁邊關掉
+        overlay.addEventListener('click', (e) => { if (e.target === overlay && hasSeenRules()) closeRules(); });
+        overlay.innerHTML = `
+            <div class="name-modal rules-modal" role="dialog" aria-labelledby="rulesTitle">
+                <button type="button" class="board-close rules-close" id="rulesClose">✕</button>
+                <div class="rules-body">
+                    <div class="rules-icon" aria-hidden="true">🐚</div>
+                    <h2 class="rules-title" id="rulesTitle"></h2>
+                    <p class="rules-sub" id="rulesSub"></p>
+                    <!-- 最重要的「怎麼封鎖、檢舉」放最上面，手機不用捲就看得到 -->
+                    <div class="rules-help">
+                        <div class="rules-help-title" id="rulesHelpTitle"></div>
+                        <p class="rules-help-text" id="rulesHelpText"></p>
+                        <ul class="rules-help-list" id="rulesHelpList"></ul>
+                    </div>
+                    <div class="rules-list-title" id="rulesListTitle"></div>
+                    <ul class="rules-list" id="rulesList"></ul>
+                    <p class="rules-note" id="rulesNote"></p>
+                </div>
+                <button type="button" class="rules-ok" id="rulesOk"></button>
+            </div>`;
+        document.body.appendChild(overlay);
+        $('rulesClose').addEventListener('click', closeRules);
+        $('rulesOk').addEventListener('click', closeRules);
+    }
+
+    function renderRules() {
+        if (!$('rulesOverlay')) return;
+        const en = isEn();
+        $('rulesTitle').textContent = L('海兔連線公約', 'Sea Bunny Room Rules');
+        $('rulesSub').textContent = L('這裡沒有自動過濾髒話的機器人，大家的好心情要靠彼此一起守護。',
+            "There's no bot filtering bad words here — keeping rooms friendly is up to all of us.");
+        $('rulesListTitle').textContent = L('大家一起遵守', 'Our rules');
+        const list = $('rulesList');
+        list.innerHTML = '';
+        RULES.forEach(([icon, zh, enText]) => {
+            const [title, desc] = en ? enText : zh;
+            const li = document.createElement('li');
+            const ic = document.createElement('span');
+            ic.className = 'rules-li-icon';
+            ic.textContent = icon;
+            const box = document.createElement('span');
+            const b = document.createElement('b');
+            b.textContent = title;
+            box.appendChild(b);
+            box.appendChild(document.createTextNode(desc));
+            li.appendChild(ic);
+            li.appendChild(box);
+            list.appendChild(li);
+        });
+        $('rulesHelpTitle').textContent = L('🛡️ 遇到說話難聽、讓你不舒服的人', '🛡️ Someone being mean or making you uncomfortable?');
+        $('rulesHelpText').textContent = L('點他的海兔，在跳出來的玩家小卡裡選：', 'Tap their sea bunny, then pick on the player card:');
+        const help = $('rulesHelpList');
+        help.innerHTML = '';
+        [
+            L('🚫 封鎖：你們互相看不到對方說話，他也進不了你當房主的房間。', "🚫 Block: you won't see each other's messages, and they can't join rooms you host."),
+            L('🚩 檢舉：選一個理由送出，最近的聊天會一起交給管理員看。', '🚩 Report: pick a reason — the recent chat goes to our admins with it.'),
+            L('🚪 也可以直接離開房間，不用勉強自己。', "🚪 Or just leave the room — you don't have to put up with it.")
+        ].forEach((text) => { const li = document.createElement('li'); li.textContent = text; help.appendChild(li); });
+        // 檢舉成立不會自動處分，要管理員看過聊天紀錄後到後台手動停權，所以寫「管理員確認後」
+        $('rulesNote').textContent = L('被檢舉的帳號，管理員會查看聊天紀錄，確認違反公約後可能會停權。',
+            'Our admins review the chat of reported players — accounts confirmed to break these rules may be suspended.');
+        $('rulesOk').textContent = hasSeenRules() ? L('關閉', 'Close') : L('我知道了，會遵守', "Got it, I'll follow these");
+        // 第一次看不給叉叉，一定要按下面的按鈕
+        $('rulesClose').hidden = !hasSeenRules();
+        $('rulesClose').setAttribute('aria-label', L('關閉', 'Close'));
+    }
+
+    function openRules() {
+        ensureRules();
+        renderRules();
+        show('rulesOverlay');
+        const body = $('rulesOverlay').querySelector('.rules-body');
+        if (body) body.scrollTop = 0;
+    }
+    function closeRules() {
+        markRulesSeen();
+        hide('rulesOverlay');
+    }
+    // 進連線房間時呼叫（slug_game.js 的 room_joined）：這個帳號在這台裝置還沒看過才跳
+    function maybeShowRules() {
+        if (!hasSeenRules()) openRules();
+    }
+
     // 關掉視窗：Esc
     document.addEventListener('keydown', (e) => {
         if (e.key !== 'Escape') return;
         if (isShown('playerCardOverlay')) closePlayerCard();
+        else if (isShown('rulesOverlay')) { if (hasSeenRules()) closeRules(); }
         else if (isShown('blockListOverlay')) closeBlockList();
         else if (isShown('redeemOverlay')) closeRedeem();
     });
@@ -829,6 +947,7 @@
 
     window.SlugSocial = {
         openPlayerCard, closePlayerCard, openBlockList, closeBlockList, openRedeem, closeRedeem, refreshLang,
+        openRules, closeRules, maybeShowRules,
         isBlocked: (socketId) => !!(typeof otherPlayersData !== 'undefined' && otherPlayersData[socketId] && otherPlayersData[socketId].blockedByMe)
     };
 })();

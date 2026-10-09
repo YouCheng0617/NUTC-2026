@@ -1197,29 +1197,33 @@
         /* 🤡 小丑海兔的神秘介紹（openJokerTeaser）：要蓋過翻牌對決視窗（z-index 9000）和百寶袋（10000） */
         .joker-teaser-overlay { z-index: 10060; }
         .joker-teaser {
-            position: relative; max-width: 380px; width: 88%; padding: 22px 20px 20px;
-            max-height: 90vh; max-height: 90dvh; overflow-y: auto;
+            position: relative; max-width: 380px; width: 88%; padding: 22px 0 0;
+            max-height: 90vh; max-height: 90dvh; overflow: hidden;
+            display: flex; flex-direction: column;
             background: linear-gradient(#fffbeb, #fff); border-color: #c4b5fd;
             box-shadow: 0 0 0 4px rgba(196, 181, 253, 0.35), 0 20px 50px rgba(76, 29, 149, 0.3);
         }
+        /* 上面這區可以捲（剪影、介紹、特色），下面固定（進度、按鈕） */
+        .joker-teaser-body { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: 0 20px 4px; }
+        .joker-teaser-foot { flex: none; padding: 10px 20px 20px; border-top: 2px solid #ede9fe; background: #fff; }
         .joker-teaser-x {
-            position: absolute; top: 12px; right: 12px; width: 36px; height: 36px; border: none; border-radius: 50%;
+            position: absolute; top: 12px; right: 12px; z-index: 1; width: 36px; height: 36px; border: none; border-radius: 50%;
             background: #ede9fe; color: #6d28d9; font-size: 1rem; font-weight: 900; cursor: pointer;
         }
-        .joker-teaser-pic { display: block; width: 170px; margin: 0 auto 4px; filter: drop-shadow(0 6px 10px rgba(30, 27, 75, 0.35)); }
+        .joker-teaser-pic { display: block; width: 130px; margin: 0 auto 2px; filter: drop-shadow(0 6px 10px rgba(30, 27, 75, 0.35)); }
         .joker-teaser-title { margin: 0 0 6px; font-size: 1.25rem; font-weight: 900; color: #5b21b6; }
-        .joker-teaser-sub { margin: 0 0 14px; font-size: 0.88rem; font-weight: 800; color: #7c6a6a; line-height: 1.5; }
-        .joker-teaser-perks { list-style: none; margin: 0 0 14px; padding: 0; display: grid; gap: 8px; text-align: left; }
+        .joker-teaser-sub { margin: 0 0 10px; font-size: 0.88rem; font-weight: 800; color: #7c6a6a; line-height: 1.5; }
+        .joker-teaser-perks { list-style: none; margin: 0 0 12px; padding: 0; display: grid; gap: 6px; text-align: left; }
         .joker-teaser-perks li {
-            display: flex; gap: 10px; align-items: flex-start; padding: 8px 10px; border-radius: 14px;
-            background: #f5f3ff; font-size: 0.82rem; font-weight: 700; color: #6b5f78; line-height: 1.45;
+            display: flex; gap: 10px; align-items: flex-start; padding: 6px 10px; border-radius: 12px;
+            background: #f5f3ff; font-size: 0.78rem; font-weight: 700; color: #6b5f78; line-height: 1.45;
         }
-        .joker-teaser-perks b { display: block; font-size: 0.92rem; color: #4c1d95; }
-        .joker-teaser-icon { font-size: 1.3rem; line-height: 1.2; }
-        .joker-teaser-progress { display: grid; gap: 6px; margin-bottom: 8px; font-size: 0.85rem; font-weight: 900; color: #a16207; }
+        .joker-teaser-perks b { display: block; font-size: 0.88rem; color: #4c1d95; }
+        .joker-teaser-icon { font-size: 1.2rem; line-height: 1.2; }
+        .joker-teaser-progress { display: grid; gap: 6px; margin-bottom: 10px; font-size: 0.85rem; font-weight: 900; color: #a16207; }
         .joker-teaser-bar { height: 10px; border-radius: 999px; background: #fef3c7; overflow: hidden; }
         .joker-teaser-bar i { display: block; height: 100%; border-radius: inherit; background: linear-gradient(90deg, #fbbf24, #a78bfa); }
-        .joker-teaser-how { margin: 0 0 14px; font-size: 0.82rem; font-weight: 800; color: #7c6a6a; }
+        .joker-teaser-how { margin: 0 0 6px; font-size: 0.82rem; font-weight: 800; color: #7c6a6a; }
         .joker-teaser-ok {
             width: 100%; min-height: 46px; border: none; border-radius: 20px; cursor: pointer;
             background: #8b5cf6; color: #fff; font-size: 1.05rem; font-weight: 900; box-shadow: 0 5px 0 #6d28d9;
@@ -2662,6 +2666,17 @@
 
         /* 💬 【聊天紀錄】聊天列上方，列出這次房間裡的訊息和留言時間 */
         .chat-log-wrap { position: relative; margin-bottom: 8px; }
+        /* 🛡️ 聊天列頂端的安全提示：遊戲沒有自動過濾髒話，提醒大家可以封鎖、檢舉 */
+        .chat-safety {
+            display: flex; align-items: center; gap: 8px; margin-bottom: 8px; padding: 6px 8px 6px 12px;
+            border-radius: 12px; background: #f0f9ff; border: 2px solid #bae6fd;
+        }
+        .chat-safety-text { flex: 1; min-width: 0; font-size: 0.78rem; font-weight: 800; color: #0369a1; line-height: 1.4; }
+        .chat-safety-btn {
+            flex: none; min-height: 32px; padding: 4px 10px; border-radius: 999px; border: 2px solid #7dd3fc;
+            background: #fff; color: #0369a1; font-family: inherit; font-size: 0.78rem; font-weight: 900; cursor: pointer;
+        }
+        .chat-safety-btn:active { transform: translateY(2px); }
         .chat-log {
             max-height: min(240px, 32vh);
             min-height: 64px;
@@ -3136,6 +3151,37 @@
             .redeem-btn { width: 100%; min-height: 48px; }
         }
 
+/* 📜 【遊戲公約】slug_social.js 的 openRules：上面可以捲動，下面的按鈕固定 */
+        .rules-modal {
+            position: relative; width: min(400px, calc(100vw - 32px)); max-width: 400px; padding: 22px 0 0;
+            max-height: calc(100vh - 32px); max-height: calc(100dvh - 32px);
+            display: flex; flex-direction: column; overflow: hidden; text-align: left;
+        }
+        .rules-close { position: absolute; top: 12px; right: 12px; z-index: 1; }
+        .rules-body { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: 0 20px 6px; }
+        .rules-icon { font-size: 2.2rem; text-align: center; line-height: 1; }
+        .rules-title { margin: 6px 0 4px; text-align: center; font-size: 1.2rem; font-weight: 900; color: var(--text-dark); }
+        .rules-sub { margin: 0 0 12px; text-align: center; font-size: 0.85rem; font-weight: 700; color: var(--text-dim); line-height: 1.55; }
+        .rules-list { list-style: none; margin: 0 0 12px; padding: 0; display: grid; gap: 6px; }
+        .rules-list li {
+            display: flex; gap: 10px; align-items: flex-start; padding: 8px 10px; border-radius: 12px;
+            background: #fff7f9; font-size: 0.8rem; font-weight: 700; color: var(--text-dim); line-height: 1.5;
+        }
+        .rules-list b { display: block; font-size: 0.9rem; color: var(--text-dark); }
+        .rules-li-icon { font-size: 1.2rem; line-height: 1.3; }
+        .rules-help { padding: 10px 12px; border-radius: 14px; background: #f0f9ff; border: 2px solid #bae6fd; margin-bottom: 14px; }
+        .rules-list-title { margin: 0 0 6px; font-size: 0.85rem; font-weight: 900; color: var(--text-dark); }
+        .rules-help-title { font-size: 0.9rem; font-weight: 900; color: #0369a1; margin-bottom: 4px; }
+        .rules-help-text { margin: 0 0 4px; font-size: 0.8rem; font-weight: 700; color: #075985; }
+        .rules-help-list { margin: 0; padding-left: 4px; list-style: none; display: grid; gap: 4px; font-size: 0.8rem; font-weight: 700; color: #075985; line-height: 1.5; }
+        .rules-note { margin: 0 0 4px; font-size: 0.75rem; font-weight: 700; color: #94a3b8; text-align: center; }
+        .rules-ok {
+            flex: none; margin: 10px 20px 20px; min-height: 48px; border: none; border-radius: 20px; cursor: pointer;
+            background: #ec4899; color: #fff; font-family: inherit; font-size: 1.05rem; font-weight: 900;
+            box-shadow: 0 5px 0 #be185d;
+        }
+        .rules-ok:active { transform: translateY(5px); box-shadow: none; }
+
 /* ⚠️ 【遊戲提醒彈窗】取代瀏覽器的 alert；翻牌對決中途離開的處罰用橘色（is-penalty） */
         .game-alert {
             width: min(360px, calc(100vw - 32px)); max-width: 360px; padding: 28px 22px 22px;
@@ -3286,6 +3332,8 @@
 }
 .slug-idle-title {
   margin-top: 2cqh;
+  max-width: 88cqw;   /* 名字長或英文標題（例如小丑的 fell asleep backstage…）在手機上要能換行，不要超出畫面 */
+  text-align: center;
   font-size: clamp(14px, 5cqmin, 26px);
   font-weight: 700;
   letter-spacing: 0.06em;
@@ -3391,3 +3439,77 @@
   }
 }
 .slug-idle-pet { width: 46cqmin; }
+
+/* 🤡 小丑海兔專屬待機畫面「馬戲團之夜」（slug_idle.js 的 is-joker）：深紫舞台、聚光燈、帳篷布簾、飄撲克牌和星星 */
+.slug-idle.is-joker {
+  background: radial-gradient(ellipse at 50% 45%, #3b1a63 0%, #241046 55%, #140a2b 100%);
+  color: #f5ecff;
+}
+.slug-idle.is-joker .slug-idle-date { color: #d8c4f5; }
+.slug-idle.is-joker .slug-idle-quote { color: #e3d4fa; }
+.slug-idle.is-joker .slug-idle-zzz { fill: #fde68a; }
+/* 聚光燈：從上方照到中間的海兔 */
+.slug-idle-spot {
+  position: absolute;
+  z-index: 1;
+  left: 50%;
+  top: 0;
+  width: 70cqmin;
+  height: 100cqh;
+  transform: translateX(-50%);
+  background: radial-gradient(ellipse 50% 32% at 50% 64%, rgba(253, 230, 138, 0.22), transparent 70%),
+    linear-gradient(to bottom, rgba(253, 230, 138, 0.16), rgba(253, 230, 138, 0.03) 70%, transparent);
+  clip-path: polygon(38% 0, 62% 0, 100% 100%, 0 100%);
+  pointer-events: none;
+}
+/* 頂部的帳篷布簾 */
+.slug-idle-curtain {
+  position: absolute;
+  z-index: 3;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: clamp(36px, 9cqh, 80px);
+  filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.35));
+  pointer-events: none;
+}
+/* 四周慢慢轉著飄的撲克牌：大小由 font-size 決定 */
+.slug-idle-card {
+  position: absolute;
+  z-index: 1;
+  width: 1.44em;   /* 字級是花色的大小，牌是它的 1.44 × 2 倍 */
+  height: 2em;
+  border-radius: 0.16em;
+  background: #fffaf0;
+  box-shadow: 0 0.08em 0.24em rgba(0, 0, 0, 0.35);
+  color: #1e1b4b;
+  font-size: 4.5cqmin;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: "Segoe UI Symbol", sans-serif;
+  text-indent: 0;
+  animation: slug-idle-card ease-in-out infinite alternate;
+}
+.slug-idle-card.is-red { color: #dc2626; }
+/* 窄螢幕（直放手機）：左右中間那兩張牌會疊到標題文字，藏起來 */
+@container (max-width: 480px) {
+  .slug-idle-card.is-mid { display: none; }
+}
+@keyframes slug-idle-card {
+  0% { transform: translateY(0) rotate(-14deg); }
+  100% { transform: translateY(-3cqh) rotate(14deg); }
+}
+/* 閃爍的小星星 */
+.slug-idle-star {
+  position: absolute;
+  z-index: 1;
+  color: #fde68a;
+  line-height: 1;
+  animation: slug-idle-star ease-in-out infinite;
+}
+@keyframes slug-idle-star {
+  0%, 100% { opacity: 0.15; transform: scale(0.7); }
+  50% { opacity: 0.95; transform: scale(1.15); }
+}

@@ -463,6 +463,8 @@ let GAME_TOKEN = localStorage.getItem('authToken') || localStorage.getItem('acce
                     deferUntilLoaded('正在進入房間...', () => {
                         apply();
                         if (!isRoomHost) showFloatText('加入房間成功！');
+                        // 📜 第一次進連線房間：先看遊戲公約（slug_social.js）
+                        if (window.SlugSocial && SlugSocial.maybeShowRules) SlugSocial.maybeShowRules();
                     });
                 });
 
@@ -1917,12 +1919,14 @@ const i18n = {
                 ['🎭', '專屬表情', '開心、肚子餓、睡覺的時候，都有只屬於它的神情'],
                 ['🃏', '撲克牌的祕密', '每一種配色，都藏著一張不一樣的牌'],
                 ['🎨', '四種配色', '挑一種最像你的；兌換碼拿到的還能隨時換'],
-                ['🔔', '叮叮噹噹', '走到哪裡都聽得到它來了']
+                ['🔔', '叮叮噹噹', '走到哪裡都聽得到它來了'],
+                ['🎪', '專屬待機畫面', '你休息的時候，它會溜去一個只有小丑才進得去的地方……']
             ] : [
                 ['🎭', 'Its own expressions', 'Happy, hungry, sleepy — it has a look all its own'],
                 ['🃏', 'A card up its sleeve', 'Every color set hides a different card'],
                 ['🎨', 'Four color sets', 'Pick the one that suits you; redeem-code owners can switch anytime'],
-                ['🔔', 'Jingle jingle', 'Everyone hears it coming']
+                ['🔔', 'Jingle jingle', 'Everyone hears it coming'],
+                ['🎪', 'Its own idle screen', 'While you take a break, it sneaks off somewhere only clowns are allowed…']
             ];
             let overlay = document.getElementById('jokerTeaserOverlay');
             if (!overlay) {
@@ -1945,18 +1949,23 @@ const i18n = {
             overlay.innerHTML = `
                 <div class="name-modal joker-teaser" role="dialog" aria-labelledby="jokerTeaserTitle">
                     <button type="button" class="joker-teaser-x" aria-label="${zh ? '關閉' : 'Close'}">✕</button>
+                    <div class="joker-teaser-body">
                     ${silhouette}
                     <h3 id="jokerTeaserTitle" class="joker-teaser-title">${zh ? '🤡 神秘的小丑海兔' : '🤡 The Mysterious Joker Bunny'}</h3>
                     <p class="joker-teaser-sub">${zh ? '翻牌對決的傳說獎勵，到底長什麼樣子？只有拿到的人才知道……' : "Memory Match's legendary prize. What does it look like? Only its owners know…"}</p>
                     <ul class="joker-teaser-perks">
                         ${perks.map(([icon, title, desc]) => `<li><span class="joker-teaser-icon">${icon}</span><span><b>${esc(title)}</b>${esc(desc)}</span></li>`).join('')}
                     </ul>
+                    <p class="joker-teaser-how">${zh ? `翻牌對決贏滿 ${need} 場就送你，活動兌換碼也有機會拿到！` : `Win ${need} Memory Matches to get it — or catch it from an event redeem code!`}</p>
+                    </div>
+                    <!-- 進度和按鈕固定在下面，特色太多要捲動時也一直看得到 -->
+                    <div class="joker-teaser-foot">
                     <div class="joker-teaser-progress">
                         <div class="joker-teaser-bar"><i style="width:${Math.min(100, (wins / need) * 100)}%"></i></div>
                         <span>${zh ? `目前 ${wins} / ${need} 勝${left ? `，還差 ${left} 場` : ''}` : `${wins} / ${need} wins${left ? ` — ${left} to go` : ''}`}</span>
                     </div>
-                    <p class="joker-teaser-how">${zh ? `翻牌對決贏滿 ${need} 場就送你，活動兌換碼也有機會拿到！` : `Win ${need} Memory Matches to get it — or catch it from an event redeem code!`}</p>
                     <button type="button" class="joker-teaser-ok">${zh ? '好期待！' : "Can't wait!"}</button>
+                    </div>
                 </div>`;
             const close = () => { overlay.style.display = 'none'; };
             overlay.querySelector('.joker-teaser-x').addEventListener('click', close);

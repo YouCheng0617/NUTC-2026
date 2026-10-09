@@ -11,7 +11,7 @@
 
     </script>
 
-        <link rel="stylesheet" href="slug_game.css?v=20261009f">
+        <link rel="stylesheet" href="slug_game.css?v=20261010c">
         <link rel="stylesheet" href="memory_game.css?v=20261009c">
 
 </head>
@@ -424,6 +424,7 @@
         <button class="mp-btn secondary" onclick="joinSocketRoom()" id="btnJoinRoom">加入房間</button>
         <button class="mp-btn secondary" onclick="openRoomBoard()" id="btnRoomBoard">📋 房間公告板</button>
         <button class="mp-btn secondary" onclick="SlugSocial.openBlockList()" id="btnBlockList">🚫 封鎖名單</button>
+        <button class="mp-btn secondary" onclick="SlugSocial.openRules()" id="btnGameRules">📜 連線公約</button>
         <button class="mp-btn" onclick="sendChatPrompt()" id="btnChat" style="display:none; background: var(--accent-color);">💬 聊天</button>
         <button class="mp-btn secondary" onclick="leaveSocketRoom()" id="btnLeaveRoom" style="display:none; border-color: #ef4444; color: #ef4444;">離開房間</button>
     </div>
@@ -466,6 +467,11 @@
 
     <!-- 💬 【聊天列】從底部滑上來，邊打字邊看魚缸裡的對話泡泡（取代瀏覽器內建的 prompt 跳窗） -->
     <div class="chat-bar" id="chatBar" hidden>
+        <!-- 🛡️ 遊戲沒有自動過濾髒話：一直提醒大家遇到難聽的話可以封鎖、檢舉 -->
+        <div class="chat-safety">
+            <span class="chat-safety-text" data-en="🛡️ Someone being mean? Tap their sea bunny to block or report.">🛡️ 遇到說話難聽的人？點他的海兔就能封鎖或檢舉</span>
+            <button type="button" class="chat-safety-btn" onclick="SlugSocial.openRules()" data-en="📜 Rules">📜 公約</button>
+        </div>
         <!-- 這次房間裡的聊天紀錄，每則附上留言時間 -->
         <div class="chat-log-wrap">
             <div class="chat-log" id="chatLog" aria-live="polite">
@@ -857,10 +863,10 @@
         </div>
     </div>
 
-        <script src="slug_game.js?v=20261009y"></script>
+        <script src="slug_game.js?v=20261010b"></script>
         <script src="memory_game.js?v=20261009h"></script>
-        <script src="slug_social.js?v=20261009c"></script>
-        <script src="slug_idle.js?v=20261009a"></script>
+        <script src="slug_social.js?v=20261010c"></script>
+        <script src="slug_idle.js?v=20261009c"></script>
 
 </body>
 </html>
