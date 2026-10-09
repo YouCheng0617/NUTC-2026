@@ -189,9 +189,12 @@
     // =====================================================================
     // 🐰 小海兔頭像（玩家小卡用，跟翻牌牌面同一套畫法）
     // =====================================================================
-    function miniSlug(colorKey) {
-        const s = (typeof speciesData !== 'undefined' && speciesData[colorKey]) || speciesData.snow;
-        return `<svg viewBox="40 15 270 210" aria-hidden="true">
+    // jokerStyle：小丑海兔的配色（slug_game.js 的 JOKER_STYLES）；穿小丑時換成小丑的五官和帽子，原本的眼睛不畫
+    function miniSlug(colorKey, jokerStyle) {
+        const isJoker = colorKey === 'joker' && typeof speciesSpec === 'function' && typeof jokerExtraSVG === 'function';
+        const s = isJoker ? speciesSpec('joker', jokerStyle) : ((typeof speciesData !== 'undefined' && speciesData[colorKey]) || speciesData.snow);
+        const extra = isJoker ? jokerExtraSVG(jokerStyle) : '';
+        return `<svg viewBox="${isJoker ? '12 0 316 230' : '40 15 270 210'}" aria-hidden="true">
             <g stroke="${s.outline}" stroke-width="6" stroke-linejoin="round">
                 <path d="M 250 170 C 270 180, 300 190, 290 140 C 280 100, 250 140, 240 170 Z" fill="${s.tail}"/>
                 <path d="M 260 150 C 290 160, 320 120, 280 80 C 260 60, 230 110, 250 150 Z" fill="${s.tail}"/>
@@ -202,10 +205,10 @@
             <g fill="${s.spot}"><circle cx="125" cy="125" r="6"/><circle cx="210" cy="140" r="6.5"/><circle cx="145" cy="180" r="6.5"/></g>
             <g transform="translate(130, 150)">
                 <ellipse cx="-35" cy="12" rx="14" ry="8" fill="${s.blush}" opacity="0.85"/><ellipse cx="35" cy="12" rx="14" ry="8" fill="${s.blush}" opacity="0.85"/>
-                <circle cx="-20" cy="0" r="8" fill="#2c3e50"/><circle cx="20" cy="0" r="8" fill="#2c3e50"/>
+                ${isJoker ? '' : `<circle cx="-20" cy="0" r="8" fill="#2c3e50"/><circle cx="20" cy="0" r="8" fill="#2c3e50"/>
                 <circle cx="-17" cy="-3" r="3" fill="#fff"/><circle cx="23" cy="-3" r="3" fill="#fff"/>
-                <path d="M -7 5 Q 0 12 7 5" fill="none" stroke="#2c3e50" stroke-width="4" stroke-linecap="round"/>
-            </g></svg>`;
+                <path d="M -7 5 Q 0 12 7 5" fill="none" stroke="#2c3e50" stroke-width="4" stroke-linecap="round"/>`}
+            </g>${extra}</svg>`;
     }
 
     const itemName = (dataObj, key) => {
@@ -244,7 +247,7 @@
         { key: 'other', zh: '其他', en: 'Other' }
     ];
     const DETAIL_MAX = 200;
-    let cardTarget = null;      // { socketId, petName, petColor }
+    let cardTarget = null;      // { socketId, petName, petColor, jokerStyle }
     let cardView = 'menu';      // menu／block／report
     let cardBusy = false;
     let cardNotice = null;      // { ok, text }（切語言時重畫用，存原文）
@@ -314,7 +317,7 @@
         const p = typeof otherPlayersData !== 'undefined' && otherPlayersData[socketId];
         if (!p) return;
         ensurePlayerCard();
-        cardTarget = { socketId, petName: p.petName || '', petColor: p.petColor };
+        cardTarget = { socketId, petName: p.petName || '', petColor: p.petColor, jokerStyle: p.jokerStyle };
         cardNotice = null;
         cardBusy = false;
         $('pcDetail').value = '';
@@ -337,7 +340,7 @@
     function renderPlayerCard() {
         if (!cardTarget || !$('playerCardOverlay')) return;
         const name = cardTarget.petName;
-        $('pcAvatar').innerHTML = miniSlug(cardTarget.petColor);
+        $('pcAvatar').innerHTML = miniSlug(cardTarget.petColor, cardTarget.jokerStyle);
         $('pcName').textContent = name;
         $('pcSpecies').textContent = itemName(typeof speciesData !== 'undefined' ? speciesData : null, cardTarget.petColor);
         $('pcClose').setAttribute('aria-label', L('關閉', 'Close'));
