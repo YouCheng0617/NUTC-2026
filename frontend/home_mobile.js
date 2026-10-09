@@ -290,6 +290,8 @@ const HOME_MOBILE_VERSION = 14;
 
     container.addEventListener("pointerdown", (e) => {
         if (!mobile.matches) return;
+        // 按在按鈕、連結上（例如連不上伺服器時的「重新連線」）就不轉球：鎖定手指後點擊會被導到容器上，按鈕會按不到
+        if (e.target.closest && e.target.closest("button, a")) return;
         // 鎖定這根手指：iPhone 有時候手指放開不會送 pointerup 到 window，程式就以為還在拖、球停住不動
         try { container.setPointerCapture(e.pointerId); } catch (err) { /* 不支援就算了 */ }
         dragging = true;

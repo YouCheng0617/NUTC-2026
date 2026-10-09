@@ -279,6 +279,37 @@ function normalizeBottle(rawItem, likedBottleIds = [], savedBottleIds = []) {
       };
 }
 
+// 🌫️ 每個請求最多等 10 秒：伺服器沒回應時，瀏覽器自己的逾時要很久，畫面會一直空著
+const BOTTLE_FETCH_TIMEOUT = 10000;
+function fetchWithTimeout(url, options = {}, ms = BOTTLE_FETCH_TIMEOUT) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), ms);
+  return fetch(url, { ...options, signal: controller.signal }).finally(() => clearTimeout(timer));
+}
+
+// 🌫️ 連不上伺服器（或伺服器回錯誤）：顯示提示和重新連線按鈕，不要讓畫面空空的像壞掉一樣
+function renderBottlesOffline() {
+  if (window.__ttLoading) window.__ttLoading.postsDone();
+  const container = document.getElementById("post-container");
+  const pageContainer = document.getElementById("pagination-container");
+  if (!container) return;
+  container.innerHTML = `
+    <div class="bottles-offline" style="text-align:center; color:#ffffff; margin-top:90px; padding:0 16px;">
+      <h3 style="margin:0 0 10px; font-size:1.4rem; text-shadow:0 0 10px rgba(77, 166, 255, 0.8);">🌊 海面暫時起霧了，連不上伺服器</h3>
+      <p style="margin:0 0 18px; font-size:0.95rem; opacity:0.9; text-shadow:0 0 8px rgba(0, 60, 120, 0.6);">漂流瓶都還在，只是現在撈不到，請稍後再試一次</p>
+      <button type="button" id="bottles-retry-btn" style="padding:10px 22px; border:none; border-radius:999px; background:#ffffff; color:#0055a5; font-size:1rem; font-weight:bold; cursor:pointer; box-shadow:0 4px 12px rgba(0, 85, 165, 0.3);">🔄 重新連線</button>
+    </div>`;
+  if (pageContainer) pageContainer.innerHTML = "";
+  const btn = document.getElementById("bottles-retry-btn");
+  if (btn) {
+    btn.addEventListener("click", () => {
+      btn.disabled = true;
+      btn.textContent = "重新連線中…";
+      fetchBottles();
+    });
+  }
+}
+
 async function fetchBottles() {
   const token = localStorage.getItem("authToken");
 
@@ -307,7 +338,7 @@ async function fetchBottles() {
 
     if (token) {
       try {
-        const likedRes = await fetch(`${API_BASE_URL}/bottles/liked`, {
+        const likedRes = await fetchWithTimeout(`${API_BASE_URL}/bottles/liked`, {
           method: "GET",
           headers: {
             Authorization: `Bearer ${token}`,
@@ -326,7 +357,7 @@ async function fetchBottles() {
       } catch (e) {}
 
       try {
-        const savedRes = await fetch(`${API_BASE_URL}/bottles/saved`, {
+        const savedRes = await fetchWithTimeout(`${API_BASE_URL}/bottles/saved`, {
           method: "GET",
           headers: {
             Authorization: `Bearer ${token}`,
@@ -353,7 +384,7 @@ async function fetchBottles() {
       headers["Authorization"] = `Bearer ${token}`;
     }
 
-    const response = await fetch(endpointUrl, {
+    const response = await fetchWithTimeout(endpointUrl, {
       method: "GET",
       headers: headers,
     });
@@ -388,14 +419,18 @@ async function fetchBottles() {
 
       applyFilters();
     } else if (response.status === 404) {
+      // 真的沒有瓶子：照舊顯示「海域空空的」
       posts = [];
       applyFilters();
     } else {
-      posts = [];
-      applyFilters();
+      // 伺服器有回應但出錯（例如 500、502）：不是真的沒瓶子，顯示連不上的提示
+      console.error("伺服器錯誤:", response.status);
+      renderBottlesOffline();
     }
   } catch (error) {
+    // 連不上、逾時（超過 10 秒）
     console.error("連線錯誤:", error);
+    renderBottlesOffline();
   } finally {
     // 🌊 撈不到瓶子（例如後端連不上）也要收掉載入畫面，
     //    不然使用者會對著載入畫面乾等到保險絲跳掉
