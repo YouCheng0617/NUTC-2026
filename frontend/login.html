@@ -956,8 +956,13 @@
             };
             localStorage.setItem("currentUser", JSON.stringify(userToSave));
 
-            // 🌟 檢查是否為新註冊會員第一次登入
-            const isNewUser = localStorage.getItem("isNewUserTutorial");
+            // 🌟 新會員第一次登入：帶去新手教學
+            //   註冊時在這個瀏覽器留的標記，或是註冊 3 天內、在這個瀏覽器還沒看過教學的帳號
+            //   （很多人會在另一個瀏覽器點信箱的驗證連結再登入，那邊沒有註冊時的標記）
+            const createdAt = new Date(realUser.created_at || realUser.createdAt || 0).getTime();
+            const isRecent = createdAt > 0 && Date.now() - createdAt < 3 * 24 * 60 * 60 * 1000;
+            const seenTutorial = localStorage.getItem("tutorialSeen:" + (realUser.email || email)) === "1";
+            const isNewUser = localStorage.getItem("isNewUserTutorial") === "true" || (isRecent && !seenTutorial) ? "true" : null;
             if (isNewUser === "true") {
               localStorage.removeItem("isNewUserTutorial");
               window.location.href = "tutorial.html";

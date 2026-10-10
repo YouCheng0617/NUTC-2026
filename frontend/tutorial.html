@@ -595,6 +595,9 @@
     try { localStorage.setItem(DONE_KEY, JSON.stringify([...doneSet])); } catch (e) {}
   }
 
+  // 記下這個帳號在這個瀏覽器看過教學了，登入時就不會再自動帶來這裡
+  try { const u = JSON.parse(localStorage.getItem('currentUser') || '{}'); if (u.email) localStorage.setItem('tutorialSeen:' + u.email, '1'); } catch (e) {}
+
   const goLobby = () => { window.location.href = 'index.html'; };
   $('closeGuideBtn').onclick = goLobby;
   $('closeGuideBtnM').onclick = goLobby;
