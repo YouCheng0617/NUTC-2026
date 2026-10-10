@@ -286,6 +286,7 @@ function resetSlots() {
     card.classList.remove("flipped");
     card.classList.add("empty-slot");
     front.classList.remove("reversed");
+    document.getElementById(`img-${pos}`).classList.remove("reversed-img");
   });
 }
 
@@ -505,9 +506,8 @@ function drawFromSpread(cardElement) {
   imgElement.alt = randomCard.name;
   textElement.innerText = randomCard.name;
 
-  if (isReversed) {
-    imgElement.classList.add("reversed-img");
-  }
+  // 正位要轉回來：上一輪同一個位置抽到逆位的話，圖片還留著旋轉
+  imgElement.classList.toggle("reversed-img", isReversed);
 
   setTimeout(() => {
     cardContainer.classList.add("flipped");

@@ -307,3 +307,30 @@ body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden;
         100% { transform: scale(1); }
     }
 }
+
+/* =========================================
+   📱 小手機修正
+   ========================================= */
+@media screen and (max-width: 768px) {
+    /* 內容比卡片高時，原本的「垂直置中」會把最上面（登入／註冊切換）切掉而且滑不上去；
+       改成「放得下才置中，放不下就從上面開始排」 */
+    .cute-modal-content { justify-content: flex-start !important; justify-content: safe center !important; }
+}
+/* 很窄的手機：吉祥物的對話框不要超出畫面右邊 */
+@media (max-width: 400px) {
+    .login-mascot-bubble { max-width: calc(100vw - 150px); font-size: 0.8rem; padding: 7px 10px; }
+}
+/* 比較矮的手機（iPhone SE 這類）：吉祥物縮小、表單間距縮小，送出按鈕盡量不用捲就看得到 */
+@media (max-width: 480px) and (max-height: 760px) {
+    .auth-stage { margin-top: 62px; }
+    .auth-stage .cute-modal-content { max-height: calc(100vh - 76px) !important; max-height: calc(100dvh - 76px) !important; padding: 34px 14px 16px !important; }
+    .login-mascot { width: 84px; top: -66px; }
+    .login-mascot-bubble { top: 12px; }
+    .bg-watermark { font-size: 1.3rem; margin-bottom: 8px; }
+    .tab-container { margin-bottom: 10px; }
+    .b-pill { height: 50px; padding: 4px 14px; }
+    .b-captcha-img { height: 58px !important; }
+    #login-form .b-row, #forgot-form .b-row, #reset-form .b-row { gap: 8px !important; }
+    .b-row { margin-top: 6px !important; }
+    .b-check-btn { width: 50px; height: 50px; margin-top: 10px; }
+}
