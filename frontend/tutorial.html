@@ -476,6 +476,33 @@
       font-size: 20px;
     }
   }
+
+  /* 📱 手機：說明文字比以前長，圖片區讓出一點空間給文字；放不下時底部淡出，看得出來可以往下捲 */
+  @media (max-width: 600px) {
+    .carousel-container { height: 64%; margin-bottom: 10px; }
+    .text-container {
+      height: 36%;
+      -webkit-mask-image: linear-gradient(to bottom, #000 82%, transparent 100%);
+      mask-image: linear-gradient(to bottom, #000 82%, transparent 100%);
+      padding-bottom: 18px;
+    }
+    .text-title { font-size: 18px; margin-bottom: 4px; }
+    #displayDesc { font-size: 14px; line-height: 1.6; }
+  }
+  /* 很窄的手機：電腦版／手機版切換移到第二排（語言按鈕旁邊），不要擠到「漂流指南」標題 */
+  @media (max-width: 400px) {
+    .device-toggle { top: 46px; right: 15px; }
+    .main-sidebar { padding-top: 78px !important; }
+  }
+  /* 比較矮的手機（例如 iPhone SE）：圖片再讓一點空間，字也再小一點 */
+  @media (max-width: 600px) and (max-height: 760px) {
+    .carousel-container { height: 56%; }
+    .text-container { height: 44%; }
+    .text-title { font-size: 17px; }
+    #displayDesc { font-size: 13px; line-height: 1.55; }
+    .main-sidebar { padding-top: 62px; padding-bottom: 6px; }
+    .main-tab { width: 40px; height: 40px; font-size: 20px; }
+  }
 </style>
 </head>
 <body>
