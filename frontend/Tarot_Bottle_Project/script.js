@@ -527,6 +527,35 @@ function drawFromSpread(cardElement) {
   }
 }
 
+// AI 回來的解讀常帶 Markdown 符號（### 標題、**粗體**、* 清單、---），直接顯示會看到一堆符號。
+// 先把 <、> 等字元跳脫，避免內容被當成網頁程式碼，再把常見的符號轉成排版
+function escapeHtml(str) {
+  return String(str).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
+}
+function formatReading(text) {
+  const lines = escapeHtml(text || "").split("\n");
+  const out = [];
+  let inList = false;
+  const inline = (s) => s.replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>").replace(/(^|[^*])\*([^*\s][^*]*?)\*(?!\*)/g, "$1<em>$2</em>");
+  for (const raw of lines) {
+    const line = raw.trim();
+    const item = line.match(/^[*\-•]\s+(.*)$/);
+    if (item) {
+      if (!inList) { out.push('<ul class="reading-list">'); inList = true; }
+      out.push(`<li>${inline(item[1])}</li>`);
+      continue;
+    }
+    if (inList) { out.push("</ul>"); inList = false; }
+    const head = line.match(/^#{1,6}\s+(.*)$/);
+    if (head) out.push(`<h4 class="reading-heading">${inline(head[1])}</h4>`);
+    else if (/^(-{3,}|\*{3,}|_{3,})$/.test(line)) out.push('<hr class="reading-hr">');
+    else if (line === "") out.push('<div class="reading-gap"></div>');
+    else out.push(`<p class="reading-p">${inline(line)}</p>`);
+  }
+  if (inList) out.push("</ul>");
+  return out.join("");
+}
+
 async function generateReading() {
   const resultBox = document.getElementById("result-box");
   const resultText = document.getElementById("ai-reading-result");
@@ -575,10 +604,7 @@ async function generateReading() {
       reading: data.analysis || "無法取得解讀",
     };
 
-    const formattedReply = (data.analysis || "無法取得解讀").replace(
-      /\n/g,
-      "<br>",
-    );
+    const formattedReply = formatReading(data.analysis || "無法取得解讀");
 
     resultText.innerHTML = `<div class="reading-time">占卜時間：${timeStr}</div>${formattedReply}`;
 
@@ -615,9 +641,9 @@ function showFavorites() {
       .map(
         (fav, index) => `
             <div class="fav-item">
-                <h4>🔮 ${fav.topic} <span class="fav-time">${fav.time}</span></h4>
-                <p class="fav-cards">${fav.cards.replace(/\n/g, "<br>")}</p>
-                <p class="fav-reading">${fav.reading.replace(/\n/g, "<br>")}</p>
+                <h4>🔮 ${escapeHtml(fav.topic)} <span class="fav-time">${escapeHtml(fav.time)}</span></h4>
+                <p class="fav-cards">${escapeHtml(fav.cards).replace(/\n/g, "<br>")}</p>
+                <div class="fav-reading">${formatReading(fav.reading)}</div>
                 <button class="delete-btn" onclick="deleteFavorite(${index})">${t.delBtn}</button>
             </div>
         `,

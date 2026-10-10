@@ -189,6 +189,14 @@ body {
 .fav-time { font-size: 0.8em; color: #a084ff; font-weight: normal; }
 .fav-cards { font-size: 0.9em; color: #d4b5ff; background: rgba(0,0,0,0.5); padding: 10px; border-radius: 8px; border: 1px solid rgba(160,132,255,0.2); }
 .fav-reading { color: #e0d4ff; line-height: 1.6; font-size: 0.95em; }
+/* AI 解讀的排版（Markdown 轉出來的標題、清單、分隔線） */
+.reading-heading { margin: 14px 0 6px; color: #f5d68a; font-size: 1.05em; font-weight: 700; letter-spacing: 0.5px; }
+.reading-p { margin: 0 0 6px; }
+.reading-list { margin: 4px 0 8px; padding-left: 1.3em; }
+.reading-list li { margin-bottom: 6px; }
+.reading-hr { border: none; border-top: 1px dashed rgba(160, 132, 255, 0.4); margin: 12px 0; }
+.reading-gap { height: 6px; }
+#ai-reading-result strong, .fav-reading strong { color: #f5d68a; }
 .delete-btn { background: transparent; border: 1px solid #e74c3c; color: #e74c3c; padding: 5px 15px; border-radius: 15px; cursor: pointer; margin-top: 10px; transition: 0.3s; }
 .delete-btn:hover { background: #e74c3c; color: white; }
 
