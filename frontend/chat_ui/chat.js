@@ -119,7 +119,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
             } catch (error) {
                 console.error("連線錯誤:", error);
-                contentDiv.innerHTML = "連線到 AI 大腦時發生了點小問題，請稍後再試喔！🤖";
+                // AI 服務暫時連不上：依照目前選的語言顯示提示
+                const busyMsg = {
+                    "zh-TW": "AI 特助暫時休息中，請稍後再試一次喔！🤖",
+                    "zh-CN": "AI 特助暂时休息中，请稍后再试一次哦！🤖",
+                    en: "The AI assistant is taking a short break. Please try again in a moment! 🤖",
+                    ja: "AIアシスタントは少し休憩中です。しばらくしてからもう一度お試しください！🤖"
+                };
+                contentDiv.innerHTML = busyMsg[currentLang] || busyMsg["zh-TW"];
                 finishGeneration();
             }
         }

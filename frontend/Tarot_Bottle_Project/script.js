@@ -120,7 +120,7 @@ const i18n = {
     confirmDel: "確定要將這條指引從筆記中抹除嗎？",
     currentTopicPrefix: "✨ 目前探索的領域：",
     aiLang: "Traditional Chinese (繁體中文)",
-    apiError: "⚠️ 魔法陣的連結受到干擾，無法解讀塔羅牌。",
+    apiError: "🔮 占卜師暫時休息中，這次沒辦法解讀牌義。<br>請稍等一下再按「再問一次」試試看！",
     devNote: "開發者提示 (錯誤原因)：",
   },
   en: {
@@ -165,7 +165,7 @@ const i18n = {
     confirmDel: "Are you sure you want to delete this reading?",
     currentTopicPrefix: "✨ Current Topic: ",
     aiLang: "English",
-    apiError: "⚠️ The magic circle is disturbed, unable to read the cards.",
+    apiError: "🔮 The fortune teller is taking a short break and can't read the cards right now.<br>Please wait a moment and tap 'Ask again' to try again!",
     devNote: "Developer Note (Error):",
   },
 };
@@ -586,7 +586,8 @@ async function generateReading() {
     saveBtn.classList.remove("hidden");
   } catch (error) {
     console.error("API 錯誤:", error);
-    resultText.innerHTML = `${t.apiError}<br><br><span style="color:#e74c3c; font-size: 0.9em;"><b>${t.devNote}</b><br>${error.message}</span>`;
+    // 錯誤原因只留在主控台給開發者看，畫面上顯示給一般使用者看得懂的提示
+    resultText.innerHTML = t.apiError;
     restartBtn.classList.remove("hidden");
   }
 }
