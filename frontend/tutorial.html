@@ -5,612 +5,300 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>漂流指南 - 心情漂流瓶</title>
 <style>
+  /* 版面：左邊章節清單（看過打勾），右邊上方截圖、旁邊白色說明卡；手機改成上方章節、中間截圖、下方說明 */
+  :root {
+    --sea-top: #1b8fd0;
+    --sea-mid: #0d5f9c;
+    --sea-deep: #083e6b;
+    --glass: rgba(255, 255, 255, 0.14);
+    --glass-line: rgba(255, 255, 255, 0.35);
+    --ink: #123a5a;
+    --ink-soft: #3d5a72;
+    --brand: #0b5c94;
+    --sun: #ffcf5c;
+    --coral-a: #ffb84d;
+    --coral-b: #ff8a5c;
+    --done: #3bd38b;
+    --font: "PingFang TC", "Microsoft JhengHei", "Noto Sans TC", sans-serif;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; }
   body {
-    background: linear-gradient(180deg, #044b7a 0%, #011322 100%);
-    margin: 0;
-    height: 100vh; 
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    color: #e0e0e0;
-    overflow: hidden; 
-    position: relative;
-  }
-
-  .bubbles-container {
-    position: fixed; 
-    top: 0; left: 0; width: 100%; height: 100%;
-    z-index: 0;
-    pointer-events: none; 
-  }
-  .bubble {
-    position: absolute;
-    bottom: -100px;
-    background-color: rgba(255, 255, 255, 0.15); 
-    border-radius: 50%;
-    animation: floatUp infinite ease-in;
-  }
-  .bubble:nth-child(1) { left: 10%; width: 40px; height: 40px; animation-duration: 8s; animation-delay: 0s; }
-  .bubble:nth-child(2) { left: 25%; width: 20px; height: 20px; animation-duration: 5s; animation-delay: 2s; }
-  .bubble:nth-child(3) { left: 40%; width: 50px; height: 50px; animation-duration: 10s; animation-delay: 1s; }
-  .bubble:nth-child(4) { left: 60%; width: 30px; height: 30px; animation-duration: 7s; animation-delay: 3s; }
-  .bubble:nth-child(5) { left: 75%; width: 65px; height: 65px; animation-duration: 12s; animation-delay: 0s; }
-  .bubble:nth-child(6) { left: 85%; width: 25px; height: 25px; animation-duration: 6s; animation-delay: 4s; }
-  .bubble:nth-child(7) { left: 95%; width: 45px; height: 45px; animation-duration: 9s; animation-delay: 2s; }
-
-  @keyframes floatUp {
-    0% { transform: translateY(0) scale(1); opacity: 1; }
-    100% { transform: translateY(-120vh) scale(1.2); opacity: 0; }
-  }
-
-  ::-webkit-scrollbar {
-    display: none;
-  }
-  * {
-    -ms-overflow-style: none;  
-    scrollbar-width: none;  
-  }
-
-  .tutorial-window {
-    position: relative;
-    z-index: 10; 
-    width: 1050px; 
-    height: 620px; 
-    max-width: 95vw; 
-    max-height: 90vh; 
-    background-color: rgba(15, 32, 55, 0.85); 
-    backdrop-filter: blur(12px); 
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 20px;
-    display: flex;
-    box-shadow: 0 15px 50px rgba(0,0,0,0.8);
-    overflow: hidden;
-  }
-
-  /* === 頂部標題與語言切換區塊 === */
-  .header-group {
-    position: absolute;
-    top: 22px; 
-    left: 25px;
-    display: flex;
-    align-items: center;
-    gap: 15px; 
-    z-index: 100;
-  }
-
-  .tutorial-header {
-    font-size: 20px;
-    font-weight: bold;
-    color: #f4ecd8; 
-    letter-spacing: 2px;
-    white-space: nowrap; 
-  }
-  .tutorial-header span { color: #5ab9ff; }
-
-  .lang-toggle-btn {
-    background: #0f1929; 
-    border-radius: 20px;
-    padding: 6px 16px;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    color: #3b749f; 
-    font-weight: bold;
-    font-size: 13px;
-    cursor: pointer;
-    box-shadow: inset 0 0 10px rgba(0,0,0,0.6);
-    user-select: none;
-    transition: 0.3s ease;
-    white-space: nowrap;
-  }
-  .lang-toggle-btn:hover {
-    color: #5ab9ff;
-    background: #142136;
-  }
-  .lang-toggle-btn .globe {
-    font-size: 15px;
-    filter: drop-shadow(0 0 2px rgba(90, 185, 255, 0.5));
-  }
-
-  /* 版本切換開關 */
-  .device-toggle {
-    position: absolute;
-    top: 20px; 
-    right: 75px; 
-    display: flex;
-    background: rgba(0, 0, 0, 0.25); 
-    border-radius: 30px;
-    padding: 3px;
-    z-index: 100;
-    backdrop-filter: blur(6px); 
-    opacity: 0.65; 
-    transition: 0.3s ease;
-  }
-  .device-toggle:hover {
-    opacity: 1; 
-    background: rgba(0, 0, 0, 0.4);
-  }
-  .toggle-btn {
-    padding: 5px 14px;
-    border-radius: 20px;
-    font-size: 13px;
-    font-weight: bold;
-    color: rgba(255, 255, 255, 0.7);
-    cursor: pointer;
-    transition: 0.3s;
-    user-select: none;
-  }
-  .toggle-btn.active {
-    background: rgba(90, 185, 255, 0.75); 
-    color: #011322;
-    box-shadow: 0 2px 10px rgba(90, 185, 255, 0.2);
-  }
-
-  .close-btn {
-    position: absolute;
-    top: 13px; right: 25px;
-    font-size: 35px;
-    color: #8899a6;
-    cursor: pointer;
-    font-weight: bold;
-    z-index: 100;
-    user-select: none;
-    transition: 0.2s;
-  }
-  .close-btn:hover { 
-    color: #5ab9ff; 
-    transform: scale(1.1); 
-  }
-
-  /* === 側邊選單 === */
-  .main-sidebar {
-    width: 90px;
-    background-color: rgba(5, 15, 28, 0.6); 
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding-top: 80px;
-    border-right: 1px solid rgba(255, 255, 255, 0.05);
-  }
-  .main-tab {
-    width: 55px; height: 55px;
-    border-radius: 50%;
-    background-color: rgba(255, 255, 255, 0.1);
-    margin-bottom: 25px;
-    display: flex; justify-content: center; align-items: center;
-    font-size: 28px;
-    cursor: pointer;
-    transition: 0.3s;
-    color: #888;
-  }
-  .main-tab.active {
-    background-color: #5ab9ff; 
-    color: #011322;
-    box-shadow: 0 0 15px rgba(90, 185, 255, 0.6);
-  }
-
-  .sub-sidebar {
-    width: 175px; 
-    padding: 80px 15px 20px 15px;
-    overflow-y: auto;
-    scroll-behavior: smooth;
-  }
-  .sub-tab {
-    padding: 12px 15px; 
-    margin-bottom: 12px;
-    border-radius: 30px; 
-    background-color: rgba(255, 255, 255, 0.05);
-    color: #99aab5;
-    font-size: 14.5px;
-    font-weight: bold;
-    cursor: pointer;
-    transition: 0.2s;
-    user-select: none;
-  }
-  .sub-tab:hover { background-color: rgba(255, 255, 255, 0.15); color: white; }
-  .sub-tab.active {
-    background-color: rgba(90, 185, 255, 0.2); 
-    color: #5ab9ff; 
-    border: 1px solid rgba(90, 185, 255, 0.5);
-  }
-
-  /* === 內容展示區 === */
-  .content-area {
-    flex: 1;
-    padding: 45px 30px 25px 20px;
-    display: flex;
-    flex-direction: column;
-    position: relative;
-    overflow: hidden; 
-  }
-
-  .carousel-container {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 100%;
-    height: 72%; 
-    margin-bottom: 25px; 
-    position: relative;
-    touch-action: pan-y; 
-  }
-
-  .image-container {
-    position: relative;
-    flex: 1; 
-    margin: 0; 
-    width: 100%;
-    height: 100%; 
-    background-color: transparent; 
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    cursor: zoom-in; 
-  }
-  
-  .image-container img {
-    max-width: 100%;
-    max-height: 100%;
-    border-radius: 16px; 
-    filter: drop-shadow(0 8px 25px rgba(0,0,0,0.6)); 
-    transition: 0.2s;
-  }
-  .image-container:hover img {
-    transform: scale(1.02); 
-  }
-
-  .zoom-hint {
-    position: absolute;
-    right: 15px; bottom: 15px;
-    background: rgba(0, 0, 0, 0.4); 
-    color: rgba(255, 255, 255, 0.6); 
-    padding: 6px 14px;
-    border-radius: 20px;
-    font-size: 13px;
-    pointer-events: none; 
-    backdrop-filter: blur(4px);
-    transition: 0.3s;
-    letter-spacing: 1px;
-    z-index: 20;
-  }
-  .image-container:hover .zoom-hint {
-    background: rgba(0, 0, 0, 0.6);
-    color: rgba(255, 255, 255, 0.9);
-  }
-
-  .arrow {
-    position: absolute;
-    top: 50%;
-    transform: translateY(-50%);
-    font-size: 20px;
-    color: rgba(255, 255, 255, 0.6); 
-    background: rgba(0, 0, 0, 0.2) !important; 
-    width: 46px;
-    height: 46px;
-    border-radius: 50%;
-    border: none !important;
-    outline: none !important;
-    cursor: pointer;
-    transition: 0.3s;
-    padding: 0;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 20;
-  }
-  .arrow-left { left: 10px; }
-  .arrow-right { right: 10px; }
-  .arrow:hover { 
-    background: rgba(0, 0, 0, 0.6) !important;
+    font-family: var(--font);
     color: #fff;
-  }
-
-  .dots-wrapper {
-    position: absolute;
-    bottom: -25px; 
-    left: 50%;
-    transform: translateX(-50%);
+    background: linear-gradient(180deg, var(--sea-top) 0%, var(--sea-mid) 45%, var(--sea-deep) 100%);
     display: flex;
-    gap: 8px;
-    z-index: 5; 
-  }
-  .dot {
-    width: 9px; height: 9px;
-    border-radius: 50%;
-    background-color: rgba(255,255,255,0.4);
-    box-shadow: 0 0 5px rgba(0,0,0,0.6); 
-    transition: 0.3s;
-  }
-  .dot.active { background-color: #5ab9ff; box-shadow: 0 0 8px #5ab9ff, 0 0 5px rgba(0,0,0,0.6); }
-
-  .text-container { 
-    padding: 0 20px; 
-    height: 28%; 
-    overflow-y: auto; 
-  }
-  .text-title {
-    font-size: 22px; 
-    font-weight: bold;
-    color: white;
-    margin: 0 0 8px 0;
-  }
-  .text-desc {
-    font-size: 15px; 
-    color: #b0c4de; 
-    line-height: 1.6;
-    margin: 0;
-  }
-
-  /* === 全螢幕放大模態框 === */
-  .lightbox {
-    display: none; 
-    position: fixed;
-    top: 0; left: 0; width: 100%; height: 100%;
-    background-color: rgba(0, 0, 0, 0.9);
-    z-index: 9999; 
-    justify-content: center;
     align-items: center;
-    cursor: zoom-out;
-    opacity: 0;
-    transition: opacity 0.3s;
+    justify-content: center;
+    padding: 24px;
+    overflow: hidden;
+    position: relative;
   }
-  .lightbox.show {
+  /* 海面透下來的光 */
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    background: repeating-linear-gradient(100deg, rgba(255, 255, 255, 0.08) 0 40px, transparent 40px 130px);
+    -webkit-mask-image: linear-gradient(180deg, #000, transparent 70%);
+    mask-image: linear-gradient(180deg, #000, transparent 70%);
+    pointer-events: none;
+  }
+  button { font: inherit; cursor: pointer; }
+  button:focus-visible { outline: 3px solid var(--sun); outline-offset: 2px; }
+
+  /* 泡泡 */
+  .bubbles { position: fixed; inset: 0; pointer-events: none; overflow: hidden; }
+  .bubbles i {
+    position: absolute; bottom: -80px; border-radius: 50%;
+    border: 2px solid rgba(255, 255, 255, 0.35);
+    background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0.05));
+    animation: rise linear infinite;
+  }
+  @keyframes rise { to { transform: translateY(-115vh); } }
+
+  /* 視窗 */
+  .guide {
+    position: relative;
+    width: min(1220px, 100%);
+    height: min(780px, 100%);
+    display: grid;
+    grid-template-columns: 270px minmax(0, 1fr);
+    background: var(--glass);
+    -webkit-backdrop-filter: blur(18px);
+    backdrop-filter: blur(18px);
+    border: 1.5px solid var(--glass-line);
+    border-radius: 28px;
+    overflow: hidden;
+    box-shadow: 0 24px 60px rgba(0, 30, 60, 0.35);
+  }
+
+  /* 左邊：品牌、兩大分類、章節清單 */
+  .side {
+    min-width: 0;
     display: flex;
-    opacity: 1;
+    flex-direction: column;
+    gap: 16px;
+    padding: 22px 16px;
+    background: rgba(0, 40, 80, 0.22);
+    border-right: 2px dashed rgba(255, 255, 255, 0.22);
   }
-  
-  .lightbox img {
-    width: 90vw;
-    height: 90vh;
-    object-fit: contain;
-    border-radius: 16px; 
-    filter: drop-shadow(0 0 25px rgba(255,255,255,0.15));
+  .brand { display: flex; align-items: center; gap: 10px; font-size: 22px; font-weight: 900; letter-spacing: 1px; text-shadow: 0 2px 6px rgba(0, 40, 80, 0.4); }
+  .brand img { width: 34px; height: 34px; }
+  .cats { display: flex; border-bottom: 2px solid rgba(255, 255, 255, 0.25); }
+  .cats button {
+    flex: 1; border: 0; background: none; color: rgba(255, 255, 255, 0.72);
+    padding: 9px 0; font-weight: 800; font-size: 14.5px;
+    border-bottom: 3px solid transparent; margin-bottom: -2px;
   }
-  
-  .lightbox-close {
-    position: absolute;
-    top: 20px; right: 30px;
-    color: white;
-    font-size: 50px;
-    font-weight: bold;
-    cursor: pointer;
-    z-index: 10000;
+  .cats button.on { color: #fff; border-color: var(--sun); }
+  .chapters { display: flex; flex-direction: column; gap: 4px; overflow-y: auto; padding-right: 2px; }
+  .chapter {
+    display: flex; align-items: center; gap: 10px;
+    border: 0; background: none; text-align: left; color: #e5f3ff;
+    padding: 10px 10px; border-radius: 12px; font-size: 14.5px; font-weight: 700;
+    transition: background 0.15s;
   }
-  .lightbox-close:hover { color: #5ab9ff; }
+  .chapter:hover { background: rgba(255, 255, 255, 0.12); }
+  .chapter .box {
+    flex: none; width: 22px; height: 22px; border-radius: 7px;
+    border: 2px solid rgba(255, 255, 255, 0.55);
+    display: grid; place-items: center; font-size: 13px; font-weight: 900; color: #fff;
+  }
+  .chapter.done { color: rgba(229, 243, 255, 0.7); }
+  .chapter.done .box { background: var(--done); border-color: var(--done); }
+  .chapter.on { background: #fff; color: var(--brand); box-shadow: 0 6px 16px rgba(0, 40, 80, 0.25); }
+  .chapter.on .box { border-color: var(--coral-a); }
+  .chapter.on.done .box { background: var(--done); border-color: var(--done); }
+  .side-note { margin-top: auto; font-size: 12.5px; color: rgba(255, 255, 255, 0.7); line-height: 1.6; }
 
-  /* === RWD 響應式設計 === */
-  @media (max-width: 900px) {
-    .tutorial-window {
-      flex-direction: column; 
-      height: 95vh;
-    }
-    
-    .header-group {
-      top: 12px; 
-      left: 15px;
-      flex-direction: column;
-      align-items: flex-start;
-      gap: 6px;
-    }
-    .tutorial-header {
-      font-size: 18px; 
-    }
-    .lang-toggle-btn {
-      padding: 4px 10px;
-      font-size: 12px;
-    }
-    
-    .device-toggle {
-      top: 12px;
-      right: 60px; 
-      opacity: 0.85; 
-    }
-    .toggle-btn {
-      padding: 4px 10px;
-      font-size: 12px;
-    }
+  /* 右邊 */
+  .main { min-width: 0; min-height: 0; display: grid; grid-template-columns: minmax(0, 1fr) 320px; grid-template-rows: auto minmax(0, 1fr); gap: 16px 20px; padding: 20px 24px 22px; }
+  .topbar { grid-column: 1 / -1; display: flex; align-items: center; gap: 10px; }
+  .crumb { font-size: 14px; color: rgba(255, 255, 255, 0.8); font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .crumb b { color: #fff; }
+  .spacer { flex: 1; }
+  .pill-btn { border: 1.5px solid rgba(255, 255, 255, 0.5); background: rgba(255, 255, 255, 0.14); color: #fff; border-radius: 999px; padding: 6px 13px; font-size: 13px; font-weight: 800; white-space: nowrap; }
+  .seg { display: flex; flex: none; }
+  .seg button { border: 0; background: rgba(255, 255, 255, 0.16); color: #fff; padding: 6px 12px; font-size: 13px; font-weight: 800; white-space: nowrap; }
+  .seg button:first-child { border-radius: 999px 0 0 999px; }
+  .seg button:last-child { border-radius: 0 999px 999px 0; }
+  .seg button.on { background: var(--sun); color: #5a3b00; }
+  .close { flex: none; border: 0; background: rgba(255, 255, 255, 0.2); color: #fff; width: 36px; height: 36px; border-radius: 50%; font-size: 18px; line-height: 1; }
 
-    .close-btn {
-      top: 8px; right: 15px;
-    }
+  /* 截圖 */
+  .stage { position: relative; min-height: 0; background: rgba(0, 40, 80, 0.28); border-radius: 20px; overflow: hidden; cursor: zoom-in; touch-action: pan-y; }
+  .stage img {
+    position: absolute; inset: 14px; width: calc(100% - 28px); height: calc(100% - 28px);
+    object-fit: contain; border-radius: 10px;
+    filter: drop-shadow(0 14px 26px rgba(0, 30, 60, 0.4));
+    transition: opacity 0.18s;
+  }
+  .stage img.swap { opacity: 0; }
+  .zoom-hint { position: absolute; right: 12px; bottom: 12px; background: rgba(0, 25, 50, 0.6); color: #fff; border-radius: 999px; padding: 5px 12px; font-size: 12.5px; font-weight: 700; pointer-events: none; }
 
-    .main-sidebar {
-      width: 100%;
-      flex-direction: row;
-      justify-content: center;
-      padding: 10px 0;
-      padding-top: 70px;
-      border-right: none;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-    }
-    .main-tab {
-      width: 45px; height: 45px;
-      margin: 0 15px;
-      font-size: 22px;
-    }
+  /* 說明卡 */
+  .note {
+    min-height: 0; display: flex; flex-direction: column; gap: 12px;
+    background: #fff; color: var(--ink); border-radius: 20px; padding: 22px;
+    box-shadow: 0 14px 30px rgba(0, 30, 60, 0.25);
+  }
+  .step { font-size: 13px; font-weight: 900; letter-spacing: 0.08em; color: #e07a1f; }
+  .note h2 { margin: 0; font-size: 25px; line-height: 1.3; color: #0b4f82; text-wrap: balance; }
+  .desc { flex: 1; min-height: 0; overflow-y: auto; }
+  .desc p { margin: 0; font-size: 15.5px; line-height: 1.85; color: var(--ink-soft); }
+  .progress { display: flex; gap: 6px; }
+  .progress i { flex: 1; height: 6px; border-radius: 9px; background: #d6e6f2; }
+  .progress i.on { background: linear-gradient(90deg, var(--coral-a), var(--coral-b)); }
+  .nav { display: flex; gap: 8px; }
+  .nav button { flex: 1; border: 0; border-radius: 14px; padding: 12px 10px; font-weight: 800; font-size: 15px; }
+  .nav .prev { flex: 0 0 auto; padding-inline: 16px; background: #eef5fb; color: #2b5d84; }
+  .nav .prev:disabled { opacity: 0.4; cursor: default; }
+  .nav .next { background: linear-gradient(135deg, var(--coral-a), var(--coral-b)); color: #fff; box-shadow: 0 6px 14px rgba(255, 138, 92, 0.35); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .keys { font-size: 12px; color: #8aa1b2; text-align: center; }
 
-    .sub-sidebar {
-      width: 100%;
-      height: auto;
-      padding: 10px 15px;
-      display: flex;
-      flex-direction: row;
-      overflow-x: auto;
-      overflow-y: hidden;
-      white-space: nowrap;
-      box-sizing: border-box;
-      -webkit-overflow-scrolling: touch; 
-    }
-    .sub-tab {
-      display: inline-block;
-      margin: 0 10px 0 0;
-      padding: 8px 16px;
-      font-size: 14px;
-    }
+  /* 放大看圖 */
+  .lightbox { position: fixed; inset: 0; z-index: 50; display: none; align-items: center; justify-content: center; padding: 20px; background: rgba(0, 20, 40, 0.88); cursor: zoom-out; }
+  .lightbox.show { display: flex; }
+  .lightbox img { max-width: 100%; max-height: 100%; object-fit: contain; border-radius: 10px; box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5); }
+  .lightbox-close { position: absolute; top: calc(14px + env(safe-area-inset-top, 0px)); right: 18px; color: #fff; font-size: 38px; line-height: 1; }
 
-    .content-area {
-      padding: 15px 5px 20px 5px; 
-    }
-
-    .carousel-container {
-      height: 75%; 
-      margin-bottom: 15px;
-    }
-    
-    .arrow {
-      width: 36px;
-      height: 36px;
-      font-size: 16px;
-    }
-    .arrow-left { left: 5px; }
-    .arrow-right { right: 5px; }
-
-    .text-container {
-      height: 25%; 
-      padding: 0 10px; 
-      margin-top: 5px;
-    }
-    
-    .text-title {
-      font-size: 20px;
-    }
+  /* 平板：說明卡移到截圖下面 */
+  @media (max-width: 1000px) {
+    .guide { grid-template-columns: 220px minmax(0, 1fr); }
+    .main { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr) auto; }
+    .note { max-height: 42vh; }
   }
 
-  /* 📱 手機：說明文字比以前長，圖片區讓出一點空間給文字；放不下時底部淡出，看得出來可以往下捲 */
-  @media (max-width: 600px) {
-    .carousel-container { height: 64%; margin-bottom: 10px; }
-    .text-container {
-      height: 36%;
-      -webkit-mask-image: linear-gradient(to bottom, #000 82%, transparent 100%);
-      mask-image: linear-gradient(to bottom, #000 82%, transparent 100%);
-      padding-bottom: 18px;
-    }
-    .text-title { font-size: 18px; margin-bottom: 4px; }
-    #displayDesc { font-size: 14px; line-height: 1.6; }
+  /* 手機：上方章節（橫向捲動）、中間截圖、下方說明 */
+  @media (max-width: 700px), (max-width: 1024px) and (orientation: portrait) {
+    body { padding: 0; }
+    .guide { width: 100%; height: 100%; border-radius: 0; border: 0; grid-template-columns: minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr); }
+    .side { padding: calc(10px + env(safe-area-inset-top, 0px)) 12px 8px; gap: 8px; border-right: 0; border-bottom: 2px dashed rgba(255, 255, 255, 0.22); }
+    .side-head { display: flex; align-items: center; gap: 8px; }
+    .brand { font-size: 18px; }
+    .brand img { width: 28px; height: 28px; }
+    .cats button { font-size: 13.5px; padding: 6px 0; }
+    .chapters { flex-direction: row; overflow-x: auto; overflow-y: hidden; padding-bottom: 2px; scrollbar-width: none; }
+    .chapters::-webkit-scrollbar { display: none; }
+    .chapter { flex: none; white-space: nowrap; padding: 7px 10px; font-size: 13px; gap: 7px; }
+    .chapter .box { width: 18px; height: 18px; border-radius: 6px; font-size: 11px; }
+    .side-note { display: none; }
+    .main { padding: 10px 12px calc(12px + env(safe-area-inset-bottom, 0px)); gap: 10px; grid-template-rows: auto minmax(0, 1fr) auto; }
+    .topbar { gap: 6px; }
+    .crumb { display: none; }
+    .seg button { padding: 5px 10px; font-size: 12px; }
+    .pill-btn { padding: 5px 10px; font-size: 12px; }
+    .close { width: 32px; height: 32px; font-size: 16px; }
+    .stage { min-height: 200px; border-radius: 16px; }
+    .stage img { inset: 8px; width: calc(100% - 16px); height: calc(100% - 16px); }
+    .note { max-height: none; padding: 14px 16px; gap: 8px; border-radius: 16px; }
+    .note h2 { font-size: 19px; }
+    .desc { max-height: 26vh; }
+    .desc p { font-size: 14px; line-height: 1.65; }
+    .nav button { padding: 10px; font-size: 14px; }
+    .keys { display: none; }
   }
-  /* 很窄的手機：電腦版／手機版切換移到第二排（語言按鈕旁邊），不要擠到「漂流指南」標題 */
-  @media (max-width: 400px) {
-    .device-toggle { top: 46px; right: 15px; }
-    .main-sidebar { padding-top: 78px !important; }
+  /* 手機上把「漂流指南」和關閉、切換按鈕放同一排 */
+  .side-head .close-m { display: none; }
+  @media (max-width: 700px), (max-width: 1024px) and (orientation: portrait) {
+    .side-head .close-m { display: block; }
+    .topbar .close { display: none; }
+    .side-head .spacer { flex: 1; }
   }
-  /* 比較矮的手機（例如 iPhone SE）：圖片再讓一點空間，字也再小一點 */
-  @media (max-width: 600px) and (max-height: 760px) {
-    .carousel-container { height: 56%; }
-    .text-container { height: 44%; }
-    .text-title { font-size: 17px; }
-    #displayDesc { font-size: 13px; line-height: 1.55; }
-    .main-sidebar { padding-top: 62px; padding-bottom: 6px; }
-    .main-tab { width: 40px; height: 40px; font-size: 20px; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .bubbles i { animation: none; display: none; }
+    .stage img { transition: none; }
   }
 </style>
 </head>
 <body>
 
-<div class="lightbox" id="lightbox">
-  <span class="lightbox-close">&times;</span>
+<div class="bubbles" aria-hidden="true">
+  <i style="left:6%;width:46px;height:46px;animation-duration:17s;animation-delay:-3s"></i>
+  <i style="left:18%;width:22px;height:22px;animation-duration:12s;animation-delay:-8s"></i>
+  <i style="left:38%;width:30px;height:30px;animation-duration:20s;animation-delay:-14s"></i>
+  <i style="left:61%;width:18px;height:18px;animation-duration:14s;animation-delay:-5s"></i>
+  <i style="left:78%;width:56px;height:56px;animation-duration:22s;animation-delay:-11s"></i>
+  <i style="left:92%;width:26px;height:26px;animation-duration:15s;animation-delay:-1s"></i>
+</div>
+
+<div class="lightbox" id="lightbox" role="dialog" aria-label="放大圖片">
+  <span class="lightbox-close" aria-hidden="true">&times;</span>
   <img id="lightboxImg" alt="放大圖片">
 </div>
 
-<div class="bubbles-container">
-  <div class="bubble"></div>
-  <div class="bubble"></div>
-  <div class="bubble"></div>
-  <div class="bubble"></div>
-  <div class="bubble"></div>
-  <div class="bubble"></div>
-  <div class="bubble"></div>
-</div>
-
-<div class="tutorial-window">
-  <div class="header-group">
-    <div class="tutorial-header" id="headerTitle"><span>▍</span>漂流指南</div>
-    <div class="lang-toggle-btn" id="langToggle">
-      <span class="globe">🌎</span> <span id="langText">EN</span>
+<div class="guide">
+  <aside class="side">
+    <div class="side-head">
+      <div class="brand"><img src="images/fish_logo.webp" alt=""><span id="brandText">漂流指南</span></div>
+      <span class="spacer"></span>
+      <button type="button" class="close close-m" id="closeGuideBtnM" aria-label="返回大廳">&times;</button>
     </div>
-  </div>
-  
-  <div class="device-toggle" id="deviceToggle">
-    <div class="toggle-btn active" data-mode="desktop" id="btnDesktop">💻 電腦版</div>
-    <div class="toggle-btn" data-mode="mobile" id="btnMobile">📱 手機版</div>
-  </div>
-
-  <div class="close-btn" id="closeGuideBtn" title="返回大廳">&times;</div>
-
-  <div style="display: flex; flex: 1; flex-direction: inherit; overflow: hidden;">
-    <div class="main-sidebar">
-      <div class="main-tab active" data-category="main" id="tabMain" title="心情漂流瓶">🍾</div>
-      <div class="main-tab" data-category="park" id="tabPark" title="遊樂園">🎮</div>
+    <div class="cats" role="tablist">
+      <button type="button" class="on" data-category="main" id="tabMain" role="tab">🍾 心情漂流瓶</button>
+      <button type="button" data-category="park" id="tabPark" role="tab">🎮 遊樂園</button>
     </div>
+    <nav class="chapters" id="chapterList" aria-label="章節"></nav>
+    <p class="side-note" id="sideNote">看完一章的最後一頁就會打勾，下次打開還記得喔。</p>
+  </aside>
 
-    <div class="sub-sidebar" id="subSidebar"></div>
-
-    <div class="content-area">
-      <div class="carousel-container" id="carouselContainer">
-        <button class="arrow arrow-left" id="prevBtn">◀</button>
-        
-        <div class="image-container" id="imgContainer">
-          <img id="displayImage" alt="指南圖片">
-          <div class="zoom-hint" id="zoomHint">🔍 點擊圖片放大</div>
-          <div class="dots-wrapper" id="dotsWrapper"></div>
-        </div>
-        
-        <button class="arrow arrow-right" id="nextBtn">▶</button>
+  <main class="main">
+    <div class="topbar">
+      <span class="crumb" id="crumb"></span>
+      <span class="spacer"></span>
+      <button type="button" class="pill-btn" id="langToggle">🌎 EN</button>
+      <div class="seg" role="group" aria-label="截圖版本">
+        <button type="button" class="on" data-mode="desktop" id="btnDesktop">💻 電腦版</button>
+        <button type="button" data-mode="mobile" id="btnMobile">📱 手機版</button>
       </div>
-
-      <div class="text-container">
-        <h3 class="text-title" id="displayTitle">標題</h3>
-        <p class="text-desc" id="displayDesc">描述內容</p>
-      </div>
+      <button type="button" class="close" id="closeGuideBtn" aria-label="返回大廳">&times;</button>
     </div>
-  </div>
-</div>
 
+    <div class="stage" id="stage" role="button" tabindex="0" aria-label="放大圖片">
+      <img id="displayImage" alt="">
+      <span class="zoom-hint" id="zoomHint">🔍 點擊圖片放大</span>
+    </div>
+
+    <section class="note" aria-live="polite">
+      <span class="step" id="stepText"></span>
+      <h2 id="displayTitle"></h2>
+      <div class="desc"><p id="displayDesc"></p></div>
+      <div class="progress" id="progress"></div>
+      <div class="nav">
+        <button type="button" class="prev" id="prevBtn">←</button>
+        <button type="button" class="next" id="nextBtn"></button>
+      </div>
+      <div class="keys" id="keysHint">鍵盤 ← → 也可以翻頁</div>
+    </section>
+  </main>
+</div>
 <script>
-  document.getElementById('closeGuideBtn').onclick = () => {
-    window.location.href = 'index.html'; 
-  };
-
-  const lightbox = document.getElementById('lightbox');
-  const lightboxImg = document.getElementById('lightboxImg');
-  const imgContainer = document.getElementById('imgContainer');
-  const subSidebar = document.getElementById('subSidebar');
-  const carouselContainer = document.getElementById('carouselContainer');
-  const displayImage = document.getElementById('displayImage');
-  const displayTitle = document.getElementById('displayTitle');
-  const displayDesc = document.getElementById('displayDesc');
-  const dotsWrapper = document.getElementById('dotsWrapper');
-  const prevBtn = document.getElementById('prevBtn');
-  const nextBtn = document.getElementById('nextBtn');
-  const langToggle = document.getElementById('langToggle');
+  const $ = (id) => document.getElementById(id);
+  const lightbox = $('lightbox');
+  const lightboxImg = $('lightboxImg');
+  const stage = $('stage');
+  const chapterList = $('chapterList');
+  const displayImage = $('displayImage');
+  const prevBtn = $('prevBtn');
+  const nextBtn = $('nextBtn');
 
   const uiTexts = {
     zh: {
-      header: "<span>▍</span>漂流指南",
-      desktop: "💻 電腦版",
-      mobile: "📱 手機版",
-      zoom: "🔍 點擊圖片放大",
-      lang: "EN",
-      tabMainTitle: "心情漂流瓶",
-      tabParkTitle: "遊樂園"
+      brand: "漂流指南", desktop: "💻 電腦版", mobile: "📱 手機版", zoom: "🔍 點擊圖片放大", lang: "🌎 EN",
+      main: "🍾 心情漂流瓶", park: "🎮 遊樂園", close: "返回大廳", zoomAria: "放大圖片",
+      step: (n, m) => `第 ${n} / ${m} 頁`, prev: "←", next: "下一頁 →",
+      nextChapter: (t) => `下一章：${t} →`, toPark: "看遊樂園教學 →", finish: "看完了，回到大廳 ✓",
+      sideNote: "看完一章的最後一頁就會打勾，下次打開還記得喔。", keys: "鍵盤 ← → 也可以翻頁"
     },
     en: {
-      header: "<span>▍</span>Drift Guide",
-      desktop: "💻 Desktop",
-      mobile: "📱 Mobile",
-      zoom: "🔍 Click to zoom",
-      lang: "中文",
-      tabMainTitle: "Drift Bottle",
-      tabParkTitle: "Playground"
+      brand: "Drift Guide", desktop: "💻 Desktop", mobile: "📱 Mobile", zoom: "🔍 Click to zoom", lang: "🌎 中文",
+      main: "🍾 Drift Bottle", park: "🎮 Playground", close: "Back to lobby", zoomAria: "Zoom image",
+      step: (n, m) => `Page ${n} / ${m}`, prev: "←", next: "Next →",
+      nextChapter: (t) => `Next: ${t} →`, toPark: "Playground guide →", finish: "All done — back to lobby ✓",
+      sideNote: "A chapter gets a tick once you reach its last page, and we'll remember it.", keys: "Use ← → keys to flip pages"
     }
-  };
-  
-  imgContainer.onclick = () => {
-    lightboxImg.src = document.getElementById('displayImage').src;
-    lightbox.classList.add('show');
-  };
-  lightbox.onclick = () => {
-    lightbox.classList.remove('show');
   };
 
   // === 雙語資料庫 ===
@@ -886,157 +574,180 @@
       ]
     }
   };
+  let currentLang = 'zh';
+  let currentDeviceMode = window.matchMedia('(max-width: 700px)').matches ? 'mobile' : 'desktop';
+  let currentCategory = 'main';
+  let currentSubIndex = 0;
+  let currentSlideIndex = 0;
+  let shownSrc = '';   // 目前這頁要顯示的截圖（換圖時有淡入，放大要用這張，不是還沒換掉的舊圖）
 
-  let currentLang = 'zh'; 
-  let currentDeviceMode = 'desktop'; 
-  let currentCategory = 'main'; 
-  let currentSubIndex = 0;      
-  let currentSlideIndex = 0;    
+  // 看完的章節（看到該章最後一頁）記在這台裝置上；讀不到也沒關係，只是不會打勾
+  const DONE_KEY = 'tutorialDoneChapters';
+  let doneSet = new Set();
+  try { doneSet = new Set(JSON.parse(localStorage.getItem(DONE_KEY) || '[]')); } catch (e) {}
+  const chapterKey = (cat, i) => cat + ':' + i;
+  function markDone() {
+    const slides = tutorialData[currentLang][currentCategory][currentSubIndex].slides;
+    if (currentSlideIndex !== slides.length - 1) return;
+    const k = chapterKey(currentCategory, currentSubIndex);
+    if (doneSet.has(k)) return;
+    doneSet.add(k);
+    try { localStorage.setItem(DONE_KEY, JSON.stringify([...doneSet])); } catch (e) {}
+  }
 
-  langToggle.onclick = () => {
-    currentLang = currentLang === 'zh' ? 'en' : 'zh';
-    
-    document.getElementById('headerTitle').innerHTML = uiTexts[currentLang].header;
-    document.getElementById('btnDesktop').innerText = uiTexts[currentLang].desktop;
-    document.getElementById('btnMobile').innerText = uiTexts[currentLang].mobile;
-    document.getElementById('zoomHint').innerText = uiTexts[currentLang].zoom;
-    document.getElementById('langText').innerText = uiTexts[currentLang].lang;
-    document.getElementById('tabMain').title = uiTexts[currentLang].tabMainTitle;
-    document.getElementById('tabPark').title = uiTexts[currentLang].tabParkTitle;
-    
-    renderSubMenu();
-    renderSlide();
-  };
+  const goLobby = () => { window.location.href = 'index.html'; };
+  $('closeGuideBtn').onclick = goLobby;
+  $('closeGuideBtnM').onclick = goLobby;
 
-  const toggleBtns = document.querySelectorAll('.device-toggle .toggle-btn');
-  toggleBtns.forEach(btn => {
-    btn.onclick = (e) => {
-      toggleBtns.forEach(b => b.classList.remove('active'));
-      e.currentTarget.classList.add('active');
-      currentDeviceMode = e.currentTarget.getAttribute('data-mode');
-      renderSlide(); 
-    };
-  });
-
-  subSidebar.addEventListener('wheel', (evt) => {
-    if (window.innerWidth <= 900) {
-      evt.preventDefault();
-      subSidebar.scrollLeft += evt.deltaY;
-    }
-  });
-
-  let wheelTimeout;
-  carouselContainer.addEventListener('wheel', (evt) => {
-    evt.preventDefault(); 
-    if (wheelTimeout) return;
-    if (evt.deltaY > 0) {
-      nextBtn.click(); 
-    } else if (evt.deltaY < 0) {
-      prevBtn.click(); 
-    }
-    wheelTimeout = setTimeout(() => {
-      wheelTimeout = null;
-    }, 400); 
-  }, { passive: false });
-
-  let touchStartX = 0;
-  let touchEndX = 0;
-
-  carouselContainer.addEventListener('touchstart', (evt) => {
-    touchStartX = evt.changedTouches[0].screenX;
-  }, { passive: true });
-
-  carouselContainer.addEventListener('touchend', (evt) => {
-    touchEndX = evt.changedTouches[0].screenX;
-    handleSwipe();
-  }, { passive: true });
-
-  function handleSwipe() {
-    const threshold = 40; 
-    if (touchStartX - touchEndX > threshold) {
-      if(nextBtn.style.visibility !== 'hidden') nextBtn.click();
-    } else if (touchEndX - touchStartX > threshold) {
-      if(prevBtn.style.visibility !== 'hidden') prevBtn.click();
-    }
+  function renderStatic() {
+    const t = uiTexts[currentLang];
+    document.documentElement.lang = currentLang === 'en' ? 'en' : 'zh-TW';
+    $('brandText').textContent = t.brand;
+    $('btnDesktop').textContent = t.desktop;
+    $('btnMobile').textContent = t.mobile;
+    $('zoomHint').textContent = t.zoom;
+    $('langToggle').textContent = t.lang;
+    $('tabMain').textContent = t.main;
+    $('tabPark').textContent = t.park;
+    $('sideNote').textContent = t.sideNote;
+    $('keysHint').textContent = t.keys;
+    stage.setAttribute('aria-label', t.zoomAria);
+    ['closeGuideBtn', 'closeGuideBtnM'].forEach((id) => $(id).setAttribute('aria-label', t.close));
+    document.querySelectorAll('.cats button').forEach((b) => {
+      const on = b.dataset.category === currentCategory;
+      b.classList.toggle('on', on);
+      b.setAttribute('aria-selected', on ? 'true' : 'false');
+    });
+    document.querySelectorAll('.seg button').forEach((b) => b.classList.toggle('on', b.dataset.mode === currentDeviceMode));
   }
 
   function renderSubMenu() {
-    subSidebar.innerHTML = ''; 
-    const items = tutorialData[currentLang][currentCategory];
-    
-    items.forEach((item, index) => {
-      const btn = document.createElement('div');
-      btn.className = `sub-tab ${index === currentSubIndex ? 'active' : ''}`;
-      btn.innerText = item.title;
-      btn.onclick = () => {
-        currentSubIndex = index;
-        currentSlideIndex = 0; 
-        renderSubMenu();       
-        renderSlide();         
-      };
-      subSidebar.appendChild(btn);
+    chapterList.innerHTML = '';
+    tutorialData[currentLang][currentCategory].forEach((item, index) => {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      const done = doneSet.has(chapterKey(currentCategory, index));
+      btn.className = 'chapter' + (index === currentSubIndex ? ' on' : '') + (done ? ' done' : '');
+      if (index === currentSubIndex) btn.setAttribute('aria-current', 'step');
+      const box = document.createElement('span');
+      box.className = 'box';
+      box.textContent = done ? '✓' : '';
+      btn.appendChild(box);
+      btn.appendChild(document.createTextNode(item.title));
+      btn.onclick = () => { currentSubIndex = index; currentSlideIndex = 0; render(); };
+      chapterList.appendChild(btn);
     });
+    // 手機的章節是橫向一排：把目前這章捲到看得到的地方
+    const on = chapterList.querySelector('.chapter.on');
+    if (on && chapterList.scrollWidth > chapterList.clientWidth) {
+      chapterList.scrollTo({ left: on.offsetLeft - 12, behavior: 'smooth' });
+    }
   }
 
   function renderSlide() {
-    const slideData = tutorialData[currentLang][currentCategory][currentSubIndex].slides;
-    const currentSlide = slideData[currentSlideIndex];
-
-    displayImage.src = currentDeviceMode === 'mobile' ? currentSlide.mobileImg : currentSlide.img;
-    displayTitle.innerText = currentSlide.subtitle;
-    displayDesc.innerText = currentSlide.desc;
-
-    dotsWrapper.innerHTML = '';
-    slideData.forEach((_, idx) => {
-      const dot = document.createElement('div');
-      dot.className = `dot ${idx === currentSlideIndex ? 'active' : ''}`;
-      dotsWrapper.appendChild(dot);
-    });
-
-    if (slideData.length <= 1) {
-      prevBtn.style.visibility = 'hidden';
-      nextBtn.style.visibility = 'hidden';
-    } else {
-      prevBtn.style.visibility = currentSlideIndex === 0 ? 'hidden' : 'visible';
-      nextBtn.style.visibility = currentSlideIndex === slideData.length - 1 ? 'hidden' : 'visible';
-      
-      prevBtn.style.cursor = currentSlideIndex === 0 ? 'default' : 'pointer';
-      prevBtn.style.cursor = currentSlideIndex === slideData.length - 1 ? 'default' : 'pointer';
-      prevBtn.style.opacity = '1';
+    const t = uiTexts[currentLang];
+    const chapters = tutorialData[currentLang][currentCategory];
+    const chapter = chapters[currentSubIndex];
+    const slides = chapter.slides;
+    const s = slides[currentSlideIndex];
+    const src = currentDeviceMode === 'mobile' ? s.mobileImg : s.img;
+    shownSrc = src;
+    if (!displayImage.src.endsWith(src.replace('./', ''))) {
+      displayImage.classList.add('swap');
+      const next = new Image();
+      // 快速連翻時，比較晚載完的舊圖不能蓋掉目前這頁的圖
+      next.onload = next.onerror = () => { if (src !== shownSrc) return; displayImage.src = src; displayImage.classList.remove('swap'); };
+      next.src = src;
     }
+    displayImage.alt = s.subtitle;
+    $('displayTitle').textContent = s.subtitle;
+    $('displayDesc').textContent = s.desc;
+    $('stepText').textContent = t.step(currentSlideIndex + 1, slides.length);
+    $('crumb').innerHTML = '';
+    $('crumb').append(document.createTextNode((currentCategory === 'main' ? t.main : t.park).replace(/^\S+\s/, '') + ' › '));
+    const b = document.createElement('b'); b.textContent = chapter.title; $('crumb').append(b);
+    $('progress').innerHTML = slides.map((_, i) => `<i class="${i <= currentSlideIndex ? 'on' : ''}"></i>`).join('');
+
+    prevBtn.disabled = currentSlideIndex === 0 && currentSubIndex === 0;
+    prevBtn.setAttribute('aria-label', currentLang === 'en' ? 'Previous' : '上一頁');
+    const lastSlide = currentSlideIndex === slides.length - 1;
+    const lastChapter = currentSubIndex === chapters.length - 1;
+    let label = t.next;
+    if (lastSlide && !lastChapter) label = t.nextChapter(chapters[currentSubIndex + 1].title);
+    else if (lastSlide && currentCategory === 'main') label = t.toPark;
+    else if (lastSlide) label = t.finish;
+    nextBtn.textContent = label;
+    nextBtn.title = label;
+    markDone();
   }
 
-  prevBtn.onclick = () => {
-    if (currentSlideIndex > 0) {
-      currentSlideIndex--;
-      renderSlide();
-    }
-  };
-  
-  nextBtn.onclick = () => {
-    const maxSlides = tutorialData[currentLang][currentCategory][currentSubIndex].slides.length;
-    if (currentSlideIndex < maxSlides - 1) {
-      currentSlideIndex++;
-      renderSlide();
-    }
-  };
+  function render() { renderStatic(); renderSlide(); renderSubMenu(); }
 
-  document.querySelectorAll('.main-tab').forEach(tab => {
-    tab.onclick = (e) => {
-      document.querySelectorAll('.main-tab').forEach(t => t.classList.remove('active'));
-      e.currentTarget.classList.add('active');
-      
-      currentCategory = e.currentTarget.getAttribute('data-category');
-      currentSubIndex = 0;
-      currentSlideIndex = 0;
-      
-      renderSubMenu();
-      renderSlide();
-    };
+  function goNext() {
+    const chapters = tutorialData[currentLang][currentCategory];
+    const slides = chapters[currentSubIndex].slides;
+    if (currentSlideIndex < slides.length - 1) currentSlideIndex++;
+    else if (currentSubIndex < chapters.length - 1) { currentSubIndex++; currentSlideIndex = 0; }
+    else if (currentCategory === 'main') { currentCategory = 'park'; currentSubIndex = 0; currentSlideIndex = 0; }
+    else { goLobby(); return; }
+    render();
+  }
+  function goPrev() {
+    if (currentSlideIndex > 0) currentSlideIndex--;
+    else if (currentSubIndex > 0) { currentSubIndex--; currentSlideIndex = tutorialData[currentLang][currentCategory][currentSubIndex].slides.length - 1; }
+    else return;
+    render();
+  }
+  nextBtn.onclick = goNext;
+  prevBtn.onclick = goPrev;
+
+  $('langToggle').onclick = () => { currentLang = currentLang === 'zh' ? 'en' : 'zh'; render(); };
+  document.querySelectorAll('.seg button').forEach((btn) => {
+    btn.onclick = () => { currentDeviceMode = btn.dataset.mode; render(); };
+  });
+  document.querySelectorAll('.cats button').forEach((btn) => {
+    btn.onclick = () => { currentCategory = btn.dataset.category; currentSubIndex = 0; currentSlideIndex = 0; render(); };
   });
 
-  renderSubMenu();
-  renderSlide();
+  // 放大看圖
+  const openZoom = () => { lightboxImg.src = shownSrc || displayImage.src; lightbox.classList.add('show'); };
+  stage.onclick = openZoom;
+  stage.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openZoom(); } });
+  lightbox.onclick = () => lightbox.classList.remove('show');
+
+  // 鍵盤：← → 翻頁，Esc 關掉放大圖
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') { lightbox.classList.remove('show'); return; }
+    if (lightbox.classList.contains('show')) return;
+    if (e.key === 'ArrowRight') goNext();
+    if (e.key === 'ArrowLeft') goPrev();
+  });
+
+  // 手機：在截圖上左右滑動翻頁
+  let touchX = null;
+  stage.addEventListener('touchstart', (e) => { touchX = e.changedTouches[0].screenX; }, { passive: true });
+  stage.addEventListener('touchend', (e) => {
+    if (touchX === null) return;
+    const dx = e.changedTouches[0].screenX - touchX;
+    touchX = null;
+    if (Math.abs(dx) < 40) return;
+    // 滑動過就不要再觸發點擊放大
+    stage.dataset.swiped = '1';
+    setTimeout(() => delete stage.dataset.swiped, 350);
+    if (dx < 0) goNext(); else goPrev();
+  }, { passive: true });
+  stage.addEventListener('click', (e) => { if (stage.dataset.swiped) e.stopImmediatePropagation(); }, true);
+
+  // 電腦：在截圖上滾滑鼠滾輪也能翻頁
+  let wheelLock = null;
+  stage.addEventListener('wheel', (e) => {
+    e.preventDefault();
+    if (wheelLock) return;
+    if (e.deltaY > 0) goNext(); else if (e.deltaY < 0) goPrev();
+    wheelLock = setTimeout(() => { wheelLock = null; }, 450);
+  }, { passive: false });
+
+  render();
 </script>
 </body>
 </html>
