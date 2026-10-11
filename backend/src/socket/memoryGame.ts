@@ -5,6 +5,7 @@ import prisma from '../lib/prisma.js';
 import { gameConfig } from './gameConfig.js';
 import { applyQuitPenalty } from './quitPenalty.js';
 import { milestonesReached, MILESTONES } from './memoryRewards.js';
+import { getTodayDateStr } from './petGame.service.js';
 
 /*
  * 記憶翻牌對決（連線房間裡的小遊戲）
@@ -12,6 +13,7 @@ import { milestonesReached, MILESTONES } from './memoryRewards.js';
  * 牌的位置只存在伺服器，翻開時才告訴大家那張是什麼，避免有人從前端偷看答案。
  * 輪流翻牌：翻對加分並可以繼續翻（最多連續 maxStreak 組），翻錯或時間到就換下一位。
  * 全部翻完分數最高的人贏；只有一個最高分、而且至少兩個不同的登入帳號參加，才記一場勝場。
+ * 防分身互刷：有人整局一張牌都沒翻不算勝場；同一組贏家／輸家帳號每天最多算 dailyWinsPerOpponent 場。
  * 鬼牌（開關在 gameConfig）：牌堆多一對，但不用配對，翻到任何一張就把還沒配對的牌重洗，不加分、直接換下一位。
  *
  * 開局邀請（觀戰模式）：
@@ -40,6 +42,7 @@ interface MemoryPlayer {
     score: number;
     memberId: number | undefined; // 登入帳號，用來斷線重連找回位置、記勝場；不會送給前端
     strikes: number;     // 輪到時整回合沒翻牌的次數
+    flips: number;       // 這局翻過幾張牌（整局沒翻的人在，這局就不算勝場）
     connected: boolean;  // 斷線中位置先保留
 }
 
@@ -58,7 +61,12 @@ interface MemoryGame {
     turnSeq: number;              // 每換一次人 +1，延遲執行的動作用來確認還是同一回合
     flippedThisTurn: boolean;     // 這回合有沒有翻過牌（沒翻就記警告）
     distinctMembersAtStart: number; // 開局時有幾個不同的登入帳號（記勝場用）
+    membersAtStart: number[];       // 開局時的登入帳號（中途離開的人也算輸家，用來算同組對手場數）
 }
+
+/* 同一組贏家／輸家帳號當天已經算了幾場勝場：放記憶體就好，後端重開當天重算 */
+const DAILY_WINS_PER_OPPONENT = 3;
+const pairWins = { date: '', counts: new Map<string, number>() };
 
 const games = new Map<string, MemoryGame>();
 
@@ -248,6 +256,12 @@ const finishGame = async (io: Server, game: MemoryGame) => {
     const winnerMemberId = winner ? (winner.memberId ?? memberOf(io, winner.socketId)) : undefined;
     if (!winner || !winnerMemberId || game.distinctMembersAtStart < cfg.minPlayers) return;
 
+    const skipped = winSkipReason(game, winnerMemberId);
+    if (skipped) {
+        io.to(winner.socketId).emit('memory_win_skipped', { message: skipped });
+        return;
+    }
+
     try {
         const result = await recordWin(winnerMemberId);
         io.to(winner.socketId).emit('memory_win_recorded', {
@@ -257,6 +271,20 @@ const finishGame = async (io: Server, game: MemoryGame) => {
     } catch (error) {
         console.error('❌ [翻牌對決] 記錄勝場失敗:', error);
     }
+};
+
+/* 防分身互刷：這場勝場不算的原因（算的話回 null，並把同組對手的場數 +1） */
+const winSkipReason = (game: MemoryGame, winnerMemberId: number): string | null => {
+    if (game.players.some(p => p.flips === 0)) return '有玩家整局都沒翻牌，這局不算勝場。';
+
+    const today = getTodayDateStr();
+    if (pairWins.date !== today) { pairWins.date = today; pairWins.counts.clear(); }
+    const keys = game.membersAtStart.filter(id => id !== winnerMemberId).map(id => `${winnerMemberId}:${id}`);
+    if (keys.some(k => (pairWins.counts.get(k) ?? 0) >= DAILY_WINS_PER_OPPONENT)) {
+        return `今天贏同一位對手已經算滿 ${DAILY_WINS_PER_OPPONENT} 場，這局不算勝場，明天再來！`;
+    }
+    keys.forEach(k => pairWins.counts.set(k, (pairWins.counts.get(k) ?? 0) + 1));
+    return null;
 };
 
 /* 給前端的邀請狀態：誰加入了、還有幾個人沒回覆 */
@@ -311,7 +339,7 @@ const beginGame = (io: Server, invite: MemoryInvite) => {
         revealed: [],
         players: shuffle(seats.map(([socketId, p]) => ({
             socketId, petName: p.petName, petColor: p.petColor, score: 0,
-            memberId: memberOf(io, socketId), strikes: 0, connected: true,
+            memberId: memberOf(io, socketId), strikes: 0, flips: 0, connected: true,
         }))),
         turnIndex: 0,
         streak: 0,
@@ -321,8 +349,10 @@ const beginGame = (io: Server, invite: MemoryInvite) => {
         turnSeq: 0,
         flippedThisTurn: false,
         distinctMembersAtStart: 0,
+        membersAtStart: [],
     };
-    game.distinctMembersAtStart = new Set(game.players.map(p => p.memberId).filter(Boolean)).size;
+    game.membersAtStart = [...new Set(game.players.map(p => p.memberId).filter((id): id is number => typeof id === 'number'))];
+    game.distinctMembersAtStart = game.membersAtStart.length;
     games.set(invite.roomId, game);
     startTurnTimer(io, game);
     io.to(invite.roomId).emit('memory_started', {
@@ -418,6 +448,7 @@ export const setupMemoryGame = (io: Server, socket: Socket, getRoom: RoomLookup,
 
         game.revealed.push(i);
         game.flippedThisTurn = true;
+        currentPlayer(game)!.flips++;
         io.to(game.roomId).emit('memory_revealed', { index: i, face: game.faces[i], by: socket.id });
 
         if (game.faces[i] === JOKER) {

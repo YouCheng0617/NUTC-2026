@@ -31,10 +31,10 @@ export const renamePet = async (memberId: number, newName: string) => {
         }
     });
 };
-// 財富自由兌換的冷卻與每日次數：放在記憶體即可，不需要動到資料表
+// 財富自由兌換的冷卻與每日次數：放在記憶體即可，不需要動到資料表（後端重開當天次數會重算）
 const moneyExchangeLog = new Map<number, { last: number; date: string; count: number }>();
-// 跳動音符收集的冷卻（上次收集的時間戳）
-const musicNoteLog = new Map<number, number>();
+// 跳動音符收集的冷卻（上次收集的時間戳）與當天已收的分數
+const musicNoteLog = new Map<number, { last: number; date: string; earned: number }>();
 
 export type PetActionType = keyof typeof gameConfig.actions;
 
@@ -69,7 +69,7 @@ export const interactPet = async (memberId: number, actionType: PetActionType) =
         }
 
         // 以下檢查與寫入冷卻之間沒有 await，同一個人同時送多個請求也不會重複通過
-        const today = now.toISOString().slice(0, 10);
+        const today = getTodayDateStr(now);
         const log = moneyExchangeLog.get(memberId) ?? { last: 0, date: today, count: 0 };
         if (log.date !== today) { log.date = today; log.count = 0; }
 
@@ -91,7 +91,7 @@ export const interactPet = async (memberId: number, actionType: PetActionType) =
         });
     }
 
-    // 跳動音符：點飄浮音符 +15（0.5 秒冷卻）、商店買音符 -1，都沒有次數限制
+    // 跳動音符：點飄浮音符 +15（0.5 秒冷卻、每天有上限）、商店買音符 -1
     if (actionType === 'MUSIC_NOTE' || actionType === 'MUSIC_BUY_NOTE') {
         if (!(await ownsEffect(pet.pet_id, 'music'))) {
             throw new Error("尚未擁有跳動音符特效！");
@@ -99,11 +99,21 @@ export const interactPet = async (memberId: number, actionType: PetActionType) =
 
         if (actionType === 'MUSIC_NOTE') {
             // 檢查與寫入冷卻之間沒有 await，同時送多個請求也只會通過一個
-            const waited = (now.getTime() - (musicNoteLog.get(memberId) ?? 0)) / 1000;
+            const today = getTodayDateStr(now);
+            const log = musicNoteLog.get(memberId) ?? { last: 0, date: today, earned: 0 };
+            if (log.date !== today) { log.date = today; log.earned = 0; }
+
+            const waited = (now.getTime() - log.last) / 1000;
             if (waited < action.cdSeconds) {
                 throw new Error("收集太快了，請稍等一下！");
             }
-            musicNoteLog.set(memberId, now.getTime());
+            // 這句不能含「冷卻／稍等／太快」，前端看到那些字會一直重送
+            if (log.earned + action.reward > gameConfig.musicGame.dailyCoinLimit) {
+                throw new Error("今天的音符已經收滿了，明天再來！");
+            }
+            log.last = now.getTime();
+            log.earned += action.reward;
+            musicNoteLog.set(memberId, log);
 
             return await prisma.pet.update({
                 where: { member_id: memberId },
@@ -123,37 +133,37 @@ export const interactPet = async (memberId: number, actionType: PetActionType) =
         return await prisma.pet.findUniqueOrThrow({ where: { member_id: memberId } });
     }
 
-    let lastActionTime: Date;
-    let updateField: Record<string, any> = {};
+    const timeField = ({
+        FEED: 'last_feed_time',
+        PURIFY: 'last_purify_time',
+        PET: 'last_pet_time'
+    } as const)[actionType as 'FEED' | 'PURIFY' | 'PET'];
 
-    switch (actionType) {
-        case 'FEED':
-            lastActionTime = pet.last_feed_time;
-            updateField = { last_feed_time: now };
-            break;
-        case 'PURIFY':
-            lastActionTime = pet.last_purify_time;
-            updateField = { last_purify_time: now };
-            break;
-        case 'PET':
-            lastActionTime = pet.last_pet_time;
-            updateField = { last_pet_time: now };
-            break;
+    const cooldownError = (lastActionTime: Date) => {
+        const remaining = Math.max(1, Math.ceil(action.cdSeconds - (now.getTime() - lastActionTime.getTime()) / 1000));
+        return new Error(`冷卻中！還需等待 ${remaining} 秒才能再次執行。`);
+    };
+
+    if ((now.getTime() - pet[timeField].getTime()) / 1000 < action.cdSeconds) {
+        throw cooldownError(pet[timeField]);
     }
 
-    const diffSeconds = (now.getTime() - lastActionTime.getTime()) / 1000;
-    if (diffSeconds < action.cdSeconds) {
-        const remaining = Math.ceil(action.cdSeconds - diffSeconds);
-        throw new Error(`冷卻中！還需等待 ${remaining} 秒才能再次執行。`);
-    }
-
-    return await prisma.pet.update({
-        where: { member_id: memberId },
+    // 帶條件更新：冷卻條件寫在 where 裡，同時送多個請求也只有一個會加到分
+    const { count } = await prisma.pet.updateMany({
+        where: {
+            member_id: memberId,
+            [timeField]: { lte: new Date(now.getTime() - action.cdSeconds * 1000) }
+        },
         data: {
             coin: { increment: action.reward },
-            ...updateField
+            [timeField]: now
         }
-    })
+    });
+    if (count === 0) {
+        const latest = await prisma.pet.findUniqueOrThrow({ where: { member_id: memberId } });
+        throw cooldownError(latest[timeField]);
+    }
+    return await prisma.pet.findUniqueOrThrow({ where: { member_id: memberId } });
 };
 export const buyShopItem = async (
     memberId: number,
@@ -212,26 +222,48 @@ export const buyShopItem = async (
         throw new Error(`金幣不足！購買此商品需要 ${price} 金幣，您目前只有 ${pet.coin} 金幣。`);
     }
 
+    try {
+        return await buyNewItem(memberId, pet.pet_id, category, itemName, price);
+    } catch (error: any) {
+        if (error?.code === 'P2002') throw new Error("已經擁有這個商品了！");
+        throw error;
+    }
+};
+
+const buyNewItem = async (
+    memberId: number,
+    petId: number,
+    category: 'pet_color' | 'background_color' | 'background_effects',
+    itemName: string,
+    price: number
+) => {
     return await prisma.$transaction(async (tx) => {
+        // 帶條件扣款：同時買好幾樣時，積分不夠的那筆會在這裡失敗並整筆回滾，不會扣成負數
+        const { count } = await tx.pet.updateMany({
+            where: { member_id: memberId, coin: { gte: price } },
+            data: {
+                coin: { decrement: price },
+                [category]: itemName
+            }
+        });
+        if (count === 0) {
+            throw new Error(`金幣不足！購買此商品需要 ${price} 金幣。`);
+        }
+
+        // 同一樣東西同時買兩次：第二筆會撞到唯一鍵而回滾，不會重複扣款
         await tx.petInventory.create({
             data: {
-                pet_id: pet.pet_id,
+                pet_id: petId,
                 category: category,
                 item_name: itemName
             }
         });
 
-        return await tx.pet.update({
+        return await tx.pet.findUniqueOrThrow({
             where: { member_id: memberId },
-            data: {
-                coin: { decrement: price },
-                [category]: itemName
-            },
             include: { PetInventory: true }
         });
-
     });
-
 };
 export const getMyPetWithInventory = async (memberId: number) => {
     let pet = await prisma.pet.findUnique({
@@ -271,6 +303,51 @@ export const getPetCoin = async (memberId: number) => {
     }
 
     return { coin: pet.coin };
+};
+
+// 正在抽的帳號：檢查與加入之間沒有 await，同時送多個請求也只有一個能抽
+const adopting = new Set<number>();
+
+/**
+ * 新手領養：由伺服器隨機抽一隻海兔、存進收藏並換上
+ * 收藏裡已經有任何寵物顏色（抽過或買過）就不能再抽，回傳 adopted: false 和目前的寵物
+ */
+export const adoptPetService = async (memberId: number) => {
+    if (adopting.has(memberId)) throw new Error("正在幫你抽海兔，請稍等一下！");
+    adopting.add(memberId);
+    try {
+        let pet = await prisma.pet.findUnique({
+            where: { member_id: memberId },
+            include: { PetInventory: true }
+        });
+        if (!pet) {
+            pet = await prisma.pet.create({
+                data: { member_id: memberId },
+                include: { PetInventory: true }
+            });
+        }
+        if (pet.PetInventory.some(item => item.category === 'pet_color')) {
+            return { adopted: false, species: pet.pet_color, pet };
+        }
+
+        // 跟前端一樣從所有寵物顏色裡抽（雪兔也算），小丑海兔不在商店清單裡所以抽不到
+        const keys = Object.keys(gameConfig.shop.pet_color);
+        const species = keys[Math.floor(Math.random() * keys.length)]!;
+
+        const updatedPet = await prisma.$transaction(async (tx) => {
+            await tx.petInventory.create({
+                data: { pet_id: pet.pet_id, category: 'pet_color', item_name: species }
+            });
+            return await tx.pet.update({
+                where: { member_id: memberId },
+                data: { pet_color: species },
+                include: { PetInventory: true }
+            });
+        });
+        return { adopted: true, species, pet: updatedPet };
+    } finally {
+        adopting.delete(memberId);
+    }
 };
 
 /**
@@ -339,15 +416,25 @@ export const signInPetService = async (memberId: number) => {
         coin: isBonus ? 200 : 100
     };
 
-    // 4. 更新資料庫
-    const updatedPet = await prisma.pet.update({
-        where: { member_id: memberId },
+    // 4. 更新資料庫：帶條件更新，只有今天還沒簽過才會成功，同時送多個請求也只會領到一次
+    const todayStart = new Date(`${todayStr}T00:00:00+08:00`);
+    const { count } = await prisma.pet.updateMany({
+        where: {
+            member_id: memberId,
+            OR: [{ last_sign_in_date: null }, { last_sign_in_date: { lt: todayStart } }]
+        },
         data: {
             coin: { increment: rewardConfig.coin },
             last_sign_in_date: now,
             sign_in_streak: newStreak,
             total_sign_in_days: { increment: 1 }
-        },
+        }
+    });
+    if (count === 0) {
+        throw new Error("今天已經簽到過囉！明天再來領取獎勵吧～");
+    }
+    const updatedPet = await prisma.pet.findUniqueOrThrow({
+        where: { member_id: memberId },
         include: { PetInventory: true }
     });
 

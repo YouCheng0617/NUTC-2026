@@ -23,7 +23,7 @@ export const gameConfig = {
         FEED: { reward: 80, cdSeconds: 8 },          // 餵食海藻
         PURIFY: { reward: 100, cdSeconds: 15 },      // 淨化水質
         PET: { reward: 60, cdSeconds: 10 },          // 撫摸雪兔
-        MONEY_EXCHANGE: { reward: 120, cdSeconds: 5 }, // 財富自由小遊戲：接滿金幣後兌換，5 秒冷卻防止連發
+        MONEY_EXCHANGE: { reward: 120, cdSeconds: 25 }, // 財富自由小遊戲：接滿金幣後兌換；電腦版約 0.62 秒掉一枚，接滿 50 枚最快約 30 秒，冷卻 25 秒留一點餘裕
         MUSIC_NOTE: { reward: 15, cdSeconds: 0.5 },    // 跳動音符：點飄浮音符收集，0.5 秒冷卻防止連發
         MUSIC_BUY_NOTE: { reward: -1, cdSeconds: 0 }   // 跳動音符：商店買一個音符扣 1 分
     },
@@ -36,7 +36,11 @@ export const gameConfig = {
     // 財富自由兌換規則：接滿幾枚換一次、每天最多換幾次
     moneyGame: {
         coinsPerExchange: 50,
-        dailyLimit: 0           // 每天最多換幾次（0 = 不限制）
+        dailyLimit: 20          // 每天最多換幾次（0 = 不限制），20 次 = 2,400 分
+    },
+    // 跳動音符：每天收音符最多拿幾分（台北時間跨日重算）
+    musicGame: {
+        dailyCoinLimit: 1500    // 1,500 分 = 100 顆音符
     },
     // 記憶翻牌對決（連線房間裡玩，邏輯在 memoryGame.ts）
     memoryGame: {

@@ -6,6 +6,7 @@ import {
     buyShopItem,
     getMyPetWithInventory,
     getPetCoin,
+    adoptPetService,
     signInPetService,
     getSignInStatusService,
     getDailyTaskStatusService,
@@ -101,6 +102,18 @@ export class PetGameController {
             if (!memberId) return res.status(401).json({ error: "尚未登入" });
 
             const result = await getPetCoin(Number(memberId));
+            return res.status(200).json(result);
+        } catch (error: any) {
+            return res.status(400).json({ error: error.message });
+        }
+    }
+
+    async adoptPetController(req: AuthRequest, res: Response) {
+        try {
+            const memberId = req.user?.member_id;
+            if (!memberId) return res.status(401).json({ error: "尚未登入" });
+
+            const result = await adoptPetService(Number(memberId));
             return res.status(200).json(result);
         } catch (error: any) {
             return res.status(400).json({ error: error.message });

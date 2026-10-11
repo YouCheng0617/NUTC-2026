@@ -18,6 +18,8 @@ export function petGameRouter() {
     router.get("/my-pet", authCheck, petGameController.getMyPetWithInventoryController);
     router.get("/coin", authCheck, petGameController.getPetCoinController);
     router.get("/coins", authCheck, petGameController.getPetCoinController);
+    // 新手領養：伺服器抽一隻海兔存進收藏（每個帳號只能抽一次）
+    router.post("/adopt", authCheck, petGameController.adoptPetController);
 
     // 每日簽到相關路由
     router.post("/sign-in", authCheck, petGameController.signInPetController);

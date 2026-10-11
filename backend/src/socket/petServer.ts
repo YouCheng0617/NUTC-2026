@@ -19,21 +19,57 @@ interface Player {
     y: number;
 }
 
-/* 前端送來的玩家資料只留會用到的欄位，服裝、小丑海兔要確認真的解鎖了才轉給房間裡其他人 */
+/*
+ * 進房的玩家資料：名字一律用資料庫的（前端送的不採用，避免取名「系統」或冒充別人）；
+ * 皮膚只接受雪兔、收藏裡有的、或確認解鎖的小丑海兔，其他一律換成雪兔；服裝也要確認真的解鎖了
+ */
 const JOKER = gameConfig.memoryGame.jokerSkin.itemName;
+const DEFAULT_PET_NAME = '小可愛';
 const cleanPlayerData = async (raw: any, memberId: number) => {
+    const pet = await prisma.pet.findUnique({
+        where: { member_id: memberId },
+        select: { pet_name: true, is_named: true, PetInventory: { where: { category: 'pet_color' }, select: { item_name: true } } },
+    });
+    const petName = pet?.is_named && pet.pet_name.trim() ? pet.pet_name.trim() : DEFAULT_PET_NAME;
+
+    const wanted = typeof raw?.petColor === 'string' ? raw.petColor : 'snow';
+    let petColor = 'snow';
+    if (wanted === JOKER) {
+        if (await ensureJokerSkin(memberId)) petColor = JOKER;
+    } else if (pet?.PetInventory.some(item => item.item_name === wanted)) {
+        petColor = wanted;
+    }
+
     const outfit = await allowedOutfit(memberId, raw?.outfit);
-    let petColor = typeof raw?.petColor === 'string' ? raw.petColor.slice(0, 40) : 'snow';
-    if (petColor === JOKER && !(await ensureJokerSkin(memberId))) petColor = 'snow';
     const jokerStyle = petColor === JOKER ? await roomJokerStyle(memberId, raw?.jokerStyle) : undefined;
     return {
         memberId,
-        petName: typeof raw?.petName === 'string' && raw.petName.trim() ? raw.petName.trim().slice(0, 20) : '小可愛',
+        petName,
         petColor,
         ...(outfit ? { outfit } : {}),
         ...(jokerStyle ? { jokerStyle } : {}),
     };
 };
+
+/* 系統訊息帶 system: true，前端靠這個欄位判斷，不再看名字 */
+const systemMessage = (message: string) => ({ senderName: '系統', system: true, message, timestamp: new Date() });
+
+/* 聊天、移動的頻率限制：每條連線記最近送出的時間，超過就丟掉 */
+const CHAT_MAX_LENGTH = 200;
+const CHAT_LIMITS = [{ windowMs: 1000, max: 1 }, { windowMs: 10_000, max: 5 }];
+const MOVE_LIMITS = [{ windowMs: 1000, max: 10 }];
+const createRateLimiter = (limits: { windowMs: number; max: number }[]) => {
+    const longest = Math.max(...limits.map(l => l.windowMs));
+    const sent: number[] = [];
+    return () => {
+        const now = Date.now();
+        while (sent.length && now - sent[0]! >= longest) sent.shift();
+        if (limits.some(l => sent.filter(t => now - t < l.windowMs).length >= l.max)) return false;
+        sent.push(now);
+        return true;
+    };
+};
+const isRatio = (v: unknown): v is number => typeof v === 'number' && Number.isFinite(v) && v >= 0 && v <= 1;
 
 interface Room {
     roomId: string;
@@ -105,6 +141,8 @@ export const setupPetSocket = (io: Server) => {
     io.on('connection', (socket: Socket) => {
         console.log(`[Socket] 玩家連線: ${socket.id}`);
         console.log(`[WebSocket] 有隻海兔跳進來了！Socket ID: ${socket.id}`);
+        const chatAllowed = createRateLimiter(CHAT_LIMITS);
+        const moveAllowed = createRateLimiter(MOVE_LIMITS);
         // 1. 創立房間
         socket.on('create_room', async (data: {
             playerData: Omit<Player, 'socketId' | 'x' | 'y'>,
@@ -186,11 +224,13 @@ export const setupPetSocket = (io: Server) => {
         });
 
         // 3. 移動寵物 (廣播給同房間其他人)
-        socket.on('move', ({ roomId, x, y }: { roomId: string; x: number; y: number }) => {
+        //    前端送的是 0～1 的比例座標，其他格式一律丟掉；每條連線 1 秒最多 10 次
+        socket.on('move', ({ roomId, x, y }: { roomId: string; x: number; y: number } = {} as any) => {
+            if (typeof roomId !== 'string' || !isRatio(x) || !isRatio(y)) return;
             const room = rooms.get(roomId);
             if (room) {
                 const player = room.players.get(socket.id);
-                if (player) {
+                if (player && moveAllowed()) {
                     player.x = x;
                     player.y = y;
                     // 廣播給房間內「除了自己以外」的人
@@ -241,15 +281,16 @@ export const setupPetSocket = (io: Server) => {
             }
         });
 
-        // 6. 發送訊息
-        socket.on('send_message', ({ roomId, message }: { roomId: string; message: string }) => {
-            const room = rooms.get(roomId);
+        // 6. 發送訊息：最多 200 字；每條連線 1 秒最多 1 則、10 秒最多 5 則
+        socket.on('send_message', ({ roomId, message }: { roomId: string; message: string } = {} as any) => {
+            const room = typeof roomId === 'string' ? rooms.get(roomId) : undefined;
             if (room) {
                 const player = room.players.get(socket.id);
                 if (player && typeof message === 'string' && message.trim() !== '') { // 優化：防止發送空訊息
+                    if (!chatAllowed()) return socket.emit('error', { message: '說太快了，休息一下再聊吧！' });
                     const payload = {
                         senderName: player.petName,
-                        message: message.trim(),
+                        message: Array.from(message.trim()).slice(0, CHAT_MAX_LENGTH).join(''),
                         timestamp: new Date()
                     };
                     recordRoomChat(roomId, { memberId: player.memberId, petName: player.petName, message: payload.message, at: payload.timestamp });
@@ -292,11 +333,7 @@ function joinRoomLogic(socket: Socket, roomId: string, playerData: Omit<Player, 
     socket.to(roomId).emit('player_joined', publicPlayer(newPlayer));
     memoryHandleJoin(socket.nsp.server, socket, roomId, playerData.memberId); // 翻牌對決斷線回來：接回原本的位置
 
-    socket.to(roomId).emit('receive_message', {
-        senderName: '系統',
-        message: `${newPlayer.petName} 蹦蹦跳跳地進入了房間！`,
-        timestamp: new Date()
-    });
+    socket.to(roomId).emit('receive_message', systemMessage(`${newPlayer.petName} 蹦蹦跳跳地進入了房間！`));
 }
 
 function handleLeave(socket: Socket, io: Server, reason: 'leave' | 'disconnect') {
@@ -322,11 +359,7 @@ function removeFromRoom(io: Server, socketId: string, reason: 'leave' | 'disconn
         memoryHandleLeave(io, roomId, socketId, reason, room.players.size === 0);
 
         io.to(roomId).emit('player_left', { socketId });
-        io.to(roomId).emit('receive_message', {
-            senderName: '系統',
-            message: `${player.petName} 離開了房間。`,
-            timestamp: new Date()
-        });
+        io.to(roomId).emit('receive_message', systemMessage(`${player.petName} 離開了房間。`));
 
         // 房間沒人就刪除
         if (room.players.size === 0) {
