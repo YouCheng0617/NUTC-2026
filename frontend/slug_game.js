@@ -463,8 +463,8 @@ let GAME_TOKEN = localStorage.getItem('authToken') || localStorage.getItem('acce
                     deferUntilLoaded('正在進入房間...', () => {
                         apply();
                         if (!isRoomHost) showFloatText('加入房間成功！');
-                        // 📜 第一次進連線房間：先看遊戲公約（slug_social.js）
-                        if (window.SlugSocial && SlugSocial.maybeShowRules) SlugSocial.maybeShowRules();
+                        // 📜 每次進連線房間都先看遊戲公約（slug_social.js）
+                        if (window.SlugSocial && SlugSocial.showJoinRules) SlugSocial.showJoinRules();
                     });
                 });
 

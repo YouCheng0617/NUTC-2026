@@ -867,11 +867,9 @@
     }
 
     // =====================================================================
-    // 📜 遊戲公約：第一次進連線房間時跳出來，按「我知道了」才關；聊天列、連線選單隨時能再打開
+    // 📜 遊戲公約：每次進連線房間都跳出來，按「我知道了，會遵守」才關；聊天列、連線選單隨時能再打開
     //    遊戲沒有自動過濾髒話，所以重點放在「遇到難聽的話怎麼封鎖、檢舉」
-    //    看過了記在這台裝置（每個帳號分開記）；公約改版時把 RULES_VERSION +1，大家會再看到一次
     // =====================================================================
-    const RULES_VERSION = 1;
     const RULES = [
         ['💬', ['友善說話', '不罵人、不嘲笑別人，也不說髒話、歧視或讓人不舒服的話。'],
                ['Be kind', 'No insults or mocking, and no swearing, slurs or anything meant to upset people.']],
@@ -882,13 +880,8 @@
         ['🎮', ['公平遊戲', '不作弊、不用外掛，翻牌對決打到一半不要跑掉。'],
                ['Play fair', "No cheating or hacks, and don't leave a Memory Match halfway."]]
     ];
-    function rulesSeenKey() {
-        let who = 'guest';
-        try { const u = JSON.parse(localStorage.getItem('currentUser') || '{}'); who = u.email || u.name || 'guest'; } catch (e) { /* 讀不到就當訪客 */ }
-        return `slugRulesSeen_v${RULES_VERSION}_${who}`;
-    }
-    function hasSeenRules() { try { return localStorage.getItem(rulesSeenKey()) === '1'; } catch (e) { return false; } }
-    function markRulesSeen() { try { localStorage.setItem(rulesSeenKey(), '1'); } catch (e) { /* 存不了就下次再看一次 */ } }
+    // 進房時跳出來的公約一定要按「我知道了，會遵守」才能關；自己從聊天列打開的可以直接關
+    let rulesMustAgree = false;
 
     function ensureRules() {
         if ($('rulesOverlay')) return;
@@ -896,8 +889,8 @@
         overlay.className = 'name-modal-overlay';
         overlay.id = 'rulesOverlay';
         overlay.style.zIndex = '10049';
-        // 第一次看要按按鈕才關，點旁邊不會關；之後再打開的可以點旁邊關掉
-        overlay.addEventListener('click', (e) => { if (e.target === overlay && hasSeenRules()) closeRules(); });
+        // 進房時跳的要按按鈕才關，點旁邊不會關；自己打開的可以點旁邊關掉
+        overlay.addEventListener('click', (e) => { if (e.target === overlay && !rulesMustAgree) closeRules(); });
         overlay.innerHTML = `
             <div class="name-modal rules-modal" role="dialog" aria-labelledby="rulesTitle">
                 <button type="button" class="board-close rules-close" id="rulesClose">✕</button>
@@ -958,13 +951,14 @@
         // 檢舉成立不會自動處分，要管理員看過聊天紀錄後到後台手動停權，所以寫「管理員確認後」
         $('rulesNote').textContent = L('被檢舉的帳號，管理員會查看聊天紀錄，確認違反公約後可能會停權。',
             'Our admins review the chat of reported players — accounts confirmed to break these rules may be suspended.');
-        $('rulesOk').textContent = hasSeenRules() ? L('關閉', 'Close') : L('我知道了，會遵守', "Got it, I'll follow these");
-        // 第一次看不給叉叉，一定要按下面的按鈕
-        $('rulesClose').hidden = !hasSeenRules();
+        $('rulesOk').textContent = rulesMustAgree ? L('我知道了，會遵守', "Got it, I'll follow these") : L('關閉', 'Close');
+        // 進房時跳的不給叉叉，一定要按下面的按鈕
+        $('rulesClose').hidden = rulesMustAgree;
         $('rulesClose').setAttribute('aria-label', L('關閉', 'Close'));
     }
 
-    function openRules() {
+    function openRules(mustAgree = false) {
+        rulesMustAgree = mustAgree === true;
         ensureRules();
         renderRules();
         show('rulesOverlay');
@@ -972,19 +966,19 @@
         if (body) body.scrollTop = 0;
     }
     function closeRules() {
-        markRulesSeen();
+        rulesMustAgree = false;
         hide('rulesOverlay');
     }
-    // 進連線房間時呼叫（slug_game.js 的 room_joined）：這個帳號在這台裝置還沒看過才跳
-    function maybeShowRules() {
-        if (!hasSeenRules()) openRules();
+    // 進連線房間時呼叫（slug_game.js 的 room_joined）：每次進房都跳，要按「我知道了，會遵守」才能關
+    function showJoinRules() {
+        openRules(true);
     }
 
     // 關掉視窗：Esc
     document.addEventListener('keydown', (e) => {
         if (e.key !== 'Escape') return;
         if (isShown('playerCardOverlay')) closePlayerCard();
-        else if (isShown('rulesOverlay')) { if (hasSeenRules()) closeRules(); }
+        else if (isShown('rulesOverlay')) { if (!rulesMustAgree) closeRules(); }
         else if (isShown('blockListOverlay')) closeBlockList();
         else if (isShown('redeemOverlay')) closeRedeem();
     });
@@ -998,7 +992,7 @@
 
     window.SlugSocial = {
         openPlayerCard, closePlayerCard, openBlockList, closeBlockList, openRedeem, closeRedeem, refreshLang,
-        openRules, closeRules, maybeShowRules,
+        openRules, closeRules, showJoinRules,
         isBlocked: (socketId) => !!(typeof otherPlayersData !== 'undefined' && otherPlayersData[socketId] && otherPlayersData[socketId].blockedByMe)
     };
 })();
