@@ -2175,7 +2175,7 @@ const i18n = {
             unlockedBgs: ['sky'],
             unlockedEffects: ['none'],
             cooldowns: { feed: 0, clean: 0, pet: 0 },
-            // 🏆 翻牌對決勝場獎勵（勝場數、卡背、服裝都以伺服器 my-pet 為準，跟著帳號走）
+            // 🏆 翻牌對決勝場獎勵（勝場數、卡背、小丑配色都以伺服器 my-pet 為準，跟著帳號走）
             memoryWins: 0,
             cardBack: 'classic',   // 3 勝解鎖，memory_game.js 的 CARD_BACKS
             cardBackSwitchable: null, // 卡背能不能隨時換：兌換碼拿到的 true、只有勝場拿到的 false；null = 後端還沒回，先當作能換
@@ -6770,24 +6770,6 @@ function updateLangUI() {
             grid.appendChild(makeComingSoonCard(typeKey));   // ✨ 最後放上敬請期待
         }
 
-        // 🌟 【穿上裝備】
-        function equipItem(key, type) {
-            trialState[type] = null; // 取消試用狀態
-            
-            if (type === 'species') gameState.currentSpecies = key;
-            else if (type === 'bg') gameState.currentBg = key;
-            else gameState.currentEffect = key;
-            
-            // 如果身上已經沒有任何試用的東西了，就把倒數計時器收起來
-            if (!trialState.species && !trialState.bg && !trialState.effect) {
-                if(trialInterval) clearInterval(trialInterval);
-                document.getElementById('trialTimerDisplay').style.display = 'none';
-            }
-            
-            refreshAll();
-            saveGame();
-        }
-
 let trialTimeLeft = 10; // 全域記錄試用剩餘時間
 
 function tryItem(key, type) {
@@ -6799,10 +6781,9 @@ function tryItem(key, type) {
             
             trialTimeLeft = 10;
             const timerDisplay = document.getElementById('trialTimerDisplay');
-            const numDisplay = document.getElementById('trialCountdownNum');
             
             timerDisplay.style.display = 'block';
-            numDisplay.innerText = trialTimeLeft;
+            timerDisplay.innerHTML = trialTimerHTML(trialTimeLeft);
             showFloatText('⏱️ 試用開始', 2000);
             
             startTrialCountdown();
@@ -6812,6 +6793,17 @@ function tryItem(key, type) {
             if (shopPanel && shopPanel.classList.contains('open')) {
                 shopPanel.classList.remove('open');
             }
+        }
+
+        function trialTimerHTML(n) {
+            const num = `<span id="trialCountdownNum" style="color: var(--accent-color); font-size: 1.4rem;">${n}</span>s`;
+            return currLang === 'en' ? `⏱️ Trial ${num}` : `⏱️ 試用中 ${num}`;
+        }
+        // 沒自訂過嘲諷彈幕時的預設句子（跟著語言）
+        function defaultTaunts() {
+            return currLang === 'en'
+                ? ["MISS! Can't hit me~", "That's all you got? I'm gone!", "Haha, you can't catch me!"]
+                : ["MISS! 打不到我~", "就這點傷害？我已經逃囉！", "哈哈，你抓不到我！"];
         }
 
         // 獨立出計時器啟動函式，方便暫停與恢復
@@ -6834,23 +6826,35 @@ function tryItem(key, type) {
             }, 1000);
         }
 
-// 🌟 1. 購買物品：只要負責扣錢跟解鎖就好，剩下的交給 equipItem
-        function buyItem(key, type, cost, e) {
-            if(e) e.stopPropagation(); 
-            if (gameState.points >= cost) {
-                gameState.points -= cost; // 扣錢
-                
-                // 記錄到本地的已解鎖清單
-                if (type === 'species') gameState.unlockedSpecies.push(key); 
-                else if (type === 'bg') gameState.unlockedBgs.push(key); 
-                else gameState.unlockedEffects.push(key); 
-                
-                // 呼叫裝備函數 (裡面會統一發送 API 給伺服器)
-                equipItem(key, type); 
-                showFloatText('✨ 購買成功 ✨', 5000);
-            } else {
-                showFloatText('積分不足 😢');
+// 🌟 1. 購買物品：先在畫面上扣錢、解鎖、穿上，再等後端確認
+        //    後端沒買成（伺服器上的積分不夠、同時按了好幾次）就整個退回原狀，並顯示後端給的原因
+        let buyingItem = false;
+        async function buyItem(key, type, cost, e) {
+            if(e) e.stopPropagation();
+            if (buyingItem) return;
+            if (gameState.points < cost) { showFloatText('積分不足 😢'); return; }
+            const listKey = type === 'species' ? 'unlockedSpecies' : type === 'bg' ? 'unlockedBgs' : 'unlockedEffects';
+            const equipKey = type === 'species' ? 'currentSpecies' : type === 'bg' ? 'currentBg' : 'currentEffect';
+            const before = { points: gameState.points, list: [...gameState[listKey]], equipped: gameState[equipKey] };
+
+            buyingItem = true;
+            gameState.points -= cost; // 扣錢
+            gameState[listKey].push(key); // 記錄到本地的已解鎖清單
+            const result = await equipItem(key, type); // 穿上並通知伺服器
+            buyingItem = false;
+
+            if (result && result.error) {
+                gameState.points = before.points;
+                gameState[listKey] = before.list;
+                gameState[equipKey] = before.equipped;
+                refreshAll();
+                saveGame();
+                updateUI();
+                showFloatText(result.error, 4000);
+                fetchUserCoins();   // 積分以伺服器為準
+                return;
             }
+            showFloatText('✨ 購買成功 ✨', 5000);
         }
 // 🌟 【取消試用】按鈕的專屬煞車系統
         function cancelTrial(type, e) {
@@ -6886,8 +6890,12 @@ function tryItem(key, type) {
                 categoryStr = 'background_effects';
             }
             
-            // ✨ 在這裡統一告訴伺服器：我換裝備囉！
-            fetchAPI('/pet-games/buy', 'POST', { category: categoryStr, itemName: key });
+            // ✨ 在這裡統一告訴伺服器：我換裝備囉！（回傳後端的結果，買東西時要看有沒有成功）
+            const request = fetchAPI('/pet-games/buy', 'POST', { category: categoryStr, itemName: key }).then((result) => {
+                // 積分以伺服器為準
+                if (result && result.pet && typeof result.pet.coin === 'number') { gameState.points = result.pet.coin; saveGame(); updateUI(); }
+                return result;
+            });
             
             // 取消試用計時器
             if (!trialState.species && !trialState.bg && !trialState.effect) {
@@ -6897,6 +6905,7 @@ function tryItem(key, type) {
             
             refreshAll();
             saveGame();
+            return request;
         }
 
         // 🌟 【一鍵畫面重繪】每次有改變就叫他幫忙把海兔、背景、特效全部重新畫一次
@@ -8292,7 +8301,7 @@ if (window.gearClockInterval) clearInterval(window.gearClockInterval);
                     const tauntLayer = document.createElement('div');
                     tauntLayer.className = 'background-taunt-layer';
                     
-                    let userTaunts = safeJsonParse(localStorage.getItem('nudi_custom_taunts'), ["MISS! 打不到我~", "就這點傷害？我已經逃囉！", "哈哈，你抓不到我！"]);
+                    let userTaunts = safeJsonParse(localStorage.getItem('nudi_custom_taunts'), defaultTaunts());
                     
                     userTaunts.forEach((text, i) => {
                         let tEl = document.createElement('div');
@@ -12274,7 +12283,7 @@ case 'fish': {
                         if (!ownsMoneyEffect()) {
                             showFloatText(currLang === 'zh'
                                 ? '尚未擁有財富自由特效，無法兌換！'
-                                : 'You need to own the Wealth Freedom effect to exchange!', 4000);
+                                : 'You need to own the Money Rain effect to exchange!', 4000);
                             return;
                         }
                         const waitMs = EXCHANGE_CD_MS - (Date.now() - lastExchangeAt);
@@ -13047,6 +13056,7 @@ default:
         }
 // 🌟 【自定義彈幕設定彈窗邏輯（已加入計時暫停與恢復）】
     function openCustomTauntModal() {
+        const en = currLang === 'en';
         // 🌟 1. 當彈窗打開時，如果正在試用，立刻暫停倒數計時！
         if (trialInterval) {
             clearInterval(trialInterval);
@@ -13054,10 +13064,10 @@ default:
         }
         const timerDisplay = document.getElementById('trialTimerDisplay');
         if (timerDisplay && trialState.effect === 'disco') {
-            timerDisplay.innerHTML = `⏱️ 試用已暫停（輸入中...）`;
+            timerDisplay.innerHTML = currLang === 'en' ? '⏱️ Trial paused (typing...)' : '⏱️ 試用已暫停（輸入中...）';
         }
 
-        let currentTaunts = safeJsonParse(localStorage.getItem('nudi_custom_taunts'), ["MISS! 打不到我~", "就這點傷害？我已經逃囉！", "哈哈，你抓不到我！"]);
+        let currentTaunts = safeJsonParse(localStorage.getItem('nudi_custom_taunts'), defaultTaunts());
         
         let oldModal = document.getElementById('customTauntModal');
         if (oldModal) oldModal.remove();
@@ -13073,12 +13083,12 @@ default:
 
         modalOverlay.innerHTML = `
             <div style="background: #fff; width: 90%; max-width: 380px; border-radius: 30px; border: 4px solid #38bdf8; padding: 25px; text-align: center; box-shadow: 0 20px 40px rgba(56, 189, 248, 0.4);">
-                <h3 style="margin-top:0; color: #0284c7; font-weight: 900;">✨ 自定義嘲諷彈幕設定</h3>
-                <p style="font-size: 0.85rem; color: #64748b; margin-bottom: 15px;">輸入你想在背景飄動的嘲諷字句！<br>（最多 4 句，每句限 15 字內）</p>
+                <h3 style="margin-top:0; color: #0284c7; font-weight: 900;">${en ? '✨ Custom Taunt Danmaku' : '✨ 自定義嘲諷彈幕設定'}</h3>
+                <p style="font-size: 0.85rem; color: #64748b; margin-bottom: 15px;">${en ? 'Type the taunts you want floating in the background!<br>(Up to 4, max 15 characters each)' : '輸入你想在背景飄動的嘲諷字句！<br>（最多 4 句，每句限 15 字內）'}</p>
                 <div id="tauntInputsContainer" style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px;"></div>
                 <div style="display: flex; gap: 10px;">
-                    <button id="closeTauntModalBtn" style="flex: 1; padding: 12px; border: none; border-radius: 18px; background: #f1f5f9; color: #64748b; font-weight: 900; cursor: pointer;">取消</button>
-                    <button id="saveTauntModalBtn" style="flex: 1; padding: 12px; border: none; border-radius: 18px; background: #0284c7; color: white; font-weight: 900; cursor: pointer;">儲存套用</button>
+                    <button id="closeTauntModalBtn" style="flex: 1; padding: 12px; border: none; border-radius: 18px; background: #f1f5f9; color: #64748b; font-weight: 900; cursor: pointer;">${en ? 'Cancel' : '取消'}</button>
+                    <button id="saveTauntModalBtn" style="flex: 1; padding: 12px; border: none; border-radius: 18px; background: #0284c7; color: white; font-weight: 900; cursor: pointer;">${en ? 'Save' : '儲存套用'}</button>
                 </div>
             </div>
         `;
@@ -13092,7 +13102,7 @@ default:
             input.type = 'text';
             input.maxLength = 15;
             input.value = currentTaunts[i] || '';
-            input.placeholder = `嘲諷句子 ${i + 1} (最多15字)...`;
+            input.placeholder = currLang === 'en' ? `Taunt ${i + 1} (max 15 chars)...` : `嘲諷句子 ${i + 1} (最多15字)...`;
             input.style.cssText = `
                 width: 100%; padding: 10px 12px; border: 2px solid #cbd5e1; border-radius: 15px;
                 font-weight: 900; color: #1e293b; outline: none; background: #f8fafc; font-size: 0.95rem;
@@ -13115,7 +13125,7 @@ default:
                 // 恢復顯示原本的倒數 HTML 結構
                 const timerDisplay = document.getElementById('trialTimerDisplay');
                 if (timerDisplay) {
-                    timerDisplay.innerHTML = `⏱️ 試用中 <span id="trialCountdownNum" style="color: var(--accent-color); font-size: 1.4rem;">${trialTimeLeft}</span>s`;
+                    timerDisplay.innerHTML = trialTimerHTML(trialTimeLeft);
                     timerDisplay.style.display = 'block';
                 }
                 startTrialCountdown(); // 繼續倒數
