@@ -906,11 +906,40 @@
     }
 
     // ---------- 🏰 100 勝：登上王座 ----------
+    // 加冕典禮：布幕拉開 → 聚光燈 → 王座升起 → 紅地毯滾下來 → 海兔走上去坐好 → 小皇冠從天上降到耳朵中間 → 煙火、彩帶、金星
+    const THRONE_DONE_MS = 5600;      // 文字出來、可以按按鈕的時間
+    const THRONE_CROWN_MS = 4600;     // 皇冠落到頭上的時間（閃光、彩帶、號角都在這時候）
+    // 小皇冠放在海兔兩隻耳朵中間：海兔 SVG 的座標（耳朵在 x 100～175），換算成畫面上的百分比
+    function throneCrownSpot(species) {
+        const joker = species === 'joker';
+        const [x0, y0, w, h] = joker ? [12, 0, 316, 230] : [40, 15, 270, 210];
+        const cy = joker ? 34 : 62;   // 小丑有帽子，皇冠戴在帽子上面一點
+        return { left: ((137 - x0) / w) * 100, top: ((cy - y0) / h) * 100 };
+    }
+    // 號角：三個音往上爬再一個長音（用瀏覽器自己合成，不用音檔）
+    function playFanfare() {
+        try {
+            const ctx = new (window.AudioContext || window.webkitAudioContext)();
+            const notes = [[523, 0, 0.16], [659, 0.16, 0.16], [784, 0.32, 0.16], [1047, 0.5, 0.7]];
+            notes.forEach(([f, at, len]) => {
+                const osc = ctx.createOscillator(), gain = ctx.createGain();
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(f, ctx.currentTime + at);
+                gain.gain.setValueAtTime(0.0001, ctx.currentTime + at);
+                gain.gain.exponentialRampToValueAtTime(0.16, ctx.currentTime + at + 0.03);
+                gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + at + len);
+                osc.connect(gain); gain.connect(ctx.destination);
+                osc.start(ctx.currentTime + at); osc.stop(ctx.currentTime + at + len + 0.05);
+            });
+            setTimeout(() => ctx.close(), 1600);
+        } catch (e) {}
+    }
     function playThrone() {
         const old = $('mgThrone');
         if (old) old.remove();
         // 登上王座的就是玩家現在穿的皮膚（小丑海兔照自己的配色）
         const species = hasGame() ? gameState.currentSpecies : 'snow';
+        const spot = throneCrownSpot(species);
 
         const box = el('div', 'mg-throne');
         box.id = 'mgThrone';
@@ -918,25 +947,57 @@
         box.setAttribute('aria-labelledby', 'mgThroneTitle');
         box.innerHTML = `
             <div class="mg-throne-rays" aria-hidden="true"></div>
+            <div class="mg-throne-fireworks" aria-hidden="true"></div>
+            <div class="mg-throne-beam is-left" aria-hidden="true"></div>
+            <div class="mg-throne-beam is-right" aria-hidden="true"></div>
             <div class="mg-throne-stage" aria-hidden="true">
                 <div class="mg-throne-carpet"></div>
-                <svg class="mg-throne-chair" viewBox="0 0 200 220">
-                    <path d="M40 34 Q100 -6 160 34 L160 150 L40 150 Z" fill="#facc15" stroke="#a16207" stroke-width="6" stroke-linejoin="round"/>
-                    <path d="M58 48 Q100 20 142 48 L142 140 L58 140 Z" fill="#dc2626" stroke="#7f1d1d" stroke-width="4" stroke-linejoin="round"/>
-                    <circle cx="100" cy="24" r="10" fill="#ef4444" stroke="#a16207" stroke-width="4"/>
-                    <rect x="40" y="168" width="18" height="44" rx="6" fill="#facc15" stroke="#a16207" stroke-width="5"/>
-                    <rect x="142" y="168" width="18" height="44" rx="6" fill="#facc15" stroke="#a16207" stroke-width="5"/>
-                    <rect x="12" y="100" width="32" height="64" rx="10" fill="#fbbf24" stroke="#a16207" stroke-width="5"/>
-                    <rect x="156" y="100" width="32" height="64" rx="10" fill="#fbbf24" stroke="#a16207" stroke-width="5"/>
-                    <rect x="24" y="142" width="152" height="30" rx="12" fill="#facc15" stroke="#a16207" stroke-width="6"/>
-                    <rect x="40" y="132" width="120" height="16" rx="8" fill="#ef4444" stroke="#7f1d1d" stroke-width="4"/>
+                <svg class="mg-throne-chair" viewBox="0 0 200 230">
+                    <defs>
+                        <linearGradient id="mgThGold" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff3b0"/><stop offset=".45" stop-color="#facc15"/><stop offset="1" stop-color="#b7791f"/></linearGradient>
+                        <linearGradient id="mgThVelvet" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ef4444"/><stop offset="1" stop-color="#7f1d1d"/></linearGradient>
+                        <pattern id="mgThTuft" width="20" height="20" patternUnits="userSpaceOnUse"><path d="M10 0 L20 10 L10 20 L0 10 Z" fill="none" stroke="#5b1010" stroke-opacity=".45" stroke-width="1.5"/><circle cx="10" cy="10" r="1.8" fill="#fde68a"/></pattern>
+                    </defs>
+                    <path d="M34 60 Q34 18 100 12 Q166 18 166 60 L166 156 L34 156 Z" fill="url(#mgThGold)" stroke="#92400e" stroke-width="5" stroke-linejoin="round"/>
+                    <path d="M50 66 Q50 32 100 28 Q150 32 150 66 L150 146 L50 146 Z" fill="url(#mgThVelvet)" stroke="#7f1d1d" stroke-width="3" stroke-linejoin="round"/>
+                    <path d="M50 66 Q50 32 100 28 Q150 32 150 66 L150 146 L50 146 Z" fill="url(#mgThTuft)"/>
+                    <g transform="translate(100 12)">
+                        <path d="M-20 4 L-24 -16 L-11 -6 L0 -22 L11 -6 L24 -16 L20 4 Z" fill="url(#mgThGold)" stroke="#92400e" stroke-width="3.5" stroke-linejoin="round"/>
+                        <circle cx="0" cy="-5" r="4" fill="#3b82f6" stroke="#1e3a8a" stroke-width="1.5"/>
+                        <g fill="#fff7d6" stroke="#92400e" stroke-width="1.5"><circle cx="-24" cy="-17" r="3"/><circle cx="0" cy="-23" r="3.2"/><circle cx="24" cy="-17" r="3"/></g>
+                    </g>
+                    <g stroke="#7f1d1d" stroke-width="1.5"><circle cx="42" cy="84" r="5" fill="#ef4444"/><circle cx="158" cy="84" r="5" fill="#ef4444"/><circle cx="42" cy="118" r="4" fill="#22c55e"/><circle cx="158" cy="118" r="4" fill="#22c55e"/></g>
+                    <path d="M44 214 Q40 196 52 176 L64 176 Q56 196 60 214 Z" fill="url(#mgThGold)" stroke="#92400e" stroke-width="4" stroke-linejoin="round"/>
+                    <path d="M156 214 Q160 196 148 176 L136 176 Q144 196 140 214 Z" fill="url(#mgThGold)" stroke="#92400e" stroke-width="4" stroke-linejoin="round"/>
+                    <path d="M10 112 Q10 98 26 98 L46 98 L46 168 L22 168 Q10 168 10 154 Z" fill="url(#mgThGold)" stroke="#92400e" stroke-width="4.5" stroke-linejoin="round"/>
+                    <path d="M190 112 Q190 98 174 98 L154 98 L154 168 L178 168 Q190 168 190 154 Z" fill="url(#mgThGold)" stroke="#92400e" stroke-width="4.5" stroke-linejoin="round"/>
+                    <circle cx="20" cy="108" r="7" fill="#fff3b0" stroke="#92400e" stroke-width="3"/><circle cx="180" cy="108" r="7" fill="#fff3b0" stroke="#92400e" stroke-width="3"/>
+                    <rect x="22" y="150" width="156" height="30" rx="12" fill="url(#mgThGold)" stroke="#92400e" stroke-width="5"/>
+                    <rect x="38" y="138" width="124" height="18" rx="9" fill="url(#mgThVelvet)" stroke="#7f1d1d" stroke-width="3.5"/>
+                    <path d="M44 147 L156 147" stroke="#fde68a" stroke-width="2" stroke-dasharray="4 5" stroke-linecap="round"/>
                 </svg>
-                <div class="mg-throne-pet">${petSVG(species, hasGame() ? gameState.jokerStyle : null)}</div>
+                <div class="mg-throne-shine"></div>
+                <div class="mg-throne-twinkles"></div>
+                <div class="mg-throne-pet">
+                    ${petSVG(species, hasGame() ? gameState.jokerStyle : null)}
+                    <svg class="mg-throne-crown" viewBox="-30 -30 60 44" style="left:${spot.left.toFixed(1)}%; top:${spot.top.toFixed(1)}%">
+                        <path d="M-20 8 L-24 -14 L-11 -4 L0 -20 L11 -4 L24 -14 L20 8 Z" fill="#facc15" stroke="#92400e" stroke-width="3.5" stroke-linejoin="round"/>
+                        <rect x="-21" y="5" width="42" height="8" rx="3" fill="#fbbf24" stroke="#92400e" stroke-width="3"/>
+                        <circle cx="0" cy="-3" r="3.6" fill="#ef4444" stroke="#7f1d1d" stroke-width="1.2"/>
+                        <circle cx="-11" cy="1" r="2.4" fill="#3b82f6"/><circle cx="11" cy="1" r="2.4" fill="#22c55e"/>
+                        <g fill="#fff7d6" stroke="#92400e" stroke-width="1.4"><circle cx="-24" cy="-15" r="2.8"/><circle cx="0" cy="-21" r="3"/><circle cx="24" cy="-15" r="2.8"/></g>
+                        <path d="M-15 -2 L-12 -9" stroke="#fff" stroke-width="2" stroke-linecap="round" opacity=".8"/>
+                    </svg>
+                    <div class="mg-throne-burst" style="left:${spot.left.toFixed(1)}%; top:${spot.top.toFixed(1)}%"></div>
+                </div>
                 <div class="mg-throne-flash"></div>
                 <div class="mg-throne-confetti"></div>
             </div>
+            <div class="mg-throne-rain" aria-hidden="true"></div>
+            <div class="mg-throne-curtain is-left" aria-hidden="true"></div>
+            <div class="mg-throne-curtain is-right" aria-hidden="true"></div>
             <div class="mg-throne-text">
-                <h2 class="mg-throne-title" id="mgThroneTitle"></h2>
+                <div class="mg-throne-ribbon"><h2 class="mg-throne-title" id="mgThroneTitle"></h2></div>
                 <p class="mg-throne-sub"></p>
                 <button type="button" class="mg-start mg-throne-btn"></button>
             </div>
@@ -946,38 +1007,70 @@
         box.querySelector('.mg-throne-btn').textContent = T('throneBtn');
         box.querySelector('.mg-throne-skip').textContent = T('throneSkip');
 
+        const rnd = (a, b) => a + Math.random() * (b - a);
         // 彩帶：位置、顏色、轉速都隨機
         const confetti = box.querySelector('.mg-throne-confetti');
         const colors = ['#f472b6', '#facc15', '#60a5fa', '#34d399', '#c084fc', '#fb923c'];
-        for (let i = 0; i < 32; i++) {
+        for (let i = 0; i < 48; i++) {
             const bit = el('i');
-            bit.style.setProperty('--x', (Math.random() * 220 - 110).toFixed(0) + '%');
-            bit.style.setProperty('--y', (Math.random() * -160 - 40).toFixed(0) + '%');
-            bit.style.setProperty('--r', (Math.random() * 720 - 360).toFixed(0) + 'deg');
-            bit.style.setProperty('--d', (Math.random() * 0.3).toFixed(2) + 's');
+            bit.style.setProperty('--x', rnd(-110, 110).toFixed(0) + '%');
+            bit.style.setProperty('--y', rnd(-200, -40).toFixed(0) + '%');
+            bit.style.setProperty('--r', rnd(-360, 360).toFixed(0) + 'deg');
+            bit.style.setProperty('--d', rnd(0, 0.3).toFixed(2) + 's');
             bit.style.background = colors[i % colors.length];
+            if (i % 3 === 0) bit.style.borderRadius = '50%';
             confetti.appendChild(bit);
         }
+        // 煙火：三發，每發 14 道光
+        const fw = box.querySelector('.mg-throne-fireworks');
+        [[22, 26, 0, '#facc15'], [78, 22, 0.5, '#f472b6'], [50, 12, 1.0, '#60a5fa'], [14, 58, 1.5, '#34d399'], [86, 54, 1.9, '#c084fc']].forEach(([x, y, d, c]) => {
+            const burst = el('div', 'mg-fw');
+            burst.style.left = x + '%'; burst.style.top = y + '%';
+            burst.style.setProperty('--d', d + 's'); burst.style.setProperty('--c', c);
+            for (let i = 0; i < 14; i++) { const ray = el('i'); ray.style.setProperty('--a', (i * 360 / 14) + 'deg'); burst.appendChild(ray); }
+            fw.appendChild(burst);
+        });
+        // 金星雨：坐上王座之後一直慢慢飄
+        const rain = box.querySelector('.mg-throne-rain');
+        for (let i = 0; i < 26; i++) {
+            const star = el('i', '', i % 3 ? '✦' : '★');
+            star.style.left = rnd(0, 100).toFixed(1) + '%';
+            star.style.fontSize = rnd(10, 22).toFixed(0) + 'px';
+            star.style.setProperty('--d', rnd(0, 4).toFixed(2) + 's');
+            star.style.setProperty('--t', rnd(3.5, 6).toFixed(2) + 's');
+            star.style.setProperty('--sx', rnd(-40, 40).toFixed(0) + 'px');
+            rain.appendChild(star);
+        }
+        // 王座旁邊一閃一閃的星光
+        const tw = box.querySelector('.mg-throne-twinkles');
+        [[14, 22], [86, 18], [6, 52], [94, 48], [26, 6], [74, 4], [50, -4], [18, 76], [82, 74]].forEach(([x, y], i) => {
+            const s = el('i', '', '✦');
+            s.style.left = x + '%'; s.style.top = y + '%';
+            s.style.setProperty('--d', (i * 0.27).toFixed(2) + 's');
+            tw.appendChild(s);
+        });
 
         let finished = false;
-        const close = () => { box.remove(); document.removeEventListener('keydown', onKey, true); };
+        const timers = [];
+        const close = () => { timers.forEach(clearTimeout); box.remove(); document.removeEventListener('keydown', onKey, true); };
         const onKey = (e) => { if (e.key === 'Escape') { e.stopImmediatePropagation(); close(); } };
         const finish = () => { finished = true; box.classList.add('is-done'); box.querySelector('.mg-throne-btn').focus({ preventScroll: true }); };
-        const timer = setTimeout(finish, 4400);
-        // 播放中點一下：直接跳到最後（坐上王座＋文字）
+        const skip = () => { timers.forEach(clearTimeout); box.classList.add('is-skip'); finish(); };
+        timers.push(setTimeout(finish, THRONE_DONE_MS));
+        timers.push(setTimeout(() => { if (!box.classList.contains('is-skip')) playFanfare(); }, THRONE_CROWN_MS));
+        // 播放中點一下：直接跳到最後（坐上王座＋皇冠＋文字）
         box.addEventListener('click', (e) => {
             if (finished) return;
             if (e.target.closest('.mg-throne-btn')) return;
-            clearTimeout(timer);
-            box.classList.add('is-skip');
-            finish();
+            skip();
         });
         box.querySelector('.mg-throne-btn').addEventListener('click', close);
         document.addEventListener('keydown', onKey, true);
         document.body.appendChild(box);
-        if (typeof playDingSound === 'function') playDingSound(3);
+        // 系統設定「減少動態效果」的人：直接看最後的畫面
+        if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) skip();
+        else if (typeof playDingSound === 'function') playDingSound(3);
     }
-
     // ---------- 📖 卡牌圖鑑（活頁小卡冊） ----------
     const ALBUM_PER_PAGE = 4;
     const ALBUM_VIEWS = ['mgLobby', 'mgGame', 'mgResult'];
