@@ -126,7 +126,14 @@
         '正在建立房間...': 'Creating room...',
         '正在進入房間...': 'Joining room...',
         '給海兔寶寶取名': 'Name your sea bunny',
-        '修改名字 (扣 1000 積分)': 'Rename (costs 1000 coins)'
+        '修改名字 (扣 1000 積分)': 'Rename (costs 1000 coins)',
+        // 後端的每日上限、防洗版、翻牌勝場不算
+        '今天的音符已經收滿了，明天再來！': "You've collected all the notes for today — come back tomorrow!",
+        '今天的兌換次數已用完（每天 20 次），明天再來！': "You've used all of today's exchanges (20 per day) — come back tomorrow!",
+        '說太快了，休息一下再聊吧！': "You're sending messages too fast — take a short break!",
+        '有玩家整局都沒翻牌，這局不算勝場。': "A player didn't flip any cards all match, so this win doesn't count.",
+        '今天贏同一位對手已經算滿 3 場，這局不算勝場，明天再來！': "You've already won 3 times against the same player today, so this win doesn't count — come back tomorrow!",
+        '已經擁有這個商品了！': 'You already own this item!'
     };
 
     // 有變數的句子：用正規表示式比對，再組出英文

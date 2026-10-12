@@ -496,11 +496,13 @@ let GAME_TOKEN = localStorage.getItem('authToken') || localStorage.getItem('acce
                 }));
 
                 // 收到訊息：記進聊天紀錄（含留言時間）；系統訊息只進紀錄，不要冒在自己海兔頭上
+                // 系統訊息看後端帶的 system: true，不看名字（玩家取名叫「系統」也還是玩家）
                 socket.on('receive_message', (data) => whenRoomReady(() => {
-                    recordChat(data.senderName, data.message, data.timestamp);
-                    const sticker = data.senderName !== '系統' && stickerOf(data.message);
+                    recordChat(data.senderName, data.message, data.timestamp, !!data.system);
+                    if (data.system) return;
+                    const sticker = stickerOf(data.message);
                     if (sticker && isInMiniGame()) flySticker(data.senderName, sticker, data.senderId);
-                    else if (data.senderName !== '系統') showChatBubble(data.senderName, data.message, data.senderId);
+                    else showChatBubble(data.senderName, data.message, data.senderId);
                 }));
                 setInterval(() => broadcastMove(), 250);
 
@@ -648,13 +650,11 @@ let GAME_TOKEN = localStorage.getItem('authToken') || localStorage.getItem('acce
 
         // 同一次遊戲固定用同一個 id（以前每次都重抽 0～999，還有機會跟別人撞號被當成「已經在別的房間」）
         const MP_MEMBER_ID = Math.floor(Math.random() * 1e9);
-        // outfit：後端會把 playerData 原封不動轉給房間裡其他人，所以國王裝／皇后裝夾帶在這裡（進房時才會送）
+        // 後端會把 playerData 原封不動轉給房間裡其他人，小丑配色夾帶在這裡（進房時才會送）
         function getPlayerData() {
-            const outfit = activeOutfit();
             const isJoker = gameState.currentSpecies === 'joker';
             return {
                 memberId: MP_MEMBER_ID, petName: gameState.petName || '小可愛', petColor: gameState.currentSpecies,
-                ...(outfit !== 'none' ? { outfit } : {}),
                 ...(isJoker ? { jokerStyle: jokerStyleOf(gameState.jokerStyle) } : {})
             };
         }
@@ -1215,7 +1215,7 @@ function copyRoomId() {
             });
         }
 
-        function recordChat(name, message, ts) {
+        function recordChat(name, message, ts, isSystem = false) {
             const log = document.getElementById('chatLog');
             if (!log) return;
             if (chatRoomOfLog !== currentRoomId) clearChatHistory();   // 換了房間就從頭記
@@ -1223,7 +1223,6 @@ function copyRoomId() {
             const bar = document.getElementById('chatBar');
             const open = bar && !bar.hidden;
             const atBottom = log.scrollHeight - log.scrollTop - log.clientHeight < 24;
-            const isSystem = name === '系統';
             const mine = !isSystem && isMyChatName(name);
 
             const item = document.createElement('div');
@@ -1331,7 +1330,15 @@ function copyRoomId() {
             ['hungry', '肚子餓', 'Hungry'], ['eat', '吃海藻', 'Yummy'], ['cold', '好冷', 'Cold'], ['hot', '好熱', 'Hot'],
             ['sick', '生病', 'Sick'], ['dead', '靈魂出竅', 'Dead'], ['rich', '發財', 'Rich']
         ].map(([id, zh, en]) => ({ id, zh, en }));
-        const STICKER_RE = /^\[\[sticker:([a-z]+)\]\]$/;
+        // 🖍️ 翻牌對決 30 勝的「作者的塗鴉」：作者手繪的 13 張（doodle1～doodle13）
+        //    還沒解鎖的人面板裡看不到、也送不出去；收到別人送的一律照常顯示
+        const DOODLE_REWARD_WINS = 30;
+        [
+            ['原圖', 'Original'], ['開心', 'Happy'], ['哭哭', 'Sob'], ['生氣', 'Angry'], ['愛你', 'Love you'],
+            ['晚安', 'Good night'], ['嚇到', 'Shocked'], ['得意', 'Smug'], ['疑問', 'Huh?'], ['好吃', 'Yummy'],
+            ['無言', 'Speechless'], ['眨眼', 'Wink'], ['拜託', 'Please']
+        ].forEach(([zh, en], i) => STICKERS.push({ id: 'doodle' + (i + 1), zh, en, doodle: true, file: 'doodle_' + String(i + 1).padStart(2, '0') + '.webp' }));
+        const STICKER_RE = /^\[\[sticker:([a-z0-9]+)\]\]$/;
         const STICKER_GAP_MS = 1500;     // 貼圖比文字大很多，間隔拉長一點，避免整個畫面被洗版
         const STICKER_ON_SCREEN_MAX = 8; // 同時最多飄幾張，太多就先把最舊的收掉
         const STICKER_MAX_WAIT_MS = 6000; // 軌道都滿了要等太久的就不飄（聊天紀錄裡還是看得到）
@@ -1342,11 +1349,17 @@ function copyRoomId() {
             const m = STICKER_RE.exec(String(message || '').trim());
             return m ? (STICKERS.find(st => st.id === m[1]) || null) : null;
         }
-        function stickerSrc(id) { return 'images/stickers/' + id + '.svg'; }
+        function stickerSrc(id) {
+            const st = STICKERS.find(x => x.id === id);
+            return 'images/stickers/' + (st && st.file ? st.file : id + '.svg');
+        }
+        function doodleUnlocked() { return (gameState.memoryWins || 0) >= DOODLE_REWARD_WINS; }
+        // 自己能送的貼圖（塗鴉要解鎖才有）
+        function usableStickers() { return STICKERS.filter(st => !st.doodle || doodleUnlocked()); }
         function stickerName(st) { return currLang === 'en' ? st.en : st.zh; }
 
         function sendSticker(id) {
-            if (!STICKERS.some(st => st.id === id) || !currentRoomId) return false;
+            if (!usableStickers().some(st => st.id === id) || !currentRoomId) return false;
             if (Date.now() - lastStickerAt < STICKER_GAP_MS) { flashStickerCooldown(); return false; }
             // 跟文字共用同一條送出路線（斷線提示、模擬模式都一樣）；貼圖有自己的間隔，不受打字的連發間隔影響
             lastChatAt = 0;
@@ -1372,12 +1385,15 @@ function copyRoomId() {
         }
 
         // 🎮 小遊戲裡的貼圖：右上角一顆貼圖按鈕，打開是只有貼圖的面板（沒有打字的地方）
-        function buildStickerButtons(box) {
-            STICKERS.forEach(st => {
+        function buildStickerButtons(box, role) {
+            box.innerHTML = '';
+            box.dataset.count = usableStickers().length;
+            usableStickers().forEach(st => {
                 const btn = document.createElement('button');
                 btn.type = 'button';
-                btn.className = 'chat-sticker';
+                btn.className = 'chat-sticker' + (st.doodle ? ' is-doodle' : '');
                 btn.dataset.id = st.id;
+                if (role) btn.setAttribute('role', role);
                 const img = document.createElement('img');
                 img.src = stickerSrc(st.id);
                 img.loading = 'lazy';
@@ -1394,6 +1410,9 @@ function copyRoomId() {
             const label = currLang === 'en' ? 'Stickers' : '貼圖';
             if (btn) { btn.title = label; btn.setAttribute('aria-label', label); }
             if (tray) {
+                // 剛解鎖塗鴉貼圖：數量對不上就重做一次按鈕
+                const grid = tray.querySelector('.mg-sticker-grid');
+                if (grid && +grid.dataset.count !== usableStickers().length) buildStickerButtons(grid);
                 tray.setAttribute('aria-label', label);
                 const hint = tray.querySelector('.mg-sticker-hint');
                 if (hint) hint.textContent = currLang === 'en' ? 'Tap a sticker — it floats across everyone\'s screen' : '點一張貼圖，就會從大家的畫面飄過去';
@@ -1510,27 +1529,17 @@ function copyRoomId() {
         function renderStickerPanel() {
             const panel = document.getElementById('chatStickers');
             if (!panel) return;
-            if (!panel.children.length) {
-                STICKERS.forEach(st => {
-                    const btn = document.createElement('button');
-                    btn.type = 'button';
-                    btn.className = 'chat-sticker';
-                    btn.dataset.id = st.id;
-                    btn.setAttribute('role', 'option');
-                    const img = document.createElement('img');
-                    img.src = stickerSrc(st.id);
-                    img.loading = 'lazy';
-                    img.alt = '';
-                    btn.appendChild(img);
-                    btn.addEventListener('click', () => sendSticker(st.id));
-                    panel.appendChild(btn);
-                });
-            }
+            if (+panel.dataset.count !== usableStickers().length) buildStickerButtons(panel, 'option');
             panel.querySelectorAll('.chat-sticker').forEach(btn => {
                 const st = STICKERS.find(x => x.id === btn.dataset.id);
                 btn.title = stickerName(st);
                 btn.setAttribute('aria-label', stickerName(st));
             });
+        }
+
+        function refreshStickerUnlocks() {
+            renderStickerPanel();
+            renderGameStickerText();
         }
 
         function setStickerPanel(open) {
@@ -1756,8 +1765,7 @@ function copyRoomId() {
             if (old) old.remove();
             otherPlayersData[p.socketId] = p;
             const spec = speciesSpec(p.petColor, p.jokerStyle);
-            // 別人送來的服裝只認國王／皇后兩種，其他值一律不畫；小丑配色只認 a～d（jokerStyleOf 會擋掉）
-            const outfit = OUTFITS[p.outfit] || null;
+            // 小丑配色只認 a～d（jokerStyleOf 會擋掉）
             const skinExtra = p.petColor === 'joker' ? jokerExtraSVG(p.jokerStyle) : '';
             const el = document.createElement('div'); 
             el.className = 'other-player'; 
@@ -1778,7 +1786,6 @@ function copyRoomId() {
                     </defs>
                     <g filter="url(#handDrawn)">
                         <ellipse cx="170" cy="205" rx="120" ry="15" fill="rgba(0,0,0,0.12)" />
-                        ${outfit ? outfit.back : ''}
 
                         <!-- 🌟 補回毛茸茸的尾巴 -->
                         <g class="anim-tail" stroke="${spec.outline}" stroke-width="4" stroke-linejoin="round">
@@ -1815,7 +1822,6 @@ function copyRoomId() {
                             <path d="M -7 5 Q 0 12 7 5" fill="none" stroke="#2c3e50" stroke-width="3.5" stroke-linecap="round"/>
                         </g>
                         ${skinExtra}
-                        ${outfit ? outfit.front : ''}
                     </g>
                 </svg>
                 </div>`;
@@ -1956,7 +1962,7 @@ function updateRoomUI(text) {
             let targetEl = document.getElementById('slugContainer');
             if (senderId) {
                 if (!(socket && senderId === socket.id)) targetEl = document.getElementById(`player-${senderId}`) || null;
-            } else if (name !== gameState.petName && name !== '系統') {
+            } else if (name !== gameState.petName) {
                 // 如果不是自己說的，就貼到對應的玩家頭上
                 const others = document.querySelectorAll('.other-player-name');
                 others.forEach(node => { if (node.innerText === name) targetEl = node.parentElement; });
@@ -1973,7 +1979,7 @@ function updateRoomUI(text) {
             // 名稱與訊息來自其他玩家，一律當純文字顯示
             el.innerHTML = `<span style="font-size:0.8em; color:var(--text-dim);"></span><br/><span></span>`;
             el.children[0].textContent = name;
-            const sticker = name !== '系統' && stickerOf(message);
+            const sticker = stickerOf(message);
             if (sticker) {
                 // 貼圖也是海兔「說出來」的，只是泡泡裡放圖片（只認清單裡的貼圖、用我們自己的檔案）
                 el.classList.add('is-sticker');
@@ -1988,7 +1994,7 @@ function updateRoomUI(text) {
 
             // 手機版：點別人的對話泡泡就直接打開聊天列，馬上可以回覆
             const isPhone = (window.matchMedia && window.matchMedia('(pointer: coarse)').matches) || window.innerWidth <= 768;
-            if (isPhone && name !== '系統' && !isMyChatName(name)) {
+            if (isPhone && !isMyChatName(name)) {
                 el.classList.add('tappable');
                 el.setAttribute('role', 'button');
                 el.setAttribute('aria-label', (currLang === 'en' ? 'Reply to ' : '回覆 ') + name);
@@ -2025,7 +2031,7 @@ function updateRoomUI(text) {
 const i18n = {
             zh: {
                 backBtn: "🏠 返回", points: "積分", langBtn: "EN", 
-                gachaTitle: "發現神祕海兔卵", gachaBox: "點擊孵化", startBtn: "開始照顧",
+                gachaTitle: "發現神祕海兔卵", gachaBox: "點擊孵化", gachaRetry: "孵化失敗了，點一下再試一次", startBtn: "開始照顧",
                 feed: "餵食海藻", clean: "淨化水質", pet: "活力運動",
                 dailyTitle: "📅 任務", dailyDesc: "點我領錢",
                 modalDailyHeader: "📅 每日任務", modalDailySub: "完成任務領取豐厚獎勵！", closeBtn: "關閉",
@@ -2088,7 +2094,7 @@ const i18n = {
             },
             en: {
                 backBtn: "🏠 Home", points: "Pts", langBtn: "中文", 
-                gachaTitle: "Mystic Egg Found", gachaBox: "Incubate", startBtn: "Start Caring",
+                gachaTitle: "Mystic Egg Found", gachaBox: "Incubate", gachaRetry: "Hatching failed — tap to try again", startBtn: "Start Caring",
                 feed: "Feed Algae", clean: "Purify Water", pet: "Play Catch",
                 dailyTitle: "📅 Quests", dailyDesc: "Get Coins",
                 modalDailyHeader: "📅 Daily Quests", modalDailySub: "Complete quests to earn rewards!", closeBtn: "Close",
@@ -2174,7 +2180,6 @@ const i18n = {
             cardBack: 'classic',   // 3 勝解鎖，memory_game.js 的 CARD_BACKS
             cardBackSwitchable: null, // 卡背能不能隨時換：兌換碼拿到的 true、只有勝場拿到的 false；null = 後端還沒回，先當作能換
             cardBackChosen: false, // 有沒有選過卡背（勝場版只能選一次，選過就鎖住）
-            outfit: 'none',        // 30 勝解鎖：none / king / queen
             jokerStyle: 'a',       // 10 勝的小丑海兔配色：a 黑桃 / b 紅心 / c 方塊 / d 梅花（JOKER_STYLES，跟著帳號存在伺服器）
             jokerSwitchable: null, // 小丑配色能不能隨時換：兌換碼拿到的 true、只有勝場拿到的 false；null = 後端還沒回，先當作能換
             jokerStyleChosen: false // 有沒有選過配色（勝場版只能選一次，選過就鎖住）
@@ -2422,49 +2427,6 @@ const i18n = {
                 <circle cx="130" cy="160" r="9.5" fill="#ef4444" stroke="#991b1b" stroke-width="3"/>
                 <circle cx="126.5" cy="156.5" r="2.8" fill="#ffffff" opacity="0.85"/>
                 ${jokerMouthSVG()}`;
-        }
-
-        // 👑 翻牌對決 30 勝的國王裝／皇后裝：座標跟海兔 SVG 一樣（viewBox 0 0 340 240）
-        //    back 畫在身體後面（披風），front 畫在最前面（皇冠＋扣環）；memory_game.js 的王座動畫也用這份
-        const OUTFIT_REWARD_WINS = 30;
-        const OUTFITS = {
-            king: {
-                name: { zh: '國王裝', en: 'King' },
-                back: `
-                    <path d="M 148 110 C 182 78, 252 82, 290 116 C 308 140, 302 182, 286 204 L 196 200 Z" fill="#dc2626" stroke="#7f1d1d" stroke-width="4" stroke-linejoin="round"/>
-                    <path d="M 152 104 C 186 78, 250 82, 286 112" fill="none" stroke="#ffffff" stroke-width="10" stroke-linecap="round"/>
-                    <g fill="#1f2937"><circle cx="186" cy="88" r="2.4"/><circle cx="222" cy="83" r="2.4"/><circle cx="258" cy="92" r="2.4"/></g>`,
-                front: `
-                    <circle cx="160" cy="112" r="7" fill="#facc15" stroke="#a16207" stroke-width="3"/>
-                    <path d="M 106 108 L 101 77 L 117 91 L 130 68 L 143 91 L 159 77 L 154 108 Z" fill="#facc15" stroke="#a16207" stroke-width="4" stroke-linejoin="round"/>
-                    <rect x="102" y="100" width="56" height="11" rx="4" fill="#fbbf24" stroke="#a16207" stroke-width="3"/>
-                    <circle cx="130" cy="95" r="4.5" fill="#ef4444"/>
-                    <g fill="#fef3c7" stroke="#a16207" stroke-width="2.5"><circle cx="101" cy="75" r="4"/><circle cx="130" cy="66" r="4"/><circle cx="159" cy="75" r="4"/></g>`
-            },
-            queen: {
-                name: { zh: '皇后裝', en: 'Queen' },
-                back: `
-                    <path d="M 148 110 C 182 78, 252 82, 290 116 C 308 140, 302 182, 286 204 L 196 200 Z" fill="#c084fc" stroke="#6b21a8" stroke-width="4" stroke-linejoin="round"/>
-                    <path d="M 152 104 C 186 78, 250 82, 286 112" fill="none" stroke="#fbcfe8" stroke-width="10" stroke-linecap="round"/>
-                    <g fill="#f472b6"><circle cx="186" cy="88" r="2.6"/><circle cx="222" cy="83" r="2.6"/><circle cx="258" cy="92" r="2.6"/></g>`,
-                front: `
-                    <circle cx="160" cy="112" r="7" fill="#fbcfe8" stroke="#be185d" stroke-width="3"/>
-                    <path d="M 108 108 C 110 93, 121 88, 130 74 C 139 88, 150 93, 152 108 Z" fill="#fde68a" stroke="#a16207" stroke-width="4" stroke-linejoin="round"/>
-                    <path d="M 104 109 Q 130 99 156 109" fill="none" stroke="#a16207" stroke-width="4" stroke-linecap="round"/>
-                    <path d="M 130 102 C 124 96 118 92 122 87 C 125 84 129 86 130 89 C 131 86 135 84 138 87 C 142 92 136 96 130 102 Z" fill="#ec4899" stroke="#9d174d" stroke-width="2"/>
-                    <g fill="#ffffff" stroke="#f9a8d4" stroke-width="2"><circle cx="115" cy="101" r="3.2"/><circle cx="145" cy="101" r="3.2"/></g>`
-            }
-        };
-        // 這隻海兔現在穿的服裝（30 勝才算數）
-        function activeOutfit(state = gameState) {
-            return (state.memoryWins || 0) >= OUTFIT_REWARD_WINS && OUTFITS[state.outfit] ? state.outfit : 'none';
-        }
-        function applyOutfit() {
-            const kind = activeOutfit();
-            const back = document.getElementById('slugOutfitBack');
-            const front = document.getElementById('slugOutfitFront');
-            if (back) back.innerHTML = kind === 'none' ? '' : OUTFITS[kind].back;
-            if (front) front.innerHTML = kind === 'none' ? '' : OUTFITS[kind].front;
         }
 
         // 🌟 【圖鑑資料庫：幻獸、背景、特效】
@@ -4790,8 +4752,6 @@ const effectData = {
                     else if (gameState.cardBack && gameState.cardBack !== 'classic') fetchAPI('/pet-games/memory-rewards/card-back', 'PUT', { cardBack: gameState.cardBack });
                     // 卡背能不能隨時換（兌換碼拿到的才能換）：後端有回這個欄位才採用，沒回就維持原樣
                     if (typeof data.card_back_switchable === 'boolean') gameState.cardBackSwitchable = data.card_back_switchable;
-                    if (data.memory_royal_outfit) gameState.outfit = data.memory_royal_outfit;
-                    else if (gameState.outfit && gameState.outfit !== 'none') fetchAPI('/pet-games/memory-rewards/royal-outfit', 'PUT', { outfit: gameState.outfit });
                     if (data.memory_joker_style) { gameState.jokerStyle = data.memory_joker_style; gameState.jokerStyleChosen = true; }
                     else if (gameState.jokerStyle && gameState.jokerStyle !== 'a') fetchAPI('/pet-games/memory-rewards/joker-style', 'PUT', { jokerStyle: gameState.jokerStyle });
                     // 小丑配色能不能隨時換（兌換碼拿到的才能換）：後端有回這個欄位才採用，沒回就維持原樣
@@ -4803,7 +4763,7 @@ const effectData = {
                     if (bgData[data.background_color]) gameState.currentBg = data.background_color;
                     if (effectData[data.background_effects]) gameState.currentEffect = data.background_effects;
 
-                    // 同步背包已解鎖清單：合併伺服器 PetInventory 與本機清單 (抽到的寵物目前只存在本機，不能被蓋掉)
+                    // 同步背包已解鎖清單：合併伺服器 PetInventory 與本機清單（改版前在本機抽到的寵物不在伺服器上，不能被蓋掉）
                     if (Array.isArray(data.PetInventory)) {
                         const owned = (category, dataObj) => data.PetInventory
                             .filter(item => item.category === category && dataObj[item.item_name])
@@ -4818,14 +4778,15 @@ const effectData = {
                         gameState.unlockedSpecies.push(gameState.currentSpecies);
                     }
                     
-                    gameState.hasAdopted = true; 
+                    // 伺服器收藏裡有任何寵物顏色（抽過或買過）就算領養過；新帳號還沒有，要留在抽獎畫面讓他抽
+                    if (Array.isArray(data.PetInventory) && data.PetInventory.some(item => item.category === 'pet_color')) gameState.hasAdopted = true;
                     saveGame();
                     
                     checkFirstTime();
                     updateNameUI();
                     renderShop();
                     updateUI();
-                    applyOutfit();   // 勝場數從伺服器拿到後才知道能不能穿國王裝／皇后裝
+                    refreshStickerUnlocks();   // 勝場數從伺服器拿到後才知道塗鴉貼圖解鎖了沒
                 }
             } catch(e) {
                 console.log('伺服器未連線，繼續使用本地存檔');
@@ -6465,27 +6426,41 @@ function updateLangUI() {
         }
 
         // 🌟 【新手隨機抽寵物】
-        function rollGacha() {
+        //    抽哪一隻由後端決定（POST /pet-games/adopt），抽到的會存進伺服器的收藏，進房時別人才看得到；
+        //    收藏裡已經有寵物的帳號不會重抽，後端回 adopted: false 和目前穿的那隻
+        let gachaRolling = false;
+        async function rollGacha() {
+            if (gachaRolling || gameState.hasAdopted) return;
+            gachaRolling = true;
             const box = document.getElementById('gachaBox');
             box.style.border = '5px solid transparent';
             box.style.animation = 'none';
             box.innerText = '...';
-            
-            setTimeout(() => {
-                const keys = Object.keys(speciesData).filter(k => !speciesData[k].rewardWins);   // 勝場獎勵的皮膚不能抽
-                const randomKey = keys[Math.floor(Math.random() * keys.length)]; // 隨機挑一隻
-                
-                gameState.unlockedSpecies = [randomKey];
-                gameState.currentSpecies = randomKey;
-                gameState.hasAdopted = true; // 標記為已經有寵物了
-                
-                document.getElementById('gachaTitle').innerText = speciesData[randomKey].name[currLang];
-                box.style.border = 'none';
-                box.style.boxShadow = 'none';
-                box.innerHTML = `<div style="width:80px;height:80px;border-radius:25px;background:${speciesData[randomKey].body};border:4px solid ${speciesData[randomKey].outline}; box-shadow: 0 10px 20px rgba(0,0,0,0.1)"></div>`;
-                
-                document.getElementById('startBtn').style.display = 'block';
-            }, 1000);
+
+            // 孵化動畫至少跑 1 秒，結果等後端回來才揭曉
+            const [result] = await Promise.all([
+                GAME_TOKEN ? fetchAPI('/pet-games/adopt', 'POST') : null,
+                new Promise(r => setTimeout(r, 1000))
+            ]);
+            const randomKey = result && speciesData[result.species] ? result.species : null;
+            if (!randomKey) {
+                // 沒抽成（斷線、伺服器出錯）：不在本機亂抽，不然進房會變回雪兔；讓玩家再點一次
+                box.innerText = (i18n[currLang] || i18n.zh).gachaRetry;
+                gachaRolling = false;
+                return;
+            }
+
+            gameState.unlockedSpecies = [...new Set([...(gameState.unlockedSpecies || []), randomKey])];
+            gameState.currentSpecies = randomKey;
+            gameState.hasAdopted = true; // 標記為已經有寵物了
+            gachaRolling = false;
+
+            document.getElementById('gachaTitle').innerText = speciesData[randomKey].name[currLang];
+            box.style.border = 'none';
+            box.style.boxShadow = 'none';
+            box.innerHTML = `<div style="width:80px;height:80px;border-radius:25px;background:${speciesData[randomKey].body};border:4px solid ${speciesData[randomKey].outline}; box-shadow: 0 10px 20px rgba(0,0,0,0.1)"></div>`;
+
+            document.getElementById('startBtn').style.display = 'block';
         }
 
        function startGame() {
@@ -6927,7 +6902,6 @@ function tryItem(key, type) {
         // 🌟 【一鍵畫面重繪】每次有改變就叫他幫忙把海兔、背景、特效全部重新畫一次
         function refreshAll() {
             applySlugStyles();
-            applyOutfit();
             applyBg();
             applyEffect();
             renderShop();
@@ -12274,8 +12248,8 @@ case 'fish': {
                     moneyLayer.appendChild(counter);
                     let collected = 0;
                     let exchanging = false;
-                    let lastExchangeAt = 0;                 // 兩次兌換至少間隔 5 秒（後端也會再擋一次）
-                    const EXCHANGE_CD_MS = 5000;
+                    let lastExchangeAt = 0;                 // 兩次兌換至少間隔 25 秒（跟後端一樣，後端也會再擋一次）
+                    const EXCHANGE_CD_MS = 25000;
                     // 沒買特效（試用中）後端不會給分，前端先擋下來省一次請求
                     const ownsMoneyEffect = () => (gameState.unlockedEffects || []).includes('money');
 
