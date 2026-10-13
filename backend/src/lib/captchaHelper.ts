@@ -1,5 +1,6 @@
 import svgCaptcha from 'svg-captcha';
-import { v4 as uuidv4 } from 'uuid';
+// 用 Node 內建的 randomUUID：uuid 套件新版靠全域 crypto，VM 上的 Node 版本沒有，會讓 /captcha 500
+import { randomUUID } from 'node:crypto';
 const captchaMap = new Map<string, string>();
 
 /*生成 CAPTCHA 圖片*/
@@ -13,7 +14,7 @@ export const generateCaptcha = () => {
         width: 150,
         height: 50,
     });
-    const captchaId = uuidv4();
+    const captchaId = randomUUID();
     captchaMap.set(captchaId, captcha.text.toLowerCase());
 
     /* 2 分鐘後自動刪除 CAPTCHA */
