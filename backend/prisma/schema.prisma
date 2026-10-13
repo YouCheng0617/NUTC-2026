@@ -460,7 +460,7 @@ model Pet {
 
   // 翻牌對決勝場獎勵（memoryRewards.ts）
   memory_card_back    String? // 3 勝解鎖：目前套用的卡背（null = 從沒選過，前端用預設的 classic）
-  memory_royal_outfit String? // 30 勝解鎖：king / queen / none（null = 從沒選過）
+  memory_royal_outfit String? // 已停用：30 勝原本是披風皇冠，改成塗鴉貼圖了（欄位先留著，免得 db push 刪資料）
   memory_joker_style  String? // 10 勝小丑海兔的配色：a 黑桃 / b 紅心 / c 方塊 / d 梅花（null = 從沒選過，前端用 a）
   memory_throne_seen  Boolean @default(false) // 100 勝：是否看過登上王座的動畫
 

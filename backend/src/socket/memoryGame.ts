@@ -170,7 +170,7 @@ const stopGame = (roomId: string) => {
     games.delete(roomId);
 };
 
-/* 勝場 +1，滿 jokerSkin.winsRequired 場送小丑皮膚；其他里程碑（卡背、披風皇冠、王座）見 memoryRewards.ts */
+/* 勝場 +1，滿 jokerSkin.winsRequired 場送小丑皮膚；其他里程碑（卡背、塗鴉貼圖、王座）見 memoryRewards.ts */
 const recordWin = async (memberId: number) => {
     const pet = await prisma.pet.upsert({
         where: { member_id: memberId },

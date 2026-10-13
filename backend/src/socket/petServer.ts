@@ -4,7 +4,7 @@ import prisma from '../lib/prisma.js';
 import { setupMemoryGame, memoryHandleLeave, memoryHandleJoin, memoryForget, setRoomKicker } from './memoryGame.js';
 import { getRoomBanMinutesLeft } from './quitPenalty.js';
 import { loadConflicts, hasConflict, isBlockedByHost, blockPlayer, reportPlayer, recordRoomChat, clearRoomChat } from './gameSafety.js';
-import { allowedOutfit, roomJokerStyle, ensureJokerSkin } from './memoryRewards.js';
+import { roomJokerStyle, ensureJokerSkin, isDoodleSticker, canSendDoodle } from './memoryRewards.js';
 import { gameConfig } from './gameConfig.js';
 
 // ... (Player 和 Room 介面保持不變) ...
@@ -13,7 +13,6 @@ interface Player {
     memberId: number;
     petName: string;
     petColor: string;
-    outfit?: string; // 翻牌對決 30 勝解鎖的 king / queen（沒穿就不帶）
     jokerStyle?: string; // 小丑海兔的配色 a～d（petColor 是 joker 才帶）
     x: number;
     y: number;
@@ -21,7 +20,7 @@ interface Player {
 
 /*
  * 進房的玩家資料：名字一律用資料庫的（前端送的不採用，避免取名「系統」或冒充別人）；
- * 皮膚只接受雪兔、收藏裡有的、或確認解鎖的小丑海兔，其他一律換成雪兔；服裝也要確認真的解鎖了
+ * 皮膚只接受雪兔、收藏裡有的、或確認解鎖的小丑海兔，其他一律換成雪兔
  */
 const JOKER = gameConfig.memoryGame.jokerSkin.itemName;
 const DEFAULT_PET_NAME = '小可愛';
@@ -40,13 +39,11 @@ const cleanPlayerData = async (raw: any, memberId: number) => {
         petColor = wanted;
     }
 
-    const outfit = await allowedOutfit(memberId, raw?.outfit);
     const jokerStyle = petColor === JOKER ? await roomJokerStyle(memberId, raw?.jokerStyle) : undefined;
     return {
         memberId,
         petName,
         petColor,
-        ...(outfit ? { outfit } : {}),
         ...(jokerStyle ? { jokerStyle } : {}),
     };
 };
@@ -281,13 +278,18 @@ export const setupPetSocket = (io: Server) => {
             }
         });
 
-        // 6. 發送訊息：最多 200 字；每條連線 1 秒最多 1 則、10 秒最多 5 則
-        socket.on('send_message', ({ roomId, message }: { roomId: string; message: string } = {} as any) => {
+        // 6. 發送訊息：最多 200 字；每條連線 1 秒最多 1 則、10 秒最多 5 則；30 勝的塗鴉貼圖要真的解鎖才送得出去
+        socket.on('send_message', async ({ roomId, message }: { roomId: string; message: string } = {} as any) => {
             const room = typeof roomId === 'string' ? rooms.get(roomId) : undefined;
             if (room) {
                 const player = room.players.get(socket.id);
                 if (player && typeof message === 'string' && message.trim() !== '') { // 優化：防止發送空訊息
                     if (!chatAllowed()) return socket.emit('error', { message: '說太快了，休息一下再聊吧！' });
+                    if (isDoodleSticker(message.trim())) {
+                        const ok = await canSendDoodle(player.memberId).catch(() => false);
+                        if (!ok) return socket.emit('error', { message: `翻牌對決贏滿 ${gameConfig.memoryGame.rewards.doodleStickers.wins} 場才能用作者的塗鴉貼圖喔！` });
+                        if (rooms.get(roomId) !== room || !room.players.has(socket.id)) return; // 查資料庫的時候已經離開房間
+                    }
                     const payload = {
                         senderId: socket.id, // 前端用 socketId 找海兔，同名也不會冒錯頭；不用 memberId 以免外洩帳號編號
                         senderName: player.petName,

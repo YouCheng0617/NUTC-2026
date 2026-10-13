@@ -72,13 +72,14 @@ export const gameConfig = {
         //   兌換碼拿到的小丑海兔四種隨時換；只靠勝場拿到的只能選一次（memoryRewards.ts 的 jokerStyleSwitchable）
         jokerSkin: { winsRequired: 10, itemName: "joker", styles: ["a", "b", "c", "d"] },
         // 其他勝場獎勵（memoryRewards.ts）：
-        //   3 勝 卡背自選箱：解鎖後從 options 挑一種卡背套用，隨時可換（名稱要跟前端 memory_game.js 的 CARD_BACKS 一致）
-        //   30 勝 披風皇冠：國王裝或皇后裝擇一，隨時可換、也可以不穿
+        //   3 勝 卡背自選箱：解鎖後從 options 挑一種卡背套用，勝場拿到的只能選一次（名稱要跟前端 memory_game.js 的 CARD_BACKS 一致）
+        //   30 勝 作者的塗鴉：13 張限定貼圖，沒滿 30 勝送不出去
         //   100 勝 登上王座的神秘動畫：達成那場通知前端播放，之後可重播
         rewards: {
             // 同 memory_game.js 的 CARD_BACKS：經典、漂流瓶、瓶中信、浪花、夜海、沙灘、心情彩虹、海兔家族
             cardBackBox: { wins: 3, options: ["classic", "bottle", "letter", "ocean", "stars", "sand", "mood", "bunny"] },
-            royalOutfit: { wins: 30, options: ["king", "queen"] },
+            // 30 勝：作者的塗鴉貼圖 doodle1～doodle13（同 slug_game.js 的 STICKERS），送貼圖時在 petServer 的 send_message 檢查
+            doodleStickers: { wins: 30, count: 13 },
             throneAnimation: { wins: 100 },
         }
     },

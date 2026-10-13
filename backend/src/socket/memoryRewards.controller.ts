@@ -1,6 +1,6 @@
 import type { Response } from "express";
 import type { AuthRequest } from "../modules/middleware/auth.middleware.js";
-import { getMemoryRewards, setCardBack, setRoyalOutfit, setJokerStyle, markThroneSeen } from "./memoryRewards.js";
+import { getMemoryRewards, setCardBack, setJokerStyle, markThroneSeen } from "./memoryRewards.js";
 
 const handle = (fn: (memberId: number, req: AuthRequest) => Promise<unknown>) =>
     async (req: AuthRequest, res: Response) => {
@@ -13,14 +13,11 @@ const handle = (fn: (memberId: number, req: AuthRequest) => Promise<unknown>) =>
         }
     };
 
-/* GET /pet-games/memory-rewards：勝場、各里程碑解鎖狀態、目前的卡背與披風皇冠 */
+/* GET /pet-games/memory-rewards：勝場、各里程碑解鎖狀態、目前的卡背、塗鴉貼圖是否解鎖 */
 export const getMemoryRewardsController = handle((memberId) => getMemoryRewards(memberId));
 
-/* PUT /pet-games/memory-rewards/card-back { cardBack }（null = 換回預設） */
+/* PUT /pet-games/memory-rewards/card-back { cardBack }（null = 預設卡背；勝場拿到的選過就不能換） */
 export const setCardBackController = handle((memberId, req) => setCardBack(memberId, req.body?.cardBack ?? null));
-
-/* PUT /pet-games/memory-rewards/royal-outfit { outfit: "king" | "queen" | null } */
-export const setRoyalOutfitController = handle((memberId, req) => setRoyalOutfit(memberId, req.body?.outfit ?? null));
 
 /* PUT /pet-games/memory-rewards/joker-style { jokerStyle: "a" | "b" | "c" | "d" }（黑桃／紅心／方塊／梅花） */
 export const setJokerStyleController = handle((memberId, req) => setJokerStyle(memberId, req.body?.jokerStyle));
