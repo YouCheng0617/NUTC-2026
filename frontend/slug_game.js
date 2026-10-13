@@ -817,11 +817,29 @@ let GAME_TOKEN = localStorage.getItem('authToken') || localStorage.getItem('acce
             updateRoomUI("尚未連線");
         }
         // 🌟 展開或收合連線面板的小魔法
+        // 連線選單的位置：「財富自由」的金幣計數框也在右上角，有它的時候選單排到它下面，兩個才不會疊在一起；
+        // 選單比畫面剩下的空間長就在裡面捲動，最下面的按鈕不會被切掉
+        function placeMpPanel(panel) {
+            // 先回到原本寫在 HTML 上的位置（top: 130px）再量
+            if (!panel.dataset.baseTop) panel.dataset.baseTop = panel.style.top || getComputedStyle(panel).top;
+            panel.style.top = panel.dataset.baseTop;
+            const counter = document.querySelector('.money-counter');
+            const parentTop = panel.offsetParent ? panel.offsetParent.getBoundingClientRect().top : 0;
+            let top = panel.getBoundingClientRect().top;
+            if (counter && counter.getBoundingClientRect().height > 0) {
+                const c = counter.getBoundingClientRect(), p = panel.getBoundingClientRect();
+                if (c.left < p.right && p.left < c.right) top = Math.max(top, c.bottom + 10);
+            }
+            panel.style.top = (top - parentTop) + 'px';
+            panel.style.maxHeight = Math.max(160, innerHeight - top - 12) + 'px';
+            panel.style.overflowY = 'auto';
+        }
         function toggleMpPanel() {
             const panel = document.getElementById('mpPanel');
             // 如果是隱藏的，就讓它彈出來；如果已經打開了，就把它收回去
             if (panel.style.display === 'none') {
                 panel.style.display = 'flex';
+                placeMpPanel(panel);
             } else {
                 panel.style.display = 'none';
             }

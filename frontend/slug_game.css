@@ -45,7 +45,7 @@
             display: flex;
             flex-direction: column;
             gap: 10px;
-            z-index: 55;
+            z-index: 90;   /* 下拉選單要蓋在下方操作面板（z-index 80）上面，最下面的按鈕才不會被擋住 */
             background: rgba(255, 255, 255, 0.85);
             padding: 15px;
             border-radius: 20px;
