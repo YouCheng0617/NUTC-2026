@@ -226,7 +226,7 @@ const triggerJoker = (io: Server, game: MemoryGame, jokerIndex: number) => {
             indices: [jokerIndex], face: JOKER, by: JOKER_REMOVED, players: publicPlayers(game), streak: 0,
         });
         game.locked = false;
-        const notice = `🃏 ${player?.petName ?? ''} 翻到鬼牌！還沒配對的牌全部重新洗過，換下一位！`;
+        const notice = `🃏 ${player?.petName ?? ''} 翻到小丑牌！還沒配對的牌全部重新洗過，換下一位！`;
         if (game.turnSeq === seq) {
             nextTurn(io, game, notice);
         } else {

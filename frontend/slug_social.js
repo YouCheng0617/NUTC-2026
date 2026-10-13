@@ -194,7 +194,7 @@
         [/^(.+) 輪到時 (\d+) 次都沒翻牌，被請出對決了！$/, (name, n) => `${name} skipped ${n} turns and was removed from the match!`],
         [/^(.+) 這回合沒有翻牌（警告 (\d+)\/(\d+)），再一次就會被請出對決！$/,
             (name, a, b) => `${name} didn't flip this turn (warning ${a}/${b}) — once more and they're out!`],
-        [/^🃏 (.*) 翻到鬼牌！還沒配對的牌全部重新洗過，換下一位！$/, (name) => `🃏 ${name} found the Joker! All unmatched cards were reshuffled — next player!`],
+        [/^🃏 (.*) 翻到(?:鬼牌|小丑牌)！還沒配對的牌全部重新洗過，換下一位！$/, (name) => `🃏 ${name} found the Joker! All unmatched cards were reshuffled — next player!`],
         [/^(.+) 連續翻對 (\d+) 組，換下一位！$/, (name, n) => `${name} matched ${n} in a row — next player!`],
         [/^(.+) 只剩一個人，牌還沒翻到 (\d+)%，這局不算。$/, (before, pct) => `${trText(before)} Only one player is left and less than ${pct}% of the cards were matched, so this match doesn't count.`],
         [/^(.+) 斷線了，位置先幫他保留。$/, (name) => `${name} disconnected — their seat is saved.`],
