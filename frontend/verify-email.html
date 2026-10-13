@@ -39,6 +39,12 @@
             style="color: #ffffff; font-size: 0.95rem; text-align: center; font-weight: bold; margin-bottom: 25px; text-shadow: 0 1px 4px rgba(0, 0, 0, 0.6);">
             驗證中，請稍候…</p>
 
+          <!-- 驗證完成（或連結已經用過）時出現：放在訊息正下方，最顯眼 -->
+          <a href="login.html" id="login-link"
+            style="display: none; margin-bottom: 25px; padding: 10px 28px; border-radius: 999px; background: #ffffff; color: #1e5a8a; font-weight: 900; text-decoration: none; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);">
+            前往登入 →
+          </a>
+
           <!-- 驗證失敗時才出現：重新發送驗證信 -->
           <div class="b-row" id="resend-row" style="width: 100%; display: none;">
             <div class="b-item b-pill" style="width: 100%;">
@@ -54,10 +60,6 @@
             </svg>
           </button>
 
-          <a href="login.html" id="login-link"
-            style="display: none; margin-top: 25px; color: #ffffff; font-weight: bold; text-decoration: underline; text-shadow: 0 1px 4px rgba(0, 0, 0, 0.6);">
-            前往登入 →
-          </a>
 
         </div>
 
@@ -90,6 +92,16 @@
       resendBtn.style.display = "flex";
     }
 
+    // 連結已經用過、或請求沒收到回應時：帳號多半其實已經驗證好了（驗證成功後連結就會作廢），
+    // 所以不顯示紅字錯誤，改成請他直接登入；登入時被告知尚未驗證，才需要重新發送（欄位放在下面備用）
+    function showProbablyVerified(message) {
+      statusEl.innerText = message;
+      statusEl.style.color = "#ffffff";
+      loginLink.style.display = "inline-block";
+      resendRow.style.display = "flex";
+      resendBtn.style.display = "flex";
+    }
+
     async function verifyEmail() {
       // 擋住亂闖入的訪客
       if (!urlToken) {
@@ -97,26 +109,42 @@
         return;
       }
 
-      try {
-        const response = await fetch(`${API_BASE_URL}/auth/verify-email`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "ngrok-skip-browser-warning": "true",
-          },
-          body: JSON.stringify({ token: urlToken }),
-        });
-        const data = await response.json();
+      // 網路一時不穩就自動再試，最多 3 次
+      let lastError = null;
+      for (let attempt = 0; attempt < 3; attempt++) {
+        if (attempt > 0) await new Promise((r) => setTimeout(r, 1500));
+        try {
+          const response = await fetch(`${API_BASE_URL}/auth/verify-email`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "ngrok-skip-browser-warning": "true",
+            },
+            body: JSON.stringify({ token: urlToken }),
+          });
+          const data = await response.json().catch(() => ({}));
 
-        if (response.ok) {
-          showSuccess("🎉 " + (data.message || "信箱驗證成功!帳號已啟用，請前往登入"));
-        } else {
-          showFailure("❌ " + (data.message || "驗證連結可能已失效或過期，請重新發送驗證信。"));
+          if (response.ok) {
+            showSuccess("🎉 " + (data.message || "信箱驗證成功!帳號已啟用，請前往登入"));
+            return;
+          }
+          if (response.status >= 500 || response.status === 429) { lastError = response.status; continue; }
+          const msg = data.message || "";
+          if (/過期/.test(msg)) {
+            showFailure("⏰ 驗證連結已過期，請在下面填入註冊信箱，重新發送驗證信。");
+          } else if (/封鎖|找不到對應的會員/.test(msg)) {
+            showFailure("❌ " + msg);
+          } else {
+            // 「無效的驗證連結」：驗證成功後連結就會作廢，多半是已經點過了
+            showProbablyVerified("✅ 這個驗證連結已經用過了。如果你之前點過它，信箱就已經驗證完成，請直接到登入畫面登入。\n（登入時如果顯示尚未驗證，再在下面重新發送驗證信）");
+          }
+          return;
+        } catch (error) {
+          lastError = error;
         }
-      } catch (error) {
-        console.error("連線錯誤:", error);
-        showFailure("📡 無法連接到後端伺服器，請稍後再試。");
       }
+      console.error("驗證請求沒有收到回應:", lastError);
+      showProbablyVerified("✅ 驗證已送出！請到登入畫面登入。\n（登入時如果顯示信箱尚未驗證，再在下面重新發送驗證信）");
     }
 
     async function resendVerification() {
