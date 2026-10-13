@@ -62,8 +62,8 @@ export const gameConfig = {
             { coin: 1000, banMinutes: 60 },
         ],
         // 鬼牌：牌堆多放一對，但翻到任何一張就把還沒配對的牌全部重洗（已配對的不動）、不加分、直接換下一位。
-        // 設計師還沒畫好牌面，先關著
-        joker: { enabled: false },
+        // 前端 memory_game.js 已有小丑牌牌面（🃏，前端叫「小丑牌」），2026-10-13 打開
+        joker: { enabled: true },
         // 機會／命運牌：規則還沒定，先留開關，邏輯尚未實作
         chanceCards: { enabled: false },
         // 贏滿幾場送小丑海兔（存進 PetInventory 的 pet_color / joker，前端 speciesData.joker）。
