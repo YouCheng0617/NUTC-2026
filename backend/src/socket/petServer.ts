@@ -287,7 +287,7 @@ export const setupPetSocket = (io: Server) => {
                     if (!chatAllowed()) return socket.emit('error', { message: '說太快了，休息一下再聊吧！' });
                     if (isDoodleSticker(message.trim())) {
                         const ok = await canSendDoodle(player.memberId).catch(() => false);
-                        if (!ok) return socket.emit('error', { message: `翻牌對決贏滿 ${gameConfig.memoryGame.rewards.doodleStickers.wins} 場才能用作者的塗鴉貼圖喔！` });
+                        if (!ok) return socket.emit('error', { message: '還沒解鎖作者的塗鴉貼圖喔！翻牌對決贏滿 30 場或用兌換碼就能拿到' });
                         if (rooms.get(roomId) !== room || !room.players.has(socket.id)) return; // 查資料庫的時候已經離開房間
                     }
                     const payload = {

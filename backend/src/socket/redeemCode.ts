@@ -5,11 +5,12 @@ import { gameConfig } from './gameConfig.js';
 
 /*
  * 寵物遊戲兌換碼
- * 後台建立：自訂積分＋任意組合的皮膚（pet_color，包含不在商店賣的小丑海兔）、背景（background_color）、特效（background_effects），
+ * 後台建立：自訂積分＋任意組合的皮膚（pet_color，包含不在商店賣的小丑海兔）、背景（background_color）、特效（background_effects）、
+ *           貼圖包（sticker_pack，目前只有翻牌對決 30 勝的作者塗鴉 doodle）、卡背自選箱（card_back，item 一律是 all），
  * 可設到期時間、最多幾個人能用；每個帳號同一個碼只能兌換一次。
  */
 
-export const REWARD_CATEGORIES = ['pet_color', 'background_color', 'background_effects'] as const;
+export const REWARD_CATEGORIES = ['pet_color', 'background_color', 'background_effects', 'sticker_pack', 'card_back'] as const;
 type Category = typeof REWARD_CATEGORIES[number];
 export interface RewardItem { category: Category; item: string }
 
@@ -23,11 +24,15 @@ export const generateCode = (length = 10) =>
     Array.from({ length }, () => CODE_ALPHABET[crypto.randomInt(CODE_ALPHABET.length)]).join('');
 
 /* 商品必須是商店裡要花錢買的東西（經典雪兔、無特效這種一開始就有的免費項目不能拿來發）；
-   小丑海兔是翻牌對決獎勵、商店沒賣，但後台可以用兌換碼送 */
+   小丑海兔、作者的塗鴉貼圖、卡背自選箱是翻牌對決獎勵、商店沒賣，但後台可以用兌換碼送 */
+const DOODLE = gameConfig.memoryGame.rewards.doodleStickers;
+const CARD_BACK_BOX = gameConfig.memoryGame.rewards.cardBackBox;
 const isValidItem = (x: any): x is RewardItem => {
     if (!x || !REWARD_CATEGORIES.includes(x.category) || typeof x.item !== 'string') return false;
     if (x.category === 'pet_color' && x.item === gameConfig.memoryGame.jokerSkin.itemName) return true;
-    const prices = gameConfig.shop[x.category as Category] as Record<string, number>;
+    if (x.category === 'sticker_pack') return x.item === DOODLE.packName;
+    if (x.category === 'card_back') return x.item === CARD_BACK_BOX.packName;
+    const prices = gameConfig.shop[x.category as Exclude<Category, 'sticker_pack' | 'card_back'>] as Record<string, number>;
     return Object.prototype.hasOwnProperty.call(prices, x.item) && prices[x.item]! > 0;
 };
 

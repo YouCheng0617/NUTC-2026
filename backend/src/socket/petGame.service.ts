@@ -1,6 +1,6 @@
 import prisma from '../lib/prisma.js';
 import { gameConfig } from './gameConfig.js';
-import { ensureJokerSkin, jokerStyleSwitchable, cardBackSwitchable } from './memoryRewards.js';
+import { ensureJokerSkin, jokerStyleSwitchable, cardBackSwitchable, canSendDoodle } from './memoryRewards.js';
 
 export const renamePet = async (memberId: number, newName: string) => {
 
@@ -286,7 +286,8 @@ export const getMyPetWithInventory = async (memberId: number) => {
         ...pet,
         is_signed_in_today,
         joker_style_switchable: await jokerStyleSwitchable(memberId), // 小丑配色能不能隨時換（兌換碼拿到的 true，只靠勝場的 false）
-        card_back_switchable: cardBackSwitchable() // 卡背能不能隨時換（目前兌換碼不送卡背，一律 false：選一次就固定）
+        card_back_switchable: await cardBackSwitchable(memberId), // 卡背能不能隨時換（兌換碼拿到卡背自選箱的 true，只靠勝場的 false）
+        doodle_stickers_unlocked: await canSendDoodle(memberId) // 作者的塗鴉貼圖能不能用（滿 30 勝或兌換碼送的）
     };
 };
 

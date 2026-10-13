@@ -3,9 +3,9 @@ import { gameConfig } from './gameConfig.js';
 
 /*
  * 翻牌對決的勝場獎勵
- *   3 勝  卡背自選箱：從清單挑一種卡背套用，勝場拿到的只能選一次
+ *   3 勝  卡背自選箱：從清單挑一種卡背套用，勝場拿到的只能選一次；兌換碼送的不用滿 3 勝、隨時能換
  *   10 勝 小丑皮膚（在 memoryGame.ts 的 recordWin 放進寵物顏色收藏）
- *   30 勝 作者的塗鴉：13 張限定貼圖，沒滿 30 勝送不出去（petServer 的 send_message 檢查）
+ *   30 勝 作者的塗鴉：13 張限定貼圖，沒滿 30 勝、也沒用兌換碼拿到就送不出去（petServer 的 send_message 檢查）
  *   100 勝 登上王座的神秘動畫：達成那場通知前端播放，之後可以重播
  * 是否解鎖一律看目前的勝場數，不另外存「已解鎖」；選了什麼存在 Pet 上
  */
@@ -40,10 +40,10 @@ export const getMemoryRewards = async (memberId: number) => {
         milestones: MILESTONES.map(m => ({ ...m, unlocked: wins >= m.wins })),
         next: next && { ...next, remaining: next.wins - wins },
         cardBack: {
-            unlocked: wins >= R.cardBackBox.wins,
+            unlocked: wins >= R.cardBackBox.wins || await cardBackSwitchable(memberId),
             options: R.cardBackBox.options,
             selected: pet.memory_card_back,
-            switchable: cardBackSwitchable(),
+            switchable: await cardBackSwitchable(memberId),
         },
         jokerSkin: {
             unlocked: wins >= cfg.jokerSkin.winsRequired,
@@ -52,25 +52,32 @@ export const getMemoryRewards = async (memberId: number) => {
             selected: pet.memory_joker_style,
             switchable: await jokerStyleSwitchable(memberId),
         },
-        doodleStickers: { unlocked: wins >= R.doodleStickers.wins, count: R.doodleStickers.count },
+        doodleStickers: { unlocked: await canSendDoodle(memberId), count: R.doodleStickers.count },
         throne: { unlocked: wins >= R.throneAnimation.wins, seen: pet.memory_throne_seen },
     };
 };
 
-/* 卡背能不能隨時換：規則跟小丑配色一樣，兌換碼拿到的隨時能換、勝場拿到的只能選一次。
-   目前兌換碼不送卡背，所以一律只能選一次（my-pet 回給前端的 card_back_switchable） */
-export const cardBackSwitchable = () => false;
+/* 卡背能不能隨時換：規則跟小丑配色一樣，兌換碼拿到卡背自選箱的隨時能換（也不用滿 3 勝）、只靠勝場的只能選一次
+   （my-pet 回給前端的 card_back_switchable） */
+export const cardBackSwitchable = async (memberId: number) => {
+    const owned = await prisma.petInventory.findFirst({
+        where: { pet: { member_id: memberId }, category: R.cardBackBox.packCategory, item_name: R.cardBackBox.packName },
+        select: { inventory_id: true },
+    });
+    return !!owned;
+};
 
 /* PUT /pet-games/memory-rewards/card-back { cardBack }：null = 預設卡背（classic）
    第一次選照常存；選過了（不是 null）就不能再換成別的 */
 export const setCardBack = async (memberId: number, rawCardBack: unknown) => {
     const cardBack = rawCardBack ?? 'classic';
     const pet = await getPet(memberId);
-    if (pet.memory_wins < R.cardBackBox.wins) throw new Error(`翻牌對決贏滿 ${R.cardBackBox.wins} 場才能打開卡背自選箱喔！`);
+    const switchable = await cardBackSwitchable(memberId);
+    if (pet.memory_wins < R.cardBackBox.wins && !switchable) throw new Error(`翻牌對決贏滿 ${R.cardBackBox.wins} 場才能打開卡背自選箱喔！`);
     if (!(typeof cardBack === 'string' && (R.cardBackBox.options as readonly string[]).includes(cardBack))) {
         throw new Error('沒有這種卡背');
     }
-    if (pet.memory_card_back && pet.memory_card_back !== cardBack && !cardBackSwitchable()) {
+    if (pet.memory_card_back && pet.memory_card_back !== cardBack && !switchable) {
         throw new Error('勝場拿到的卡背不能再換喔');
     }
     await prisma.pet.update({ where: { member_id: memberId }, data: { memory_card_back: cardBack } });
@@ -81,10 +88,16 @@ export const setCardBack = async (memberId: number, rawCardBack: unknown) => {
 const DOODLE_STICKER_RE = /^\[\[sticker:doodle\d+\]\]$/;
 export const isDoodleSticker = (message: string) => DOODLE_STICKER_RE.test(message);
 
-/* 送塗鴉貼圖前檢查：只有送塗鴉時才查資料庫，所以每次都是最新的勝場 */
+/* 塗鴉貼圖解鎖了沒：滿 30 勝，或背包裡有兌換碼送的貼圖包。只有送塗鴉、讀 my-pet 時才查，所以每次都是最新的 */
 export const canSendDoodle = async (memberId: number) => {
-    const pet = await prisma.pet.findUnique({ where: { member_id: memberId }, select: { memory_wins: true } });
-    return !!pet && pet.memory_wins >= R.doodleStickers.wins;
+    const pet = await prisma.pet.findUnique({
+        where: { member_id: memberId },
+        select: {
+            memory_wins: true,
+            PetInventory: { where: { category: R.doodleStickers.packCategory, item_name: R.doodleStickers.packName }, select: { inventory_id: true } },
+        },
+    });
+    return !!pet && (pet.memory_wins >= R.doodleStickers.wins || pet.PetInventory.length > 0);
 };
 
 /* 有沒有小丑海兔：背包裡有（勝場拿到或兌換碼送的）就算；

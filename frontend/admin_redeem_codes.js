@@ -13,8 +13,17 @@
         { key: 'species', category: 'pet_color', label: '🐌 寵物皮膚' },
         { key: 'bg', category: 'background_color', label: '🖼️ 背景' },
         { key: 'effect', category: 'background_effects', label: '✨ 特效' },
+        { key: 'sticker', category: 'sticker_pack', label: '🖍️ 貼圖' },
+        { key: 'cardBack', category: 'card_back', label: '🎴 卡背' },
     ];
-    const CATEGORY_LABEL = { pet_color: '皮膚', background_color: '背景', background_effects: '特效' };
+    const CATEGORY_LABEL = { pet_color: '皮膚', background_color: '背景', background_effects: '特效', sticker_pack: '貼圖', card_back: '卡背' };
+    // 卡背自選箱、貼圖包不在 slug_game.js 的商品資料裡，直接寫在這（跟後端 gameConfig 的 cardBackBox、doodleStickers 對應）
+    const CARD_BACK_PACKS = {
+        all: { name: '卡背自選箱（8 種隨時換）', cost: 0, rewardWins: 3, thumb: { type: 'text', text: '🎴' } },
+    };
+    const STICKER_PACKS = {
+        doodle: { name: '作者的塗鴉（13 張）', cost: 0, rewardWins: 30, thumb: { type: 'img', src: 'images/stickers/doodle_01.webp' } },
+    };
     const STATE_BADGE = {
         active: { text: '🟢 可使用', bg: '#dcfce7', color: '#15803d' },
         disabled: { text: '⏸️ 已停用', bg: '#f1f5f9', color: '#64748b' },
@@ -103,11 +112,13 @@
                 pet_color: build(species, (v, key) => ({ type: 'svg', html: petThumb(v, key === 'joker' && jokerExtra ? jokerExtra('a') : '') })),
                 background_color: build(bgs, (v) => ({ type: 'bg', css: css(v.preview) })),
                 background_effects: build(effects, (v) => ({ type: 'bg', css: css(v.preview) })),
+                sticker_pack: STICKER_PACKS,
+                card_back: CARD_BACK_PACKS,
             };
         } catch (e) {
             console.error('[兌換碼] 讀取商品資料失敗', e);
             catalogError = '讀不到寵物遊戲的商品資料，小圖無法顯示（請確認 slug_game.js 有沒有改名）';
-            catalog = { pet_color: {}, background_color: {}, background_effects: {} };
+            catalog = { pet_color: {}, background_color: {}, background_effects: {}, sticker_pack: STICKER_PACKS, card_back: CARD_BACK_PACKS };
         }
         return catalog;
     }
@@ -120,6 +131,8 @@
         const box = `width:${size}px; height:${size}px;`;
         if (!info.thumb) return `<span class="rd-thumb" style="${box}">❔</span>`;
         if (info.thumb.type === 'svg') return `<span class="rd-thumb" style="${box}">${info.thumb.html}</span>`;
+        if (info.thumb.type === 'text') return `<span class="rd-thumb" style="${box} display:inline-flex; align-items:center; justify-content:center; font-size:${Math.round(size * 0.6)}px;">${info.thumb.text}</span>`;
+        if (info.thumb.type === 'img') return `<span class="rd-thumb" style="${box}"><img src="${info.thumb.src}" alt="" style="width:100%; height:100%; object-fit:contain;"></span>`;
         return `<span class="rd-thumb" style="${box}"></span>`;
     }
     // 背景類的縮圖是很長的 CSS（內嵌 SVG），不放進 HTML 字串，畫完再一個個套上去

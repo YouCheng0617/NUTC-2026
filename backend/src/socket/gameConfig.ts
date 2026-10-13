@@ -77,9 +77,11 @@ export const gameConfig = {
         //   100 勝 登上王座的神秘動畫：達成那場通知前端播放，之後可重播
         rewards: {
             // 同 memory_game.js 的 CARD_BACKS：經典、漂流瓶、瓶中信、浪花、夜海、沙灘、心情彩虹、海兔家族
-            cardBackBox: { wins: 3, options: ["classic", "bottle", "letter", "ocean", "stars", "sand", "mood", "bunny"] },
+            //   兌換碼也能直接送「卡背自選箱」：PetInventory 存 category card_back、item_name all，拿到的 8 種隨時換
+            cardBackBox: { wins: 3, options: ["classic", "bottle", "letter", "ocean", "stars", "sand", "mood", "bunny"], packCategory: "card_back", packName: "all" },
             // 30 勝：作者的塗鴉貼圖 doodle1～doodle13（同 slug_game.js 的 STICKERS），送貼圖時在 petServer 的 send_message 檢查
-            doodleStickers: { wins: 30, count: 13 },
+            //   兌換碼也能直接送：PetInventory 存 category sticker_pack、item_name doodle
+            doodleStickers: { wins: 30, count: 13, packCategory: "sticker_pack", packName: "doodle" },
             throneAnimation: { wins: 100 },
         }
     },

@@ -160,6 +160,8 @@
         '沒有這種卡背': "That card back doesn't exist",
         '小丑海兔只有黑桃、紅心、方塊、梅花四種配色': 'The Joker Bunny only comes in Spades, Hearts, Diamonds and Clubs',
         '勝場拿到的小丑海兔配色不能再換喔': "Joker Bunny colors won from matches can't be changed",
+        '勝場拿到的卡背不能再換喔': "Card backs won from matches can't be changed",
+        '還沒解鎖作者的塗鴉貼圖喔！翻牌對決贏滿 30 場或用兌換碼就能拿到': "You haven't unlocked the Author's Doodles yet! Win 30 Memory Match games or use a redeem code",
         '有選到不存在的商品，請重新整理後再選一次': 'An item no longer exists — refresh and try again',
         '找不到這個兌換碼': "That code doesn't exist"
     };
@@ -615,8 +617,14 @@
     const CATEGORY = {
         pet_color: { data: () => speciesData, list: () => gameState.unlockedSpecies, zh: '海兔', en: 'Sea bunny' },
         background_color: { data: () => bgData, list: () => gameState.unlockedBgs, zh: '背景', en: 'Background' },
-        background_effects: { data: () => effectData, list: () => gameState.unlockedEffects, zh: '特效', en: 'Effect' }
+        background_effects: { data: () => effectData, list: () => gameState.unlockedEffects, zh: '特效', en: 'Effect' },
+        // 貼圖包：目前只有翻牌對決 30 勝的作者塗鴉，兌換碼也能直接送
+        sticker_pack: { data: () => STICKER_PACKS, list: () => [], zh: '貼圖', en: 'Stickers' },
+        // 卡背自選箱：拿到就不用滿 3 勝，8 種卡背隨時換
+        card_back: { data: () => CARD_BACK_PACKS, list: () => [], zh: '卡背', en: 'Card backs' }
     };
+    const CARD_BACK_PACKS = { all: { name: { zh: '卡背自選箱（8 種隨時換）', en: 'Card Back Box (switch anytime)' } } };
+    const STICKER_PACKS = { doodle: { name: { zh: '作者的塗鴉（13 張）', en: "Author's Doodles (13)" } } };
     let redeemBusy = false;
     let redeemResult = null;   // 成功：{ data }；失敗：{ error }
     let redeemDraft = '';
@@ -807,9 +815,13 @@
                 if (cat.data()[x.item] && !list.includes(x.item)) list.push(x.item);
                 // 兌換碼拿到的小丑海兔配色可以隨時換（不用等重新整理讀到後端的欄位）
                 if (x.category === 'pet_color' && x.item === 'joker') gameState.jokerSwitchable = true;
+                // 兌換碼拿到的塗鴉貼圖：貼圖面板馬上多出這 13 張
+                if (x.category === 'sticker_pack' && x.item === 'doodle') gameState.doodleOwned = true;
+                if (x.category === 'card_back' && x.item === 'all') gameState.cardBackSwitchable = true;
             });
             saveGame();
             updateUI();
+            if (typeof refreshStickerUnlocks === 'function') refreshStickerUnlocks();
             // 商店、百寶袋的卡片要重畫，才會從「🏆 翻牌 10 勝」這類鎖住的樣子變成可以穿的「已擁有」
             if (typeof renderShop === 'function') renderShop();
             const catalogOverlay = document.getElementById('catalogModalOverlay');

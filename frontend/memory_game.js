@@ -210,9 +210,11 @@
 
     function hasGame() { return typeof gameState !== 'undefined' && gameState; }
     function myWins() { return hasGame() ? (gameState.memoryWins || 0) : 0; }
+    // 🎴 卡背自選箱用兌換碼拿到的（後端 card_back_switchable 是 true）：不用滿 3 勝也能用
+    function ownsCardBackBox() { return hasGame() && gameState.cardBackSwitchable === true; }
     function myCardBack() {
         const id = hasGame() ? gameState.cardBack : 'classic';
-        return myWins() >= CARD_BACK_WINS && CARD_BACKS.some((b) => b.id === id) ? id : 'classic';
+        return (myWins() >= CARD_BACK_WINS || ownsCardBackBox()) && CARD_BACKS.some((b) => b.id === id) ? id : 'classic';
     }
     function saveState() { if (typeof saveGame === 'function') saveGame(); }
     // 🤡 小丑海兔配色能不能換：兌換碼拿到的隨時能換；勝場拿到的只能選一次
@@ -237,7 +239,10 @@
         if (typeof pet.card_back_switchable === 'boolean') gameState.cardBackSwitchable = pet.card_back_switchable;
         if (pet.memory_joker_style) { gameState.jokerStyle = pet.memory_joker_style; gameState.jokerStyleChosen = true; }
         if (typeof pet.joker_style_switchable === 'boolean') gameState.jokerSwitchable = pet.joker_style_switchable;
+        if (typeof pet.doodle_stickers_unlocked === 'boolean') gameState.doodleOwned = pet.doodle_stickers_unlocked;
     }
+    // 🖍️ 塗鴉貼圖用兌換碼拿到的（勝場不夠也算解鎖）
+    function ownsDoodle() { return hasGame() && gameState.doodleOwned === true; }
 
     function isEn() {
         try { return typeof currLang !== 'undefined' && currLang === 'en'; } catch (e) { return false; }
@@ -591,8 +596,8 @@
         return hasGame() && (typeof GAME_TOKEN === 'undefined' || GAME_TOKEN) ? myWins() : null;
     }
 
-    // 30 勝的塗鴉貼圖還沒拿到前，名稱和說明都用「皇室小兔」騙一下
-    function rewardKey(id) { return id === 'doodle' && (knownWins() || 0) < 30 ? 'doodleTeaser' : id; }
+    // 30 勝的塗鴉貼圖還沒拿到前，名稱和說明都用「皇室小兔」騙一下（兌換碼拿到的就直接揭曉）
+    function rewardKey(id) { return id === 'doodle' && (knownWins() || 0) < 30 && !ownsDoodle() ? 'doodleTeaser' : id; }
     function rewardName(id) { return T('reward_' + rewardKey(id)); }
     function doodleImg(cls) {
         const img = el('img', cls);
@@ -618,7 +623,7 @@
         REWARDS.forEach((r) => {
             // 小丑海兔也可能是兌換碼送的：背包裡有就算解鎖，勝場不夠也能打開配色面板
             const ownsJoker = r.id === 'joker' && hasGame() && Array.isArray(gameState.unlockedSpecies) && gameState.unlockedSpecies.includes('joker');
-            const unlocked = (w || 0) >= r.wins || ownsJoker;
+            const unlocked = (w || 0) >= r.wins || ownsJoker || (r.id === 'doodle' && ownsDoodle()) || (r.id === 'cardBack' && ownsCardBackBox());
             const tile = el('div', 'mg-reward ' + (unlocked ? 'is-unlocked' : 'is-locked'));
             tile.dataset.reward = r.id;
             const icon = el('span', 'mg-reward-icon', unlocked && r.id !== 'doodle' ? r.icon : (unlocked ? '' : '🔒'));
