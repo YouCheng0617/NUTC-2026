@@ -2736,6 +2736,7 @@
             transform: translate(-50%, -100%);
             z-index: 55;
             pointer-events: none;
+            width: max-content;   /* 靠近畫面右邊時也照內容寬度排，不會被擠成一個字一行 */
             max-width: min(260px, 80vw);
             white-space: normal;
             text-align: center;
@@ -2744,6 +2745,14 @@
         @keyframes chatFloatPop {
             0% { transform: translate(-50%, -100%) scale(0.5); opacity: 0; }
             100% { transform: translate(-50%, -100%) scale(1); opacity: 1; }
+        }
+        /* 海兔在畫面最上面、泡泡放不下時：改到海兔下面，尾巴朝上 */
+        .chat-bubble.floating.is-below { transform: translate(-50%, 0); animation-name: chatFloatPopBelow; }
+        .chat-bubble.floating.is-below::after { bottom: auto; top: -8px; border-width: 0 8px 8px; border-color: transparent transparent white transparent; }
+        .chat-bubble.floating.is-below::before { bottom: auto; top: -11px; border-width: 0 10px 10px; border-color: transparent transparent var(--accent-color) transparent; }
+        @keyframes chatFloatPopBelow {
+            0% { transform: translate(-50%, 0) scale(0.5); opacity: 0; }
+            100% { transform: translate(-50%, 0) scale(1); opacity: 1; }
         }
         @media (prefers-reduced-motion: reduce) { .chat-bubble.floating { animation: none; } }
 
@@ -3027,6 +3036,18 @@
             .game-card { padding: 8px 16px; }
             .gc-art { transform: scale(0.8); margin: -8px -10px; }
             .gc-desc { display: none; }
+        }
+
+        /* 手機橫放（寬但很矮）的連線房間：下方面板只放兩顆按鈕＋一條扁扁的小遊戲卡，把高度讓給房間裡的海兔 */
+        @media screen and (min-width: 769px) and (max-height: 560px) {
+            .ui-panel:has(.mp-games:not([hidden])) { height: auto; max-height: 48%; padding-top: 10px; padding-bottom: 8px; }
+            body:has(.mp-games:not([hidden])) .stage { height: 66%; }   /* 魚缸一路延伸到壓扁後的面板上緣 */
+            .ui-panel:has(.mp-games:not([hidden])) .interaction-group { margin-bottom: 8px; }
+            .ui-panel:has(.mp-games:not([hidden])) .btn-interact { padding: 6px 0; }
+            .mp-games-head, .game-soon, .gc-tags { display: none; }
+            .mp-games-list { grid-template-columns: 1fr; }
+            .game-card { padding: 4px 14px 4px 6px; }
+            .gc-art { transform: scale(0.6); margin: -16px -18px; }
         }
 
         /* 平板寬度：說明太長就換行，不擠掉按鈕 */

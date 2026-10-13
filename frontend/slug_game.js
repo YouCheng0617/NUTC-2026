@@ -1954,6 +1954,27 @@ function updateRoomUI(text) {
             if (memBtn) memBtn.disabled = typeof MemoryGame === 'undefined';
         }
 
+        // 泡泡左右範圍內，上方按鈕的最下緣（只算畫面上半部、看得見的按鈕）
+        function bubbleTopLimit(left, right) {
+            let bottom = 0;
+            document.querySelectorAll('.top-bar > *, #btnOpenManual, #btnToggleMp, #mpPanel').forEach((b) => {
+                const rb = b.getBoundingClientRect();
+                if (rb.height <= 0 || rb.bottom > innerHeight / 2 || rb.right <= left || rb.left >= right) return;
+                bottom = Math.max(bottom, rb.bottom);
+            });
+            return bottom;
+        }
+
+        // 下方按鈕列（身份證、任務、連線小遊戲）的上緣：往下讓開的泡泡不能躲到它們後面
+        function bubbleBottomLimit() {
+            let top = innerHeight;
+            document.querySelectorAll('.interaction-group, #mpGames').forEach((b) => {
+                const rb = b.getBoundingClientRect();
+                if (rb.height > 0 && rb.top > innerHeight / 2) top = Math.min(top, rb.top);
+            });
+            return top;
+        }
+
         // 🌟 產生對話泡泡
         // 泡泡不放進海兔裡面：海兔往右跑時整個容器會左右翻面，放在裡面的字會變成鏡像。
         // 改成浮在畫面上，每一格都跟著海兔頭頂的位置走
@@ -2014,9 +2035,29 @@ function updateRoomUI(text) {
                     // 所以上下左右都夾在畫面裡面
                     const w = el.offsetWidth, h = el.offsetHeight, pad = 8;
                     const x = Math.min(Math.max(r.left + r.width / 2, w / 2 + pad), innerWidth - w / 2 - pad);
-                    const y = Math.max(r.top + r.height * 0.1, h + pad);
-                    el.style.left = x + 'px';
+                    // 上方的按鈕（返回、積分、EN、連線…）不能被泡泡蓋住：上面放不下就改到海兔下面，尾巴朝上
+                    const limit = bubbleTopLimit(x - w / 2, x + w / 2) + pad;
+                    const above = r.top + r.height * 0.1;
+                    const wasBelow = el.classList.contains('is-below');
+                    const belowY = Math.max(limit, r.top + r.height * 0.85);
+                    const aboveFits = above - h >= limit + (wasBelow ? 12 : 0);
+                    const belowFits = belowY + h <= bubbleBottomLimit();
+                    // 上面放得下就放上面；放不下改到下面；上下都放不下（很矮的畫面）就留在上面，最多蓋到海兔，不蓋按鈕
+                    const isBelow = !aboveFits && belowFits;
+                    el.classList.toggle('is-below', isBelow);
+                    let y = isBelow ? belowY : Math.max(above, limit + h);
+                    // 好幾個人同時說話：比較晚冒出來的泡泡避開前面的泡泡（往上或往下讓開），字才不會疊在一起
+                    for (const o of document.querySelectorAll('.chat-bubble.floating')) {
+                        if (o === el) break;   // 只讓開比自己早出現的（DOM 裡排在前面）
+                        const q = o.getBoundingClientRect();
+                        const t = isBelow ? y : y - h;
+                        if (x - w / 2 < q.right && q.left < x + w / 2 && t < q.bottom && q.top < t + h) {
+                            if (isBelow) { if (q.bottom + 4 + h <= bubbleBottomLimit()) y = q.bottom + 4; }
+                            else if (q.top - 4 - h >= limit) y = q.top - 4;
+                        }
+                    }
                     el.style.top = y + 'px';
+                    el.style.left = x + 'px';
                 }
                 requestAnimationFrame(follow);
             };
@@ -4985,7 +5026,7 @@ const effectData = {
             // 所以拿裡面的東西來算，不拿整條
             const blockers = [
                 '.top-bar > *', '#btnOpenManual', '#btnToggleMp', '.mp-panel',
-                '#btnOpenShop', '.interaction-group', '#uiPanel'
+                '#btnOpenShop', '.interaction-group', '#uiPanel', '#mpGames'   // mpGames：房間裡才出現的「連線小遊戲」卡片
             ];
 
             for (const el of document.querySelectorAll(blockers.join(','))) {
