@@ -1097,8 +1097,9 @@
             );
             // 標記新註冊標籤，登入後自動導向 tutorial.html
             localStorage.setItem("isNewUserTutorial", "true");
-            document.getElementById("email").value = email;
-            document.getElementById("password").value = password;
+            // 幫忙填好登入表單（欄位是 login-email / login-password，抓錯會讓上面的成功訊息後又跳「無法連接」）
+            document.getElementById("login-email").value = email;
+            document.getElementById("login-password").value = password;
             switchTab("login");
           } else {
             showModalError(
