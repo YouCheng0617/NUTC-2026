@@ -1353,7 +1353,8 @@ function copyRoomId() {
             const st = STICKERS.find(x => x.id === id);
             return 'images/stickers/' + (st && st.file ? st.file : id + '.svg');
         }
-        function doodleUnlocked() { return (gameState.memoryWins || 0) >= DOODLE_REWARD_WINS; }
+        // 翻牌對決贏滿 30 場，或用兌換碼拿到（後端 my-pet 的 doodle_stickers_unlocked → gameState.doodleOwned）
+        function doodleUnlocked() { return (gameState.memoryWins || 0) >= DOODLE_REWARD_WINS || gameState.doodleOwned === true; }
         // 自己能送的貼圖（塗鴉要解鎖才有）
         function usableStickers() { return STICKERS.filter(st => !st.doodle || doodleUnlocked()); }
         function stickerName(st) { return currLang === 'en' ? st.en : st.zh; }
@@ -2219,6 +2220,7 @@ const i18n = {
             // 🏆 翻牌對決勝場獎勵（勝場數、卡背、小丑配色都以伺服器 my-pet 為準，跟著帳號走）
             memoryWins: 0,
             cardBack: 'classic',   // 3 勝解鎖，memory_game.js 的 CARD_BACKS
+            doodleOwned: false,    // 用兌換碼拿到「作者的塗鴉」貼圖（不用滿 30 勝）
             cardBackSwitchable: null, // 卡背能不能隨時換：兌換碼拿到的 true、只有勝場拿到的 false；null = 後端還沒回，先當作能換
             cardBackChosen: false, // 有沒有選過卡背（勝場版只能選一次，選過就鎖住）
             jokerStyle: 'a',       // 10 勝的小丑海兔配色：a 黑桃 / b 紅心 / c 方塊 / d 梅花（JOKER_STYLES，跟著帳號存在伺服器）
@@ -4797,6 +4799,8 @@ const effectData = {
                     else if (gameState.jokerStyle && gameState.jokerStyle !== 'a') fetchAPI('/pet-games/memory-rewards/joker-style', 'PUT', { jokerStyle: gameState.jokerStyle });
                     // 小丑配色能不能隨時換（兌換碼拿到的才能換）：後端有回這個欄位才採用，沒回就維持原樣
                     if (typeof data.joker_style_switchable === 'boolean') gameState.jokerSwitchable = data.joker_style_switchable;
+                    // 塗鴉貼圖用兌換碼拿到的：勝場不夠也能用
+                    if (typeof data.doodle_stickers_unlocked === 'boolean') gameState.doodleOwned = data.doodle_stickers_unlocked;
 
                     // 同步目前裝備：伺服器的值是有效商品才採用；
                     // 資料庫預設值 (「經典雪兔」「基礎藍」) 不在商品清單裡，代表從沒透過伺服器換過裝，保留本機的 (例如抽到的寵物)
