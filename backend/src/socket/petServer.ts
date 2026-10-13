@@ -289,6 +289,7 @@ export const setupPetSocket = (io: Server) => {
                 if (player && typeof message === 'string' && message.trim() !== '') { // 優化：防止發送空訊息
                     if (!chatAllowed()) return socket.emit('error', { message: '說太快了，休息一下再聊吧！' });
                     const payload = {
+                        senderId: socket.id, // 前端用 socketId 找海兔，同名也不會冒錯頭；不用 memberId 以免外洩帳號編號
                         senderName: player.petName,
                         message: Array.from(message.trim()).slice(0, CHAT_MAX_LENGTH).join(''),
                         timestamp: new Date()
