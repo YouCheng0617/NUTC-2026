@@ -20,6 +20,7 @@ export function adminRouter() {
     router.delete("/bottles/:bottleId/delete", authCheck, adminCheck, (req, res) => adminController.deleteBottle(req, res));
     router.delete("/members/:memberId/delete", authCheck, adminCheck, (req, res) => adminController.deleteMember(req, res));
     router.get("/bottles/reported", authCheck, adminCheck, (req: AuthRequest, res) => adminController.getReportedBottlesController(req, res));
+    router.put("/bottles/:bottleId/reports/dismiss", authCheck, adminCheck, (req, res) => adminController.dismissBottleReportsController(req, res));
     router.get("/comments", authCheck, adminCheck, (req, res) => adminController.getAllCommentsController(req, res));
 
     // 🐌 寵物遊戲連線房間的玩家檢舉

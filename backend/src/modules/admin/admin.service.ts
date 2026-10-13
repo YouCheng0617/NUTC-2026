@@ -260,6 +260,18 @@ export const getReportedBottles = async () => {
     return reportedBottles
 }
 
+/* 檢舉不成立：把這個瓶子還在待處理的檢舉都改成 2，瓶子本身維持原狀；之後有人再檢舉會是新的待處理 */
+export const dismissBottleReports = async (bottle_id: number) => {
+    const bottle = await prisma.bottle.findUnique({ where: { bottle_id }, select: { bottle_id: true } });
+    if (!bottle) throw new Error("BOTTLE_NOT_FOUND");
+
+    const result = await prisma.bottleReport.updateMany({
+        where: { bottle_id, status: 0 },
+        data: { status: 2 }
+    });
+    return result.count;
+};
+
 export const getAllComments = async () => {
     const comments = await prisma.comment.findMany({
         orderBy: {

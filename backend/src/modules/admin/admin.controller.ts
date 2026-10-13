@@ -10,6 +10,7 @@ import {
     deleteBottleByAdmin,
     deleteMemberByAdmin,
     getReportedBottles,
+    dismissBottleReports,
     getAllComments,
     getAllCustomerServiceTickets,
     getCustomerServiceTicketForAdmin,
@@ -187,6 +188,26 @@ export class AdminController {
             });
         } catch (error: any) {
             console.error("Error fetching reported bottles:", error);
+            return res.status(500).json({ message: "內部伺服器錯誤" });
+        }
+    }
+    /*檢舉不成立：瓶子沒問題，把待處理的檢舉結案*/
+    async dismissBottleReportsController(req: Request, res: Response) {
+        try {
+            const bottleId = Number(req.params.bottleId);
+            if (!isValidId(bottleId)) {
+                return res.status(400).json({ message: "無效的瓶子 ID" });
+            }
+            const count = await dismissBottleReports(bottleId);
+            return res.status(200).json({
+                message: `瓶子 #${bottleId} 的 ${count} 筆檢舉已判定不成立`,
+                data: { count }
+            });
+        } catch (error: any) {
+            if (error.message === "BOTTLE_NOT_FOUND") {
+                return res.status(404).json({ message: "找不到該漂流瓶，請檢查瓶子 ID" });
+            }
+            console.error("Error dismissing bottle reports:", error);
             return res.status(500).json({ message: "內部伺服器錯誤" });
         }
     }

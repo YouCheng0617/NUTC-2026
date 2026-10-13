@@ -1099,9 +1099,16 @@ window.toggleReportSort = function () {
     filterReports();
 };
 
+/* 檢舉的處理結果：瓶子被下架或檢舉成立算「已下架」，檢舉不成立算「沒問題」，其餘待處理 */
+function getReportState(r) {
+    if (Number(r.bottle?.status) === 2 || Number(r.status) === 1) return 'banned';
+    if (Number(r.status) === 2) return 'dismissed';
+    return 'pending';
+}
+
 window.updateDashboardReportCount = function () {
     if (!window._allReports) return;
-    const pendingCount = window._allReports.filter(r => Number(r.bottle?.status || r.status || 0) !== 2).length;
+    const pendingCount = window._allReports.filter(r => getReportState(r) === 'pending').length;
     const statReports = document.getElementById('stat-reports');
     if (statReports) statReports.innerText = pendingCount;
 }
@@ -1142,7 +1149,7 @@ window.filterReports = function () {
         const bottleId = String(r.bottle_id || r.id || '');
         const reason = String(r.reason || r.report_reason || r.content || '').toLowerCase();
         const matchKeyword = bottleId.includes(keyword) || reason.includes(keyword);
-        const isProcessed = (Number(r.bottle?.status || r.status || 0) === 2);
+        const isProcessed = getReportState(r) !== 'pending';
         let matchStatus = true;
         if (window._currentReportStatusFilter === 'pending') matchStatus = !isProcessed;
         else if (window._currentReportStatusFilter === 'processed') matchStatus = isProcessed;
@@ -1187,10 +1194,16 @@ function renderReports(reports) {
         const reporter = r.reporter_id || r.member_id || r.reporter_name || '匿名';
         const date = r.created_at ? new Date(r.created_at).toLocaleDateString() : '未知';
         const bottleContent = r.bottle_content || r.bottle?.content || r.content || '（無法取得文章內容）';
-        const isProcessed = (Number(r.bottle?.status || r.status || 0) === 2);
+        const state = getReportState(r);
+        const isProcessed = state !== 'pending';
 
-        let actionHtml = isProcessed ? `<span class="badge" style="background:#f1f5f9; color:#64748b; border:1px solid #cbd5e1; padding: 6px 12px;">✅ 已下架</span>`
-                                     : `<button class="btn-action btn-danger" onclick="banReportedBottle('${bottleId}');">🚫 強制下架 (留存紀錄)</button>`;
+        let actionHtml;
+        if (state === 'banned') actionHtml = `<span class="badge" style="background:#f1f5f9; color:#64748b; border:1px solid #cbd5e1; padding: 6px 12px;">✅ 已下架</span>`;
+        else if (state === 'dismissed') actionHtml = `<span class="badge" style="background:#f0fdf4; color:#15803d; border:1px solid #bbf7d0; padding: 6px 12px;">❎ 檢舉不成立</span>`;
+        else actionHtml = `<div style="display:flex; gap:6px; flex-wrap:wrap;">
+                <button class="btn-action btn-danger" onclick="banReportedBottle('${bottleId}');">🚫 強制下架 (留存紀錄)</button>
+                <button class="btn-action" style="background:#f0fdf4; color:#15803d; border:1px solid #bbf7d0;" onclick="dismissReportedBottle('${bottleId}');">❎ 沒問題 (檢舉不成立)</button>
+            </div>`;
         const rowBg = isProcessed ? '#f8fafc' : '#fffafa';
         const rowOpacity = isProcessed ? '0.7' : '1';
 
@@ -1217,6 +1230,20 @@ window.banReportedBottle = async function (bottleId) {
             if (window._allReports) window._allReports.forEach(r => { if (String(r.bottle_id || r.id) === String(bottleId)) { if (r.bottle) r.bottle.status = 2; r.status = 2; } });
             filterReports(); loadBottles(); updateDashboardReportCount();
         } else { const err = await response.json(); alert(`下架失敗: ${err.message}`); }
+    } catch (e) { alert("伺服器連線失敗"); }
+}
+
+window.dismissReportedBottle = async function (bottleId) {
+    if (!confirm(`確定 #${bottleId} 號文章沒有違規，將這篇的待處理檢舉判定為「不成立」嗎？
+(文章維持原狀)`)) return;
+    try {
+        const token = localStorage.getItem("authToken");
+        const response = await fetch(`${API_BASE_URL}/admin/bottles/${Number(bottleId)}/reports/dismiss`, { method: 'PUT', headers: { 'Authorization': `Bearer ${token}`, 'ngrok-skip-browser-warning': 'true' } });
+        if (response.ok) {
+            alert("✅ 已標記為檢舉不成立！");
+            if (window._allReports) window._allReports.forEach(r => { if (String(r.bottle_id || r.id) === String(bottleId) && getReportState(r) === 'pending') r.status = 2; });
+            filterReports(); updateDashboardReportCount();
+        } else { const err = await response.json(); alert(`處理失敗: ${err.message}`); }
     } catch (e) { alert("伺服器連線失敗"); }
 }
 
