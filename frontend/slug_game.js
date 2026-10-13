@@ -13401,6 +13401,7 @@ function updateTaskProgress(actionType) {
                     border-radius: 18px;
                     padding: 10px 14px;
                     gap: 8px;
+                    flex-wrap: wrap; /* 窄螢幕放不下時，右邊的狀態按鈕換到下一行，文字才不會被擠成一兩個字一行 */
                     transition: 0.2s;
                 `;
 
@@ -13423,14 +13424,14 @@ function updateTaskProgress(actionType) {
                 }
 
                 item.innerHTML = `
-                    <div style="display: flex; align-items: center; gap: 10px; text-align: left;">
+                    <div style="display: flex; align-items: center; gap: 10px; text-align: left; flex: 1 1 150px; min-width: 0;">
                         <span style="font-size: 1.5rem;">${icon}</span>
                         <div>
                             <div style="font-weight: 900; font-size: 0.95rem; color: var(--text-dark);">${info.title}</div>
                             <div style="font-size: 0.78rem; color: var(--text-dim); font-weight: 800;">${info.desc}</div>
                         </div>
                     </div>
-                    <button ${btnAction} style="background: ${btnBg}; color: ${btnColor}; border: none; padding: 7px 12px; border-radius: 14px; font-weight: 900; font-size: 0.85rem; cursor: ${btnCursor}; white-space: nowrap; box-shadow: ${isDone && !isClaimed ? '0 4px 10px rgba(34, 197, 94, 0.35)' : 'none'};">
+                    <button ${btnAction} style="margin-left: auto; background: ${btnBg}; color: ${btnColor}; border: none; padding: 7px 12px; border-radius: 14px; font-weight: 900; font-size: 0.85rem; cursor: ${btnCursor}; white-space: nowrap; box-shadow: ${isDone && !isClaimed ? '0 4px 10px rgba(34, 197, 94, 0.35)' : 'none'};">
                         ${btnText}
                     </button>
                 `;
@@ -13902,6 +13903,9 @@ let currentPaintPalette = 0;
             requestAnimationFrame(() => {
                 slug.classList.add('card-mode');
             });
+            // 海兔跳進相框後，「證件照拍攝中…」淡掉，才不會從海兔後面露出來
+            const hint = document.getElementById('idCardPhotoHint');
+            if (hint) { hint.style.transition = 'opacity 0.3s'; setTimeout(() => { hint.style.opacity = '0'; }, 450); }
         }
 
         // 🎨 【自選純色背景的調色盤】
@@ -13956,6 +13960,8 @@ let currentPaintPalette = 0;
             
             // 解除名片模式，海兔就會自動循著剛剛的 Q 彈動畫飛回原本的位置
             slug.classList.remove('card-mode');
+            const hint = document.getElementById('idCardPhotoHint');
+            if (hint) hint.style.opacity = '0.5';
             
             // 🌟 倒數 0.5 秒（等牠飛完落地），再把牠放回魚缸裡，並解除動畫狀態
             setTimeout(() => {

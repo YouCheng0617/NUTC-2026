@@ -16,6 +16,8 @@ if not WEBHOOK_URL:
 if not API_KEY:
     print("⚠️ 警告：環境變數缺少 AI_SECRT_KEY")
 
+AI_UNAVAILABLE_REASONS = {"AI回應異常防護", "無 API Key 防護"}
+
 class AIWorker:
     def __init__(self):
         print("🤖 [AI 審核工人] 系統初始化中 (純 API 模式)...")
@@ -27,30 +29,23 @@ class AIWorker:
             "x-ai-api-key": API_KEY 
         }
 
-    # 💡 補上缺失的 check_content 函數
     def check_content(self, content):
         """
-        呼叫 AI 引擎審核內容
-        回傳必須是三個值: (status_str, reason, category)
-        status_str 必須是 "通過" 或 "違規"
+        交給 Gemini 審核內容（main.py 的 LocalStickyNoteAI.check_content：暴力恐嚇、透露個資、侮辱霸凌）
+        回傳三個值: (status_str, reason, category)，status_str 是 "通過" 或 "違規"
+        Gemini 暫時沒回應（忙線、沒設金鑰、出錯）時回傳 None：瓶子先留在待審核，下一輪再審，不直接放行
         """
         try:
-            # 這裡需要根據你的 LocalStickyNoteAI 實際寫法來改
-            # 假設它有一個審核的方法叫做 analyze 或 review
-            # result = self.ai_engine.review(content) 
-            
-            # --- 以下為範例邏輯，請根據你的 AI 輸出格式調整 ---
-            # 舉例：如果內容包含敏感詞
-            if "測試違規詞" in content:
-                return "違規", "包含不當言論", "違規類別"
-            
-            # 預設通過
-            return "通過", "", ""
-            # ----------------------------------------------
-            
+            result = self.ai_engine.check_content(content) or {}
+            # main.py 在 Gemini 出錯或沒設金鑰時會回「通過」加上這兩種原因，那其實是沒審到
+            if result.get("ai_reason") in AI_UNAVAILABLE_REASONS:
+                return None
+            if result.get("ai_status") == "通過":
+                return "通過", "", ""
+            return "違規", result.get("ai_reason") or "內容不符合海神殿規", ""
         except Exception as e:
             print(f"⚠️ AI 審核過程發生錯誤: {e}")
-            return "違規", "AI 審核出錯", "錯誤"
+            return None
 
         
     def run(self):
@@ -81,14 +76,20 @@ class AIWorker:
                     continue
 
                 # 🌟 2. 開始逐一處理待審核的清單
+                ai_unavailable = False
                 for bottle in pending_bottles:
                     post_id = bottle.get("bottle_id")
                     content = bottle.get("content")
-                    
+
                     print(f"🔍 AI 開始檢查 ID {post_id}...")
-                    
-                    # 交給 AI 審核
-                    ai_status_str, reason, category = self.check_content(content)
+
+                    # 交給 AI 審核；AI 暫時沒回應就先跳過，這一批剩下的也等下一輪
+                    verdict = self.check_content(content)
+                    if verdict is None:
+                        print(f"⏳ ID {post_id} AI 暫時無法審核，先留在待審核，稍後再試")
+                        ai_unavailable = True
+                        break
+                    ai_status_str, reason, category = verdict
                     
                     # 狀態對齊後端：1 = 通過, 2 = 違規
                     target_status = 1 if ai_status_str == "通過" else 2
@@ -108,8 +109,8 @@ class AIWorker:
                     else:
                         print(f"❌ 審核 API 回報錯誤 {put_res.status_code}: {put_res.text}")
 
-                # 處理完一批後稍微休息，避免 API 請求過於頻繁
-                time.sleep(2)
+                # 處理完一批後稍微休息，避免 API 請求過於頻繁；AI 忙線時多等一下再試
+                time.sleep(15 if ai_unavailable else 2)
 
             except requests.exceptions.RequestException as e:
                 print(f"❌ 無法連線到後端伺服器，請檢查 BACKEND_URL 是否正確: {e}")
