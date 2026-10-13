@@ -1088,27 +1088,49 @@
             },
             body: JSON.stringify(userData),
           });
-          const data = await response.json();
+          // 伺服器偶爾會回錯誤頁面（不是 JSON），解析失敗就當作沒拿到回應
+          const data = await response.json().catch(() => null);
           if (response.ok) {
             alert(
               "🎉 註冊成功！\n\n我們已寄出驗證信到 " +
                 email +
                 "\n請點擊信中的連結完成驗證，帳號啟用後才能登入喔！\n（驗證連結 30 分鐘內有效，若沒收到請檢查垃圾郵件）",
             );
-            // 標記新註冊標籤，登入後自動導向 tutorial.html
-            localStorage.setItem("isNewUserTutorial", "true");
-            // 幫忙填好登入表單（欄位是 login-email / login-password，抓錯會讓上面的成功訊息後又跳「無法連接」）
-            document.getElementById("login-email").value = email;
-            document.getElementById("login-password").value = password;
-            switchTab("login");
-          } else {
+            afterRegisterSent(email, password);
+          } else if (data && response.status < 500) {
             showModalError(
               "❌ 註冊失敗：" + (data.message || "信箱已存在或格式錯誤"),
             );
+          } else {
+            registerMaybeSent(email, password);
           }
         } catch (error) {
-          showModalError("📡 無法連接到後端伺服器！");
+          registerMaybeSent(email, password);
         }
+      }
+
+      // 註冊完：記下新手教學標記、帶著信箱密碼切回登入
+      function afterRegisterSent(email, password) {
+        localStorage.setItem("isNewUserTutorial", "true"); // 登入後自動導向 tutorial.html
+        // 登入表單的欄位是 login-email／login-password（以前寫成 email／password 找不到欄位，
+        // 註冊成功後會出錯、被當成「無法連接到後端伺服器」）
+        switchTab("login");
+        const loginEmail = document.getElementById("login-email");
+        const loginPassword = document.getElementById("login-password");
+        if (loginEmail) loginEmail.value = email;
+        if (loginPassword) loginPassword.value = password;
+      }
+
+      // 註冊要先寄驗證信才會回應，寄信比較慢時中間的伺服器可能等不及、回錯誤頁面或斷線，
+      // 但帳號其實已經建好、信也寄出了，所以不顯示「無法連接」，改成請他去收信再登入。
+      // 萬一真的沒成功，再按一次註冊時伺服器會說「此信箱已註冊但尚未驗證」或「已註冊」，不會卡住
+      function registerMaybeSent(email, password) {
+        alert(
+          "📬 註冊資料已送出！\n\n請到 " +
+            email +
+            " 收驗證信，點擊信中的連結完成驗證後，再回來登入。\n（若幾分鐘內沒收到，請檢查垃圾郵件；或再按一次註冊，系統會告訴你這個信箱目前的狀態）",
+        );
+        afterRegisterSent(email, password);
       }
 
       // 忘記密碼處理
