@@ -1,4 +1,5 @@
 import { isValidId, parseLimit } from "../../lib/validateHelper.js";
+import { checkLinks } from "../../lib/linkGuard.js";
 import { Router } from "express";
 import type { Request, Response } from "express";
 import prisma from "../../lib/prisma.js";
@@ -76,6 +77,10 @@ export const bottleController = {
                     return res.status(400).json({ message: "投票選項不能包含空白內容" });
                 }
             }
+
+            // 連結檢查：短網址、IP 網址、黑名單、Google 標示的危險網站都不給發
+            const linkError = await checkLinks(title, content, pollOptions);
+            if (linkError) return res.status(400).json({ message: linkError });
 
             // 5. 寫入資料庫
             const newBottle = await prisma.bottle.create({
@@ -552,6 +557,9 @@ export const bottleController = {
             if (typeof title !== "string" || typeof content !== "string" || !title.trim() || !content.trim()) {
                 return res.status(400).json({ message: "瓶子標題和內容不能是空的" });
             }
+
+            const linkError = await checkLinks(title, content);
+            if (linkError) return res.status(400).json({ message: linkError });
 
             const result = await updateMyBottle(bottleId, memberId, title, content);
             return res.status(200).json({

@@ -1,4 +1,5 @@
 import { isValidId } from "../../lib/validateHelper.js";
+import { checkLinks } from "../../lib/linkGuard.js";
 import type { Response, Request } from "express";
 import type { AuthRequest } from "../middleware/auth.middleware.js";
 import { createComment, getCommentsByBottleId, likeComment, createReply, updateComment, deleteComment } from "./comment.service.js";
@@ -21,6 +22,9 @@ export class CommentController {
             if (!content || typeof content !== "string" || content.trim() === "") {
                 return res.status(400).json({ message: "留言內容不能為空" });
             }
+
+            const linkError = await checkLinks(content);
+            if (linkError) return res.status(400).json({ message: linkError });
 
             const newComment = await createComment(bottleId, memberId, content, Boolean(isAnonymous));
             return res.status(201).json({
@@ -110,6 +114,9 @@ export class CommentController {
                 return res.status(400).json({ message: "回覆內容不能為空" });
             }
 
+            const linkError = await checkLinks(content);
+            if (linkError) return res.status(400).json({ message: linkError });
+
             const newReply = await createReply(bottleId, memberId, content, parentId, Boolean(isAnonymous));
 
             return res.status(201).json({
@@ -148,6 +155,9 @@ export class CommentController {
             if (!content || typeof content !== "string" || content.trim() === "") {
                 return res.status(400).json({ message: "留言內容不能為空" });
             }
+
+            const linkError = await checkLinks(content);
+            if (linkError) return res.status(400).json({ message: linkError });
 
             const updated = await updateComment(commentId, memberId, content);
             return res.status(200).json({ message: "留言已修改", data: updated });

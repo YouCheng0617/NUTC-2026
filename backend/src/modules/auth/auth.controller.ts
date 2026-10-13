@@ -1,4 +1,5 @@
 import { isValidId } from "../../lib/validateHelper.js";
+import { checkLinks } from "../../lib/linkGuard.js";
 import type { Request, Response } from "express";
 import { type AuthRequest } from "../middleware/auth.middleware.js";
 import { createMember, loginMember, forgotPassword, resetPassword, updateMember, followMember, getFollowedMembers, getFollowerList, verifyEmail, resendVerification } from "./auth.service.js";
@@ -184,6 +185,10 @@ export class AuthController {
                 return res.status(400).json({ message: "未授權，請先登入" });
             }
             const { name, birthday, blood_type, bio } = req.body;
+
+            // 自介也支援 Markdown 連結，一樣要檢查
+            const linkError = await checkLinks(name, bio);
+            if (linkError) return res.status(400).json({ message: linkError });
 
             const updatedMember = await updateMember(memberId, {
                 name,

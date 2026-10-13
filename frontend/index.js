@@ -4545,17 +4545,88 @@ function ensureMarkdown() {
     },
   });
 
-  // 連結一律開新分頁，並且不帶來源資訊
+  // 連結一律開新分頁，並且不帶來源資訊；外部網址點下去先跳「即將離開」確認（openExternalLinkConfirm）
   window.DOMPurify.addHook("afterSanitizeAttributes", (node) => {
     if (node.tagName === "A") {
       node.setAttribute("target", "_blank");
       node.setAttribute("rel", "noopener noreferrer nofollow ugc");
+      if (/^https?:/i.test(node.getAttribute("href") || "")) node.setAttribute("data-external-link", "1");
     }
   });
 
   markdownReady = true;
   return true;
 }
+
+// =========================================
+// 🔗 點文章、留言、自介裡的外部連結：先跳確認，顯示真正要去的網域
+//   ・[Google](https://壞網站.com) 這種「文字跟網址不一樣」的會多一行警告
+//   ・網域用 URL 解析後的 hostname 顯示，長得像中文或特殊字元的假網域會露出 xn-- 原形
+// =========================================
+function linkTextHost(text) {
+  const t = String(text || "").trim();
+  if (!/^(https?:\/\/)?[\w-]+(\.[\w-]+)+(\/\S*)?$/i.test(t)) return null; // 文字本身不像網址就不比對
+  try {
+    return new URL(/^https?:\/\//i.test(t) ? t : `http://${t}`).hostname.replace(/^www\./, "");
+  } catch {
+    return null;
+  }
+}
+
+function closeExternalLinkConfirm() {
+  const box = document.getElementById("external-link-confirm");
+  if (box) box.remove();
+  document.removeEventListener("keydown", onExternalLinkKey, true);
+}
+function onExternalLinkKey(e) {
+  if (e.key === "Escape") { e.stopPropagation(); closeExternalLinkConfirm(); }
+}
+
+function openExternalLinkConfirm(href, linkText) {
+  let url;
+  try { url = new URL(href); } catch { return; }
+  closeExternalLinkConfirm();
+  const host = url.hostname;
+  const shownHost = linkTextHost(linkText);
+  const mismatch = shownHost && shownHost !== host.replace(/^www\./, "");
+
+  const box = document.createElement("div");
+  box.id = "external-link-confirm";
+  box.className = "ext-link-overlay";
+  box.innerHTML = `
+    <div class="ext-link-card" role="dialog" aria-modal="true" aria-labelledby="ext-link-title">
+      <div class="ext-link-icon" aria-hidden="true">🌊</div>
+      <h3 id="ext-link-title">即將離開心情漂流瓶</h3>
+      <p class="ext-link-desc">這個連結是其他使用者貼的，我們無法保證網站內容安全。確定要前往嗎？</p>
+      <div class="ext-link-host">${escapeHTML(host)}</div>
+      <div class="ext-link-url">${escapeHTML(url.href)}</div>
+      ${mismatch ? `<p class="ext-link-warn">⚠️ 連結文字寫的是「${escapeHTML(shownHost)}」，但實際會前往「${escapeHTML(host)}」，請小心！</p>` : ""}
+      <p class="ext-link-tip">請不要在陌生網站輸入密碼或個人資料。</p>
+      <div class="ext-link-actions">
+        <button type="button" class="ext-link-cancel">取消</button>
+        <button type="button" class="ext-link-go">繼續前往</button>
+      </div>
+    </div>`;
+  box.addEventListener("click", (e) => { if (e.target === box) closeExternalLinkConfirm(); });
+  box.querySelector(".ext-link-cancel").addEventListener("click", closeExternalLinkConfirm);
+  box.querySelector(".ext-link-go").addEventListener("click", () => {
+    window.open(url.href, "_blank", "noopener,noreferrer");
+    closeExternalLinkConfirm();
+  });
+  document.body.appendChild(box);
+  document.addEventListener("keydown", onExternalLinkKey, true);
+  box.querySelector(".ext-link-cancel").focus();
+}
+
+// 用事件委派：之後才畫出來的文章、留言也適用；按 Ctrl／中鍵開新分頁也一樣先確認
+["click", "auxclick"].forEach((type) => {
+  document.addEventListener(type, (e) => {
+    const a = e.target.closest && e.target.closest("a[data-external-link]");
+    if (!a || (type === "auxclick" && e.button !== 1)) return;
+    e.preventDefault();
+    openExternalLinkConfirm(a.getAttribute("href"), a.textContent);
+  }, true);
+});
 
 function sanitizeMarkdownHtml(html) {
   return window.DOMPurify.sanitize(html, {
