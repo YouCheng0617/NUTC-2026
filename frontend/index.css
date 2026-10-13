@@ -5026,10 +5026,13 @@ textarea.custom-reply-input {
    📐 文章畫面接在標題列正下方
    手機版標題列會換行成兩三排（搜尋列在第二排），高度跟電腦版不同，
    所以由 index.js 量出實際高度寫進 --site-header-h，不再寫死 60px
+   高度用 100dvh（實際看得到的高度）：100vh 在手機、平板瀏覽器是「網址列收起來」的高度，
+   比畫面高，底部的留言打字列會被擠到螢幕外；不支援 dvh 的舊瀏覽器退回 100vh
    ========================================= */
 #detail-view.ocean-detail-card {
   top: var(--site-header-h, 60px) !important;
   height: calc(100vh - var(--site-header-h, 60px)) !important;
+  height: calc(100dvh - var(--site-header-h, 60px)) !important;
 }
 
 /* =========================================
@@ -5232,3 +5235,58 @@ textarea.custom-reply-input {
 .ext-link-cancel { border: 1px solid #dcdfe6; background: #f8fafc; color: #475569; }
 .ext-link-go { border: none; background: linear-gradient(135deg, #00b4db, #0083b0); color: #ffffff; }
 .ext-link-actions button:focus-visible { outline: 3px solid #93c5fd; outline-offset: 2px; }
+
+/* =========================================
+   📐 平板／窄筆電（769～1200px）：電腦版頂端列放不下，發文按鈕會被擠出右邊
+   ・搜尋框移到第二行滿版，第一行只放 Logo、遊樂場／新手教學、右側按鈕
+   ・Logo、按鈕縮小一點；1000px 以下名字只留頭像（點頭像一樣能開選單）
+   ========================================= */
+@media screen and (min-width: 769px) and (max-width: 1200px) {
+  .light-header {
+    flex-wrap: wrap !important;
+    padding: 0.6rem 1.2rem !important;
+    row-gap: 8px !important;
+  }
+  .light-header .logo {
+    font-size: 1.6rem !important;
+    margin-left: 0 !important;
+    margin-right: 14px !important;
+    gap: 10px !important;
+  }
+  .light-header .desktop-nav-links {
+    margin-left: 0 !important;
+    gap: 8px !important;
+  }
+  .light-header .header-game-btn,
+  .light-header .header-tutorial-btn {
+    padding: 6px 14px !important;
+    font-size: 1rem !important;
+  }
+  .light-header .nav-actions {
+    flex: 1 1 auto !important;
+    flex-shrink: 0 !important;
+    min-width: 0 !important;
+    justify-content: flex-end !important;
+  }
+  .light-header .desktop-user-profile {
+    gap: 10px !important;
+  }
+  .light-header .search-container {
+    order: 10 !important;
+    flex: 1 1 100% !important;
+    max-width: none !important;
+    padding: 0 !important;
+  }
+  .light-header .search-box-wrapper {
+    max-width: 640px !important;
+    margin: 0 auto !important;
+  }
+}
+@media screen and (min-width: 769px) and (max-width: 1000px) {
+  .light-header .user-name-text {
+    display: none !important;
+  }
+  .light-header .logo {
+    font-size: 1.4rem !important;
+  }
+}
