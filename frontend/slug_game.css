@@ -160,10 +160,11 @@
         }
         
         .slug-container.card-mode {
-            /* 讓海兔突破背景限制，定位到螢幕正中央的證件照框框裡 */
-            top: calc(50vh - 120px) !important;
-            left: calc(50vw - 170px) !important;
-            transform: translateY(-40px) scale(calc(var(--slug-scale) * 0.65)) !important;
+            /* 跳進名片的證件照框框裡：位置和大小由 openIdCardModal 量相框後算好（--card-*），
+               不跟魚缸裡的縮放比例走，平板、大螢幕上才不會超出框外；沒算到時退回畫面正中央 */
+            top: var(--card-top, calc(50vh - 160px)) !important;
+            left: var(--card-left, calc(50vw - 170px)) !important;
+            transform: scale(var(--card-scale, calc(var(--slug-scale) * 0.65))) !important;
             z-index: 10005 !important;
             pointer-events: none !important; /* 拍照時乖乖不動，不能拖曳 */
         }

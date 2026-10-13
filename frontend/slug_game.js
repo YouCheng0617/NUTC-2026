@@ -498,7 +498,7 @@ let GAME_TOKEN = localStorage.getItem('authToken') || localStorage.getItem('acce
                 // 收到訊息：記進聊天紀錄（含留言時間）；系統訊息只進紀錄，不要冒在自己海兔頭上
                 // 系統訊息看後端帶的 system: true，不看名字（玩家取名叫「系統」也還是玩家）
                 socket.on('receive_message', (data) => whenRoomReady(() => {
-                    recordChat(data.senderName, data.message, data.timestamp, !!data.system);
+                    recordChat(data.senderName, data.message, data.timestamp, !!data.system, data.senderId);
                     if (data.system) return;
                     const sticker = stickerOf(data.message);
                     if (sticker && isInMiniGame()) flySticker(data.senderName, sticker, data.senderId);
@@ -1199,6 +1199,10 @@ function copyRoomId() {
             return String(t.getHours()).padStart(2, '0') + ':' + String(t.getMinutes()).padStart(2, '0');
         }
 
+        // 這句話是不是我說的：後端有附發話者的 socketId 就用它（同名的人、改過名字都分得出來），舊版後端沒附才比名字
+        function isMine(name, senderId) {
+            return senderId ? !!(socket && senderId === socket.id) : isMyChatName(name);
+        }
         function isMyChatName(name) {
             const mine = isMockMode ? (gameState.petName || '我的海兔') : getPlayerData().petName;
             return name === mine;
@@ -1233,7 +1237,7 @@ function copyRoomId() {
             });
         }
 
-        function recordChat(name, message, ts, isSystem = false) {
+        function recordChat(name, message, ts, isSystem = false, senderId = null) {
             const log = document.getElementById('chatLog');
             if (!log) return;
             if (chatRoomOfLog !== currentRoomId) clearChatHistory();   // 換了房間就從頭記
@@ -1241,7 +1245,7 @@ function copyRoomId() {
             const bar = document.getElementById('chatBar');
             const open = bar && !bar.hidden;
             const atBottom = log.scrollHeight - log.scrollTop - log.clientHeight < 24;
-            const mine = !isSystem && isMyChatName(name);
+            const mine = !isSystem && isMine(name, senderId);
 
             const item = document.createElement('div');
             item.className = 'chat-msg' + (isSystem ? ' system' : mine ? ' mine' : '');
@@ -1529,7 +1533,7 @@ function copyRoomId() {
 
         function launchSticker(name, st, top, dur, senderId) {
             const el = document.createElement('div');
-            const mine = senderId ? !!(socket && senderId === socket.id) : isMyChatName(name);
+            const mine = isMine(name, senderId);
             el.className = 'sticker-fly' + (mine ? ' mine' : '');
             el.style.top = top + 'px';
             el.style.setProperty('--fly-dur', dur.toFixed(2) + 's');
@@ -2034,7 +2038,7 @@ function updateRoomUI(text) {
 
             // 手機版：點別人的對話泡泡就直接打開聊天列，馬上可以回覆
             const isPhone = (window.matchMedia && window.matchMedia('(pointer: coarse)').matches) || window.innerWidth <= 768;
-            if (isPhone && !isMyChatName(name)) {
+            if (isPhone && !isMine(name, senderId)) {
                 el.classList.add('tappable');
                 el.setAttribute('role', 'button');
                 el.setAttribute('aria-label', (currLang === 'en' ? 'Reply to ' : '回覆 ') + name);
@@ -13949,6 +13953,15 @@ let currentPaintPalette = 0;
                 shimmerOsc.stop(now + 0.38);
             } catch(e) {}
         }
+        function placeSlugInIdCard(slug) {
+            const overlay = document.getElementById('idCardModalOverlay');
+            if (!overlay || overlay.style.display === 'none') return;
+            const frame = document.getElementById('idCardPhotoHint').parentElement.getBoundingClientRect();
+            const cardScale = Math.max(0.2, Math.min((frame.width - 24) / 340, (frame.height - 14) / 240));
+            slug.style.setProperty('--card-scale', cardScale.toFixed(3));
+            slug.style.setProperty('--card-left', (frame.left + scrollX + frame.width / 2 - 170) + 'px');
+            slug.style.setProperty('--card-top', (frame.top + scrollY + frame.height / 2 - 120) + 'px');
+        }
         // 🌟 【打開身份證小魔法：呼叫海兔跳進來！】
         function openIdCardModal() {
             document.getElementById('idCardModalOverlay').style.display = 'flex';
@@ -13958,6 +13971,13 @@ let currentPaintPalette = 0;
             
             // 🌟 關鍵：把海兔暫時移出魚缸，放到最外層，這樣牠跳起來才不會被魚缸的邊緣切斷頭！
             document.body.appendChild(slug);
+
+            // 量證件照相框的位置和大小，海兔（340×240 的容器）縮放到剛好放進框框正中央。
+            // 名片視窗有彈出動畫，剛打開時量到的位置會偏下，所以等動畫跑完再量一次（海兔會順著過去）
+            placeSlugInIdCard(slug);
+            const card = document.querySelector('#idCardModalOverlay .name-modal');
+            if (card) card.addEventListener('animationend', () => placeSlugInIdCard(slug), { once: true });
+            setTimeout(() => placeSlugInIdCard(slug), 450);
             
             // 加上跳躍動畫
             slug.classList.add('is-jumping');
