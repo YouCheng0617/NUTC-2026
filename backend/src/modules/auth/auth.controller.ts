@@ -36,6 +36,8 @@ const pendingDeletionMessage = async (memberId: number) => {
     }
 };
 
+const ZODIAC_SIGNS = ["牡羊座", "金牛座", "雙子座", "巨蟹座", "獅子座", "處女座", "天秤座", "天蠍座", "射手座", "魔羯座", "摩羯座", "水瓶座", "雙魚座"]; // 後端 signHelper 算出來是「魔羯座」，舊資料可能是「摩羯座」
+
 export class AuthController {
 
     async login(req: Request, res: Response) {
@@ -218,11 +220,14 @@ export class AuthController {
             if (!memberId) {
                 return res.status(400).json({ message: "未授權，請先登入" });
             }
-            const { name, birthday, blood_type, bio, gender } = req.body;
+            const { name, birthday, blood_type, bio, gender, constellation } = req.body;
 
             /*性別只收這幾種，空字串代表未填寫（以前漏收，前端送來的性別都沒存到）*/
             if (gender !== undefined && !["", "男", "女", "不公開"].includes(gender)) {
                 return res.status(400).json({ message: "性別只能是男、女、不公開或不填" });
+            }
+            if (constellation !== undefined && !["", ...ZODIAC_SIGNS].includes(constellation)) {
+                return res.status(400).json({ message: "星座格式錯誤" });
             }
 
             // 自介也支援 Markdown 連結，一樣要檢查
@@ -234,7 +239,8 @@ export class AuthController {
                 birthday,
                 blood_type,
                 bio,
-                gender
+                gender,
+                constellation
             });
             res.status(200).json({ message: "會員資料更新成功", data: updatedMember });
 

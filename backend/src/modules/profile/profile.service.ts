@@ -7,8 +7,8 @@ import { getBlockedMemberIds, isBlockedBetween } from "../block/block.service.js
  * - 停權、未啟用、註銷中、已註銷的帳號，以及跟看的人有封鎖關係的，一律當作找不到
  */
 
-export const BOTTLES_PAGE_SIZE = 10;
-export const MEMBERS_PAGE_SIZE = 30;
+export const BOTTLES_PAGE_SIZE = 6;
+export const MEMBERS_PAGE_SIZE = 6;
 
 /*公開文章的條件*/
 const publicBottleWhere = (memberId: number) => ({
@@ -21,7 +21,7 @@ const publicBottleWhere = (memberId: number) => ({
 const assertVisible = async (targetId: number, viewerId?: number) => {
     const member = await prisma.member.findUnique({
         where: { member_id: targetId },
-        select: { member_id: true, name: true, bio: true, constellation: true, created_at: true, status: true },
+        select: { member_id: true, name: true, bio: true, birthday: true, gender: true, constellation: true, created_at: true, status: true },
     });
     if (!member || member.status !== "ACTIVE") throw new Error("NOT_FOUND");
     if (viewerId && viewerId !== targetId && await isBlockedBetween(viewerId, targetId)) {
@@ -46,18 +46,18 @@ export const getProfile = async (targetId: number, viewerId?: number) => {
             : null,
     ]);
 
-    /*自己看自己時多帶編輯表單要用的私人欄位，別人看不到*/
+    /*自己看自己時多帶 Email 給編輯表單用，別人看不到*/
     const privateData = isMe
-        ? await prisma.member.findUnique({
-            where: { member_id: targetId },
-            select: { email: true, birthday: true, gender: true, blood_type: true },
-        })
+        ? await prisma.member.findUnique({ where: { member_id: targetId }, select: { email: true } })
         : null;
 
     return {
         member_id: member.member_id,
         name: member.name,
         bio: member.bio ?? "",
+        /*隱私權政策：生日、性別、星座、自介會顯示在個人資料頁*/
+        birthday: member.birthday,
+        gender: member.gender ?? "",
         constellation: member.constellation ?? "",
         created_at: member.created_at,
         bottle_count: bottleCount,
@@ -73,29 +73,33 @@ export const getProfile = async (targetId: number, viewerId?: number) => {
 export const getProfileBottles = async (targetId: number, page: number, viewerId?: number) => {
     await assertVisible(targetId, viewerId);
 
-    const bottles = await prisma.bottle.findMany({
-        where: publicBottleWhere(targetId),
-        orderBy: { created_at: "desc" },
-        skip: (page - 1) * BOTTLES_PAGE_SIZE,
-        take: BOTTLES_PAGE_SIZE + 1, // 多抓一筆判斷還有沒有下一頁
-        select: {
-            bottle_id: true,
-            title: true,
-            content: true,
-            created_at: true,
-            categories: { select: { category: { select: { name: true } } } },
-            _count: { select: { likes: true, Comment: { where: { is_deleted: false } } } },
-        },
-    });
+    const [total, bottles] = await Promise.all([
+        prisma.bottle.count({ where: publicBottleWhere(targetId) }),
+        prisma.bottle.findMany({
+            where: publicBottleWhere(targetId),
+            orderBy: [{ created_at: "desc" }, { bottle_id: "desc" }], // 同一時間的用 id 排，換頁才不會重複或漏掉
+            skip: (page - 1) * BOTTLES_PAGE_SIZE,
+            take: BOTTLES_PAGE_SIZE,
+            select: {
+                bottle_id: true,
+                title: true,
+                content: true,
+                created_at: true,
+                categories: { select: { category: { select: { name: true } } } },
+                _count: { select: { saves: true, Comment: { where: { is_deleted: false } } } },
+            },
+        }),
+    ]);
 
     return {
-        hasMore: bottles.length > BOTTLES_PAGE_SIZE,
-        bottles: bottles.slice(0, BOTTLES_PAGE_SIZE).map(b => ({
+        total,
+        pageSize: BOTTLES_PAGE_SIZE,
+        bottles: bottles.map(b => ({
             bottle_id: b.bottle_id,
             title: b.title,
             preview: b.content.replace(/\s+/g, " ").trim().slice(0, 120),
             created_at: b.created_at,
-            like_count: b._count.likes,
+            save_count: b._count.saves,
             comment_count: b._count.Comment,
             category_list: b.categories.map(c => c.category?.name).filter(Boolean),
         })),
@@ -115,24 +119,21 @@ export const getProfileMembers = async (
     const memberFilter = { status: "ACTIVE" as const, member_id: { notIn: hidden } };
     const memberSelect = { select: { member_id: true, name: true, bio: true } };
     const paging = {
-        orderBy: { created_at: "desc" as const },
         skip: (page - 1) * MEMBERS_PAGE_SIZE,
-        take: MEMBERS_PAGE_SIZE + 1, // 多抓一筆判斷還有沒有下一頁
+        take: MEMBERS_PAGE_SIZE,
     };
 
     /*粉絲名單取 follower 那一側，追蹤名單取 following 那一側*/
-    const rows = kind === "followers"
-        ? (await prisma.follow.findMany({
-            where: { following_id: targetId, follower: memberFilter },
-            select: { follower: memberSelect },
-            ...paging,
-        })).map(f => f.follower)
-        : (await prisma.follow.findMany({
-            where: { follower_id: targetId, following: memberFilter },
-            select: { following: memberSelect },
-            ...paging,
-        })).map(f => f.following);
-    const members = rows.slice(0, MEMBERS_PAGE_SIZE);
+    const where = kind === "followers"
+        ? { following_id: targetId, follower: memberFilter }
+        : { follower_id: targetId, following: memberFilter };
+    const [total, members] = await Promise.all([
+        prisma.follow.count({ where }),
+        kind === "followers"
+            // 同一時間追蹤的用對方 id 排，換頁才不會重複或漏掉
+            ? prisma.follow.findMany({ where, select: { follower: memberSelect }, orderBy: [{ created_at: "desc" }, { follower_id: "desc" }], ...paging }).then(r => r.map(f => f.follower))
+            : prisma.follow.findMany({ where, select: { following: memberSelect }, orderBy: [{ created_at: "desc" }, { following_id: "desc" }], ...paging }).then(r => r.map(f => f.following)),
+    ]);
 
     /*看的人有沒有追蹤名單裡的每個人，前端用來顯示追蹤按鈕*/
     const viewerFollowing = viewerId && members.length
@@ -143,7 +144,8 @@ export const getProfileMembers = async (
         : new Set<number>();
 
     return {
-        hasMore: rows.length > MEMBERS_PAGE_SIZE,
+        total,
+        pageSize: MEMBERS_PAGE_SIZE,
         members: members.map(m => ({
             member_id: m.member_id,
             name: m.name,

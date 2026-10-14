@@ -9,93 +9,231 @@
   <link rel="icon" type="image/png" href="images/icon-192.png" />
   <link rel="apple-touch-icon" href="images/apple-touch-icon.png" />
   <style>
+    /* 配色跟首頁一致：海底背景、半透明玻璃、白字；瓶子沿用首頁 .post-card 的樣子 */
+    :root {
+      --blue: #0055a5;
+      --blue-light: #4da6ff;
+      --deep: #1a5b92;
+      --capsule: rgba(30, 90, 140, 0.85);
+      --glass: rgba(255, 255, 255, 0.15);
+      --glass-line: rgba(255, 255, 255, 0.3);
+      --soft: rgba(255, 255, 255, 0.78);
+      --glow: 0 0 10px rgba(77, 166, 255, 0.8);
+      --shadow-text: 0 1px 4px rgba(0, 30, 60, 0.55);
+    }
     * { box-sizing: border-box; }
     body {
       margin: 0;
       min-height: 100vh;
       background: #5BA7FF url("images/background.webp") center / cover fixed no-repeat;
       font-family: 'PingFang TC', 'Microsoft JhengHei', sans-serif;
-      color: #333;
+      color: #fff;
       padding: 20px 16px 40px;
     }
-    .wrap { max-width: 680px; margin: 0 auto; }
-    .top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
+    .wrap { max-width: 1100px; margin: 0 auto; }
+    .top-bar { margin-bottom: 16px; }
     .top-bar a {
-      color: #fff; font-weight: bold; text-decoration: none; text-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
-      background: rgba(0, 60, 130, 0.35); padding: 6px 14px; border-radius: 999px;
+      display: inline-block; color: #fff; font-weight: bold; text-decoration: none;
+      background: var(--capsule); border: 1px solid rgba(255, 255, 255, 0.25);
+      padding: 8px 18px; border-radius: 30px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
     }
-    .card {
-      background: rgba(255, 255, 255, 0.96);
-      border-radius: 20px;
-      padding: 24px;
-      box-shadow: 0 10px 30px rgba(0, 40, 90, 0.25);
+    .top-bar a:hover { background: #fff; color: var(--deep); }
+    .panel {
+      background: rgba(255, 255, 255, 0.12);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid var(--glass-line);
+      border-radius: 24px;
+      padding: 28px 36px 36px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
     }
-    .head { display: flex; gap: 18px; align-items: center; }
-    .avatar { width: 84px; height: 84px; border-radius: 50%; border: 3px solid #cfe2ff; background: #eef5ff; flex-shrink: 0; object-fit: cover; }
-    .head-text { flex: 1; min-width: 0; }
-    .name { margin: 0; font-size: 1.5rem; color: #0055a5; word-break: break-word; }
-    .meta { margin-top: 4px; color: #8899aa; font-size: 0.85rem; }
-    .mutual { display: inline-block; margin-left: 6px; padding: 1px 8px; border-radius: 999px; background: #eef5ff; color: #0055a5; font-size: 0.75rem; font-weight: bold; }
-    .bio { margin: 16px 0 0; white-space: pre-wrap; word-break: break-word; line-height: 1.7; color: #444; }
-    .bio.empty { color: #aab4c0; }
-    .actions { margin-top: 16px; display: flex; gap: 10px; flex-wrap: wrap; }
-    .btn {
-      border: none; border-radius: 999px; padding: 9px 20px; font-size: 0.95rem; font-weight: bold; cursor: pointer;
-      background: #0055a5; color: #fff; text-decoration: none; display: inline-block;
+
+    /* ---------- 上方個人資料 ---------- */
+    .head { display: flex; align-items: stretch; gap: 28px; }
+    .avatar-col { display: flex; flex-direction: column; align-items: center; gap: 10px; flex-shrink: 0; width: 140px; }
+    .avatar {
+      width: 132px; height: 132px; border-radius: 50%; object-fit: cover;
+      background: radial-gradient(circle at 30% 30%, rgba(224, 242, 254, 0.85), rgba(125, 211, 252, 0.5));
+      border: 3px solid rgba(255, 255, 255, 0.7);
+      box-shadow: 0 8px 20px rgba(0, 30, 70, 0.25), inset 0 0 15px rgba(255, 255, 255, 0.6);
     }
-    .btn.following { background: #eef2f6; color: #0055a5; }
-    .btn:disabled { opacity: 0.6; cursor: wait; }
-    .btn.small { padding: 5px 14px; font-size: 0.85rem; flex-shrink: 0; }
-    .stats { display: grid; grid-template-columns: repeat(3, 1fr); margin-top: 20px; border-top: 1px solid #eef2f6; }
+    .joined { font-size: 0.82rem; color: var(--soft); white-space: nowrap; text-shadow: var(--shadow-text); }
+    .info { flex: 1; min-width: 0; padding-top: 6px; }
+    .name-row { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
+    .name { margin: 0; font-size: 1.6rem; color: #fff; text-shadow: var(--glow); word-break: break-word; }
+    .mutual { padding: 2px 10px; border-radius: 999px; background: rgba(255, 255, 255, 0.9); color: var(--deep); font-size: 0.75rem; font-weight: bold; }
+    .facts { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+    /* 圖示固定寬度，文字才會切齊同一條線 */
+    .facts li { display: grid; grid-template-columns: 26px 1fr; align-items: center; font-size: 1rem; text-shadow: var(--shadow-text); }
+    .facts li span:first-child { text-align: center; }
+    .facts li.unset { color: rgba(255, 255, 255, 0.55); }
+    .side { display: flex; flex-direction: column; justify-content: space-between; align-items: flex-end; flex-shrink: 0; gap: 16px; }
+    /* 三個數字：跟首頁底部海域膠囊同一種樣子 */
+    .stats {
+      display: flex; gap: 6px; padding: 6px;
+      background: var(--glass); border: 1px solid var(--glass-line); border-radius: 50px;
+    }
     .stat {
-      background: none; border: none; padding: 14px 4px 10px; cursor: pointer; font-family: inherit;
-      border-bottom: 3px solid transparent; color: #8899aa;
+      width: 88px; padding: 6px 0; border: none; border-radius: 30px; cursor: pointer; font-family: inherit;
+      background: transparent; color: var(--soft); font-size: 0.9rem; text-align: center; transition: 0.2s;
     }
-    .stat b { display: block; font-size: 1.25rem; color: #333; }
-    .stat.active { border-bottom-color: #0055a5; color: #0055a5; }
-    .stat.active b { color: #0055a5; }
-    .note { margin: 14px 0 0; font-size: 0.8rem; color: #8899aa; text-align: center; }
-    .list { margin-top: 16px; display: flex; flex-direction: column; gap: 12px; }
-    .bottle {
-      display: block; background: rgba(255, 255, 255, 0.96); border-radius: 16px; padding: 16px 18px;
-      text-decoration: none; color: inherit; box-shadow: 0 4px 14px rgba(0, 40, 90, 0.15);
+    .stat b { display: block; font-size: 1.3rem; color: #fff; line-height: 1.2; }
+    .stat:hover { background: rgba(255, 255, 255, 0.2); }
+    .stat.active { background: #fff; color: var(--deep); font-weight: bold; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); }
+    .stat.active b { color: var(--deep); }
+    .bio {
+      margin: 18px 0 0; padding-left: 168px; /* 跟名字那一欄切齊（頭像欄 140 + 間距 28） */
+      word-break: break-word; line-height: 1.7; color: rgba(255, 255, 255, 0.92); text-shadow: var(--shadow-text);
     }
-    .bottle:hover { box-shadow: 0 6px 18px rgba(0, 40, 90, 0.25); }
-    .bottle h3 { margin: 0 0 6px; font-size: 1.05rem; color: #0055a5; word-break: break-word; }
-    .bottle p { margin: 0; color: #555; font-size: 0.92rem; line-height: 1.6; word-break: break-word; }
-    .bottle-foot { display: flex; flex-wrap: wrap; gap: 6px 14px; margin-top: 10px; font-size: 0.8rem; color: #8899aa; }
-    .tag { background: #eef5ff; color: #0055a5; padding: 1px 8px; border-radius: 999px; }
+    .bio:empty { display: none; }
+    .bio.empty { color: rgba(255, 255, 255, 0.55); }
+    .bio a { color: #bfe3ff; }
+    .bio p { margin: 0 0 4px; }
+    .divider { border: none; border-top: 1px solid rgba(255, 255, 255, 0.35); margin: 22px 0 18px; }
+    .self-note { margin: 0 0 8px; font-size: 0.8rem; color: var(--soft); text-align: center; text-shadow: var(--shadow-text); }
+
+    /* ---------- 按鈕：跟首頁「洋流」按鈕同一種藍色光暈 ---------- */
+    .btn {
+      border: 2px solid rgba(255, 255, 255, 0.5); border-radius: 50px; padding: 8px 20px;
+      background: radial-gradient(circle, rgba(77, 166, 255, 0.85), rgba(0, 85, 165, 0.85));
+      color: #fff; font-size: 0.92rem; font-weight: bold; cursor: pointer; font-family: inherit; white-space: nowrap;
+      box-shadow: 0 0 14px rgba(77, 166, 255, 0.45); transition: 0.2s;
+    }
+    .btn:hover { filter: brightness(1.15); transform: scale(1.04); }
+    .btn.ghost { background: rgba(255, 255, 255, 0.92); color: var(--deep); border-color: #fff; box-shadow: none; }
+    .btn:disabled { opacity: 0.6; cursor: wait; transform: none; }
+    .btn.small { padding: 5px 0; width: 80px; font-size: 0.82rem; flex-shrink: 0; text-align: center; }
+
+    /* ---------- 漂流瓶：沿用首頁的瓶子，一頁 6 個 ---------- */
+    .bottle-grid {
+      display: grid; grid-template-columns: repeat(3, auto); justify-content: center;
+      gap: 56px 90px; padding: 40px 0 10px;
+    }
+    .bottle-item {
+      position: relative; display: flex; flex-direction: column; align-items: center;
+      text-decoration: none; color: inherit; animation: ocean-gentle-flow 5s infinite ease-in-out;
+    }
+    /* 中間那排往下錯開，跟首頁一樣像漂在海上 */
+    .bottle-grid .bottle-item:nth-child(3n + 2) { margin-top: 50px; }
+    @keyframes ocean-gentle-flow {
+      0%, 100% { top: 0; }
+      50% { top: -12px; }
+    }
+    .pf-bottle {
+      position: relative; width: 140px; height: 140px; border-radius: 50%; padding: 20px;
+      background: radial-gradient(circle at 30% 30%, rgba(224, 242, 254, 0.75), rgba(125, 211, 252, 0.45));
+      backdrop-filter: blur(4px);
+      border: 2px solid rgba(255, 255, 255, 0.6);
+      box-shadow: 0 8px 20px rgba(0, 30, 70, 0.2), inset 0 0 15px rgba(255, 255, 255, 0.6);
+      display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 6px; text-align: center;
+      transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1), box-shadow 0.3s;
+    }
+    .bottle-item:hover .pf-bottle {
+      transform: scale(1.1);
+      box-shadow: 0 12px 28px rgba(0, 85, 165, 0.25), inset 0 0 18px rgba(255, 255, 255, 0.7);
+    }
+    /* 軟木塞 */
+    .pf-bottle::before {
+      content: ""; position: absolute; top: -24px; left: 50%; transform: translateX(-50%);
+      width: 45px; height: 25px; background: #a67c52; border-radius: 5px 5px 0 0;
+      box-shadow: inset -5px 0 10px rgba(0, 0, 0, 0.2); z-index: 1;
+    }
+    /* 瓶口 */
+    .pf-bottle::after {
+      content: ""; position: absolute; top: -5px; left: 50%; transform: translateX(-50%);
+      width: 55px; height: 12px; background: rgba(224, 242, 254, 0.9);
+      border: 2px solid rgba(255, 255, 255, 0.9); border-radius: 10px;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); z-index: 2;
+    }
+    .pf-bottle-board { font-size: 0.75rem; color: var(--blue); font-weight: bold; }
+    .pf-bottle-title {
+      margin: 0; font-size: 1.05rem; color: var(--blue); font-weight: 900; line-height: 1.3; word-break: break-word;
+      display: -webkit-box; -webkit-line-clamp: 2; line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+    }
+    .bottle-foot {
+      margin-top: 14px; display: flex; flex-wrap: wrap; justify-content: center; gap: 2px 12px;
+      font-size: 0.8rem; color: var(--soft); text-shadow: var(--shadow-text);
+    }
+    .bottle-foot span { white-space: nowrap; } /* 圖示跟數字不要被拆開 */
+
+    /* ---------- 粉絲、追蹤中：兩欄玻璃卡片，一頁 6 張 ---------- */
+    /* minmax(0, 1fr)：自介很長時欄寬才不會被撐開、超出畫面 */
+    .member-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px 28px; padding-top: 10px; }
     .member {
-      display: flex; align-items: center; gap: 12px; background: rgba(255, 255, 255, 0.96); border-radius: 14px;
-      padding: 12px 14px; box-shadow: 0 4px 14px rgba(0, 40, 90, 0.12);
+      display: flex; align-items: center; gap: 14px; height: 76px; padding: 0 16px;
+      background: var(--glass); border: 1px solid var(--glass-line); border-radius: 18px;
+      backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); transition: background 0.2s;
     }
-    .member a { flex: 1; min-width: 0; text-decoration: none; color: inherit; display: flex; align-items: center; gap: 12px; }
-    .member img { width: 42px; height: 42px; border-radius: 50%; background: #eef5ff; flex-shrink: 0; }
-    .member-name { font-weight: bold; color: #0055a5; word-break: break-word; }
-    .member-bio { font-size: 0.82rem; color: #8899aa; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    .bio a { color: #0055a5; }
-    .bio p { margin: 0 0 6px; }
-    .bio p:last-child { margin-bottom: 0; }
-    .private { margin-top: 12px; display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 0.85rem; color: #667788; }
-    .edit-form { display: none; margin-top: 18px; padding-top: 16px; border-top: 1px dashed #d5dde6; }
-    .edit-form label { display: block; margin-top: 12px; font-weight: bold; font-size: 0.9rem; color: #556677; }
+    .member:hover { background: rgba(255, 255, 255, 0.22); }
+    .member a { flex: 1; min-width: 0; display: flex; align-items: center; gap: 14px; text-decoration: none; color: inherit; }
+    .member img {
+      width: 46px; height: 46px; border-radius: 50%; flex-shrink: 0;
+      background: radial-gradient(circle at 30% 30%, rgba(224, 242, 254, 0.85), rgba(125, 211, 252, 0.5));
+      border: 2px solid rgba(255, 255, 255, 0.7);
+    }
+    .member-text { min-width: 0; }
+    .member-name { font-weight: bold; color: #fff; text-shadow: var(--shadow-text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .member-bio { margin-top: 2px; font-size: 0.82rem; color: var(--soft); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+    /* ---------- 分頁、空狀態 ---------- */
+    .pager { display: flex; justify-content: center; align-items: center; gap: 8px; margin-top: 34px; flex-wrap: wrap; }
+    .pager:empty { display: none; }
+    .pager button {
+      min-width: 40px; height: 40px; padding: 0 12px; border-radius: 30px;
+      background: var(--capsule); border: 1px solid rgba(255, 255, 255, 0.25);
+      color: #fff; font-weight: bold; cursor: pointer; font-family: inherit; transition: 0.2s;
+    }
+    .pager button:hover:not(:disabled) { background: rgba(255, 255, 255, 0.9); color: var(--deep); }
+    .pager button.current { background: #fff; border-color: #fff; color: var(--deep); cursor: default; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); }
+    .pager button:disabled:not(.current) { opacity: 0.4; cursor: default; }
+    .empty-box, .error-box { text-align: center; padding: 50px 16px; color: #fff; font-weight: bold; font-size: 1.05rem; text-shadow: var(--glow); }
+
+    /* ---------- 編輯個人資料（跟首頁彈窗一樣是白底） ---------- */
+    .modal { display: none; position: fixed; inset: 0; z-index: 100; background: rgba(0, 15, 35, 0.6); padding: 16px; overflow-y: auto; }
+    .modal.open { display: flex; align-items: flex-start; justify-content: center; }
+    .modal-card {
+      width: 100%; max-width: 520px; margin: 40px 0; background: #fff; color: #333;
+      border-radius: 20px; padding: 26px; box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
+    }
+    .modal-card h2 { margin: 0 0 6px; color: var(--blue); font-size: 1.25rem; font-weight: 900; }
+    .edit-form label { display: block; margin-top: 14px; font-weight: bold; font-size: 0.9rem; color: #555; }
     .edit-form input, .edit-form select, .edit-form textarea {
-      width: 100%; margin-top: 5px; padding: 9px 12px; font-size: 0.95rem; font-family: inherit;
-      border: 1px solid #c8d3df; border-radius: 10px; background: #fff;
+      width: 100%; margin-top: 6px; padding: 9px 12px; font-size: 0.95rem; font-family: inherit; color: #333;
+      border: 1px solid #cfe2ff; border-radius: 12px; background: #f9fbfd;
     }
-    .edit-form input:disabled { background: #f1f4f8; color: #8899aa; }
-    .edit-form textarea { resize: vertical; min-height: 96px; }
-    .edit-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
-    .hint { font-weight: normal; color: #99a6b3; font-size: 0.8rem; }
-    @media (max-width: 480px) { .edit-row { grid-template-columns: 1fr 1fr; } }
-    .empty-box, .error-box {
-      text-align: center; padding: 30px 16px; color: #fff; font-weight: bold; text-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
+    .edit-form input:focus, .edit-form select:focus, .edit-form textarea:focus { outline: none; border-color: var(--blue-light); background: #fff; }
+    .edit-form input:disabled, .edit-form select:disabled { background: #f1f4f8; color: #8899aa; }
+    .edit-form textarea { resize: vertical; min-height: 100px; }
+    .edit-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+    .hint { font-weight: normal; color: #8899aa; font-size: 0.8rem; }
+    .modal-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; }
+    .modal-card .btn.ghost { background: #eef5ff; border-color: #eef5ff; }
+
+    /* ---------- 平板、手機 ---------- */
+    @media (max-width: 900px) {
+      .bottle-grid { grid-template-columns: repeat(2, auto); gap: 56px 70px; }
+      .bottle-grid .bottle-item:nth-child(3n + 2) { margin-top: 0; }
+      .bottle-grid .bottle-item:nth-child(2n) { margin-top: 40px; }
     }
-    .more { align-self: center; margin-top: 4px; }
-    @media (max-width: 480px) {
-      .card { padding: 18px; }
-      .avatar { width: 64px; height: 64px; }
-      .name { font-size: 1.25rem; }
+    @media (max-width: 720px) {
+      .panel { padding: 20px 18px 26px; }
+      .head { flex-wrap: wrap; gap: 16px; }
+      .avatar-col { width: 96px; }
+      .avatar { width: 88px; height: 88px; }
+      .info { padding-top: 0; }
+      .name { font-size: 1.3rem; }
+      .side { width: 100%; align-items: stretch; gap: 14px; }
+      .side-action { display: flex; justify-content: flex-end; }
+      .stat { flex: 1; width: auto; }
+      .bio { padding-left: 0; }
+      .member-grid { grid-template-columns: minmax(0, 1fr); }
+      .edit-row { grid-template-columns: 1fr 1fr; }
+    }
+    @media (max-width: 420px) {
+      .bottle-grid { gap: 50px 26px; }
+      .pf-bottle { width: 124px; height: 124px; padding: 16px; }
+      .pf-bottle-title { font-size: 0.95rem; }
+      .bottle-foot { max-width: 140px; } /* 手機上放不下就把日期換到第二行 */
     }
   </style>
 </head>
@@ -106,19 +244,44 @@
       <a href="index.html">← 回到海面</a>
     </div>
 
-    <div id="profile-card" class="card" style="display: none;">
+    <div id="panel" class="panel" style="display: none;">
       <div class="head">
-        <img src="images/fish_logo.webp" class="avatar" alt="頭像" />
-        <div class="head-text">
-          <h1 id="pf-name" class="name"></h1>
-          <div id="pf-meta" class="meta"></div>
+        <div class="avatar-col">
+          <img src="images/fish_logo.webp" class="avatar" alt="頭像" />
+          <div id="pf-joined" class="joined"></div>
+        </div>
+        <div class="info">
+          <div class="name-row">
+            <h1 id="pf-name" class="name"></h1>
+            <span id="pf-mutual" class="mutual" style="display: none;">追蹤了你</span>
+          </div>
+          <ul id="pf-facts" class="facts"></ul>
+        </div>
+        <div class="side">
+          <div id="pf-action" class="side-action"></div>
+          <div class="stats">
+            <button type="button" class="stat active" data-tab="bottles"><b id="pf-bottle-count">0</b>漂流瓶</button>
+            <button type="button" class="stat" data-tab="followers"><b id="pf-follower-count">0</b>粉絲</button>
+            <button type="button" class="stat" data-tab="following"><b id="pf-following-count">0</b>追蹤中</button>
+          </div>
         </div>
       </div>
       <div id="pf-bio" class="bio"></div>
-      <div id="pf-private" class="private" style="display: none;"></div>
-      <div id="pf-actions" class="actions"></div>
+      <hr class="divider" />
+      <p id="pf-self-note" class="self-note" style="display: none;">匿名發的、審核中的漂流瓶不會出現在個人頁面，別人也看不到。</p>
 
-      <!-- 編輯個人資料（只有自己的頁面會出現） -->
+      <div id="pf-list"></div>
+      <div id="pf-pager" class="pager"></div>
+    </div>
+
+    <div id="pf-error" class="error-box" style="display: none;"></div>
+  </div>
+
+  <!-- 編輯個人資料（只有自己的頁面用得到） -->
+  <div id="edit-modal" class="modal">
+    <div class="modal-card">
+      <h2>✏️ 編輯個人資料</h2>
+      <p class="hint" style="margin: 0;">生日、性別、星座、自我介紹會顯示在你的個人頁面；Email 只有你看得到。</p>
       <form id="pf-edit-form" class="edit-form" autocomplete="off">
         <label>名字
           <input type="text" id="ed-name" maxlength="30" required />
@@ -138,36 +301,20 @@
               <option value="不公開">不公開</option>
             </select>
           </label>
-          <label>🩸 血型
-            <select id="ed-blood">
-              <option value="">未填寫</option>
-              <option value="A">A</option>
-              <option value="B">B</option>
-              <option value="O">O</option>
-              <option value="AB">AB</option>
-            </select>
+          <label>✨ 星座
+            <select id="ed-zodiac"></select>
           </label>
         </div>
+        <p id="ed-zodiac-hint" class="hint" style="margin: 6px 0 0;"></p>
         <label>📝 自我介紹 <span class="hint">（可以用 Markdown，例如 [連結文字](https://...)）</span>
           <textarea id="ed-bio" maxlength="500"></textarea>
         </label>
-        <p class="hint" style="margin: 8px 0 0;">星座會依生日自動算出；Email、生日、性別、血型只有你自己看得到。</p>
-        <div class="actions">
+        <div class="modal-actions">
+          <button type="button" id="ed-cancel" class="btn ghost">取消</button>
           <button type="submit" id="ed-save" class="btn">💾 儲存</button>
-          <button type="button" id="ed-cancel" class="btn following">取消</button>
         </div>
       </form>
-
-      <div class="stats">
-        <button type="button" class="stat active" data-tab="bottles"><b id="pf-bottle-count">0</b>漂流瓶</button>
-        <button type="button" class="stat" data-tab="followers"><b id="pf-follower-count">0</b>粉絲</button>
-        <button type="button" class="stat" data-tab="following"><b id="pf-following-count">0</b>追蹤中</button>
-      </div>
-      <p id="pf-self-note" class="note" style="display: none;">匿名發的、審核中的漂流瓶不會出現在個人頁面，別人也看不到。</p>
     </div>
-
-    <div id="pf-list" class="list"></div>
-    <div id="pf-error" class="error-box" style="display: none;"></div>
   </div>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/12.0.2/marked.min.js"></script>
@@ -179,6 +326,24 @@
     const rawId = params.get("id");
     const targetKey = rawId && /^\d+$/.test(rawId) ? rawId : "me";
 
+    // 星座名稱跟後端 signHelper 一致（它算出來是「魔羯座」）；舊資料可能是「摩羯座」，顯示時一起認得
+    const ZODIAC_ICON = {
+      "牡羊座": "♈", "金牛座": "♉", "雙子座": "♊", "巨蟹座": "♋", "獅子座": "♌", "處女座": "♍",
+      "天秤座": "♎", "天蠍座": "♏", "射手座": "♐", "魔羯座": "♑", "水瓶座": "♒", "雙魚座": "♓",
+    };
+    const zodiacIcon = (name) => ZODIAC_ICON[name === "摩羯座" ? "魔羯座" : name] || "✨";
+    // 跟後端 signHelper 同一張表，選生日時自動帶出星座
+    const ZODIAC_TABLE = [
+      ["水瓶座", 1, 20, 2, 18], ["雙魚座", 2, 19, 3, 20], ["牡羊座", 3, 21, 4, 19], ["金牛座", 4, 20, 5, 20],
+      ["雙子座", 5, 21, 6, 20], ["巨蟹座", 6, 21, 7, 22], ["獅子座", 7, 23, 8, 22], ["處女座", 8, 23, 9, 22],
+      ["天秤座", 9, 23, 10, 22], ["天蠍座", 10, 23, 11, 21], ["射手座", 11, 22, 12, 21],
+    ];
+    function zodiacOf(dateStr) {
+      const [, month, day] = dateStr.split("-").map(Number);
+      const hit = ZODIAC_TABLE.find(([, sm, sd, em, ed]) => (month === sm && day >= sd) || (month === em && day <= ed));
+      return hit ? hit[0] : "魔羯座"; // 跨年的魔羯座另外處理
+    }
+
     const $ = (id) => document.getElementById(id);
     const headers = () => {
       const h = { "ngrok-skip-browser-warning": "true" };
@@ -188,15 +353,22 @@
     const escapeHTML = (str) => String(str ?? "").replace(/[&<>'"]/g, (c) => ({
       "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#39;", '"': "&quot;",
     }[c]));
-    const fmtDate = (iso) => new Date(iso).toLocaleDateString("zh-TW");
+    const fmtDate = (iso) => {
+      const d = new Date(iso);
+      return `${d.getFullYear()}/${d.getMonth() + 1}/${d.getDate()}`;
+    };
+    // 生日存的是 UTC 午夜，用 UTC 取年月日才不會差一天
+    const fmtBirthday = (iso) => {
+      const d = new Date(iso);
+      return `${d.getUTCFullYear()}/${d.getUTCMonth() + 1}/${d.getUTCDate()}`;
+    };
 
     let profile = null;
     let currentTab = "bottles";
     let page = 1;
 
     function showError(message) {
-      $("profile-card").style.display = "none";
-      $("pf-list").innerHTML = "";
+      $("panel").style.display = "none";
       $("pf-error").textContent = message;
       $("pf-error").style.display = "block";
     }
@@ -236,60 +408,33 @@
       }
     }
 
-    function followBtnLabel(isFollowing) {
-      return isFollowing ? "已追蹤" : "+ 追蹤";
+    function setFollowBtn(btn, isFollowing, extraClass = "") {
+      btn.className = `btn ${extraClass} ${isFollowing ? "ghost" : ""}`.trim();
+      btn.textContent = isFollowing ? "已追蹤" : "+ 追蹤";
     }
 
-    // ---------- 個人資料卡 ----------
-    function renderProfile() {
-      document.title = `${profile.name} 的個人頁面 - 心情漂流瓶`;
-      $("pf-name").textContent = profile.name;
-      $("pf-meta").innerHTML = [
-        profile.constellation ? escapeHTML(profile.constellation) : "",
-        `${escapeHTML(fmtDate(profile.created_at))} 加入`,
-      ].filter(Boolean).join(" · ") + (profile.follows_me ? '<span class="mutual">追蹤了你</span>' : "");
+    // ---------- 上方個人資料 ----------
+    function renderFacts() {
+      const facts = [];
+      const self = profile.is_me;
+      // 別人看：沒填的就不顯示；自己看：顯示「未填寫」提醒可以去編輯
+      if (profile.birthday) facts.push(["🎂", fmtBirthday(profile.birthday)]);
+      else if (self) facts.push(["🎂", "生日未填寫", true]);
+      if (profile.gender && profile.gender !== "不公開") facts.push(["🚻", profile.gender]);
+      else if (self) facts.push(["🚻", profile.gender === "不公開" ? "性別不公開" : "性別未填寫", true]);
+      if (profile.constellation) facts.push([zodiacIcon(profile.constellation), profile.constellation]);
+      else if (self) facts.push(["✨", "星座未填寫", true]);
 
-      renderBio(profile.bio);
-      renderPrivate();
-
-      $("pf-bottle-count").textContent = profile.bottle_count;
-      $("pf-follower-count").textContent = profile.follower_count;
-      $("pf-following-count").textContent = profile.following_count;
-
-      const actions = $("pf-actions");
-      actions.innerHTML = "";
-      if (profile.is_me) {
-        const editBtn = document.createElement("button");
-        editBtn.type = "button";
-        editBtn.className = "btn following";
-        editBtn.textContent = "✏️ 編輯個人資料";
-        editBtn.addEventListener("click", openEditForm);
-        actions.appendChild(editBtn);
-        $("pf-self-note").style.display = "block";
-      } else {
-        const btn = document.createElement("button");
-        btn.type = "button";
-        btn.className = "btn" + (profile.is_following ? " following" : "");
-        btn.textContent = followBtnLabel(profile.is_following);
-        btn.addEventListener("click", () => toggleFollow(profile.member_id, btn, (isFollowing) => {
-          profile.is_following = isFollowing;
-          profile.follower_count += isFollowing ? 1 : -1;
-          btn.className = "btn" + (isFollowing ? " following" : "");
-          btn.textContent = followBtnLabel(isFollowing);
-          $("pf-follower-count").textContent = profile.follower_count;
-        }));
-        actions.appendChild(btn);
-      }
-      $("profile-card").style.display = "block";
+      $("pf-facts").innerHTML = facts.map(([icon, text, unset]) =>
+        `<li class="${unset ? "unset" : ""}"><span>${icon}</span><span>${escapeHTML(text)}</span></li>`).join("");
     }
 
-    // ---------- 自介（跟首頁一樣支援 Markdown，只允許一般網址） ----------
     function renderBio(raw) {
       const el = $("pf-bio");
       const text = String(raw || "").trim();
       el.classList.toggle("empty", !text);
       if (!text) {
-        el.textContent = "這個人還沒有寫自我介紹～";
+        el.textContent = profile.is_me ? "還沒有寫自我介紹，按「編輯個人資料」寫一點吧～" : "";
         return;
       }
       if (!window.marked || !window.DOMPurify) {
@@ -311,49 +456,201 @@
       });
     }
 
-    // ---------- 只有自己看得到的資料 ----------
-    function renderPrivate() {
-      const box = $("pf-private");
-      const p = profile.private;
-      if (!p) { box.style.display = "none"; return; }
-      const items = [
-        `📧 ${p.email}`,
-        `🎂 ${p.birthday ? fmtDate(p.birthday) : "生日未填寫"}`,
-        `🚻 ${p.gender || "性別未填寫"}`,
-        `🩸 ${p.blood_type ? p.blood_type + " 型" : "血型未填寫"}`,
-      ];
-      box.innerHTML = items.map((t) => `<span>${escapeHTML(t)}</span>`).join("") +
-        '<span style="color:#aab4c0;">（只有你看得到）</span>';
-      box.style.display = "flex";
+    function renderProfile() {
+      document.title = `${profile.name} 的個人頁面 - 心情漂流瓶`;
+      $("pf-name").textContent = profile.name;
+      $("pf-mutual").style.display = profile.follows_me ? "" : "none";
+      $("pf-joined").textContent = `${fmtDate(profile.created_at)} 加入`;
+      renderFacts();
+      renderBio(profile.bio);
+
+      $("pf-bottle-count").textContent = profile.bottle_count;
+      $("pf-follower-count").textContent = profile.follower_count;
+      $("pf-following-count").textContent = profile.following_count;
+
+      const action = $("pf-action");
+      action.innerHTML = "";
+      const btn = document.createElement("button");
+      btn.type = "button";
+      if (profile.is_me) {
+        btn.className = "btn ghost";
+        btn.textContent = "✏️ 編輯個人資料";
+        btn.addEventListener("click", openEditForm);
+        $("pf-self-note").style.display = "block";
+      } else {
+        setFollowBtn(btn, profile.is_following);
+        btn.addEventListener("click", () => toggleFollow(profile.member_id, btn, (isFollowing) => {
+          profile.is_following = isFollowing;
+          profile.follower_count += isFollowing ? 1 : -1;
+          setFollowBtn(btn, isFollowing);
+          $("pf-follower-count").textContent = profile.follower_count;
+        }));
+      }
+      action.appendChild(btn);
+      $("panel").style.display = "block";
     }
 
-    // ---------- 編輯個人資料 ----------
-    const toDateInput = (iso) => {
-      if (!iso) return "";
-      const d = new Date(iso);
-      d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
-      return d.toISOString().slice(0, 10);
+    // ---------- 列表 ----------
+    // 跟首頁一樣的瓶子：分類＋標題寫在瓶身，收藏數、留言、日期放瓶子下面
+    function bottleHTML(b, i) {
+      const board = (b.category_list || [])[0];
+      return `
+        <a class="bottle-item" href="index.html?post=${encodeURIComponent(b.bottle_id)}"
+           title="${escapeHTML(b.preview)}" style="animation-delay: -${(i * 0.8).toFixed(1)}s">
+          <div class="pf-bottle">
+            ${board ? `<div class="pf-bottle-board">${escapeHTML(board)}</div>` : ""}
+            <h2 class="pf-bottle-title">${escapeHTML(b.title)}</h2>
+          </div>
+          <div class="bottle-foot">
+            <span>⭐ ${b.save_count}</span>
+            <span>💬 ${b.comment_count}</span>
+            <span>${escapeHTML(fmtDate(b.created_at))}</span>
+          </div>
+        </a>`;
+    }
+
+    function memberEl(m) {
+      const card = document.createElement("div");
+      card.className = "member";
+      card.innerHTML = `
+        <a href="profile.html?id=${encodeURIComponent(m.member_id)}">
+          <img src="images/fish_logo.webp" alt="" />
+          <div class="member-text">
+            <div class="member-name">${escapeHTML(m.name)}</div>
+            <div class="member-bio">${escapeHTML(m.bio || "這個人還沒有寫自我介紹")}</div>
+          </div>
+        </a>`;
+      if (token && !m.is_me) {
+        const btn = document.createElement("button");
+        btn.type = "button";
+        setFollowBtn(btn, m.is_following, "small");
+        btn.addEventListener("click", () => toggleFollow(m.member_id, btn, (isFollowing) => {
+          m.is_following = isFollowing;
+          setFollowBtn(btn, isFollowing, "small");
+          // 在自己的頁面按，順便更新上面的「追蹤中」數字
+          if (profile.is_me) {
+            profile.following_count += isFollowing ? 1 : -1;
+            $("pf-following-count").textContent = profile.following_count;
+          }
+        }));
+        card.appendChild(btn);
+      }
+      return card;
+    }
+
+    function renderPager(total, pageSize) {
+      const pager = $("pf-pager");
+      // 拿不到總數（例如後端還是舊版）就不顯示換頁，不然算出 NaN 會出現可以亂按的頁碼
+      const pages = total > 0 && pageSize > 0 ? Math.ceil(total / pageSize) : 1;
+      pager.innerHTML = "";
+      if (pages <= 1) return;
+
+      const add = (label, target, opts = {}) => {
+        const b = document.createElement("button");
+        b.type = "button";
+        b.textContent = label;
+        if (opts.current) b.className = "current";
+        b.disabled = !!opts.disabled || !!opts.current;
+        b.addEventListener("click", () => { page = target; loadList(); });
+        pager.appendChild(b);
+      };
+      add("‹", page - 1, { disabled: page === 1 });
+      // 頁數多的時候只顯示目前頁附近的 5 頁
+      const from = Math.max(1, Math.min(page - 2, pages - 4));
+      const to = Math.min(pages, from + 4);
+      for (let i = from; i <= to; i++) add(String(i), i, { current: i === page });
+      add("›", page + 1, { disabled: page === pages });
+    }
+
+    const EMPTY_TEXT = {
+      bottles: () => profile.is_me ? "你還沒有公開的漂流瓶，去丟一個吧！🍾" : "這個人還沒有公開的漂流瓶 🌊",
+      followers: () => "還沒有粉絲 🐟",
+      following: () => "還沒有追蹤任何人 🐚",
     };
 
+    async function loadList() {
+      const list = $("pf-list");
+      const tab = currentTab;
+      list.innerHTML = '<div class="empty-box">打撈中…🌊</div>';
+      $("pf-pager").innerHTML = "";
+      try {
+        const data = await api(tab === "bottles" ? `/bottles?page=${page}` : `/${tab}?page=${page}`);
+        if (tab !== currentTab) return; // 等待中切換了分頁
+
+        const items = tab === "bottles" ? data.bottles : data.members;
+        // 資料變少、停在超出範圍的頁數時，退回最後一頁
+        if (items.length === 0 && data.total > 0 && page > 1) {
+          page = Math.ceil(data.total / data.pageSize);
+          return loadList();
+        }
+        if (items.length === 0) {
+          list.innerHTML = `<div class="empty-box">${EMPTY_TEXT[tab]()}</div>`;
+          return;
+        }
+        if (tab === "bottles") {
+          list.innerHTML = `<div class="bottle-grid">${items.map((b, i) => bottleHTML(b, i)).join("")}</div>`;
+        } else {
+          const grid = document.createElement("div");
+          grid.className = "member-grid";
+          items.forEach((m) => grid.appendChild(memberEl(m)));
+          list.innerHTML = "";
+          list.appendChild(grid);
+        }
+        renderPager(data.total, data.pageSize);
+      } catch (e) {
+        if (tab !== currentTab) return;
+        list.innerHTML = '<div class="empty-box">讀取失敗，請稍後再試 😢</div>';
+      }
+    }
+
+    document.querySelectorAll(".stat").forEach((el) => {
+      el.addEventListener("click", () => {
+        if (el.dataset.tab === currentTab) return;
+        currentTab = el.dataset.tab;
+        page = 1;
+        document.querySelectorAll(".stat").forEach((s) => s.classList.toggle("active", s === el));
+        loadList();
+      });
+    });
+
+    // ---------- 編輯個人資料 ----------
+    $("ed-zodiac").innerHTML = '<option value="">未填寫</option>' +
+      Object.keys(ZODIAC_ICON).map((z) => `<option value="${z}">${ZODIAC_ICON[z]} ${z}</option>`).join("");
+
+    // 有生日就依生日自動算星座（跟後端一致）；沒生日才可以自己選
+    function syncZodiacField() {
+      const birthday = $("ed-birthday").value;
+      const select = $("ed-zodiac");
+      if (birthday) {
+        select.value = zodiacOf(birthday);
+        select.disabled = true;
+        $("ed-zodiac-hint").textContent = "星座會依生日自動算出；清空生日就可以自己選。";
+      } else {
+        select.disabled = false;
+        $("ed-zodiac-hint").textContent = "";
+      }
+    }
+    $("ed-birthday").addEventListener("change", syncZodiacField);
+
+    const toDateInput = (iso) => (iso ? new Date(iso).toISOString().slice(0, 10) : "");
+
     function openEditForm() {
-      const p = profile.private || {};
       $("ed-name").value = profile.name;
-      $("ed-email").value = p.email || "";
-      $("ed-birthday").value = toDateInput(p.birthday);
-      $("ed-gender").value = p.gender || "";
-      $("ed-blood").value = p.blood_type || "";
+      $("ed-email").value = profile.private?.email || "";
+      $("ed-birthday").value = toDateInput(profile.birthday);
+      $("ed-gender").value = profile.gender || "";
+      $("ed-zodiac").value = profile.constellation === "摩羯座" ? "魔羯座" : (profile.constellation || "");
       $("ed-bio").value = profile.bio || "";
-      $("pf-edit-form").style.display = "block";
-      $("pf-actions").style.display = "none";
+      syncZodiacField();
+      $("edit-modal").classList.add("open");
       $("ed-name").focus();
     }
 
     function closeEditForm() {
-      $("pf-edit-form").style.display = "none";
-      $("pf-actions").style.display = "flex";
+      $("edit-modal").classList.remove("open");
     }
-
     $("ed-cancel").addEventListener("click", closeEditForm);
+    $("edit-modal").addEventListener("click", (e) => { if (e.target === $("edit-modal")) closeEditForm(); });
 
     $("pf-edit-form").addEventListener("submit", async (e) => {
       e.preventDefault();
@@ -361,7 +658,7 @@
         name: $("ed-name").value.trim(),
         birthday: $("ed-birthday").value,
         gender: $("ed-gender").value,
-        blood_type: $("ed-blood").value,
+        constellation: $("ed-zodiac").value,
         bio: $("ed-bio").value.trim(),
       };
       if (!body.name) return alert("名字不能空白喔！");
@@ -378,15 +675,13 @@
         if (!res.ok) return alert(data.message || "儲存失敗，請稍後再試");
 
         const m = data.data || {};
-        profile.name = m.name ?? body.name;
-        profile.bio = m.bio ?? body.bio;
-        profile.constellation = m.constellation ?? "";
-        profile.private = {
-          ...profile.private,
+        Object.assign(profile, {
+          name: m.name ?? body.name,
+          bio: m.bio ?? body.bio,
           birthday: m.birthday ?? null,
           gender: m.gender ?? "",
-          blood_type: m.blood_type ?? "",
-        };
+          constellation: m.constellation ?? "",
+        });
 
         // 同步這台瀏覽器記的登入資料，首頁右上角的名字才會跟著變
         try {
@@ -412,105 +707,6 @@
       }
     });
 
-    // ---------- 列表 ----------
-    function bottleHTML(b) {
-      const tags = (b.category_list || []).map((c) => `<span class="tag">${escapeHTML(c)}</span>`).join("");
-      return `
-        <a class="bottle" href="index.html?post=${encodeURIComponent(b.bottle_id)}">
-          <h3>${escapeHTML(b.title)}</h3>
-          <p>${escapeHTML(b.preview)}${b.preview.length >= 120 ? "…" : ""}</p>
-          <div class="bottle-foot">
-            ${tags}
-            <span>❤️ ${b.like_count}</span>
-            <span>💬 ${b.comment_count}</span>
-            <span>${escapeHTML(fmtDate(b.created_at))}</span>
-          </div>
-        </a>`;
-    }
-
-    function memberEl(m) {
-      const row = document.createElement("div");
-      row.className = "member";
-      row.innerHTML = `
-        <a href="profile.html?id=${encodeURIComponent(m.member_id)}">
-          <img src="images/fish_logo.webp" alt="" />
-          <div style="min-width: 0;">
-            <div class="member-name">${escapeHTML(m.name)}</div>
-            <div class="member-bio">${escapeHTML(m.bio || "")}</div>
-          </div>
-        </a>`;
-      if (token && !m.is_me) {
-        const btn = document.createElement("button");
-        btn.type = "button";
-        btn.className = "btn small" + (m.is_following ? " following" : "");
-        btn.textContent = followBtnLabel(m.is_following);
-        btn.addEventListener("click", () => toggleFollow(m.member_id, btn, (isFollowing) => {
-          m.is_following = isFollowing;
-          btn.className = "btn small" + (isFollowing ? " following" : "");
-          btn.textContent = followBtnLabel(isFollowing);
-          // 在自己的追蹤中名單裡按，順便更新上面的數字
-          if (profile.is_me) {
-            profile.following_count += isFollowing ? 1 : -1;
-            $("pf-following-count").textContent = profile.following_count;
-          }
-        }));
-        row.appendChild(btn);
-      }
-      return row;
-    }
-
-    const EMPTY_TEXT = {
-      bottles: () => profile.is_me ? "你還沒有公開的漂流瓶，去丟一個吧！🍾" : "這個人還沒有公開的漂流瓶 🌊",
-      followers: () => "還沒有粉絲 🐟",
-      following: () => "還沒有追蹤任何人 🐚",
-    };
-
-    async function loadList(reset) {
-      const list = $("pf-list");
-      if (reset) {
-        page = 1;
-        list.innerHTML = '<div class="empty-box">打撈中…🌊</div>';
-      }
-      const tab = currentTab;
-      try {
-        const data = await api(tab === "bottles" ? `/bottles?page=${page}` : `/${tab}?page=${page}`);
-        if (tab !== currentTab) return; // 等待中切換了分頁
-        if (reset) list.innerHTML = "";
-        list.querySelector(".more")?.remove();
-
-        const items = tab === "bottles" ? data.bottles : data.members;
-        if (reset && items.length === 0) {
-          list.innerHTML = `<div class="empty-box">${EMPTY_TEXT[tab]()}</div>`;
-          return;
-        }
-        if (tab === "bottles") {
-          list.insertAdjacentHTML("beforeend", items.map(bottleHTML).join(""));
-        } else {
-          items.forEach((m) => list.appendChild(memberEl(m)));
-        }
-        if (data.hasMore) {
-          const more = document.createElement("button");
-          more.type = "button";
-          more.className = "btn following more";
-          more.textContent = "載入更多";
-          more.addEventListener("click", () => { page++; more.disabled = true; loadList(false); });
-          list.appendChild(more);
-        }
-      } catch (e) {
-        if (tab !== currentTab) return;
-        list.innerHTML = '<div class="empty-box">讀取失敗，請稍後再試 😢</div>';
-      }
-    }
-
-    document.querySelectorAll(".stat").forEach((el) => {
-      el.addEventListener("click", () => {
-        if (el.dataset.tab === currentTab) return;
-        currentTab = el.dataset.tab;
-        document.querySelectorAll(".stat").forEach((s) => s.classList.toggle("active", s === el));
-        loadList(true);
-      });
-    });
-
     (async function init() {
       if (targetKey === "me" && !token) {
         alert("請先登入才能看自己的個人頁面");
@@ -520,7 +716,7 @@
       try {
         profile = await api("");
         renderProfile();
-        loadList(true);
+        loadList();
       } catch (e) {
         if (e.status === 404) showError("找不到這位使用者 🌊 可能帳號已經不存在了。");
         else if (e.status === 401) showError("登入已失效，請重新登入。");

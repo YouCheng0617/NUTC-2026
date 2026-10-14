@@ -343,7 +343,8 @@ export const updateMember = async (memberId: number, updateData: Partial<MemberD
     if (updateData.birthday !== undefined) {
         if (updateData.birthday === null || updateData.birthday === "") {
             dataToUpdate.birthday = null;
-            dataToUpdate.constellation = "";
+            /*沒填生日時可以自己選星座；有生日就一律依生日算*/
+            dataToUpdate.constellation = updateData.constellation ?? "";
             updatedFields.push("生日與星座");
         } else {
             const birthday = new Date(updateData.birthday);
