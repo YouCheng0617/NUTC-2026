@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="zh-TW">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>註銷帳號確認 - 心情漂流瓶</title>
+  <link rel="icon" href="favicon.ico" sizes="any" />
+  <link rel="icon" type="image/png" href="images/icon-192.png" />
+  <link rel="apple-touch-icon" href="images/apple-touch-icon.png" />
+  <link rel="stylesheet" href="login.css" />
+</head>
+
+<body>
+  <div class="login-container">
+    <img src="images/background.webp" class="bg-img" alt="背景" />
+
+    <div class="css-bubbles">
+      <div class="bubble"></div>
+      <div class="bubble"></div>
+      <div class="bubble"></div>
+      <div class="bubble"></div>
+      <div class="bubble"></div>
+    </div>
+
+    <div class="cute-modal"
+      style="display: flex; position: relative; z-index: 1000; background: transparent; backdrop-filter: none;">
+      <div class="cute-modal-content">
+
+        <div class="auth-form bubble-layout"
+          style="display: flex; flex-direction: column; align-items: center; width: 100%;">
+
+          <div class="bg-watermark" style="margin-top: -10px;">心情漂流瓶</div>
+          <h2 id="page-title"
+            style="color: #ffffff; margin-top: 20px; margin-bottom: 10px; font-weight: 900; letter-spacing: 2px; text-shadow: 0 2px 6px rgba(0, 0, 0, 0.5);">
+            註銷帳號</h2>
+
+          <p id="status-message"
+            style="color: #ffffff; font-size: 0.95rem; text-align: center; font-weight: bold; margin-bottom: 20px; line-height: 1.6; text-shadow: 0 1px 4px rgba(0, 0, 0, 0.6);">
+          </p>
+
+          <button type="button" id="action-btn"
+            style="display: none; padding: 10px 26px; border: none; border-radius: 999px; font-size: 1rem; font-weight: bold; color: #fff; cursor: pointer; box-shadow: 0 3px 8px rgba(0, 0, 0, 0.25);">
+          </button>
+
+          <a href="login.html" id="login-link"
+            style="display: none; margin-top: 18px; color: #ffffff; font-weight: bold; text-decoration: underline; text-shadow: 0 1px 4px rgba(0, 0, 0, 0.6);">
+            前往登入 →
+          </a>
+
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const API_BASE_URL = "https://api.drift-bottles.xyz";
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const urlToken = urlParams.get("token");
+    const action = urlParams.get("action");
+
+    const titleEl = document.getElementById("page-title");
+    const statusEl = document.getElementById("status-message");
+    const actionBtn = document.getElementById("action-btn");
+    const loginLink = document.getElementById("login-link");
+
+    /* 每種連結要顯示的說明、按鈕與打哪支 API */
+    const ACTIONS = {
+      confirm: {
+        title: "確認註銷帳號",
+        intro: "按下按鈕後，帳號會進入 7 天後悔期，所有裝置會被登出且無法登入。\n期滿後個人資料永久刪除，發過的漂流瓶與留言改顯示為「已註銷使用者」。",
+        button: "確認註銷",
+        color: "#c0392b",
+        endpoint: "/account-deletion/confirm",
+        confirmText: "最後確認：真的要註銷帳號嗎？7 天內可以用第二封信裡的連結取消。",
+        success: (data) => {
+          const date = data.data?.scheduledAt
+            ? new Date(data.data.scheduledAt).toLocaleString("zh-TW", { hour12: false })
+            : "7 天後";
+          return `已確認註銷，帳號將於 ${date} 正式註銷，期間無法登入。\n想取消的話，請點第二封信裡的「取消註銷」連結；信不見了就用原帳密登入一次，系統會重寄。`;
+        },
+      },
+      deny: {
+        title: "這不是我申請的",
+        intro: "按下按鈕後，我們會取消這次註銷申請、登出你所有的裝置，並寄一封重設密碼信給你。\n有人知道你的密碼，請務必更換。",
+        button: "保護我的帳號",
+        color: "#000000",
+        endpoint: "/account-deletion/deny",
+        success: (data) => data.message,
+      },
+      cancel: {
+        title: "取消註銷",
+        intro: "按下按鈕後，註銷申請會取消，帳號恢復正常，重新登入就能繼續使用。",
+        button: "我後悔了，取消註銷",
+        color: "#0055a5",
+        endpoint: "/account-deletion/cancel-by-link",
+        success: (data) => data.message,
+      },
+    };
+
+    function showResult(message, ok) {
+      statusEl.innerText = message;
+      statusEl.style.color = ok ? "#ffffff" : "#ff4d4d";
+      actionBtn.style.display = "none";
+      loginLink.style.display = "inline-block";
+    }
+
+    const config = ACTIONS[action];
+    if (!urlToken || !config) {
+      showResult("⚠️ 連結不完整，請確認您是從信箱的連結點擊進入的。", false);
+    } else {
+      titleEl.innerText = config.title;
+      statusEl.innerText = config.intro;
+      actionBtn.innerText = config.button;
+      actionBtn.style.background = config.color;
+      actionBtn.style.display = "inline-block";
+
+      actionBtn.addEventListener("click", async () => {
+        if (config.confirmText && !confirm(config.confirmText)) return;
+
+        actionBtn.disabled = true;
+        actionBtn.innerText = "處理中…";
+        try {
+          const response = await fetch(`${API_BASE_URL}${config.endpoint}`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "ngrok-skip-browser-warning": "true",
+            },
+            body: JSON.stringify({ token: urlToken }),
+          });
+          const data = await response.json().catch(() => ({}));
+
+          if (response.ok) {
+            /* 確認註銷時所有裝置都已登出，這台舊的登入憑證也不能用了 */
+            localStorage.removeItem("authToken");
+            showResult("✅ " + config.success(data), true);
+          } else {
+            showResult("❌ " + (data.message || "連結已失效，請稍後再試。"), false);
+          }
+        } catch (error) {
+          console.error("連線錯誤:", error);
+          actionBtn.disabled = false;
+          actionBtn.innerText = config.button;
+          statusEl.innerText = "📡 無法連接到後端伺服器，請稍後再試一次。";
+          statusEl.style.color = "#ff4d4d";
+        }
+      });
+    }
+  </script>
+</body>
+
+</html>

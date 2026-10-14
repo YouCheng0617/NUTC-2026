@@ -1,6 +1,7 @@
 import { Server, Socket } from 'socket.io';
 import jwt from 'jsonwebtoken';
 import prisma from '../lib/prisma.js';
+import { isTokenRevoked } from '../modules/middleware/auth.middleware.js';
 import { setupMemoryGame, memoryHandleLeave, memoryHandleJoin, memoryForget, setRoomKicker } from './memoryGame.js';
 import { getRoomBanMinutesLeft } from './quitPenalty.js';
 import { loadConflicts, hasConflict, isBlockedByHost, blockPlayer, reportPlayer, recordRoomChat, clearRoomChat } from './gameSafety.js';
@@ -98,14 +99,14 @@ const verifySocketMember = async (socket: Socket): Promise<number | null> => {
     const token = socket.handshake.auth?.token ?? socket.data.identifyToken;
     if (typeof token !== 'string' || !token) return null;
     try {
-        const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY!) as { member_id?: number };
+        const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY!) as { member_id?: number; iat?: number };
         if (typeof decoded.member_id !== 'number') return null;
 
         const [blacklisted, member] = await Promise.all([
             prisma.blacklistedToken.findUnique({ where: { token } }),
-            prisma.member.findUnique({ where: { member_id: decoded.member_id }, select: { status: true } }),
+            prisma.member.findUnique({ where: { member_id: decoded.member_id }, select: { status: true, tokens_valid_after: true } }),
         ]);
-        if (blacklisted || member?.status !== 'ACTIVE') return null;
+        if (blacklisted || member?.status !== 'ACTIVE' || isTokenRevoked(decoded.iat, member.tokens_valid_after)) return null;
 
         socket.data.memberId = decoded.member_id;
         return decoded.member_id;

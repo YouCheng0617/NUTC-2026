@@ -55,6 +55,9 @@ export class AdminController {
                 data: updatedMember
             });
         } catch (error) {
+            if (error instanceof Error && error.message.includes("已註銷")) {
+                return res.status(400).json({ message: error.message });
+            }
             console.error("Error updating member status:", error);
             res.status(500).json({ message: "內部伺服器錯誤" });
         }

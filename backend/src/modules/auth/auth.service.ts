@@ -18,6 +18,13 @@ interface MemberData {
     bio?: string;
 }
 
+/*後悔期內的帳號不能登入*/
+export class PendingDeletionError extends Error {
+    constructor(public memberId: number) {
+        super("PENDING_DELETION");
+    }
+}
+
 /*信箱格式檢查*/
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[a-zA-Z]{2,}$/;
 
@@ -212,7 +219,7 @@ export const loginMember = async (email: string, password: string) => {
         }
     });
 
-    if (!member) {
+    if (!member || member.status === "DELETED") {
         throw new Error("信箱或密碼錯誤!");
     }
     if (member.status === "BANNED") {
@@ -230,12 +237,16 @@ export const loginMember = async (email: string, password: string) => {
     if (!isPasswordValid) {
         throw new Error("信箱或密碼錯誤!");
     }
+    /*密碼對了才透露帳號在註銷後悔期，由 controller 重寄取消連結*/
+    if (member.status === "PENDING_DELETION") {
+        throw new PendingDeletionError(member.member_id);
+    }
 
     const token = generateToken(
         { member_id: member.member_id, email: member.email },
         process.env.JWT_SECRET_KEY!
     );
-    const { password: _, ...memberWithoutPassword } = member;
+    const { password: _, tokens_valid_after: __, ...memberWithoutPassword } = member;
 
     return {
         message: "登入成功!",
@@ -389,8 +400,8 @@ export const followMember = async (followerId: number, followedId: number) => {
         where: { member_id: followedId },
     })
 
-    // 有封鎖關係時當作找不到會員，不讓對方知道被封鎖
-    if (!targetMember || await isBlockedBetween(followerId, followedId)) {
+    // 有封鎖關係時當作找不到會員，不讓對方知道被封鎖；已註銷的帳號也當作找不到
+    if (!targetMember || targetMember.status === "DELETED" || await isBlockedBetween(followerId, followedId)) {
         throw new Error("TARGET_NOT_FOUND");
     }
     const follower = await prisma.member.findUnique({

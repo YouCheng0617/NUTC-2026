@@ -20,6 +20,7 @@ import { CSRouter } from './modules/customer-service/CS.router.js';
 import { blockRouter } from './modules/block/block.router.js';
 import { announcementRouter } from './modules/announcement/announcement.router.js';
 import { dailyQuestionRouter } from './modules/daily-question/dailyQuestion.router.js';
+import { accountDeletionRouter } from './modules/account-deletion/accountDeletion.router.js';
 
 
 import { setupPetSocket } from './socket/petServer.js';
@@ -63,6 +64,7 @@ app.use('/customer-service', CSRouter());
 app.use('/block', blockRouter());
 app.use('/announcements', announcementRouter()); /*首頁揪團彈幕（寵物遊戲房號）*/
 app.use('/daily-question', dailyQuestionRouter()); /*首頁今日一題*/
+app.use('/account-deletion', accountDeletionRouter()); /*註銷帳號*/
 if (!process.env["DATABASE_URL"]) {
     console.error("DATABASE_URL is not defined in env.");
 }

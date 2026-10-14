@@ -34,6 +34,16 @@ export const changeMemberStatus = async (member_id: number, newStatus: "ACTIVE" 
         where: { member_id },
         select: { status: true }
     });
+    if (before?.status === "DELETED") {
+        throw new Error("此帳號已註銷，無法變更狀態");
+    }
+    /*後悔期內被管理員改狀態（例如停權），註銷申請就作廢，期滿也不會被刪掉*/
+    if (before?.status === "PENDING_DELETION") {
+        await prisma.accountDeletionRequest.updateMany({
+            where: { member_id, status: 1 },
+            data: { status: 2 },
+        });
+    }
     const updatedMember = await prisma.member.update({
         where: { member_id },
         data: { status: newStatus },

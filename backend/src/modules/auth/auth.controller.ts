@@ -2,12 +2,40 @@ import { isValidId } from "../../lib/validateHelper.js";
 import { checkLinks } from "../../lib/linkGuard.js";
 import type { Request, Response } from "express";
 import { type AuthRequest } from "../middleware/auth.middleware.js";
-import { createMember, loginMember, forgotPassword, resetPassword, updateMember, followMember, getFollowedMembers, getFollowerList, verifyEmail, resendVerification } from "./auth.service.js";
+import { PendingDeletionError, createMember, loginMember, forgotPassword, resetPassword, updateMember, followMember, getFollowedMembers, getFollowerList, verifyEmail, resendVerification } from "./auth.service.js";
 import { countHelper } from "../../lib/countHelper.js";
 import { verifyCaptcha } from "../../lib/captchaHelper.js";
 import prisma from "../../lib/prisma.js";
 import { consumeUnlockToken } from "../../lib/loginLock.js";
+import { resendCancelLink } from "../account-deletion/accountDeletion.service.js";
 import { loginAccountLimiter, loginAccountKey } from "../../lib/rateLimiter.js";
+/*
+ * 後悔期內登入：重寄取消連結並告訴使用者
+ * 訊息避開「鎖定、封鎖、過多、未啟用」等字，login.html 會依這些字改顯示別的訊息
+ */
+const pendingDeletionMessage = async (memberId: number) => {
+    try {
+        const resend = await resendCancelLink(memberId);
+        const date = resend.scheduledAt
+            ? resend.scheduledAt.toLocaleString("zh-TW", { timeZone: "Asia/Taipei", hour12: false })
+            : "近期";
+        const head = `此帳號已申請註銷，將於 ${date} 正式註銷。`;
+        switch (resend.result) {
+            case "SENT":
+                return head + "「取消註銷」的連結已重新寄到你的信箱，點信中按鈕即可恢復帳號。";
+            case "COOLDOWN":
+                return head + `取消連結剛寄出不久，請先檢查信箱（含垃圾郵件匣），${resend.waitMinutes} 分鐘後才能再寄一次。`;
+            case "LIMIT":
+                return head + "取消連結已重寄多次，請檢查信箱（含垃圾郵件匣），或聯繫客服協助。";
+            default:
+                return head + "取消連結暫時寄不出去，請稍後再試，或聯繫客服協助。";
+        }
+    } catch (err) {
+        console.error("重寄取消註銷連結失敗:", err);
+        return "此帳號已申請註銷，請點註銷信中的連結取消註銷，或稍後再試。";
+    }
+};
+
 export class AuthController {
 
     async login(req: Request, res: Response) {
@@ -31,6 +59,12 @@ export class AuthController {
 
             });
         } catch (error) {
+            if (error instanceof PendingDeletionError) {
+                return res.status(403).json({
+                    message: await pendingDeletionMessage(error.memberId),
+                    code: "PENDING_DELETION",
+                });
+            }
             res.status(400).json({
                 message: error instanceof Error ? error.message : "登入失敗"
             });

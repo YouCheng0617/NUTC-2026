@@ -1,0 +1,188 @@
+<!doctype html>
+<html lang="zh-TW">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>註銷帳號 - 心情漂流瓶</title>
+  <link rel="icon" href="favicon.ico" sizes="any" />
+  <link rel="icon" type="image/png" href="images/icon-192.png" />
+  <link rel="apple-touch-icon" href="images/apple-touch-icon.png" />
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: #5BA7FF url("images/background.webp") center / cover fixed no-repeat;
+      font-family: 'PingFang TC', 'Microsoft JhengHei', sans-serif;
+      color: #333;
+      padding: 32px 16px;
+    }
+    .card {
+      max-width: 600px;
+      margin: 0 auto;
+      background: rgba(255, 255, 255, 0.96);
+      border-radius: 20px;
+      padding: 28px 24px;
+      box-shadow: 0 10px 30px rgba(0, 40, 90, 0.25);
+    }
+    h1 { margin: 0 0 6px; color: #c0392b; font-size: 1.5rem; text-align: center; }
+    .subtitle { text-align: center; color: #8899aa; font-size: 0.9rem; margin: 0 0 22px; }
+    h2 { font-size: 1.05rem; color: #0055a5; margin: 22px 0 8px; }
+    ol, ul { margin: 0; padding-left: 1.4em; line-height: 1.75; font-size: 0.95rem; }
+    .box { border-radius: 12px; padding: 12px 16px; margin-top: 6px; font-size: 0.95rem; line-height: 1.75; }
+    .box.delete { background: #fdecea; border: 1px solid #f5c6c1; }
+    .box.keep { background: #eef5ff; border: 1px solid #cfe2ff; }
+    .box.note { background: #fff8e6; border: 1px solid #ffe2a8; }
+    .box ul { padding-left: 1.2em; }
+    .form { margin-top: 26px; padding-top: 20px; border-top: 1px dashed #d5dde6; }
+    .agree { display: flex; gap: 10px; align-items: flex-start; font-size: 0.95rem; line-height: 1.6; cursor: pointer; }
+    .agree input { margin-top: 5px; width: 18px; height: 18px; flex-shrink: 0; }
+    label.field { display: block; margin-top: 16px; font-weight: bold; font-size: 0.95rem; }
+    input[type="password"] {
+      width: 100%; margin-top: 6px; padding: 11px 14px; font-size: 1rem;
+      border: 1px solid #c8d3df; border-radius: 10px;
+    }
+    .actions { display: flex; gap: 12px; margin-top: 20px; flex-wrap: wrap; }
+    button, .btn-link {
+      flex: 1; min-width: 140px; padding: 12px 16px; border-radius: 999px; font-size: 1rem;
+      font-weight: bold; cursor: pointer; border: none; text-align: center; text-decoration: none;
+    }
+    .btn-danger { background: #c0392b; color: #fff; }
+    .btn-danger:disabled { background: #e2a69f; cursor: not-allowed; }
+    .btn-link { background: #eef2f6; color: #0055a5; }
+    #message { margin-top: 16px; font-weight: bold; text-align: center; line-height: 1.6; min-height: 1.6em; }
+    #message.ok { color: #1e7e34; }
+    #message.err { color: #c0392b; }
+  </style>
+</head>
+
+<body>
+  <div class="card">
+    <h1>註銷帳號</h1>
+    <p class="subtitle">申請前請仔細閱讀以下規則</p>
+
+    <h2>📮 申請流程</h2>
+    <ol>
+      <li>勾選同意規則並輸入密碼，送出申請。</li>
+      <li>我們會寄一封<b>確認信</b>到你的註冊信箱，請在 <b>24 小時內</b>點「確認註銷」。沒點的話申請自動失效，帳號不受影響。</li>
+      <li>確認後帳號進入 <b>7 天後悔期</b>，所有裝置會被登出，期間<b>無法登入</b>。</li>
+      <li>7 天期滿後，系統會在 1 小時內正式註銷帳號，並寄出最後一封通知信。</li>
+    </ol>
+
+    <h2>🕊️ 後悔期內想取消</h2>
+    <ul>
+      <li>點第二封信「帳號將於 7 天後註銷」裡的「我後悔了，取消註銷」按鈕，帳號立刻恢復。</li>
+      <li>找不到信？到登入頁用原本的帳號密碼登入一次，系統會<b>重新寄送取消連結</b>（10 分鐘內只寄一封，整個後悔期最多重寄 5 次）。</li>
+    </ul>
+    <p class="box note" style="margin-top: 10px;">後悔期內，你發過的漂流瓶和留言仍會正常顯示。</p>
+
+    <h2>🗑️ 註銷後「永久刪除」的資料</h2>
+    <div class="box delete">
+      <ul>
+        <li>個人資料：信箱、暱稱、生日、性別、血型、星座、自我介紹</li>
+        <li>海兔寵物、積分、皮膚與所有道具</li>
+        <li>拼圖碎片、寶箱、喚醒石與收集進度</li>
+        <li>收藏的漂流瓶、追蹤與粉絲、封鎖名單</li>
+        <li>所有通知（包含別人收到「你追蹤了他」之類的通知）</li>
+        <li>每日便利貼、塔羅紀錄、小遊戲紀錄、兌換碼紀錄</li>
+        <li>客服問題與上傳的圖片</li>
+      </ul>
+    </div>
+
+    <h2>🫧 註銷後「匿名保留」的內容</h2>
+    <div class="box keep">
+      <ul>
+        <li><b>發過的漂流瓶與留言會保留</b>，避免別人的回覆串斷掉，但作者一律改顯示為<b>「已註銷使用者」</b>，不會再連結到你的任何個人資料。</li>
+        <li>按讚與投票會保留為匿名的數字。</li>
+        <li>你送出或被送出的檢舉紀錄會保留，供管理員審核使用。</li>
+      </ul>
+      <p style="margin: 8px 0 0;"><b>如果不希望某些漂流瓶或留言被保留，請在申請註銷之前自行刪除。</b></p>
+    </div>
+
+    <h2>⚠️ 其他注意事項</h2>
+    <ul>
+      <li>正式註銷後<b>無法復原</b>，管理員也無法幫你找回資料。</li>
+      <li>註銷後同一個信箱可以重新註冊，但會是全新的帳號，舊資料不會回來。</li>
+      <li>被停權的帳號無法申請註銷；後悔期內若被停權，註銷申請會作廢。</li>
+      <li>如果你收到確認信但<b>不是你本人申請的</b>，請點信中的「這不是我」：我們會取消申請、登出所有裝置，並寄重設密碼信給你。</li>
+    </ul>
+
+    <div class="form">
+      <label class="agree">
+        <input type="checkbox" id="agree" />
+        <span>我已閱讀並了解以上規則，包含漂流瓶與留言會以「已註銷使用者」匿名保留，註銷後無法復原。</span>
+      </label>
+
+      <label class="field" for="password">請輸入目前的密碼</label>
+      <input type="password" id="password" autocomplete="current-password" />
+
+      <div class="actions">
+        <a href="index.html" class="btn-link">返回首頁</a>
+        <button type="button" id="submit-btn" class="btn-danger" disabled>送出註銷申請</button>
+      </div>
+      <p id="message"></p>
+    </div>
+  </div>
+
+  <script>
+    const API_BASE_URL = "https://api.drift-bottles.xyz";
+    const token = localStorage.getItem("authToken");
+    if (!token) {
+      alert("請先登入再申請註銷帳號");
+      window.location.href = "login.html";
+    }
+
+    const agreeEl = document.getElementById("agree");
+    const passwordEl = document.getElementById("password");
+    const submitBtn = document.getElementById("submit-btn");
+    const messageEl = document.getElementById("message");
+
+    const refreshButton = () => {
+      submitBtn.disabled = !agreeEl.checked || !passwordEl.value;
+    };
+    agreeEl.addEventListener("change", refreshButton);
+    passwordEl.addEventListener("input", refreshButton);
+
+    function showMessage(text, ok) {
+      messageEl.textContent = text;
+      messageEl.className = ok ? "ok" : "err";
+    }
+
+    submitBtn.addEventListener("click", async () => {
+      if (!confirm("確定要申請註銷帳號嗎？我們會寄確認信到你的信箱。")) return;
+
+      submitBtn.disabled = true;
+      showMessage("送出中…", true);
+      try {
+        const response = await fetch(`${API_BASE_URL}/account-deletion/request`, {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+            "ngrok-skip-browser-warning": "true",
+          },
+          body: JSON.stringify({ password: passwordEl.value, agree: true }),
+        });
+        const data = await response.json().catch(() => ({}));
+
+        if (response.ok) {
+          passwordEl.value = "";
+          showMessage("📧 " + data.message, true);
+          return;
+        }
+        if (response.status === 401) {
+          showMessage("登入已失效，請重新登入後再申請。", false);
+        } else {
+          showMessage("❌ " + (data.message || "申請失敗，請稍後再試。"), false);
+        }
+      } catch (error) {
+        console.error("連線錯誤:", error);
+        showMessage("📡 無法連接到後端伺服器，請稍後再試。", false);
+      }
+      refreshButton();
+    });
+  </script>
+</body>
+
+</html>

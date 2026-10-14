@@ -152,3 +152,6 @@ export const redeemLimiter = perMemberLimiter(10 * 60 * 1000, 10, "兌換太頻�
 /* 揪團彈幕：每人 5 分鐘最多 3 則 */
 export const announcementLimiter = perMemberLimiter(5 * 60 * 1000, 3, "揪團彈幕發太頻繁了，請過幾分鐘再試。");
 export const csTicketLimiter = perMemberLimiter(60 * 60 * 1000, 5, "客服問題送出太頻繁，請稍後再試（每小時最多 5 筆）。");
+
+/*申請註銷帳號：每人每小時最多 3 次（也順便擋用這支 API 猜密碼）*/
+export const deletionRequestLimiter = perMemberLimiter(60 * 60 * 1000, 3, "註銷申請太頻繁了，請 1 小時後再試。");

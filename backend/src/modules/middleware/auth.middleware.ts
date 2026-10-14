@@ -27,6 +27,17 @@ export const isAiRequest = (req: Request): boolean => {
 };
 
 
+interface DecodedToken extends TokenPayload {
+    iat?: number;
+}
+
+/*
+ * 憑證是不是在「強制登出所有裝置」之前簽發的
+ * iat 只到秒，所以用秒比較，避免同一秒內重新登入的新憑證被誤判
+ */
+export const isTokenRevoked = (iat: number | undefined, validAfter: Date | null | undefined) =>
+    !!validAfter && (iat ?? 0) < Math.floor(validAfter.getTime() / 1000);
+
 export const authCheck = async (req: AuthRequest, res: Response, next: NextFunction) => {
     /*給AI用的*/
     if (isAiRequest(req)) {
@@ -51,22 +62,28 @@ export const authCheck = async (req: AuthRequest, res: Response, next: NextFunct
         }
 
         /*as unknown as TokenPayload ---二次跳轉*/
-        const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY!) as unknown as TokenPayload;
+        const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY!) as unknown as DecodedToken;
 
         // 🌟 優化這裡：把 role 也一起 select 出來！
         const memberData = await prisma.member.findUnique({
             where: { member_id: decoded.member_id },
-            select: { status: true, role: true }, // 👈 增加 role: true
+            select: { status: true, role: true, tokens_valid_after: true }, // 👈 增加 role: true
         });
 
-        if (!memberData) {
+        if (!memberData || memberData.status === "DELETED") {
             return res.status(404).json({ message: "找不到使用者" });
+        }
+        if (isTokenRevoked(decoded.iat, memberData.tokens_valid_after)) {
+            return res.status(401).json({ message: "登入已失效，請重新登入" });
         }
         if (memberData.status === "BANNED") {
             return res.status(403).json({ message: "帳號已被封鎖，若有疑問請聯繫客服" });
         }
         if (memberData.status === "INACTIVE") {
             return res.status(403).json({ message: "帳號未啟用，請先驗證帳號" });
+        }
+        if (memberData.status === "PENDING_DELETION") {
+            return res.status(403).json({ message: "帳號正在註銷後悔期，請點註銷信中的連結取消註銷", code: "PENDING_DELETION" });
         }
 
         // 🌟 組合技：把解碼的 token 資料，加上資料庫最新的 role 賦予給 req.user
@@ -129,13 +146,13 @@ export const optionalAuthCheck = async (req: AuthRequest, res: Response, next: N
             return next()
         }
 
-        const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY!) as unknown as TokenPayload;
+        const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY!) as unknown as DecodedToken;
         const memberData = await prisma.member.findUnique({
             where: { member_id: decoded.member_id },
-            select: { status: true, role: true },
+            select: { status: true, role: true, tokens_valid_after: true },
         });
 
-        if (!memberData || memberData.status === "BANNED" || memberData.status === "INACTIVE") {
+        if (!memberData || memberData.status !== "ACTIVE" || isTokenRevoked(decoded.iat, memberData.tokens_valid_after)) {
             return next();
         }
 

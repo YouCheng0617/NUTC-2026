@@ -17,6 +17,8 @@ enum UserStatus {
   ACTIVE
   INACTIVE
   BANNED
+  PENDING_DELETION // 已申請註銷，7 天後悔期內
+  DELETED // 已註銷：個資清除，發過的內容改顯示「已註銷使用者」
 }
 
 enum Role {
@@ -46,6 +48,7 @@ model Member {
   logins_failed Int        @default(0) // 登入失敗次數
   locked_time   DateTime? // 鎖定時間，?=null，表示未鎖定
   status        UserStatus @default(ACTIVE) // 帳號狀態
+  tokens_valid_after DateTime? // 這個時間以前簽發的登入憑證一律失效（強制登出所有裝置）
 
   bottles          Bottle[]
   BlacklistedToken BlacklistedToken[]
@@ -90,6 +93,7 @@ model Member {
   tarotRecords      TarotRecord[]
   puzzleTaskClaims  PuzzleTaskClaim[]
   puzzleDrawRecords PuzzleDrawRecord[]
+  deletionRequests  AccountDeletionRequest[]
 }
 
 model BlacklistedToken {
@@ -99,6 +103,26 @@ model BlacklistedToken {
   created_at DateTime @default(now())
 
   member Member @relation(fields: [member_id], references: [member_id])
+}
+
+// 註銷帳號申請
+model AccountDeletionRequest {
+  id           Int       @id @default(autoincrement())
+  member_id    Int
+  token        String    @unique // 信件連結用：確認前是確認／這不是我，確認後換成取消註銷用的
+  status       Int       @default(0) // 0:等待信箱確認, 1:後悔期中, 2:本人取消, 3:不是本人申請, 4:已註銷
+  request_ip   String? // 申請時的 IP（不是本人申請時留給後台查）
+  expires_at   DateTime // 信件連結期限
+  scheduled_at DateTime? // 預定註銷時間（確認後 + 7 天）
+  cancel_mail_sent_at DateTime? // 上次寄出取消連結的時間（重寄冷卻用）
+  cancel_mail_resends Int       @default(0) // 後悔期內重寄取消連結的次數
+  created_at   DateTime  @default(now())
+  updated_at   DateTime  @updatedAt
+
+  member Member @relation(fields: [member_id], references: [member_id], onDelete: Cascade)
+
+  @@index([member_id])
+  @@index([status, scheduled_at])
 }
 
 // 忘記密碼
