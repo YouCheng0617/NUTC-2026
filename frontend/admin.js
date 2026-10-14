@@ -181,11 +181,12 @@ function genderOf(raw) {
 async function loadDashboardData() {
     const token = localStorage.getItem("authToken");
     try {
-        const [usersRes, bottlesRes, commentsRes, csRes] = await Promise.all([
+        const [usersRes, bottlesRes, commentsRes, csRes, reportsRes] = await Promise.all([
             fetch(`${API_BASE_URL}/admin/members`, { headers: { 'Authorization': `Bearer ${token}`, 'ngrok-skip-browser-warning': 'true' } }),
             fetch(`${API_BASE_URL}/admin/bottles`, { headers: { 'Authorization': `Bearer ${token}`, 'ngrok-skip-browser-warning': 'true' } }),
             fetch(`${API_BASE_URL}/admin/comments`, { headers: { 'Authorization': `Bearer ${token}`, 'ngrok-skip-browser-warning': 'true' } }).catch(() => null),
-            fetch(`${API_BASE_URL}/admin/customer-services`, { headers: { 'Authorization': `Bearer ${token}`, 'ngrok-skip-browser-warning': 'true' } }).catch(() => null)
+            fetch(`${API_BASE_URL}/admin/customer-services`, { headers: { 'Authorization': `Bearer ${token}`, 'ngrok-skip-browser-warning': 'true' } }).catch(() => null),
+            fetch(`${API_BASE_URL}/admin/bottles/reported`, { headers: { 'Authorization': `Bearer ${token}`, 'ngrok-skip-browser-warning': 'true' } }).catch(() => null)
         ]);
 
         const usersData = await usersRes.json();
@@ -201,6 +202,15 @@ async function loadDashboardData() {
         // 1. 更新頂部卡片數字
         document.getElementById('stat-users').innerText = users.length;
         document.getElementById('stat-bottles').innerText = bottles.length;
+
+        // 待處理檢舉：以前只有切到「檢舉處理」分頁才會抓資料，總覽一直顯示預設的假數字
+        if (reportsRes && reportsRes.ok) {
+            const reportsData = await reportsRes.json();
+            window._allReports = reportsData.data || reportsData || [];
+            updateDashboardReportCount();
+        } else {
+            document.getElementById('stat-reports').innerText = '—';
+        }
 
         const pendingCsCount = customerServices.filter(cs => Number(cs.status || 0) === 0).length;
         const statCsPendingEl = document.getElementById('stat-cs-pending');
