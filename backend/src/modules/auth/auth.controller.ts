@@ -218,7 +218,12 @@ export class AuthController {
             if (!memberId) {
                 return res.status(400).json({ message: "未授權，請先登入" });
             }
-            const { name, birthday, blood_type, bio } = req.body;
+            const { name, birthday, blood_type, bio, gender } = req.body;
+
+            /*性別只收這幾種，空字串代表未填寫（以前漏收，前端送來的性別都沒存到）*/
+            if (gender !== undefined && !["", "男", "女", "不公開"].includes(gender)) {
+                return res.status(400).json({ message: "性別只能是男、女、不公開或不填" });
+            }
 
             // 自介也支援 Markdown 連結，一樣要檢查
             const linkError = await checkLinks(name, bio);
@@ -228,7 +233,8 @@ export class AuthController {
                 name,
                 birthday,
                 blood_type,
-                bio
+                bio,
+                gender
             });
             res.status(200).json({ message: "會員資料更新成功", data: updatedMember });
 

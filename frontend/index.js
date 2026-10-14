@@ -1069,6 +1069,13 @@ window.openPostDetail = function (id) {
         ? allowFollowSetting
         : true;
 
+  // 非匿名的文章可以點去作者的個人頁面
+  const profileLink = document.getElementById("author-profile-link");
+  if (profileLink) {
+    profileLink.style.display = isAnonymous ? "none" : "inline-block";
+    profileLink.href = isAnonymous ? "#" : `profile.html?id=${encodeURIComponent(p.authorId)}`;
+  }
+
   if (followBtn) {
     if (isAnonymous || !isFollowAllowed || isSelf) {
       followBtn.style.display = "none";
@@ -1553,6 +1560,13 @@ document.addEventListener("DOMContentLoaded", () => {
   setupNewPost();
   fetchBottles();
 
+  // 從個人頁面點文章會帶 ?post=<id>，直接打開那一篇
+  const deepLinkPost = new URLSearchParams(window.location.search).get("post");
+  if (deepLinkPost && /^\d+$/.test(deepLinkPost) && typeof openBottleById === "function") {
+    history.replaceState(null, "", window.location.pathname);
+    openBottleById(deepLinkPost);
+  }
+
   setInterval(() => {
     const detailView = document.getElementById("detail-view");
     if (detailView && detailView.style.display !== "block" && !window.isIdleScreenOn) {
@@ -1702,28 +1716,15 @@ document.addEventListener("DOMContentLoaded", () => {
   const profileModal = document.getElementById("profile-modal");
   const profileMenuItem = document.getElementById("open-profile");
 
+  // 「個人資料」改成打開個人頁面，查看與編輯都在那裡（首頁、發文頁、收藏頁共用）
   if (profileMenuItem) {
     profileMenuItem.onclick = (e) => {
       e.stopPropagation();
-      const user = JSON.parse(localStorage.getItem("currentUser"));
-      if (user) {
-        document.getElementById("detail-name").innerText =
-          user.name || "未設定姓名";
-        document.getElementById("detail-email").innerText = user.email;
-        document.getElementById("detail-birthday").innerText = user.birthday
-          ? user.birthday.split("T")[0]
-          : "未填寫";
-        document.getElementById("detail-gender").innerText =
-          user.gender || "未填寫";
-        document.getElementById("detail-zodiac").innerText =
-          user.zodiac || user.constellation || "未填寫";
-        renderBio(document.getElementById("detail-bio"), user.bio);
-        document.getElementById("profile-view-mode").style.display = "block";
-        document.getElementById("profile-edit-mode").style.display = "none";
-        profileModal.style.display = "block";
-      } else {
-        alert("請先登入！");
+      if (localStorage.getItem("authToken")) {
+        window.location.href = "profile.html";
+        return;
       }
+      alert("請先登入！");
     };
   }
 
@@ -3332,9 +3333,13 @@ window.openNotificationTarget = async function (notifId, targetId, isRead, cardE
     return;
   }
 
-  // 3. 追蹤通知的 target_id 是會員 id，不是瓶子 —— 目前還沒有個人頁面可以去
+  // 3. 追蹤通知的 target_id 是會員 id，帶去對方的個人頁面
   if (kind === "NEW_FOLLOWER") {
-    showOceanToast("有新朋友追蹤你了！目前還沒有個人頁面可以看喔 🌊");
+    if (targetId && targetId !== "null" && targetId !== "undefined") {
+      window.location.href = `profile.html?id=${encodeURIComponent(targetId)}`;
+    } else {
+      showOceanToast("有新朋友追蹤你了！🌊");
+    }
     return;
   }
 

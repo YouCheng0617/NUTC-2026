@@ -1181,6 +1181,17 @@ textarea {
   color: #fff;
 }
 
+.author-profile-link {
+  margin-top: 2px;
+  font-size: 0.8rem;
+  font-weight: bold;
+  color: #4da6ff;
+  text-decoration: none;
+}
+.author-profile-link:hover {
+  text-decoration: underline;
+}
+
 .following-item {
   display: flex;
   align-items: center;

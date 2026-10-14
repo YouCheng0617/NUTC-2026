@@ -1,0 +1,155 @@
+import prisma from "../../lib/prisma.js";
+import { getBlockedMemberIds, isBlockedBetween } from "../block/block.service.js";
+
+/*
+ * 個人頁面：名字、自介、公開文章、粉絲與追蹤名單
+ * - 只列公開文章：匿名、審核中、違規的都不列（不然等於把匿名作者公開了）
+ * - 停權、未啟用、註銷中、已註銷的帳號，以及跟看的人有封鎖關係的，一律當作找不到
+ */
+
+export const BOTTLES_PAGE_SIZE = 10;
+export const MEMBERS_PAGE_SIZE = 30;
+
+/*公開文章的條件*/
+const publicBottleWhere = (memberId: number) => ({
+    member_id: memberId,
+    is_anonymous: false,
+    status: 1,
+});
+
+/*確認這個人可以被看；不行就丟 NOT_FOUND*/
+const assertVisible = async (targetId: number, viewerId?: number) => {
+    const member = await prisma.member.findUnique({
+        where: { member_id: targetId },
+        select: { member_id: true, name: true, bio: true, constellation: true, created_at: true, status: true },
+    });
+    if (!member || member.status !== "ACTIVE") throw new Error("NOT_FOUND");
+    if (viewerId && viewerId !== targetId && await isBlockedBetween(viewerId, targetId)) {
+        throw new Error("NOT_FOUND");
+    }
+    return member;
+};
+
+export const getProfile = async (targetId: number, viewerId?: number) => {
+    const member = await assertVisible(targetId, viewerId);
+    const isMe = viewerId === targetId;
+
+    const [bottleCount, followerCount, followingCount, viewerFollows, followsViewer] = await Promise.all([
+        prisma.bottle.count({ where: publicBottleWhere(targetId) }),
+        prisma.follow.count({ where: { following_id: targetId, follower: { status: "ACTIVE" } } }),
+        prisma.follow.count({ where: { follower_id: targetId, following: { status: "ACTIVE" } } }),
+        viewerId && !isMe
+            ? prisma.follow.findFirst({ where: { follower_id: viewerId, following_id: targetId }, select: { follower_id: true } })
+            : null,
+        viewerId && !isMe
+            ? prisma.follow.findFirst({ where: { follower_id: targetId, following_id: viewerId }, select: { follower_id: true } })
+            : null,
+    ]);
+
+    /*自己看自己時多帶編輯表單要用的私人欄位，別人看不到*/
+    const privateData = isMe
+        ? await prisma.member.findUnique({
+            where: { member_id: targetId },
+            select: { email: true, birthday: true, gender: true, blood_type: true },
+        })
+        : null;
+
+    return {
+        member_id: member.member_id,
+        name: member.name,
+        bio: member.bio ?? "",
+        constellation: member.constellation ?? "",
+        created_at: member.created_at,
+        bottle_count: bottleCount,
+        follower_count: followerCount,
+        following_count: followingCount,
+        is_me: isMe,
+        is_following: !!viewerFollows,
+        follows_me: !!followsViewer,
+        ...(privateData ? { private: privateData } : {}),
+    };
+};
+
+export const getProfileBottles = async (targetId: number, page: number, viewerId?: number) => {
+    await assertVisible(targetId, viewerId);
+
+    const bottles = await prisma.bottle.findMany({
+        where: publicBottleWhere(targetId),
+        orderBy: { created_at: "desc" },
+        skip: (page - 1) * BOTTLES_PAGE_SIZE,
+        take: BOTTLES_PAGE_SIZE + 1, // 多抓一筆判斷還有沒有下一頁
+        select: {
+            bottle_id: true,
+            title: true,
+            content: true,
+            created_at: true,
+            categories: { select: { category: { select: { name: true } } } },
+            _count: { select: { likes: true, Comment: { where: { is_deleted: false } } } },
+        },
+    });
+
+    return {
+        hasMore: bottles.length > BOTTLES_PAGE_SIZE,
+        bottles: bottles.slice(0, BOTTLES_PAGE_SIZE).map(b => ({
+            bottle_id: b.bottle_id,
+            title: b.title,
+            preview: b.content.replace(/\s+/g, " ").trim().slice(0, 120),
+            created_at: b.created_at,
+            like_count: b._count.likes,
+            comment_count: b._count.Comment,
+            category_list: b.categories.map(c => c.category?.name).filter(Boolean),
+        })),
+    };
+};
+
+/*粉絲（followers）或追蹤中（following）名單*/
+export const getProfileMembers = async (
+    targetId: number,
+    kind: "followers" | "following",
+    page: number,
+    viewerId?: number,
+) => {
+    await assertVisible(targetId, viewerId);
+    const hidden = viewerId ? await getBlockedMemberIds(viewerId) : [];
+
+    const memberFilter = { status: "ACTIVE" as const, member_id: { notIn: hidden } };
+    const memberSelect = { select: { member_id: true, name: true, bio: true } };
+    const paging = {
+        orderBy: { created_at: "desc" as const },
+        skip: (page - 1) * MEMBERS_PAGE_SIZE,
+        take: MEMBERS_PAGE_SIZE + 1, // 多抓一筆判斷還有沒有下一頁
+    };
+
+    /*粉絲名單取 follower 那一側，追蹤名單取 following 那一側*/
+    const rows = kind === "followers"
+        ? (await prisma.follow.findMany({
+            where: { following_id: targetId, follower: memberFilter },
+            select: { follower: memberSelect },
+            ...paging,
+        })).map(f => f.follower)
+        : (await prisma.follow.findMany({
+            where: { follower_id: targetId, following: memberFilter },
+            select: { following: memberSelect },
+            ...paging,
+        })).map(f => f.following);
+    const members = rows.slice(0, MEMBERS_PAGE_SIZE);
+
+    /*看的人有沒有追蹤名單裡的每個人，前端用來顯示追蹤按鈕*/
+    const viewerFollowing = viewerId && members.length
+        ? new Set((await prisma.follow.findMany({
+            where: { follower_id: viewerId, following_id: { in: members.map(m => m.member_id) } },
+            select: { following_id: true },
+        })).map(f => f.following_id))
+        : new Set<number>();
+
+    return {
+        hasMore: rows.length > MEMBERS_PAGE_SIZE,
+        members: members.map(m => ({
+            member_id: m.member_id,
+            name: m.name,
+            bio: (m.bio ?? "").replace(/\s+/g, " ").trim().slice(0, 60),
+            is_me: m.member_id === viewerId,
+            is_following: viewerFollowing.has(m.member_id),
+        })),
+    };
+};
