@@ -62,6 +62,21 @@
         background: rgba(0, 85, 165, 0.5);
         border-radius: 10px;
       }
+      /* 從 policies.html 載入的政策全文 */
+      #terms-content .terms-meta { font-size: 0.78rem; color: #34567a; margin-bottom: 10px; }
+      #terms-content article { margin-bottom: 18px; }
+      #terms-content article > h2 { font-size: 1.15rem; color: #004b87; margin: 8px 0 4px; }
+      #terms-content article > .lead { color: #34567a; margin: 0 0 8px; }
+      #terms-content h3 { font-size: 0.95rem; color: #004b87; margin: 14px 0 4px; }
+      #terms-content p, #terms-content li { margin: 4px 0; }
+      #terms-content ul, #terms-content ol { padding-left: 1.3em; margin: 4px 0; }
+      #terms-content .tbl { overflow-x: auto; margin: 6px 0 10px; }
+      #terms-content table { border-collapse: collapse; width: 100%; min-width: 420px; font-size: 0.78rem; background: rgba(255,255,255,0.6); }
+      #terms-content th, #terms-content td { text-align: left; vertical-align: top; padding: 6px 8px; border: 1px solid rgba(0, 75, 135, 0.18); }
+      #terms-content th { background: rgba(0, 120, 200, 0.12); }
+      #terms-content .note { background: rgba(0, 120, 200, 0.1); border-radius: 10px; padding: 8px 12px; margin: 6px 0; }
+      #terms-content .note.warn { background: rgba(220, 90, 60, 0.12); border-left: 4px solid #d9534f; }
+      #terms-content .note p { margin: 2px 0; }
     </style>
   </head>
 
@@ -401,13 +416,13 @@
                 我已閱讀並同意
                 <a
                   href="#"
-                  onclick="openTermsModal()"
+                  onclick="openTermsModal(); return false;"
                   style="
                     color: #0055a5;
                     text-decoration: underline;
                     font-weight: 900;
                   "
-                  >使用者條款</a
+                  >服務條款、隱私權政策與免責聲明</a
                 >
               </label>
             </div>
@@ -617,13 +632,14 @@
       class="cute-modal"
       style="display: none; z-index: 2000"
     >
+      <!-- 政策全文很長：手機上幾乎佔滿畫面，電腦上最大 680×760，閱讀區才夠大 -->
       <div
-        class="cute-modal-content"
+        class="cute-modal-content terms-modal-box"
         style="
-          width: 90vmin !important;
-          height: 90vmin !important;
-          max-width: 600px !important;
-          max-height: 600px !important;
+          width: min(92vw, 680px) !important;
+          height: min(86vh, 760px) !important;
+          max-width: none !important;
+          max-height: none !important;
         "
       >
         <span class="close-btn" onclick="closeTermsModal()">&times;</span>
@@ -636,34 +652,21 @@
             letter-spacing: 2px;
           "
         >
-          心情漂流瓶公約
+          服務條款與隱私權政策
         </h2>
 
         <div id="terms-content" onscroll="checkTermsScroll()">
-          <strong>歡迎來到心情漂流瓶！</strong><br /><br />
-          為維護這片乾淨的海洋，請詳閱並遵守以下約定：<br /><br />
-          1.
-          <strong>友善交流：</strong>
-          請尊重其他漂流者，禁止使用謾罵、歧視或具攻擊性的言語。<br />
-          2.
-          <strong>保護隱私：</strong>
-          請勿在公開漂流瓶中散佈自己或他人的敏感個人資料（如身分證字號、詳細住址、密碼等）。<br />
-          3.
-          <strong>禁止濫用：</strong>
-          嚴禁發送惡意廣告、色情、暴力或違反台灣法律之內容。<br />
-          4.
-          <strong>系統維護：</strong>
-          我們會盡力守護大家的秘密，但若遇不可抗力之系統異常，團隊保有最終解釋與處理權。<br />
-          5.
-          <strong>帳號安全：</strong>
-          請妥善保管您的登入憑證，若因個人疏失導致帳號被盜用，後果須自行承擔。<br /><br />
-          <em>(👇 寶寶，請繼續往下滑動，直到最底部解鎖勾選權限喔！)</em
-          ><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br />
+          <!-- 打開時從 policies.html 載入完整的服務條款、隱私權政策與免責聲明（只有一份內容，改政策只要改那一頁） -->
+          <div id="terms-body">
+            <p>正在載入服務條款與隱私權政策…</p>
+            <p>如果一直沒有出現，請點這裡在新分頁閱讀：<a href="policies.html" target="_blank" rel="noopener">服務條款與隱私權政策</a></p>
+          </div>
+          <p style="text-align: center; margin-top: 14px;"><a href="policies.html" target="_blank" rel="noopener">在新分頁開啟完整頁面 ↗</a></p>
           <div
             id="scroll-bottom-indicator"
-            style="text-align: center; color: #ff7675; font-weight: bold"
+            style="text-align: center; color: #ff7675; font-weight: bold; margin-top: 10px"
           >
-            🎉 恭喜你滑到底了！現在可以關閉視窗並勾選同意囉！
+            👇 請滑到最底部，才能勾選同意
           </div>
         </div>
 
@@ -739,8 +742,39 @@
       }
 
       // ✨ 新增：條款彈窗與捲動解鎖邏輯 ✨
-      function openTermsModal() {
+      let termsLoaded = false;
+      async function loadTermsContent() {
+        if (termsLoaded) return;
+        try {
+          const res = await fetch("policies.html", { cache: "no-cache" });
+          const doc = new DOMParser().parseFromString(await res.text(), "text/html");
+          const main = doc.getElementById("policy-documents");
+          if (!main) return;
+          const metaEl = doc.querySelector(".meta");
+          const updated = metaEl ? [...metaEl.children].map((d) => d.textContent.trim().replace(/\s+/g, " ")).join("　") : "";
+          const body = document.getElementById("terms-body");
+          body.innerHTML = "";
+          if (updated) {
+            const meta = document.createElement("div");
+            meta.className = "terms-meta";
+            meta.textContent = updated;
+            body.appendChild(meta);
+          }
+          body.appendChild(document.importNode(main, true));
+          // 政策頁裡的錨點連結（#terms 之類）在彈窗裡改成開新分頁看完整頁面
+          body.querySelectorAll('a[href^="#"]').forEach((link) => {
+            link.href = "policies.html" + link.getAttribute("href");
+            link.target = "_blank";
+            link.rel = "noopener";
+          });
+          termsLoaded = true;
+        } catch (e) {
+          console.warn("載入政策內容失敗", e);
+        }
+      }
+      async function openTermsModal() {
         document.getElementById("terms-modal").style.display = "flex";
+        await loadTermsContent();
         // 確保視窗打開時能觸發一次檢查（避免螢幕太大一開始就見底的情況）
         setTimeout(checkTermsScroll, 100);
       }
@@ -750,6 +784,7 @@
       function checkTermsScroll() {
         const content = document.getElementById("terms-content");
         const checkbox = document.getElementById("reg-terms");
+        if (!termsLoaded) return;
         // 判斷是否滑到底部 (給予 10px 的彈性容錯空間)
         if (
           content.scrollHeight - content.scrollTop <=
@@ -758,8 +793,9 @@
           checkbox.disabled = false;
           checkbox.style.cursor = "pointer";
           checkbox.title = "你已經閱讀完畢，可以勾選囉！";
-          document.getElementById("scroll-bottom-indicator").style.color =
-            "#0073e6";
+          const indicator = document.getElementById("scroll-bottom-indicator");
+          indicator.style.color = "#0073e6";
+          indicator.textContent = "🎉 已經看完了！關閉視窗後就可以勾選同意";
         }
       }
 
