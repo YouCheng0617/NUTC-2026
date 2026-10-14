@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { authCheck, optionalAuthCheck } from "../../middleware/auth.middleware.js";
+import { authCheck } from "../../middleware/auth.middleware.js";
 import { CollectController } from "./collect.controller.js";
 
 const collectController = new CollectController();
@@ -20,7 +20,7 @@ export function collectRouter() {
     router.get("/inventory", authCheck, collectController.getInventory.bind(collectController));
 
     // 5. 全圖圖鑑列表 (若帶 Token 會標註個人 1~9 碎片進度)
-    router.get("/gallery", optionalAuthCheck, collectController.getAllGallery.bind(collectController));
+    router.get("/gallery", authCheck, collectController.getAllGallery.bind(collectController));
 
     // 6. 使用者已收集的拼圖清單 - 需登入
     router.get("/my", authCheck, collectController.getUserUnlockedPictures.bind(collectController));

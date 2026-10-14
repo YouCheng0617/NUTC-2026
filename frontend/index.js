@@ -1305,6 +1305,25 @@ window.deleteMyBottle = async function (id, e) {
   }
 };
 
+// 遊樂場入口：電腦版標題列的按鈕、手機版「更多」裡的遊戲區塊
+// 遊戲格子本身寫了 display: grid !important，只能用行內 !important 蓋過去，顯示時再還原
+function setGameEntriesVisible(visible) {
+  document
+    .querySelectorAll(".header-game-btn, #hub-games-title, #hub-games-grid")
+    .forEach((el) => {
+      if (el.dataset.shownDisplay === undefined) {
+        el.dataset.shownDisplay = el.style.getPropertyValue("display");
+      }
+      if (!visible) {
+        el.style.setProperty("display", "none", "important");
+      } else if (el.dataset.shownDisplay) {
+        el.style.setProperty("display", el.dataset.shownDisplay, "important");
+      } else {
+        el.style.removeProperty("display");
+      }
+    });
+}
+
 function setupAuth() {
   const loginTrigger = document.getElementById("login-trigger");
   const openHubBtn = document.getElementById("open-hub-btn");
@@ -1314,6 +1333,9 @@ function setupAuth() {
   function updateUI() {
     const user = JSON.parse(localStorage.getItem("currentUser") || "{}");
     const token = localStorage.getItem("authToken");
+
+    // 🎮 遊戲要登入才能玩：沒登入就把遊樂場的入口藏起來
+    setGameEntriesVisible(Boolean(user && Object.keys(user).length > 0 && token));
 
     // 🌟 管理員不能發文：加上 is-admin 讓 CSS 隱藏所有發文入口
     document.body.classList.toggle(

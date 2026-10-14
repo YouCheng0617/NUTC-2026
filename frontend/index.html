@@ -1028,8 +1028,9 @@
             ✏️ 撰寫漂流瓶
           </button>
 
-          <!-- 4. 第四排：六個遊戲按鈕 -->
+          <!-- 4. 第四排：六個遊戲按鈕（沒登入時由 index.js 隱藏） -->
           <div
+            id="hub-games-title"
             class="hub-section-title"
             style="
               font-size: 0.85rem !important;
@@ -1041,6 +1042,7 @@
             🎮 秘密海域遊樂場
           </div>
           <div
+            id="hub-games-grid"
             class="hub-games-grid"
             style="
               display: grid !important;
@@ -2077,7 +2079,7 @@
 
     <script defer src="https://cdnjs.cloudflare.com/ajax/libs/marked/12.0.2/marked.min.js"></script>
     <script defer src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.1.6/purify.min.js"></script>
-    <script type="module" src="index.js?v=68"></script>
+    <script type="module" src="index.js?v=69"></script>
     <script defer src="daily_question.js?v=2"></script>
     <script defer src="my_ocean.js?v=3"></script>
     <script defer src="home_mobile.js?v=15"></script>
