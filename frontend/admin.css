@@ -835,7 +835,7 @@ html {
   }
 
   #section-reports td:nth-child(4)::before {
-    content: "👤 檢舉者 ID";
+    content: "👤 檢舉者";
     font-weight: 600;
     color: var(--text-muted);
   }
@@ -1083,3 +1083,13 @@ html {
 .dq-admin-result { padding: 2px 8px; border-radius: 999px; background: #f1f5f9; font-size: 0.85rem; white-space: nowrap; }
 .dq-admin-result small { color: #94a3b8; }
 .dq-admin-result.is-top { background: #e0f2fe; color: #0369a1; font-weight: 700; }
+
+/* 會員操作按鈕：電腦版排一行；手機卡片放不下就換行，標籤不會被擠出卡片 */
+.user-actions { white-space: normal; min-width: 200px; }
+.user-actions .btn-action { margin: 2px 0; }
+.status-modal-note { white-space: pre-line; }
+@media screen and (max-width: 1024px) {
+  .modern-table td::before { flex: none; margin-right: 12px; }
+  .modern-table td.user-actions { white-space: normal; flex-wrap: wrap; justify-content: flex-end; gap: 6px; }
+  .modern-table td.user-actions::before { margin-right: auto; }
+}

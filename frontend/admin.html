@@ -3,12 +3,14 @@
 
 <head>
   <meta charset="UTF-8" />
+    <!-- 伺服器壞掉時跳出「伺服器整理中」（要在其他程式之前載入） -->
+    <script src="server-status.js?v=1"></script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>心情漂流瓶 - 後台管理系統</title>
   <link rel="icon" href="favicon.ico" sizes="any" />
   <link rel="icon" type="image/png" href="images/icon-192.png" />
   <link rel="apple-touch-icon" href="images/apple-touch-icon.png" />
-  <link rel="stylesheet" href="admin.css?v=6" />
+  <link rel="stylesheet" href="admin.css?v=8" />
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <!-- 🌟 在下方加入這行 -->
   <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels"></script>
@@ -281,10 +283,16 @@
               onclick="filterUserByStatus('ACTIVE')">🟢 正常</button>
             <button id="filter-user-inactive" class="btn-action"
               style="background:#f8fafc; color:#64748b; border: 1px solid #e2e8f0; border-radius: 20px; padding: 4px 12px;"
-              onclick="filterUserByStatus('INACTIVE')">🟡 停用</button>
+              onclick="filterUserByStatus('INACTIVE')">🟡 停用／未驗證</button>
             <button id="filter-user-banned" class="btn-action"
               style="background:#f8fafc; color:#64748b; border: 1px solid #e2e8f0; border-radius: 20px; padding: 4px 12px;"
               onclick="filterUserByStatus('BANNED')">🔴 封鎖</button>
+            <button id="filter-user-pending-deletion" class="btn-action"
+              style="background:#f8fafc; color:#64748b; border: 1px solid #e2e8f0; border-radius: 20px; padding: 4px 12px;"
+              onclick="filterUserByStatus('PENDING_DELETION')">🟣 註銷中</button>
+            <button id="filter-user-deleted" class="btn-action"
+              style="background:#f8fafc; color:#64748b; border: 1px solid #e2e8f0; border-radius: 20px; padding: 4px 12px;"
+              onclick="filterUserByStatus('DELETED')">⚫ 已註銷</button>
 
             <button id="sort-user-btn" class="btn-action"
               style="margin-left: auto; padding: 6px 12px; border: 1px solid #cbd5e1; border-radius: 20px; outline: none; font-weight: 600; color: #475569; background: #f8fafc; cursor: pointer;"
@@ -394,7 +402,7 @@
           <div class="card-header"
             style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
             <h3 style="color: #ef4444; margin: 0;">⚠️ 檢舉案件處理</h3>
-            <input type="text" id="search-reports" placeholder="🔍 搜尋檢舉原因或文章 ID..." style="
+            <input type="text" id="search-reports" placeholder="🔍 搜尋檢舉原因、文章 ID 或檢舉者..." style="
                   padding: 8px 12px;
                   border: 1px solid #ccc;
                   border-radius: 6px;
@@ -427,7 +435,7 @@
                   <th>文章 ID</th>
                   <th>被檢舉內容</th>
                   <th>檢舉原因</th>
-                  <th>檢舉者 ID</th>
+                  <th>檢舉者</th>
                   <th>檢舉時間</th>
                   <th>操作</th>
                 </tr>
@@ -780,7 +788,7 @@
     <div class="admin-modal-content" style="max-width: 350px; text-align: center;">
       <span class="close-admin-modal" onclick="closeStatusModal()">&times;</span>
       <h3 style="margin-bottom: 10px;">更改會員狀態</h3>
-      <p id="status-modal-user-name" style="color: #6b7280; margin-bottom: 25px; font-weight: 500;">正在修改帳號：</p>
+      <p id="status-modal-user-name" class="status-modal-note" style="color: #6b7280; margin-bottom: 25px; font-weight: 500;">正在修改帳號：</p>
 
       <div style="display: flex; flex-direction: column; gap: 15px;">
         <button class="btn-action"
@@ -865,7 +873,7 @@
       }
     });
   </script>
-  <script src="admin.js?v=3"></script>
+  <script src="admin.js?v=6"></script>
   <script src="admin_game_reports.js?v=1"></script>
   <script src="admin_redeem_codes.js?v=5"></script>
   <script src="admin_daily_question.js?v=1"></script>

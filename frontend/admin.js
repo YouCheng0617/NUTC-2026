@@ -169,6 +169,14 @@ window._dashboardBottles = []; // 🌟 新增：用來暫存文章資料，切�
 window._dashboardCs = []; // 🌟 新增：用來暫存客服資料，供切換趨勢圖時間使用
 let myCommentGenderChart = null; // 🌟 新增：留言男女圖表變數
 
+function genderOf(raw) {
+    const g = String(raw || '').toLowerCase().trim();
+    if (!g) return 'other';
+    if (g === 'male' || g === 'm' || g === '1' || (g.includes('男') && !g.includes('女'))) return 'male';
+    if (g === 'female' || g === 'f' || g === '2' || (g.includes('女') && !g.includes('男'))) return 'female';
+    return 'other';
+}
+
 async function loadDashboardData() {
     const token = localStorage.getItem("authToken");
     try {
@@ -184,7 +192,7 @@ async function loadDashboardData() {
         const commentsData = commentsRes ? await commentsRes.json() : [];
         const csData = csRes ? await csRes.json() : [];
 
-        const users = usersData.data || usersData || [];
+        const users = (usersData.data || usersData || []).filter(u => u.status !== 'DELETED');
         const bottles = bottlesData.data || bottlesData.bottles || bottlesData || [];
         const comments = commentsData.data || commentsData || []; 
         const customerServices = csData.data || csData || [];
@@ -213,13 +221,12 @@ async function loadDashboardData() {
             let z = u.constellation || u.zodiac; 
             if (z && zodiacCounts[z] !== undefined) zodiacCounts[z]++;
 
-            let g = String(u.gender || u.sex || '').toLowerCase().trim();
-            
-            let uId = u.id || u.member_id;
+            const g = genderOf(u.gender || u.sex);
+            const uId = u.id || u.member_id;
             if (uId) userGenderMap[uId] = g;
 
-            if (g === '男' || g === 'male' || g === 'm' || g === '1') maleCount++;
-            else if (g === '女' || g === 'female' || g === 'f' || g === '2') femaleCount++;
+            if (g === 'male') maleCount++;
+            else if (g === 'female') femaleCount++;
             else otherCount++;
         });
 
@@ -242,15 +249,15 @@ async function loadDashboardData() {
             let authorId = b.member_id || b.author_id;
             
             if (b.member_gender) {
-                bg = String(b.member_gender).toLowerCase().trim();
+                bg = genderOf(b.member_gender);
             } else if (b.gender || (b.author && b.author.gender)) {
-                bg = String(b.gender || b.author.gender).toLowerCase().trim();
+                bg = genderOf(b.gender || b.author.gender);
             } else if (authorId && userGenderMap[authorId]) {
                 bg = userGenderMap[authorId];
             }
 
-            if (bg === '男' || bg === 'male' || bg === 'm' || bg === '1') bottleMale++;
-            else if (bg === '女' || bg === 'female' || bg === 'f' || bg === '2') bottleFemale++;
+            if (bg === 'male') bottleMale++;
+            else if (bg === 'female') bottleFemale++;
             else bottleOther++;
         });
 
@@ -266,15 +273,15 @@ async function loadDashboardData() {
             let authorId = c.member_id || c.author_id;
             
             if (c.member_gender) {
-                cg = String(c.member_gender).toLowerCase().trim();
+                cg = genderOf(c.member_gender);
             } else if (c.gender || (c.author && c.author.gender)) {
-                cg = String(c.gender || c.author.gender).toLowerCase().trim();
+                cg = genderOf(c.gender || c.author.gender);
             } else if (authorId && userGenderMap[authorId]) {
                 cg = userGenderMap[authorId];
             }
 
-            if (cg === '男' || cg === 'male' || cg === 'm' || cg === '1') commentMale++;
-            else if (cg === '女' || cg === 'female' || cg === 'f' || cg === '2') commentFemale++;
+            if (cg === 'male') commentMale++;
+            else if (cg === 'female') commentFemale++;
             else commentOther++;
         });
 
@@ -561,7 +568,7 @@ function drawGenderChart(dataArray) {
         type: 'pie',
         plugins: [ChartDataLabels], // 🌟 1. 註冊外掛
         data: {
-            labels: ['👦 男生', '👧 女生', '👽 未知 / 其他'],
+            labels: ['👦 男生', '👧 女生', '🤫 未填寫 / 不公開'],
             datasets: [{ data: dataArray, backgroundColor: ['#60a5fa', '#f472b6', '#e2e8f0'], borderWidth: 1, borderColor: '#ffffff', hoverOffset: 10 }]
         },
         options: { 
@@ -589,7 +596,7 @@ function drawBottleGenderChart(dataArray) {
         type: 'pie',
         plugins: [ChartDataLabels], // 🌟 1. 註冊外掛
         data: {
-            labels: ['👦 發文男', '👧 發文女', '👽 未知 / 其他'],
+            labels: ['👦 發文男', '👧 發文女', '🤫 未填寫 / 不公開'],
             datasets: [{ 
                 data: dataArray, 
                 backgroundColor: ['#60a5fa', '#f472b6', '#e2e8f0'], 
@@ -664,7 +671,7 @@ function drawCommentGenderChart(dataArray) {
         type: 'pie',
         plugins: [ChartDataLabels], // 🌟 1. 註冊外掛
         data: {
-            labels: ['👦 留言男', '👧 留言女', '👽 未知 / 其他'],
+            labels: ['👦 留言男', '👧 留言女', '🤫 未填寫 / 不公開'],
             datasets: [{ 
                 data: dataArray, 
                 backgroundColor: ['#60a5fa', '#f472b6', '#e2e8f0'], 
@@ -727,8 +734,8 @@ async function loadUsers() {
 
 window.filterUserByStatus = function (status) {
     window._currentUserStatusFilter = status;
-    const statusMap = { 'all': 'all', 'ACTIVE': 'active', 'INACTIVE': 'inactive', 'BANNED': 'banned' };
-    const btns = ['all', 'active', 'inactive', 'banned'];
+    const statusMap = { 'all': 'all', 'ACTIVE': 'active', 'INACTIVE': 'inactive', 'BANNED': 'banned', 'PENDING_DELETION': 'pending-deletion', 'DELETED': 'deleted' };
+    const btns = ['all', 'active', 'inactive', 'banned', 'pending-deletion', 'deleted'];
 
     btns.forEach(id => {
         const el = document.getElementById('filter-user-' + id);
@@ -778,6 +785,15 @@ function applyUserPagination() {
     renderPagination(window._filteredUsersCache.length, window._currentUserPage, 'users-pagination', 'changeUserPage');
 }
 
+// 會員帳號狀態（後端 UserStatus）
+const MEMBER_STATUS = {
+    ACTIVE: { text: '🟢 正常', bg: '#e6f7ff', color: '#0066cc', border: '#91d5ff' },
+    INACTIVE: { text: '🟡 停用／未驗證', bg: '#fff7e6', color: '#d46b08', border: '#ffd591' },
+    BANNED: { text: '🔴 封鎖', bg: '#fff1f0', color: '#cf1322', border: '#ffa39e' },
+    PENDING_DELETION: { text: '🟣 註銷中', bg: '#f5f3ff', color: '#6d28d9', border: '#c4b5fd' },
+    DELETED: { text: '⚫ 已註銷', bg: '#f1f5f9', color: '#475569', border: '#cbd5e1' },
+};
+
 function renderUsers(users) {
     const tbody = document.getElementById('admin-users-body');
     if (!tbody) return;
@@ -810,10 +826,10 @@ function renderUsers(users) {
             roleBtn = `<button class="btn-action" style="margin-left: 5px; background:#f5f3ff; color:#6d28d9; border:1px solid #c4b5fd;" onclick="changeUserRole('${uid}', ${nameArg}, 'ADMIN')">升為管理員</button>`;
         }
 
-        let currentStatus = u.status || 'ACTIVE';
-        let statusBadge = currentStatus === 'BANNED' ? `<span class="badge" style="background:#fff1f0; color:#cf1322; border:1px solid #ffa39e;">🔴 ${currentStatus}</span>` :
-                          currentStatus === 'INACTIVE' ? `<span class="badge" style="background:#fff7e6; color:#d46b08; border:1px solid #ffd591;">🟡 ${currentStatus}</span>` :
-                          `<span class="badge" style="background:#e6f7ff; color:#0066cc; border:1px solid #91d5ff;">🟢 ${currentStatus}</span>`;
+        const currentStatus = u.status || 'ACTIVE';
+        const st = MEMBER_STATUS[currentStatus] || { text: currentStatus, bg: '#f8fafc', color: '#64748b', border: '#e2e8f0' };
+        const statusBadge = `<span class="badge" style="background:${st.bg}; color:${st.color}; border:1px solid ${st.border};">${st.text}</span>`;
+        const isDeleted = currentStatus === 'DELETED';
 
         return `
         <tr>
@@ -823,10 +839,12 @@ function renderUsers(users) {
             <td data-label="註冊時間">${u.created_at ? new Date(u.created_at).toLocaleDateString() : '未知'}</td>
             <td data-label="帳號狀態">${statusBadge}</td>
             <td data-label="帳號權限">${roleBadge}</td>
-            <td data-label="項目操作" style="white-space: nowrap;">
-                <button class="btn-action btn-secondary" onclick="changeUserStatus('${uid}', ${nameArg})">更改狀態</button>
+            <td data-label="項目操作" class="user-actions">
+                ${isDeleted
+                    ? `<span style="font-size: 0.85rem; color: #94a3b8;">已註銷，無法操作</span>`
+                    : `<button class="btn-action btn-secondary" onclick="changeUserStatus('${uid}', ${nameArg})">更改狀態</button>
                 ${roleBtn}
-                <button class="btn-action btn-danger" style="margin-left: 5px;" onclick="deleteUserAsAdmin('${uid}', ${nameArg})">刪除</button>
+                <button class="btn-action btn-danger" style="margin-left: 5px;" onclick="deleteUserAsAdmin('${uid}', ${nameArg})">刪除</button>`}
             </td>
         </tr>
         `;
@@ -836,7 +854,11 @@ function renderUsers(users) {
 let currentEditingUserId = null;
 window.changeUserStatus = function (userId, userName) {
     currentEditingUserId = userId;
-    document.getElementById('status-modal-user-name').innerText = `正在修改帳號：${userName}`;
+    const user = (window._allUsers || []).find(u => String(u.member_id || u.id) === String(userId));
+    const pendingNote = user && user.status === 'PENDING_DELETION'
+        ? '\n⚠️ 這個帳號正在註銷的 7 天後悔期，變更狀態會取消他的註銷申請'
+        : '';
+    document.getElementById('status-modal-user-name').innerText = `正在修改帳號：${userName}${pendingNote}`;
     document.getElementById('status-modal').style.display = 'flex';
 }
 window.closeStatusModal = function () { document.getElementById('status-modal').style.display = 'none'; currentEditingUserId = null; }
@@ -847,7 +869,12 @@ window.confirmChangeStatus = async function (newStatus) {
         const response = await fetch(`${API_BASE_URL}/admin/members/${currentEditingUserId}/status`, {
             method: 'PUT', headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ newStatus: newStatus })
         });
-        if (response.ok) { alert('✅ 狀態已成功更新！'); closeStatusModal(); loadUsers(); } else { alert('更新失敗，請確認權限或網路狀態'); }
+        if (response.ok) { alert('✅ 狀態已成功更新！'); closeStatusModal(); loadUsers(); }
+        else {
+            const err = await response.json().catch(() => ({}));
+            alert('更新失敗：' + (err.message || '請確認權限或網路狀態'));
+            closeStatusModal();
+        }
     } catch (e) { alert('伺服器連線失敗'); }
 }
 // 升為管理員 / 取消管理員
@@ -881,7 +908,15 @@ window.deleteUserAsAdmin = async function (userId, userName) {
     const token = localStorage.getItem("authToken");
     try {
         const response = await fetch(`${API_BASE_URL}/admin/members/${userId}/delete`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}`, 'ngrok-skip-browser-warning': 'true' } });
-        if (response.ok) { alert(`🗑️ 成功將使用者「${userName}」從資料庫抹除！`); loadUsers(); } else { const err = await response.json(); alert("刪除失敗：" + (err.message || "權限不足或伺服器錯誤")); }
+        if (response.ok) { alert(`🗑️ 成功將使用者「${userName}」從資料庫抹除！`); loadUsers(); }
+        else {
+            const err = await response.json().catch(() => ({}));
+            // 會員發過漂流瓶、登出過等等，資料庫裡還有連著他的紀錄時，後端目前刪不掉
+            const hint = response.status >= 500
+                ? '\n\n這個會員可能發過漂流瓶或有其他紀錄，目前無法直接刪除。\n要停止他使用，可以改用「更改狀態 → 永久封鎖」；或請會員自己在網站設定註銷帳號。'
+                : '';
+            alert("刪除失敗：" + (err.message || "權限不足或伺服器錯誤") + hint);
+        }
     } catch (error) { alert("伺服器連線失敗，請檢查網路狀態！"); }
 };
 
@@ -1148,7 +1183,8 @@ window.filterReports = function () {
     window._filteredReportsCache = window._allReports.filter(r => {
         const bottleId = String(r.bottle_id || r.id || '');
         const reason = String(r.reason || r.report_reason || r.content || '').toLowerCase();
-        const matchKeyword = bottleId.includes(keyword) || reason.includes(keyword);
+        const reporterName = String(r.reporter?.name || '').toLowerCase();
+        const matchKeyword = bottleId.includes(keyword) || reason.includes(keyword) || reporterName.includes(keyword);
         const isProcessed = getReportState(r) !== 'pending';
         let matchStatus = true;
         if (window._currentReportStatusFilter === 'pending') matchStatus = !isProcessed;
@@ -1191,7 +1227,10 @@ function renderReports(reports) {
     tbody.innerHTML = reports.map(r => {
         const bottleId = r.bottle_id || r.id || '未知';
         const reason = r.reason || r.report_reason || '未提供原因';
-        const reporter = r.reporter_id || r.member_id || r.reporter_name || '匿名';
+        const reporterId = r.member_id || r.reporter_id;
+        const reporter = r.reporter?.name
+            ? `${r.reporter.name}${reporterId ? ` (ID ${reporterId})` : ''}`
+            : (reporterId ? `ID ${reporterId}` : (r.reporter_name || '未知'));
         const date = r.created_at ? new Date(r.created_at).toLocaleDateString() : '未知';
         const bottleContent = r.bottle_content || r.bottle?.content || r.content || '（無法取得文章內容）';
         const state = getReportState(r);
@@ -1212,7 +1251,7 @@ function renderReports(reports) {
             <td data-label="文章 ID" style="color: #64748b; font-weight: 600;">#${bottleId}</td>
             <td data-label="被檢舉內容" style="min-width: 220px; max-width: 350px;"><div style="display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; white-space: normal; color: #334155; line-height: 1.5; font-size: 0.95rem;">${escapeHTML(String(bottleContent))}</div></td>
             <td data-label="檢舉原因" style="color: #ef4444; font-weight: bold; white-space: normal; min-width: 150px;">${escapeHTML(String(reason))}</td>
-            <td data-label="檢舉者 ID">${escapeHTML(String(reporter))}</td>
+            <td data-label="檢舉者">${escapeHTML(String(reporter))}</td>
             <td data-label="檢舉時間" style="color: #64748b;">${date}</td>
             <td data-label="操作">${actionHtml}</td>
         </tr>

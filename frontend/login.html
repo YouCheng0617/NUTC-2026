@@ -2,6 +2,8 @@
 <html lang="zh-TW">
   <head>
     <meta charset="UTF-8" />
+    <!-- 伺服器壞掉時跳出「伺服器整理中」（要在其他程式之前載入） -->
+    <script src="server-status.js?v=1"></script>
     <meta
       name="viewport"
       content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
@@ -301,9 +303,9 @@
             <div class="b-item b-circle">
               <label>性別:</label>
               <select id="reg-gender">
-                <option value="生理男">生理男</option>
-                <option value="生理女">生理女</option>
-                <option value="秘密">秘密</option>
+                <option value="男">生理男</option>
+                <option value="女">生理女</option>
+                <option value="不公開">秘密</option>
               </select>
             </div>
             <div class="b-item b-circle">
@@ -1110,6 +1112,7 @@
           password: password,
           name: name,
           birthday: finalBirthday,
+          gender: document.getElementById("reg-gender").value || "",
           bio: document.getElementById("reg-bio").value || "",
           blood_type: "",
           constellation: document.getElementById("reg-zodiac").value || "",
