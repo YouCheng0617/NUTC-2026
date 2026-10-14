@@ -157,7 +157,10 @@
               <div class="input-group">
                 <label>性別</label>
                 <select id="edit-gender" class="ocean-input">
-                  <option>生理男</option><option>生理女</option><option>其他</option><option>秘密</option>
+                  <option value="未填寫">未填寫</option>
+                  <option value="男">男</option>
+                  <option value="女">女</option>
+                  <option value="不公開">不公開</option>
                 </select>
               </div>
             </div>
@@ -238,20 +241,53 @@
           }
       }
 
-      window.saveProfile = function() {
-          document.getElementById('detail-name').innerText = document.getElementById('edit-name').value;
-          document.getElementById('detail-birthday').innerText = document.getElementById('edit-birthday').value;
-          document.getElementById('detail-gender').innerText = document.getElementById('edit-gender').value;
-          document.getElementById('detail-zodiac').innerText = document.getElementById('edit-zodiac').value;
-          document.getElementById('detail-bio').innerText = document.getElementById('edit-bio').value;
-          
-          alert("🎉 個人資料已更新！");
-          toggleProfileMode('view');
-      }
+      // 儲存個人資料：送到伺服器（以前只改畫面上的字，重新整理就不見了），成功後同步這台瀏覽器的資料
+      window.saveProfile = async function () {
+        const val = (id) => (document.getElementById(id) || {}).value || "";
+        const name = val("edit-name").trim();
+        if (!name) { alert("姓名不能空白喔！"); return; }
+        const gender = val("edit-gender");
+        const zodiac = val("edit-zodiac");
+        const payload = {
+          name,
+          birthday: val("edit-birthday"),
+          gender: !gender || gender === "未填寫" ? "" : gender,
+          constellation: zodiac,
+          bio: val("edit-bio").trim(),
+        };
+        try {
+          const res = await fetch("https://api.drift-bottles.xyz/auth/update-data", {
+            method: "PATCH",
+            headers: { Authorization: "Bearer " + localStorage.getItem("authToken"), "Content-Type": "application/json", "ngrok-skip-browser-warning": "true" },
+            body: JSON.stringify(payload),
+          });
+          if (!res.ok) {
+            const err = await res.json().catch(() => ({}));
+            alert("儲存失敗：" + (err.message || "請稍後再試"));
+            return;
+          }
+        } catch (e) {
+          alert("儲存失敗：連不上伺服器，請稍後再試");
+          return;
+        }
+        let user = {};
+        try { user = JSON.parse(localStorage.getItem("currentUser") || "{}") || {}; } catch (e) {}
+        Object.assign(user, { name, birthday: payload.birthday, gender: gender || "未填寫", zodiac, constellation: zodiac, bio: payload.bio });
+        localStorage.setItem("currentUser", JSON.stringify(user));
+        document.getElementById("detail-name").innerText = name;
+        document.getElementById("detail-birthday").innerText = payload.birthday || "未填寫";
+        document.getElementById("detail-gender").innerText = gender || "未填寫";
+        document.getElementById("detail-zodiac").innerText = zodiac || "未填寫";
+        const bioEl = document.getElementById("detail-bio");
+        if (window.renderBio) window.renderBio(bioEl, payload.bio);
+        else bioEl.innerText = payload.bio;
+        alert("🎉 個人資料已更新！");
+        toggleProfileMode("view");
+      };
     </script>
 
     <script defer src="https://cdnjs.cloudflare.com/ajax/libs/marked/12.0.2/marked.min.js"></script>
     <script defer src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.1.6/purify.min.js"></script>
-    <script type="module" src="index.js?v=65"></script>
+    <script type="module" src="index.js?v=66"></script>
   </body>
 </html>

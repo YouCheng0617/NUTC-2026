@@ -57,6 +57,30 @@ function handleAutoLogout(message) {
 // 頁面載入時先主動檢查一次 Token 是否逾時
 checkTokenExpired();
 
+// 個人資料的性別：「未填寫」存成空的，其他照選項（男／女／不公開）
+function genderForServer(g) {
+  return !g || g === "未填寫" ? "" : g;
+}
+// 🩹 以前修改個人資料時沒有把性別送到伺服器，只存在瀏覽器裡。
+//    這台瀏覽器有填過性別的話，補送一次（每台裝置只送一次），後台統計才抓得到
+function syncLocalGenderOnce() {
+  const token = localStorage.getItem("authToken");
+  if (!token) return;
+  let user = null;
+  try { user = JSON.parse(localStorage.getItem("currentUser") || "null"); } catch (e) {}
+  const gender = genderForServer(user && user.gender);
+  const key = "gender_synced_v1_" + (user && (user.email || user.member_id) || "");
+  try { if (!gender || localStorage.getItem(key)) return; } catch (e) { return; }
+  fetch(`${API_BASE_URL}/auth/update-data`, {
+    method: "PATCH",
+    headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json", "ngrok-skip-browser-warning": "true" },
+    body: JSON.stringify({ gender }),
+  })
+    .then((res) => { if (res.ok) { try { localStorage.setItem(key, "1"); } catch (e) {} } })
+    .catch(() => {});
+}
+syncLocalGenderOnce();
+
 // 🌟 全域單向攔截 fetch 401 逾時回應
 const originalFetch = window.fetch;
 window.fetch = async function (...args) {
@@ -1778,6 +1802,8 @@ document.addEventListener("DOMContentLoaded", () => {
           body: JSON.stringify({
             name: user.name,
             birthday: user.birthday,
+            // 以前漏送性別，只存在這台瀏覽器，後台的男女比例才會全部算成未填寫
+            gender: genderForServer(user.gender),
             constellation: user.zodiac,
             bio: user.bio,
           }),
