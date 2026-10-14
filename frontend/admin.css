@@ -1093,3 +1093,17 @@ html {
   .modern-table td.user-actions { white-space: normal; flex-wrap: wrap; justify-content: flex-end; gap: 6px; }
   .modern-table td.user-actions::before { margin-right: auto; }
 }
+
+/* =======================================================
+   📢 全服通知（admin_broadcasts.js）
+======================================================= */
+.bc-textarea {
+  padding: 9px 12px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  font-family: inherit;
+  resize: vertical;
+  min-height: 90px;
+}
+.bc-content-cell { max-width: 420px; white-space: pre-wrap; word-break: break-word; line-height: 1.5; }

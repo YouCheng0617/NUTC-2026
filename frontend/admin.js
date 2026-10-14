@@ -152,6 +152,7 @@ window.switchAdminTab = function (tabName) {
     else if (tabName === 'game-reports') { titleEl.innerText = "遊戲檢舉"; loadGameReports(); }
     else if (tabName === 'redeem-codes') { titleEl.innerText = "遊戲兌換碼"; loadRedeemCodes(); }
     else if (tabName === 'daily-question') { titleEl.innerText = "今日一題"; loadDailyQuestions(); }
+    else if (tabName === 'broadcasts') { titleEl.innerText = "全服通知"; loadBroadcasts(); }
     else if (tabName === 'customer-service') { titleEl.innerText = "客服問題管理"; loadCustomerServices(); }
 }
 

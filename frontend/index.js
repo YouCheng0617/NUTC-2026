@@ -3247,7 +3247,11 @@ async function fetchAndRenderNotifications() {
         let iconEmoji = "⚠️";
         const typeUpper = (notif.type || "").toUpperCase();
 
-        if (typeUpper.includes("LIKE")) {
+        if (typeUpper === "BROADCAST") {
+          // 📢 管理員發的全服通知
+          iconClass = "system";
+          iconEmoji = "📢";
+        } else if (typeUpper.includes("LIKE")) {
           iconClass = "heart";
           iconEmoji = "❤️";
         } else if (
@@ -3318,6 +3322,9 @@ window.openNotificationTarget = async function (notifId, targetId, isRead, cardE
   }
 
   const kind = String(type).toUpperCase();
+
+  // 全服通知的內容整則都顯示在卡片上了，點了只要標成已讀
+  if (kind === "BROADCAST") return;
 
   // 2. 客服通知的 target_id 是客服單 id，帶去客服頁
   if (kind.startsWith("CUSTOMER_SERVICE")) {

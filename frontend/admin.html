@@ -10,7 +10,7 @@
   <link rel="icon" href="favicon.ico" sizes="any" />
   <link rel="icon" type="image/png" href="images/icon-192.png" />
   <link rel="apple-touch-icon" href="images/apple-touch-icon.png" />
-  <link rel="stylesheet" href="admin.css?v=8" />
+  <link rel="stylesheet" href="admin.css?v=9" />
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <!-- 🌟 在下方加入這行 -->
   <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels"></script>
@@ -75,6 +75,12 @@
             toggleSidebarIfMobile();
           ">
         📅 今日一題
+      </li>
+      <li onclick="
+            switchAdminTab('broadcasts');
+            toggleSidebarIfMobile();
+          ">
+        📢 全服通知
       </li>
       <li onclick="
             switchAdminTab('customer-service');
@@ -637,6 +643,59 @@
         </div>
       </div>
 
+      <!-- 📢 全服通知（admin_broadcasts.js） -->
+      <div id="section-broadcasts" class="admin-section" style="display: none">
+        <div class="modern-card rd-card">
+          <div class="card-header">
+            <h3 id="bc-form-title" style="color: #0284c7; margin: 0;">📢 發佈全服通知</h3>
+          </div>
+          <div class="rd-form">
+            <label class="rd-field rd-field-wide">
+              <span>通知內容 <b class="rd-required">*</b>（<span id="bc-count">0</span> / 300 字）</span>
+              <textarea id="bc-content" maxlength="300" rows="4" class="bc-textarea"
+                placeholder="例如：今晚 23:00 ~ 23:30 伺服器維護，期間無法發文喔！" oninput="bcUpdateCount()"></textarea>
+            </label>
+            <div class="rd-field rd-field-wide">
+              <span>到期時間（留空＝不會過期；過期後大家的通知列表就不會再顯示）</span>
+              <span class="rd-inline">
+                <input type="datetime-local" id="bc-expires" />
+                <button type="button" class="btn-action btn-secondary" onclick="bcSetExpiry(1)">1 天</button>
+                <button type="button" class="btn-action btn-secondary" onclick="bcSetExpiry(7)">7 天</button>
+                <button type="button" class="btn-action btn-secondary" onclick="bcSetExpiry(30)">30 天</button>
+                <button type="button" class="btn-action btn-secondary" onclick="bcSetExpiry(0)">不過期</button>
+              </span>
+            </div>
+          </div>
+          <div class="rd-submit">
+            <div id="bc-edit-note" class="rd-edit-note" style="display: none;">修改內容不會讓已經看過的人再跳一次未讀。</div>
+            <button type="button" class="btn-action btn-primary" id="bc-submit-btn" onclick="bcSubmit()">📢 發佈給所有人</button>
+            <button type="button" class="btn-action btn-secondary" id="bc-cancel-btn" onclick="bcCancelEdit()" style="display: none;">取消編輯</button>
+          </div>
+        </div>
+
+        <div class="modern-card">
+          <div class="card-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+            <h3 style="margin: 0;">📋 全服通知列表</h3>
+            <button class="btn-action btn-secondary" onclick="loadBroadcasts()">🔄 重新整理</button>
+          </div>
+          <div class="table-responsive">
+            <table class="modern-table">
+              <thead>
+                <tr>
+                  <th>內容</th>
+                  <th>發佈時間</th>
+                  <th>到期時間</th>
+                  <th>已讀人數</th>
+                  <th>狀態</th>
+                  <th>操作</th>
+                </tr>
+              </thead>
+              <tbody id="admin-broadcast-body"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
       <!-- 💬 客服問題管理面板 -->
       <div id="section-customer-service" class="admin-section" style="display: none">
         <div class="modern-card">
@@ -873,10 +932,11 @@
       }
     });
   </script>
-  <script src="admin.js?v=6"></script>
+  <script src="admin.js?v=7"></script>
   <script src="admin_game_reports.js?v=1"></script>
   <script src="admin_redeem_codes.js?v=5"></script>
   <script src="admin_daily_question.js?v=1"></script>
+  <script src="admin_broadcasts.js?v=1"></script>
 </body>
 
 </html>

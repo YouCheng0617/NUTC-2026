@@ -1,4 +1,5 @@
 import prisma from '../../lib/prisma.js';
+import { getVisibleBroadcastsFor, markAllBroadcastsRead } from '../broadcast/broadcast.service.js';
 
 export const createNotification = async (
     memberId: number,     // 誰要收到通知
@@ -36,13 +37,19 @@ export const createNotification = async (
     });
 };
 
-// 1. 取得使用者的通知列表 (最新排前面)
+// 1. 取得使用者的通知列表 (最新排前面)，全服通知也混在裡面
 export const getUserNotifications = async (memberId: number) => {
-    return await prisma.notification.findMany({
-        where: { member_id: memberId },
-        orderBy: { created_at: 'desc' },
-        take: 30 // 每次抓最近 30 條，避免資料太大
-    });
+    const [personal, broadcasts] = await Promise.all([
+        prisma.notification.findMany({
+            where: { member_id: memberId },
+            orderBy: { created_at: 'desc' },
+            take: 30 // 每次抓最近 30 條，避免資料太大
+        }),
+        getVisibleBroadcastsFor(memberId),
+    ]);
+    return [...personal, ...broadcasts]
+        .sort((a, b) => b.created_at.getTime() - a.created_at.getTime())
+        .slice(0, 30);
 };
 
 // 2. 標記單筆通知為已讀
@@ -58,6 +65,7 @@ export const markNotificationAsRead = async (notificationId: number, memberId: n
 
 // 3. 一鍵全部標記為已讀
 export const markAllNotificationsAsRead = async (memberId: number) => {
+    await markAllBroadcastsRead(memberId);
     return await prisma.notification.updateMany({
         where: { member_id: memberId, is_read: false },
         data: { is_read: true }

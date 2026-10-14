@@ -2,6 +2,7 @@ import { isValidId } from "../../lib/validateHelper.js";
 import type { Request, Response } from 'express';
 import type { AuthRequest } from '../middleware/auth.middleware.js';
 import { getUserNotifications, markNotificationAsRead, markAllNotificationsAsRead } from './notification.service.js';
+import { parseBroadcastNotifId, markBroadcastRead } from '../broadcast/broadcast.service.js';
 
 export class NotificationController {
 
@@ -28,10 +29,17 @@ export class NotificationController {
     async readNotification(req: AuthRequest, res: Response) {
         try {
             const memberId = req.user?.member_id;
-            const notificationId = Number(req.params.id);
+            const rawId = String(req.params.id ?? "");
+            const notificationId = Number(rawId);
 
             if (!memberId) {
                 return res.status(401).json({ message: "請先登入" });
+            }
+            // 全服通知的 id 長得像 "b-12"
+            const broadcastId = parseBroadcastNotifId(rawId);
+            if (broadcastId) {
+                await markBroadcastRead(broadcastId, memberId);
+                return res.status(200).json({ message: "已標記為已讀" });
             }
             if (!isValidId(notificationId)) {
                 return res.status(400).json({ message: "無效的通知 ID" });

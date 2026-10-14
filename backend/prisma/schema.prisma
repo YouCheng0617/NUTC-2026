@@ -94,6 +94,7 @@ model Member {
   puzzleTaskClaims  PuzzleTaskClaim[]
   puzzleDrawRecords PuzzleDrawRecord[]
   deletionRequests  AccountDeletionRequest[]
+  broadcastReads    BroadcastRead[]
 }
 
 model BlacklistedToken {
@@ -437,6 +438,34 @@ model PollVote {
   option PollOption @relation(fields: [option_id], references: [id], onDelete: Cascade)
 
   @@unique([member_id, bottle_id])
+}
+
+/// 全服通知：管理員發給所有人，混在每個人的通知列表裡顯示（不會幫每個人複製一筆）
+model Broadcast {
+  id         Int       @id @default(autoincrement())
+  content    String    @db.VarChar(300)
+  is_active  Boolean   @default(true) // 管理員可以停用（停用後大家的通知列表都看不到）
+  expires_at DateTime? // null = 不會過期
+  created_by Int
+  created_at DateTime  @default(now())
+  updated_at DateTime  @updatedAt
+
+  reads BroadcastRead[]
+
+  @@index([is_active, created_at])
+}
+
+/// 誰看過哪一則全服通知
+model BroadcastRead {
+  broadcast_id Int
+  member_id    Int
+  read_at      DateTime @default(now())
+
+  broadcast Broadcast @relation(fields: [broadcast_id], references: [id], onDelete: Cascade)
+  member    Member    @relation(fields: [member_id], references: [member_id], onDelete: Cascade)
+
+  @@id([broadcast_id, member_id])
+  @@index([member_id])
 }
 
 model Notification {

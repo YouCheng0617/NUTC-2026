@@ -7,6 +7,10 @@ import {
     deleteRedeemCodeController, listRedeemCodeUsesController,
 } from "../../socket/redeemCode.controller.js";
 import { listScheduleController, scheduleController, unscheduleController } from "../daily-question/dailyQuestion.controller.js";
+import {
+    listBroadcastsController, createBroadcastController, updateBroadcastController,
+    setBroadcastActiveController, deleteBroadcastController,
+} from "../broadcast/broadcast.controller.js";
 
 const adminController = new AdminController();
 
@@ -39,6 +43,13 @@ export function adminRouter() {
     router.get("/daily-questions", authCheck, adminCheck, listScheduleController);
     router.put("/daily-questions/:date", authCheck, adminCheck, scheduleController);
     router.delete("/daily-questions/:date", authCheck, adminCheck, unscheduleController);
+
+    // 📢 全服通知
+    router.get("/broadcasts", authCheck, adminCheck, listBroadcastsController);
+    router.post("/broadcasts", authCheck, adminCheck, createBroadcastController);
+    router.put("/broadcasts/:id", authCheck, adminCheck, updateBroadcastController);
+    router.put("/broadcasts/:id/active", authCheck, adminCheck, setBroadcastActiveController);
+    router.delete("/broadcasts/:id", authCheck, adminCheck, deleteBroadcastController);
 
     // 🌟 客服後台管理
     router.get("/customer-services", authCheck, adminCheck, (req, res) => adminController.getAllCustomerServices(req, res));

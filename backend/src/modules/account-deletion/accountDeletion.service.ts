@@ -244,6 +244,7 @@ const anonymizeMember = async (memberId: number, requestId: number) => {
         prisma.tarotRecord.deleteMany({ where: me }),
         prisma.gameRecord.deleteMany({ where: me }),
         prisma.redeemCodeUse.deleteMany({ where: me }),
+        prisma.broadcastRead.deleteMany({ where: me }),
         prisma.customerService.deleteMany({ where: me }),
         prisma.emailVerification.deleteMany({ where: { email: member.email } }),
         prisma.passwordReset.deleteMany({ where: { email: member.email } }),
