@@ -3,7 +3,7 @@ import type { Response, Request } from "express";
 import type { AuthRequest } from "../middleware/auth.middleware.js";
 import { saveGameRecord, getHighScore, getAllGameRecords } from "./game-record/game-record.service.js";
 import { createDailyNote, getDailyNote } from "./sticky-note/sticky-note.service.js";
-import { drawTarot, getTarotDailyStatus } from "./tarot/tarot.service.js";
+import { drawTarot, getTarotDailyStatus, requestTarotReading } from "./tarot/tarot.service.js";
 export class GameController {
     /*儲存遊戲紀錄*/
     async postGameRecord(req: AuthRequest, res: Response) {
@@ -155,6 +155,27 @@ export class GameController {
                 return res.status(400).json({ message: error.message });
             }
             console.error("postDrawTarot 錯誤:", error);
+            return res.status(500).json({ message: "伺服器內部錯誤" });
+        }
+    }
+
+    /* 塔羅牌：AI 解牌（要登入，經過後端才叫得到 AI） */
+    async postTarotReading(req: AuthRequest, res: Response) {
+        try {
+            const { card_name, orientation, question } = req.body ?? {};
+            /*只收字串並限制長度，避免被拿來塞超長內容給 AI*/
+            const fields = [[card_name, 60], [orientation, 30], [question, 50]] as const;
+            if (fields.some(([value, max]) => typeof value !== "string" || !value.trim() || value.length > max)) {
+                return res.status(400).json({ message: "抽牌資料格式錯誤，請重新抽牌" });
+            }
+
+            const analysis = await requestTarotReading({ card_name, orientation, question });
+            return res.status(200).json({ status: "success", analysis });
+        } catch (error: any) {
+            if (error.message === "AI_UNAVAILABLE") {
+                return res.status(503).json({ message: "海之占卜師暫時休息中，請稍後再試" });
+            }
+            console.error("postTarotReading 錯誤:", error);
             return res.status(500).json({ message: "伺服器內部錯誤" });
         }
     }

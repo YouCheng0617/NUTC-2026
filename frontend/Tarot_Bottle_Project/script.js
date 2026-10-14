@@ -576,10 +576,12 @@ async function generateReading() {
     `;
 
   try {
-    const response = await fetch("https://api.drift-bottles.xyz/api/tarot", {
+    // AI 解牌要登入：經過後端（會檢查登入、限制次數）再轉給 AI，不再直接打 /api/tarot
+    const response = await fetch("https://api.drift-bottles.xyz/game/tarot/reading", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
+        Authorization: `Bearer ${localStorage.getItem("authToken") || ""}`,
       },
       body: JSON.stringify({
         card_name: `${drawnCards["past"].name}、${drawnCards["present"].name}、${drawnCards["future"].name}`,
@@ -588,6 +590,19 @@ async function generateReading() {
       }),
     });
 
+    // 登入過期：請他重新登入
+    if (response.status === 401 || response.status === 403) {
+      alert(currentLang === "en" ? "Your login has expired. Please log in again." : "登入已過期，請重新登入喔！");
+      window.location.href = "../login.html";
+      return;
+    }
+    // 占卜太頻繁：直接顯示後端的提示
+    if (response.status === 429) {
+      const limited = await response.json().catch(() => ({}));
+      resultText.innerHTML = `🔮 ${escapeHtml(limited.message || "占卜太頻繁了，請稍後再試。")}`;
+      restartBtn.classList.remove("hidden");
+      return;
+    }
     if (!response.ok) {
       throw new Error(`HTTP 錯誤碼: ${response.status}`);
     }

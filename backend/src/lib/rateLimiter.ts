@@ -155,3 +155,6 @@ export const csTicketLimiter = perMemberLimiter(60 * 60 * 1000, 5, "客服問題
 
 /*申請註銷帳號：每人每小時最多 3 次（也順便擋用這支 API 猜密碼）*/
 export const deletionRequestLimiter = perMemberLimiter(60 * 60 * 1000, 3, "註銷申請太頻繁了，請 1 小時後再試。");
+
+/*塔羅 AI 解牌：每人每小時最多 10 次（每次都會叫 AI 生成）*/
+export const tarotReadingLimiter = perMemberLimiter(60 * 60 * 1000, 10, "占卜太頻繁了，海浪需要休息一下，請 1 小時後再試。");

@@ -69,6 +69,8 @@ def tarot_endpoint():
 
 if __name__ == '__main__':
     # 啟動 API 伺服器，監聽 5000 埠口
+    # 只聽本機：Node 後端與 nginx 都在同一台 VM，外面的人不能直接連 5000 埠叫 AI
+    #（塔羅解牌改成經過 Node 的 /game/tarot/reading，會檢查登入與次數）
     print("🚀 AI API Server 啟動中...")
     print("📍 接口網址：http://127.0.0.1:5000/api/analyze")
-    app.run(host='0.0.0.0', port=5000, debug=False)
+    app.run(host='127.0.0.1', port=5000, debug=False)
