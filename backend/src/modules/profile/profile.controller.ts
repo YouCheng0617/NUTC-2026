@@ -25,8 +25,12 @@ const resolveTarget = (req: AuthRequest, res: Response) => {
 };
 
 const handleError = (res: Response, error: unknown, label: string) => {
-    if (error instanceof Error && error.message === "NOT_FOUND") {
+    /*有封鎖關係時這裡也當作找不到，不讓對方知道被封鎖*/
+    if (error instanceof Error && (error.message === "NOT_FOUND" || error.message === "BLOCKED")) {
         return res.status(404).json({ message: "找不到這位使用者" });
+    }
+    if (error instanceof Error && error.message === "FOLLOW_LIST_HIDDEN") {
+        return res.status(403).json({ code: "FOLLOW_LIST_HIDDEN", message: "此用戶婉拒您的查看" });
     }
     console.error(`${label} 錯誤:`, error);
     return res.status(500).json({ message: "伺服器錯誤，請稍後再試" });

@@ -22,6 +22,7 @@ import { announcementRouter } from './modules/announcement/announcement.router.j
 import { dailyQuestionRouter } from './modules/daily-question/dailyQuestion.router.js';
 import { accountDeletionRouter } from './modules/account-deletion/accountDeletion.router.js';
 import { profileRouter } from './modules/profile/profile.router.js';
+import { membersRouter } from './modules/members/members.router.js';
 
 
 import { setupPetSocket } from './socket/petServer.js';
@@ -67,6 +68,7 @@ app.use('/announcements', announcementRouter()); /*首頁揪團彈幕（寵物�
 app.use('/daily-question', dailyQuestionRouter()); /*首頁今日一題*/
 app.use('/account-deletion', accountDeletionRouter()); /*註銷帳號*/
 app.use('/profile', profileRouter()); /*個人頁面*/
+app.use('/members', membersRouter()); /*別人的個人頁（瓶子詳情點作者名字）*/
 if (!process.env["DATABASE_URL"]) {
     console.error("DATABASE_URL is not defined in env.");
 }

@@ -4,35 +4,41 @@ import { getBlockedMemberIds, isBlockedBetween } from "../block/block.service.js
 /*
  * 個人頁面：名字、自介、公開文章、粉絲與追蹤名單
  * - 只列公開文章：匿名、審核中、違規的都不列（不然等於把匿名作者公開了）
- * - 停權、未啟用、註銷中、已註銷的帳號，以及跟看的人有封鎖關係的，一律當作找不到
+ * - 停權、未啟用、註銷中、已註銷的帳號一律當作找不到（NOT_FOUND）；跟看的人有封鎖關係的丟 BLOCKED
+ * - 本人開了「隱藏我的追蹤與粉絲」時，別人看不到人數也拿不到名單（FOLLOW_LIST_HIDDEN）
  */
 
 export const BOTTLES_PAGE_SIZE = 6;
 export const MEMBERS_PAGE_SIZE = 6;
 
 /*公開文章的條件*/
-const publicBottleWhere = (memberId: number) => ({
+export const publicBottleWhere = (memberId: number) => ({
     member_id: memberId,
     is_anonymous: false,
     status: 1,
 });
 
-/*確認這個人可以被看；不行就丟 NOT_FOUND*/
-const assertVisible = async (targetId: number, viewerId?: number) => {
+/*確認這個人可以被看；不行就丟 NOT_FOUND 或 BLOCKED*/
+export const assertVisible = async (targetId: number, viewerId?: number) => {
     const member = await prisma.member.findUnique({
         where: { member_id: targetId },
-        select: { member_id: true, name: true, bio: true, birthday: true, gender: true, constellation: true, created_at: true, status: true },
+        select: { member_id: true, name: true, bio: true, birthday: true, gender: true, constellation: true, created_at: true, status: true, hide_follow_lists: true },
     });
     if (!member || member.status !== "ACTIVE") throw new Error("NOT_FOUND");
     if (viewerId && viewerId !== targetId && await isBlockedBetween(viewerId, targetId)) {
-        throw new Error("NOT_FOUND");
+        throw new Error("BLOCKED");
     }
     return member;
 };
 
+/*本人開了隱藏、而且看的人不是本人*/
+export const followListsHidden = (member: { member_id: number; hide_follow_lists: boolean }, viewerId?: number) =>
+    member.hide_follow_lists && viewerId !== member.member_id;
+
 export const getProfile = async (targetId: number, viewerId?: number) => {
     const member = await assertVisible(targetId, viewerId);
     const isMe = viewerId === targetId;
+    const hidden = followListsHidden(member, viewerId);
 
     const [bottleCount, followerCount, followingCount, viewerFollows, followsViewer] = await Promise.all([
         prisma.bottle.count({ where: publicBottleWhere(targetId) }),
@@ -61,8 +67,9 @@ export const getProfile = async (targetId: number, viewerId?: number) => {
         constellation: member.constellation ?? "",
         created_at: member.created_at,
         bottle_count: bottleCount,
-        follower_count: followerCount,
-        following_count: followingCount,
+        follower_count: hidden ? null : followerCount,
+        following_count: hidden ? null : followingCount,
+        hide_follow_lists: member.hide_follow_lists,
         is_me: isMe,
         is_following: !!viewerFollows,
         follows_me: !!followsViewer,
@@ -113,7 +120,8 @@ export const getProfileMembers = async (
     page: number,
     viewerId?: number,
 ) => {
-    await assertVisible(targetId, viewerId);
+    const target = await assertVisible(targetId, viewerId);
+    if (followListsHidden(target, viewerId)) throw new Error("FOLLOW_LIST_HIDDEN");
     const hidden = viewerId ? await getBlockedMemberIds(viewerId) : [];
 
     const memberFilter = { status: "ACTIVE" as const, member_id: { notIn: hidden } };

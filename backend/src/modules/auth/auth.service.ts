@@ -16,6 +16,8 @@ interface MemberData {
     blood_type?: string;
     constellation?: string;
     bio?: string;
+    hide_follow_lists?: boolean;
+    allow_follow?: boolean;
 }
 
 /*後悔期內的帳號不能登入*/
@@ -340,6 +342,13 @@ export const updateMember = async (memberId: number, updateData: Partial<MemberD
         dataToUpdate.bio = updateData.bio;
         updatedFields.push("個人簡介");
     }
+    /*隱私設定不算在「個人資料異動」通知裡*/
+    if (updateData.hide_follow_lists !== undefined) {
+        dataToUpdate.hide_follow_lists = updateData.hide_follow_lists;
+    }
+    if (updateData.allow_follow !== undefined) {
+        dataToUpdate.allow_follow = updateData.allow_follow;
+    }
     if (updateData.birthday !== undefined) {
         if (updateData.birthday === null || updateData.birthday === "") {
             dataToUpdate.birthday = null;
@@ -370,9 +379,13 @@ export const updateMember = async (memberId: number, updateData: Partial<MemberD
                 blood_type: true,
                 constellation: true,
                 bio: true,
+                hide_follow_lists: true,
+                allow_follow: true,
             }
         });
 
+        /*只改了隱私設定時不發通知*/
+        if (!updatedFields.length) return updatedMember;
         const fieldsText = updatedFields.join("、");
         const notificationContent = `你的個人資料已成功更新（異動項目：${fieldsText}）。`;
         await createNotification(
@@ -427,6 +440,10 @@ export const followMember = async (followerId: number, followedId: number) => {
         return { isFollowing: false, message: "已取消追蹤" }
 
     } else {
+        /*對方關掉「允許他人追蹤」時不能新追蹤，但已經追蹤的人還是可以取消*/
+        if (!targetMember.allow_follow) {
+            throw new Error("FOLLOW_NOT_ALLOWED");
+        }
         await prisma.follow.create({
             data: {
                 follower_id: followerId,

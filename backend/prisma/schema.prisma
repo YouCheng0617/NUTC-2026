@@ -49,6 +49,8 @@ model Member {
   locked_time   DateTime? // 鎖定時間，?=null，表示未鎖定
   status        UserStatus @default(ACTIVE) // 帳號狀態
   tokens_valid_after DateTime? // 這個時間以前簽發的登入憑證一律失效（強制登出所有裝置）
+  hide_follow_lists  Boolean   @default(false) // 不讓別人看我的追蹤與粉絲名單
+  allow_follow       Boolean   @default(true) // 允許別人追蹤我（關掉後已追蹤的人不受影響）
 
   bottles          Bottle[]
   BlacklistedToken BlacklistedToken[]

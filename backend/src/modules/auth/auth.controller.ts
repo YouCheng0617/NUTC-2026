@@ -220,7 +220,7 @@ export class AuthController {
             if (!memberId) {
                 return res.status(400).json({ message: "未授權，請先登入" });
             }
-            const { name, birthday, blood_type, bio, gender, constellation } = req.body;
+            const { name, birthday, blood_type, bio, gender, constellation, hide_follow_lists, allow_follow } = req.body;
 
             /*性別只收這幾種，空字串代表未填寫（以前漏收，前端送來的性別都沒存到）*/
             if (gender !== undefined && !["", "男", "女", "不公開"].includes(gender)) {
@@ -228,6 +228,12 @@ export class AuthController {
             }
             if (constellation !== undefined && !["", ...ZODIAC_SIGNS].includes(constellation)) {
                 return res.status(400).json({ message: "星座格式錯誤" });
+            }
+            if (hide_follow_lists !== undefined && typeof hide_follow_lists !== "boolean") {
+                return res.status(400).json({ message: "hide_follow_lists 必須是 true 或 false" });
+            }
+            if (allow_follow !== undefined && typeof allow_follow !== "boolean") {
+                return res.status(400).json({ message: "allow_follow 必須是 true 或 false" });
             }
 
             // 自介也支援 Markdown 連結，一樣要檢查
@@ -240,7 +246,9 @@ export class AuthController {
                 blood_type,
                 bio,
                 gender,
-                constellation
+                constellation,
+                hide_follow_lists,
+                allow_follow
             });
             res.status(200).json({ message: "會員資料更新成功", data: updatedMember });
 
@@ -279,6 +287,9 @@ export class AuthController {
             }
             if (error.message === "TARGET_NOT_FOUND") {
                 return res.status(404).json({ message: "找不到該名會員" });
+            }
+            if (error.message === "FOLLOW_NOT_ALLOWED") {
+                return res.status(403).json({ code: "FOLLOW_NOT_ALLOWED", message: "對方目前不開放追蹤" });
             }
 
             console.error("追蹤會員發生錯誤:", error);
