@@ -1954,6 +1954,36 @@
             </label>
           </div>
 
+          <div
+            class="setting-item"
+            id="setting-row-hide-follow-lists"
+            hidden
+            style="
+              justify-content: space-between;
+              align-items: center;
+              gap: 12px;
+              padding: 12px 0;
+              border-top: 1px solid #eef2f6;
+            "
+          >
+            <div>
+              <div style="font-weight: bold; color: #333; font-size: 1rem">
+                隱藏我的追蹤與粉絲
+              </div>
+              <div style="font-size: 0.8rem; color: #8899aa; margin-top: 3px">
+                開啟後別人只能看到你丟出的瓶子
+              </div>
+            </div>
+            <label class="switch">
+              <input
+                type="checkbox"
+                id="setting-hide-follow-lists"
+                onchange="toggleHideFollowListsSetting(this.checked)"
+              />
+              <span class="slider round"></span>
+            </label>
+          </div>
+
           <a
             href="delete-account.html"
             style="
@@ -2079,7 +2109,7 @@
 
     <script defer src="https://cdnjs.cloudflare.com/ajax/libs/marked/12.0.2/marked.min.js"></script>
     <script defer src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.1.6/purify.min.js"></script>
-    <script type="module" src="index.js?v=69"></script>
+    <script type="module" src="index.js?v=70"></script>
     <script defer src="daily_question.js?v=2"></script>
     <script defer src="my_ocean.js?v=3"></script>
     <script defer src="home_mobile.js?v=15"></script>

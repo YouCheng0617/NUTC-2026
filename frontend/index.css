@@ -5301,3 +5301,133 @@ textarea.custom-reply-input {
     font-size: 1.4rem !important;
   }
 }
+
+/* =========================================
+   👤 別人的個人頁（瓶子／追蹤／粉絲）
+   ========================================= */
+.detail-author-name.is-profile-link {
+  cursor: pointer !important;
+  color: #0055a5 !important;
+  text-decoration: underline;
+  text-decoration-color: rgba(0, 85, 165, 0.35);
+  text-underline-offset: 4px;
+}
+.detail-author-name.is-profile-link:hover,
+.detail-author-name.is-profile-link:focus-visible {
+  text-decoration-color: #0055a5;
+  outline: none;
+}
+.up-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 2147482000; /* 要蓋過瓶子詳情頁和頂端列，但低於「伺服器整理中」提示 */
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  background: rgba(6, 30, 52, 0.55);
+  backdrop-filter: blur(3px);
+}
+.up-modal.show { display: flex; }
+.up-card {
+  position: relative;
+  width: min(420px, 100%);
+  max-height: min(640px, calc(100dvh - 32px));
+  display: flex;
+  flex-direction: column;
+  background: #fff;
+  border-radius: 24px;
+  padding: 24px 22px 18px;
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.3);
+  color: #333;
+}
+.up-close {
+  position: absolute;
+  top: 10px;
+  right: 14px;
+  border: 0;
+  background: none;
+  font-size: 1.8rem;
+  line-height: 1;
+  color: #8899aa;
+  cursor: pointer;
+}
+.up-head { display: flex; align-items: center; gap: 14px; padding-right: 28px; }
+.up-avatar {
+  width: 58px;
+  height: 58px;
+  border-radius: 50%;
+  background: #f0f4f8;
+  border: 2px solid #e0e6ed;
+  padding: 3px;
+  flex: none;
+}
+.up-name { font-size: 1.25rem; font-weight: 900; color: #0055a5; word-break: break-word; }
+.up-meta { font-size: 0.85rem; color: #8899aa; margin-top: 3px; }
+.up-bio { margin-top: 12px; font-size: 0.95rem; line-height: 1.6; color: #475569; word-break: break-word; }
+.up-bio:empty { display: none; }
+.up-tabs {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+  margin-top: 16px;
+  padding: 4px;
+  background: #f0f4f8;
+  border-radius: 999px;
+}
+.up-tab {
+  border: 0;
+  background: none;
+  border-radius: 999px;
+  padding: 8px 4px;
+  font: inherit;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #5b6b7b;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.up-tab.active { background: #fff; color: #0055a5; box-shadow: 0 2px 6px rgba(0, 40, 80, 0.12); }
+.up-tab:focus-visible { outline: 2px solid #4da6ff; outline-offset: 1px; }
+.up-count { color: #8899aa; font-weight: 600; }
+.up-body { margin-top: 12px; overflow-y: auto; min-height: 180px; display: flex; flex-direction: column; gap: 10px; }
+.up-empty { text-align: center; color: #8899aa; padding: 40px 10px; }
+.up-bottle {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  text-align: left;
+  font: inherit;
+  border: 1px solid #e3ebf3;
+  background: #f8fbfe;
+  border-radius: 16px;
+  padding: 12px 14px;
+  cursor: pointer;
+}
+.up-bottle:hover, .up-bottle:focus-visible { border-color: #9cc8ee; background: #f0f7fe; outline: none; }
+.up-bottle-board { font-size: 0.8rem; font-weight: 700; color: #0055a5; }
+.up-bottle-title { font-size: 1.05rem; font-weight: 800; color: #333; }
+.up-bottle-desc { font-size: 0.88rem; color: #667; line-height: 1.5; }
+.up-bottle-meta { font-size: 0.8rem; color: #8899aa; }
+.up-member {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font: inherit;
+  font-weight: 700;
+  color: #333;
+  text-align: left;
+  border: 1px solid #e3ebf3;
+  background: #fff;
+  border-radius: 14px;
+  padding: 8px 12px;
+  cursor: pointer;
+}
+.up-member img { width: 36px; height: 36px; border-radius: 50%; background: #f0f4f8; padding: 2px; }
+.up-member span:nth-child(2) { flex: 1; word-break: break-word; }
+.up-member-go { color: #a0b0c0; font-size: 1.3rem; }
+.up-member:hover, .up-member:focus-visible { border-color: #9cc8ee; outline: none; }
+.up-refuse { text-align: center; color: #5b6b7b; padding: 30px 12px; line-height: 1.7; }
+.up-refuse-icon { font-size: 3rem; line-height: 1; margin-bottom: 10px; }
+.up-refuse-title { font-size: 1.15rem; font-weight: 900; color: #0055a5; margin: 0 0 6px; }
+.up-refuse p { margin: 0; }
