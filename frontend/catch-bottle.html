@@ -4,7 +4,7 @@
     <script src="require-login.js"></script>
     <meta charset="UTF-8" />
     <!-- 伺服器壞掉時跳出「伺服器整理中」（要在其他程式之前載入） -->
-    <script src="server-status.js?v=1"></script>
+    <script src="server-status.js?v=2"></script>
     <meta
       name="viewport"
       content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
@@ -14,7 +14,7 @@
     <link rel="icon" type="image/png" href="images/icon-192.png" />
     <link rel="apple-touch-icon" href="images/apple-touch-icon.png" />
 
-    <link rel="stylesheet" href="index.css?v=101" />
+    <link rel="stylesheet" href="index.css?v=102" />
 
     <style>
       body,
@@ -34,7 +34,7 @@
 
       #gameCanvas {
         background: transparent;
-        backdrop-filter: none;
+        -webkit-backdrop-filter: none; backdrop-filter: none;
         -webkit-backdrop-filter: none;
         box-shadow: 0 0 30px rgba(77, 166, 255, 0.3);
         border: 2px solid rgba(255, 255, 255, 0.2);
@@ -75,7 +75,7 @@
         width: 100%;
         height: 100%;
         background: rgba(0, 20, 40, 0.85);
-        backdrop-filter: blur(5px);
+        -webkit-backdrop-filter: blur(5px); backdrop-filter: blur(5px);
         display: flex;
         flex-direction: column;
         justify-content: center;
@@ -189,7 +189,7 @@
         color: white;
         font-size: 1.15rem;
         box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
-        backdrop-filter: blur(5px);
+        -webkit-backdrop-filter: blur(5px); backdrop-filter: blur(5px);
         display: flex;
         align-items: center;
         gap: 8px;
@@ -241,7 +241,7 @@
         box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
         z-index: 30;
         transition: all 0.3s;
-        backdrop-filter: blur(5px);
+        -webkit-backdrop-filter: blur(5px); backdrop-filter: blur(5px);
       }
       .float-br-btn:hover {
         transform: scale(1.05) translateY(-3px);
@@ -289,7 +289,7 @@
         top: 25px;
         right: 25px;
         background: rgba(0, 85, 165, 0.6);
-        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px);
         border: 1px solid #4da6ff;
         color: #fff;
         padding: 8px 16px;
@@ -1287,7 +1287,7 @@
         let pauseOverlay = document.createElement("div");
         pauseOverlay.id = "pause-overlay";
         pauseOverlay.style.cssText =
-          "position:absolute;top:0;left:0;width:100%;height:100%;background:rgba(0,20,40,0.85);backdrop-filter:blur(5px);display:flex;flex-direction:column;justify-content:center;align-items:center;z-index:100;";
+          "position:absolute;top:0;left:0;width:100%;height:100%;background:rgba(0,20,40,0.85);-webkit-backdrop-filter:blur(5px); backdrop-filter:blur(5px);display:flex;flex-direction:column;justify-content:center;align-items:center;z-index:100;";
 
         // 這裡的文字也可以接翻譯，但為求簡單先維持中文
         pauseOverlay.innerHTML = `

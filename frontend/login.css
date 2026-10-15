@@ -2,7 +2,7 @@
    🌊 全域與海洋背景
    ================================================== */
 body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background-color: #5BA7FF; font-family: 'PingFang TC', sans-serif; }
-.login-container { position: relative; width: 100vw; height: 100vh; display: flex; justify-content: center; align-items: center; }
+.login-container { position: relative; width: 100vw; height: 100vh; height: 100dvh; display: flex; justify-content: center; align-items: center; }
 .bg-img { position: absolute; width: 100%; height: 100%; object-fit: cover; z-index: 1; }
 
 /* 魔法漂浮泡泡 */
@@ -17,7 +17,7 @@ body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden;
 @keyframes crystalBreathe { 0%, 100% { box-shadow: inset -20px -20px 40px rgba(0, 85, 165, 0.2), inset 20px 20px 40px rgba(255, 255, 255, 0.7), 0 25px 50px rgba(0, 0, 0, 0.15), 0 0 30px rgba(255, 255, 255, 0.2); } 50% { box-shadow: inset -20px -20px 40px rgba(0, 85, 165, 0.3), inset 20px 20px 40px rgba(255, 255, 255, 0.9), 0 30px 60px rgba(0, 0, 0, 0.25), 0 0 70px rgba(106, 183, 255, 0.6); } }
 
 /* 首頁中央大按鈕 */
-.enter-btn-container { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 10; display: flex; flex-direction: column; justify-content: center; align-items: center; width: 80vw; height: 80vw; max-width: 750px; max-height: 750px; background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.5) 0%, rgba(255, 255, 255, 0.1) 50%, rgba(0, 85, 165, 0.15) 100%); backdrop-filter: blur(8px); border-radius: 50%; border: 1px solid rgba(255, 255, 255, 0.6); animation: crystalBreathe 4s ease-in-out infinite; cursor: pointer; transition: all 0.5s cubic-bezier(0.25, 0.8, 0.25, 1); color: #fff; text-align: center; box-sizing: border-box; padding: 20px; }
+.enter-btn-container { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 10; display: flex; flex-direction: column; justify-content: center; align-items: center; width: 80vw; height: 80vw; max-width: 750px; max-height: 750px; background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.5) 0%, rgba(255, 255, 255, 0.1) 50%, rgba(0, 85, 165, 0.15) 100%); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); border-radius: 50%; border: 1px solid rgba(255, 255, 255, 0.6); animation: crystalBreathe 4s ease-in-out infinite; cursor: pointer; transition: all 0.5s cubic-bezier(0.25, 0.8, 0.25, 1); color: #fff; text-align: center; box-sizing: border-box; padding: 20px; }
 .enter-btn-container:hover { transform: translate(-50%, -54%) scale(1.02); box-shadow: inset -20px -20px 40px rgba(0, 85, 165, 0.2), inset 20px 20px 40px rgba(255, 255, 255, 0.9), 0 30px 60px rgba(0, 0, 0, 0.2), 0 0 80px rgba(106, 183, 255, 0.6); }
 .enter-btn-container img { width: clamp(100px, 28vw, 260px) !important; margin-bottom: 3% !important; filter: drop-shadow(0 6px 10px rgba(0, 50, 100, 0.3)); }
 .enter-btn-container h2 { font-size: clamp(2rem, 6.5vw, 5.5rem); font-weight: 900; letter-spacing: clamp(4px, 1.5vw, 16px); margin: 0 0 5% 0; text-shadow: 0 5px 12px rgba(0, 50, 100, 0.4); }
@@ -26,11 +26,11 @@ body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden;
 /* ==================================================
    🫧 巨無霸正圓形大泡泡彈窗 (加大型防撞版)
    ================================================== */
-.cute-modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0, 40, 80, 0.4); backdrop-filter: blur(8px); justify-content: center; align-items: center; }
+.cute-modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0, 40, 80, 0.4); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); justify-content: center; align-items: center; }
 
 .cute-modal-content {
     background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.4) 0%, rgba(255, 255, 255, 0.05) 50%, rgba(0, 85, 165, 0.15) 100%) !important;
-    backdrop-filter: blur(12px) !important; 
+    -webkit-backdrop-filter: blur(12px) !important; backdrop-filter: blur(12px) !important; 
     border: 2px solid rgba(255, 255, 255, 0.6) !important; 
     
     width: 96vmin !important;            
@@ -158,7 +158,7 @@ body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden;
     .cute-modal-content {
         width: 90vw !important;
         height: auto !important;          /* 🌟 釋放高度限制，讓內容撐開 */
-        max-height: 90vh !important;      /* 避免彈窗超出整個螢幕 */
+        max-height: 90vh !important; max-height: 90dvh !important;      /* 避免彈窗超出整個螢幕 */
         aspect-ratio: auto !important;    /* 🌟 取消正圓形比例，變成橢圓或膠囊 */
         border-radius: 40px !important;   /* 變成唯美的圓角膠囊 */
         padding: 40px 20px !important;
@@ -278,7 +278,7 @@ body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden;
 /* 螢幕不夠寬（泡泡左邊放不下）：小助手坐在卡片左上角，對話框在右邊 */
 @media (max-width: 1100px) {
     .auth-stage { margin-top: 84px; }
-    .auth-stage .cute-modal-content { max-height: calc(90vh - 84px) !important; }
+    .auth-stage .cute-modal-content { max-height: calc(90vh - 84px) !important; max-height: calc(90dvh - 84px) !important; }
     .login-mascot {
         width: 112px;
         right: auto;

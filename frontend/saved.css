@@ -35,7 +35,7 @@
    ================================================== */
 .glass-profile-card {
   background: rgba(255, 255, 255, 0.85);
-  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   border: 1px solid rgba(255, 255, 255, 0.5);
   border-radius: 24px;
@@ -196,7 +196,7 @@
   margin-bottom: 30px;
   padding: 10px 20px;
   background: rgba(255, 255, 255, 0.15);
-  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px);
   border-radius: 50px;
   border: 1px solid rgba(255, 255, 255, 0.3);
   box-shadow: 0 4px 15px rgba(0, 40, 80, 0.2);

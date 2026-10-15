@@ -4,7 +4,7 @@
     <script src="require-login.js"></script>
     <meta charset="UTF-8" />
     <!-- 伺服器壞掉時跳出「伺服器整理中」（要在其他程式之前載入） -->
-    <script src="server-status.js?v=1"></script>
+    <script src="server-status.js?v=2"></script>
     <meta
       name="viewport"
       content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
@@ -14,7 +14,7 @@
     <link rel="icon" type="image/png" href="images/icon-192.png" />
     <link rel="apple-touch-icon" href="images/apple-touch-icon.png" />
 
-    <link rel="stylesheet" href="index.css?v=101" />
+    <link rel="stylesheet" href="index.css?v=102" />
 
     <style>
       body,
@@ -51,7 +51,7 @@
         font-weight: bold;
         font-size: 1.1rem;
         transition: 0.3s;
-        backdrop-filter: blur(5px);
+        -webkit-backdrop-filter: blur(5px); backdrop-filter: blur(5px);
       }
 
       .back-btn:hover {
@@ -147,7 +147,7 @@
       .card-back {
         background: rgba(10, 25, 50, 0.6);
         border: 2px solid rgba(171, 130, 255, 0.4);
-        backdrop-filter: blur(5px);
+        -webkit-backdrop-filter: blur(5px); backdrop-filter: blur(5px);
         animation: float 3s infinite ease-in-out alternate;
       }
 
@@ -220,7 +220,7 @@
         width: 100vw;
         height: 100vh;
         background: rgba(0, 5, 15, 0.8);
-        backdrop-filter: blur(5px);
+        -webkit-backdrop-filter: blur(5px); backdrop-filter: blur(5px);
         z-index: 100;
         opacity: 0;
         transition: opacity 0.5s ease;
@@ -523,7 +523,7 @@
         color: #ffd700;
         font-size: 0.95rem;
         font-weight: bold;
-        backdrop-filter: blur(5px);
+        -webkit-backdrop-filter: blur(5px); backdrop-filter: blur(5px);
         box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
       }
 

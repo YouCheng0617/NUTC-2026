@@ -41,7 +41,7 @@ html.is-guest .mobile-bell-wrapper {
     width: 100% !important;
     max-width: none !important;
     height: auto !important;
-    max-height: 78vh !important;
+    max-height: 78vh !important; max-height: 78dvh !important;
     margin: 0 !important;
     border-radius: 22px 22px 0 0 !important;
     z-index: 200002 !important; /* 標題列是 200000，面板要蓋在它上面 */
@@ -63,7 +63,7 @@ html.is-guest .mobile-bell-wrapper {
     position: static !important;
     width: 100% !important;
     max-width: none !important;
-    max-height: 78vh !important;
+    max-height: 78vh !important; max-height: 78dvh !important;
     overflow-y: auto !important;
     padding: 18px 18px calc(18px + env(safe-area-inset-bottom)) !important;
     box-sizing: border-box !important;

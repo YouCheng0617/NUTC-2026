@@ -101,7 +101,7 @@ body {
     display: flex;
     flex-direction: column;
     background: var(--glass-bg);
-    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px); backdrop-filter: blur(15px);
     -webkit-backdrop-filter: blur(15px);
     border: 2px solid var(--glass-border);
     border-radius: 40px;
@@ -211,7 +211,7 @@ body {
     border-radius: 30px;
     cursor: pointer;
     transition: all 0.3s;
-    backdrop-filter: blur(5px);
+    -webkit-backdrop-filter: blur(5px); backdrop-filter: blur(5px);
 }
 
 .chip:hover {
@@ -252,7 +252,7 @@ body {
 
 .ai-bubble {
     background: var(--ai-bubble);
-    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
     color: var(--ai-text);
     border-bottom-left-radius: 6px;
     border: 1px solid var(--glass-border);
@@ -343,7 +343,7 @@ body {
     border: 1px solid var(--glass-border);
     border-radius: 30px;
     padding: 10px 15px 10px 25px;
-    backdrop-filter: blur(5px);
+    -webkit-backdrop-filter: blur(5px); backdrop-filter: blur(5px);
 }
 
 textarea {
@@ -414,7 +414,7 @@ textarea::-webkit-scrollbar {
     top: 120%;
     right: 0;
     background-color: var(--glass-bg);
-    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px); backdrop-filter: blur(15px);
     min-width: 130px;
     box-shadow: 0px 10px 20px var(--glass-shadow);
     border-radius: 20px;
@@ -449,7 +449,7 @@ textarea::-webkit-scrollbar {
     background: var(--ai-bubble);
     border: 1px solid var(--glass-border);
     color: var(--text-main);
-    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
     text-align: center;
     border-radius: 30px;
     padding: 12px 25px;

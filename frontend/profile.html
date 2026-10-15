@@ -3,6 +3,10 @@
 
 <head>
   <meta charset="UTF-8" />
+  <!-- 伺服器壞掉時跳出「伺服器整理中」（要在其他程式之前載入） -->
+  <script src="server-status.js?v=2"></script>
+  <!-- 彈窗打開時不讓拉動傳到後面的網頁（iPhone 下拉重新整理） -->
+  <script src="modal_scroll_guard.js?v=1"></script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>個人頁面 - 心情漂流瓶</title>
   <link rel="icon" href="favicon.ico" sizes="any" />
@@ -40,7 +44,7 @@
     .top-bar a:hover { background: #fff; color: var(--deep); }
     .panel {
       background: rgba(255, 255, 255, 0.12);
-      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px);
       -webkit-backdrop-filter: blur(12px);
       border: 1px solid var(--glass-line);
       border-radius: 24px;
@@ -122,7 +126,7 @@
     .pf-bottle {
       position: relative; width: 140px; height: 140px; border-radius: 50%; padding: 20px;
       background: radial-gradient(circle at 30% 30%, rgba(224, 242, 254, 0.75), rgba(125, 211, 252, 0.45));
-      backdrop-filter: blur(4px);
+      -webkit-backdrop-filter: blur(4px); backdrop-filter: blur(4px);
       border: 2px solid rgba(255, 255, 255, 0.6);
       box-shadow: 0 8px 20px rgba(0, 30, 70, 0.2), inset 0 0 15px rgba(255, 255, 255, 0.6);
       display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 6px; text-align: center;
@@ -162,7 +166,7 @@
     .member {
       display: flex; align-items: center; gap: 14px; height: 76px; padding: 0 16px;
       background: var(--glass); border: 1px solid var(--glass-line); border-radius: 18px;
-      backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); transition: background 0.2s;
+      -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); transition: background 0.2s;
     }
     .member:hover { background: rgba(255, 255, 255, 0.22); }
     .member a { flex: 1; min-width: 0; display: flex; align-items: center; gap: 14px; text-decoration: none; color: inherit; }
@@ -198,7 +202,7 @@
     .modal-card h2 { margin: 0 0 6px; color: var(--blue); font-size: 1.25rem; font-weight: 900; }
     .edit-form label { display: block; margin-top: 14px; font-weight: bold; font-size: 0.9rem; color: #555; }
     .edit-form input, .edit-form select, .edit-form textarea {
-      width: 100%; margin-top: 6px; padding: 9px 12px; font-size: 0.95rem; font-family: inherit; color: #333;
+      width: 100%; margin-top: 6px; padding: 9px 12px; font-size: 1rem; font-family: inherit; color: #333; /* 16px：iPhone 點輸入框才不會整頁放大 */
       border: 1px solid #cfe2ff; border-radius: 12px; background: #f9fbfd;
     }
     .edit-form input:focus, .edit-form select:focus, .edit-form textarea:focus { outline: none; border-color: var(--blue-light); background: #fff; }
@@ -379,6 +383,7 @@
       if (!res.ok) {
         const err = new Error(data.message || "讀取失敗");
         err.status = res.status;
+        err.code = data.code;
         throw err;
       }
       return data.data;
@@ -465,8 +470,9 @@
       renderBio(profile.bio);
 
       $("pf-bottle-count").textContent = profile.bottle_count;
-      $("pf-follower-count").textContent = profile.follower_count;
-      $("pf-following-count").textContent = profile.following_count;
+      // 對方開了「隱藏我的追蹤與粉絲」時人數是 null，顯示鎖頭
+      $("pf-follower-count").textContent = profile.follower_count ?? "🔒";
+      $("pf-following-count").textContent = profile.following_count ?? "🔒";
 
       const action = $("pf-action");
       action.innerHTML = "";
@@ -481,9 +487,11 @@
         setFollowBtn(btn, profile.is_following);
         btn.addEventListener("click", () => toggleFollow(profile.member_id, btn, (isFollowing) => {
           profile.is_following = isFollowing;
-          profile.follower_count += isFollowing ? 1 : -1;
           setFollowBtn(btn, isFollowing);
-          $("pf-follower-count").textContent = profile.follower_count;
+          if (typeof profile.follower_count === "number") { // 人數隱藏（null）時維持鎖頭
+            profile.follower_count += isFollowing ? 1 : -1;
+            $("pf-follower-count").textContent = profile.follower_count;
+          }
         }));
       }
       action.appendChild(btn);
@@ -599,6 +607,10 @@
         renderPager(data.total, data.pageSize);
       } catch (e) {
         if (tab !== currentTab) return;
+        if (e.code === "FOLLOW_LIST_HIDDEN") {
+          list.innerHTML = '<div class="empty-box"><div style="font-size:2.6rem;line-height:1;margin-bottom:8px">🙅</div><b style="font-size:1.1rem">此用戶婉拒您的查看</b><br>對方把追蹤與粉絲名單設為不公開，你仍然可以看看對方丟出的瓶子 🍾</div>';
+          return;
+        }
         list.innerHTML = '<div class="empty-box">讀取失敗，請稍後再試 😢</div>';
       }
     }

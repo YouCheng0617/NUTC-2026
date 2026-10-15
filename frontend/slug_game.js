@@ -7830,7 +7830,7 @@ if (window.gearClockInterval) clearInterval(window.gearClockInterval);
                                 position: absolute; top: 0; left: 0; width: 100%; height: 100%;
                                 background: linear-gradient(to bottom, rgba(15, 23, 42, 0.45) 0%, rgba(30, 41, 59, 0.35) 65%, rgba(20, 45, 35, 0.5) 100%);
                                 pointer-events: none; z-index: 1;
-                                backdrop-filter: blur(1px);
+                                -webkit-backdrop-filter: blur(1px); backdrop-filter: blur(1px);
                                 animation: nightBreathe 4s ease-in-out infinite alternate;
                             }
                             @keyframes nightBreathe { 0% { opacity: 0.8; } 100% { opacity: 1; } }
@@ -8963,7 +8963,7 @@ case 'duck': {
                                 width: 100%;
                                 height: 100%;
                                 background: linear-gradient(180deg, rgba(224, 242, 254, 0.3) 0%, rgba(186, 230, 253, 0.2) 50%, rgba(147, 197, 253, 0.25) 100%);
-                                backdrop-filter: contrast(1.02) brightness(1.03);
+                                -webkit-backdrop-filter: contrast(1.02) brightness(1.03); backdrop-filter: contrast(1.02) brightness(1.03);
                                 pointer-events: none;
                                 z-index: 1;
                                 animation: snowFrostBreathe 6s ease-in-out infinite alternate;
@@ -9743,7 +9743,7 @@ case 'butterfly': {
                             .moon-misty-overlay {
                                 position: absolute; top: 0; left: 0; width: 100%; height: 100%;
                                 background: radial-gradient(circle at 50% 35%, rgba(147, 197, 253, 0.2) 0%, rgba(79, 70, 229, 0.25) 50%, rgba(15, 23, 42, 0.65) 100%);
-                                backdrop-filter: blur(2px) brightness(0.9);
+                                -webkit-backdrop-filter: blur(2px) brightness(0.9); backdrop-filter: blur(2px) brightness(0.9);
                                 pointer-events: none; z-index: 1;
                             }
 
@@ -11519,7 +11519,7 @@ case 'fish': {
                                 justify-content: space-between;
                                 padding: 10px 0;
                                 background: linear-gradient(180deg, rgba(255, 255, 255, 0.88) 0%, rgba(250, 245, 255, 0.94) 50%, rgba(255, 255, 255, 0.88) 100%);
-                                backdrop-filter: blur(5px);
+                                -webkit-backdrop-filter: blur(5px); backdrop-filter: blur(5px);
                                 box-shadow: 0 4px 20px rgba(168, 85, 247, 0.2);
                                 pointer-events: none;
                             }
@@ -11602,7 +11602,7 @@ case 'fish': {
                                 border-radius: 20px;
                                 padding: 8px 10px;
                                 box-shadow: 0 8px 25px rgba(168, 85, 247, 0.35);
-                                backdrop-filter: blur(6px);
+                                -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px);
                                 pointer-events: auto !important;
                                 width: auto;
                                 max-width: 290px;
@@ -13143,7 +13143,7 @@ default:
         modalOverlay.id = 'customTauntModal';
         modalOverlay.style.cssText = `
             position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-            background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(6px);
+            background: rgba(15, 23, 42, 0.85); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px);
             z-index: 999999; display: flex; align-items: center; justify-content: center;
             pointer-events: auto !important;
         `;

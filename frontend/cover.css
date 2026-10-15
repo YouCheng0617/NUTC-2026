@@ -8,7 +8,7 @@
 
 body, html {
     width: 100vw;
-    height: 100vh;
+    height: 100vh; height: 100dvh;
     overflow: hidden; /* 鎖死螢幕，不讓捲軸出現 */
 }
 
@@ -27,7 +27,7 @@ body::before {
     content: "";
     position: fixed; 
     top: 0; left: 0;
-    width: 100vw; height: 100vh;
+    width: 100vw; height: 100vh; height: 100dvh;
     background: rgba(0, 20, 50, 0.6); /* 深海暗藍色遮罩 */
     pointer-events: none; /* 絕對不能擋住妳點擊按鈕 */
     opacity: 0; /* 白天是透明的，看不見 */
@@ -57,7 +57,7 @@ body.night-mode::before {
 .glass-panel {
     /* 🔥 這裡！把最後面的數字改成 0.22，讓白霧感更明顯 */
     background: rgba(255, 255, 255, 0); 
-    backdrop-filter: blur(16px); 
+    -webkit-backdrop-filter: blur(16px); backdrop-filter: blur(16px); 
     -webkit-backdrop-filter: blur(16px); 
     border: 2px solid rgba(255, 255, 255, 0.5); 
     box-shadow: 
@@ -129,7 +129,7 @@ body.night-mode::before {
         rgba(20, 60, 100, 0.3) 50%, 
         rgba(5, 25, 55, 0.5) 100%
     );
-    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px);
     -webkit-backdrop-filter: blur(6px);
     border: 1px solid rgba(255, 255, 255, 0.2); /* 加上細細的水光邊界 */
     box-shadow: 
@@ -161,7 +161,7 @@ body {
 ========================= */
 .enter-btn {
     background: rgba(255, 255, 255, 0.25);
-    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
     border: 1px solid rgba(255, 255, 255, 0.7); 
     padding: 12px 35px;
@@ -421,7 +421,7 @@ body {
     
     padding: 10px 20px;
     background: rgba(255, 255, 255, 0.1); /* 極薄的玻璃底色 */
-    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px); backdrop-filter: blur(4px);
     border-radius: 20px 0 0 20px; /* 圓弧狀融入氣泡 */
     
     color: white;

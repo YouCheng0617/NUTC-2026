@@ -4,14 +4,14 @@
     <script src="require-login.js"></script>
     <meta charset="UTF-8" />
     <!-- 伺服器壞掉時跳出「伺服器整理中」（要在其他程式之前載入） -->
-    <script src="server-status.js?v=1"></script>
+    <script src="server-status.js?v=2"></script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>秘密海域遊樂場 - 心情漂流瓶</title>
     <link rel="icon" href="favicon.ico" sizes="any" />
     <link rel="icon" type="image/png" href="images/icon-192.png" />
     <link rel="apple-touch-icon" href="images/apple-touch-icon.png" />
 
-    <link rel="stylesheet" href="index.css?v=103" />
+    <link rel="stylesheet" href="index.css?v=104" />
 
     <style>
       /* 🌟 解除 index.css 的高度鎖定詛咒，讓這個頁面可以正常上下滾動！ */
@@ -56,7 +56,7 @@
       /* 🎮 超大毛玻璃按鈕設計 */
       .big-game-btn {
         background: rgba(255, 255, 255, 0.1);
-        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px);
         -webkit-backdrop-filter: blur(12px);
         border: 1px solid rgba(255, 255, 255, 0.3);
         border-radius: 20px;

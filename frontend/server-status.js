@@ -89,7 +89,7 @@
   // ---------- 畫面 ----------
   const CSS = `
     .srv-status-veil { position: fixed; inset: 0; z-index: 2147483000; display: flex; align-items: center; justify-content: center; padding: 20px;
-      background: rgba(6, 30, 52, .55); backdrop-filter: blur(3px); font-family: "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", sans-serif; }
+      background: rgba(6, 30, 52, .55); -webkit-backdrop-filter: blur(3px); backdrop-filter: blur(3px); font-family: "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", sans-serif; }
     .srv-status-card { width: min(380px, 100%); background: #fff; border-radius: 22px; padding: 28px 24px 22px; text-align: center; color: #14324a;
       box-shadow: 0 18px 50px rgba(0, 0, 0, .3); animation: srvPop .35s cubic-bezier(.18,.89,.32,1.28); }
     @keyframes srvPop { from { transform: scale(.85); opacity: 0; } }

@@ -3,13 +3,15 @@
   <head>
     <meta charset="UTF-8" />
     <!-- 伺服器壞掉時跳出「伺服器整理中」（要在其他程式之前載入） -->
-    <script src="server-status.js?v=1"></script>
+    <script src="server-status.js?v=2"></script>
+    <!-- 彈窗打開時不讓拉動傳到後面的網頁（iPhone 下拉重新整理） -->
+    <script src="modal_scroll_guard.js?v=1"></script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>心情漂流瓶 - 我的文章</title>
     <link rel="icon" href="favicon.ico" sizes="any" />
     <link rel="icon" type="image/png" href="images/icon-192.png" />
     <link rel="apple-touch-icon" href="images/apple-touch-icon.png" />
-    <link rel="stylesheet" href="index.css?v=64" />
+    <link rel="stylesheet" href="index.css?v=65" />
     <style>
       /* ==================================================
          🏠 回到主頁按鈕：深海發光水滴特效
@@ -52,7 +54,7 @@
         width: 100vw !important;
         height: 100vh !important;
         background: rgba(0, 15, 35, 0.75) !important;
-        backdrop-filter: blur(8px) !important;
+        -webkit-backdrop-filter: blur(8px) !important; backdrop-filter: blur(8px) !important;
         -webkit-backdrop-filter: blur(8px) !important;
         z-index: 100000 !important;
         padding: 15px !important;
@@ -70,7 +72,7 @@
 
       .glass-profile-card {
         background: rgba(255, 255, 255, 0.96) !important;
-        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px); backdrop-filter: blur(16px);
         -webkit-backdrop-filter: blur(16px);
         border: 1px solid rgba(255, 255, 255, 0.8);
         border-radius: 24px;
@@ -245,7 +247,7 @@
         margin-bottom: 50px;
         padding: 8px 16px;
         background: rgba(255, 255, 255, 0.18);
-        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px);
         border-radius: 50px;
         border: 1px solid rgba(255, 255, 255, 0.35);
         box-shadow: 0 4px 15px rgba(0, 40, 80, 0.2);

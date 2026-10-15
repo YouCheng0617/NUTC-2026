@@ -3,7 +3,9 @@
   <head>
     <meta charset="UTF-8" />
     <!-- 伺服器壞掉時跳出「伺服器整理中」（要在其他程式之前載入） -->
-    <script src="server-status.js?v=1"></script>
+    <script src="server-status.js?v=2"></script>
+    <!-- 彈窗打開時不讓拉動傳到後面的網頁（iPhone 下拉重新整理） -->
+    <script src="modal_scroll_guard.js?v=1"></script>
     <meta
       name="viewport"
       content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
@@ -12,7 +14,7 @@
     <link rel="icon" href="favicon.ico" sizes="any" />
     <link rel="icon" type="image/png" href="images/icon-192.png" />
     <link rel="apple-touch-icon" href="images/apple-touch-icon.png" />
-    <link rel="stylesheet" href="login.css?v=4" />
+    <link rel="stylesheet" href="login.css?v=5" />
     <style>
       /* ✨ 專屬返回按鈕樣式 (水滴小膠囊 - 美化升級版) */
       .return-btn {
@@ -25,7 +27,7 @@
         font-weight: bold;
         text-decoration: none;
         background: rgba(0, 85, 165, 0.5);
-        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px);
         padding: 10px 25px;
         border-radius: 30px;
         border: 1px solid rgba(106, 183, 255, 0.6);
