@@ -158,3 +158,6 @@ export const deletionRequestLimiter = perMemberLimiter(60 * 60 * 1000, 3, "註�
 
 /*塔羅 AI 解牌：每人每小時最多 10 次（每次都會叫 AI 生成）*/
 export const tarotReadingLimiter = perMemberLimiter(60 * 60 * 1000, 10, "占卜太頻繁了，海浪需要休息一下，請 1 小時後再試。");
+
+/*AI 特助聊天：每人每小時最多 30 則（每則都會叫 AI 生成）*/
+export const aiChatLimiter = perMemberLimiter(60 * 60 * 1000, 30, "AI 特助一小時最多聊 30 則，先休息一下，等等再來找我吧！☕");

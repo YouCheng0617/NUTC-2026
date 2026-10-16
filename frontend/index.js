@@ -2575,6 +2575,12 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
+    // AI 特助要登入才能用
+    if (!localStorage.getItem("authToken")) {
+      alert("要先登入才能使用 AI 特助喔！🤖");
+      window.location.href = "login.html";
+      return;
+    }
     window.location.href = AI_ASSISTANT_URL;
   });
 

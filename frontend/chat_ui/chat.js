@@ -87,15 +87,38 @@ document.addEventListener('DOMContentLoaded', () => {
         scrollToBottom();
         const contentDiv = row.querySelector('.content');
 
-        // ✨ 真實連線：呼叫 Python 後端 API
+        // ✨ 真實連線：經過 Node 後端 /ai/chat（會檢查登入與次數）再轉給 AI 服務
+        //    後端那支還沒上線（回 404）時，先退回舊的 /api/chat
         async function fetchRealAIResponse() {
             try {
-                const response = await fetch('https://api.drift-bottles.xyz/api/chat', {
+                const token = localStorage.getItem('authToken');
+                const opts = {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) },
                     body: JSON.stringify({ message: userText, language: currentLang })
-                });
+                };
+                let response = await fetch('https://api.drift-bottles.xyz/ai/chat', opts);
+                if (response.status === 404) response = await fetch('https://api.drift-bottles.xyz/api/chat', opts);
 
+                // 登入過期、或用太多次：顯示原因，不要只說「休息中」
+                if (response.status === 401 || response.status === 429) {
+                    const err = await response.json().catch(() => ({}));
+                    const msg = response.status === 401 ? {
+                        "zh-TW": "登入已經過期了，請重新登入再來找我聊天喔！🔑",
+                        "zh-CN": "登录已经过期了，请重新登录再来找我聊天哦！🔑",
+                        en: "Your login has expired. Please log in again to keep chatting! 🔑",
+                        ja: "ログインの有効期限が切れました。もう一度ログインしてからお話ししましょう！🔑"
+                    } : {
+                        "zh-TW": err.message || "聊得太熱烈了，先休息一下，等等再來找我吧！☕",
+                        "zh-CN": "聊得太热烈了，先休息一下，等等再来找我吧！☕",
+                        en: "That's a lot of chatting! Take a short break and come back soon. ☕",
+                        ja: "たくさんお話ししましたね！少し休憩してからまた来てください。☕"
+                    };
+                    contentDiv.innerHTML = escapeHTML(msg[currentLang] || msg["zh-TW"]);
+                    finishGeneration();
+                    if (response.status === 401) setTimeout(() => { window.location.href = '../login.html'; }, 2500);
+                    return;
+                }
                 if (!response.ok) throw new Error('API 連線失敗');
                 const data = await response.json();
                 

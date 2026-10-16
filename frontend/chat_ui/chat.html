@@ -3,7 +3,9 @@
 
 <head>
     <meta charset="UTF-8">
-    <script src="../server-status.js?v=2"></script>
+    <script src="../server-status.js?v=3"></script>
+    <!-- AI 特助要登入才能用（後端 /ai/chat 也會檢查） -->
+    <script src="../require-login.js?v=2" data-message="要先登入才能使用 AI 特助喔！🤖"></script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, interactive-widget=resizes-content">
     <title>AI 特助聊天室</title>
     <link rel="icon" href="../favicon.ico" sizes="any" />
@@ -177,6 +179,6 @@
         });
     </script>
 
-    <script src="./chat.js?v=2"></script>
+    <script src="./chat.js?v=3"></script>
 </body>
 </html>

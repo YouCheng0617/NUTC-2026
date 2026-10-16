@@ -17,7 +17,9 @@
   let retryTimer = null;
   let checking = null;
 
-  const isApi = (url) => String(url || "").startsWith(API) && !/\/api\/(chat|tarot|analyze)/.test(String(url));
+  // AI 相關（聊天、塔羅解讀、審核）忙線不代表整站壞掉，交給各自頁面顯示「AI 休息中」
+  const AI_PATHS = /\/api\/(chat|tarot|analyze)|\/ai\/|\/game\/tarot\/reading/;
+  const isApi = (url) => String(url || "").startsWith(API) && !AI_PATHS.test(String(url));
 
   // 問後端首頁：8 秒內有回應（任何 2xx～4xx）就算活著
   async function healthCheck() {

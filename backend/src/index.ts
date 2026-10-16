@@ -23,6 +23,7 @@ import { dailyQuestionRouter } from './modules/daily-question/dailyQuestion.rout
 import { accountDeletionRouter } from './modules/account-deletion/accountDeletion.router.js';
 import { profileRouter } from './modules/profile/profile.router.js';
 import { membersRouter } from './modules/members/members.router.js';
+import { aiChatRouter } from "./modules/ai-chat/aiChat.router.js";
 
 
 import { setupPetSocket } from './socket/petServer.js';
@@ -69,6 +70,7 @@ app.use('/daily-question', dailyQuestionRouter()); /*首頁今日一題*/
 app.use('/account-deletion', accountDeletionRouter()); /*註銷帳號*/
 app.use('/profile', profileRouter()); /*個人頁面*/
 app.use('/members', membersRouter()); /*別人的個人頁（瓶子詳情點作者名字）*/
+app.use('/ai', aiChatRouter()); /*AI 特助聊天（要登入）*/
 if (!process.env["DATABASE_URL"]) {
     console.error("DATABASE_URL is not defined in env.");
 }
