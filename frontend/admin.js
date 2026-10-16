@@ -223,14 +223,16 @@ async function loadDashboardData() {
         // --- 準備資料變數 ---
         let angry = 0, secret = 0, broken = 0, apathy = 0, happy = 0;
         const zodiacCounts = { '牡羊座': 0, '金牛座': 0, '雙子座': 0, '巨蟹座': 0, '獅子座': 0, '處女座': 0, '天秤座': 0, '天蠍座': 0, '射手座': 0, '摩羯座': 0, '水瓶座': 0, '雙魚座': 0 };
+        let zodiacUnknown = 0; // 沒填、選「不透露」或認不得的寫法
         let maleCount = 0, femaleCount = 0, otherCount = 0;
         let bottleMale = 0, bottleFemale = 0, bottleOther = 0; 
         const userGenderMap = {};
 
         // --- 分析會員資料 ---
         users.forEach(u => {
-            let z = u.constellation || u.zodiac; 
-            if (z && zodiacCounts[z] !== undefined) zodiacCounts[z]++;
+            const z = zodiacOf(u.constellation || u.zodiac);
+            if (z) zodiacCounts[z]++;
+            else zodiacUnknown++;
 
             const g = genderOf(u.gender || u.sex);
             const uId = u.id || u.member_id;
@@ -300,7 +302,7 @@ async function loadDashboardData() {
         changeTrendTimeRange('7'); // 畫發文趨勢圖
         changeCsTrendTimeRange('7'); // 畫客服案件趨勢圖
         drawDoughnutChart([angry, secret, broken, apathy, happy]);
-        drawZodiacChart(Object.keys(zodiacCounts), Object.values(zodiacCounts));
+        drawZodiacChart([...Object.keys(zodiacCounts), '未填寫'], [...Object.values(zodiacCounts), zodiacUnknown]);
         drawGenderChart([maleCount, femaleCount, otherCount]);
         drawBottleGenderChart([bottleMale, bottleFemale, bottleOther]); 
         drawCommentTypeChart([realCommentCount, anonCommentCount]); 
@@ -532,19 +534,29 @@ function drawDoughnutChart(dataArray) {
     });
 }
 
+// 星座寫法統一：後端用生日算出來的是「魔羯座」，註冊選單是「摩羯座」，也接受常見別名和沒寫「座」的
+const ZODIAC_ALIASES = { '魔羯': '摩羯', '山羊': '摩羯', '白羊': '牡羊', '天平': '天秤', '人馬': '射手', '寶瓶': '水瓶' };
+const ZODIAC_NAMES = ['牡羊座', '金牛座', '雙子座', '巨蟹座', '獅子座', '處女座', '天秤座', '天蠍座', '射手座', '摩羯座', '水瓶座', '雙魚座'];
+function zodiacOf(raw) {
+    let z = String(raw || '').trim().replace(/座$/, '');
+    z = ZODIAC_ALIASES[z] || z;
+    return ZODIAC_NAMES.includes(z + '座') ? z + '座' : null;
+}
+
 function drawZodiacChart(labels, dataArray) {
     const ctx = document.getElementById('zodiacChart');
     if (!ctx) return;
     if (myZodiacChart) myZodiacChart.destroy();
     
     // 💡 保持把「座」字過濾掉，節省 X 軸空間
-    const shortLabels = labels.map(label => label.replace('座', ''));
+    const shortLabels = labels.map(label => label.replace(/座$/, ''));
 
     myZodiacChart = new Chart(ctx, {
         type: 'bar',
         data: {
             labels: shortLabels,
-            datasets: [{ label: '會員人數', data: dataArray, backgroundColor: '#8b5cf6', borderRadius: 4, borderWidth: 0 }]
+            // 最後一根「未填寫」用灰色，跟 12 星座區分
+            datasets: [{ label: '會員人數', data: dataArray, backgroundColor: labels.map(l => l === '未填寫' ? '#cbd5e1' : '#8b5cf6'), borderRadius: 4, borderWidth: 0 }]
         },
         options: { 
             responsive: true, 
@@ -555,7 +567,7 @@ function drawZodiacChart(labels, dataArray) {
                 x: {
                     grid: { display: false },
                     ticks: {
-                        autoSkip: false,  // 強制顯示全部 12 個星座
+                        autoSkip: false,  // 強制顯示全部 12 個星座＋未填寫
                         maxRotation: 45,  // 🌟 關鍵：允許在手機版螢幕太窄時，傾斜 45 度排版
                         minRotation: 0,   // 🌟 關鍵：在電腦版螢幕夠寬時，自動保持 0 度水平
                         font: { size: 11 },

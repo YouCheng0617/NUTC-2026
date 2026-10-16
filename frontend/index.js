@@ -3578,13 +3578,6 @@ window.openSettingsModal = function () {
 
   const hideListsToggle = document.getElementById("setting-hide-follow-lists");
   if (hideListsToggle) hideListsToggle.checked = isHideFollowListsOn();
-  // 後端支援個人頁之後才顯示這個設定（不然存了也沒效果）
-  checkMembersApi().then((ok) => {
-    const row = document.getElementById("setting-row-hide-follow-lists");
-    if (!row) return;
-    row.hidden = !ok;
-    row.style.display = ok ? "flex" : "none";
-  });
 
   if (modal) modal.style.display = "block";
 };
@@ -5269,248 +5262,26 @@ function afterOpenPostDetail(p) {
   setupAuthorProfileLink(p);
 }
 
-// =========================================
-// 👤 別人的個人頁：瓶子／追蹤／粉絲
-// 後端：GET /members/:id/profile、/members/:id/bottles、/members/:id/followers、/members/:id/following
-// 對方在設定裡開了「隱藏我的追蹤與粉絲」時，追蹤／粉絲會回 403 { code: "FOLLOW_LIST_HIDDEN" }
-// 後端接口還沒上線（回 404）時，作者名字維持不能點，網站其他功能照常
-// =========================================
-let membersApiReady = null; // null = 還沒問過；Promise<boolean>
-
-function memberApiHeaders() {
-  const token = localStorage.getItem("authToken");
-  const h = { "ngrok-skip-browser-warning": "true" };
-  if (token) h.Authorization = `Bearer ${token}`;
-  return h;
-}
-
-function myMemberId() {
-  try {
-    const u = JSON.parse(localStorage.getItem("currentUser") || "{}");
-    return u.member_id || u.id || u.userId || null;
-  } catch (e) {
-    return null;
-  }
-}
-
-// 用自己的 id 問一次個人頁接口，有回應就代表後端已經支援（同一個分頁只問一次）
-function checkMembersApi() {
-  if (membersApiReady) return membersApiReady;
-  const me = myMemberId();
-  if (!me || !localStorage.getItem("authToken")) return Promise.resolve(false);
-  membersApiReady = fetch(`${API_BASE_URL}/members/${encodeURIComponent(me)}/profile`, { headers: memberApiHeaders() })
-    .then((res) => res.ok)
-    .catch(() => false);
-  return membersApiReady;
-}
-
+// 👤 點作者名字＝打開對方的個人頁面（profile.html，跟名字下面的「個人頁面 ›」同一頁）
 function setupAuthorProfileLink(p) {
   const isAnonymous = p.author === "匿名" || !p.authorId;
+  const url = `profile.html?id=${encodeURIComponent(p.authorId)}`;
   document.querySelectorAll("#detail-author-tag").forEach((el) => {
-    el.classList.remove("is-profile-link");
-    el.onclick = null;
-    el.removeAttribute("role");
-    el.removeAttribute("tabindex");
-    el.removeAttribute("title");
-  });
-  if (isAnonymous) return;
-  checkMembersApi().then((ok) => {
-    if (!ok || String(currentOpenPostId) !== String(p.id)) return;
-    document.querySelectorAll("#detail-author-tag").forEach((el) => {
-      el.classList.add("is-profile-link");
-      el.setAttribute("role", "button");
-      el.setAttribute("tabindex", "0");
-      el.title = "查看個人頁";
-      el.onclick = () => openUserProfile(p.authorId, p.author);
-      el.onkeydown = (e) => {
-        if (e.key === "Enter" || e.key === " ") {
-          e.preventDefault();
-          openUserProfile(p.authorId, p.author);
-        }
-      };
-    });
-  });
-}
-
-function ensureUserProfileModal() {
-  let modal = document.getElementById("user-profile-modal");
-  if (modal) return modal;
-  document.body.insertAdjacentHTML(
-    "beforeend",
-    `<div id="user-profile-modal" class="up-modal" role="dialog" aria-modal="true" aria-labelledby="up-name">
-      <div class="up-card">
-        <button type="button" class="up-close" aria-label="關閉" onclick="closeUserProfile()">&times;</button>
-        <div class="up-head">
-          <img src="images/fish_logo.webp" class="up-avatar" alt="" />
-          <div class="up-head-text">
-            <div id="up-name" class="up-name"></div>
-            <div id="up-meta" class="up-meta"></div>
-          </div>
-        </div>
-        <div id="up-bio" class="up-bio md-content"></div>
-        <div class="up-tabs" role="tablist">
-          <button type="button" role="tab" class="up-tab" data-tab="bottles">🍾 瓶子 <span class="up-count" data-count="bottles"></span></button>
-          <button type="button" role="tab" class="up-tab" data-tab="following">追蹤 <span class="up-count" data-count="following"></span></button>
-          <button type="button" role="tab" class="up-tab" data-tab="followers">粉絲 <span class="up-count" data-count="followers"></span></button>
-        </div>
-        <div id="up-body" class="up-body"></div>
-      </div>
-    </div>`,
-  );
-  modal = document.getElementById("user-profile-modal");
-  modal.addEventListener("click", (e) => {
-    if (e.target === modal) closeUserProfile();
-  });
-  modal.querySelectorAll(".up-tab").forEach((btn) => {
-    btn.addEventListener("click", () => showUserProfileTab(btn.dataset.tab));
-  });
-  document.addEventListener("keydown", (e) => {
-    if (e.key === "Escape" && modal.classList.contains("show")) closeUserProfile();
-  });
-  return modal;
-}
-
-let profileState = null; // { id, name, hidden, isSelf }
-
-window.openUserProfile = async function (memberId, fallbackName) {
-  const modal = ensureUserProfileModal();
-  const isSelf = String(memberId) === String(myMemberId());
-  profileState = { id: memberId, name: fallbackName || "", hidden: false, isSelf };
-  document.getElementById("up-name").textContent = fallbackName || "";
-  document.getElementById("up-meta").textContent = "";
-  document.getElementById("up-bio").innerHTML = "";
-  modal.querySelectorAll(".up-count").forEach((el) => (el.textContent = ""));
-  modal.querySelectorAll(".up-tab").forEach((el) => el.classList.remove("is-locked"));
-  modal.classList.add("show");
-  document.getElementById("up-body").innerHTML = '<div class="up-empty">正在潛入對方的海域⋯🌊</div>';
-
-  try {
-    const res = await fetch(`${API_BASE_URL}/members/${encodeURIComponent(memberId)}/profile`, { headers: memberApiHeaders() });
-    const body = await res.json().catch(() => ({}));
-    if (!res.ok) {
-      document.getElementById("up-body").innerHTML = `<div class="up-refuse"><div class="up-refuse-icon">🙈</div><p>${escapeHTML(body.message || "暫時看不到這位使用者的個人頁")}</p></div>`;
+    el.classList.toggle("is-profile-link", !isAnonymous);
+    if (isAnonymous) {
+      el.onclick = el.onkeydown = null;
+      el.removeAttribute("role");
+      el.removeAttribute("tabindex");
+      el.removeAttribute("title");
       return;
     }
-    const d = body.data || body;
-    profileState.name = d.name || fallbackName || "";
-    profileState.hidden = Boolean(d.hide_follow_lists) && !isSelf;
-    document.getElementById("up-name").textContent = profileState.name;
-    const meta = [d.constellation, isSelf ? "這是你自己" : ""].filter(Boolean).join("・");
-    document.getElementById("up-meta").textContent = meta;
-    const bioEl = document.getElementById("up-bio");
-    if (d.bio) renderBio(bioEl, d.bio);
-    const counts = { bottles: d.bottle_count, following: d.following_count, followers: d.follower_count };
-    modal.querySelectorAll(".up-count").forEach((el) => {
-      const v = counts[el.dataset.count];
-      el.textContent = v === undefined || v === null ? "" : v;
-    });
-    if (profileState.hidden) {
-      modal.querySelectorAll('.up-tab[data-tab="following"], .up-tab[data-tab="followers"]').forEach((el) => {
-        el.classList.add("is-locked");
-        el.querySelector(".up-count").textContent = "🔒";
-      });
-    }
-  } catch (e) {
-    document.getElementById("up-body").innerHTML = '<div class="up-refuse"><div class="up-refuse-icon">📡</div><p>連不上伺服器，請稍後再試</p></div>';
-    return;
-  }
-  showUserProfileTab("bottles");
-};
-
-window.closeUserProfile = function () {
-  const modal = document.getElementById("user-profile-modal");
-  if (modal) modal.classList.remove("show");
-};
-
-function renderProfileRefusal() {
-  return `<div class="up-refuse">
-    <div class="up-refuse-icon">🙅</div>
-    <p class="up-refuse-title">此用戶婉拒您的查看</p>
-    <p>對方把追蹤與粉絲名單設為不公開，<br>你仍然可以看看對方丟出的瓶子 🍾</p>
-  </div>`;
-}
-
-async function showUserProfileTab(tab) {
-  const modal = document.getElementById("user-profile-modal");
-  if (!modal || !profileState) return;
-  modal.querySelectorAll(".up-tab").forEach((el) => {
-    const on = el.dataset.tab === tab;
-    el.classList.toggle("active", on);
-    el.setAttribute("aria-selected", on ? "true" : "false");
-  });
-  const box = document.getElementById("up-body");
-  const forId = profileState.id;
-
-  if (tab !== "bottles" && profileState.hidden) {
-    box.innerHTML = renderProfileRefusal();
-    return;
-  }
-  box.innerHTML = '<div class="up-empty">打撈中⋯🌊</div>';
-
-  const path = tab === "bottles" ? "bottles" : tab;
-  try {
-    const res = await fetch(`${API_BASE_URL}/members/${encodeURIComponent(forId)}/${path}`, { headers: memberApiHeaders() });
-    const body = await res.json().catch(() => ({}));
-    if (!profileState || profileState.id !== forId) return; // 已經換看別人了
-    if (res.status === 403 && body.code === "FOLLOW_LIST_HIDDEN") {
-      box.innerHTML = renderProfileRefusal();
-      return;
-    }
-    if (!res.ok) {
-      box.innerHTML = `<div class="up-empty">${escapeHTML(body.message || "讀取失敗，海象不佳 😢")}</div>`;
-      return;
-    }
-    const list = body.bottles || body.data || (Array.isArray(body) ? body : []);
-    if (tab === "bottles") renderProfileBottles(box, list);
-    else renderProfileMembers(box, list, tab);
-  } catch (e) {
-    box.innerHTML = '<div class="up-empty">連不上伺服器，請稍後再試 📡</div>';
-  }
-}
-
-function renderProfileBottles(box, list) {
-  if (!list.length) {
-    box.innerHTML = '<div class="up-empty">這位使用者還沒有丟出公開的瓶子 🌊</div>';
-    return;
-  }
-  const items = list.map((raw) => normalizeBottle(raw));
-  box.innerHTML = items
-    .map(
-      (b) => `<button type="button" class="up-bottle" data-id="${escapeHTML(String(b.id))}">
-        <span class="up-bottle-board">${escapeHTML(b.board)}</span>
-        <span class="up-bottle-title">${escapeHTML(b.title)}</span>
-        <span class="up-bottle-desc">${escapeHTML(markdownToPlainText(b.desc || "")).slice(0, 60)}</span>
-        <span class="up-bottle-meta">🤍 ${b.likes}　💬 ${b.msgs}</span>
-      </button>`,
-    )
-    .join("");
-  box.querySelectorAll(".up-bottle").forEach((btn) => {
-    btn.addEventListener("click", () => {
-      const b = items.find((x) => String(x.id) === btn.dataset.id);
-      if (!b) return;
-      if (!posts.some((x) => String(x.id) === String(b.id))) posts.push(b);
-      closeUserProfile();
-      openPostDetail(b.id);
-    });
-  });
-}
-
-function renderProfileMembers(box, list, tab) {
-  if (!list.length) {
-    box.innerHTML = `<div class="up-empty">${tab === "followers" ? "還沒有粉絲" : "還沒有追蹤任何人"} 🐟</div>`;
-    return;
-  }
-  box.innerHTML = list
-    .map((m) => {
-      const id = m.member_id ?? m.id;
-      const name = m.name || m.member_name || "使用者";
-      return `<button type="button" class="up-member" data-id="${escapeHTML(String(id))}" data-name="${escapeHTML(name)}">
-        <img src="images/fish_logo.webp" alt="" /><span>${escapeHTML(name)}</span><span class="up-member-go">›</span>
-      </button>`;
-    })
-    .join("");
-  box.querySelectorAll(".up-member").forEach((btn) => {
-    btn.addEventListener("click", () => openUserProfile(btn.dataset.id, btn.dataset.name));
+    el.setAttribute("role", "link");
+    el.setAttribute("tabindex", "0");
+    el.title = "查看個人頁面";
+    el.onclick = () => { window.location.href = url; };
+    el.onkeydown = (e) => {
+      if (e.key === "Enter") window.location.href = url;
+    };
   });
 }
 
