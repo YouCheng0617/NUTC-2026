@@ -5044,6 +5044,9 @@ textarea.custom-reply-input {
   top: var(--site-header-h, 60px) !important;
   height: calc(100vh - var(--site-header-h, 60px)) !important;
   height: calc(100dvh - var(--site-header-h, 60px)) !important;
+  /* 我的文章、收藏頁的手機版對 .main-feed 設了 min-height: calc(100vh - 70px)，
+     文章卡片也有 .main-feed，會被撐高、底部留言列被推出螢幕，這裡取消 */
+  min-height: 0 !important;
 }
 
 /* =========================================
