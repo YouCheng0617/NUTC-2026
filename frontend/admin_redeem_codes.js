@@ -285,7 +285,7 @@
         if (!body.coin && !body.items.length) return alert('至少要給積分或選一樣道具');
 
         const isEdit = !!editing;
-        if (isEdit && editing.used_count > 0 && !confirm(`這個兌換碼已經有 ${editing.used_count} 人兌換過，修改後已兌換的人不會補發也不會收回，確定要儲存嗎？`)) return;
+        if (isEdit && editing.used_count > 0 && !await oceanConfirm(`這個兌換碼已經有 ${editing.used_count} 人兌換過，修改後已兌換的人不會補發也不會收回，確定要儲存嗎？`)) return;
 
         const btn = $('rd-create-btn');
         btn.disabled = true;
@@ -312,7 +312,7 @@
 
     window.rdCopy = async function (code) {
         try { await navigator.clipboard.writeText(code); alert(`已複製：${code}`); }
-        catch { prompt('請手動複製兌換碼', code); }
+        catch { oceanPrompt('請手動複製兌換碼', { defaultValue: code, okText: '關閉', cancelText: false }); }
     };
 
     // ---------- 兌換碼列表 ----------
@@ -389,7 +389,7 @@
     }
 
     window.rdSetActive = async function (id, isActive) {
-        if (!isActive && !confirm('確定要停用這個兌換碼嗎？停用後玩家就不能再兌換（已兌換的不受影響）。')) return;
+        if (!isActive && !await oceanConfirm('確定要停用這個兌換碼嗎？停用後玩家就不能再兌換（已兌換的不受影響）。')) return;
         try {
             const res = await fetch(`${API_BASE_URL}/admin/redeem-codes/${id}/active`, {
                 method: 'PUT',
@@ -403,7 +403,7 @@
     };
 
     window.rdDelete = async function (id) {
-        if (!confirm('確定要刪除這個兌換碼嗎？（只有還沒人兌換過的才能刪）')) return;
+        if (!await oceanConfirm('確定要刪除這個兌換碼嗎？（只有還沒人兌換過的才能刪）')) return;
         try {
             const res = await fetch(`${API_BASE_URL}/admin/redeem-codes/${id}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token()}` } });
             const data = await res.json().catch(() => ({}));

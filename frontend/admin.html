@@ -5,6 +5,8 @@
   <meta charset="UTF-8" />
     <!-- 伺服器壞掉時跳出「伺服器整理中」（要在其他程式之前載入） -->
     <script src="server-status.js?v=3"></script>
+    <!-- 網站風格的彈窗（取代瀏覽器內建的 alert / confirm） -->
+    <script src="ocean_dialog.js?v=1"></script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>心情漂流瓶 - 後台管理系統</title>
   <link rel="icon" href="favicon.ico" sizes="any" />
@@ -19,8 +21,9 @@
     const token = localStorage.getItem("authToken");
     const user = JSON.parse(localStorage.getItem("currentUser") || "{}");
     if (!token || user.role !== "ADMIN") {
-      alert("權限不足：您不是管理員，無法進入後台！");
-      window.location.href = "index.html";
+      // 先藏起後台內容，按「確定」後回首頁
+      document.write('<style>body > *:not(.od-veil) { visibility: hidden !important; }</style>');
+      oceanAlert("⛔ 權限不足：您不是管理員，無法進入後台！").then(() => { window.location.href = "index.html"; });
     }
   </script>
 </head>
@@ -932,11 +935,11 @@
       }
     });
   </script>
-  <script src="admin.js?v=9"></script>
-  <script src="admin_game_reports.js?v=1"></script>
-  <script src="admin_redeem_codes.js?v=5"></script>
-  <script src="admin_daily_question.js?v=1"></script>
-  <script src="admin_broadcasts.js?v=1"></script>
+  <script src="admin.js?v=10"></script>
+  <script src="admin_game_reports.js?v=2"></script>
+  <script src="admin_redeem_codes.js?v=6"></script>
+  <script src="admin_daily_question.js?v=2"></script>
+  <script src="admin_broadcasts.js?v=2"></script>
 </body>
 
 </html>

@@ -905,7 +905,7 @@ window.changeUserRole = async function (userId, userName, newRole) {
     const msg = newRole === 'ADMIN'
         ? `🛡️ 確定要將「${userName} (ID: ${userId})」升為管理員嗎？\n升級後對方可以進入後台，管理所有會員、文章與客服。`
         : `⚠️ 確定要取消「${userName} (ID: ${userId})」的管理員權限嗎？\n取消後對方將無法再進入後台。`;
-    if (!confirm(msg)) return;
+    if (!await oceanConfirm(msg)) return;
 
     const token = localStorage.getItem("authToken");
     try {
@@ -927,7 +927,7 @@ window.changeUserRole = async function (userId, userName, newRole) {
 };
 
 window.deleteUserAsAdmin = async function (userId, userName) {
-    if (!confirm(`⚠️ 確定要強制刪除使用者「${userName} (ID: ${userId})」嗎？\n刪除後將無法復原，請三思！`)) return;
+    if (!await oceanConfirm(`⚠️ 確定要強制刪除使用者「${userName} (ID: ${userId})」嗎？\n刪除後將無法復原，請三思！`)) return;
     const token = localStorage.getItem("authToken");
     try {
         const response = await fetch(`${API_BASE_URL}/admin/members/${userId}/delete`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}`, 'ngrok-skip-browser-warning': 'true' } });
@@ -1118,7 +1118,7 @@ window.openBottleModalFromCache = function (bottleId) {
         </div>`;
     document.getElementById('admin-modal').style.display = 'flex';
 }
-window.reviewBottle = function (bottleId, status, title) { window._pendingReviewId = bottleId; window._pendingReviewTitle = title; if (status === 2) { document.getElementById('reject-reason-input').value = '內容不當'; document.getElementById('reject-modal').style.display = 'flex'; } else { if (!confirm(`✅ 確定要通過「${title}」嗎？`)) return; executeReviewAction(bottleId, 1, ""); } }
+window.reviewBottle = async function (bottleId, status, title) { window._pendingReviewId = bottleId; window._pendingReviewTitle = title; if (status === 2) { document.getElementById('reject-reason-input').value = '內容不當'; document.getElementById('reject-modal').style.display = 'flex'; } else { if (!await oceanConfirm(`✅ 確定要通過「${title}」嗎？`)) return; executeReviewAction(bottleId, 1, ""); } }
 window.closeRejectModal = function () { document.getElementById('reject-modal').style.display = 'none'; }
 window.confirmRejectAction = function () { const reason = document.getElementById('reject-reason-input').value.trim(); if (!reason) { alert("必須填寫原因！"); return; } executeReviewAction(window._pendingReviewId, 2, reason); closeRejectModal(); }
 window.executeReviewAction = async function (bottleId, status, reason) {
@@ -1129,7 +1129,7 @@ window.executeReviewAction = async function (bottleId, status, reason) {
     } catch (e) { alert("伺服器連線失敗"); }
 }
 window.deleteBottleAsAdmin = async function (bottleId) {
-    if (!confirm(`⚠️ 確定刪除 #${bottleId} 嗎？無法復原！`)) return;
+    if (!await oceanConfirm(`⚠️ 確定刪除 #${bottleId} 嗎？無法復原！`)) return;
     const token = localStorage.getItem("authToken");
     try {
         const response = await fetch(`${API_BASE_URL}/admin/bottles/${bottleId}/delete`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}`, 'ngrok-skip-browser-warning': 'true' } });
@@ -1137,7 +1137,7 @@ window.deleteBottleAsAdmin = async function (bottleId) {
     } catch (error) { alert("伺服器連線失敗！"); }
 };
 window.closeAdminModal = function () { const modal = document.getElementById('admin-modal'); if (modal) modal.style.display = 'none'; window._reviewBottleId = null; window._reviewBottleTitle = null; }
-window.adminLogout = function () { if (confirm("確定要登出嗎？")) { localStorage.removeItem("authToken"); localStorage.removeItem("currentUser"); localStorage.removeItem("adminLastTab"); window.location.href = "login.html"; } }
+window.adminLogout = async function () { if (await oceanConfirm("👋 確定要登出嗎？", { okText: "登出" })) { localStorage.removeItem("authToken"); localStorage.removeItem("currentUser"); localStorage.removeItem("adminLastTab"); window.location.href = "login.html"; } }
 
 // ==========================================
 // 7. 檢舉處理 
@@ -1283,7 +1283,7 @@ function renderReports(reports) {
 }
 
 window.banReportedBottle = async function (bottleId) {
-    if (!confirm(`⚠️ 確定要將 #${bottleId} 號文章「強制下架」嗎？\n(保留在資料庫)`)) return;
+    if (!await oceanConfirm(`⚠️ 確定要將 #${bottleId} 號文章「強制下架」嗎？\n(保留在資料庫)`)) return;
     try {
         const token = localStorage.getItem("authToken");
         const response = await fetch(`${API_BASE_URL}/admin/bottles/review`, { method: 'PUT', headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ "bottle_id": Number(bottleId), "status": 2, "violation_reason": "遭檢舉違規，管理員強制下架" }) });
@@ -1296,7 +1296,7 @@ window.banReportedBottle = async function (bottleId) {
 }
 
 window.dismissReportedBottle = async function (bottleId) {
-    if (!confirm(`確定 #${bottleId} 號文章沒有違規，將這篇的待處理檢舉判定為「不成立」嗎？
+    if (!await oceanConfirm(`確定 #${bottleId} 號文章沒有違規，將這篇的待處理檢舉判定為「不成立」嗎？
 (文章維持原狀)`)) return;
     try {
         const token = localStorage.getItem("authToken");
@@ -1633,7 +1633,7 @@ window.confirmChangeCsStatus = async function (statusNum) {
 
 // 刪除客服案件
 window.deleteCustomerServiceAsAdmin = async function (ticketId) {
-    if (!confirm(`⚠️ 確定要刪除客服案件 #${ticketId} 嗎？此操作無法復原！`)) return;
+    if (!await oceanConfirm(`⚠️ 確定要刪除客服案件 #${ticketId} 嗎？此操作無法復原！`)) return;
 
     try {
         const token = localStorage.getItem("authToken");

@@ -19,8 +19,8 @@ let GAME_TOKEN = localStorage.getItem('authToken') || localStorage.getItem('acce
         
         // 🌟 2. 殺掉單機測試防呆！如果沒抓到真實帳號，就不准他玩！
         if (!GAME_TOKEN) {
-            alert(typeof trText === 'function' ? trText("請先登入帳號才能看見您的海兔喔！") : "請先登入帳號才能看見您的海兔喔！");
-            window.location.href = "login.html"; // 封印解除！無情踢回登入頁
+            // 網站風格的彈窗，按「前往登入」才跳頁
+            oceanLogin(typeof trText === 'function' ? trText("請先登入帳號才能看見您的海兔喔！") : "請先登入帳號才能看見您的海兔喔！", { force: true });
         }
         
         let socket = null;
@@ -662,7 +662,7 @@ let GAME_TOKEN = localStorage.getItem('authToken') || localStorage.getItem('acce
         async function createSocketRoom() {
             if (isRoomBusy()) return;
             if (!(await waitForSocket())) {
-                if(confirm(trText("伺服器未連線！要先開啟「單機模擬展示」看看連線後的樣子嗎？"))) {
+                if(await oceanConfirm(trText("伺服器未連線！要先開啟「單機模擬展示」看看連線後的樣子嗎？"))) {
                     startMockMultiplayer();
                 }
                 return;
@@ -675,7 +675,7 @@ let GAME_TOKEN = localStorage.getItem('authToken') || localStorage.getItem('acce
         async function joinSocketRoom() {
             if (isRoomBusy()) return;
             if (!(await waitForSocket())) {
-                if(confirm(trText("伺服器未連線！要先開啟「單機模擬展示」看看連線後的樣子嗎？"))) {
+                if(await oceanConfirm(trText("伺服器未連線！要先開啟「單機模擬展示」看看連線後的樣子嗎？"))) {
                     startMockMultiplayer();
                 }
                 return;
@@ -864,7 +864,7 @@ function copyRoomId() {
         showFloatText('📋 代碼複製成功！', 2000);
     }).catch(err => {
         // 萬一遇到某些舊版瀏覽器擋住，就跳出傳統的框框讓玩家自己複製
-        prompt("請手動複製代碼：", currentRoomId);
+        oceanPrompt(trText("請手動複製代碼："), { defaultValue: currentRoomId, okText: trText("關閉"), cancelText: false });
     });
 }
         // 💬 【聊天列】按「聊天」從底部滑上來（取代瀏覽器內建的 prompt），送出後不關，可以一直聊

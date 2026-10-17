@@ -1,4 +1,5 @@
 import prisma from "../../../lib/prisma.js";
+import { aiServiceUrl } from "../../../lib/aiService.js";
 
 /**
  * 取得台北時區 (UTC+8) 的 YYYY-MM-DD 日期字串
@@ -96,7 +97,7 @@ export const drawTarot = async (memberId: number, cards?: TarotDrawInput) => {
  * AI 解牌：由後端轉給本機的 Python AI 服務（api_server.py，只聽 127.0.0.1:5000）
  * 以前前端直接打 /api/tarot，沒有登入檢查，知道網址就能一直叫 AI；改成登入後經過這裡才叫得到
  */
-const AI_TAROT_URL = "http://127.0.0.1:5000/api/tarot";
+// AI 服務的位置看 lib/aiService.ts（可以用 .env 的 AI_SERVICE_URL 改）
 const AI_TIMEOUT_MS = 60 * 1000; // AI 生成比較慢，最多等 60 秒
 
 export interface TarotReadingInput {
@@ -108,7 +109,7 @@ export interface TarotReadingInput {
 export const requestTarotReading = async (input: TarotReadingInput): Promise<string> => {
     let response: Response;
     try {
-        response = await fetch(AI_TAROT_URL, {
+        response = await fetch(aiServiceUrl("/api/tarot"), {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(input),

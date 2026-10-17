@@ -174,7 +174,7 @@ window.openGameReportDetail = function (id) {
 
 window.reviewGameReport = async function (id, status) {
     const label = status === 1 ? '成立' : '不成立';
-    if (!confirm(`確定將檢舉 #${id} 判定為「${label}」嗎？${status === 1 ? '\n（如要停權，判定後可在證據視窗按「調整被檢舉人帳號狀態」）' : ''}`)) return;
+    if (!await oceanConfirm(`確定將檢舉 #${id} 判定為「${label}」嗎？${status === 1 ? '\n（如要停權，判定後可在證據視窗按「調整被檢舉人帳號狀態」）' : ''}`)) return;
     try {
         const response = await fetch(`${API_BASE_URL}/admin/game-reports/${id}/status`, {
             method: 'PUT',

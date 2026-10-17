@@ -84,7 +84,7 @@
     async function vote(index) {
         if (voting) return;
         if (!token()) {
-            if (confirm("登入後才能投票喔！要現在去登入嗎？")) window.location.href = "login.html";
+            oceanLogin("🗳️ 登入後才能投票喔！");
             return;
         }
         voting = true;
@@ -97,7 +97,7 @@
             });
             const data = await res.json().catch(() => ({}));
             if (res.status === 401) {
-                if (confirm("登入已過期，要重新登入嗎？")) window.location.href = "login.html";
+                oceanLogin("登入已過期，請重新登入再投票喔！");
                 return;
             }
             if (!res.ok) {

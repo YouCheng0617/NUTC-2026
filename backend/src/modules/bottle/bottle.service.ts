@@ -4,6 +4,7 @@ import dotenv from "dotenv";
 import { createNotification } from "../notification/notification.service.js";
 import { getBlockedMemberIds, isBlockedBetween } from "../block/block.service.js";
 import { isWithinEditWindow } from "../../lib/editWindow.js";
+import { aiServiceUrl } from "../../lib/aiService.js";
 
 /* 投票選項 include：memberId 存在時一併撈出該會員自己的投票 */
 const pollInclude = (memberId?: number) => ({
@@ -364,7 +365,7 @@ export const createBottle = async (
     try {
         // 2. 把使用者的內容送給妳的 Python AI 大腦
         console.log("📡 正在將貼文傳送給 AI 進行審核...");
-        const aiResponse = await fetch("http://127.0.0.1:5000/api/analyze", {
+        const aiResponse = await fetch(aiServiceUrl("/api/analyze"), {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ content: content })

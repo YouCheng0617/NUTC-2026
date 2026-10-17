@@ -314,8 +314,7 @@ async function claimTask(taskKey) {
   const dict = translations[currentLang] || translations.zh;
   const token = localStorage.getItem("authToken");
   if (!token) {
-    alert(dict["err-no-login"]);
-    window.location.href = "login.html";
+    oceanLogin(dict["err-no-login"]); // 網站風格的「前往登入／再逛逛」
     return;
   }
   if (claimingTaskKey) return; // 領取中再按一次就不理它
@@ -391,8 +390,7 @@ async function performDraw() {
 
   const token = localStorage.getItem("authToken");
   if (!token) {
-    alert(dict["err-no-login"]);
-    window.location.href = "login.html";
+    oceanLogin(dict["err-no-login"]); // 網站風格的「前往登入／再逛逛」
     return;
   }
 

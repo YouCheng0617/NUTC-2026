@@ -98,7 +98,7 @@
     };
 
     window.dqUnschedule = async function (date) {
-        if (!confirm(`確定取消 ${date} 的排程嗎？這天會改用題庫的題目。`)) return;
+        if (!await oceanConfirm(`確定取消 ${date} 的排程嗎？這天會改用題庫的題目。`)) return;
         try {
             const res = await fetch(`${API_BASE_URL}/admin/daily-questions/${encodeURIComponent(date)}`, {
                 method: 'DELETE', headers: { 'Authorization': `Bearer ${token()}` },

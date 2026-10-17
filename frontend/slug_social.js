@@ -81,6 +81,8 @@
         '加入房間成功！': 'Joined the room!',
         '正在連線伺服器，請稍等一下…': 'Connecting to the server…',
         '📋 代碼複製成功！': '📋 Code copied!',
+        '請手動複製代碼：': 'Please copy the code:',
+        '關閉': 'Close',
         '進入模擬連線模式！': 'Demo mode on!',
         '伺服器未連線！要先開啟「單機模擬展示」看看連線後的樣子嗎？': "Can't reach the server. Try the offline demo to see what online play looks like?",
         '請先登入帳號才能看見您的海兔喔！': 'Please log in to see your sea bunny!',

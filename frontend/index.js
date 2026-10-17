@@ -50,8 +50,7 @@ function checkTokenExpired() {
 function handleAutoLogout(message) {
   localStorage.removeItem("authToken");
   localStorage.removeItem("currentUser");
-  alert(message || "登入已逾時，請重新登入！");
-  window.location.href = "login.html";
+  oceanLogin(message || "登入已逾時，請重新登入！", { force: true }); // 只有「前往登入」
 }
 
 // 頁面載入時先主動檢查一次 Token 是否逾時
@@ -926,8 +925,7 @@ window.submitReply = async function (bottleId, parentId) {
     document.getElementById(`reply-anon-${parentId}`)?.checked || false;
   const token = localStorage.getItem("authToken");
   if (!token) {
-    alert("哎呀！要先登入才能回覆喔！");
-    window.location.href = "login.html";
+    oceanLogin("哎呀！要先登入才能回覆喔！"); // 網站風格的「前往登入／再逛逛」
     return;
   }
 
@@ -963,8 +961,7 @@ window.toggleCommentLike = async function (postId, commentId) {
   const token = localStorage.getItem("authToken");
 
   if (!token) {
-    alert("寶寶，要先登入才能幫留言按讚喔！");
-    window.location.href = "login.html";
+    oceanLogin("寶寶，要先登入才能幫留言按讚喔！"); // 網站風格的「前往登入／再逛逛」
     return;
   }
 
@@ -1166,8 +1163,7 @@ window.closePostDetail = function () {
 window.openReportModal = function () {
   const token = localStorage.getItem("authToken");
   if (!token) {
-    alert("寶寶，要先登入才能檢舉喔！");
-    window.location.href = "login.html";
+    oceanLogin("寶寶，要先登入才能檢舉喔！"); // 網站風格的「前往登入／再逛逛」
     return;
   }
   document.getElementById("report-reason").value = "";
@@ -1220,8 +1216,7 @@ window.toggleAction = async function (id, actionType, e) {
   const token = localStorage.getItem("authToken");
 
   if (!token) {
-    alert("請先登入才能操作喔！");
-    window.location.href = "login.html";
+    oceanLogin("請先登入才能操作喔！"); // 網站風格的「前往登入／再逛逛」
     return;
   }
 
@@ -1275,7 +1270,7 @@ window.toggleAction = async function (id, actionType, e) {
 
 window.deleteMyBottle = async function (id, e) {
   e.stopPropagation();
-  if (!confirm("⚠️ 確定要刪除這個漂流瓶嗎？刪除後無法恢復喔！")) return;
+  if (!await oceanConfirm("⚠️ 確定要刪除這個漂流瓶嗎？刪除後無法恢復喔！")) return;
 
   const token = localStorage.getItem("authToken");
   if (!token) {
@@ -1441,8 +1436,7 @@ function setupNewPost() {
     btnNewPost.onclick = () => {
       const token = localStorage.getItem("authToken");
       if (!token) {
-        alert("請先登入才能發文喔！");
-        window.location.href = "login.html";
+        oceanLogin("請先登入才能發文喔！"); // 網站風格的「前往登入／再逛逛」
         return;
       }
       if (isAdminUser()) {
@@ -2577,8 +2571,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // AI 特助要登入才能用
     if (!localStorage.getItem("authToken")) {
-      alert("要先登入才能使用 AI 特助喔！🤖");
-      window.location.href = "login.html";
+      oceanLogin("要先登入才能使用 AI 特助喔！🤖"); // 網站風格的「前往登入／再逛逛」
       return;
     }
     window.location.href = AI_ASSISTANT_URL;
@@ -5220,7 +5213,7 @@ window.startEditComment = function (commentId, btn) {
 };
 
 window.deleteOwnComment = async function (commentId) {
-  if (!confirm("確定要刪除這則留言嗎？刪除後就救不回來了。")) return;
+  if (!await oceanConfirm("確定要刪除這則留言嗎？刪除後就救不回來了。")) return;
   try {
     const response = await fetch(`${API_BASE_URL}/comments/${commentId}`, {
       method: "DELETE",

@@ -5,6 +5,8 @@
   <meta charset="UTF-8" />
   <!-- 伺服器壞掉時跳出「伺服器整理中」（要在其他程式之前載入） -->
   <script src="server-status.js?v=3"></script>
+  <!-- 網站風格的彈窗（取代瀏覽器內建的 alert / confirm） -->
+  <script src="ocean_dialog.js?v=1"></script>
   <!-- 彈窗打開時不讓拉動傳到後面的網頁（iPhone 下拉重新整理） -->
   <script src="modal_scroll_guard.js?v=1"></script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -392,8 +394,7 @@
     // ---------- 追蹤 ----------
     async function toggleFollow(memberId, btn, onDone) {
       if (!token) {
-        alert("請先登入才能追蹤喔！");
-        window.location.href = "login.html";
+        oceanLogin("請先登入才能追蹤喔！"); // 網站風格的「前往登入／再逛逛」
         return;
       }
       btn.disabled = true;
@@ -455,8 +456,10 @@
       el.querySelectorAll("a").forEach((a) => {
         a.target = "_blank";
         a.rel = "noopener noreferrer nofollow";
+        // 先擋下來，用網站風格的彈窗確認；「前往」本身就是連結，瀏覽器不會擋新分頁
         a.addEventListener("click", (e) => {
-          if (!confirm(`即將離開心情漂流瓶，前往：\n${a.href}`)) e.preventDefault();
+          e.preventDefault();
+          oceanConfirm(`🔗 即將離開心情漂流瓶，前往：\n${a.href}`, { okText: "前往", okHref: a.href });
         });
       });
     }
@@ -721,8 +724,7 @@
 
     (async function init() {
       if (targetKey === "me" && !token) {
-        alert("請先登入才能看自己的個人頁面");
-        window.location.href = "login.html";
+        oceanLogin("請先登入才能看自己的個人頁面", { force: true }); // 只有「前往登入」
         return;
       }
       try {

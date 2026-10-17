@@ -71,7 +71,7 @@
 
         const expires_at = expiresRaw ? new Date(expiresRaw).toISOString() : null;
         if (expires_at && new Date(expires_at) <= new Date()) return alert('到期時間必須是未來的時間');
-        if (!editing && !confirm(`確定要發佈給所有會員嗎？\n\n${content}`)) return;
+        if (!editing && !await oceanConfirm(`確定要發佈給所有會員嗎？\n\n${content}`)) return;
 
         const btn = $('bc-submit-btn');
         btn.disabled = true;
@@ -94,7 +94,7 @@
     };
 
     window.bcToggleActive = async function (id, isActive) {
-        if (!isActive && !confirm('停用後，所有人的通知列表都不會再顯示這則通知，確定嗎？')) return;
+        if (!isActive && !await oceanConfirm('停用後，所有人的通知列表都不會再顯示這則通知，確定嗎？')) return;
         try {
             const res = await fetch(`${API_BASE_URL}/admin/broadcasts/${encodeURIComponent(id)}/active`, {
                 method: 'PUT',
@@ -108,7 +108,7 @@
     };
 
     window.bcDelete = async function (id) {
-        if (!confirm('確定要刪除這則全服通知嗎？刪除後無法復原，已讀紀錄也會一起刪除。')) return;
+        if (!await oceanConfirm('確定要刪除這則全服通知嗎？刪除後無法復原，已讀紀錄也會一起刪除。')) return;
         try {
             const res = await fetch(`${API_BASE_URL}/admin/broadcasts/${encodeURIComponent(id)}`, {
                 method: 'DELETE', headers: authHeaders(),

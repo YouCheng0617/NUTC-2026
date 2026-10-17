@@ -5,6 +5,8 @@
   <meta charset="UTF-8" />
     <!-- 伺服器壞掉時跳出「伺服器整理中」（要在其他程式之前載入） -->
     <script src="server-status.js?v=3"></script>
+    <!-- 網站風格的彈窗（取代瀏覽器內建的 alert / confirm） -->
+    <script src="ocean_dialog.js?v=1"></script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>註銷帳號 - 心情漂流瓶</title>
   <link rel="icon" href="favicon.ico" sizes="any" />
@@ -131,8 +133,7 @@
     const API_BASE_URL = "https://api.drift-bottles.xyz";
     const token = localStorage.getItem("authToken");
     if (!token) {
-      alert("請先登入再申請註銷帳號");
-      window.location.href = "login.html";
+      oceanLogin("請先登入再申請註銷帳號", { force: true });
     }
 
     const agreeEl = document.getElementById("agree");
@@ -152,7 +153,7 @@
     }
 
     submitBtn.addEventListener("click", async () => {
-      if (!confirm("確定要申請註銷帳號嗎？我們會寄確認信到你的信箱。")) return;
+      if (!await oceanConfirm("確定要申請註銷帳號嗎？我們會寄確認信到你的信箱。")) return;
 
       submitBtn.disabled = true;
       showMessage("送出中…", true);

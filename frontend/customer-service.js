@@ -95,8 +95,8 @@ function initUserProfile() {
 
       // 登出按鈕
       if (logoutBtn) {
-        logoutBtn.onclick = () => {
-          if (confirm("確定要退出登入嗎？")) {
+        logoutBtn.onclick = async () => {
+          if (await oceanConfirm("👋 確定要退出登入嗎？", { okText: "登出" })) {
             localStorage.removeItem("authToken");
             localStorage.removeItem("currentUser");
             window.location.href = "login.html";
@@ -238,8 +238,7 @@ window.handleFormSubmit = async function (event) {
 
   const token = localStorage.getItem("authToken");
   if (!token) {
-    alert("⚠️ 請先登入會員後，再發送客服提問！");
-    window.location.href = "login.html";
+    oceanLogin("⚠️ 請先登入會員後，再發送客服提問！"); // 網站風格的「前往登入／再逛逛」
     return;
   }
 

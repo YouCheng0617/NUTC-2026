@@ -592,8 +592,7 @@ async function generateReading() {
 
     // 登入過期：請他重新登入
     if (response.status === 401 || response.status === 403) {
-      alert(currentLang === "en" ? "Your login has expired. Please log in again." : "登入已過期，請重新登入喔！");
-      window.location.href = "../login.html";
+      oceanLogin(currentLang === "en" ? "Your login has expired. Please log in again." : "登入已過期，請重新登入喔！", { force: true });
       return;
     }
     // 占卜太頻繁：直接顯示後端的提示
@@ -672,8 +671,8 @@ function hideFavorites() {
   document.getElementById("favorites-modal").classList.add("hidden");
 }
 
-function deleteFavorite(reverseIndex) {
-  if (confirm(i18n[currentLang].confirmDel)) {
+async function deleteFavorite(reverseIndex) {
+  if (await oceanConfirm(i18n[currentLang].confirmDel)) {
     let favs = JSON.parse(localStorage.getItem("tarotFavorites") || "[]");
     const actualIndex = favs.length - 1 - reverseIndex;
     favs.splice(actualIndex, 1);
