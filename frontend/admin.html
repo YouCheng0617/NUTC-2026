@@ -12,7 +12,7 @@
   <link rel="icon" href="favicon.ico" sizes="any" />
   <link rel="icon" type="image/png" href="images/icon-192.png" />
   <link rel="apple-touch-icon" href="images/apple-touch-icon.png" />
-  <link rel="stylesheet" href="admin.css?v=10" />
+  <link rel="stylesheet" href="admin.css?v=11" />
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <!-- 🌟 在下方加入這行 -->
   <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels"></script>
@@ -272,13 +272,19 @@
                 gap: 10px;
               ">
             <h3>👥 使用者清單</h3>
-            <input type="text" id="search-users" placeholder="🔍 搜尋 ID、姓名或 Email..." style="
-                  padding: 8px 12px;
-                  border: 1px solid #ccc;
-                  border-radius: 6px;
-                  width: 100%;
-                  max-width: 300px;
-                " oninput="filterUsers()" />
+            <div class="users-toolbar">
+              <input type="text" id="search-users" placeholder="🔍 搜尋 ID、姓名或 Email..." style="
+                    padding: 8px 12px;
+                    border: 1px solid #ccc;
+                    border-radius: 6px;
+                    width: 100%;
+                    max-width: 300px;
+                  " oninput="filterUsers()" />
+              <!-- 重新抓會員資料，保留目前的搜尋、分類與頁數 -->
+              <button type="button" id="refresh-users-btn" class="refresh-btn" onclick="refreshUsers()" title="重新載入使用者清單">
+                <span class="refresh-icon" aria-hidden="true">🔄</span><span class="refresh-text">重新整理</span>
+              </button>
+            </div>
           </div>
 
           <div class="filter-columns"
@@ -935,7 +941,7 @@
       }
     });
   </script>
-  <script src="admin.js?v=10"></script>
+  <script src="admin.js?v=11"></script>
   <script src="admin_game_reports.js?v=2"></script>
   <script src="admin_redeem_codes.js?v=6"></script>
   <script src="admin_daily_question.js?v=2"></script>

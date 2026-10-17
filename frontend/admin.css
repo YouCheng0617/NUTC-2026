@@ -1107,3 +1107,24 @@ html {
   min-height: 90px;
 }
 .bc-content-cell { max-width: 420px; white-space: pre-wrap; word-break: break-word; line-height: 1.5; }
+
+/* 會員管理：搜尋框＋重新整理按鈕 */
+.users-toolbar { display: flex; align-items: center; gap: 8px; flex: 1 1 300px; justify-content: flex-end; }
+.users-toolbar #search-users { flex: 1 1 auto; min-width: 0; }
+.refresh-btn { display: inline-flex; align-items: center; gap: 6px; flex: none; padding: 8px 14px; border-radius: 999px;
+  border: 1px solid #bfdbfe; background: #eff6ff; color: #1d4ed8; font: inherit; font-size: 0.9rem; font-weight: 700;
+  cursor: pointer; white-space: nowrap; transition: background .15s; }
+.refresh-btn:hover:not(:disabled) { background: #dbeafe; }
+.refresh-btn:disabled { cursor: default; opacity: .85; }
+.refresh-btn:focus-visible { outline: 3px solid #93c5fd; outline-offset: 2px; }
+.refresh-btn .refresh-icon { display: inline-block; }
+.refresh-btn.is-loading .refresh-icon { animation: refreshSpin .8s linear infinite; }
+@keyframes refreshSpin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .refresh-btn.is-loading .refresh-icon { animation: none; } }
+/* 手機：搜尋框佔滿一行，按鈕只留圖示 */
+@media (max-width: 600px) {
+  .users-toolbar { flex-basis: 100%; }
+  .users-toolbar #search-users { max-width: none !important; }
+  .refresh-btn { padding: 0; width: 44px; height: 44px; justify-content: center; }
+  .refresh-btn .refresh-text { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+}

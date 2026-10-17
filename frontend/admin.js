@@ -736,10 +736,33 @@ window.toggleUserSort = function () {
     filterUsers();
 };
 
-async function loadUsers() {
+// 會員管理的「重新整理」：重新抓資料，但保留搜尋、分類與目前頁數；抓的時候表格不會先清空
+window.refreshUsers = async function () {
+    const btn = document.getElementById('refresh-users-btn');
+    if (!btn || btn.disabled) return;
+    const text = btn.querySelector('.refresh-text');
+    const page = window._currentUserPage || 1;
+    btn.disabled = true;
+    btn.classList.add('is-loading');
+    text.textContent = '更新中…';
+    const ok = await loadUsers({ keepTable: true });
+    if (ok) {
+        // filterUsers 會跳回第 1 頁，這裡把頁數放回去（資料變少時停在最後一頁）
+        const totalPages = Math.max(1, Math.ceil((window._filteredUsersCache || []).length / PAGE_SIZE));
+        changeUserPage(Math.min(page, totalPages));
+    }
+    btn.classList.remove('is-loading');
+    // 手機只顯示圖示，所以圖示也要換
+    const icon = btn.querySelector('.refresh-icon');
+    text.textContent = ok ? '已更新' : '更新失敗';
+    icon.textContent = ok ? '✅' : '⚠️';
+    setTimeout(() => { text.textContent = '重新整理'; icon.textContent = '🔄'; btn.disabled = false; }, 1500);
+};
+
+async function loadUsers({ keepTable = false } = {}) {
     const tbody = document.getElementById('admin-users-body');
     const token = localStorage.getItem("authToken");
-    tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;">載入中...</td></tr>`;
+    if (!keepTable) tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;">載入中...</td></tr>`;
 
     try {
         const response = await fetch(`${API_BASE_URL}/admin/members`, {
@@ -750,8 +773,11 @@ async function loadUsers() {
         const result = await response.json();
         window._allUsers = result.data || result || [];
         filterUsers();
+        return true;
     } catch (e) {
-        tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; color:red;">無法載入，請確認是否有管理員權限</td></tr>`;
+        // 重新整理失敗時保留原本的表格，按鈕會顯示「更新失敗」
+        if (!keepTable) tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; color:red;">無法載入，請確認是否有管理員權限</td></tr>`;
+        return false;
     }
 }
 
