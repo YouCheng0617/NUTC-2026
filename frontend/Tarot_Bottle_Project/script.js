@@ -577,7 +577,7 @@ async function generateReading() {
 
   try {
     // AI 解牌要登入：經過後端（會檢查登入、限制次數）再轉給 AI，不再直接打 /api/tarot
-    const response = await fetch("https://api.drift-bottles.xyz/game/tarot/reading", {
+    const response = await fetch(`${API_BASE_URL}/game/tarot/reading`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

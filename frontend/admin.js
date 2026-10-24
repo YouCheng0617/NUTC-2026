@@ -1,7 +1,6 @@
 // ==========================================
 // 1. 設定基礎參數與共用工具
 // ==========================================
-const API_BASE_URL = "https://api.drift-bottles.xyz";
 const PAGE_SIZE = 10; // 🌟 每一頁顯示的資料筆數
 
 function escapeHTML(str) {

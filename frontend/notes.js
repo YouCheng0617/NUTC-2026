@@ -90,7 +90,6 @@ window.toggleCreatorModal = function (show) {
   };
   textInput.addEventListener("input", updateCharCount);
 
-  const API_BASE_URL = "https://api.drift-bottles.xyz";
   const API_URL = `${API_BASE_URL}/game/daily-note`;
   const themeColors = [
     "#ff9a9e",

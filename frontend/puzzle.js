@@ -164,7 +164,6 @@ window.toggleLanguage = function () {
 // ==================================================
 // 🌐 API 統一設定與全域狀態管理
 // ==================================================
-const API_BASE_URL = "https://api.drift-bottles.xyz";
 
 let drawTokens = 0; // 喚醒石數量，以後端的 awaken_stones 為準
 let galleryPictures = [];

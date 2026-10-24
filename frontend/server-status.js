@@ -3,10 +3,10 @@
  * 真的壞了才跳出「伺服器整理中」，之後每 15 秒自動檢查，恢復了就告訴使用者可以重新整理。
  * 使用者自己網路斷線時改說「你的網路好像斷線了」，不會誤說是伺服器的問題。
  * 只看主要後端（AI 聊天、塔羅另外有自己的錯誤提示，不在這裡處理）。
- * 這支要放在 <head>、其他程式之前載入，才包得到頁面一開始的請求。
+ * 這支要放在 <head>、config.js 之後、其他程式之前載入，才包得到頁面一開始的請求。
  */
 (function () {
-  const API = "https://api.drift-bottles.xyz";
+  const API = API_BASE_URL; // 在 config.js 設定，config.js 要比這支先載入
   const HEALTH_URL = API + "/";
   const RETRY_MS = 15000;
   const DOWN_CODES = [502, 503, 504, 520, 521, 522, 523, 524];

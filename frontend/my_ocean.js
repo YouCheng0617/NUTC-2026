@@ -3,7 +3,6 @@
 // 後端：GET /bottles/following-feed、GET /bottles/saved
 // 打開瓶子用 index.js 的 window.openBottleById
 (function () {
-    const API_BASE_URL = "https://api.drift-bottles.xyz";
     // 手機畫面小，先列 3 則就好
     const PREVIEW_COUNT = window.matchMedia("(max-width: 768px)").matches ? 3 : 5;
     const TAB_KEY = "myOceanTab";

@@ -3,7 +3,8 @@
   <head>
     <meta charset="UTF-8" />
     <!-- 伺服器壞掉時跳出「伺服器整理中」（要在其他程式之前載入） -->
-    <script src="server-status.js?v=3"></script>
+    <script src="config.js?v=1"></script>
+    <script src="server-status.js?v=4"></script>
     <!-- 網站風格的彈窗（取代瀏覽器內建的 alert / confirm） -->
     <script src="ocean_dialog.js?v=1"></script>
     <!-- 彈窗打開時不讓拉動傳到後面的網頁（iPhone 下拉重新整理） -->
@@ -786,7 +787,7 @@
           bio: val("edit-bio").trim(),
         };
         try {
-          const res = await fetch("https://api.drift-bottles.xyz/auth/update-data", {
+          const res = await fetch(`${API_BASE_URL}/auth/update-data`, {
             method: "PATCH",
             headers: { Authorization: "Bearer " + localStorage.getItem("authToken"), "Content-Type": "application/json", "ngrok-skip-browser-warning": "true" },
             body: JSON.stringify(payload),
@@ -818,6 +819,6 @@
 
     <script defer src="https://cdnjs.cloudflare.com/ajax/libs/marked/12.0.2/marked.min.js"></script>
     <script defer src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.1.6/purify.min.js"></script>
-    <script type="module" src="index.js?v=73"></script>
+    <script type="module" src="index.js?v=20261024cfg"></script>
   </body>
 </html>

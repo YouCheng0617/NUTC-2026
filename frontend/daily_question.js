@@ -2,7 +2,6 @@
 // 每天一個 emoji 小問題，投完直接看大家的比例（每個帳號每天一票，投了不能改）
 // 後端：GET /daily-question、POST /daily-question/vote { optionIndex }
 (function () {
-    const API_BASE_URL = "https://api.drift-bottles.xyz";
     const COLLAPSE_KEY = "dailyQuestionCollapsed"; // 今天收起來了就記住，隔天自動打開
 
     const card = document.getElementById("daily-question-card");

@@ -10,7 +10,7 @@
         }
 
 // 🌟 【後台與網路連線資料】
-        const API_BASE = 'https://api.drift-bottles.xyz'; // 伺服器網址
+        const API_BASE = API_BASE_URL; // 伺服器網址（在 config.js 設定）
         
         // 🌟 1. 嚴格綁定帳號！直接去拿你真實登入系統存下來的 Token
         // 💡 寶寶注意：請把裡面的 'token' 換成你主程式登入時存進 localStorage 的名稱 

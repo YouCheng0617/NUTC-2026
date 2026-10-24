@@ -2,7 +2,6 @@
 // 🌊 客服中心 (Customer Service) 前端邏輯
 // ==========================================
 
-const API_BASE_URL = "https://api.drift-bottles.xyz";
 
 let allUserTickets = [];
 let currentFilterStatus = "all";

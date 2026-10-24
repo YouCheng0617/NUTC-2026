@@ -413,7 +413,6 @@ function spawnTarget() {
         }, 1000);
     }
 
-    const API_BASE_URL = "https://api.drift-bottles.xyz";
     const GAME_NAME = 'bottle_shooter';
     let previousModal = 'start-modal';
 

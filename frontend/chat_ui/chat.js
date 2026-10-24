@@ -97,8 +97,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) },
                     body: JSON.stringify({ message: userText, language: currentLang })
                 };
-                let response = await fetch('https://api.drift-bottles.xyz/ai/chat', opts);
-                if (response.status === 404) response = await fetch('https://api.drift-bottles.xyz/api/chat', opts);
+                let response = await fetch(`${API_BASE_URL}/ai/chat`, opts);
+                if (response.status === 404) response = await fetch(`${API_BASE_URL}/api/chat`, opts);
 
                 // 登入過期、或用太多次：顯示原因，不要只說「休息中」
                 if (response.status === 401 || response.status === 429) {

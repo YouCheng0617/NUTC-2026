@@ -1,5 +1,4 @@
 // ✨ 統一設定後端網址
-const API_BASE_URL = "https://api.drift-bottles.xyz";
 
 // 🌟 全域追蹤名單 ID 集合（記憶已追蹤的作者 ID）
 window._myFollowingIdSet = new Set();
