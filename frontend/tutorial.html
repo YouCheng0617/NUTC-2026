@@ -1,7 +1,8 @@
 <!DOCTYPE html>
-<html lang="zh-TW">
+<html lang="zh-TW" data-i18n="own">
 <head>
 <meta charset="UTF-8">
+<script src="i18n.js?v=1"></script>
 <!-- 網站風格的彈窗（取代瀏覽器內建的 alert / confirm） -->
 <script src="ocean_dialog.js?v=1"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -579,7 +580,7 @@
       ]
     }
   };
-  let currentLang = 'zh';
+  let currentLang = (window.I18N && window.I18N.lang === 'en') ? 'en' : 'zh'; // 跟著網站設定的語言
   let currentDeviceMode = window.matchMedia('(max-width: 700px)').matches ? 'mobile' : 'desktop';
   let currentCategory = 'main';
   let currentSubIndex = 0;

@@ -1526,6 +1526,7 @@ function setupNewPost() {
         });
 
         if (response.ok) {
+          clearPostDraft();
           alert("漂流瓶拋出成功！🎉");
           form.reset();
           document.getElementById("post-modal").style.display = "none";
@@ -1541,6 +1542,108 @@ function setupNewPost() {
         alert("無法連線至伺服器，請檢查網路或後端是否啟動。");
       }
     };
+
+    // 打字時自動存草稿；頁面載入時把上次沒發出去的內容放回表單
+    let draftTimer = null;
+    const queueDraft = () => {
+      clearTimeout(draftTimer);
+      draftTimer = setTimeout(savePostDraft, 400);
+    };
+    form.addEventListener("input", queueDraft);
+    form.addEventListener("change", queueDraft);
+    // 切到別的 App、關掉分頁前立刻存一次（手機可能在背景直接把分頁回收）
+    document.addEventListener("visibilitychange", () => {
+      if (document.visibilityState === "hidden") savePostDraft();
+    });
+    window.addEventListener("pagehide", savePostDraft);
+    restorePostDraft();
+  }
+}
+
+// =========================================
+// 📝 發文草稿：存在這台裝置（localStorage），依帳號分開
+// 手機寫到一半頁面被重新整理、或在背景被瀏覽器回收，回來打開發文視窗內容都還在；發文成功才清掉
+// =========================================
+const POST_DRAFT_DAYS = 7;
+
+function postDraftKey() {
+  const user = JSON.parse(localStorage.getItem("currentUser") || "{}");
+  const id = user.id || user.userId || user.member_id;
+  return id ? `postDraft:${id}` : null;
+}
+
+function savePostDraft() {
+  const key = postDraftKey();
+  const title = document.getElementById("post-title-input");
+  const content = document.getElementById("post-content-input");
+  if (!key || !title || !content) return;
+
+  const pollContainer = document.getElementById("poll-inputs-container");
+  const pollOpen = pollContainer && pollContainer.style.display !== "none";
+  const pollOptions = pollOpen
+    ? Array.from(pollContainer.querySelectorAll(".poll-opt-input")).map((i) => i.value)
+    : [];
+  const draft = {
+    title: title.value,
+    content: content.value,
+    board: document.getElementById("post-board")?.value || "",
+    anonymous: document.getElementById("post-identity")?.value === "匿名",
+    pollOpen,
+    pollOptions,
+    savedAt: Date.now(),
+  };
+
+  try {
+    // 什麼都沒寫就不留草稿
+    if (!draft.title.trim() && !draft.content.trim() && !pollOptions.some((o) => o.trim())) {
+      localStorage.removeItem(key);
+    } else {
+      localStorage.setItem(key, JSON.stringify(draft));
+    }
+  } catch (e) {
+    /* 存不了（例如無痕模式空間滿）就算了，不影響發文 */
+  }
+}
+
+function clearPostDraft() {
+  const key = postDraftKey();
+  if (key) {
+    try { localStorage.removeItem(key); } catch (e) {}
+  }
+}
+
+function restorePostDraft() {
+  const key = postDraftKey();
+  if (!key) return;
+  let draft = null;
+  try { draft = JSON.parse(localStorage.getItem(key) || "null"); } catch (e) {}
+  if (!draft) return;
+  if (Date.now() - (draft.savedAt || 0) > POST_DRAFT_DAYS * 24 * 60 * 60 * 1000) {
+    clearPostDraft();
+    return;
+  }
+
+  const setValue = (el, value) => {
+    if (!el || value == null) return;
+    el.value = value;
+    el.dispatchEvent(new Event("input", { bubbles: true })); // 讓字數統計、預覽跟著更新
+  };
+  setValue(document.getElementById("post-title-input"), draft.title);
+  setValue(document.getElementById("post-content-input"), draft.content);
+
+  const board = document.getElementById("post-board");
+  if (board && draft.board && board.querySelector(`option[value="${CSS.escape(draft.board)}"]`)) board.value = draft.board;
+  const identity = document.getElementById("post-identity");
+  if (identity && draft.anonymous) identity.value = "匿名";
+
+  if (draft.pollOpen && typeof window.togglePollCreator === "function") {
+    window.togglePollCreator(true);
+    const list = document.getElementById("poll-options-list");
+    (draft.pollOptions || []).forEach((text, i) => {
+      if (i >= 2 && typeof window.addPollOption === "function") window.addPollOption();
+      const input = list && list.querySelectorAll(".poll-opt-input")[i];
+      if (input) input.value = text;
+    });
   }
 }
 
@@ -1584,7 +1687,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
   setInterval(() => {
     const detailView = document.getElementById("detail-view");
-    if (detailView && detailView.style.display !== "block" && !window.isIdleScreenOn) {
+    // 發文等彈窗開著、或正在輸入框打字時先不換：手機重畫整顆球很吃效能，寫長文時容易卡頓甚至被瀏覽器重新載入
+    const busy =
+      document.documentElement.classList.contains("modal-open") ||
+      (document.activeElement && document.activeElement.matches("input, textarea, select"));
+    if (detailView && detailView.style.display !== "block" && !window.isIdleScreenOn && !busy) {
       callOceanCurrent();
     }
   }, 60000);
@@ -3896,6 +4003,12 @@ function updateIdleClock(screen) {
 
 function showIdleScreen() {
   if (window.isIdleScreenOn) return;
+  // 停在輸入框裡（例如寫文章寫到一半在想）不要跳待機畫面，晚點再檢查
+  const active = document.activeElement;
+  if (active && active.matches("input:not([type=checkbox]):not([type=radio]), textarea, [contenteditable]")) {
+    resetIdleTimer();
+    return;
+  }
   window.isIdleScreenOn = true;
   idleLeaving = false;
   clearTimeout(idleTimer);
@@ -3970,7 +4083,8 @@ function resetIdleTimer() {
   idleTimer = setTimeout(showIdleScreen, IDLE_TIMEOUT_MS);
 }
 
-["pointerdown", "pointermove", "touchstart", "wheel", "keydown"].forEach((type) =>
+// 手機用注音等輸入法打字時不一定有 keydown，所以 input、組字事件也算有在操作
+["pointerdown", "pointermove", "touchstart", "wheel", "keydown", "input", "compositionupdate"].forEach((type) =>
   document.addEventListener(type, resetIdleTimer, { passive: true, capture: true }),
 );
 // 捲動事件不會冒泡，用 capture 才收得到 .main-feed 等內層的捲動

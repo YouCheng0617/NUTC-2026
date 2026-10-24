@@ -4,6 +4,8 @@
     <meta charset="UTF-8" />
     <!-- 伺服器壞掉時跳出「伺服器整理中」（要在其他程式之前載入） -->
     <script src="config.js?v=1"></script>
+    <script src="i18n-en.js?v=1"></script>
+    <script src="i18n.js?v=1"></script>
     <script src="server-status.js?v=4"></script>
     <!-- 網站風格的彈窗（取代瀏覽器內建的 alert / confirm） -->
     <script src="ocean_dialog.js?v=1"></script>
@@ -1904,6 +1906,49 @@
         </h2>
 
         <div class="settings-list">
+          <!-- 🌐 語言：存在 site_lang，切換後整頁重新整理（i18n.js） -->
+          <div
+            class="setting-item"
+            style="
+              display: flex;
+              justify-content: space-between;
+              align-items: center;
+              gap: 12px;
+              padding: 12px 0;
+              border-bottom: 1px solid #eef2f6;
+            "
+          >
+            <div>
+              <div style="font-weight: bold; color: #333; font-size: 1rem">
+                語言 Language
+              </div>
+              <div style="font-size: 0.8rem; color: #8899aa; margin-top: 3px">
+                切換網站顯示的語言
+              </div>
+            </div>
+            <select
+              id="setting-language"
+              aria-label="語言 Language"
+              onchange="I18N.setLang(this.value)"
+              style="
+                padding: 8px 10px;
+                border: 2px solid #cfe5f3;
+                border-radius: 12px;
+                background: #f3f8fc;
+                color: #0b4a75;
+                font: inherit;
+                font-size: 16px;
+                font-weight: bold;
+              "
+            >
+              <option value="zh">中文</option>
+              <option value="en">English</option>
+            </select>
+            <script>
+              document.getElementById("setting-language").value = window.I18N ? I18N.lang : "zh";
+            </script>
+          </div>
+
           <div
             class="setting-item"
             style="
@@ -2114,7 +2159,7 @@
 
     <script defer src="https://cdnjs.cloudflare.com/ajax/libs/marked/12.0.2/marked.min.js"></script>
     <script defer src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.1.6/purify.min.js"></script>
-    <script type="module" src="index.js?v=20261024cfg"></script>
+    <script type="module" src="index.js?v=20261024draft"></script>
     <script defer src="daily_question.js?v=20261024cfg"></script>
     <script defer src="my_ocean.js?v=20261024cfg"></script>
     <script defer src="home_mobile.js?v=15"></script>

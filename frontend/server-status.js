@@ -123,6 +123,15 @@
     if (document.body) fn();
     else document.addEventListener("DOMContentLoaded", fn, { once: true });
   }
+  // 網站切成英文時翻譯卡片文字（i18n.js）；遊戲頁不會自動翻畫面，所以在這裡自己翻
+  function localize(el) {
+    const I = window.I18N;
+    if (!I || I.lang !== "en") return el;
+    const w = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
+    let n;
+    while ((n = w.nextNode())) n.nodeValue = I.t(n.nodeValue);
+    return el;
+  }
   function clearUi() {
     ["srv-status-veil", "srv-status-bar"].forEach((id) => { const el = document.getElementById(id); if (el) el.remove(); });
   }
@@ -157,7 +166,7 @@
            </div>`;
       veil.querySelector(".srv-status-reload").addEventListener("click", () => location.reload());
       veil.querySelector(".srv-status-close").addEventListener("click", () => { dismissed = true; render(); });
-      document.body.appendChild(veil);
+      document.body.appendChild(localize(veil));
       veil.querySelector(".srv-status-reload").focus({ preventScroll: true });
     });
   }
@@ -178,7 +187,7 @@
         btn.addEventListener("click", () => location.reload());
         bar.appendChild(btn);
       }
-      document.body.appendChild(bar);
+      document.body.appendChild(localize(bar));
     });
   }
 

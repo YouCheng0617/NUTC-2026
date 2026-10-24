@@ -176,7 +176,7 @@ const slotNames = ["past", "present", "future"];
 let availableCards = [...tarotDeck];
 let selectedTopic = "";
 let currentReadingData = null;
-let currentLang = "zh-TW";
+let currentLang = window.I18N && window.I18N.lang === "en" ? "en" : "zh-TW"; // 跟著網站設定的語言
 
 document.addEventListener("DOMContentLoaded", () => {
   updateUI();

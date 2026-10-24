@@ -539,4 +539,7 @@ function spawnTarget() {
         lbButton.style.display = 'flex';
     }
 
+    // 網站設定是英文就一開始切成英文（i18n.js）
+    if (window.I18N && window.I18N.lang === 'en') window.toggleLang();
+
 })(); 

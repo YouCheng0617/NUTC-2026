@@ -2220,7 +2220,8 @@ const i18n = {
                 colorDone: "Done"
             }
         };
-        let currLang = 'zh';
+        // 一開始跟著網站設定的語言（i18n.js），遊戲裡的 EN／中文 按鈕還是可以自己切
+        let currLang = (window.I18N && window.I18N.lang === 'en') ? 'en' : 'zh';
 
         // 🌟 【遊戲資料大腦】所有關於你有什麼東西、多少錢，都存在這裡
         let gameState = {

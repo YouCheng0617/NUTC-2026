@@ -5,6 +5,8 @@
     <meta charset="UTF-8">
     <!-- 伺服器壞掉時跳出「伺服器整理中」（要在其他程式之前載入） -->
     <script src="config.js?v=1"></script>
+    <script src="i18n-en.js?v=1"></script>
+    <script src="i18n.js?v=1"></script>
     <script src="server-status.js?v=4"></script>
     <!-- 網站風格的彈窗（取代瀏覽器內建的 alert / confirm） -->
     <script src="ocean_dialog.js?v=1"></script>
@@ -80,7 +82,7 @@
         // 用經緯度抓天氣
         function fetchWeatherByCoords(lat, lon) {
             const apiKey = 'e126fab7abb9c316feaa6a400d7a30aa';
-            const url = `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${apiKey}&units=metric&lang=zh_tw`;
+            const url = `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${apiKey}&units=metric&lang=${window.I18N && I18N.lang === 'en' ? 'en' : 'zh_tw'}`;
             
             fetch(url)
                 .then(response => response.json())
@@ -102,7 +104,7 @@
         // 用城市名抓天氣 (備用計畫)
         function fetchWeatherByCity(city) {
             const apiKey = 'e126fab7abb9c316feaa6a400d7a30aa';
-            const url = `https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${apiKey}&units=metric&lang=zh_tw`;
+            const url = `https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${apiKey}&units=metric&lang=${window.I18N && I18N.lang === 'en' ? 'en' : 'zh_tw'}`;
             
             fetch(url)
                 .then(response => response.json())

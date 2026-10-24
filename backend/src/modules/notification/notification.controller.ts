@@ -3,6 +3,7 @@ import type { Request, Response } from 'express';
 import type { AuthRequest } from '../middleware/auth.middleware.js';
 import { getUserNotifications, markNotificationAsRead, markAllNotificationsAsRead } from './notification.service.js';
 import { parseBroadcastNotifId, markBroadcastRead } from '../broadcast/broadcast.service.js';
+import { getLang, translateText } from '../../lib/i18n/index.js';
 
 export class NotificationController {
 
@@ -15,9 +16,13 @@ export class NotificationController {
             }
 
             const notifications = await getUserNotifications(memberId);
+            /*通知存的是中文，切成英文時讀取當下再翻（全服通知是管理員寫的，字典找不到就維持原文）*/
+            const lang = getLang(req);
             return res.status(200).json({
                 message: "成功獲取通知",
-                data: notifications
+                data: lang === "en"
+                    ? notifications.map((n: any) => ({ ...n, content: translateText(n.content, lang) }))
+                    : notifications
             });
         } catch (error: any) {
             console.error("getMyNotifications 錯誤:", error);

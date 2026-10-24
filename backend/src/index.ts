@@ -23,6 +23,7 @@ import { dailyQuestionRouter } from './modules/daily-question/dailyQuestion.rout
 import { accountDeletionRouter } from './modules/account-deletion/accountDeletion.router.js';
 import { profileRouter } from './modules/profile/profile.router.js';
 import { membersRouter } from './modules/members/members.router.js';
+import { i18nMiddleware } from './lib/i18n/index.js';
 import { aiChatRouter } from "./modules/ai-chat/aiChat.router.js";
 
 
@@ -50,6 +51,7 @@ export const io = new Server(httpServer, {
 app.set('trust proxy', 1);
 
 app.use(cors()); /*允許跨域請求(ngrok)*/
+app.use(i18nMiddleware); /*前端切成英文（X-Site-Lang: en）時，回傳訊息翻成英文；要在流量限制前面，它的提示才會翻到*/
 app.use(writeLimiter); /*所有寫入類請求 (POST/PUT/PATCH/DELETE) 的全站流量限制*/
 app.use(express.json());
 

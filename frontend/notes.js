@@ -121,7 +121,14 @@ window.toggleCreatorModal = function (show) {
 
   const fetchNotes = async () => {
     try {
-      const res = await fetch(API_URL);
+      // 後端列表要登入才能看，沒帶憑證會被擋（以前就是這樣，重新整理後便利貼全部看不到）
+      const token = localStorage.getItem("authToken");
+      const res = await fetch(API_URL, {
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      });
+      if (res.status === 401 || res.status === 403) {
+        showToast(i18nNotes[currLangNotes].warnLogin, "warning");
+      }
       const rawData = await res.json();
       const serverData = rawData.data || [];
       window.allNotesPool = Array.isArray(serverData) ? serverData : [];
@@ -134,7 +141,8 @@ window.toggleCreatorModal = function (show) {
   };
 
   // 抽樣並渲染：依「純文字內容」去重
-  function pickAndRenderBatch() {
+  // pinned：一定要放進這一批的便利貼（剛發的那張），不然超過 16 張時可能抽不到
+  function pickAndRenderBatch(pinned) {
     if (!window.allNotesPool || window.allNotesPool.length === 0) {
       window.activeSphereNotes = [];
       window._renderSphereNotes([]);
@@ -152,8 +160,11 @@ window.toggleCreatorModal = function (show) {
       }
     }
 
-    const shuffled = [...uniqueNotes].sort(() => 0.5 - Math.random());
-    window.activeSphereNotes = shuffled.slice(0, 16);
+    const others = uniqueNotes.filter((n) => n !== pinned);
+    const shuffled = [...others].sort(() => 0.5 - Math.random());
+    window.activeSphereNotes = pinned
+      ? [pinned, ...shuffled.slice(0, 15)]
+      : shuffled.slice(0, 16);
     window._renderSphereNotes(window.activeSphereNotes);
   }
 
@@ -458,9 +469,11 @@ window.toggleCreatorModal = function (show) {
         return;
       }
 
+      // 用後端回傳的內容（後端會去掉頭尾空白），跟重新整理後看到的一致
+      const saved = (await res.json().catch(() => null))?.data;
       const newNoteObj = {
-        content: content,
-        created_at: new Date().toISOString(),
+        content: saved?.content || content.trim(),
+        created_at: saved?.created_at || new Date().toISOString(),
       };
       window.allNotesPool.unshift(newNoteObj);
 
@@ -469,9 +482,12 @@ window.toggleCreatorModal = function (show) {
       toggleCreatorModal(false);
       showToast(t.success, "success");
 
-      pickAndRenderBatch();
+      // 剛發的那張一定放進這一批，並轉到正面給使用者看
+      pickAndRenderBatch(newNoteObj);
       rotX = 0;
       rotY = 0;
+      const total = window.activeSphereNotes.length;
+      navigateToCard(calculateSpherePositions(total, getRadius())[0]);
     } catch (error) {
       console.error("發佈失敗：", error);
       showToast(t.fail, "error");
@@ -500,6 +516,9 @@ window.toggleCreatorModal = function (show) {
   });
 
   fetchNotes();
+
+  // 網站設定是英文就一開始切成英文（i18n.js）
+  if (window.I18N && window.I18N.lang === "en") window.toggleLang();
 })();
 
 const showToast = (message, type = "normal") => {

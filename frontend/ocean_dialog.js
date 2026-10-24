@@ -86,8 +86,17 @@
   // 訊息沒有中日文就用英文按鈕（遊戲切成英文時）
   const isEnglish = (s) => !/[぀-ヿ㐀-鿿]/.test(s);
 
+  // 網站切成英文時翻譯訊息（i18n.js）；遊戲頁自己管語言，只翻整句對得上字典的（例如「要先登入」）
+  const tr = (s) => {
+    const I = window.I18N;
+    if (!I || s == null || s === "") return s;
+    return I.t(s, { pieces: !I.own });
+  };
+
   let chain = Promise.resolve();
   function open(kind, msg, opts = {}) {
+    msg = tr(msg);
+    opts = Object.assign({}, opts, opts.title ? { title: tr(opts.title) } : {});
     const run = () => new Promise(async (resolve) => {
       await whenBody();
       ensureStyle();
