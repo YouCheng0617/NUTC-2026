@@ -102,6 +102,14 @@ export const changeMemberRole = async (member_id: number, newRole: "USER" | "ADM
     return updatedMember;
 };
 
+/* 📊 後台看投票：選項照建立順序，附上目前票數 */
+const pollOptionSelect = {
+    select: { id: true, text: true, _count: { select: { votes: true } } },
+    orderBy: { id: "asc" as const }
+};
+const toPollOptions = (options: { id: number; text: string; _count: { votes: number } }[]) =>
+    options.map(o => ({ id: o.id, text: o.text, votes: o._count.votes }));
+
 export const getAllBottlesForAdmin = async () => {
     const bottles = await prisma.bottle.findMany({
         orderBy: {
@@ -128,11 +136,13 @@ export const getAllBottlesForAdmin = async () => {
                     saves: true,
                     Comment: true
                 }
-            }
+            },
+            // 📊 投票選項也要給管理員看（選項文字一樣可能違規）
+            PollOption: pollOptionSelect
         }
     });
     return bottles.map(bottles => {
-        const { author, categories, _count, ...bottleData } = bottles;
+        const { author, categories, _count, PollOption, ...bottleData } = bottles;
         return {
             ...bottleData,
             member_name: author?.name || "匿名使用者",
@@ -142,7 +152,8 @@ export const getAllBottlesForAdmin = async () => {
             categories: categories.map(c => c.category.name || "未知類別"),
             like_count: _count.likes,
             save_count: _count.saves,
-            comment_count: _count.Comment
+            comment_count: _count.Comment,
+            poll_options: toPollOptions(PollOption)
         }
     });
 };
@@ -261,13 +272,17 @@ export const getReportedBottles = async () => {
                     status: true,
                     author: {
                         select: { name: true, email: true }
-                    }
+                    },
+                    PollOption: pollOptionSelect
                 }
             }
         }
     });
 
-    return reportedBottles
+    return reportedBottles.map(({ bottle, ...report }) => {
+        const { PollOption, ...bottleData } = bottle;
+        return { ...report, bottle: { ...bottleData, poll_options: toPollOptions(PollOption) } };
+    });
 }
 
 /* 檢舉不成立：把這個瓶子還在待處理的檢舉都改成 2，瓶子本身維持原狀；之後有人再檢舉會是新的待處理 */

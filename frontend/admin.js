@@ -16,6 +16,34 @@ function jsArg(value) {
     return escapeHTML(JSON.stringify(String(value)));
 }
 
+// 📊 投票瓶子的選項（後台列表、文章內容、檢舉列表共用）
+function pollOptionsOf(b) {
+    return Array.isArray(b?.poll_options) ? b.poll_options : [];
+}
+
+// 打開文章時顯示的投票區塊：每個選項的文字、票數與比例
+function renderPollBlock(options) {
+    if (options.length === 0) return '';
+    const total = options.reduce((sum, o) => sum + (Number(o.votes) || 0), 0);
+    const rows = options.map((o, i) => {
+        const votes = Number(o.votes) || 0;
+        const pct = total ? Math.round(votes / total * 100) : 0;
+        return `
+            <div style="position: relative; padding: 10px 14px; border: 1px solid #e2e8f0; border-radius: 10px; overflow: hidden; background: #fff;">
+                <div style="position: absolute; inset: 0 auto 0 0; width: ${pct}%; background: #eef2ff;"></div>
+                <div style="position: relative; display: flex; justify-content: space-between; gap: 12px; align-items: baseline;">
+                    <span style="color: #1e293b; word-break: break-word;"><b style="color:#64748b; margin-right:6px;">${i + 1}.</b>${escapeHTML(o.text)}</span>
+                    <span style="color: #64748b; font-size: 0.9rem; white-space: nowrap;">${votes} 票（${pct}%）</span>
+                </div>
+            </div>`;
+    }).join('');
+    return `
+        <div style="margin-top: 18px; padding: 16px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px;">
+            <div style="font-weight: 700; color: #4338ca; margin-bottom: 10px;">📊 投票選項（共 ${total} 票）</div>
+            <div style="display: flex; flex-direction: column; gap: 8px;">${rows}</div>
+        </div>`;
+}
+
 // 🌟 解析時間戳記以供排序
 function getItemTimestamp(item, idField) {
     if (item.created_at) {
@@ -1105,6 +1133,7 @@ function renderBottles(bottles) {
         let statusBadge = currentStatus === 1 ? `<span class="badge" style="background:#dcfce7; color:#16a34a; border:1px solid #bbf7d0;">✅ 已通過</span>` :
                           currentStatus === 2 ? `<span class="badge" style="background:#fee2e2; color:#dc2626; border:1px solid #fecaca;">❌ 已下架 / 拒絕</span>` :
                           `<span class="badge" style="background:#e0f2fe; color:#0284c7; border:1px solid #bae6fd;">⏳ 待審核</span>`;
+        const pollBadge = pollOptionsOf(b).length > 0 ? `<span class="badge" style="background:#eef2ff; color:#4338ca; border:1px solid #c7d2fe;">📊 投票</span>` : '';
         let rowStyle = currentStatus === 1 || currentStatus === 2 ? `opacity: 0.8; background: #f8fafc;` : `opacity: 1; background: #ffffff; box-shadow: 0 2px 8px rgba(0,0,0,0.04);`;
 
         // 🌟 這裡已幫您還原回最直覺的並排按鈕！
@@ -1112,7 +1141,7 @@ function renderBottles(bottles) {
         <tr style="${rowStyle} transition: 0.3s;">
             <td data-label="文章 ID" style="color: #64748b; font-weight: 600;">#${escapeHTML(String(b.bottle_id || b.id))}</td>
             <td data-label="發文者">${escapeHTML(String(b.member_name || b.author_name || '匿名'))}</td>
-            <td data-label="標題"><div style="display: flex; align-items: center; gap: 12px;"><span style="font-weight: 600; color: #1e293b; font-size: 1.05rem;">${escapeHTML(String(b.title))}</span>${statusBadge}</div></td>
+            <td data-label="標題"><div style="display: flex; align-items: center; gap: 12px;"><span style="font-weight: 600; color: #1e293b; font-size: 1.05rem;">${escapeHTML(String(b.title))}</span>${statusBadge}${pollBadge}</div></td>
             <td data-label="看板分類">${catHtml}</td>
             <td data-label="發布時間" style="color: #64748b;">${b.created_at ? new Date(b.created_at).toLocaleDateString() : '未知'}</td>
             <td data-label="項目操作">
@@ -1133,7 +1162,8 @@ window.openBottleModalFromCache = function (bottleId) {
             <span class="badge" style="background:#f1f5f9; color:#475569; border:1px solid #cbd5e1;">👤 作者：${escapeHTML(b.member_name || b.author_name || '匿名')}</span>
             <span class="badge" style="background:#f1f5f9; color:#475569; border:1px solid #cbd5e1;">📅 ${b.created_at ? new Date(b.created_at).toLocaleDateString() : '未知'}</span>
         </div>
-        <div style="background: #ffffff; border-left: 5px solid #3b82f6; padding: 24px; border-radius: 0 12px 12px 0; font-size: 1.05rem; color: #334155; white-space: pre-wrap; line-height: 1.8; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); margin-top: 20px;">${escapeHTML(b.content)}</div>`;
+        <div style="background: #ffffff; border-left: 5px solid #3b82f6; padding: 24px; border-radius: 0 12px 12px 0; font-size: 1.05rem; color: #334155; white-space: pre-wrap; line-height: 1.8; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); margin-top: 20px;">${escapeHTML(b.content)}</div>
+        ${renderPollBlock(pollOptionsOf(b))}`;
     window._reviewBottleId = b.bottle_id || b.id; window._reviewBottleTitle = b.title;
     document.getElementById('modal-actions').innerHTML = `
         <button class="btn-action btn-secondary" onclick="closeAdminModal()">返回</button>
@@ -1281,6 +1311,10 @@ function renderReports(reports) {
             : (reporterId ? `ID ${reporterId}` : (r.reporter_name || '未知'));
         const date = r.created_at ? new Date(r.created_at).toLocaleDateString() : '未知';
         const bottleContent = r.bottle_content || r.bottle?.content || r.content || '（無法取得文章內容）';
+        const reportPoll = pollOptionsOf(r.bottle);
+        const reportPollHtml = reportPoll.length > 0
+            ? `<div style="margin-top: 6px; color: #4338ca; font-size: 0.85rem; line-height: 1.5; white-space: normal;">📊 投票：${reportPoll.map(o => escapeHTML(o.text)).join(' ／ ')}</div>`
+            : '';
         const state = getReportState(r);
         const isProcessed = state !== 'pending';
 
@@ -1297,7 +1331,7 @@ function renderReports(reports) {
         return `
         <tr style="background: ${rowBg}; opacity: ${rowOpacity}; transition: 0.3s;">
             <td data-label="文章 ID" style="color: #64748b; font-weight: 600;">#${bottleId}</td>
-            <td data-label="被檢舉內容" style="min-width: 220px; max-width: 350px;"><div style="display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; white-space: normal; color: #334155; line-height: 1.5; font-size: 0.95rem;">${escapeHTML(String(bottleContent))}</div></td>
+            <td data-label="被檢舉內容" style="min-width: 220px; max-width: 350px;"><div style="display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; white-space: normal; color: #334155; line-height: 1.5; font-size: 0.95rem;">${escapeHTML(String(bottleContent))}</div>${reportPollHtml}</td>
             <td data-label="檢舉原因" style="color: #ef4444; font-weight: bold; white-space: normal; min-width: 150px;">${escapeHTML(String(reason))}</td>
             <td data-label="檢舉者">${escapeHTML(String(reporter))}</td>
             <td data-label="檢舉時間" style="color: #64748b;">${date}</td>
