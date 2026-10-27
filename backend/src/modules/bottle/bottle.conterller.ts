@@ -397,6 +397,36 @@ export const bottleController = {
 
     },
 
+    /* ⏳ 查自己瓶子的審核進度（發文後的進度條用）：0 審核中、1 通過、2 違規
+     * 只有作者查得到，別人的瓶子一律當作找不到 */
+    async getReviewStatusController(req: AuthRequest, res: Response) {
+        try {
+            const memberId = req.user?.member_id;
+            const bottleId = Number(req.params.bottleId);
+            if (!isValidId(bottleId)) {
+                return res.status(400).json({ message: "無效的瓶子 ID" });
+            }
+
+            const bottle = await prisma.bottle.findUnique({
+                where: { bottle_id: bottleId },
+                select: { member_id: true, status: true, violation_reason: true }
+            });
+            if (!bottle || bottle.member_id !== memberId) {
+                return res.status(404).json({ message: "找不到這個漂流瓶" });
+            }
+
+            return res.status(200).json({
+                data: {
+                    status: bottle.status,
+                    violation_reason: bottle.status === 2 ? bottle.violation_reason : null
+                }
+            });
+        } catch (error) {
+            console.error("查詢審核進度失敗:", error);
+            return res.status(500).json({ message: "內部伺服器錯誤" });
+        }
+    },
+
     /* 獲取我的瓶子 */
     async getMyBottles(req: AuthRequest, res: Response) {
         try {

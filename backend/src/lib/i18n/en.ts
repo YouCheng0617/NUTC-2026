@@ -457,6 +457,7 @@ export const EN: Record<string, string> = {
     "已取消儲存 💔": "Unsaved 💔",
     "瓶子已修改，重新審核通過後會再漂回海裡": "Bottle updated. It'll drift back into the sea once it passes review again",
     "內容沒有變更": "Nothing changed",
+    "找不到這個漂流瓶": "Bottle not found",
     "你的漂流瓶已被系統下架。{x}": "Your bottle was taken down by the system.{x}",
     "你的漂流瓶未通過審核，沒有被放進海裡。{x}": "Your bottle didn't pass review and wasn't released into the sea.{x}",
     "請留意社群規範。": " Please follow the community rules.",

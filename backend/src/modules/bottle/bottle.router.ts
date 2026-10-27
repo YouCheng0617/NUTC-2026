@@ -22,6 +22,7 @@ export function bottleRouter() {
     bottleRouter.get("/today", optionalAuthCheck, bottleController.getTodayBottleConterller);
     bottleRouter.post("/:bottleId/report", authCheck, reportLimiter, bottleController.reportBottleController);
     // ⚠️ 這條一定要放在最後：/:bottleId 會吃掉 /random、/liked、/today 這些路徑
+    bottleRouter.get("/:bottleId/review-status", authCheck, bottleController.getReviewStatusController); // 發文後的審核進度條
     bottleRouter.get("/:bottleId", optionalAuthCheck, bottleController.getBottleByIdController);
     bottleRouter.patch("/:bottleId", authCheck, bottleController.updateMyBottleController);
     return bottleRouter;

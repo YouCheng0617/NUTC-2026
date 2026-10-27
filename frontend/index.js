@@ -1526,11 +1526,18 @@ function setupNewPost() {
         });
 
         if (response.ok) {
+          const result = await response.json().catch(() => ({}));
           clearPostDraft();
-          alert("漂流瓶拋出成功！🎉");
           form.reset();
           document.getElementById("post-modal").style.display = "none";
           fetchBottles();
+          // 審核進度條：關掉也沒關係，審核完一樣會有通知
+          const bottleId = result.bottle?.bottle_id;
+          if (bottleId && window.showReviewProgress) {
+            showReviewProgress(bottleId, { onDone: refreshAfterReview });
+          } else {
+            alert("漂流瓶拋出成功！🎉");
+          }
         } else {
           const err = await response.json();
           alert(
@@ -3227,6 +3234,12 @@ async function fetchNotificationCount() {
 setInterval(() => {
   fetchNotificationCount();
 }, 30000);
+
+// 發文／修改的審核有結果了：通知鈴鐺馬上亮、列表重抓（通過的瓶子才會出現在海裡）
+function refreshAfterReview() {
+  fetchNotificationCount();
+  fetchBottles();
+}
 
 /* =========================================
    🚀 手機版海域選單 (Bottom Sheet) 專屬邏輯
@@ -5471,6 +5484,7 @@ window.saveEditBottle = async function () {
       return;
     }
 
+    const editedId = editingBottleId;
     const p = posts.find((x) => String(x.id) === String(editingBottleId));
     if (p && result.data?.changed) {
       p.title = title;
@@ -5478,7 +5492,12 @@ window.saveEditBottle = async function () {
       p.editedAt = result.data.edited_at;
     }
     closeEditBottleModal();
-    blockToast(result.message || "瓶子已修改");
+    // 內容有改會重新審核，一樣跳進度條；沒改就只提示一下
+    if (result.data?.changed && window.showReviewProgress) {
+      showReviewProgress(editedId, { edited: true, onDone: refreshAfterReview });
+    } else {
+      blockToast(result.message || "瓶子已修改");
+    }
 
     if (p && document.body.classList.contains("in-detail-view")) openPostDetail(p.id);
     applyFilters();
