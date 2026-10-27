@@ -1374,6 +1374,89 @@ textarea {
   transform: translateX(-50%) translateY(0);
 }
 
+/* 🔔 新通知從畫面上方跳出來（index.js 的 showNotifToast），配色跟 ocean-toast 一樣 */
+#notif-toast-stack {
+  position: fixed;
+  top: max(12px, env(safe-area-inset-top));
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(420px, calc(100vw - 32px));
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  z-index: 1000001;
+  pointer-events: none;
+}
+.notif-toast {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 10px 12px 14px;
+  border-radius: 16px;
+  background: linear-gradient(135deg, rgba(10, 35, 65, 0.96), rgba(0, 85, 165, 0.9));
+  -webkit-backdrop-filter: blur(15px); backdrop-filter: blur(15px);
+  border: 1px solid rgba(77, 166, 255, 0.5);
+  box-shadow: 0 12px 30px rgba(0, 20, 45, 0.35);
+  color: #fff;
+  cursor: pointer;
+  pointer-events: auto;
+  animation: notifToastIn 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  transition: opacity 0.25s, transform 0.25s;
+}
+.notif-toast:hover {
+  border-color: rgba(125, 211, 252, 0.85);
+}
+.notif-toast.is-leaving {
+  opacity: 0;
+  transform: translateY(-12px);
+}
+.notif-toast .notif-icon {
+  flex: none;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.15rem;
+  background: rgba(255, 255, 255, 0.14);
+}
+.notif-toast-text {
+  flex: 1;
+  min-width: 0;
+  font-size: 0.92rem;
+  line-height: 1.45;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  word-break: break-word;
+}
+.notif-toast-close {
+  flex: none;
+  width: 32px;
+  height: 32px;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.75);
+  font-size: 1.2rem;
+  line-height: 1;
+  cursor: pointer;
+}
+.notif-toast-close:hover,
+.notif-toast-close:focus-visible {
+  background: rgba(255, 255, 255, 0.15);
+  color: #fff;
+  outline: none;
+}
+@keyframes notifToastIn {
+  from { opacity: 0; transform: translateY(-24px); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .notif-toast { animation: none; transition: none; }
+}
+
 /* =========================================
    8. 左右懸浮抽屜 (熱門貼文 & 深海殿規)
    ========================================= */
@@ -4865,6 +4948,20 @@ textarea.custom-reply-input {
   justify-content: flex-end;
   gap: 12px;
   margin-top: 6px;
+}
+/* 🚩 檢舉留言：平常淡淡的，滑過才變紅 */
+.report-trigger {
+  font-size: 0.85rem !important;
+  color: #94a3b8 !important;
+}
+.report-trigger:hover {
+  color: #ef4444 !important;
+}
+/* 🎭 管理員才會有：匿名的名字可以點開看真名 */
+[data-reveal-type] {
+  cursor: help;
+  text-decoration: underline dotted rgba(100, 116, 139, 0.7);
+  text-underline-offset: 3px;
 }
 .ocean-comment-card.is-deleted {
   background: #f8fafc !important;

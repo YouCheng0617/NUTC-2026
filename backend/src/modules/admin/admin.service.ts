@@ -270,8 +270,9 @@ export const getReportedBottles = async () => {
                     title: true,
                     content: true,
                     status: true,
+                    is_anonymous: true, // 被檢舉的瓶子，後台直接看得到匿名作者是誰
                     author: {
-                        select: { name: true, email: true }
+                        select: { member_id: true, name: true, email: true }
                     },
                     PollOption: pollOptionSelect
                 }
@@ -295,6 +296,17 @@ export const dismissBottleReports = async (bottle_id: number) => {
         data: { status: 2 }
     });
     return result.count;
+};
+
+/* 🎭 管理員在前台點匿名的作者／留言者，查真正是誰（只有管理員呼叫得到） */
+export const revealAnonymousAuthor = async (type: "bottle" | "comment", id: number) => {
+    const member = { select: { member_id: true, name: true } };
+    const row = type === "bottle"
+        ? await prisma.bottle.findUnique({ where: { bottle_id: id }, select: { is_anonymous: true, author: member } })
+        : await prisma.comment.findUnique({ where: { id }, select: { is_anonymous: true, member } });
+    if (!row) return null;
+    const author = "author" in row ? row.author : row.member;
+    return { member_id: author.member_id, name: author.name, is_anonymous: row.is_anonymous };
 };
 
 export const getAllComments = async () => {

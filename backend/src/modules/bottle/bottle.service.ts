@@ -5,6 +5,7 @@ import { createNotification } from "../notification/notification.service.js";
 import { getBlockedMemberIds, isBlockedBetween } from "../block/block.service.js";
 import { isWithinEditWindow } from "../../lib/editWindow.js";
 import { aiServiceUrl } from "../../lib/aiService.js";
+import { alertAdmins } from "../../lib/adminAlert.js";
 
 /* 投票選項 include：memberId 存在時一併撈出該會員自己的投票 */
 const pollInclude = (memberId?: number) => ({
@@ -421,7 +422,7 @@ export const reportBottle = async (bottleId: number, memberId: number, reason: s
 
     const bottle = await prisma.bottle.findUnique({
         where: { bottle_id: bottleId },
-        select: { member_id: true }
+        select: { member_id: true, title: true, content: true }
     });
     if (!bottle) {
         throw new Error("BOTTLE_NOT_FOUND");
@@ -435,6 +436,17 @@ export const reportBottle = async (bottleId: number, memberId: number, reason: s
                 reason: trimmedReason,
             }
         });
+
+        // 🚨 這篇第一次被檢舉（還沒處理的只有這一筆）才寄信提醒管理員
+        const pendingCount = await prisma.bottleReport.count({ where: { bottle_id: bottleId, status: 0 } });
+        if (pendingCount === 1) {
+            alertAdmins({
+                kind: "貼文檢舉",
+                context: `貼文 #${bottleId}「${bottle.title}」`,
+                summary: bottle.content,
+                detail: trimmedReason,
+            });
+        }
 
         if (bottle.member_id) {
             await createNotification(

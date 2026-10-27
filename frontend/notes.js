@@ -17,9 +17,17 @@ const i18nNotes = {
     warnEmpty: "請輸入便利貼內容！",
     warnLogin: "請先登入才能發佈便利貼！",
     duplicate: "今天已經有寫便利貼了，明天再來吧！",
-    success: "發佈成功！已為你貼入海域 ✨",
+    success: "已送出！審核通過後大家就看得到 ✨",
     fail: "發送失敗，請檢查網路連線！",
     refreshed: "已為你換上一批新便利貼 🌊",
+    pending: "⏳ 審核中",
+    reportBtn: "檢舉這張便利貼",
+    reportTitle: "檢舉便利貼",
+    reportAsk: "這張便利貼有什麼問題呢？\n管理員會看過再決定要不要下架。",
+    reportOk: "送出檢舉",
+    reportCancel: "取消",
+    reportEmpty: "請寫一下檢舉的原因",
+    reportDone: "檢舉已送出，謝謝你的回報 🙏",
   },
   en: {
     title: "📝 Daily Notes",
@@ -36,9 +44,17 @@ const i18nNotes = {
     warnEmpty: "Please enter note content!",
     warnLogin: "Please login to post a note!",
     duplicate: "You already posted today. Come back tomorrow!",
-    success: "Posted successfully! ✨",
+    success: "Sent! Everyone will see it once it passes review ✨",
     fail: "Failed to send, please check network!",
     refreshed: "Loaded a new batch of notes 🌊",
+    pending: "⏳ In review",
+    reportBtn: "Report this note",
+    reportTitle: "Report note",
+    reportAsk: "What's wrong with this note?\nAn admin will review it before taking it down.",
+    reportOk: "Report",
+    reportCancel: "Cancel",
+    reportEmpty: "Please tell us why you're reporting it",
+    reportDone: "Report sent. Thanks for letting us know 🙏",
   },
 };
 
@@ -244,14 +260,33 @@ window.toggleCreatorModal = function (show) {
             minute: "2-digit",
           });
 
+      const t = i18nNotes[currLangNotes];
+      const isPending = Number(note.status) === 0;
+      // 自己那張還在審核：標出來；別人的（有 id 的）才能檢舉
+      const footerExtra = isPending
+        ? `<span class="note-pending">${t.pending}</span>`
+        : !note.is_mine && note.id
+          ? `<button type="button" class="note-report-btn" title="${t.reportBtn}" aria-label="${t.reportBtn}">🚩</button>`
+          : "";
+
       const card = document.createElement("div");
-      card.className = "note-card";
+      card.className = "note-card" + (isPending ? " is-pending" : "");
       card.style.background = randomColor;
 
       card.innerHTML = `
         <div class="note-text">${escapeHTML(note.content)}</div>
-        <div class="note-footer"><span>🕒 ${timeString}</span></div>
+        <div class="note-footer"><span>🕒 ${timeString}</span>${footerExtra}</div>
       `;
+
+      const reportBtn = card.querySelector(".note-report-btn");
+      if (reportBtn) {
+        // 不要觸發卡片的特寫與拖曳
+        reportBtn.addEventListener("pointerdown", (e) => e.stopPropagation());
+        reportBtn.onclick = (e) => {
+          e.stopPropagation();
+          reportNote(note);
+        };
+      }
 
       card.dataset.x0 = coord.x0;
       card.dataset.y0 = coord.y0;
@@ -472,8 +507,11 @@ window.toggleCreatorModal = function (show) {
       // 用後端回傳的內容（後端會去掉頭尾空白），跟重新整理後看到的一致
       const saved = (await res.json().catch(() => null))?.data;
       const newNoteObj = {
+        id: saved?.id,
         content: saved?.content || content.trim(),
         created_at: saved?.created_at || new Date().toISOString(),
+        status: saved?.status ?? 0, // 剛發的還在審核中
+        is_mine: true,
       };
       window.allNotesPool.unshift(newNoteObj);
 
@@ -490,6 +528,48 @@ window.toggleCreatorModal = function (show) {
       navigateToCard(calculateSpherePositions(total, getRadius())[0]);
     } catch (error) {
       console.error("發佈失敗：", error);
+      showToast(t.fail, "error");
+    }
+  };
+
+  // 🚩 檢舉便利貼：寫原因 → 送給後台審
+  const reportNote = async (note) => {
+    const t = i18nNotes[currLangNotes];
+    const token = localStorage.getItem("authToken");
+    if (!token) {
+      showToast(t.warnLogin, "warning");
+      return;
+    }
+    const reason = await oceanPrompt(t.reportAsk, {
+      title: t.reportTitle,
+      icon: "🚩",
+      okText: t.reportOk,
+      cancelText: t.reportCancel,
+      danger: true,
+    });
+    if (reason == null) return;
+    if (!reason.trim()) {
+      showToast(t.reportEmpty, "warning");
+      return;
+    }
+
+    try {
+      const res = await fetch(`${API_URL}/${note.id}/report`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ reason: reason.trim() }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        showToast(data.message || t.fail, "error");
+        return;
+      }
+      showToast(t.reportDone, "success");
+    } catch (error) {
+      console.error("檢舉失敗：", error);
       showToast(t.fail, "error");
     }
   };

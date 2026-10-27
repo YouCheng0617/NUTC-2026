@@ -1,5 +1,6 @@
 import prisma from "../../lib/prisma.js";
 import { createNotification } from "../notification/notification.service.js";
+import { alertAdmins } from "../../lib/adminAlert.js";
 
 // 1. 會員送出客服問題
 export const createCustomerServiceTicket = async (memberId: number, title: string, message: string, images: string[] = []) => {
@@ -21,6 +22,14 @@ export const createCustomerServiceTicket = async (memberId: number, title: strin
         undefined,
         ticket.id
     );
+
+    // 🚨 每一筆新的客服問題都寄信提醒管理員
+    alertAdmins({
+        kind: "客服",
+        context: `客服單 #${ticket.id}${images.length ? `（附 ${images.length} 張圖）` : ""}`,
+        summary: ticket.title,
+        detail: ticket.message,
+    });
 
     return ticket;
 };

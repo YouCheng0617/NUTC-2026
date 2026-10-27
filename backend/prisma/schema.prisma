@@ -61,6 +61,8 @@ model Member {
   gameRecords      GameRecord[]
   commentLikes     CommentLike[]
   DaliyNote        DaliyNote[]
+  noteReports      NoteReport[] // 這個會員檢舉過的便利貼
+  commentReports   CommentReport[] // 這個會員檢舉過的留言
 
   following    Follow[]        @relation("UserFollows") // 這個會員追蹤了哪些人 (我追蹤的人)
   followers    Follow[]        @relation("UserFollowedBy") // 哪些人追蹤了這個會員 (我的粉絲)
@@ -97,6 +99,7 @@ model Member {
   puzzleDrawRecords PuzzleDrawRecord[]
   deletionRequests  AccountDeletionRequest[]
   broadcastReads    BroadcastRead[]
+  broadcastTargets  BroadcastTarget[] // 指定發給這個會員的通知
 }
 
 model BlacklistedToken {
@@ -237,10 +240,27 @@ model Comment {
   member    Member @relation(fields: [member_id], references: [member_id], onDelete: Cascade)
   bottle    Bottle @relation(fields: [bottle_id], references: [bottle_id], onDelete: Cascade)
 
-  likes CommentLike[]
+  likes   CommentLike[]
+  reports CommentReport[]
 
   parent  Comment?  @relation("CommentReplies", fields: [parent_id], references: [id], onDelete: Cascade)
   replies Comment[] @relation("CommentReplies")
+}
+
+// 留言檢舉（留言不用先審核，被檢舉才由管理員處理）
+model CommentReport {
+  id         Int      @id @default(autoincrement())
+  member_id  Int // 檢舉人 ID
+  comment_id Int // 被檢舉的留言 ID
+  reason     String   @db.Text // 檢舉理由
+  status     Int      @default(0) // 0:待處理, 1:檢舉成立（留言已刪除）, 2:檢舉不成立
+  created_at DateTime @default(now())
+
+  reporter Member  @relation(fields: [member_id], references: [member_id], onDelete: Cascade)
+  comment  Comment @relation(fields: [comment_id], references: [id], onDelete: Cascade)
+
+  // 同一個人對同一則留言只能檢舉一次
+  @@unique([member_id, comment_id])
 }
 
 model BottleReport {
@@ -286,15 +306,35 @@ model GameRecord {
 }
 
 model DaliyNote {
-  id         Int      @id @default(autoincrement())
-  member_id  Int
-  content    String   @db.VarChar(50)
-  date       String
-  created_at DateTime @default(now())
+  id               Int      @id @default(autoincrement())
+  member_id        Int
+  content          String   @db.VarChar(50)
+  date             String
+  created_at       DateTime @default(now())
+  // 審核狀態 (0待審, 1通過, 2違規)；新便利貼由程式設成 0，預設 1 是讓加這個欄位前就有的便利貼維持看得到
+  status           Int      @default(1)
+  violation_reason String? // 違規原因
 
-  member Member @relation(fields: [member_id], references: [member_id], onDelete: Cascade)
+  member  Member       @relation(fields: [member_id], references: [member_id], onDelete: Cascade)
+  reports NoteReport[]
 
   @@unique([member_id, date])
+}
+
+// 便利貼檢舉（便利貼每天 00:00 清空，檢舉紀錄跟著一起刪）
+model NoteReport {
+  id         Int      @id @default(autoincrement())
+  member_id  Int // 檢舉人 ID
+  note_id    Int // 被檢舉的便利貼 ID
+  reason     String   @db.Text // 檢舉理由
+  status     Int      @default(0) // 0:待處理, 1:檢舉成立, 2:檢舉不成立
+  created_at DateTime @default(now())
+
+  reporter Member    @relation(fields: [member_id], references: [member_id], onDelete: Cascade)
+  note     DaliyNote @relation(fields: [note_id], references: [id], onDelete: Cascade)
+
+  // 同一個人對同一張便利貼只能檢舉一次
+  @@unique([member_id, note_id])
 }
 
 model Follow {
@@ -452,9 +492,22 @@ model Broadcast {
   created_at DateTime  @default(now())
   updated_at DateTime  @updatedAt
 
-  reads BroadcastRead[]
+  reads   BroadcastRead[]
+  targets BroadcastTarget[] // 指定收件人；沒有任何一筆＝發給所有人
 
   @@index([is_active, created_at])
+}
+
+/// 通知指定發給誰（沒有指定的通知是發給所有人）
+model BroadcastTarget {
+  broadcast_id Int
+  member_id    Int
+
+  broadcast Broadcast @relation(fields: [broadcast_id], references: [id], onDelete: Cascade)
+  member    Member    @relation(fields: [member_id], references: [member_id], onDelete: Cascade)
+
+  @@id([broadcast_id, member_id])
+  @@index([member_id])
 }
 
 /// 誰看過哪一則全服通知

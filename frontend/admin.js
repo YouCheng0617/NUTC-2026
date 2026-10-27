@@ -176,10 +176,11 @@ window.switchAdminTab = function (tabName) {
     else if (tabName === 'users') { titleEl.innerText = "管理使用者"; loadUsers(); }
     else if (tabName === 'bottles') { titleEl.innerText = "漂流瓶審核"; loadBottles(); }
     else if (tabName === 'reports') { titleEl.innerText = "檢舉處理"; loadReports(); }
+    else if (tabName === 'daily-notes') { titleEl.innerText = "便利貼審核"; loadDailyNotes(); }
     else if (tabName === 'game-reports') { titleEl.innerText = "遊戲檢舉"; loadGameReports(); }
     else if (tabName === 'redeem-codes') { titleEl.innerText = "遊戲兌換碼"; loadRedeemCodes(); }
     else if (tabName === 'daily-question') { titleEl.innerText = "今日一題"; loadDailyQuestions(); }
-    else if (tabName === 'broadcasts') { titleEl.innerText = "全服通知"; loadBroadcasts(); }
+    else if (tabName === 'broadcasts') { titleEl.innerText = "發送通知"; loadBroadcasts(); }
     else if (tabName === 'customer-service') { titleEl.innerText = "客服問題管理"; loadCustomerServices(); }
 }
 
@@ -208,12 +209,12 @@ function genderOf(raw) {
 async function loadDashboardData() {
     const token = localStorage.getItem("authToken");
     try {
-        const [usersRes, bottlesRes, commentsRes, csRes, reportsRes] = await Promise.all([
+        const [usersRes, bottlesRes, commentsRes, csRes, allReports] = await Promise.all([
             fetch(`${API_BASE_URL}/admin/members`, { headers: { 'Authorization': `Bearer ${token}`, 'ngrok-skip-browser-warning': 'true' } }),
             fetch(`${API_BASE_URL}/admin/bottles`, { headers: { 'Authorization': `Bearer ${token}`, 'ngrok-skip-browser-warning': 'true' } }),
             fetch(`${API_BASE_URL}/admin/comments`, { headers: { 'Authorization': `Bearer ${token}`, 'ngrok-skip-browser-warning': 'true' } }).catch(() => null),
             fetch(`${API_BASE_URL}/admin/customer-services`, { headers: { 'Authorization': `Bearer ${token}`, 'ngrok-skip-browser-warning': 'true' } }).catch(() => null),
-            fetch(`${API_BASE_URL}/admin/bottles/reported`, { headers: { 'Authorization': `Bearer ${token}`, 'ngrok-skip-browser-warning': 'true' } }).catch(() => null)
+            fetchAllReports().catch(() => null) // 貼文、留言、便利貼的檢舉
         ]);
 
         const usersData = await usersRes.json();
@@ -231,9 +232,8 @@ async function loadDashboardData() {
         document.getElementById('stat-bottles').innerText = bottles.length;
 
         // 待處理檢舉：以前只有切到「檢舉處理」分頁才會抓資料，總覽一直顯示預設的假數字
-        if (reportsRes && reportsRes.ok) {
-            const reportsData = await reportsRes.json();
-            window._allReports = reportsData.data || reportsData || [];
+        if (allReports) {
+            window._allReports = allReports;
             updateDashboardReportCount();
         } else {
             document.getElementById('stat-reports').innerText = '—';
@@ -1212,31 +1212,117 @@ window.toggleReportSort = function () {
     filterReports();
 };
 
-/* 檢舉的處理結果：瓶子被下架或檢舉成立算「已下架」，檢舉不成立算「沒問題」，其餘待處理 */
+/* 瓶子檢舉的處理結果：瓶子被下架或檢舉成立算「已下架」，檢舉不成立算「沒問題」，其餘待處理 */
 function getReportState(r) {
     if (Number(r.bottle?.status) === 2 || Number(r.status) === 1) return 'banned';
     if (Number(r.status) === 2) return 'dismissed';
     return 'pending';
 }
 
+// 留言、便利貼的檢舉狀態：0 待處理、1 成立（已刪除／已下架）、2 不成立
+function reportStateOf(status) {
+    return Number(status) === 1 ? 'banned' : Number(status) === 2 ? 'dismissed' : 'pending';
+}
+
+// 被檢舉內容的作者：一律顯示真名，匿名的加上標記
+function reportAuthorLine(member, isAnonymous, anonLabel) {
+    if (!member) return '';
+    return `<div style="margin-top: 6px; font-size: 0.85rem; color: #475569; white-space: normal;">✍️ 作者：<b>${escapeHTML(member.name || '未命名')}</b> <span style="color:#94a3b8;">(ID ${escapeHTML(member.member_id)})</span>${isAnonymous ? ` <span class="badge" style="background:#f3e8ff; color:#7e22ce; border:1px solid #e9d5ff; padding: 1px 8px;">🎭 ${anonLabel}</span>` : ''}</div>`;
+}
+
+function reporterLabel(reporter, reporterId) {
+    if (reporter?.name) return `${reporter.name}${reporterId ? ` (ID ${reporterId})` : ''}`;
+    return reporterId ? `ID ${reporterId}` : '未知';
+}
+
+const REPORT_KIND = {
+    bottle: { text: '🍾 貼文', bg: '#e0f2fe', color: '#0369a1', border: '#bae6fd' },
+    comment: { text: '💬 留言', bg: '#fef3c7', color: '#b45309', border: '#fde68a' },
+    note: { text: '📝 便利貼', bg: '#fce7f3', color: '#be185d', border: '#fbcfe8' },
+};
+
+/* 貼文、留言、便利貼三種檢舉抓下來，整理成同一種格式（一筆檢舉一列） */
+async function fetchAllReports() {
+    const headers = { 'Authorization': `Bearer ${localStorage.getItem("authToken")}`, 'ngrok-skip-browser-warning': 'true' };
+    const get = async (path) => {
+        const res = await fetch(`${API_BASE_URL}${path}`, { headers });
+        if (!res.ok) throw new Error(path);
+        const data = await res.json();
+        return data.data || [];
+    };
+    const [bottleReports, reportedComments, notes] = await Promise.all([
+        get('/admin/bottles/reported'),
+        get('/admin/comment-reports'),
+        get('/admin/daily-notes'),
+    ]);
+
+    const list = [];
+    bottleReports.forEach(r => {
+        const poll = pollOptionsOf(r.bottle);
+        list.push({
+            kind: 'bottle',
+            targetId: r.bottle_id,
+            created_at: r.created_at,
+            reason: r.reason || '未提供原因',
+            reporter: reporterLabel(r.reporter, r.member_id),
+            state: getReportState(r),
+            content: r.bottle?.content || '（無法取得文章內容）',
+            contextHtml: `<div style="margin-bottom: 4px; font-weight: 700; color: #1e293b;">#${escapeHTML(r.bottle_id)}「${escapeHTML(r.bottle?.title || '')}」</div>`,
+            extraHtml: (poll.length > 0
+                ? `<div style="margin-top: 6px; color: #4338ca; font-size: 0.85rem; line-height: 1.5; white-space: normal;">📊 投票：${poll.map(o => escapeHTML(o.text)).join(' ／ ')}</div>`
+                : '') + reportAuthorLine(r.bottle?.author, r.bottle?.is_anonymous, '匿名發文'),
+            search: [r.bottle_id, r.bottle?.title, r.bottle?.content, r.bottle?.author?.name],
+        });
+    });
+    reportedComments.forEach(c => {
+        (c.reports || []).forEach(r => {
+            list.push({
+                kind: 'comment',
+                targetId: c.id,
+                created_at: r.created_at,
+                reason: r.reason,
+                reporter: reporterLabel(r.reporter, r.member_id),
+                state: reportStateOf(r.status),
+                content: c.content || '（空白）',
+                contextHtml: `<div style="margin-bottom: 4px; font-size: 0.85rem; color: #b45309; white-space: normal;">在貼文 <b>#${escapeHTML(c.bottle?.bottle_id ?? '')}「${escapeHTML(c.bottle?.title || '')}」</b>底下的${c.parent_id ? '回覆' : '留言'}</div>`,
+                extraHtml: reportAuthorLine(c.member, c.is_anonymous, '匿名留言'),
+                search: [c.id, c.content, c.member?.name, c.bottle?.bottle_id, c.bottle?.title],
+            });
+        });
+    });
+    notes.forEach(n => {
+        (n.reports || []).forEach(r => {
+            list.push({
+                kind: 'note',
+                targetId: n.id,
+                created_at: r.created_at,
+                reason: r.reason,
+                reporter: reporterLabel(r.reporter, r.member_id),
+                state: reportStateOf(r.status),
+                content: n.content,
+                contextHtml: '<div style="margin-bottom: 4px; font-size: 0.85rem; color: #be185d;">今天的便利貼</div>',
+                extraHtml: reportAuthorLine(n.member, true, '便利貼都是匿名的'),
+                search: [n.id, n.content, n.member?.name],
+            });
+        });
+    });
+    return list;
+}
+
 window.updateDashboardReportCount = function () {
     if (!window._allReports) return;
-    const pendingCount = window._allReports.filter(r => getReportState(r) === 'pending').length;
+    const pendingCount = window._allReports.filter(r => r.state === 'pending').length;
     const statReports = document.getElementById('stat-reports');
     if (statReports) statReports.innerText = pendingCount;
 }
 
 async function loadReports() {
     const tbody = document.getElementById('admin-reports-body');
-    const token = localStorage.getItem("authToken");
     if (!tbody) return;
     tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;">讀取中...</td></tr>`;
 
     try {
-        const response = await fetch(`${API_BASE_URL}/admin/bottles/reported`, { headers: { 'Authorization': `Bearer ${token}`, 'ngrok-skip-browser-warning': 'true' } });
-        if (!response.ok) throw new Error();
-        const data = await response.json();
-        window._allReports = data.data || data || [];
+        window._allReports = await fetchAllReports();
         updateDashboardReportCount();
         filterReports();
     } catch (e) {
@@ -1259,11 +1345,9 @@ window.filterReportByStatus = function (status) {
 window.filterReports = function () {
     const keyword = document.getElementById('search-reports')?.value.toLowerCase() || '';
     window._filteredReportsCache = window._allReports.filter(r => {
-        const bottleId = String(r.bottle_id || r.id || '');
-        const reason = String(r.reason || r.report_reason || r.content || '').toLowerCase();
-        const reporterName = String(r.reporter?.name || '').toLowerCase();
-        const matchKeyword = bottleId.includes(keyword) || reason.includes(keyword) || reporterName.includes(keyword);
-        const isProcessed = getReportState(r) !== 'pending';
+        const haystack = [REPORT_KIND[r.kind].text, r.reason, r.reporter, ...r.search].join(' ').toLowerCase();
+        const matchKeyword = haystack.includes(keyword);
+        const isProcessed = r.state !== 'pending';
         let matchStatus = true;
         if (window._currentReportStatusFilter === 'pending') matchStatus = !isProcessed;
         else if (window._currentReportStatusFilter === 'processed') matchStatus = isProcessed;
@@ -1271,8 +1355,8 @@ window.filterReports = function () {
     });
 
     window._filteredReportsCache.sort((a, b) => {
-        const timeA = getItemTimestamp(a, 'bottle_id');
-        const timeB = getItemTimestamp(b, 'bottle_id');
+        const timeA = new Date(a.created_at).getTime() || 0;
+        const timeB = new Date(b.created_at).getTime() || 0;
         return window._reportSortOrder === 'asc' ? timeA - timeB : timeB - timeA;
     });
 
@@ -1302,38 +1386,39 @@ function renderReports(reports) {
         return;
     }
 
+    // 處理後的標籤文字：貼文、便利貼是「下架」，留言是「刪除」
+    const BANNED_TEXT = { bottle: '✅ 已下架', comment: '✅ 留言已刪除', note: '✅ 已下架' };
+    // 待處理時的按鈕：依類型打不同的接口
+    const ACTIONS = {
+        bottle: id => [`banReportedBottle(${id})`, '🚫 強制下架 (留存紀錄)', `dismissReportedBottle(${id})`],
+        comment: id => [`resolveReportedComment(${id}, 'delete')`, '🗑️ 刪除留言 (留存紀錄)', `resolveReportedComment(${id}, 'dismiss')`],
+        note: id => [`resolveReportedNote(${id}, 'ban')`, '🚫 下架便利貼', `resolveReportedNote(${id}, 'dismiss')`],
+    };
+
     tbody.innerHTML = reports.map(r => {
-        const bottleId = r.bottle_id || r.id || '未知';
-        const reason = r.reason || r.report_reason || '未提供原因';
-        const reporterId = r.member_id || r.reporter_id;
-        const reporter = r.reporter?.name
-            ? `${r.reporter.name}${reporterId ? ` (ID ${reporterId})` : ''}`
-            : (reporterId ? `ID ${reporterId}` : (r.reporter_name || '未知'));
+        const kind = REPORT_KIND[r.kind];
         const date = r.created_at ? new Date(r.created_at).toLocaleDateString() : '未知';
-        const bottleContent = r.bottle_content || r.bottle?.content || r.content || '（無法取得文章內容）';
-        const reportPoll = pollOptionsOf(r.bottle);
-        const reportPollHtml = reportPoll.length > 0
-            ? `<div style="margin-top: 6px; color: #4338ca; font-size: 0.85rem; line-height: 1.5; white-space: normal;">📊 投票：${reportPoll.map(o => escapeHTML(o.text)).join(' ／ ')}</div>`
-            : '';
-        const state = getReportState(r);
-        const isProcessed = state !== 'pending';
+        const isProcessed = r.state !== 'pending';
 
         let actionHtml;
-        if (state === 'banned') actionHtml = `<span class="badge" style="background:#f1f5f9; color:#64748b; border:1px solid #cbd5e1; padding: 6px 12px;">✅ 已下架</span>`;
-        else if (state === 'dismissed') actionHtml = `<span class="badge" style="background:#f0fdf4; color:#15803d; border:1px solid #bbf7d0; padding: 6px 12px;">❎ 檢舉不成立</span>`;
-        else actionHtml = `<div style="display:flex; gap:6px; flex-wrap:wrap;">
-                <button class="btn-action btn-danger" onclick="banReportedBottle('${bottleId}');">🚫 強制下架 (留存紀錄)</button>
-                <button class="btn-action" style="background:#f0fdf4; color:#15803d; border:1px solid #bbf7d0;" onclick="dismissReportedBottle('${bottleId}');">❎ 沒問題 (檢舉不成立)</button>
+        if (r.state === 'banned') actionHtml = `<span class="badge" style="background:#f1f5f9; color:#64748b; border:1px solid #cbd5e1; padding: 6px 12px;">${BANNED_TEXT[r.kind]}</span>`;
+        else if (r.state === 'dismissed') actionHtml = `<span class="badge" style="background:#f0fdf4; color:#15803d; border:1px solid #bbf7d0; padding: 6px 12px;">❎ 檢舉不成立</span>`;
+        else {
+            const [banCall, banText, dismissCall] = ACTIONS[r.kind](Number(r.targetId));
+            actionHtml = `<div style="display:flex; gap:6px; flex-wrap:wrap;">
+                <button class="btn-action btn-danger" onclick="${banCall};">${banText}</button>
+                <button class="btn-action" style="background:#f0fdf4; color:#15803d; border:1px solid #bbf7d0;" onclick="${dismissCall};">❎ 沒問題 (檢舉不成立)</button>
             </div>`;
+        }
         const rowBg = isProcessed ? '#f8fafc' : '#fffafa';
         const rowOpacity = isProcessed ? '0.7' : '1';
 
         return `
         <tr style="background: ${rowBg}; opacity: ${rowOpacity}; transition: 0.3s;">
-            <td data-label="文章 ID" style="color: #64748b; font-weight: 600;">#${bottleId}</td>
-            <td data-label="被檢舉內容" style="min-width: 220px; max-width: 350px;"><div style="display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; white-space: normal; color: #334155; line-height: 1.5; font-size: 0.95rem;">${escapeHTML(String(bottleContent))}</div>${reportPollHtml}</td>
-            <td data-label="檢舉原因" style="color: #ef4444; font-weight: bold; white-space: normal; min-width: 150px;">${escapeHTML(String(reason))}</td>
-            <td data-label="檢舉者">${escapeHTML(String(reporter))}</td>
+            <td data-label="類型" style="white-space: nowrap;"><span class="badge" style="background:${kind.bg}; color:${kind.color}; border:1px solid ${kind.border}; padding: 4px 10px;">${kind.text}</span></td>
+            <td data-label="被檢舉內容" style="min-width: 220px; max-width: 350px;">${r.contextHtml}<div style="display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; white-space: normal; color: #334155; line-height: 1.5; font-size: 0.95rem;">${escapeHTML(String(r.content))}</div>${r.extraHtml}</td>
+            <td data-label="檢舉原因" style="color: #ef4444; font-weight: bold; white-space: normal; min-width: 150px;">${escapeHTML(String(r.reason))}</td>
+            <td data-label="檢舉者">${escapeHTML(String(r.reporter))}</td>
             <td data-label="檢舉時間" style="color: #64748b;">${date}</td>
             <td data-label="操作">${actionHtml}</td>
         </tr>
@@ -1348,8 +1433,7 @@ window.banReportedBottle = async function (bottleId) {
         const response = await fetch(`${API_BASE_URL}/admin/bottles/review`, { method: 'PUT', headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ "bottle_id": Number(bottleId), "status": 2, "violation_reason": "遭檢舉違規，管理員強制下架" }) });
         if (response.ok) {
             alert("✅ 文章已成功下架！");
-            if (window._allReports) window._allReports.forEach(r => { if (String(r.bottle_id || r.id) === String(bottleId)) { if (r.bottle) r.bottle.status = 2; r.status = 2; } });
-            filterReports(); loadBottles(); updateDashboardReportCount();
+            loadReports(); loadBottles();
         } else { const err = await response.json(); alert(`下架失敗: ${err.message}`); }
     } catch (e) { alert("伺服器連線失敗"); }
 }
@@ -1362,9 +1446,44 @@ window.dismissReportedBottle = async function (bottleId) {
         const response = await fetch(`${API_BASE_URL}/admin/bottles/${Number(bottleId)}/reports/dismiss`, { method: 'PUT', headers: { 'Authorization': `Bearer ${token}`, 'ngrok-skip-browser-warning': 'true' } });
         if (response.ok) {
             alert("✅ 已標記為檢舉不成立！");
-            if (window._allReports) window._allReports.forEach(r => { if (String(r.bottle_id || r.id) === String(bottleId) && getReportState(r) === 'pending') r.status = 2; });
-            filterReports(); updateDashboardReportCount();
+            loadReports();
         } else { const err = await response.json(); alert(`處理失敗: ${err.message}`); }
+    } catch (e) { alert("伺服器連線失敗"); }
+}
+
+/* 💬 留言檢舉：delete 刪除留言（後台留著內容、通知留言者）、dismiss 不成立 */
+window.resolveReportedComment = async function (commentId, action) {
+    const msg = action === 'delete'
+        ? `⚠️ 確定要刪除 #${commentId} 號留言嗎？\n前台會看不到這則留言，留言者會收到通知；後台留著內容當紀錄。`
+        : `確定 #${commentId} 號留言沒有違規，將待處理的檢舉判定為「不成立」嗎？\n(留言維持原狀)`;
+    if (!await oceanConfirm(msg)) return;
+    try {
+        const token = localStorage.getItem("authToken");
+        const response = await fetch(`${API_BASE_URL}/admin/comments/${Number(commentId)}/reports/resolve`, { method: 'PUT', headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ action }) });
+        if (response.ok) {
+            alert(action === 'delete' ? "✅ 留言已刪除！" : "✅ 已標記為檢舉不成立！");
+            loadReports();
+        } else { const err = await response.json().catch(() => ({})); alert(`處理失敗: ${err.message || '請確認權限或網路狀態'}`); }
+    } catch (e) { alert("伺服器連線失敗"); }
+}
+
+/* 📝 便利貼檢舉：ban 下架（要寫原因，會通知作者）、dismiss 不成立（便利貼維持通過） */
+window.resolveReportedNote = async function (noteId, action) {
+    let violationReason = '';
+    if (action === 'ban') {
+        const reason = await oceanPrompt(`⚠️ 要下架 #${noteId} 號便利貼嗎？\n請寫下架原因（會通知作者）`, { title: '下架便利貼', okText: '下架', danger: true, defaultValue: '遭檢舉違規' });
+        if (reason == null) return;
+        if (!reason.trim()) { alert("必須填寫原因！"); return; }
+        violationReason = reason.trim();
+    } else if (!await oceanConfirm(`確定 #${noteId} 號便利貼沒有違規，將待處理的檢舉判定為「不成立」嗎？\n(便利貼維持原狀)`)) return;
+    try {
+        const token = localStorage.getItem("authToken");
+        const response = await fetch(`${API_BASE_URL}/admin/daily-notes/${Number(noteId)}/status`, { method: 'PUT', headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ status: action === 'ban' ? 2 : 1, violation_reason: violationReason }) });
+        if (response.ok) {
+            alert(action === 'ban' ? "✅ 便利貼已下架！" : "✅ 已標記為檢舉不成立！");
+            loadReports();
+            if (typeof loadDailyNotes === 'function') loadDailyNotes(); // 便利貼審核分頁的數字也要更新
+        } else { const err = await response.json().catch(() => ({})); alert(`處理失敗: ${err.message || '請確認權限或網路狀態'}`); }
     } catch (e) { alert("伺服器連線失敗"); }
 }
 

@@ -2,7 +2,10 @@ import { isValidId } from "../../lib/validateHelper.js";
 import { checkLinks } from "../../lib/linkGuard.js";
 import type { Response, Request } from "express";
 import type { AuthRequest } from "../middleware/auth.middleware.js";
-import { createComment, getCommentsByBottleId, likeComment, createReply, updateComment, deleteComment } from "./comment.service.js";
+import {
+    createComment, getCommentsByBottleId, likeComment, createReply, updateComment, deleteComment,
+    reportComment, getReportedCommentsForAdmin, resolveCommentReports,
+} from "./comment.service.js";
 import { EDIT_WINDOW_MINUTES } from "../../lib/editWindow.js";
 
 export class CommentController {
@@ -201,6 +204,73 @@ export class CommentController {
                 return res.status(403).json({ message: "只能刪除自己的留言" });
             }
             console.error("deleteCommentController 錯誤:", error);
+            return res.status(500).json({ message: "伺服器錯誤" });
+        }
+    }
+
+    /* 🚩 檢舉留言 */
+    async reportCommentController(req: AuthRequest, res: Response) {
+        try {
+            const memberId = req.user?.member_id as number;
+            const commentId = Number(req.params.commentId);
+            const { reason } = req.body;
+            if (!isValidId(commentId)) {
+                return res.status(400).json({ message: "無效的留言 ID" });
+            }
+            if (typeof reason !== "string" || reason.trim().length > 200) {
+                return res.status(400).json({ message: "檢舉理由最多 200 字" });
+            }
+
+            await reportComment(commentId, memberId, reason);
+            return res.status(201).json({ message: "檢舉已送出，管理員會盡快處理" });
+        } catch (error: any) {
+            if (error.message === "REPORT_REASON_EMPTY") {
+                return res.status(400).json({ message: "檢舉理由不能為空字串" });
+            }
+            if (error.message === "COMMENT_NOT_FOUND") {
+                return res.status(404).json({ message: "留言不存在" });
+            }
+            if (error.message === "CANNOT_REPORT_OWN") {
+                return res.status(400).json({ message: "不能檢舉自己的留言" });
+            }
+            if (error.message === "ALREADY_REPORTED") {
+                return res.status(409).json({ message: "你已經檢舉過這則留言囉！感謝你的回報。" });
+            }
+            console.error("reportCommentController 錯誤:", error);
+            return res.status(500).json({ message: "伺服器錯誤" });
+        }
+    }
+
+    /* 後台：被檢舉的留言 */
+    async getReportedCommentsController(req: AuthRequest, res: Response) {
+        try {
+            const comments = await getReportedCommentsForAdmin();
+            return res.status(200).json({ data: comments });
+        } catch (error: any) {
+            console.error("getReportedCommentsController 錯誤:", error);
+            return res.status(500).json({ message: "伺服器錯誤" });
+        }
+    }
+
+    /* 後台：處理留言檢舉（delete 刪除留言、dismiss 檢舉不成立） */
+    async resolveCommentReportsController(req: AuthRequest, res: Response) {
+        try {
+            const commentId = Number(req.params.commentId);
+            const { action } = req.body;
+            if (!isValidId(commentId)) {
+                return res.status(400).json({ message: "無效的留言 ID" });
+            }
+            if (action !== "delete" && action !== "dismiss") {
+                return res.status(400).json({ message: "處理方式只能是 delete 或 dismiss" });
+            }
+
+            await resolveCommentReports(commentId, action);
+            return res.status(200).json({ message: action === "delete" ? "留言已刪除" : "檢舉不成立" });
+        } catch (error: any) {
+            if (error.message === "COMMENT_NOT_FOUND") {
+                return res.status(404).json({ message: "留言不存在" });
+            }
+            console.error("resolveCommentReportsController 錯誤:", error);
             return res.status(500).json({ message: "伺服器錯誤" });
         }
     }

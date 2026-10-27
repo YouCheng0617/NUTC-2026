@@ -1,4 +1,5 @@
 import prisma from '../lib/prisma.js';
+import { alertAdmins } from '../lib/adminAlert.js';
 
 /*
  * 寵物遊戲連線房間的封鎖與檢舉
@@ -141,6 +142,17 @@ export const reportPlayer = async (params: {
             room_id: roomId,
         },
     });
+
+    // 🚨 這位玩家第一次被檢舉（還沒處理的只有這一筆）才寄信提醒管理員
+    const pendingCount = await prisma.gameReport.count({ where: { reported_id: reportedId, status: 0 } });
+    if (pendingCount === 1) {
+        alertAdmins({
+            kind: "遊戲檢舉",
+            context: `寵物遊戲房間 ${roomId}`,
+            summary: `玩家「${reportedPetName}」（會員 ID ${reportedId}）`,
+            detail: `${REPORT_REASONS[reason]}${detail ? `：${detail}` : ""}`,
+        });
+    }
 };
 
 /* ---------- 後台 ---------- */

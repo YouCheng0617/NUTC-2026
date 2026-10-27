@@ -1,8 +1,11 @@
-import { parseLimit } from "../../lib/validateHelper.js";
+import { isValidId, parseLimit } from "../../lib/validateHelper.js";
 import type { Response, Request } from "express";
 import type { AuthRequest } from "../middleware/auth.middleware.js";
 import { saveGameRecord, getHighScore, getAllGameRecords } from "./game-record/game-record.service.js";
-import { createDailyNote, getDailyNote } from "./sticky-note/sticky-note.service.js";
+import {
+    createDailyNote, getDailyNote, reportDailyNote, getDailyNotesForAdmin, reviewDailyNote,
+    NOTE_APPROVED, NOTE_REJECTED,
+} from "./sticky-note/sticky-note.service.js";
 import { drawTarot, getTarotDailyStatus, requestTarotReading } from "./tarot/tarot.service.js";
 export class GameController {
     /*儲存遊戲紀錄*/
@@ -104,11 +107,13 @@ export class GameController {
             const note = await createDailyNote(memberId, content.trim());
 
             return res.status(201).json({
-                message: "便利貼發布成功",
+                message: "便利貼已送出，審核通過後大家就看得到",
                 data: {
                     id: note.id,
                     content: note.content,
-                    created_at: note.created_at
+                    created_at: note.created_at,
+                    status: note.status,
+                    is_mine: true
                 }
             });
 
@@ -120,9 +125,9 @@ export class GameController {
         }
     }
 
-    async getDailyNote(req: Request, res: Response) {
+    async getDailyNote(req: AuthRequest, res: Response) {
         try {
-            const notes = await getDailyNote();
+            const notes = await getDailyNote(req.user?.member_id);
 
             return res.status(200).json({
                 message: "取得便利貼成功",
@@ -131,6 +136,73 @@ export class GameController {
 
         } catch (error: any) {
             console.error("getTodayNotesController 錯誤:", error);
+            return res.status(500).json({ message: "伺服器內部錯誤" });
+        }
+    }
+
+    /* 🚩 檢舉便利貼 */
+    async reportDailyNote(req: AuthRequest, res: Response) {
+        try {
+            const memberId = req.user?.member_id as number;
+            const noteId = Number(req.params.noteId);
+            const { reason } = req.body;
+            if (!isValidId(noteId)) {
+                return res.status(400).json({ message: "無效的便利貼 ID" });
+            }
+            if (typeof reason !== "string" || reason.trim().length > 200) {
+                return res.status(400).json({ message: "檢舉理由最多 200 字" });
+            }
+
+            await reportDailyNote(noteId, memberId, reason);
+            return res.status(201).json({ message: "檢舉已送出，管理員會盡快處理" });
+        } catch (error: any) {
+            if (error.message === "REPORT_REASON_EMPTY") {
+                return res.status(400).json({ message: "檢舉理由不能為空字串" });
+            }
+            if (error.message === "NOTE_NOT_FOUND") {
+                return res.status(404).json({ message: "這張便利貼已經不在了" });
+            }
+            if (error.message === "CANNOT_REPORT_OWN") {
+                return res.status(400).json({ message: "不能檢舉自己的便利貼" });
+            }
+            if (error.message === "ALREADY_REPORTED") {
+                return res.status(409).json({ message: "你已經檢舉過這張便利貼囉！感謝你的回報。" });
+            }
+            console.error("reportDailyNote 錯誤:", error);
+            return res.status(500).json({ message: "伺服器發生錯誤，請稍後再試" });
+        }
+    }
+
+    /* 📝 後台：今天所有便利貼與檢舉 */
+    async getDailyNotesForAdmin(req: AuthRequest, res: Response) {
+        try {
+            const notes = await getDailyNotesForAdmin();
+            return res.status(200).json({ data: notes });
+        } catch (error: any) {
+            console.error("getDailyNotesForAdmin 錯誤:", error);
+            return res.status(500).json({ message: "伺服器內部錯誤" });
+        }
+    }
+
+    /* 📝 後台：審核便利貼（1 通過、2 下架） */
+    async reviewDailyNote(req: AuthRequest, res: Response) {
+        try {
+            const noteId = Number(req.params.noteId);
+            const { status, violation_reason } = req.body;
+            if (!isValidId(noteId)) {
+                return res.status(400).json({ message: "無效的便利貼 ID" });
+            }
+            if (status !== NOTE_APPROVED && status !== NOTE_REJECTED) {
+                return res.status(400).json({ message: "狀態只能是 1（通過）或 2（下架）" });
+            }
+
+            await reviewDailyNote(noteId, status, typeof violation_reason === "string" ? violation_reason : undefined);
+            return res.status(200).json({ message: status === NOTE_APPROVED ? "便利貼已通過" : "便利貼已下架" });
+        } catch (error: any) {
+            if (error.message === "NOTE_NOT_FOUND") {
+                return res.status(404).json({ message: "這張便利貼已經不在了" });
+            }
+            console.error("reviewDailyNote 錯誤:", error);
             return res.status(500).json({ message: "伺服器內部錯誤" });
         }
     }

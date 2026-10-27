@@ -195,6 +195,50 @@ export const sendEmailDeletionScheduled = async (toEmail: string, cancelToken: s
     }
 };
 
+const escapeMailHtml = (text: string) =>
+    text.replace(/[&<>"']/g, ch => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[ch]!));
+
+/*
+ * 🚨 有新的檢舉或客服案件，寄信提醒管理員
+ * 收件人在 .env 的 ADMIN_ALERT_EMAILS（逗號分隔）；內容是使用者寫的，一律跳脫，避免被塞 HTML
+ */
+export const sendEmailAdminCaseAlert = async (toEmails: string[], alert: {
+    kind: string;          // 例如「貼文檢舉」「客服」
+    summary: string;       // 被檢舉的內容或客服標題
+    detail?: string;       // 檢舉原因或客服內容
+    context?: string;      // 例如「在貼文 #12「標題」底下的留言」
+}) => {
+    try {
+        const adminUrl = `${process.env.FRONTEND_URL}/admin.html`;
+        const clip = (text: string, max: number) => escapeMailHtml(text.length > max ? `${text.slice(0, max)}…` : text);
+        const { error } = await resend.emails.send({
+            from: 'Drift Bottle <service@drift-bottles.xyz>',
+            to: toEmails,
+            subject: `🚨 【Drift Bottle】有新的${alert.kind}案件`,
+            html: `
+                <div style="font-family: Arial, sans-serif; padding: 20px;">
+                    <h1>有新的${escapeMailHtml(alert.kind)}案件</h1>
+                    <p>時間：<b>${taipeiTime(new Date())}</b></p>
+                    ${alert.context ? `<p>位置：${clip(alert.context, 120)}</p>` : ""}
+                    <p>內容：</p>
+                    <blockquote style="margin: 0 0 12px; padding: 10px 14px; border-left: 4px solid #3b82f6; background: #f8fafc; white-space: pre-wrap;">${clip(alert.summary, 300)}</blockquote>
+                    ${alert.detail ? `<p>說明：</p><blockquote style="margin: 0 0 12px; padding: 10px 14px; border-left: 4px solid #ef4444; background: #fef2f2; white-space: pre-wrap;">${clip(alert.detail, 300)}</blockquote>` : ""}
+                    <a href="${adminUrl}" style="display: inline-block; padding: 10px 20px; color: white; background-color: #000000; text-decoration: none; border-radius: 5px;">
+                        到後台處理
+                    </a>
+                    <p style="margin-top: 20px; color: #666;">同一則內容還沒處理前又被檢舉，不會再寄信。</p>
+                </div>
+            `
+        });
+        if (error) console.error('❌ 發送案件提醒失敗:', error);
+        return !error;
+
+    } catch (error) {
+        console.error('❌ mailer.ts 執行發生例外錯誤:', error);
+        return false;
+    }
+};
+
 /*正式註銷前寄出最後一封信（寄完就會清掉信箱）*/
 export const sendEmailAccountDeleted = async (toEmail: string) => {
     try {

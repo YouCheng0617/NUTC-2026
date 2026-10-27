@@ -18,8 +18,34 @@ import {
     updateCustomerServiceStatus,
     deleteCustomerServiceTicket
 } from "./admin.service.js";
+import { revealAnonymousAuthor } from "./admin.service.js";
 
 export class AdminController {
+
+    /* 🎭 管理員查匿名作者／留言者的真實身分（前台點「匿名使用者」用） */
+    async revealAnonymousController(req: AuthRequest, res: Response) {
+        try {
+            // adminCheck 也放行 AI 的金鑰；查匿名身分只給真正登入的管理員，才留得下是誰查的
+            if (!req.user) {
+                return res.status(403).json({ message: "權限不足！您不是管理員 🚫" });
+            }
+            const type = req.params.type;
+            const id = Number(req.params.id);
+            if ((type !== "bottle" && type !== "comment") || !isValidId(id)) {
+                return res.status(400).json({ message: "無效的查詢" });
+            }
+            const author = await revealAnonymousAuthor(type, id);
+            if (!author) {
+                return res.status(404).json({ message: "找不到這筆資料" });
+            }
+            // 留紀錄：哪個管理員查了誰
+            console.log(`🎭 管理員 #${req.user?.member_id} 查看了 ${type} #${id} 的作者（#${author.member_id}）`);
+            return res.status(200).json({ data: author });
+        } catch (error) {
+            console.error("revealAnonymousController 錯誤:", error);
+            return res.status(500).json({ message: "內部伺服器錯誤" });
+        }
+    }
 
     /*獲取會員列表*/
     async getMembersList(req: Request, res: Response) {

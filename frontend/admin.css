@@ -1108,6 +1108,27 @@ html {
 }
 .bc-content-cell { max-width: 420px; white-space: pre-wrap; word-break: break-word; line-height: 1.5; }
 
+/* 發送通知：收件人 */
+.bc-audience { display: flex; gap: 18px; flex-wrap: wrap; font-weight: 600; color: #334155; }
+.bc-audience label { display: inline-flex; align-items: center; gap: 6px; cursor: pointer; }
+.bc-target-box { margin-top: 8px; border: 1px solid var(--border-light); border-radius: 12px; padding: 12px; background: #f8fafc; }
+.bc-target-search { position: relative; }
+.bc-target-search input { width: 100%; box-sizing: border-box; padding: 9px 12px; border: 1px solid #cbd5e1; border-radius: 999px; font: inherit; }
+.bc-target-results {
+  position: absolute; left: 0; right: 0; top: calc(100% + 4px); z-index: 5;
+  background: #fff; border: 1px solid #cbd5e1; border-radius: 10px; box-shadow: 0 8px 20px rgba(15, 23, 42, 0.12);
+  max-height: 260px; overflow-y: auto;
+}
+.bc-target-option { display: flex; justify-content: space-between; gap: 10px; width: 100%; padding: 8px 12px; border: none; background: none; text-align: left; font: inherit; color: #334155; cursor: pointer; }
+.bc-target-option:hover, .bc-target-option:focus-visible { background: #e0f2fe; outline: none; }
+.bc-target-option small { color: #94a3b8; }
+.bc-target-option.is-picked { color: #94a3b8; cursor: default; }
+.bc-target-empty { padding: 10px 12px; color: #94a3b8; }
+.bc-target-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+.bc-target-chips .rd-chip { border-color: #7dd3fc; padding-left: 10px; }
+.bc-target-chips .rd-chip button { color: #0284c7; }
+.bc-target-cell { max-width: 220px; color: #334155; font-size: 0.9rem; line-height: 1.5; }
+
 /* 會員管理：搜尋框＋重新整理按鈕 */
 .users-toolbar { display: flex; align-items: center; gap: 8px; flex: 1 1 300px; justify-content: flex-end; }
 .users-toolbar #search-users { flex: 1 1 auto; min-width: 0; }

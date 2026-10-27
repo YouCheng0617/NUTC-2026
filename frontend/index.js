@@ -713,12 +713,13 @@ window.renderComments = async function (postId) {
                             <div class="ocean-reply-item">
                                 <div class="reply-header">
                                     <img src="${rAvatar}" class="reply-avatar" ${rBlockAttrs}>
-                                    <span class="reply-author" ${rBlockAttrs}>${escapeHTML(rAuthor)}</span>
+                                    <span class="reply-author" ${rBlockAttrs}${revealAttrs("comment", reply)}>${escapeHTML(rAuthor)}</span>
                                     ${renderCommentFollowBtn(reply.member_id, rAuthor)}
                                     ${reply.edited_at ? '<span class="comment-edited-tag">已編輯</span>' : ""}
                                 </div>
                                 <div class="reply-body md-content" data-comment-body="${escapeHTML(String(reply.id))}">${renderMarkdown(rContent)}</div>
                                 ${renderOwnCommentActions(reply)}
+                                ${renderCommentReportAction(reply)}
                             </div>
                         `;
           });
@@ -765,7 +766,7 @@ window.renderComments = async function (postId) {
                     <div class="ocean-comment-card">
                         <div class="comment-header">
                           <div class="comment-author-wrap">
-                            <span class="comment-author" data-block-id="${escapeHTML(String(c.member_id ?? ""))}" data-block-name="${escapeHTML(authorName)}">
+                            <span class="comment-author" data-block-id="${escapeHTML(String(c.member_id ?? ""))}" data-block-name="${escapeHTML(authorName)}"${revealAttrs("comment", c)}>
                                 <img src="${avatar}" class="comment-avatar">
                                 ${escapeHTML(authorName)}
                                 ${timeHtml}
@@ -789,6 +790,7 @@ window.renderComments = async function (postId) {
                                 ${isLiked ? "❤️" : "🤍"} ${likesCount}
                             </span>
                             ${renderOwnCommentActions(c, true)}
+                            ${renderCommentReportAction(c, true)}
                         </div>
 
                         <div id="reply-box-${commentId}" class="reply-input-box" style="display: none;">
@@ -1030,9 +1032,17 @@ window.openPostDetail = function (id) {
   document
     .querySelectorAll("#detail-board-tag")
     .forEach((el) => (el.innerText = p.board));
-  document
-    .querySelectorAll("#detail-author-tag")
-    .forEach((el) => (el.innerText = p.author || "匿名"));
+  document.querySelectorAll("#detail-author-tag").forEach((el) => {
+    el.innerText = p.author || "匿名";
+    // 管理員點匿名作者可以看真名（revealAttrs 的瓶子版）
+    if (isAdminUser() && (p.author === "匿名" || !p.authorId)) {
+      el.dataset.revealType = "bottle";
+      el.dataset.revealId = String(p.id);
+    } else {
+      delete el.dataset.revealType;
+      delete el.dataset.revealId;
+    }
+  });
   document
     .querySelectorAll("#detail-post-title")
     .forEach(
@@ -3212,6 +3222,7 @@ async function fetchNotificationCount() {
           unreadCount = notifList.filter(
             (item) => !(item.is_read ?? item.isRead),
           ).length;
+          popNewNotifications(notifList); // 有新的就從畫面上方跳出來
         }
       }
 
@@ -3384,39 +3395,7 @@ async function fetchAndRenderNotifications() {
 
     container.innerHTML = notifArray
       .map((notif) => {
-        let iconClass = "system";
-        let iconEmoji = "⚠️";
-        const typeUpper = (notif.type || "").toUpperCase();
-
-        if (typeUpper === "BROADCAST") {
-          // 📢 管理員發的全服通知
-          iconClass = "system";
-          iconEmoji = "📢";
-        } else if (typeUpper.includes("LIKE")) {
-          iconClass = "heart";
-          iconEmoji = "❤️";
-        } else if (
-          typeUpper.includes("REPLY") ||
-          typeUpper.includes("COMMENT")
-        ) {
-          iconClass = "reply";
-          iconEmoji = "💬";
-        } else if (
-          typeUpper.includes("SAVE") ||
-          typeUpper.includes("BOOKMARK")
-        ) {
-          iconClass = "system";
-          iconEmoji = "⭐";
-        } else if (
-          typeUpper.includes("WELCOME") ||
-          typeUpper.includes("USER")
-        ) {
-          iconClass = "user";
-          iconEmoji = "🎉";
-        } else {
-          iconClass = "system";
-          iconEmoji = "🌊";
-        }
+        const { iconClass, iconEmoji } = notifIcon(notif.type);
 
         const isRead = notif.is_read ?? notif.isRead;
         const unreadClass = isRead ? "" : "unread";
@@ -3449,6 +3428,117 @@ async function fetchAndRenderNotifications() {
       '<div style="text-align: center; color: #ff4d4d; padding: 20px 0;">連線失敗，請稍後再試 😢</div>';
   }
 }
+
+// 🔔 通知類型 → 圖示（通知列表、上方跳出的通知共用）
+function notifIcon(type) {
+  const typeUpper = String(type || "").toUpperCase();
+  if (typeUpper === "BROADCAST") return { iconClass: "system", iconEmoji: "📢" }; // 管理員發送的通知
+  if (typeUpper.includes("LIKE")) return { iconClass: "heart", iconEmoji: "❤️" };
+  if (typeUpper.includes("REPLY") || typeUpper.includes("COMMENT")) return { iconClass: "reply", iconEmoji: "💬" };
+  if (typeUpper.includes("SAVE") || typeUpper.includes("BOOKMARK")) return { iconClass: "system", iconEmoji: "⭐" };
+  if (typeUpper.includes("WELCOME") || typeUpper.includes("USER")) return { iconClass: "user", iconEmoji: "🎉" };
+  return { iconClass: "system", iconEmoji: "🌊" };
+}
+
+// =========================================
+// 🔔 新通知從畫面上方跳出來
+//   每次抓通知（30 秒一次、回到分頁時）比對：比上次看過的還新、而且還沒讀的才跳
+//   看過的時間記在這台裝置（依帳號分開），重新整理不會一直重跳；第一次只記下來不跳
+// =========================================
+const NOTIF_TOAST_MAX = 3; // 一次最多跳幾則，再多就合併成一則「還有 N 則」
+const NOTIF_TOAST_MS = 6000; // 幾秒後自動收起（滑鼠移上去會暫停）
+
+function notifSeenKey() {
+  const user = JSON.parse(localStorage.getItem("currentUser") || "{}");
+  const id = user.id || user.userId || user.member_id;
+  return id ? `notifToastSeen:${id}` : null;
+}
+
+function popNewNotifications(list) {
+  const key = notifSeenKey();
+  if (!key || !Array.isArray(list) || list.length === 0) return;
+  const timeOf = (n) => new Date(n.created_at || n.createdAt || 0).getTime() || 0;
+  const newest = Math.max(...list.map(timeOf));
+
+  let seen = null;
+  try { seen = Number(localStorage.getItem(key)) || null; } catch (e) {}
+  try { if (!seen || newest > seen) localStorage.setItem(key, String(newest)); } catch (e) {}
+  if (!seen) return; // 第一次：只記下來，不把舊通知全部跳出來
+
+  // 通知視窗開著就不跳（已經在看了）
+  const popup = document.getElementById("notif-popup");
+  if (popup && popup.style.display && popup.style.display !== "none") return;
+
+  const fresh = list
+    .filter((n) => timeOf(n) > seen && !(n.is_read ?? n.isRead))
+    .sort((a, b) => timeOf(b) - timeOf(a));
+  if (fresh.length === 0) return;
+
+  // 新跳出的會插在最上面：先放「還有 N 則」墊在最下面，再從舊到新放，最新的就在最上面
+  if (fresh.length > NOTIF_TOAST_MAX) {
+    showNotifToast({ type: "SUMMARY", content: `還有 ${fresh.length - NOTIF_TOAST_MAX} 則新通知，點鈴鐺看全部` });
+  }
+  fresh.slice(0, NOTIF_TOAST_MAX).reverse().forEach(showNotifToast);
+}
+
+function notifToastStack() {
+  let stack = document.getElementById("notif-toast-stack");
+  if (!stack) {
+    stack = document.createElement("div");
+    stack.id = "notif-toast-stack";
+    stack.setAttribute("aria-live", "polite");
+    document.body.appendChild(stack);
+  }
+  return stack;
+}
+
+function showNotifToast(notif) {
+  const { iconClass, iconEmoji } = notif.type === "SUMMARY"
+    ? { iconClass: "system", iconEmoji: "🔔" }
+    : notifIcon(notif.type);
+  const toast = document.createElement("div");
+  toast.className = "notif-toast";
+  toast.setAttribute("role", "status");
+  toast.innerHTML = `
+    <div class="notif-icon ${iconClass}">${iconEmoji}</div>
+    <div class="notif-toast-text"></div>
+    <button type="button" class="notif-toast-close" aria-label="關閉">×</button>`;
+  toast.querySelector(".notif-toast-text").textContent = stickersToText(notif.content || notif.message || "");
+
+  let timer = null;
+  const dismiss = () => {
+    clearTimeout(timer);
+    toast.classList.add("is-leaving");
+    setTimeout(() => toast.remove(), 250);
+  };
+  const startTimer = () => { timer = setTimeout(dismiss, NOTIF_TOAST_MS); };
+  toast.addEventListener("mouseenter", () => clearTimeout(timer));
+  toast.addEventListener("mouseleave", startTimer);
+  toast.querySelector(".notif-toast-close").addEventListener("click", (e) => {
+    e.stopPropagation();
+    dismiss();
+  });
+
+  // 點一下：跟點通知列表一樣（標成已讀、跳到對應的地方）；合併的那則就打開鈴鐺
+  toast.addEventListener("click", () => {
+    dismiss();
+    if (notif.type === "SUMMARY") {
+      document.getElementById("notification-bell-btn")?.click();
+      return;
+    }
+    const targetId = notif.target_id ?? notif.targetId ?? "";
+    const safeType = String(notif.type || "").replace(/[^A-Z_]/gi, "");
+    openNotificationTarget(String(notif.id), String(targetId), false, document.createElement("div"), safeType);
+  });
+
+  notifToastStack().prepend(toast);
+  startTimer();
+}
+
+// 回到這個分頁時馬上抓一次，不用等 30 秒
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState === "visible") fetchNotificationCount();
+});
 
 // 🔔 點通知就跳到對應的地方
 // 這幾種通知的 target_id 是漂流瓶 id，可以點進貼文
@@ -5266,6 +5356,75 @@ function authJsonHeaders() {
 }
 
 // 自己的留言／回覆才有的「編輯」「刪除」；主留言放在動作列裡，回覆自己一行
+// 🚩 別人的留言可以檢舉（自己的、已刪除的不顯示；管理員直接在後台處理，不用檢舉）
+function renderCommentReportAction(comment, inline = false) {
+  if (comment.is_mine || comment.is_deleted || isAdminUser()) return "";
+  const button = `<span class="action-btn report-trigger" onclick="reportComment('${escapeHTML(String(comment.id))}')">🚩 檢舉</span>`;
+  return inline ? button : `<div class="reply-own-actions">${button}</div>`;
+}
+
+window.reportComment = async function (commentId) {
+  if (!localStorage.getItem("authToken")) {
+    oceanLogin("請先登入才能檢舉留言喔！");
+    return;
+  }
+  const reason = await oceanPrompt("這則留言有什麼問題呢？\n管理員會看過再決定要不要刪除。", {
+    title: "檢舉留言",
+    icon: "🚩",
+    okText: "送出檢舉",
+    danger: true,
+  });
+  if (reason == null) return;
+  if (!reason.trim()) {
+    blockToast("請寫一下檢舉的原因");
+    return;
+  }
+
+  try {
+    const response = await fetch(`${API_BASE_URL}/comments/${commentId}/report`, {
+      method: "POST",
+      headers: authJsonHeaders(),
+      body: JSON.stringify({ reason: reason.trim() }),
+    });
+    const result = await response.json().catch(() => ({}));
+    blockToast(response.ok ? "檢舉已送出，謝謝你的回報 🙏" : result.message || "檢舉失敗，請稍後再試");
+  } catch (error) {
+    console.error("檢舉留言失敗:", error);
+    blockToast("伺服器連線失敗，請稍後再試 😢");
+  }
+};
+
+// 🎭 管理員點匿名的作者／留言者，跳出真正是誰（真名只有管理員打得到的後台接口才查得到）
+function revealAttrs(type, item) {
+  if (!item?.is_anonymous || item.is_deleted || !isAdminUser()) return "";
+  return ` data-reveal-type="${type}" data-reveal-id="${escapeHTML(String(item.id))}" title="管理員：點一下看真實身分"`;
+}
+
+document.addEventListener("click", async (e) => {
+  const el = e.target.closest?.("[data-reveal-type]");
+  if (!el || !isAdminUser()) return;
+  e.stopPropagation();
+  try {
+    const response = await fetch(
+      `${API_BASE_URL}/admin/reveal/${encodeURIComponent(el.dataset.revealType)}/${encodeURIComponent(el.dataset.revealId)}`,
+      { headers: authJsonHeaders() },
+    );
+    const result = await response.json().catch(() => ({}));
+    if (!response.ok) {
+      blockToast(result.message || "查不到這位使用者");
+      return;
+    }
+    const who = result.data;
+    oceanAlert(`這則${el.dataset.revealType === "bottle" ? "瓶子" : "留言"}的作者是：\n${who.name}（ID ${who.member_id}）`, {
+      title: "🎭 匿名使用者的真實身分",
+      icon: "🎭",
+    });
+  } catch (error) {
+    console.error("查詢匿名身分失敗:", error);
+    blockToast("伺服器連線失敗，請稍後再試 😢");
+  }
+});
+
 function renderOwnCommentActions(comment, inline = false) {
   if (!comment.is_mine || comment.is_deleted) return "";
   const id = escapeHTML(String(comment.id));

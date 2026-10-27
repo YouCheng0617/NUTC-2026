@@ -11,8 +11,12 @@ import {
     listBroadcastsController, createBroadcastController, updateBroadcastController,
     setBroadcastActiveController, deleteBroadcastController,
 } from "../broadcast/broadcast.controller.js";
+import { GameController } from "../game/game.controller.js";
+import { CommentController } from "../comment/comment.controller.js";
 
 const adminController = new AdminController();
+const gameController = new GameController();
+const commentController = new CommentController();
 
 export function adminRouter() {
     const router = Router();
@@ -26,6 +30,17 @@ export function adminRouter() {
     router.get("/bottles/reported", authCheck, adminCheck, (req: AuthRequest, res) => adminController.getReportedBottlesController(req, res));
     router.put("/bottles/:bottleId/reports/dismiss", authCheck, adminCheck, (req, res) => adminController.dismissBottleReportsController(req, res));
     router.get("/comments", authCheck, adminCheck, (req, res) => adminController.getAllCommentsController(req, res));
+
+    // 💬 留言檢舉
+    router.get("/comment-reports", authCheck, adminCheck, (req: AuthRequest, res) => commentController.getReportedCommentsController(req, res));
+    router.put("/comments/:commentId/reports/resolve", authCheck, adminCheck, (req: AuthRequest, res) => commentController.resolveCommentReportsController(req, res));
+
+    // 🎭 前台點匿名使用者看真名（只有管理員）
+    router.get("/reveal/:type/:id", authCheck, adminCheck, (req: AuthRequest, res) => adminController.revealAnonymousController(req, res));
+
+    // 📝 每日便利貼的審核與檢舉
+    router.get("/daily-notes", authCheck, adminCheck, (req: AuthRequest, res) => gameController.getDailyNotesForAdmin(req, res));
+    router.put("/daily-notes/:noteId/status", authCheck, adminCheck, (req: AuthRequest, res) => gameController.reviewDailyNote(req, res));
 
     // 🐌 寵物遊戲連線房間的玩家檢舉
     router.get("/game-reports", authCheck, adminCheck, getGameReportsController);
@@ -44,7 +59,7 @@ export function adminRouter() {
     router.put("/daily-questions/:date", authCheck, adminCheck, scheduleController);
     router.delete("/daily-questions/:date", authCheck, adminCheck, unscheduleController);
 
-    // 📢 全服通知
+    // 📨 發送通知（給所有人或指定的人）
     router.get("/broadcasts", authCheck, adminCheck, listBroadcastsController);
     router.post("/broadcasts", authCheck, adminCheck, createBroadcastController);
     router.put("/broadcasts/:id", authCheck, adminCheck, updateBroadcastController);

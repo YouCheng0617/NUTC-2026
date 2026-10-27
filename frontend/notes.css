@@ -200,6 +200,45 @@ body::before {
   font-weight: bold;
 }
 
+/* 自己剛發、還在審核中的便利貼 */
+.note-card.is-pending {
+  opacity: 0.82;
+  outline: 2px dashed rgba(30, 58, 138, 0.35);
+  outline-offset: -6px;
+}
+.note-pending {
+  padding: 1px 6px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.6);
+  color: #1e3a8a;
+  white-space: nowrap;
+}
+
+/* 🚩 檢舉按鈕 */
+.note-report-btn {
+  border: 0;
+  background: transparent;
+  padding: 2px 4px;
+  margin: -2px -4px -2px 0;
+  font-size: 0.85rem;
+  line-height: 1;
+  cursor: pointer;
+  opacity: 0.45;
+  border-radius: 6px;
+  transition: opacity 0.15s, background 0.15s;
+}
+.note-report-btn:hover,
+.note-card.is-focused .note-report-btn {
+  opacity: 1;
+}
+.note-report-btn:hover {
+  background: rgba(255, 255, 255, 0.55);
+}
+.note-report-btn:focus-visible {
+  outline: 2px solid #1e3a8a;
+  opacity: 1;
+}
+
 /* 操作提示 */
 .drag-hint {
   position: absolute;

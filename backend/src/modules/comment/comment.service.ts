@@ -2,6 +2,7 @@ import prisma from "../../lib/prisma.js";
 import { createNotification } from "../notification/notification.service.js";
 import { getBlockedMemberIds, isBlockedBetween } from "../block/block.service.js";
 import { isWithinEditWindow } from "../../lib/editWindow.js";
+import { alertAdmins } from "../../lib/adminAlert.js";
 /*新增留言*/
 export const createComment = async (bottleId: number, memberId: number, content: string, isAnonymous: boolean = false) => {
     // 防呆：確認瓶子存不存在，以及狀態是不是可以被留言的 (例如: 1 通過)
@@ -81,6 +82,7 @@ export const getCommentsByBottleId = async (bottleId: number, memberId: number |
         member: { select: { name: true } },
         _count: { select: { likes: true } },
         replies: {
+            where: { is_deleted: false }, // 被管理員刪掉的回覆不顯示
             orderBy: { createdAt: 'asc' },
             include: replyInclude
         }
@@ -155,6 +157,90 @@ const formatComment = (comment: any, memberId: number | undefined) => ({
     member: undefined,
     replies: undefined,
 });
+
+/* 🚩 檢舉留言（留言不用先審核，被檢舉才由管理員處理） */
+export const reportComment = async (commentId: number, memberId: number, reason: string) => {
+    const trimmedReason = reason.trim();
+    if (!trimmedReason) throw new Error("REPORT_REASON_EMPTY");
+
+    const comment = await prisma.comment.findUnique({
+        where: { id: commentId },
+        select: {
+            member_id: true, is_deleted: true, content: true, parent_id: true,
+            bottle: { select: { bottle_id: true, title: true, status: true } }
+        }
+    });
+    if (!comment || comment.is_deleted || comment.bottle.status !== 1) throw new Error("COMMENT_NOT_FOUND");
+    if (comment.member_id === memberId) throw new Error("CANNOT_REPORT_OWN");
+
+    let report;
+    try {
+        report = await prisma.commentReport.create({
+            data: { comment_id: commentId, member_id: memberId, reason: trimmedReason }
+        });
+    } catch (error: any) {
+        if (error.code === "P2002") throw new Error("ALREADY_REPORTED");
+        throw error;
+    }
+
+    // 🚨 這則第一次被檢舉（還沒處理的只有這一筆）才寄信提醒管理員
+    const pendingCount = await prisma.commentReport.count({ where: { comment_id: commentId, status: 0 } });
+    if (pendingCount === 1) {
+        alertAdmins({
+            kind: "留言檢舉",
+            context: `在貼文 #${comment.bottle.bottle_id}「${comment.bottle.title}」底下的${comment.parent_id ? "回覆" : "留言"}`,
+            summary: comment.content,
+            detail: trimmedReason,
+        });
+    }
+    return report;
+};
+
+/* ===== 後台 ===== */
+
+/* 被檢舉的留言：一則留言一筆，附上真正的留言者（匿名的也看得到）與每一筆檢舉 */
+export const getReportedCommentsForAdmin = async () => {
+    const comments = await prisma.comment.findMany({
+        where: { reports: { some: {} } },
+        include: {
+            member: { select: { member_id: true, name: true, email: true } },
+            bottle: { select: { bottle_id: true, title: true } },
+            reports: {
+                orderBy: { created_at: "desc" },
+                include: { reporter: { select: { member_id: true, name: true } } }
+            }
+        }
+    });
+    // 有待處理檢舉的排前面，其他照最新一筆檢舉的時間
+    const latest = (c: typeof comments[number]) => c.reports[0]?.created_at.getTime() ?? 0;
+    const pending = (c: typeof comments[number]) => c.reports.some(r => r.status === 0) ? 1 : 0;
+    return comments.sort((a, b) => pending(b) - pending(a) || latest(b) - latest(a));
+};
+
+/* 處理留言檢舉：delete → 刪掉留言（保留內容給後台留紀錄）並通知留言者；dismiss → 檢舉不成立 */
+export const resolveCommentReports = async (commentId: number, action: "delete" | "dismiss") => {
+    const comment = await prisma.comment.findUnique({
+        where: { id: commentId },
+        select: { member_id: true, is_deleted: true }
+    });
+    if (!comment) throw new Error("COMMENT_NOT_FOUND");
+
+    if (action === "dismiss") {
+        await prisma.commentReport.updateMany({ where: { comment_id: commentId, status: 0 }, data: { status: 2 } });
+        return;
+    }
+
+    await prisma.$transaction([
+        // 只標記刪除、不清內容：前台看不到（主留言只剩「已刪除」的位置，回覆直接不顯示），後台還看得到被刪了什麼
+        prisma.comment.update({ where: { id: commentId }, data: { is_deleted: true } }),
+        prisma.commentLike.deleteMany({ where: { comment_id: commentId } }),
+        prisma.commentReport.updateMany({ where: { comment_id: commentId, status: 0 }, data: { status: 1 } })
+    ]);
+    if (!comment.is_deleted) {
+        await createNotification(comment.member_id, 'SYSTEM_ALERT', '你的留言被檢舉並經管理員確認違反社群規範，已被刪除。')
+            .catch(err => console.error("留言刪除通知發送失敗:", err));
+    }
+};
 
 /* 修改留言：只有本人、只在留言後 20 分鐘內 */
 export const updateComment = async (commentId: number, memberId: number, content: string) => {

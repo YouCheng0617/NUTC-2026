@@ -2,7 +2,7 @@ import { Router } from "express";
 import { authCheck, adminCheck, type AuthRequest } from "../middleware/auth.middleware.js";
 import { GameController } from "./game.controller.js";
 import { collectRouter } from "./game-collect/collect.router.js";
-import { tarotReadingLimiter } from "../../lib/rateLimiter.js";
+import { reportLimiter, tarotReadingLimiter } from "../../lib/rateLimiter.js";
 
 const gameControllerInstance = new GameController();
 
@@ -14,6 +14,7 @@ export function gameRouter() {
 
     router.post("/daily-note", authCheck, gameControllerInstance.postDailyNote.bind(gameControllerInstance))
     router.get("/daily-note", authCheck, gameControllerInstance.getDailyNote.bind(gameControllerInstance))
+    router.post("/daily-note/:noteId/report", authCheck, reportLimiter, gameControllerInstance.reportDailyNote.bind(gameControllerInstance))
 
     // 🔮 塔羅牌每日占卜路由 (/game/tarot, /game/tarot/status)
     router.post("/tarot", authCheck, gameControllerInstance.postDrawTarot.bind(gameControllerInstance))
