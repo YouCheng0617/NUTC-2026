@@ -397,6 +397,18 @@ let GAME_TOKEN = localStorage.getItem('authToken') || localStorage.getItem('acce
             showFloatText(message, 5000);
         }
 
+        // 關掉網頁、離開這一頁：主動斷線，伺服器馬上就知道人走了（不然要等心跳逾時，房間裡會一直留著你）。
+        // 用斷線而不是 leave_room：翻牌對決的位置照樣保留，跟網路斷掉一樣；
+        // 記住房間，如果是按「上一頁」又回來（瀏覽器的頁面快取），就自動連回去
+        window.addEventListener('pagehide', () => {
+            if (!socket || !socket.connected || isMockMode) return;
+            if (currentRoomId) { rejoinRoomId = currentRoomId; rejoinAsHost = isRoomHost; }
+            socket.disconnect();
+        });
+        window.addEventListener('pageshow', (e) => {
+            if (e.persisted && socket && !socket.connected) socket.connect();   // 連上後 connect 事件會自動回房
+        });
+
         function initSocketIO() {
             if (socket) return;   // 只建立一次
             try {
@@ -412,13 +424,20 @@ let GAME_TOKEN = localStorage.getItem('authToken') || localStorage.getItem('acce
 
                 socket.on('disconnect', (reason) => {
                     isRoomRequesting = false;   // 等回應時斷線，按鈕才不會卡住
-                    if (currentRoomId && !isMockMode) {
+                    if (currentRoomId && !isMockMode && reason !== 'io client disconnect') {
                         rejoinRoomId = currentRoomId;
                         rejoinAsHost = isRoomHost;
                         showFloatText('連線中斷了，正在幫你重新連回房間…', 4000);
                     }
                     // 被伺服器主動斷開時 socket.io 不會自己重連，要手動接回去
                     if (reason === 'io server disconnect') socket.connect();
+                });
+
+                // 同一個帳號在別的分頁或裝置進房了：伺服器以新的為準，這邊回到大廳、不要自動回房
+                socket.on('session_replaced', ({ message } = {}) => {
+                    if (window.MemoryGame) MemoryGame.leaveRoom();
+                    if (window.StackGame) StackGame.leaveRoom();
+                    dropToLobby(message || '你在其他分頁或裝置進了房間，這邊先離開房間囉。');
                 });
 
                 // 創立房間成功 -> 代表我是房主
@@ -1987,7 +2006,7 @@ function updateRoomUI(text) {
                 ? (en ? 'You are the host: start a round' : '你是房主，按一下就能開局')
                 : (en ? 'Drop blocks at the right time — tallest wins' : '抓準時機放下積木，看誰疊得最高'));
             set('txtGameStackTag1', en ? 'Reflexes' : '反應力');
-            set('txtGameStackTag2', en ? '2-6 players' : '2～6 人');
+            set('txtGameStackTag2', en ? '1-6 players' : '1～6 人');
             set('txtGameStackGo', isRoomHost ? (en ? 'Start' : '開局') : (en ? 'Join' : '進去'));
             const stackStatus = (typeof StackGame !== 'undefined' && StackGame.status) ? StackGame.status() : 'idle';
             if (stackStatus === 'playing') {

@@ -116,14 +116,23 @@ const verifySocketMember = async (socket: Socket): Promise<number | null> => {
     }
 };
 
-/* 同一個帳號已經在房間裡：舊連線還活著就擋下；舊連線其實已經斷了（網路閃斷還沒清掉）就幫它離開 */
-const isAlreadyInRoom = (io: Server, memberId: number) => {
+/*
+ * 同一個帳號已經在房間裡：以新的連線為準，把舊的請出房間。
+ * 直接關掉網頁、手機滑掉 App 時，伺服器要等心跳逾時才知道人走了，這段期間舊連線看起來還「活著」，
+ * 以前會擋住新的連線（重開網頁進不了房）；現在改成舊連線收到 session_replaced 後斷開，前端回到大廳、不會自動回房。
+ * 回傳 true 代表是同一條連線重複進房（不處理）。
+ */
+const isAlreadyInRoom = (io: Server, socket: Socket, memberId: number) => {
     const existing = activeMembers.get(memberId);
     if (!existing) return false;
+    if (existing.socketId === socket.id) return true;
     const oldSocket = io.sockets.sockets.get(existing.socketId);
-    if (oldSocket?.connected) return true;
-    removeFromRoom(io, existing.socketId, 'disconnect');
+    removeFromRoom(io, existing.socketId, 'disconnect'); // 用斷線處理：翻牌對決／疊疊樂的位置先保留，新連線進同一間房會接回去
     activeMembers.delete(memberId);
+    if (oldSocket?.connected) {
+        oldSocket.emit('session_replaced', { message: '你在其他分頁或裝置進了房間，這邊先離開房間囉。' });
+        oldSocket.disconnect(true);
+    }
     return false;
 };
 
@@ -159,8 +168,8 @@ export const setupPetSocket = (io: Server) => {
             if (!socket.connected) return; // 驗證期間已經斷線
             if (banned) return socket.emit('error', { message: banned });
 
-            if (isAlreadyInRoom(io, memberId)) {
-                return socket.emit('error', { message: '這個帳號已經在其他裝置或分頁的房間裡了，請先在那邊離開房間！' });
+            if (isAlreadyInRoom(io, socket, memberId)) {
+                return socket.emit('error', { message: '你已經在房間裡了！' });
             }
 
             let capacity = maxPlayers ? Number(maxPlayers) : ABSOLUTE_MAX_PLAYERS;
@@ -191,8 +200,8 @@ export const setupPetSocket = (io: Server) => {
             if (!socket.connected) return; // 驗證期間已經斷線
             if (banned) return socket.emit('error', { message: banned });
 
-            if (isAlreadyInRoom(io, memberId)) {
-                return socket.emit('error', { message: '這個帳號已經在其他裝置或分頁的房間裡了，請先在那邊離開房間！' });
+            if (isAlreadyInRoom(io, socket, memberId)) {
+                return socket.emit('error', { message: '你已經在房間裡了！' });
             }
 
             const room = rooms.get(roomId);

@@ -9,6 +9,7 @@ import { isMemoryBusy } from './memoryGame.js';
  * 每個人疊自己的塔、同時開始：積木在塔頂上方左右移動，按一下放下。
  * 放歪了沒關係，但某一層上面所有積木的重心超出那一層的邊緣，上面那一截就會倒掉，這個人的這局就結束。
  * 時間到（gameSeconds）或參加的人都倒了，就比誰的塔最高；一樣高算平手。不記勝場、沒有中途離開的處罰。
+ * 一個人也能玩（minPlayers = 1）：只有自己在房間時，開局邀請不用等，直接開始。
  *
  * 防作弊：積木位置不是前端說了算。前端只回報「這塊出現後過了幾毫秒才按」，
  * 伺服器用自己記的出現時間檢查（容許網路延遲 lateToleranceMs），再用同一條公式算出位置與會不會倒。
@@ -37,6 +38,7 @@ interface StackPlayer {
 interface StackGame {
     roomId: string;
     phases: number[];             // 每一層積木一開始在來回的哪個位置（0～1）
+    tofus: number[];              // 每一層是哪種豆腐（cfg.tofuKinds 的索引），tofus[0] 是第 1 層
     players: StackPlayer[];
     endsAt: number;
     endTimer: NodeJS.Timeout | null;
@@ -54,13 +56,12 @@ interface StackInvite {
 const games = new Map<string, StackGame>();
 const unlockedRooms = new Set<string>();
 
-/* 暗號：前後的【】、空白、半形逗號都不計較 */
-const STACK_SECRET = '不想做報告拉，自己玩就好';
-const normalizeSecret = (text: string) => text.replace(/[【】\[\]\s]/g, '').replace(/,/g, '，');
+/* 暗號：連【】、全形逗號都要一字不差，只容許前後多打的空白 */
+const STACK_SECRET = '【不想做報告拉，自己玩就好】';
 
 /* 聊天訊息是暗號就解鎖這個房間並回 true（呼叫的人就不要把這則訊息廣播出去） */
 export const tryUnlockStack = (io: Server, roomId: string, message: string) => {
-    if (normalizeSecret(message) !== STACK_SECRET) return false;
+    if (message.trim() !== STACK_SECRET) return false;
     unlockedRooms.add(roomId);
     io.to(roomId).emit('stack_unlocked');
     return true;
@@ -75,6 +76,9 @@ export const isStackBusy = (roomId: string) => games.has(roomId) || invites.has(
 /* 開局時送給前端的規則：前端用同一套公式畫積木位置、判斷倒塌 */
 const rules = () => ({
     blockWidth: cfg.blockWidth,
+    baseWidth: cfg.baseWidth,
+    perfectRange: cfg.perfectRange,
+    tofuKinds: cfg.tofuKinds,
     swingRange: cfg.swingRange,
     periodStartMs: cfg.periodStartMs,
     periodStepMs: cfg.periodStepMs,
@@ -90,16 +94,50 @@ const blockX = (game: StackGame, level: number, elapsed: number) => {
     return cfg.swingRange * (4 * Math.abs(f - 0.5) - 1);
 };
 
-/* 從下往上找第一個撐不住的層：第 k 層以上所有積木的重心，超出第 k-1 層的邊緣就從第 k 層開始倒；都撐得住回 -1 */
-const collapseLevel = (blocks: number[]) => {
+/* 這塊積木出現 elapsed 毫秒時往哪邊移動：1 往右、-1 往左（雞蛋豆腐放下後往這邊滑） */
+const blockDir = (game: StackGame, level: number, elapsed: number) => {
+    const period = Math.max(cfg.periodMinMs, cfg.periodStartMs - (level - 1) * cfg.periodStepMs);
+    const u = elapsed / period + (game.phases[level - 1] ?? 0);
+    return u - Math.floor(u) < 0.5 ? -1 : 1;
+};
+
+const kindOf = (game: StackGame, level: number) => cfg.tofuKinds[game.tofus[level - 1] ?? 0]!;
+/* 第 level 層的寬度（第 0 層是砧板） */
+const widthOf = (game: StackGame, level: number) => (level === 0 ? cfg.baseWidth : cfg.blockWidth * kindOf(game, level).width);
+
+/* 從下往上找第一個撐不住的層：第 k 層以上所有積木的重心（照豆腐重量加權），超出第 k-1 層的邊緣就從第 k 層開始倒；都撐得住回 -1 */
+const collapseLevel = (game: StackGame, blocks: number[]) => {
     const n = blocks.length;
-    let sum = 0;
+    let sumX = 0, sumW = 0;
     let lowest = -1;
     for (let k = n - 1; k >= 1; k--) {
-        sum += blocks[k]!;
-        if (Math.abs(sum / (n - k) - blocks[k - 1]!) > cfg.blockWidth / 2) lowest = k; // 往下走，最後記到的就是最低的
+        const w = kindOf(game, k).weight;
+        sumX += blocks[k]! * w;
+        sumW += w;
+        if (Math.abs(sumX / sumW - blocks[k - 1]!) > widthOf(game, k - 1) / 2) lowest = k; // 往下走，最後記到的就是最低的
     }
     return lowest;
+};
+
+/* 放下第 level 層：算出落點（完美就對齊下面那塊，雞蛋豆腐會往移動方向多滑一段） */
+const landing = (game: StackGame, blocks: number[], level: number, elapsed: number) => {
+    let x = blockX(game, level, elapsed);
+    const below = blocks[level - 1]!;
+    const perfect = Math.abs(x - below) <= cfg.perfectRange;
+    if (perfect) x = below;
+    else x += kindOf(game, level).slide * blockDir(game, level, elapsed);
+    return { x, perfect };
+};
+
+/* 每層隨機一種豆腐，不要連續兩層一樣 */
+const randomTofus = () => {
+    const list: number[] = [];
+    for (let i = 0; i < cfg.maxBlocks; i++) {
+        let k = crypto.randomInt(cfg.tofuKinds.length);
+        if (k === list[i - 1]) k = (k + 1 + crypto.randomInt(cfg.tofuKinds.length - 1)) % cfg.tofuKinds.length;
+        list.push(k);
+    }
+    return list;
 };
 
 const heightOf = (p: StackPlayer) => p.blocks.length - 1;
@@ -114,6 +152,7 @@ const publicState = (game: StackGame, forSocketId?: string) => {
     return {
         rules: rules(),
         phases: game.phases,
+        tofus: game.tofus,
         players: publicPlayers(game),
         endsInMs: Math.max(0, game.endsAt - Date.now()),
         // 自己這塊積木再過多久開始動（負的代表已經動了多久）
@@ -175,6 +214,7 @@ const beginGame = (io: Server, invite: StackInvite) => {
     const game: StackGame = {
         roomId: invite.roomId,
         phases: Array.from({ length: cfg.maxBlocks }, () => crypto.randomInt(1000) / 1000),
+        tofus: randomTofus(),
         players: seats.map(([socketId, p]) => ({
             socketId, petName: p.petName, petColor: p.petColor,
             memberId: p.memberId ?? io.sockets.sockets.get(socketId)?.data.memberId,
@@ -218,6 +258,7 @@ export const setupStackGame = (io: Server, socket: Socket, getRoom: RoomLookup, 
             timer: null, endsAt: Date.now() + cfg.inviteSeconds * 1000,
         };
         invites.set(roomId, invite);
+        if (room.players.size === 1) return beginGame(io, invite); // 只有自己：不用問，直接開始
         invite.timer = setTimeout(() => beginGame(io, invite), cfg.inviteSeconds * 1000);
         io.to(roomId).emit('stack_invite', publicInvite(invite));
     });
@@ -251,9 +292,9 @@ export const setupStackGame = (io: Server, socket: Socket, getRoom: RoomLookup, 
         if (serverElapsed < -cfg.earlyToleranceMs) return; // 積木還沒出現
         const used = Math.max(0, Math.min(serverElapsed + cfg.earlyToleranceMs, Math.max(serverElapsed - cfg.lateToleranceMs, elapsed)));
 
-        const x = blockX(game, level, used);
+        const { x, perfect } = landing(game, player.blocks, level, used);
         player.blocks.push(x);
-        const fallFrom = collapseLevel(player.blocks);
+        const fallFrom = collapseLevel(game, player.blocks);
         if (fallFrom !== -1) {
             player.blocks = player.blocks.slice(0, fallFrom);
             player.out = 'fell';
@@ -264,7 +305,7 @@ export const setupStackGame = (io: Server, socket: Socket, getRoom: RoomLookup, 
         }
 
         io.to(game.roomId).emit('stack_dropped', {
-            socketId: socket.id, level, x, fallFrom, height: heightOf(player), out: player.out,
+            socketId: socket.id, level, x, perfect, fallFrom, height: heightOf(player), out: player.out,
         });
         checkAllOut(io, game);
     });

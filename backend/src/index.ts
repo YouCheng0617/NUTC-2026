@@ -41,6 +41,10 @@ app.disable('x-powered-by'); /*不在回應標頭透露使用 Express*/
 const httpServer = createServer(app);
 
 export const io = new Server(httpServer, {
+    // 心跳：預設 25 秒問一次、20 秒沒回才算斷線（最久 45 秒）。直接關網頁、手機滑掉 App 時伺服器只能靠心跳發現，
+    // 縮短成最久約 20 秒，房間裡才不會一直留著已經走掉的人
+    pingInterval: 10000,
+    pingTimeout: 10000,
     cors: {
         origin: "*", // 開發環境先全開
         methods: ["GET", "POST"]

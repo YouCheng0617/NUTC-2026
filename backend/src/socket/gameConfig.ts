@@ -87,13 +87,29 @@ export const gameConfig = {
     },
     // 🧱 海兔疊疊樂（stackGame.ts）：每個人疊自己的塔，同時開始，時間到或大家都倒了就比誰疊得高
     stackGame: {
-        minPlayers: 2,
+        minPlayers: 1,                 // 一個人也能玩（只有自己在房間時按開局就直接開始）
         inviteSeconds: 15,             // 房主開局後等大家回覆「加入／觀戰」幾秒
         countdownMs: 3000,             // 開局倒數，倒數完第一塊積木才開始左右移動
         gameSeconds: 90,               // 一局最多幾秒，時間到還沒倒的人照目前高度算
         dropGapMs: 450,                // 放下一塊之後，隔多久下一塊才出現（前端播落下動畫）
         // 以下數值會在開局時送給前端，前端照同一套公式畫積木的位置、判斷會不會倒
-        blockWidth: 100,               // 積木寬度（座標單位）
+        blockWidth: 100,               // 標準積木寬度（座標單位），各種豆腐的 width 是相對這個的倍數
+        baseWidth: 130,                // 最底下砧板的寬度
+        perfectRange: 5,               // 跟下面那塊差這麼多以內算「完美」，自動對齊到正中間
+        // 🧈 豆腐海兔的手感（每層隨機一種、不會連續一樣、大家順序一樣）：
+        //   width 寬度倍數、weight 重量（算重心用，越重越容易壓垮下面）、slide 放下後往移動方向多滑幾單位
+        //   id 要跟前端 stack_game.js 的 TOFU 一致（前端照 id 畫長相）
+        tofuKinds: [
+            { id: 'firm', width: 1, weight: 1, slide: 0 },        // 板豆腐：標準款
+            { id: 'stinky', width: 1, weight: 1, slide: 0 },      // 臭豆腐：放下時臭氣飄到別人畫面（前端效果）
+            { id: 'frozen', width: 1, weight: 0.6, slide: 0 },    // 凍豆腐：很輕
+            { id: 'egg', width: 1, weight: 1, slide: 10 },        // 雞蛋豆腐：很滑
+            { id: 'layered', width: 1, weight: 1.5, slide: 0 },   // 百頁豆腐：很重
+            { id: 'dried', width: 1.25, weight: 1.2, slide: 0 },  // 豆干：很寬
+            { id: 'fried', width: 1, weight: 0.5, slide: 0 },     // 油豆腐：最輕
+            { id: 'silken', width: 0.88, weight: 1, slide: 0 },   // 嫩豆腐：偏窄
+            { id: 'fish', width: 0.8, weight: 0.8, slide: 0 },    // 魚豆腐：最窄
+        ],
         swingRange: 120,               // 積木中心左右移動的範圍：-120 ～ 120
         periodStartMs: 2400,           // 第 1 塊來回一趟要幾毫秒，越疊越快
         periodStepMs: 60,              // 每疊高一層快多少

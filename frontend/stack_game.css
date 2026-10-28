@@ -64,6 +64,65 @@ button.st-player { cursor: pointer; }
 .st-drop { align-self: center; min-width: 220px; font-size: 1.15rem; }
 .st-drop[hidden] { display: none; }
 
+/* 🔊 音效開關（右上角，關閉鈕旁邊） */
+.st-sound {
+    flex: none; width: 40px; height: 40px; border-radius: 50%;
+    border: 3px solid #bfdbfe; background: #eff6ff; font-size: 1.05rem; cursor: pointer;
+}
+.st-sound.is-off { border-color: #e2e8f0; background: #f8fafc; }
+
+/* 🏅 個人最高紀錄 */
+.st-best {
+    padding: 6px 16px; border-radius: 999px;
+    background: #fef9c3; border: 3px solid #fde68a; color: #92400e; font-weight: 900;
+}
+.st-result-best { margin: 0; font-weight: 900; color: #92400e; }
+.st-result-best.is-new { font-size: 1.2rem; color: #d97706; animation: st-new-best 0.9s ease-in-out infinite alternate; }
+@keyframes st-new-best { to { transform: scale(1.08); } }
+
+/* 🧈 豆腐圖鑑 */
+.st-guide { width: min(760px, 100%); }
+.st-guide-title { font-weight: 900; font-size: 1.05rem; color: #7a4a12; margin-bottom: 8px; }
+.st-guide-list { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.st-guide-card {
+    display: flex; align-items: center; gap: 8px; padding: 6px 10px 6px 4px; border-radius: 14px;
+    background: #fff; border: 3px solid #fde7b0; text-align: left;
+}
+.st-guide-art { flex: none; width: 72px; height: 48px; }
+.st-guide-text { min-width: 0; display: flex; flex-direction: column; gap: 1px; font-size: 0.78rem; font-weight: 700; color: #64748b; }
+.st-guide-text b { font-size: 0.9rem; font-weight: 900; color: #7a4a12; }
+
+/* 💨 別人放了臭豆腐：綠色臭氣從畫面飄過 */
+.st-stink {
+    position: absolute; inset: 0; pointer-events: none;
+    display: flex; align-items: center; justify-content: center;
+    background:
+        radial-gradient(circle at 30% 40%, rgba(132, 204, 22, 0.55) 0 18%, transparent 40%),
+        radial-gradient(circle at 65% 55%, rgba(101, 163, 13, 0.5) 0 20%, transparent 45%),
+        radial-gradient(circle at 50% 25%, rgba(163, 230, 53, 0.45) 0 15%, transparent 38%);
+}
+.st-stink[hidden] { display: none; }
+.st-stink.is-on { animation: st-stink 2s ease-out forwards; }
+.st-stink span {
+    padding: 6px 14px; border-radius: 999px; background: rgba(255, 255, 255, 0.85);
+    color: #3f6212; font-weight: 900; font-size: 1.05rem;
+}
+@keyframes st-stink { 0% { opacity: 0; transform: scale(0.8); } 15% { opacity: 1; transform: scale(1); } 75% { opacity: 1; } 100% { opacity: 0; transform: translateY(-20px) scale(1.1); } }
+
+/* 別人放下／倒掉：玩家卡跳一下，冒出「+1」或「倒了！」 */
+.st-player { position: relative; }
+.st-player.is-bump { animation: st-bump 0.4s ease; }
+.st-player.is-bad { animation: st-shake 0.45s ease; }
+@keyframes st-bump { 40% { transform: scale(1.06) translateY(-3px); } }
+@keyframes st-shake { 20%, 60% { transform: translateX(-4px); } 40%, 80% { transform: translateX(4px); } }
+.st-pop {
+    position: absolute; right: 10px; top: 4px; pointer-events: none;
+    font-weight: 900; font-size: 1rem; color: #16a34a;
+    animation: st-pop 0.9s ease-out forwards;
+}
+.st-pop.is-bad { color: #dc2626; }
+@keyframes st-pop { from { opacity: 1; transform: translateY(0); } to { opacity: 0; transform: translateY(-22px); } }
+
 /* 📱 手機：玩家列表改成塔下面一排橫的 */
 @media screen and (max-width: 600px) {
     .st-rules { grid-template-columns: 1fr; }
@@ -73,10 +132,12 @@ button.st-player { cursor: pointer; }
     .st-mini { width: 30px; height: 44px; }
     .st-status { font-size: 0.82rem; padding: 6px 10px; }
     .st-drop { width: 100%; min-width: 0; }
+    .st-guide-list { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .st-guide-art { width: 56px; height: 38px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
-    .st-hero-art i { animation: none; }
+    .st-hero-art i, .st-result-best.is-new, .st-player.is-bump, .st-player.is-bad { animation: none; }
 }
 
 /* 🧱 連線面板上的疊疊樂按鈕：積木堆，跟翻牌對決的卡片並排 */

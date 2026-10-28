@@ -74,6 +74,8 @@
         '請選擇正確的組數！': 'Please choose a valid number of pairs!',
         '還沒輪到你喔！': "It's not your turn yet!",
         '房主離開了，這局翻牌對決取消。': 'The host left, so the match was cancelled.',
+        '你已經在房間裡了！': "You're already in a room!",
+        '你在其他分頁或裝置進了房間，這邊先離開房間囉。': 'You joined a room in another tab or device, so you left the room here.',
         // ---- 海兔疊疊樂（stackGame.ts）----
         '只有房主可以開始疊疊樂喔！': 'Only the host can start Bunny Stack!',
         '疊疊樂已經在進行中了！': 'Bunny Stack is already in progress!',
