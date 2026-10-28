@@ -1,0 +1,103 @@
+/* 🧱 海兔疊疊樂：外框、標題、結算、開局邀請都用 memory_game.css 的 mg-* 樣式，這裡只放疊疊樂自己的 */
+
+/* 大標題上的三塊豆腐：雞蛋豆腐、臭豆腐、板豆腐 */
+.st-hero-art { display: flex; flex-direction: column; align-items: center; gap: 3px; margin-bottom: 4px; }
+.st-hero-art i {
+    display: block; width: 64px; height: 22px; border-radius: 6px;
+    border: 3px solid #7a6a4f; background: #f8f3e6;
+    animation: st-hero-sway 2.4s ease-in-out infinite;
+}
+.st-hero-art i:nth-child(1) { transform: translateX(10px); background: #ffe27a; border-color: #8a6412; border-radius: 9px; animation-delay: -0.4s; }
+.st-hero-art i:nth-child(2) { transform: translateX(-6px); background: #dc923b; border-color: #6b3a12; animation-delay: -0.2s; }
+@keyframes st-hero-sway { 50% { translate: 4px 0; } }
+
+/* 玩法：四張小卡 */
+.st-rules { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; width: min(640px, 100%); text-align: left; }
+.st-rule {
+    display: flex; gap: 10px; align-items: flex-start;
+    padding: 10px 12px; border-radius: 16px;
+    background: #fff; border: 3px solid #bfdbfe; box-shadow: 0 3px 0 #bfdbfe;
+}
+.st-rule-icon { font-size: 1.5rem; line-height: 1; }
+.st-rule-text { display: flex; flex-direction: column; gap: 2px; font-size: 0.86rem; font-weight: 700; color: #475569; }
+.st-rule-text b { font-size: 0.98rem; font-weight: 900; color: #1e3a8a; }
+
+/* 對局畫面 */
+/* flex 裡的東西預設不會比內容窄：手機上橫排的玩家卡會把整個面板撐寬，所以一路設 min-width: 0 */
+.st-panel, .st-game, .st-main, .st-side { min-width: 0; }
+.st-game { flex: 1; min-height: 0; display: flex; flex-direction: column; gap: 10px; }
+.st-game[hidden] { display: none; }
+.st-bar { display: flex; align-items: center; gap: 10px; }
+.st-status {
+    flex: 1; min-width: 0; padding: 8px 14px; border-radius: 999px;
+    background: #eff6ff; color: #1e3a8a; font-weight: 900; font-size: 0.95rem;
+}
+.st-timer {
+    flex: none; padding: 8px 14px; border-radius: 999px;
+    background: #fff1f6; color: #db2777; font-weight: 900; font-variant-numeric: tabular-nums;
+}
+.st-main { flex: 1; min-height: 0; display: flex; gap: 10px; }
+.st-stage {
+    flex: 1; min-width: 0; position: relative; overflow: hidden;
+    border-radius: 18px; border: 3px solid #bfdbfe;
+    cursor: pointer; touch-action: manipulation; user-select: none; -webkit-user-select: none;
+}
+.st-stage canvas { display: block; }
+.st-game.is-spectating .st-stage { cursor: default; }
+
+/* 右邊的玩家列表 */
+.st-side { flex: 0 0 190px; display: flex; flex-direction: column; gap: 8px; overflow-y: auto; }
+.st-player {
+    display: flex; align-items: center; gap: 8px; width: 100%;
+    padding: 6px 10px 6px 6px; border-radius: 14px; box-sizing: border-box;
+    background: #fff; border: 3px solid #e2e8f0; text-align: left; font: inherit; color: #4a3b3b;
+}
+button.st-player { cursor: pointer; }
+.st-player.is-viewing { border-color: #f9a8d4; background: #fff1f6; }
+.st-player.is-out { opacity: 0.6; }
+.st-mini { flex: none; width: 44px; height: 64px; border-radius: 8px; background: #e8f7ff; }
+.st-player-info { min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.st-player-name { font-weight: 900; font-size: 0.9rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.st-player-height { font-weight: 900; color: #2563eb; font-size: 0.85rem; }
+.st-player-height em { font-style: normal; margin-left: 6px; padding: 0 7px; border-radius: 999px; background: #fee2e2; color: #b91c1c; font-size: 0.72rem; }
+
+.st-drop { align-self: center; min-width: 220px; font-size: 1.15rem; }
+.st-drop[hidden] { display: none; }
+
+/* 📱 手機：玩家列表改成塔下面一排橫的 */
+@media screen and (max-width: 600px) {
+    .st-rules { grid-template-columns: 1fr; }
+    .st-main { flex-direction: column; }
+    .st-side { flex: none; flex-direction: row; overflow-x: auto; overflow-y: hidden; padding-bottom: 2px; }
+    .st-player { width: auto; flex: none; max-width: 150px; padding: 4px 8px 4px 4px; }
+    .st-mini { width: 30px; height: 44px; }
+    .st-status { font-size: 0.82rem; padding: 6px 10px; }
+    .st-drop { width: 100%; min-width: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .st-hero-art i { animation: none; }
+}
+
+/* 🧱 連線面板上的疊疊樂按鈕：積木堆，跟翻牌對決的卡片並排 */
+.game-stack {
+    background: linear-gradient(135deg, #ecfccb 0%, #e0f2fe 100%);
+    border: 3px solid #86efac;
+    box-shadow: 0 5px 0 #86efac;
+}
+.game-stack:hover:not(:disabled) { border-color: #38bdf8; box-shadow: 0 5px 0 #38bdf8; }
+.game-stack:active:not(:disabled) { transform: translateY(5px); box-shadow: 0 0 0 transparent; }
+.gs-art { display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: 3px; padding-bottom: 6px; box-sizing: border-box; }
+.gs-block { display: block; width: 52px; height: 16px; border-radius: 4px; border: 3px solid #7a6a4f; box-sizing: border-box; transition: transform 0.25s ease; }
+.gs-block:nth-child(1) { background: #ffe27a; border-color: #8a6412; border-radius: 6px; transform: translateX(8px); }
+.gs-block:nth-child(2) { background: #dc923b; border-color: #6b3a12; transform: translateX(-5px); }
+.gs-block:nth-child(3) { background: #f8f3e6; }
+.game-stack:hover:not(:disabled) .gs-block:nth-child(1) { transform: translateX(14px) rotate(6deg); }
+.game-stack .gc-title { color: #166534; }
+@media screen and (max-width: 768px) {
+    .game-stack { box-shadow: 0 4px 10px rgba(0,0,0,0.1), 0 4px 0 #86efac; }
+    .game-stack:active:not(:disabled) { transform: translateY(4px); box-shadow: 0 0 0 transparent; }
+    .gs-block { width: 34px; height: 11px; border-width: 2px; border-radius: 3px; }
+    .gs-art { gap: 2px; padding-bottom: 2px; }
+}
+@media (prefers-reduced-motion: reduce) { .gs-block { transition: none; } }

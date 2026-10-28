@@ -85,6 +85,24 @@ export const gameConfig = {
             throneAnimation: { wins: 100 },
         }
     },
+    // 🧱 海兔疊疊樂（stackGame.ts）：每個人疊自己的塔，同時開始，時間到或大家都倒了就比誰疊得高
+    stackGame: {
+        minPlayers: 2,
+        inviteSeconds: 15,             // 房主開局後等大家回覆「加入／觀戰」幾秒
+        countdownMs: 3000,             // 開局倒數，倒數完第一塊積木才開始左右移動
+        gameSeconds: 90,               // 一局最多幾秒，時間到還沒倒的人照目前高度算
+        dropGapMs: 450,                // 放下一塊之後，隔多久下一塊才出現（前端播落下動畫）
+        // 以下數值會在開局時送給前端，前端照同一套公式畫積木的位置、判斷會不會倒
+        blockWidth: 100,               // 積木寬度（座標單位）
+        swingRange: 120,               // 積木中心左右移動的範圍：-120 ～ 120
+        periodStartMs: 2400,           // 第 1 塊來回一趟要幾毫秒，越疊越快
+        periodStepMs: 60,              // 每疊高一層快多少
+        periodMinMs: 1000,             // 最快來回一趟幾毫秒
+        maxBlocks: 150,
+        // 前端回報的放下時間跟伺服器算的差太多就拉回範圍內（網路延遲的容許值），避免改前端挑最好的位置
+        lateToleranceMs: 600,
+        earlyToleranceMs: 150,
+    },
     shop: {
         pet_color: {
             snow: 0,              // 經典雪兔

@@ -22,8 +22,9 @@
 
     </script>
 
-        <link rel="stylesheet" href="slug_game.css?v=20261013ei">
+        <link rel="stylesheet" href="slug_game.css?v=20261028a">
         <link rel="stylesheet" href="memory_game.css?v=20261012bi">
+        <link rel="stylesheet" href="stack_game.css?v=20261028a">
 
 </head>
 <body>
@@ -751,7 +752,21 @@
                     </span>
                     <span class="gc-go" id="txtGameMemoryGo">開局</span>
                 </button>
-                <div class="game-card game-soon" aria-hidden="true"><span class="gc-soon-icon">🎲</span><span id="txtGameSoon">更多遊戲準備中…</span></div>
+                <!-- 🧱 海兔疊疊樂：三塊積木歪歪地疊在一起。🤫 隱藏小遊戲，房間裡有人打過暗號才會出現（stack_game.js） -->
+                <button class="game-card game-stack" id="btnGameStack" onclick="StackGame.open()" hidden>
+                    <span class="gc-art gs-art" aria-hidden="true">
+                        <span class="gs-block"></span>
+                        <span class="gs-block"></span>
+                        <span class="gs-block"></span>
+                    </span>
+                    <span class="gc-text">
+                        <span class="gc-title" id="txtGameStackTitle">海兔疊疊樂</span>
+                        <span class="gc-desc" id="txtGameStackDesc">抓準時機放下積木，看誰疊得最高</span>
+                        <span class="gc-tags"><span id="txtGameStackTag1">反應力</span><span id="txtGameStackTag2">2～6 人</span></span>
+                    </span>
+                    <span class="gc-go" id="txtGameStackGo">開局</span>
+                </button>
+                <div class="game-card game-soon" id="gameSoon" aria-hidden="true"><span class="gc-soon-icon">🎲</span><span id="txtGameSoon">更多遊戲準備中…</span></div>
             </div>
         </div>
 
@@ -910,9 +925,10 @@
         </div>
     </div>
 
-        <script src="slug_game.js?v=20261024cfg"></script>
+        <script src="slug_game.js?v=20261028a"></script>
         <script src="memory_game.js?v=20261013a"></script>
-        <script src="slug_social.js?v=20261017a"></script>
+        <script src="stack_game.js?v=20261028a"></script>
+        <script src="slug_social.js?v=20261028a"></script>
         <script src="slug_idle.js?v=20261009c"></script>
 
 </body>

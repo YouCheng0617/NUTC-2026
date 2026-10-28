@@ -85,6 +85,10 @@ const invites = new Map<string, MemoryInvite>();
 /* 掛機被請出、人還在房間裡時，由 petServer 把他請出房間（避免 import 互相引用） */
 let kickFromRoom: (socketId: string) => void = () => {};
 export const setRoomKicker = (fn: (socketId: string) => void) => { kickFromRoom = fn; };
+/* 房間裡別的小遊戲（疊疊樂）在進行中就不能開翻牌對決：由 petServer 設定（避免 import 互相引用），回傳擋下的原因 */
+let otherGameBusy: (roomId: string) => string | null = () => null;
+export const setOtherGameCheck = (fn: (roomId: string) => string | null) => { otherGameBusy = fn; };
+export const isMemoryBusy = (roomId: string) => games.has(roomId) || invites.has(roomId);
 /* 用登入憑證確認身分：socketId -> 會員 ID（沒登入的人可以玩，但不記勝場） */
 const verifiedMembers = new Map<string, number>();
 
@@ -394,6 +398,8 @@ export const setupMemoryGame = (io: Server, socket: Socket, getRoom: RoomLookup,
         if (hostId !== socket.id) return socket.emit('memory_error', { message: '只有房主可以開始翻牌對決喔！' });
         if (games.has(roomId)) return socket.emit('memory_error', { message: '翻牌對決已經在進行中了！' });
         if (invites.has(roomId)) return socket.emit('memory_error', { message: '正在等大家回覆要不要加入，請稍等！' });
+        const busy = otherGameBusy(roomId);
+        if (busy) return socket.emit('memory_error', { message: busy });
         if (room.players.size < cfg.minPlayers) return socket.emit('memory_error', { message: `至少要 ${cfg.minPlayers} 個人才能開始對決！` });
 
         // 組數先用兩人局的最低組數檢查；開局時再依實際加入的人數自動補到最低組數

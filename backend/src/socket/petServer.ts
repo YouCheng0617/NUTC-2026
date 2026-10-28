@@ -2,7 +2,8 @@ import { Server, Socket } from 'socket.io';
 import jwt from 'jsonwebtoken';
 import prisma from '../lib/prisma.js';
 import { isTokenRevoked } from '../modules/middleware/auth.middleware.js';
-import { setupMemoryGame, memoryHandleLeave, memoryHandleJoin, memoryForget, setRoomKicker } from './memoryGame.js';
+import { setupMemoryGame, memoryHandleLeave, memoryHandleJoin, memoryForget, setRoomKicker, setOtherGameCheck } from './memoryGame.js';
+import { setupStackGame, stackHandleLeave, stackHandleJoin, isStackBusy, tryUnlockStack } from './stackGame.js';
 import { getRoomBanMinutesLeft } from './quitPenalty.js';
 import { loadConflicts, hasConflict, isBlockedByHost, blockPlayer, reportPlayer, recordRoomChat, clearRoomChat } from './gameSafety.js';
 import { roomJokerStyle, ensureJokerSkin, isDoodleSticker, canSendDoodle } from './memoryRewards.js';
@@ -135,6 +136,7 @@ const banMessage = async (memberId: number) => {
 export const setupPetSocket = (io: Server) => {
     /* 掛機被請出對決時，人還在房間裡就斷開他的連線，讓他離開房間（重連回來會被禁玩擋住） */
     setRoomKicker((socketId) => io.sockets.sockets.get(socketId)?.disconnect(true));
+    setOtherGameCheck((roomId) => (isStackBusy(roomId) ? '疊疊樂還在進行中，結束後才能開翻牌對決喔！' : null));
 
     io.on('connection', (socket: Socket) => {
         console.log(`[Socket] 玩家連線: ${socket.id}`);
@@ -240,6 +242,9 @@ export const setupPetSocket = (io: Server) => {
         // 4. 記憶翻牌對決（邏輯在 memoryGame.ts）
         setupMemoryGame(io, socket, (roomId) => rooms.get(roomId), (socketId) => socketRoomMap.get(socketId));
 
+        // 4-1. 海兔疊疊樂（邏輯在 stackGame.ts）
+        setupStackGame(io, socket, (roomId) => rooms.get(roomId), (socketId) => socketRoomMap.get(socketId));
+
         // 5. 封鎖、檢舉同房間的玩家（邏輯在 gameSafety.ts）
         //    前端送 { socketId }，可帶 ack 回呼拿結果：{ ok, message }
         const findTarget = (targetSocketId: unknown) => {
@@ -286,6 +291,7 @@ export const setupPetSocket = (io: Server) => {
                 const player = room.players.get(socket.id);
                 if (player && typeof message === 'string' && message.trim() !== '') { // 優化：防止發送空訊息
                     if (!chatAllowed()) return socket.emit('error', { message: '說太快了，休息一下再聊吧！' });
+                    if (tryUnlockStack(io, roomId, message)) return; // 🤫 疊疊樂的暗號：解鎖這個房間，訊息不傳出去
                     if (isDoodleSticker(message.trim())) {
                         const ok = await canSendDoodle(player.memberId).catch(() => false);
                         if (!ok) return socket.emit('error', { message: '還沒解鎖作者的塗鴉貼圖喔！翻牌對決贏滿 30 場或用兌換碼就能拿到' });
@@ -336,6 +342,7 @@ function joinRoomLogic(socket: Socket, roomId: string, playerData: Omit<Player, 
 
     socket.to(roomId).emit('player_joined', publicPlayer(newPlayer));
     memoryHandleJoin(socket.nsp.server, socket, roomId, playerData.memberId); // 翻牌對決斷線回來：接回原本的位置
+    stackHandleJoin(socket.nsp.server, socket, roomId, playerData.memberId);  // 疊疊樂斷線回來：接回原本的塔
 
     socket.to(roomId).emit('receive_message', systemMessage(`${newPlayer.petName} 蹦蹦跳跳地進入了房間！`));
 }
@@ -361,6 +368,7 @@ function removeFromRoom(io: Server, socketId: string, reason: 'leave' | 'disconn
         if (activeMembers.get(player.memberId)?.socketId === socketId) activeMembers.delete(player.memberId);
         room.players.delete(socketId);
         memoryHandleLeave(io, roomId, socketId, reason, room.players.size === 0);
+        stackHandleLeave(io, roomId, socketId, reason, room.players.size === 0);
 
         io.to(roomId).emit('player_left', { socketId });
         io.to(roomId).emit('receive_message', systemMessage(`${player.petName} 離開了房間。`));

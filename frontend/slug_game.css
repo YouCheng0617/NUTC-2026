@@ -2959,7 +2959,10 @@
         .mp-games-head { display: flex; align-items: baseline; gap: 10px; padding: 0 4px; }
         .mp-games-title { font-size: 1.05rem; font-weight: 900; color: var(--text-dark); }
         .mp-games-sub { font-size: 0.82rem; font-weight: 800; color: var(--text-dim); }
-        .mp-games-list { flex: 1; min-height: 0; display: grid; grid-template-columns: 2fr 1fr; gap: 15px; }
+        .mp-games-list { flex: 1; min-height: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        /* 疊疊樂還沒解鎖：翻牌對決佔大格，旁邊是「更多遊戲準備中…」 */
+        .mp-games-list:has(> .game-soon:not([hidden])) { grid-template-columns: 2fr 1fr; }
+        .game-card[hidden] { display: none; }
 
         .game-card {
             position: relative; display: flex; align-items: center; gap: 18px;
@@ -3046,7 +3049,7 @@
             .ui-panel:has(.mp-games:not([hidden])) .interaction-group { margin-bottom: 8px; }
             .ui-panel:has(.mp-games:not([hidden])) .btn-interact { padding: 6px 0; }
             .mp-games-head, .game-soon, .gc-tags { display: none; }
-            .mp-games-list { grid-template-columns: 1fr; }
+            .mp-games-list { grid-template-columns: 1fr 1fr; gap: 8px; }
             .game-card { padding: 4px 14px 4px 6px; }
             .gc-art { transform: scale(0.6); margin: -16px -18px; }
         }
@@ -3069,7 +3072,7 @@
             }
             .ui-panel.open .mp-games { display: none; }
             .mp-games-head, .game-soon { display: none; }
-            .mp-games-list { display: block; }
+            .mp-games-list { display: flex; flex-direction: column; gap: 6px; }
             .game-card { width: 100%; gap: 10px; padding: 7px 10px 7px 6px; border-radius: 18px; }
             .game-memory { box-shadow: 0 4px 10px rgba(0,0,0,0.1), 0 4px 0 #93c5fd; }
             .game-memory:active:not(:disabled) { transform: translateY(4px); box-shadow: 0 0 0 transparent; }

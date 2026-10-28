@@ -403,6 +403,7 @@ let GAME_TOKEN = localStorage.getItem('authToken') || localStorage.getItem('acce
                 // 不限制重連次數（以前是 3 次，網路閃幾下就永遠斷線了），連線等待也放寬到 8 秒
                 socket = io(API_BASE, { timeout: 8000, transports: ['websocket', 'polling'] });
                 if (window.MemoryGame) MemoryGame.bindSocket(socket);   // 🃏 翻牌對決（memory_game.js）
+                if (window.StackGame) StackGame.bindSocket(socket);     // 🧱 海兔疊疊樂（stack_game.js）
 
                 socket.on('connect', () => {
                     console.log('Socket 連線成功!');
@@ -807,6 +808,7 @@ let GAME_TOKEN = localStorage.getItem('authToken') || localStorage.getItem('acce
                 socket.emit('leave_room'); 
             }
             if (window.MemoryGame) MemoryGame.leaveRoom();
+            if (window.StackGame) StackGame.leaveRoom();
             currentRoomId = null;
             rejoinRoomId = null;
             isRejoining = false;
@@ -1394,17 +1396,22 @@ function copyRoomId() {
 
         // 剛送出：貼圖面板淡一下，告訴玩家要等一下才能再送
         function flashStickerCooldown() {
-            const panels = ['chatStickers', 'mgStickerTray'].map(id => document.getElementById(id)).filter(Boolean);
+            const panels = [document.getElementById('chatStickers'), ...document.querySelectorAll('.mg-sticker-tray')].filter(Boolean);
             panels.forEach(p => p.classList.add('is-cooling'));
             clearTimeout(flashStickerCooldown.t);
             flashStickerCooldown.t = setTimeout(() => panels.forEach(p => p.classList.remove('is-cooling')),
                 Math.max(200, STICKER_GAP_MS - (Date.now() - lastStickerAt)));
         }
 
-        // 現在是不是在連線小遊戲的畫面（翻牌對決的視窗開著；只拿來選小丑配色的那種不算）
+        // 連線小遊戲的視窗（各自的 js 用到才建）：翻牌對決、海兔疊疊樂
+        const MINI_GAME_OVERLAYS = ['memoryGameOverlay', 'stackGameOverlay'];
+        function openMiniGameOverlay() {
+            return MINI_GAME_OVERLAYS.map(id => document.getElementById(id))
+                .find(o => o && !o.hidden && !o.classList.contains('is-pick-only')) || null;
+        }
+        // 現在是不是在連線小遊戲的畫面（小遊戲視窗開著；翻牌對決只拿來選小丑配色的那種不算）
         function isInMiniGame() {
-            const o = document.getElementById('memoryGameOverlay');
-            return !!(currentRoomId && o && !o.hidden && !o.classList.contains('is-pick-only'));
+            return !!(currentRoomId && openMiniGameOverlay());
         }
 
         // 🎮 小遊戲裡的貼圖：右上角一顆貼圖按鈕，打開是只有貼圖的面板（沒有打字的地方）
@@ -1428,11 +1435,9 @@ function copyRoomId() {
         }
 
         function renderGameStickerText() {
-            const btn = document.getElementById('mgStickerBtn');
-            const tray = document.getElementById('mgStickerTray');
             const label = currLang === 'en' ? 'Stickers' : '貼圖';
-            if (btn) { btn.title = label; btn.setAttribute('aria-label', label); }
-            if (tray) {
+            document.querySelectorAll('.mg-sticker-btn').forEach(btn => { btn.title = label; btn.setAttribute('aria-label', label); });
+            document.querySelectorAll('.mg-sticker-tray').forEach(tray => {
                 // 剛解鎖塗鴉貼圖：數量對不上就重做一次按鈕
                 const grid = tray.querySelector('.mg-sticker-grid');
                 if (grid && +grid.dataset.count !== usableStickers().length) buildStickerButtons(grid);
@@ -1444,15 +1449,18 @@ function copyRoomId() {
                     b.title = stickerName(st);
                     b.setAttribute('aria-label', stickerName(st));
                 });
-            }
+            });
         }
 
-        function setGameStickerTray(open) {
-            const tray = document.getElementById('mgStickerTray');
-            const btn = document.getElementById('mgStickerBtn');
-            if (!tray) return;
-            tray.hidden = !open;
-            if (btn) { btn.classList.toggle('is-open', open); btn.setAttribute('aria-expanded', open ? 'true' : 'false'); }
+        // 打開或收起某個小遊戲視窗裡的貼圖面板；沒指定視窗就是全部收起來
+        function setGameStickerTray(open, overlay) {
+            (overlay ? [overlay] : MINI_GAME_OVERLAYS.map(id => document.getElementById(id))).forEach(o => {
+                const tray = o && o.querySelector('.mg-sticker-tray');
+                const btn = o && o.querySelector('.mg-sticker-btn');
+                if (!tray) return;
+                tray.hidden = !open;
+                if (btn) { btn.classList.toggle('is-open', open); btn.setAttribute('aria-expanded', open ? 'true' : 'false'); }
+            });
         }
 
         function setupGameStickers(overlay) {
@@ -1464,43 +1472,41 @@ function copyRoomId() {
             const btn = document.createElement('button');
             btn.type = 'button';
             btn.className = 'mg-sticker-btn';
-            btn.id = 'mgStickerBtn';
             btn.setAttribute('aria-expanded', 'false');
             btn.innerHTML = '<img src="' + stickerSrc('happy') + '" alt="">';
-            btn.addEventListener('click', () => setGameStickerTray(document.getElementById('mgStickerTray').hidden));
+            btn.addEventListener('click', () => setGameStickerTray(overlay.querySelector('.mg-sticker-tray').hidden, overlay));
             btns.insertBefore(btn, btns.firstChild);
 
             const tray = document.createElement('div');
             tray.className = 'mg-sticker-tray';
-            tray.id = 'mgStickerTray';
             tray.hidden = true;
             tray.setAttribute('role', 'dialog');
             tray.innerHTML = '<div class="mg-sticker-head"><span class="mg-sticker-hint"></span><button type="button" class="mg-sticker-close" aria-label="✕">✕</button></div><div class="mg-sticker-grid"></div>';
             buildStickerButtons(tray.querySelector('.mg-sticker-grid'));
-            tray.querySelector('.mg-sticker-close').addEventListener('click', () => setGameStickerTray(false));
+            tray.querySelector('.mg-sticker-close').addEventListener('click', () => setGameStickerTray(false, overlay));
             panel.appendChild(tray);
             renderGameStickerText();
         }
 
-        // 翻牌對決的視窗是 memory_game.js 用到才建的：出現之後補上貼圖按鈕；
-        // 一打開小遊戲就把聊天列收起來（遊戲裡只能傳貼圖），關掉時順便收起貼圖面板
+        // 小遊戲的視窗是各自的 js 用到才建的：出現之後補上貼圖按鈕；
+        // 一打開小遊戲就把聊天列收起來（遊戲裡只能傳貼圖），關掉時順便收起那個視窗的貼圖面板
         (function watchMiniGame() {
-            let watched = null;
-            const onToggle = () => {
-                const o = document.getElementById('memoryGameOverlay');
-                if (!o) return;
-                const btn = document.getElementById('mgStickerBtn');
+            const watched = new Set();
+            const onToggle = (o) => {
+                const btn = o.querySelector('.mg-sticker-btn');
                 if (btn) btn.hidden = !currentRoomId || o.classList.contains('is-pick-only');
                 if (isInMiniGame()) { if (typeof closeChatBar === 'function') closeChatBar(); }
-                else setGameStickerTray(false);
+                if (o.hidden || o.classList.contains('is-pick-only')) setGameStickerTray(false, o);
             };
             new MutationObserver(() => {
-                const o = document.getElementById('memoryGameOverlay');
-                if (!o || o === watched) return;
-                watched = o;
-                setupGameStickers(o);
-                new MutationObserver(onToggle).observe(o, { attributes: true, attributeFilter: ['hidden', 'class'] });
-                onToggle();
+                MINI_GAME_OVERLAYS.forEach(id => {
+                    const o = document.getElementById(id);
+                    if (!o || watched.has(o)) return;
+                    watched.add(o);
+                    setupGameStickers(o);
+                    new MutationObserver(() => onToggle(o)).observe(o, { attributes: true, attributeFilter: ['hidden', 'class'] });
+                    onToggle(o);
+                });
             }).observe(document.body, { childList: true });
         })();
 
@@ -1972,9 +1978,37 @@ function updateRoomUI(text) {
             }
             const memCard = document.getElementById('btnGameMemory');
             if (memCard) memCard.classList.toggle('is-live', status !== 'idle');
-            set('txtGameSoon', en ? 'More games coming…' : '更多遊戲準備中…');
             const memBtn = document.getElementById('btnGameMemory');
             if (memBtn) memBtn.disabled = typeof MemoryGame === 'undefined';
+
+            // 🧱 海兔疊疊樂：跟翻牌對決一樣，按鈕跟著對局狀態換字
+            set('txtGameStackTitle', en ? 'Bunny Stack' : '海兔疊疊樂');
+            set('txtGameStackDesc', isRoomHost
+                ? (en ? 'You are the host: start a round' : '你是房主，按一下就能開局')
+                : (en ? 'Drop blocks at the right time — tallest wins' : '抓準時機放下積木，看誰疊得最高'));
+            set('txtGameStackTag1', en ? 'Reflexes' : '反應力');
+            set('txtGameStackTag2', en ? '2-6 players' : '2～6 人');
+            set('txtGameStackGo', isRoomHost ? (en ? 'Start' : '開局') : (en ? 'Join' : '進去'));
+            const stackStatus = (typeof StackGame !== 'undefined' && StackGame.status) ? StackGame.status() : 'idle';
+            if (stackStatus === 'playing') {
+                set('txtGameStackDesc', en ? 'Stacking now — back to your tower!' : '正在疊，回去繼續疊');
+                set('txtGameStackGo', en ? 'Back' : '回去');
+            } else if (stackStatus === 'watching') {
+                set('txtGameStackDesc', en ? 'A round is on — come and watch' : '正在進行，可以進去觀戰');
+                set('txtGameStackGo', en ? 'Watch' : '觀戰');
+            } else if (stackStatus === 'inviting') {
+                set('txtGameStackDesc', en ? 'The host is starting — answer the invite above' : '房主開局了，在上方選要加入還是觀戰');
+                set('txtGameStackGo', en ? 'Open' : '查看');
+            }
+            const stackBtn = document.getElementById('btnGameStack');
+            const stackUnlocked = typeof StackGame !== 'undefined' && StackGame.isUnlocked();
+            if (stackBtn) {
+                stackBtn.hidden = !stackUnlocked;   // 🤫 隱藏小遊戲：沒解鎖就照舊顯示「更多遊戲準備中…」
+                stackBtn.classList.toggle('is-live', stackStatus !== 'idle');
+            }
+            const soon = document.getElementById('gameSoon');
+            if (soon) soon.hidden = stackUnlocked;
+            set('txtGameSoon', en ? 'More games coming…' : '更多遊戲準備中…');
         }
 
         // 泡泡左右範圍內，上方按鈕的最下緣（只算畫面上半部、看得見的按鈕）
@@ -6352,6 +6386,7 @@ slugEl.style.transform = slugTransform(`scaleX(${direction})`);
             updateNameUI();
             updateMpGamesUI();
             if (window.MemoryGame && MemoryGame.refreshLang) MemoryGame.refreshLang();
+            if (window.StackGame) StackGame.refreshLang();
             if (window.SlugSocial) SlugSocial.refreshLang();
             renderRoomStatus(lastRoomStatusText);
             if (isBoardOpen()) { renderBoardStatic(); renderBoardCompose(); renderBoardList(); }

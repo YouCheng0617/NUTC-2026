@@ -74,6 +74,12 @@
         '請選擇正確的組數！': 'Please choose a valid number of pairs!',
         '還沒輪到你喔！': "It's not your turn yet!",
         '房主離開了，這局翻牌對決取消。': 'The host left, so the match was cancelled.',
+        // ---- 海兔疊疊樂（stackGame.ts）----
+        '只有房主可以開始疊疊樂喔！': 'Only the host can start Bunny Stack!',
+        '疊疊樂已經在進行中了！': 'Bunny Stack is already in progress!',
+        '翻牌對決還在進行中，結束後才能開疊疊樂喔！': 'A Memory Match is still going — start Bunny Stack after it ends!',
+        '疊疊樂還在進行中，結束後才能開翻牌對決喔！': 'Bunny Stack is still going — start a Memory Match after it ends!',
+        '房主離開了，這局疊疊樂取消。': 'The host left, so Bunny Stack was cancelled.',
         // ---- 遊戲裡的提示（slug_game.js）----
         '連線中斷了，正在幫你重新連回房間…': 'Connection lost — reconnecting you to the room…',
         '創立房間成功！': 'Room created!',
@@ -186,6 +192,10 @@
         [/^🎁 兌換成功！「(.+)」的獎勵已經送到你的帳號$/, (title) => `🎁 Redeemed! Rewards from "${title}" are in your account`],
         // 公告板
         [/^想說的話最多 (\d+) 個字$/, (n) => `Keep it under ${n} characters`],
+        // 海兔疊疊樂
+        [/^至少要 (\d+) 個人才能開始疊疊樂！$/, (n) => `You need at least ${n} players to start Bunny Stack!`],
+        [/^(.+) 斷線了，塔先幫他留著。$/, (name) => `${name} disconnected — their tower is saved for now.`],
+        [/^(.+) 離開了疊疊樂。$/, (name) => `${name} left Bunny Stack.`],
         // 翻牌對決
         [/^至少要 (\d+) 個人才能開始對決！$/, (n) => `You need at least ${n} players to start!`],
         [/^至少要選 (\d+) 組才能開始喔！$/, (n) => `Pick at least ${n} pairs to start!`],
