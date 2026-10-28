@@ -91,6 +91,10 @@ html {
   padding: 16px;
   margin: 0;
   flex: 1;
+  /* 功能多到超過螢幕高度時，選單自己可以上下滑，才點得到下面的功能 */
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
 }
 
 .admin-menu li {
@@ -1128,6 +1132,12 @@ html {
 .bc-target-chips .rd-chip { border-color: #7dd3fc; padding-left: 10px; }
 .bc-target-chips .rd-chip button { color: #0284c7; }
 .bc-target-cell { max-width: 220px; color: #334155; font-size: 0.9rem; line-height: 1.5; }
+/* 電腦版表格：中文每個字都能斷行，欄位太擠時會被壓成一字一行（直式），所以給內容／收件人一個最小寬度，放不下改成左右滑 */
+@media screen and (min-width: 1025px) {
+  .bc-content-cell { min-width: 240px; }
+  .bc-target-cell { min-width: 140px; }
+  #section-broadcasts .modern-table td:nth-child(3) { min-width: 0; white-space: nowrap; }
+}
 
 /* 會員管理：搜尋框＋重新整理按鈕 */
 .users-toolbar { display: flex; align-items: center; gap: 8px; flex: 1 1 300px; justify-content: flex-end; }
