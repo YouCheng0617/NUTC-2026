@@ -56,7 +56,8 @@
         font-weight: bold;
         font-size: 1.1rem;
         transition: 0.3s;
-        -webkit-backdrop-filter: blur(5px); backdrop-filter: blur(5px);
+        -webkit-backdrop-filter: blur(5px);
+        backdrop-filter: blur(5px);
       }
 
       .back-btn:hover {
@@ -152,7 +153,8 @@
       .card-back {
         background: rgba(10, 25, 50, 0.6);
         border: 2px solid rgba(171, 130, 255, 0.4);
-        -webkit-backdrop-filter: blur(5px); backdrop-filter: blur(5px);
+        -webkit-backdrop-filter: blur(5px);
+        backdrop-filter: blur(5px);
         animation: float 3s infinite ease-in-out alternate;
       }
 
@@ -225,7 +227,8 @@
         width: 100vw;
         height: 100vh;
         background: rgba(0, 5, 15, 0.8);
-        -webkit-backdrop-filter: blur(5px); backdrop-filter: blur(5px);
+        -webkit-backdrop-filter: blur(5px);
+        backdrop-filter: blur(5px);
         z-index: 100;
         opacity: 0;
         transition: opacity 0.5s ease;
@@ -528,7 +531,8 @@
         color: #ffd700;
         font-size: 0.95rem;
         font-weight: bold;
-        -webkit-backdrop-filter: blur(5px); backdrop-filter: blur(5px);
+        -webkit-backdrop-filter: blur(5px);
+        backdrop-filter: blur(5px);
         box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
       }
 
@@ -634,7 +638,6 @@
     </div>
 
     <script>
-
       const tarotDeck = [
         {
           id: 0,
@@ -934,7 +937,7 @@
         }
       }
 
-      // 🌟 核心：開啟 Modal 並顯示解讀
+      // 🌟 核心：開啟 Modal 並顯示解讀（對齊 Node.js /game/tarot/reading 路由）
       async function showAIReadingModal() {
         const backdrop = document.getElementById("modal-backdrop");
         const modal = document.getElementById("ai-modal");
@@ -1015,15 +1018,15 @@
           console.warn("記錄塔羅次數發生問題:", e);
         }
 
-        // 2. 請求 AI 解讀
+        // 2. 請求 Node.js 主後端 AI 塔羅解讀 (/game/tarot/reading)
         try {
           const token = localStorage.getItem("authToken");
-          const response = await fetch(`${API_BASE_URL}/api/tarot`, {
-            // 本機測試用這個
+          const response = await fetch(`${API_BASE_URL}/game/tarot/reading`, {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
-              Authorization: `Bearer ${token}`,
+              Authorization: token ? `Bearer ${token}` : "",
+              "ngrok-skip-browser-warning": "true",
             },
             body: JSON.stringify({
               past: {
@@ -1047,19 +1050,27 @@
           if (response.ok) {
             const data = await response.json();
             setAiStatus("connected");
-            renderTypingEffect(data.ai_response || data.message, textEl, () => {
+
+            // 讀取 Node.js 回傳的解讀欄位 (ai_response / message)
+            const resultText =
+              data.ai_response ||
+              data.message ||
+              (data.data && data.data.ai_response);
+
+            renderTypingEffect(resultText, textEl, () => {
               document.getElementById("ai-actions").style.display = "block";
             });
           } else {
-            throw new Error("API尚未準備好");
+            throw new Error(`HTTP ${response.status}: API 請求失敗`);
           }
         } catch (error) {
+          console.error("塔羅解讀請求失敗:", error);
           setAiStatus("disconnected");
           const fallbackMessage = `海浪將你的命運軌跡推演了出來。回顧【過去】，你抽到了『${past.name} (${past.positionText})』，這象徵著你曾被「${past.meaning}」的能量所圍繞。而在【現在】的十字路口，『${present.name} (${present.positionText})』顯示你當下正處於「${present.meaning}」的狀態。對於你所好奇的【未來】，『${future.name} (${future.positionText})』給出了指引，暗示未來將與「${future.meaning}」息息相關。深呼吸，海洋會包容你的一切選擇。`;
 
           renderTypingEffect(fallbackMessage, textEl, () => {
             document.getElementById("ai-actions").style.display = "block";
-            modal.scrollTo({ top: modal.scrollHeight, behavior: "smooth" }); // 自動捲動到最底部的輸入框
+            modal.scrollTo({ top: modal.scrollHeight, behavior: "smooth" });
           });
         }
       }
